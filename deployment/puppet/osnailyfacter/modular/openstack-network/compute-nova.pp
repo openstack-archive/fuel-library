@@ -33,12 +33,21 @@ if $use_neutron {
 
   $nova_migration_ip          =  get_network_role_property('nova/migration', 'ipaddr')
 
+  # TODO(aschultz): Just use $::nova::params::libvirt_service_name when a
+  # version of puppet-nova has been pulled in that uses os_package_type to
+  # correctly handle the service names for ubuntu vs debian. Upstream bug
+  # LP#1515076
+  # NOTE: for debian packages and centos the name is the same ('libvirtd') so
+  # we are defaulting to that for backwards compatibility. LP#1469308
+  $libvirt_service_name = $::os_package_type ? {
+    'ubuntu' => $::nova::params::libvirt_service_name,
+    default  => 'libvirtd'
+  }
+
   service { 'libvirt' :
     ensure   => 'running',
     enable   => true,
-  # Workaround for bug LP #1469308
-  # also service name for Ubuntu and Centos is the same.
-    name     => 'libvirtd',
+    name     => $libvirt_service_name,
     provider => $nova::params::special_service_provider,
   }
 

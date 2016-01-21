@@ -145,6 +145,8 @@ class openstack::compute (
   $config_drive_format            = undef,
 ) {
 
+  include ::nova::params
+
   #
   # indicates that all nova config entries that we did
   # not specifify in Puppet should be purged from file
@@ -161,6 +163,9 @@ class openstack::compute (
 
   case $::osfamily {
     'RedHat': {
+      # TODO(aschultz): this is actually handled by ::nova::migration::libvirt
+      # when you include nova::compute::libvirt so we can probably remove this
+      # after it has been verified
       augeas { 'sysconfig-libvirt':
         context => '/files/etc/sysconfig/libvirtd',
         lens => "shellvars.lns",
@@ -212,6 +217,9 @@ class openstack::compute (
       package {$guestmount_package_name: ensure => present}
     }
     'Debian': {
+      # TODO(aschultz): this is actually handled by ::nova::migration::libvirt
+      # when you include nova::compute::libvirt so we can probably remove this
+      # after it has been verified
       augeas { 'default-libvirt':
         context => '/files/etc/default/libvirt-bin',
         changes => "set libvirtd_opts '\"-l -d\"'",
@@ -224,6 +232,9 @@ class openstack::compute (
   default: { fail("Unsupported osfamily: ${::osfamily}") }
   }
 
+  # TODO(aschultz): this is actually handled by ::nova::migration::libvirt
+  # when you include nova::compute::libvirt so we can probably remove this
+  # after it has been verified
   augeas { 'libvirt-conf':
     context => '/files/etc/libvirt/libvirtd.conf',
     changes => [
@@ -345,6 +356,17 @@ class openstack::compute (
     $disk_cachemodes = ['"file=directsync,block=none"']
   }
 
+  # TODO(aschultz): Just use $::nova::params::libvirt_service_name when a
+  # version of puppet-nova has been pulled in that uses os_package_type to
+  # correctly handle the service names for ubuntu vs debian. Upstream bug
+  # LP#1515076
+  # NOTE: for debian packages and centos the name is the same ('libvirtd') so
+  # we are defaulting to that for backwards compatibility. LP#1469308
+  $libvirt_service_name = $::os_package_type ? {
+    'ubuntu' => $::nova::params::libvirt_service_name,
+    default  => 'libvirtd'
+  }
+
   # Configure libvirt for nova-compute
   class { 'nova::compute::libvirt':
     libvirt_virt_type                          => $libvirt_type,
@@ -355,9 +377,7 @@ class openstack::compute (
     migration_support                          => $migration_support,
     remove_unused_original_minimum_age_seconds => pick($nova_hash['remove_unused_original_minimum_age_seconds'], '86400'),
     compute_driver                             => $compute_driver,
-    # Workaround for bug LP #1469308
-    # also service name for Ubuntu and Centos is the same.
-    libvirt_service_name     => "libvirtd",
+    libvirt_service_name                       => $libvirt_service_name
   }
 
   # From legacy libvirt.pp
@@ -389,7 +409,6 @@ class openstack::compute (
     }
   }
 
-  include nova::params
   case $libvirt_type {
     'kvm': {
       package { $libvirt_type_kvm:
