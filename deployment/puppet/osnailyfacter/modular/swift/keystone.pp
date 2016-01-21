@@ -23,6 +23,8 @@ $configure_endpoint = pick($swift_hash['configure_endpoint'], true)
 $service_name       = pick($swift_hash['service_name'], 'swift')
 $tenant             = pick($swift_hash['tenant'], 'services')
 
+$service_endpoint    = hiera('service_endpoint')
+
 validate_string($public_address)
 validate_string($password)
 
@@ -35,6 +37,7 @@ $public_url_s3       = "${public_protocol}://${public_address}:8080"
 $internal_url_s3     = "${internal_protocol}://${internal_address}:8080"
 $admin_url_s3        = "${admin_protocol}://${admin_address}:8080"
 
+class {'::osnailyfacter::wait_for_keystone_backends':}->
 class { '::swift::keystone::auth':
   password           => $password,
   auth_name          => $auth_name,
