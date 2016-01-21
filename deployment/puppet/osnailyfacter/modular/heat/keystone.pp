@@ -24,6 +24,10 @@ $configure_user_role = pick($heat_hash['configure_user_role'], true)
 $service_name        = pick($heat_hash['service_name'], 'heat')
 $tenant              = pick($heat_hash['tenant'], 'services')
 
+Class['::osnailyfacter::wait_for_keystone_backends'] -> Class['::heat::keystone::auth']
+Class['::osnailyfacter::wait_for_keystone_backends'] ->
+Class['::heat::keystone::auth_cfn']
+
 validate_string($public_address)
 validate_string($password)
 
@@ -34,6 +38,8 @@ $public_url_cfn      = "${public_protocol}://${public_address}:8000/v1"
 $internal_url_cfn    = "${internal_protocol}://${internal_address}:8000/v1"
 $admin_url_cfn       = "${admin_protocol}://${admin_address}:8000/v1"
 
+class {'::osnailyfacter::wait_for_keystone_backends':
+}
 
 class { '::heat::keystone::auth' :
   password               => $password,
@@ -60,3 +66,4 @@ class { '::heat::keystone::auth_cfn' :
   internal_url       => $internal_url_cfn,
   admin_url          => $admin_url_cfn,
 }
+

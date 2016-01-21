@@ -1,5 +1,6 @@
 require 'spec_helper'
 require 'shared-examples'
+require 'pry'
 manifest = 'openstack-controller/openstack-controller.pp'
 
 describe manifest do
@@ -199,12 +200,29 @@ describe manifest do
     end
 
     if primary_controller
+      it 'should have explicit ordering between LB classes and particular actions' do
+        expect(graph).to ensure_transitive_dependency("Class[nova::api]","Haproxy_backend_status[nova-api]")
+        expect(graph).to ensure_transitive_dependency("Haproxy_backend_status[nova-api]",
+                                                    "Exec[create-m1.micro-flavor]")
+        expect(graph).to ensure_transitive_dependency("Haproxy_backend_status[keystone-public]","Exec[create-m1.micro-flavor]")
+        expect(graph).to ensure_transitive_dependency("Haproxy_backend_status[keystone-admin]","Exec[create-m1.micro-flavor]")
+        franges = graph.vertices.find_all {|v| v.type == :nova_floating_range }
+        if !franges.to_a.empty?
+          franges.each do
+            |frange|
+            expect(graph).to ensure_transitive_dependency("Haproxy_backend_status[nova-api]",frange.ref)
+            expect(graph).to ensure_transitive_dependency("Haproxy_backend_status[keystone-public]",frange.ref)
+            expect(graph).to ensure_transitive_dependency("Haproxy_backend_status[keystone-admin]",frange.ref)
+          end
+        end
+      end
+
       if Noop.hiera('external_lb', false)
         url = "#{nova_internal_protocol}://#{nova_internal_endpoint}:8774"
         provider = 'http'
       else
         url = 'http://' + Noop.hiera('service_endpoint').to_s + ':10000/;csv'
-        provider = nil
+        provider = Puppet::Type.type(:haproxy_backend_status).defaultprovider.name
       end
 
       it {
