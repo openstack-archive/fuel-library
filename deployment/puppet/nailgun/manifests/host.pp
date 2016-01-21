@@ -83,7 +83,10 @@ $admin_iface = 'eth0',
   }
 
   #Suppress kernel messages to console
-  sysctl::value{'kernel.printk': value => '4 1 1 7'}
+  sysctl::value{'kernel.printk':
+    value => '4 1 1 7',
+    target => '/etc/sysctl.d/98-printk.conf',
+  }
 
   #Increase values for neighbour table
   sysctl::value{'net.ipv4.neigh.default.gc_thresh1': value => '256'}
