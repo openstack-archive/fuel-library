@@ -210,7 +210,7 @@
   type: puppet
   version: 2.0.0
   role: '*'
-  requires: [pre_deployment_start, rsync_core_puppet]
+  requires: [pre_deployment_start, rsync_core_puppet, save_cluster_configuration]
   required_for: [pre_deployment_end]
   parameters:
     puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/hiera/hiera.pp
@@ -283,3 +283,18 @@
         dst: /var/lib/astute/ironic/ironic
     permissions: '0600'
     dir_permissions: '0700'
+
+- id: save_cluster_configuration_master
+  type: upload_file
+  role: master
+  requires: [pre_deployment_start]
+  parameters:
+    path: /var/lib/fuel/configuration/{CLUSTER_ID}/common_attributes.yaml
+
+- id: save_cluster_configuration
+  type: copy_files
+  role: '*'
+  requires: [save_cluster_configuration_master]
+  required_for: [pre_deployment_end]
+  parameters:
+    path: /var/lib/fuel/configuration/common_attributes.yaml
