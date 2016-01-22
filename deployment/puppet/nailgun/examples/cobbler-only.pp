@@ -37,7 +37,7 @@ node default {
   $nailgun_api_url    = "http://${::fuel_settings['ADMIN_NETWORK']['ipaddress']}:8000/api"
 
   $bootstrap_settings          = pick($::fuel_settings['BOOTSTRAP'], {})
-  $bootstrap_flavor            = pick($bootstrap_settings['flavor'], 'centos')
+  $bootstrap_flavor            = pick($bootstrap_settings['flavor'], 'ubuntu')
   $bootstrap_path              = pick($bootstrap_settings['path'], '/var/www/nailgun/bootstraps/active_bootstrap')
   $bootstrap_meta              = pick(loadyaml("${bootstrap_path}/metadata.yaml"), {})
   $bootstrap_ethdevice_timeout = pick($bootstrap_settings['ethdevice_timeout'], '120')
