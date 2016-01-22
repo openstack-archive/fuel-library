@@ -30,6 +30,7 @@ describe 'docker' do
               "/var/log/docker-logs/puppet", "/var/log/docker-logs/rabbitmq",
               "/var/log/docker-logs/supervisor",
               "/var/lib/fuel", "/var/lib/fuel/keys", "/var/lib/fuel/ibp",
+              "/var/lib/fuel/connfiguration",
               "/var/lib/fuel/container_data",
               "/var/lib/fuel/container_data/8.0",
               "/var/lib/fuel/container_data/8.0/cobbler",
