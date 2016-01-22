@@ -6,7 +6,6 @@ Facter.add("osd_devices_list") do
       sgdisk_exe = "/sbin/sgdisk"
     end
 
-    return unless File.exists?(sgdisk_exe)
     setcode do
       output = []
       disks = {}
@@ -29,7 +28,7 @@ Facter.add("osd_devices_list") do
         device = "/dev/#{disk}"
         parts.each { |p|
           pnum = p.gsub(/#{disk}p*/, '')
-          code = Facter::Util::Resolution.exec(%Q{sgdisk -i #{pnum} #{device}}).match(/Partition GUID code:\s+(\S+)\s/)[1]
+          code = Facter::Util::Resolution.exec(%Q{#{sgdisk_exe} -i #{pnum} #{device}}).match(/Partition GUID code:\s+(\S+)\s/)[1]
 
           case code
           when "4FBD7E29-9D25-41B8-AFD0-062C0CEFF05D"
