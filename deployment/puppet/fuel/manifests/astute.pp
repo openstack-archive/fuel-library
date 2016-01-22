@@ -2,14 +2,9 @@ class fuel::astute(
   $rabbitmq_host            = $::fuel::params::rabbitmq_host,
   $rabbitmq_astute_user     = $::fuel::params::rabbitmq_astute_user,
   $rabbitmq_astute_password = $::fuel::params::rabbitmq_astute_password,
-  $bootstrap_flavor         = 'centos',
   ) inherits fuel::params {
 
-  $bootstrap_profile = $bootstrap_flavor ? {
-    /(?i)centos/                 => 'bootstrap',
-    /(?i)ubuntu/                 => 'ubuntu_bootstrap',
-    default                      => 'bootstrap',
-  }
+  $bootstrap_profile = 'ubuntu_bootstrap'
 
   $packages = [
     "psmisc",
