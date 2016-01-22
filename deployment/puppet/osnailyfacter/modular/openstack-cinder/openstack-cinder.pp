@@ -41,6 +41,9 @@ $db_connection = os_database_connection({
   'extra'    => $extra_params
 })
 
+$cinder_report_interval   = hiera('cinder_report_interval')
+$cinder_service_down_time = hiera('cinder_service_down_time')
+
 $keystone_auth_protocol = get_ssl_property($ssl_hash, {}, 'keystone', 'internal', 'protocol', 'http')
 $keystone_auth_host     = get_ssl_property($ssl_hash, {}, 'keystone', 'internal', 'hostname', [hiera('keystone_endpoint', ''), $service_endpoint, $management_vip])
 
@@ -118,6 +121,9 @@ class {'openstack::cinder':
   idle_timeout         => $idle_timeout,
   notification_driver  => $ceilometer_hash['notification_driver'],
   service_workers      => $service_workers,
+  cinder_report_interval   => $cinder_report_interval,
+  cinder_service_down_time => $nova_service_down_time,
+
 } # end class
 
 if $storage_hash['volumes_block_device'] or ($sahara_hash['enabled'] and $storage_hash['volumes_lvm']) {
