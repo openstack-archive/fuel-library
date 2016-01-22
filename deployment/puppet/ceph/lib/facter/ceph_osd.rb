@@ -1,12 +1,4 @@
 Facter.add("osd_devices_list") do
-    case Facter.value(:osfamily)
-    when /(?i)(redhat)/
-      sgdisk_exe = "/usr/sbin/sgdisk"
-    when /(?i)(debian)/
-      sgdisk_exe = "/sbin/sgdisk"
-    end
-
-    return unless File.exists?(sgdisk_exe)
     setcode do
       output = []
       disks = {}
