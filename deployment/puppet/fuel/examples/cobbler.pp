@@ -17,7 +17,6 @@ else {
 class { "fuel::cobbler":
   cobbler_user                => $::fuel_settings['cobbler']['user'],
   cobbler_password            => $::fuel_settings['cobbler']['password'],
-  bootstrap_flavor            => pick($bootstrap_settings['flavor'], 'centos'),
   bootstrap_path              => pick($bootstrap_settings['path'], '/var/www/nailgun/bootstraps/active_bootstrap'),
   bootstrap_meta              => pick(loadyaml("${bootstrap_path}/metadata.yaml"), {}),
   server                      => $::fuel_settings['ADMIN_NETWORK']['ipaddress'],
@@ -31,10 +30,6 @@ class { "fuel::cobbler":
   dhcp_interface              => $::fuel_settings['ADMIN_NETWORK']['interface'],
   nailgun_api_url             => $nailgun_api_url,
   bootstrap_ethdevice_timeout => pick($bootstrap_settings['ethdevice_timeout'], '120'),
-  # dhcp_start_address => $::fuel_settings['ADMIN_NETWORK']['dhcp_pool_start'],
-  # dhcp_end_address   => $::fuel_settings['ADMIN_NETWORK']['dhcp_pool_end'],
-  # dhcp_netmask       => $::fuel_settings['ADMIN_NETWORK']['netmask'],
-  # dhcp_gateway       => $dhcp_gateway,
 }
 
 fuel::systemd {['httpd', 'cobblerd', 'dnsmasq', 'xinetd']:
