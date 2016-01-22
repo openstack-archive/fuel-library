@@ -50,6 +50,8 @@ class openstack::cinder(
   $rbd_pool               = 'volumes',
   $rbd_user               = 'volumes',
   $rbd_secret_uuid        = 'a5d0dd94-57c4-ae55-ffe0-7e3732a24455',
+  $cinder_report_interval   = '10',
+  $cinder_service_down_time = '60',
 ) {
   include cinder::params
   #  if ($purge_cinder_config) {
@@ -121,6 +123,8 @@ class openstack::cinder(
         database_max_retries   => $max_retries,
         database_max_overflow  => $max_overflow,
         control_exchange       => 'cinder',
+        report_interval        => $cinder_report_interval,
+        service_down_time      => $cinder_service_down_time,
       }
 
       # TODO (iberezovskiy): Move to globals (as it is done for sahara)
