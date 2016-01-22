@@ -27,22 +27,22 @@ dm-2 lvm"
         Dir.stubs(:glob).with("/dev/hda?*").returns(["/dev/hda12"])
         Dir.stubs(:glob).with("/dev/vda?*").returns([])
         # Partition GUID code: EBD0A0A2-B9E5-4433-87C0-68B6B72699C7 (Microsoft basic data)
-        Facter::Util::Resolution.stubs(:exec).with(%q{sgdisk -i 1 /dev/sda}).returns("
+        Facter::Util::Resolution.stubs(:exec).with(%q{/usr/sbin/sgdisk -i 1 /dev/sda}).returns("
 You will need to delete this partition or resize it in another utility.
 Partition GUID code: EBD0A0A2-B9E5-4433-87C0-68B6B72699C7 (Microsoft basic data)
 Partition unique GUID: 8DA1A912-0CBD-4E0D-9C02-A754D651A15C")
         # Partition GUID code: 0FC63DAF-8483-4772-8E79-3D69D8477DE4 (Linux filesystem)
-        Facter::Util::Resolution.stubs(:exec).with(%q{sgdisk -i 2 /dev/sda}).returns("
+        Facter::Util::Resolution.stubs(:exec).with(%q{/usr/sbin/sgdisk -i 2 /dev/sda}).returns("
 You will need to delete this partition or resize it in another utility.
 Partition GUID code: 0FC63DAF-8483-4772-8E79-3D69D8477DE4 (Linux filesystem)
 Partition unique GUID: 91DF4C37-DEC2-45D1-B977-DC73FD5AA195")
         # OSD
-        Facter::Util::Resolution.stubs(:exec).with(%q{sgdisk -i 1 /dev/sdb}).returns("
+        Facter::Util::Resolution.stubs(:exec).with(%q{/usr/sbin/sgdisk -i 1 /dev/sdb}).returns("
 You will need to delete this partition or resize it in another utility.
 Partition GUID code:  4FBD7E29-9D25-41B8-AFD0-062C0CEFF05D (Unknown)
 Partition unique GUID: 4400F9A1-DE34-44EB-AE42-61578FFF31D5
 ")
-        Facter::Util::Resolution.stubs(:exec).with(%q{sgdisk -i 12 /dev/hda}).returns("
+        Facter::Util::Resolution.stubs(:exec).with(%q{/usr/sbin/sgdisk -i 12 /dev/hda}).returns("
 You will need to delete this partition or resize it in another utility.
 Partition GUID code:  4FBD7E29-9D25-41B8-AFD0-062C0CEFF05D (Unknown)
 Partition unique GUID: 4400F9A1-DE34-44EB-AE42-61578FFF31D5
@@ -77,22 +77,22 @@ dm-2 lvm"
 )
         Dir.stubs(:glob).with("/dev/sda?*").returns(["/dev/sda1", "/dev/sda2", "/dev/sda3", "/dev/sda4"])
         # OSD with journals
-        Facter::Util::Resolution.stubs(:exec).with(%q{sgdisk -i 1 /dev/sda}).returns("
+        Facter::Util::Resolution.stubs(:exec).with(%q{/usr/sbin/sgdisk -i 1 /dev/sda}).returns("
 You will need to delete this partition or resize it in another utility.
 Partition GUID code: 4FBD7E29-9D25-41B8-AFD0-062C0CEFF05D (Unknown)
 Partition unique GUID: 4400F9A1-DE34-44EB-AE42-61578FFF31D5
 ")
-        Facter::Util::Resolution.stubs(:exec).with(%q{sgdisk -i 2 /dev/sda}).returns("
+        Facter::Util::Resolution.stubs(:exec).with(%q{/usr/sbin/sgdisk -i 2 /dev/sda}).returns("
 You will need to delete this partition or resize it in another utility.
 Partition GUID code: 45B0969E-9B03-4F30-B4C6-B4B80CEFF106 (Unknown)
 Partition unique GUID: 4400F9A1-DE34-44EB-AE42-61578FFF31D5
 ")
-        Facter::Util::Resolution.stubs(:exec).with(%q{sgdisk -i 3 /dev/sda}).returns("
+        Facter::Util::Resolution.stubs(:exec).with(%q{/usr/sbin/sgdisk -i 3 /dev/sda}).returns("
 You will need to delete this partition or resize it in another utility.
 Partition GUID code: 4FBD7E29-9D25-41B8-AFD0-062C0CEFF05D (Unknown)
 Partition unique GUID: 4400F9A1-DE34-44EB-AE42-61578FFF31D5
 ")
-        Facter::Util::Resolution.stubs(:exec).with(%q{sgdisk -i 4 /dev/sda}).returns("
+        Facter::Util::Resolution.stubs(:exec).with(%q{/usr/sbin/sgdisk -i 4 /dev/sda}).returns("
 You will need to delete this partition or resize it in another utility.
 Partition GUID code: 45B0969E-9B03-4F30-B4C6-B4B80CEFF106 (Unknown)
 Partition unique GUID: 4400F9A1-DE34-44EB-AE42-61578FFF31D5
@@ -128,12 +128,12 @@ dm-1 lvm
 dm-2 lvm"
 )
       Dir.stubs(:glob).with("/dev/sda?*").returns(["/dev/sda1", "/dev/sda2"])
-      Facter::Util::Resolution.stubs(:exec).with(%q{sgdisk -i 1 /dev/sda}).returns("
+      Facter::Util::Resolution.stubs(:exec).with(%q{/usr/sbin/sgdisk -i 1 /dev/sda}).returns("
 You will need to delete this partition or resize it in another utility.
 Partition GUID code: EBD0A0A2-B9E5-4433-87C0-68B6B72699C7 (Microsoft basic data)
 Partition unique GUID: 8DA1A912-0CBD-4E0D-9C02-A754D651A15C")
       # Partition GUID code: 0FC63DAF-8483-4772-8E79-3D69D8477DE4 (Linux filesystem)
-      Facter::Util::Resolution.stubs(:exec).with(%q{sgdisk -i 2 /dev/sda}).returns("
+      Facter::Util::Resolution.stubs(:exec).with(%q{/usr/sbin/sgdisk -i 2 /dev/sda}).returns("
 You will need to delete this partition or resize it in another utility.
 Partition GUID code: 0FC63DAF-8483-4772-8E79-3D69D8477DE4 (Linux filesystem)
 Partition unique GUID: 91DF4C37-DEC2-45D1-B977-DC73FD5AA195")
@@ -165,12 +165,12 @@ dm-2 lvm"
 
       Dir.stubs(:glob).with("/dev/cciss/c0d0?*").returns(["/dev/cciss/c0d0p1"])
       Dir.stubs(:glob).with("/dev/nvme0n1?*").returns(["/dev/nvme0n1p1"])
-      Facter::Util::Resolution.stubs(:exec).with(%q{sgdisk -i 1 /dev/cciss/c0d0}).returns("
+      Facter::Util::Resolution.stubs(:exec).with(%q{/usr/sbin/sgdisk -i 1 /dev/cciss/c0d0}).returns("
 You will need to delete this partition or resize it in another utility.
 Partition GUID code: 4FBD7E29-9D25-41B8-AFD0-062C0CEFF05D (Unknown)
 Partition unique GUID: 4400F9A1-DE34-44EB-AE42-61578FFF31D5
 ")
-      Facter::Util::Resolution.stubs(:exec).with(%q{sgdisk -i 1 /dev/nvme0n1}).returns("
+      Facter::Util::Resolution.stubs(:exec).with(%q{/usr/sbin/sgdisk -i 1 /dev/nvme0n1}).returns("
 You will need to delete this partition or resize it in another utility.
 Partition GUID code: 4FBD7E29-9D25-41B8-AFD0-062C0CEFF05D (Unknown)
 Partition unique GUID: 4400F9A1-DE34-44EB-AE42-61578FFF31D5
