@@ -40,6 +40,9 @@ $db_connection = os_database_connection({
   'extra'    => $extra_params
 })
 
+$cinder_report_interval   = hiera('cinder_report_interval', '60')
+$cinder_service_down_time = hiera('cinder_service_down_time', '10')
+
 $keystone_auth_protocol = get_ssl_property($ssl_hash, {}, 'keystone', 'internal', 'protocol', 'http')
 $keystone_auth_host     = get_ssl_property($ssl_hash, {}, 'keystone', 'internal', 'hostname', [hiera('keystone_endpoint', ''), $service_endpoint, $management_vip])
 
@@ -86,41 +89,44 @@ $openstack_version = {
 
 ######### Cinder Controller Services ########
 class {'openstack::cinder':
-  sql_connection       => $db_connection,
-  queue_provider       => $queue_provider,
-  amqp_hosts           => hiera('amqp_hosts',''),
-  amqp_user            => $rabbit_hash['user'],
-  amqp_password        => $rabbit_hash['password'],
-  rabbit_ha_queues     => true,
-  volume_group         => $cinder_volume_group,
-  volume_backend_name  => $volume_backend_name,
-  physical_volume      => undef,
-  manage_volumes       => $manage_volumes,
-  enabled              => true,
-  glance_api_servers   => $glance_api_servers,
-  bind_host            => get_network_role_property('cinder/api', 'ipaddr'),
-  iscsi_bind_host      => get_network_role_property('cinder/iscsi', 'ipaddr'),
-  keystone_user        => $keystone_user,
-  keystone_tenant      => $keystone_tenant,
-  auth_uri             => $auth_uri,
-  privileged_auth_uri  => $privileged_auth_uri,
-  region               => $region,
-  identity_uri         => $identity_uri,
-  cinder_user_password => $cinder_user_password,
-  use_syslog           => hiera('use_syslog', true),
-  use_stderr           => hiera('use_stderr', false),
-  primary_controller   => $primary_controller,
-  verbose              => pick($cinder_hash['verbose'], hiera('verbose', true)),
-  debug                => pick($cinder_hash['debug'], hiera('debug', true)),
-  default_log_levels   => hiera_hash('default_log_levels'),
-  syslog_log_facility  => hiera('syslog_log_facility_cinder', 'LOG_LOCAL3'),
-  cinder_rate_limits   => hiera('cinder_rate_limits'),
-  max_retries          => $max_retries,
-  max_pool_size        => $max_pool_size,
-  max_overflow         => $max_overflow,
-  idle_timeout         => $idle_timeout,
-  notification_driver  => $ceilometer_hash['notification_driver'],
-  service_workers      => $service_workers,
+  sql_connection           => $db_connection,
+  queue_provider           => $queue_provider,
+  amqp_hosts               => hiera('amqp_hosts',''),
+  amqp_user                => $rabbit_hash['user'],
+  amqp_password            => $rabbit_hash['password'],
+  rabbit_ha_queues         => true,
+  volume_group             => $cinder_volume_group,
+  volume_backend_name      => $volume_backend_name,
+  physical_volume          => undef,
+  manage_volumes           => $manage_volumes,
+  enabled                  => true,
+  glance_api_servers       => $glance_api_servers,
+  bind_host                => get_network_role_property('cinder/api', 'ipaddr'),
+  iscsi_bind_host          => get_network_role_property('cinder/iscsi', 'ipaddr'),
+  keystone_user            => $keystone_user,
+  keystone_tenant          => $keystone_tenant,
+  auth_uri                 => $auth_uri,
+  privileged_auth_uri      => $privileged_auth_uri,
+  region                   => $region,
+  identity_uri             => $identity_uri,
+  cinder_user_password     => $cinder_user_password,
+  use_syslog               => hiera('use_syslog', true),
+  use_stderr               => hiera('use_stderr', false),
+  primary_controller       => $primary_controller,
+  verbose                  => pick($cinder_hash['verbose'], hiera('verbose', true)),
+  debug                    => pick($cinder_hash['debug'], hiera('debug', true)),
+  default_log_levels       => hiera_hash('default_log_levels'),
+  syslog_log_facility      => hiera('syslog_log_facility_cinder', 'LOG_LOCAL3'),
+  cinder_rate_limits       => hiera('cinder_rate_limits'),
+  max_retries              => $max_retries,
+  max_pool_size            => $max_pool_size,
+  max_overflow             => $max_overflow,
+  idle_timeout             => $idle_timeout,
+  notification_driver      => $ceilometer_hash['notification_driver'],
+  service_workers          => $service_workers,
+  cinder_report_interval   => $cinder_report_interval,
+  cinder_service_down_time => $nova_service_down_time,
+
 } # end class
 
 if $storage_hash['volumes_block_device'] or ($sahara_hash['enabled'] and $storage_hash['volumes_lvm']) {
