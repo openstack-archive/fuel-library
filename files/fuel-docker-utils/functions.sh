@@ -145,7 +145,7 @@ function check_ready {
       ostf) retry_checker "egrep -q ^[2-4][0-9]? < <(curl --connect-timeout 1 -s -w '%{http_code}' http://$ADMIN_IP:8777/ostf/not_found -o /dev/null)" ;;
       #NOTICE: Cobbler console tool does not comply unix conversation: 'cobbler profile find' always return 0 as exit code
       cobbler) retry_checker "shell_container cobbler ps waux | grep -q 'cobblerd -F' && pgrep dnsmasq"
-               retry_checker "shell_container cobbler cobbler profile find --name=centos* | grep -q centos && shell_container cobbler cobbler profile find --name=ubuntu* | grep -q ubuntu && shell_container cobbler cobbler profile find --name=bootstrap* | grep -q bootstrap" ;;
+               retry_checker "shell_container cobbler cobbler profile find --name=ubuntu* | grep -q ubuntu" ;;
       rabbitmq) retry_checker "curl -f -L -i  -u \"$astute_user:$astute_password\" http://$ADMIN_IP:15672/api/nodes  1>/dev/null 2>&1"
                 retry_checker "curl -f -L -u \"$mcollective_user:$mcollective_password\" -s http://$ADMIN_IP:15672/api/exchanges | grep -qw 'mcollective_broadcast'"
                 retry_checker "curl -f -L -u \"$mcollective_user:$mcollective_password\" -s http://$ADMIN_IP:15672/api/exchanges | grep -qw 'mcollective_directed'" ;;
