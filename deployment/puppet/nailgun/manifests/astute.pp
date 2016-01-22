@@ -3,15 +3,10 @@ class nailgun::astute(
   $rabbitmq_host = 'localhost',
   $rabbitmq_astute_user = 'naily',
   $rabbitmq_astute_password = 'naily',
-  $bootstrap_flavor = 'centos',
   $gem_source = "http://rubygems.org/",
   ){
 
-  $bootstrap_profile = $bootstrap_flavor ? {
-    /(?i)centos/                 => 'bootstrap',
-    /(?i)ubuntu/                 => 'ubuntu_bootstrap',
-    default                      => 'bootstrap',
-  }
+  $bootstrap_profile = 'ubuntu_bootstrap'
 
   case $::operatingsystem {
     /(?i)(centos|redhat)/: {
