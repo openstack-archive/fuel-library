@@ -92,7 +92,7 @@ if $queue_provider == 'rabbitmq' {
       'disk_free_limit'              => '5000000', # Corosync checks for disk space, reduce rabbitmq check to 5M see LP#1493520 comment #15
     }
   )
-  $config_rabbitmq_management_variables = hiera('rabbit_config_management_variables',
+  $config_management_variables = hiera('rabbit_config_management_variables',
     {
       'rates_mode' => 'none',
       'listener'   => "[{port, 15672}, {ip,\"${management_bind_ip_address}\"}]",
@@ -138,10 +138,28 @@ if $queue_provider == 'rabbitmq' {
       version                              => $version,
       node_ip_address                      => $rabbitmq_bind_ip_address,
       config_kernel_variables              => $config_kernel_variables,
-      config_rabbitmq_management_variables => $config_rabbitmq_management_variables,
+      config_management_variables          => $config_management_variables,
       config_variables                     => $config_variables,
       environment_variables                => $environment_variables,
     }
+
+    # NOTE(bogdando) retries for the rabbitmqadmin curl command, unmerged MODULES-1650
+    Staging::File <| title == 'rabbitmqadmin' |> {
+        tries       => 30,
+        try_sleep   => 6,
+    }
+    # TODO(bogdando) contribute this to puppetlabs-rabbitmq
+    # Start epmd as rabbitmq so it doesn't run as root when installing plugins
+    exec { 'epmd_daemon':
+      command => 'epmd -daemon',
+      path    => '/bin:/sbin:/usr/bin:/usr/sbin',
+      user    => 'rabbitmq',
+      group   => 'rabbitmq',
+      unless  => 'pgrep epmd',
+    }
+    # Make sure the various providers have their requirements in place.
+    Class['::rabbitmq::install'] -> Exec['epmd_daemon']
+      -> Rabbitmq_plugin<| |> -> Rabbitmq_exchange<| |>
 
     if ($use_pacemaker) {
       # Install rabbit-fence daemon

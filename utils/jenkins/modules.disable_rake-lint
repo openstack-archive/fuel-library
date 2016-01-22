@@ -25,6 +25,7 @@ ntp
 openssl
 openstacklib
 postgresql
+rabbitmq
 rsync
 sahara
 ssh
