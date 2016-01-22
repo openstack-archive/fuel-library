@@ -2,7 +2,6 @@ $fuel_settings = parseyaml($astute_settings_yaml)
 
 $production         = pick($::fuel_settings['PRODUCTION'], 'docker')
 $bootstrap_settings = pick($::fuel_settings['BOOTSTRAP'], {})
-$bootstrap_flavor   = pick($bootstrap_settings['flavor'], 'centos')
 
 if $production == 'prod' {
   $env_path  = '/usr'
@@ -84,7 +83,6 @@ class { 'nailgun::astute':
   rabbitmq_host            => $::fuel_settings['ADMIN_NETWORK']['ipaddress'],
   rabbitmq_astute_user     => $rabbitmq_astute_user,
   rabbitmq_astute_password => $rabbitmq_astute_password,
-  bootstrap_flavor         => $bootstrap_flavor,
 }
 
 if $use_systemd {

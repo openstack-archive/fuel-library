@@ -33,7 +33,6 @@ class fuel::params {
   $keystone_auth_version     = 'v2.0'
   $keystone_admin_token      = 'admin'
 
-  $bootstrap_flavor              = 'centos'
   # network interface configuration timeout (in seconds)
   $bootstrap_ethdevice_timeout   = '120'
 
