@@ -1,3 +1,4 @@
+#! /usr/bin/env ruby -S rspec
 require 'spec_helper'
 
 describe "ceph::facter::osd_devices_list", :type => :fact do
@@ -9,7 +10,6 @@ describe "ceph::facter::osd_devices_list", :type => :fact do
   context "with typical block device names" do
     context "OSD without journal"
       before :all do
-        Facter.fact(:osfamily).stubs(:value).returns("redhat")
         Facter::Util::Resolution.stubs(:exec).with(%q{lsblk -nr -o KNAME,TYPE}).returns(
 "sda disk
 sda1 part
@@ -64,7 +64,6 @@ Partition unique GUID: 4400F9A1-DE34-44EB-AE42-61578FFF31D5
 
     context "OSD with journal" do
       before :all do
-        Facter.fact(:osfamily).stubs(:value).returns("redhat")
         Facter::Util::Resolution.stubs(:exec).with(%q{lsblk -nr -o KNAME,TYPE}).returns(
 "sda disk
 sda1 part
@@ -152,7 +151,6 @@ Partition unique GUID: 91DF4C37-DEC2-45D1-B977-DC73FD5AA195")
 
   context "with special block device names" do
     before :all do
-      Facter.fact(:osfamily).stubs(:value).returns("redhat")
       Facter::Util::Resolution.stubs(:exec).with(%q{lsblk -nr -o KNAME,TYPE}).returns(
 "cciss!c0d0 disk
 cciss/c0d0p1 part
