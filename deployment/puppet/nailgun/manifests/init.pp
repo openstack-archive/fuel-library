@@ -26,7 +26,7 @@ class nailgun(
   $cobbler_password         = 'cobbler',
   $cobbler_host             = $::fuel_settings['ADMIN_NETWORK']['ipaddress'],
   $cobbler_url              = "http://${::fuel_settings['ADMIN_NETWORK']['ipaddress']}/cobbler_api",
-  $bootstrap_flavor         = pick($::fuel_settings['BOOTSTRAP']['flavor'], 'centos'),
+  $bootstrap_flavor         = pick($::fuel_settings['BOOTSTRAP']['flavor'], 'ubuntu'),
   $dns_upstream             = $::fuel_settings['DNS_UPSTREAM'],
   $dns_domain               = $::fuel_settings['DNS_DOMAIN'],
   $dns_search               = $::fuel_settings['DNS_SEARCH'],
