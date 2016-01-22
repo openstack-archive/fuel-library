@@ -32,6 +32,7 @@ describe 'docker' do
               "/var/log/docker-logs/supervisor",
               "/var/log/dump",
               "/var/lib/fuel", "/var/lib/fuel/keys", "/var/lib/fuel/ibp",
+              "/var/lib/fuel/configuration",
               "/var/lib/fuel/container_data",
               "/var/lib/fuel/container_data/#{release}",
               "/var/lib/fuel/container_data/#{release}/cobbler",
