@@ -308,3 +308,19 @@
         dst: /var/lib/astute/ironic/ironic
     permissions: '0600'
     dir_permissions: '0700'
+
+- id: save_cluster_configuration
+  type: upload_file
+  role: master
+  requires: [pre_deployment_start]
+  parameters:
+    path: /var/lib/fuel/configuration/{CLUSTER_ID}/common_attributes.yaml
+
+- id: upload_cluster_configuration
+  type: sync
+  role: '*'
+  requires: [save_cluster_configuration]
+  required_for: [pre_deployment_end]
+  parameters:
+    src: /var/lib/fuel/configuration/{CLUSTER_ID}/common_attributes.yaml
+    dst: /var/lib/fuel/configuration/common_attributes.yaml
