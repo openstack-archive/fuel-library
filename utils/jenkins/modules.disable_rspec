@@ -30,7 +30,6 @@ puppet
 puppetmaster
 puppet-network
 qpid
-rabbitmq
 rpmcache
 rsyslog
 ssh
