@@ -23,6 +23,7 @@ class docker (
     '/var/log/docker-logs/supervisor',
     '/var/lib/fuel',
     '/var/lib/fuel/keys',
+    '/var/lib/fuel/configuration',
     '/var/lib/fuel/ibp',
     '/var/lib/fuel/container_data',
     "/var/lib/fuel/container_data/${release}",
