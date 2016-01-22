@@ -195,3 +195,9 @@ mod 'datacat',
 mod 'mcollective',
     :git => 'https://github.com/fuel-infra/puppet-mcollective.git',
     :ref => 'v2.1.1'
+
+# Pull in puppetlabs-rabbitmq
+# FIXME(bogdando) We need the 5.3.1-dc0964d. Use the 5.3.2 once released.
+mod 'rabbitmq',
+    :git => 'https://github.com/puppetlabs/puppetlabs-rabbitmq.git',
+    :ref => 'dc0964d'

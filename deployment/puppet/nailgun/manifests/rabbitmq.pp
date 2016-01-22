@@ -142,8 +142,26 @@ class nailgun::rabbitmq (
       'tcp_listen_options'          => $rabbit_tcp_listen_options,
     },
 
-    config_rabbitmq_management_variables => $rabbitmq_management_variables,
+    config_management_variables => $rabbitmq_management_variables,
   }
+
+    # NOTE(bogdando) retries for the rabbitmqadmin curl command, unmerged MODULES-1650
+    Staging::File <| title == 'rabbitmqadmin' |> {
+        tries       => 30,
+        try_sleep   => 6,
+    }
+    # TODO(bogdando) contribute this to puppetlabs-rabbitmq
+    # Start epmd as rabbitmq so it doesn't run as root when installing plugins
+    exec { 'epmd_daemon':
+      command => 'epmd -daemon',
+      path    => '/bin:/sbin:/usr/bin:/usr/sbin',
+      user    => 'rabbitmq',
+      group   => 'rabbitmq',
+      unless  => 'pgrep epmd',
+    }
+    # Make sure the various providers have their requirements in place.
+    Class['::rabbitmq::install'] -> Exec['epmd_daemon']
+      -> Rabbitmq_plugin<| |> -> Rabbitmq_exchange<| |>
 
   Anchor['nailgun::rabbitmq start'] ->
   Class['::rabbitmq'] ->
