@@ -2,6 +2,10 @@ require 'spec_helper'
 
 describe "ceph::facter::osd_devices_list", :type => :fact do
 
+  before :all do
+    File.stubs(:exists?).returns(true)
+  end
+
   it "should exist" do
     expect(Facter.fact(:osd_devices_list).name).to eq(:osd_devices_list)
   end
