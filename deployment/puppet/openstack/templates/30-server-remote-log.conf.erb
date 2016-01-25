@@ -1,5 +1,9 @@
 # file is managed by puppet
 #
+
+<% for ruleSet in ['remote', 'RSYSLOG_DefaultRuleset'] -%>
+$RuleSet remote
+
 # remote logs parsing based on syslogtag, uses predefined Fuel templates
 <% if @show_timezone -%>
 # Use high precision timestamps (date-rfc3339, 2010-12-05T02:21:41.889482+01:00)
@@ -11,9 +15,9 @@ $Template RemoteLog, "%timegenerated:1:15:date-rfc3164% %syslogseverity-text%: %
 $ActionFileDefaultTemplate RemoteLog
 
 # Would match 'kernel:' -> 'kernel'  ;  'rsyslogd[12345]:' -> 'rsyslogd'  ;  '<180>(nova.api.wsgi):'  ->  'nova.api.wsgi'  ;  'install/anaconda'  ->  'install/anaconda'
-$template RemoteLogFile, "/var/log/remote/%fromhost-ip%/%syslogtag:R,ERE,1,DFLT:([A-Za-z][A-Za-z0-9_./-]*)--end%.log"
+$template RemoteLogFile, "/var/log/remote/%FROMHOST%/%syslogtag:R,ERE,1,DFLT:([A-Za-z][A-Za-z0-9_./-]*)--end%.log"
 # Hardcode destination for puppet logs
-$template PuppetApplyLogFile, "/var/log/remote/%fromhost-ip%/puppet-apply.log"
+$template PuppetApplyLogFile, "/var/log/remote/%FROMHOST%/puppet-apply.log"
 
 # Parse puppet logs
 :syslogtag, regex, "puppet-user" ?PuppetApplyLogFile;RemoteLog
@@ -21,5 +25,8 @@ $template PuppetApplyLogFile, "/var/log/remote/%fromhost-ip%/puppet-apply.log"
 :syslogtag, regex, "puppet-error" ?PuppetApplyLogFile;RemoteLog
 &~
 
-:fromhost-ip, regex, "^[1-9]" ?RemoteLogFile;RemoteLog
+:FROMHOST, regex, "^[1-9]" ?RemoteLogFile;RemoteLog
 &~
+
+<% end -%>
+
