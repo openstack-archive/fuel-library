@@ -1,0 +1,25 @@
+server {
+    listen   <%= @repo_port %>;
+
+    server_name localhost;
+
+    access_log /var/log/nginx/access_repo.log;
+    error_log /var/log/nginx/error_repo.log debug;
+
+    charset utf-8;
+    client_max_body_size 2M;
+
+    location / {
+        autoindex on;
+        root <%= @repo_root %>;
+    }
+
+    location ~ /\.ht {
+        deny  all;
+    }
+
+    location  /dump/ {
+        deny  all;
+    }
+
+}
