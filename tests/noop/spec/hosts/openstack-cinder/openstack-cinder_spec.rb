@@ -17,6 +17,7 @@ describe manifest do
   default_log_levels_hash = Noop.hiera_hash 'default_log_levels'
   default_log_levels = Noop.puppet_function 'join_keys_to_values',default_log_levels_hash,'='
   primary_controller = Noop.hiera 'primary_controller'
+  volume_backend_name = Noop.hiera_structure 'storage_hash/volume_backend_names'
 
   it 'should configure default_log_levels' do
     should contain_cinder_config('DEFAULT/default_log_levels').with_value(default_log_levels.sort.join(','))
@@ -118,6 +119,24 @@ describe manifest do
 
   it 'configures cinder scheduler filters' do
     should contain_class('cinder::scheduler::filter').with( :scheduler_default_filters => filters )
+  end
+
+  it 'ensures that cinder have proper volume_backend_name' do
+    if use_ceph
+      should contain_class('openstack::cinder').with(
+        'volume_backend_name' => volume_backend_name['volumes_ceph']
+      )
+    elsif storage['volumes_lvm']
+      if cinder
+        should contain_class('openstack::cinder').with(
+          'volume_backend_name' => volume_backend_name['volumes_lvm']
+        )
+      else
+        should contain_class('openstack::cinder').with(
+          'volume_backend_name' => 'false'
+        )
+      end
+    end
   end
 
   end # end of shared_examples
