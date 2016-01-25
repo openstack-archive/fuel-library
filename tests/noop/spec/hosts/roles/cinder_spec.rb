@@ -7,6 +7,8 @@ describe manifest do
 
   storage_hash = Noop.hiera 'storage_hash'
   ceilometer_hash = Noop.hiera 'ceilometer_hash', { 'enabled' => false }
+  use_ceph = Noop.hiera 'use_ceph'
+  volume_backend_name = storage_hash['volume_backend_names']
 
   database_vip = Noop.hiera('database_vip')
   cinder_db_password = Noop.hiera_structure 'cinder/db_password', 'cinder'
@@ -24,7 +26,7 @@ describe manifest do
     )
   end
 
-  if Noop.hiera 'use_ceph' and !(storage_hash['volumes_lvm']) and !(member($roles, 'cinder-vmware'))
+  if use_ceph and !(storage_hash['volumes_lvm']) and !(member($roles, 'cinder-vmware'))
       it { should contain_class('ceph') }
   end
 
@@ -77,6 +79,26 @@ describe manifest do
       should contain_cinder_config('DEFAULT/volume_dir').with(:value => '/var/lib/cinder/volumes')
       should contain_cinder_config('DEFAULT/volume_clear').with(:value => 'zero')
       should contain_cinder_config('DEFAULT/available_devices').with(:value => disks_list)
+    end
+  end
+
+  it 'ensures that cinder have proper volume_backend_name' do
+    if use_ceph
+      should contain_class('openstack::cinder').with(
+        'volume_backend_name' => volume_backend_name['volumes_ceph']
+      )
+    end
+
+    if storage_hash['volumes_lvm']
+      should contain_class('openstack::cinder').with(
+        'volume_backend_name' => volume_backend_name['volumes_lvm']
+      )
+    end
+
+    if storage_hash['volumes_block_device']
+      should contain_class('openstack::cinder').with(
+        'volume_backend_name' => volume_backend_name['volumes_block_device']
+      )
     end
   end
 
