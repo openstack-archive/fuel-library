@@ -91,6 +91,11 @@ mod 'postgresql',
     :git => 'https://review.fuel-infra.org/p/puppet-modules/puppetlabs-postgresql.git',
     :ref => '4.0.0'
 
+# Pull in saz-rsyslog
+mod 'rsyslog',
+    :git => 'https://review.fuel-infra.org/p/puppet-modules/puppet-rsyslog.git',
+    :ref => 'v3.5.1'
+
 # Pull in puppet-openstacklib
 mod 'openstacklib',
     :git => 'https://review.fuel-infra.org/p/puppet-modules/puppet-openstacklib.git',

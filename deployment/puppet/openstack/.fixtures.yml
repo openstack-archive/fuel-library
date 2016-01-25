@@ -45,11 +45,13 @@ fixtures:
     'xinetd':
       repo: 'https://review.fuel-infra.org/p/puppet-modules/puppetlabs-xinetd.git'
       branch: '1.5.0'
+    'rsyslog':
+      repo: 'https://github.com/saz/puppet-rsyslog.git'
+      branch: 'v3.5.1'
   symlinks:
     'openstack': "#{source_dir}"
     'osnailyfacter': "#{source_dir}/../osnailyfacter"
     'l23network': "#{source_dir}/../l23network"
-    'rsyslog': "#{source_dir}/../rsyslog"
     'mysql': "#{source_dir}/../mysql"
     'tweaks': "#{source_dir}/../tweaks"
     'corosync': "#{source_dir}/../corosync"
