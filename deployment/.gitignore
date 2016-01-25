@@ -31,6 +31,7 @@ puppet/openssl
 puppet/openstacklib
 puppet/postgresql
 puppet/rsync
+puppet/rsyslog
 puppet/sahara
 puppet/ssh
 puppet/staging
