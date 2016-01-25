@@ -89,6 +89,15 @@ if $use_neutron {
     enabled                    => true,
   }
 
+  # TODO(Xarses): This needs to be removed when https://bugs.launchpad.net/mos/+bug/1537941
+  # is resolved.
+  exec { 'kilo-neutron-plugin':
+    command => 'ln -s /etc/neutron/plugins/ml2/ml2_conf.ini /etc/neutron/plugin.ini',
+    path    => '/bin:/sbin:/usr/bin:/usr/sbin',
+    unless  => 'test -f /etc/neutron/plugin.ini',
+    require => Package[$::neutron::ovs_agent_package],
+  } ~> Service[$::neutron::params::ovs_agent_service]
+
   # Synchronize database after plugin was configured
   if $primary_controller {
     include ::neutron::db::sync
