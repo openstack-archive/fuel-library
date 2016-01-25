@@ -70,7 +70,7 @@ class openstack::galera::status (
     mysql_grant { "${status_user}@${status_allow}/*.*":
       ensure     => 'present',
       option     => [ 'GRANT' ],
-      privileges => [ 'STATUS' ],
+      privileges => [ 'USAGE' ],
       table      => '*.*',
       user       => "${status_user}@${status_allow}",
     }
@@ -82,7 +82,7 @@ class openstack::galera::status (
       require       => Class['mysql::server'],
     } ->
     database_grant { "${status_user}@${status_allow}/*.*":
-      privileges => [ 'Status_priv' ],
+      privileges => [ 'select_priv' ],
     }
   }
 
