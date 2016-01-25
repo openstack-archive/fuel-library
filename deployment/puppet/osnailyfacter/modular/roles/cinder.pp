@@ -153,18 +153,22 @@ $idle_timeout = '3600'
 if (roles_include(['cinder']) and $storage_hash['volumes_lvm']) {
   $manage_volumes = 'iscsi'
   $physical_volumes = false
+  $volume_backend_name = $storage_hash['volume_backend_names']['volumes_lvm']
 } elsif roles_include(['cinder-vmware']) {
   $manage_volumes = 'vmdk'
   $physical_volumes = false
 } elsif ($storage_hash['volumes_ceph']) {
   $manage_volumes = 'ceph'
   $physical_volumes = false
+  $volume_backend_name = $storage_hash['volume_backend_names']['volumes_ceph']
 } elsif (roles_include(['cinder-block-device']) and $storage_hash['volumes_block_device']) {
   $manage_volumes = 'fake'
   $physical_volumes = join(get_disks_list_by_role($node_volumes, 'cinder-block-device'), ',')
+  $volume_backend_name = $storage_hash['volume_backend_names']['volumes_block_device']
 } else {
   $physical_volumes = false
   $manage_volumes = false
+  $volume_backend_name = false
 }
 
 #Determine who should be the default backend
@@ -300,6 +304,7 @@ class { '::openstack::cinder':
   cinder_user_password => $cinder_hash[user_password],
   syslog_log_facility  => $syslog_log_facility_cinder,
   physical_volume      => $physical_volumes,
+  volume_backend_name  => $volume_backend_name,
   debug                => $debug,
   verbose              => $verbose,
   use_stderr           => $use_stderr,
