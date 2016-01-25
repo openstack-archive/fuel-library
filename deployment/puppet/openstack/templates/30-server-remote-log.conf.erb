@@ -1,5 +1,9 @@
 # file is managed by puppet
 #
+
+# target remote ruleset
+$RuleSet remote
+
 # remote logs parsing based on syslogtag, uses predefined Fuel templates
 <% if @show_timezone -%>
 # Use high precision timestamps (date-rfc3339, 2010-12-05T02:21:41.889482+01:00)
@@ -23,3 +27,6 @@ $template PuppetApplyLogFile, "/var/log/remote/%fromhost-ip%/puppet-apply.log"
 
 :fromhost-ip, regex, "^[1-9]" ?RemoteLogFile;RemoteLog
 &~
+
+# go back to default ruleset
+$RuleSet RSYSLOG_DefaultRuleset
