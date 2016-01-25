@@ -7,6 +7,7 @@ describe manifest do
 
   storage_hash = Noop.hiera 'storage_hash'
   ceilometer_hash = Noop.hiera 'ceilometer_hash', { 'enabled' => false }
+  volume_backend_name = storage_hash['volume_backend_names']
 
   database_vip = Noop.hiera('database_vip')
   cinder_db_password = Noop.hiera_structure 'cinder/db_password', 'cinder'
@@ -79,6 +80,26 @@ describe manifest do
       should contain_cinder_config('DEFAULT/available_devices').with(:value => disks_list)
     end
   end
+
+  it 'ensures that cinder have proper volume_backend_name' do
+    if use_ceph
+      should contain_class('openstack::cinder').with(
+        'volume_backend_name' => volume_backend_name['volumes_ceph']
+      )
+    end
+
+    if storage['volumes_lvm']
+      should contain_class('openstack::cinder').with(
+        'volume_backend_name' => volume_backend_name['volumes_lvm']
+      )
+    end
+
+    if storage['volumes_block_device']
+      should contain_class('openstack::cinder').with(
+        'volume_backend_name' => volume_backend_name['volumes_block_device']
+      )
+    end
+  en
 
   let :ceilometer_hash do
     Noop.hiera 'ceilometer_hash', { 'enabled' => false }
