@@ -1,7 +1,7 @@
 - id: setup_repositories
   type: puppet
   version: 2.0.0
-  groups: [primary-controller, controller, compute, compute-vmware, cinder, cinder-vmware, primary-mongo, mongo, ceph-osd, virt, ironic]
+  groups: [primary-controller, controller, compute, compute-vmware, cinder, cinder-block-device, cinder-vmware, primary-mongo, mongo, ceph-osd, virt, ironic]
   requires: [hiera]
   required_for: [fuel_pkgs]
   parameters:
