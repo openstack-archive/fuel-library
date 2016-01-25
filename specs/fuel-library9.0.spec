@@ -24,6 +24,7 @@ Requires: fuel-misc python-fuelclient
 
 %define files_source %{_builddir}/%{name}-%{version}/files
 %define dockerctl_source %{files_source}/fuel-docker-utils
+%define fuel_utils_source %{files_source}/fuel-utils
 %define openstack_version liberty-%{fuel_release}
 %define predefined_upstream_modules  %{_sourcedir}/upstream_modules.tar.gz
 
@@ -60,10 +61,12 @@ mkdir -p %{buildroot}/etc/monit.d/
 mkdir -p %{buildroot}/etc/profile.d/
 mkdir -p %{buildroot}/etc/init.d/
 mkdir -p %{buildroot}/etc/dockerctl
+mkdir -p %{buildroot}/etc/fuel-utils
 mkdir -p %{buildroot}/usr/bin/
 mkdir -p %{buildroot}/usr/sbin/
 mkdir -p %{buildroot}/usr/lib/
 mkdir -p %{buildroot}/usr/share/dockerctl
+mkdir -p %{buildroot}/usr/share/fuel-utils
 mkdir -p %{buildroot}/sbin/
 mkdir -p %{buildroot}/sbin/
 cp -fr %{_builddir}/%{name}-%{version}/deployment/puppet/* %{buildroot}/etc/puppet/%{openstack_version}/modules/
@@ -76,6 +79,11 @@ install -m 0755 %{dockerctl_source}/dockerctl %{buildroot}/usr/bin
 install -m 0755 %{dockerctl_source}/get_service_credentials.py %{buildroot}/usr/bin
 install -m 0644 %{dockerctl_source}/dockerctl_config %{buildroot}/etc/dockerctl/config
 install -m 0644 %{dockerctl_source}/functions.sh %{buildroot}/usr/share/dockerctl/functions
+#fuel-utils
+install -m 0755 %{fuel_utils_source}/fuel-utils %{buildroot}/usr/bin
+install -m 0755 %{fuel_utils_source}/flat_yaml.py %{buildroot}/usr/bin
+install -m 0644 %{fuel_utils_source}/config %{buildroot}/etc/fuel-utils/config
+install -m 0644 %{fuel_utils_source}/functions.sh %{buildroot}/usr/share/fuel-utils/functions.sh
 #fuel-misc
 install -m 0755 %{files_source}/fuel-misc/centos_ifdown-local %{buildroot}/sbin/ifup-local
 install -m 0755 %{files_source}/fuel-misc/logrotate %{buildroot}/usr/bin/fuel-logrotate
@@ -195,6 +203,27 @@ during Fuel All-in-One deployment toolkit installation
 
 %config(noreplace) /etc/dockerctl/config
 
+%package -n fuel-utils
+Summary: Fuel project utilities
+Version: %{version}
+Release: %{release}
+Group: System Environment/Libraries
+License: GPLv2
+Provides: fuel-utils
+URL: http://github.com/openstack/fuel-library
+BuildArch: noarch
+BuildRoot: %{_tmppath}/fuel-library-%{version}-%{release}
+
+%description -n fuel-utils
+This package contains a set of helpers to maintain Fuel services
+
+%files -n fuel-utils
+/usr/bin/fuel-utils
+/usr/bin/flat_yaml.py
+/usr/share/fuel-utils/functions.sh
+
+%config(noreplace) /etc/fuel-utils/config
+
 %package -n fuel-misc
 Summary: Fuel project misc utilities
 Version: %{version}
@@ -306,7 +335,7 @@ BuildRoot: %{_tmppath}/fuel-library-%{version}-%{release}
 
 %description -n fuel-umm
 Packet provide posibility to put operation system in the state when it has only
-critical set of working services which are needed for basic network and disk 
+critical set of working services which are needed for basic network and disk
 operations. Also node in MM state is reachable with ssh from network.
 
 For further information go to:
