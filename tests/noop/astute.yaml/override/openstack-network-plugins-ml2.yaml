@@ -1,8 +1,5 @@
 ---
 configuration:
-  neutron_plugin_ml2:
-    test/polling_interval:
-      value: 10
   neutron_agent_ovs:
     agent/polling_interval:
       value: 15

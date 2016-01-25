@@ -6,3 +6,6 @@ configuration:
   neutron_api_config:
     test/test:
       value: 20
+  neutron_plugin_ml2:
+    test/polling_interval:
+      value: 10
