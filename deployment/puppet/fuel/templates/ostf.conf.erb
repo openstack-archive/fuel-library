@@ -1,0 +1,19 @@
+[adapter]
+server_host = <%= @host %>
+server_port = <%= @port %>
+dbpath = <%= @dbengine %>://<%= @dbuser %>:<%= @dbpass %>@<%= @dbhost %>/<%= @dbname %>
+lock_dir = /var/lock
+nailgun_host = <%= @nailgun_host %>
+nailgun_port = <%= @nailgun_port %>
+log_file = <%= @logfile %>
+after_init_hook = False
+auth_enable = <%= @auth_enable %>
+
+[keystone_authtoken]
+auth_protocol=http
+auth_port=<%= @keystone_port %>
+auth_host=<%= @keystone_host %>
+auth_version=v2.0
+admin_user=<%= @keystone_ostf_user  %>
+admin_password=<%= @keystone_ostf_pass %>
+admin_tenant_name=services
