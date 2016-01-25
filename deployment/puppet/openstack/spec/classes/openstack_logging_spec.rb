@@ -61,7 +61,6 @@ describe 'openstack::logging' do
          '53-aodh',
          '55-murano',
          '54-heat',
-         '52-sahara',
          '02-ha',
          '03-dashboard',
          '04-mysql',
@@ -76,9 +75,9 @@ describe 'openstack::logging' do
         should contain_class('rsyslog::client').with(
           :log_remote     => p[:log_remote],
           :log_local      => p[:log_local],
-          :log_auth_local => p[:log_auth_local],
-          :escapenewline  => p[:escapenewline]
+          :log_auth_local => p[:log_auth_local]
         )
+        should contain_rsyslog__snippet('00-disable-EscapeControlCharactersOnReceive')
       end
     end
 
@@ -103,6 +102,7 @@ describe 'openstack::logging' do
           :maxsize  => p[:maxsize],
           :debug    => p[:debug]
         )
+        should contain_rsyslog__snippet('00-disable-EscapeControlCharactersOnReceive')
       end
     end
     context 'with virtual = true' do
@@ -119,7 +119,9 @@ describe 'openstack::logging' do
     let :facts do
       { :osfamily => 'Debian',
         :operatingsystem => 'Debian',
-        :hostname => 'hostname.example.com', }
+        :hostname => 'hostname.example.com',
+        :rsyslog_version => '7.4.4',
+      }
     end
 
     it_configures 'logging configuration'
@@ -129,7 +131,9 @@ describe 'openstack::logging' do
     let :facts do
       { :osfamily => 'RedHat',
         :operatingsystem => 'RedHat',
-        :hostname => 'hostname.example.com', }
+        :hostname => 'hostname.example.com',
+        :rsyslog_version => '5.8.10',
+      }
     end
 
     it_configures 'logging configuration'

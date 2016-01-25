@@ -22,7 +22,7 @@ describe manifest do
     if Noop.hiera('role') == 'ironic'
       it {
         should contain_file('/etc/rsyslog.d/70-ironic.conf').with(
-          'owner' => syslog_user[facts[:operatingsystem]],
+          'owner' => 'root',
           'group' => syslog_group[facts[:operatingsystem]],
           'mode'  => '0640',
         )
