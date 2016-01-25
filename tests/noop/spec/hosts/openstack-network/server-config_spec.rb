@@ -31,6 +31,10 @@ describe manifest do
         configuration_override.fetch('neutron_api_config', {})
       end
 
+      let(:neutron_plugin_ml2_override_resources) do
+        configuration_override.fetch('neutron_plugin_ml2', {})
+      end
+
       context 'with Neutron-server' do
         neutron_config   = Noop.hiera_hash('neutron_config')
         management_vip   = Noop.hiera('management_vip')
@@ -254,6 +258,10 @@ describe manifest do
           is_expected.to contain_override_resources('neutron_api_config').with(:data => neutron_api_config_override_resources)
         end
 
+        it 'neutron plugin ml2 should be modified by override_resources' do
+          is_expected.to contain_override_resources('neutron_plugin_ml2').with(:data => neutron_plugin_ml2_override_resources)
+        end
+
         it 'should use "override_resources" to update the catalog' do
           ral_catalog = Noop.create_ral_catalog self
           neutron_config_override_resources.each do |title, params|
@@ -263,6 +271,10 @@ describe manifest do
           neutron_api_config_override_resources.each do |title, params|
             params['value'] = 'True' if params['value'].is_a? TrueClass
             expect(ral_catalog).to contain_neutron_api_config(title).with(params)
+          end
+          neutron_plugin_ml2_override_resources.each do |title, params|
+            params['value'] = 'True' if params['value'].is_a? TrueClass
+            expect(ral_catalog).to contain_neutron_plugin_ml2(title).with(params)
           end
         end
 
