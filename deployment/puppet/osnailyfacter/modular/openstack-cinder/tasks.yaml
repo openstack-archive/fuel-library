@@ -34,3 +34,14 @@
     puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/openstack-cinder/keystone.pp
     puppet_modules: /etc/puppet/modules/
     timeout: 1800
+
+- id: create-cinder-types
+  type: puppet
+  version: 2.0.0
+  groups: [primary-controller]
+  requires: [openstack-cinder]
+  required_for: [deploy_end]
+  parameters:
+    puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/openstack-cinder/create_cinder_types.pp
+    puppet_modules: /etc/puppet/modules
+    timeout: 1200
