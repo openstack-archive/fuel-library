@@ -3,9 +3,17 @@ notice('MODULAR: rsyslog.pp')
 Class['rsyslog::server'] ->
 Class['openstack::logrotate']
 
+class { '::rsyslog':
+  relp_package_name   => false,
+  gnutls_package_name => false,
+  mysql_package_name  => false,
+  pgsql_package_name  => false,
+}
+
 class {"::rsyslog::server":
   enable_tcp                => true,
   enable_udp                => true,
+  enable_relp               => false,
   server_dir                => '/var/log/',
   port                      => 514,
   high_precision_timestamps => true,
