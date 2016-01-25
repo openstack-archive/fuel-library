@@ -1,22 +1,92 @@
-# Class for rsyslog server/client logging
+# == Class: openstack::logging
 #
-# [role] log server or client
-# [log_remote] send logs to remote server(s). Can be used with local logging.
-# [log_local], [log_auth_local] local & auth logging. Can be used with remote logging.
-# [rotation] logrotate option for rotation period - daily, weekly, monthly, yearly.
-# [keep] logrotate option for number or rotated log files to keep.
-# [minsize] rotate log files periodically only if bigger than this value
-# [maxsize] force rotate if this value has been exceeded
-# [rservers] array of hashes which represents remote logging servers for client role.
-# [port] port to use by server role for remote logging.
-# [proto] tcp/udp/both proto(s) for remote log server role.
-# [show_timezone] if enabled, high_precision_timestamps (date-rfc3339) with GMT would be used
-#   for logging. Default is false (date-rfc3164), examples:
-#     date-rfc3339: 2010-12-05T02:21:41.889482+01:00,
-#     date-rfc3164: Dec 5 02:21:13,
-# [virtual] if node is virtual, fix for udp checksums should be applied
-# [rabbit_log_level] assign syslog log level for all rabbit messages which are not an ERROR
-#   (rabbit does not support syslog, imfile is used for log capturing)
+# This class is for configuring rsyslog server/client logging
+#
+# === Parameters
+#
+# [*role*]
+#  (optional) log server or client
+#  Defaults to 'client'
+#
+# [*log_remote*]
+#  (optional) send logs to remote server(s). Can be used with local logging.
+#  Defaults to true.
+#
+# [*log_local*]
+#  (optional) local logging. Can be used with remote logging.
+# Defaults to false.
+#
+# [*log_auth_local*]
+#  (optional) auth logging. Can be used with remote logging.
+#  Defaults to false.
+#
+# [*rotation*]
+#  (optional) logrotate option for rotation period - daily, weekly, monthly,
+#  yearly.
+#  Defaults to 'daily'.
+#
+# [*keep*]
+#  (optional) logrotate option for number or rotated log files to keep.
+#  Defaults to '7'.
+#
+# [*minsize*]
+#  (optional) rotate log files periodically only if bigger than this value
+#  Defaults to '10M'.
+#
+# [*maxsize*]
+#  (optional) force rotate if this value has been exceeded
+#  Defaults to '100M'.
+#
+# [*rservers*]
+#  (optional) array of hashes which represents remote logging servers for
+#  client role.
+#  Defaults to [{'remote_type' => 'udp', 'server' => 'master', 'port' =>'514'},]
+#
+# [*port*]
+#  (optional) port to use by server role for remote logging.
+#  Defaults to 514.
+#
+# [*proto*]
+#  (optional) tcp/udp/both proto(s) for remote log server role.
+#  Defaults to 'udp'.
+#
+# [*show_timezone*]
+#  (optional) if enabled, high_precision_timestamps (date-rfc3339) with GMT
+#  would be used
+#  for logging. Default is false (date-rfc3164), examples:
+#    date-rfc3339: 2010-12-05T02:21:41.889482+01:00,
+#    date-rfc3164: Dec 5 02:21:13,
+#  Defaults to false.
+#
+# [*virtual*]
+#  (optional) if node is virtual, fix for udp checksums should be applied
+#  Defaults to false.
+#
+# [*rabbit_log_level*]
+#  assign syslog log level for all rabbit messages which are not an ERROR
+#  (rabbit does not support syslog, imfile is used for log capturing)
+#  Defaults to 'NOTICE'.
+#
+# [*production*]
+#  (optional)
+#  Defaults to 'prod'.
+#
+# [*escapenewline*]
+#  (optional) If set to true, rsyslog will be configured with
+#  EscapeControlCharactersOnReceive = on. This directive instructs rsyslogd to
+#  replace control characters during reception of the message. The intent is
+#  to provide a way to stop non-printable messages from entering the syslog
+#  system as whole. If this option is turned on, all control-characters are
+#  converted to a 3-digit octal number and be prefixed with the
+#  parser.controlCharacterEscapePrefix character (being '#' by default). For
+#  example, if the BEL character (ctrl-g) is included in the message, it would
+#  be converted to "#007". To be compatible to sysklogd, this option must be
+#  turned on.
+#  Defaults to false.
+#
+# [*debug*]
+#  (optional)
+#  Defaults to false.
 #
 class openstack::logging (
     $role               = 'client',
@@ -46,26 +116,17 @@ class openstack::logging (
 
   # Fix for udp checksums should be applied if running on virtual node
   if $virtual {
-    class { "openstack::checksum_udp" : port => $port }
+    class { '::openstack::checksum_udp' : port => $port }
   }
 
   include ::rsyslog::params
-
-  # Set access and notifications for rsyslog client
-  File {
-    owner => $::rsyslog::params::run_user,
-    group => $::rsyslog::params::run_group,
-    mode => 0640,
-    notify  => Class["::rsyslog::service"],
-  }
 
   # Configure syslog roles
   if $role == 'client' {
 
     if $rservers == undef {
-      $rservers_real = [{'remote_type'=>$remote_type, 'server'=>$server, 'port'=>$port}]
-    }
-    else {
+      fail('Please provide a valid $rservers configuration')
+    } else {
       $rservers_real = $rservers
     }
 
@@ -85,11 +146,11 @@ class openstack::logging (
       file_severity => $rabbit_log_level,
     }
 
-    ::rsyslog::imfile { "04-rabbitmq-startup_err" :
-      file_name     => "/var/log/rabbitmq/startup_err",
-      file_tag      => "rabbitmq-startup_err",
-      file_facility => "syslog",
-      file_severity => "ERROR",
+    ::rsyslog::imfile { '04-rabbitmq-startup_err' :
+      file_name     => '/var/log/rabbitmq/startup_err',
+      file_tag      => 'rabbitmq-startup_err',
+      file_facility => 'syslog',
+      file_severity => 'ERROR',
     }
 
     ::rsyslog::imfile { "04-rabbitmq-startup_log" :
@@ -163,46 +224,39 @@ class openstack::logging (
     }
 
     # mco does not support syslog also, hence use imfile
-    ::rsyslog::imfile { "61-mco_agent_debug" :
-      file_name     => "/var/log/mcollective.log",
-      file_tag      => "mcollective",
-      file_facility => "daemon",
-      file_severity => "DEBUG",
+    ::rsyslog::imfile { '61-mco_agent_debug' :
+      file_name     => '/var/log/mcollective.log',
+      file_tag      => 'mcollective',
+      file_facility => 'daemon',
+      file_severity => 'DEBUG',
     }
 
     # OS syslog configs for rsyslog client
-    file { "${::rsyslog::params::rsyslog_d}10-nova.conf":
-      ensure => present,
+    ::rsyslog::snippet { '10-nova':
       content => template("${module_name}/10-nova.conf.erb"),
     }
 
-    file { "${::rsyslog::params::rsyslog_d}20-keystone.conf":
-      ensure => present,
+    ::rsyslog::snippet { '20-keystone':
       content => template("${module_name}/20-keystone.conf.erb"),
     }
 
-    file { "${::rsyslog::params::rsyslog_d}21-keystone-common-wsgi.conf":
-      ensure => present,
+    ::rsyslog::snippet { '21-keystone-common-wsgi':
       content => template("${module_name}/21-keystone-common-wsgi.conf.erb"),
     }
 
-    file { "${::rsyslog::params::rsyslog_d}30-cinder.conf":
-      ensure => present,
+    ::rsyslog::snippet { '30-cinder':
       content => template("${module_name}/30-cinder.conf.erb"),
     }
 
-    file { "${::rsyslog::params::rsyslog_d}40-glance.conf":
-      ensure => present,
+    ::rsyslog::snippet { '40-glance':
       content => template("${module_name}/40-glance.conf.erb"),
     }
 
-    file { "${::rsyslog::params::rsyslog_d}50-neutron.conf":
-      ensure => present,
+    ::rsyslog::snippet { '50-neutron':
       content => template("${module_name}/50-neutron.conf.erb"),
     }
 
-    file { "${::rsyslog::params::rsyslog_d}51-ceilometer.conf":
-      ensure => present,
+    ::rsyslog::snippet { '51-ceilometer':
       content => template("${module_name}/51-ceilometer.conf.erb"),
     }
 
@@ -211,82 +265,84 @@ class openstack::logging (
       content => template("${module_name}/54-heat.conf.erb"),
     }
 
-    file { "${::rsyslog::params::rsyslog_d}52-sahara.conf":
-      ensure => present,
-      content => template("${module_name}/52-sahara.conf.erb"),
+    ::rsyslog::snippet { '54-heat':
+      content => template("${module_name}/54-heat.conf.erb"),
     }
 
-    file { "${::rsyslog::params::rsyslog_d}02-ha.conf":
-      ensure => present,
-    content => template("${module_name}/02-ha.conf.erb"),
+    ::rsyslog::snippet { '02-ha':
+      content => template("${module_name}/02-ha.conf.erb"),
     }
 
-    file { "${::rsyslog::params::rsyslog_d}03-dashboard.conf":
-      ensure => present,
+    ::rsyslog::snippet { '03-dashboard':
       content => template("${module_name}/03-dashboard.conf.erb"),
     }
 
-    file { "${::rsyslog::params::rsyslog_d}04-mysql.conf":
-      ensure => present,
+    ::rsyslog::snippet { '04-mysql':
       content => template("${module_name}/04-mysql.conf.erb"),
     }
 
-    file { "${::rsyslog::params::rsyslog_d}60-puppet-apply.conf":
+    ::rsyslog::snippet { '60-puppet-apply':
       content => template("${module_name}/60-puppet-apply.conf.erb"),
     }
 
-    file { "${::rsyslog::params::rsyslog_d}61-mco-nailgun-agent.conf":
+    ::rsyslog::snippet { '61-mco-nailgun-agent':
       content => template("${module_name}/61-mco-nailgun-agent.conf.erb"),
     }
 
-    file { "${::rsyslog::params::rsyslog_d}62-mongod.conf":
+    ::rsyslog::snippet { '62-mongod':
       content => template("${module_name}/62-mongod.conf.erb"),
     }
 
-    file { "${rsyslog::params::rsyslog_d}80-swift.conf":
-      content => template("openstack/80-swift.conf.erb"),
+    ::rsyslog::snippet { '80-swift':
+      content => template("${module_name}/80-swift.conf.erb"),
     }
 
-    # Custom settings for rsyslog client to define remote logging and local options
-    file { "${::rsyslog::params::rsyslog_d}90-local.conf":
+    # Custom settings for rsyslog client to define remote logging and local
+    # options
+    ::rsyslog::snippet { '90-local':
       content => template("${module_name}/90-local.conf.erb"),
     }
 
-    file { "${::rsyslog::params::rsyslog_d}00-remote.conf":
+    ::rsyslog::snippet { '00-remote':
       content => template("${module_name}/00-remote.conf.erb"),
     }
 
     if $ironic_collector {
-      file { "${::rsyslog::params::rsyslog_d}70-ironic.conf":
+      ::rsyslog::snippet { '70-ironic':
         content => template("${module_name}/70-ironic.conf.erb"),
       }
     }
 
-    class { "::rsyslog::client":
-      log_remote                => $log_remote,
-      log_local                 => $log_local,
-      log_auth_local            => $log_auth_local,
-      escapenewline             => $escapenewline,
+    class { '::rsyslog::client':
+      log_remote     => $log_remote,
+      log_local      => $log_local,
+      log_auth_local => $log_auth_local,
+    }
+
+    unless $escapenewline {
+      ::rsyslog::snippet{ '00-disable-EscapeControlCharactersOnReceive':
+        content => '$EscapeControlCharactersOnReceive off'
+      }
     }
 
   } else { # server
 
     if $proto == 'both' {
-      firewall { "$port udp rsyslog":
-        port    => $port,
-        proto   => 'udp',
-        action  => 'accept',
+      firewall { "${port} udp rsyslog":
+        port   => $port,
+        proto  => 'udp',
+        action => 'accept',
       }
-      firewall { "$port tcp rsyslog":
-        port    => $port,
-        proto   => 'tcp',
-        action  => 'accept',
+      firewall { "${port} tcp rsyslog":
+        port   => $port,
+        proto  => 'tcp',
+        action => 'accept',
       }
     } else {
-      firewall { "$port $proto rsyslog":
-        port    => $port,
-        proto   => $proto,
-        action  => 'accept',
+      firewall { "${port} ${proto} rsyslog":
+        port   => $port,
+        proto  => $proto,
+        action => 'accept',
       }
     }
 
@@ -298,31 +354,34 @@ class openstack::logging (
       $enable_udp = $proto ? { 'udp' => true, 'both' => true, default => true }
     }
 
-    class {"::rsyslog::server":
-      enable_tcp                 => $enable_tcp,
-      enable_udp                 => $enable_udp,
-      server_dir                 => '/var/log/',
-      high_precision_timestamps  => $show_timezone,
-      port                       => $port,
+    class { '::rsyslog::server':
+      enable_tcp                => $enable_tcp,
+      enable_udp                => $enable_udp,
+      server_dir                => '/var/log/',
+      high_precision_timestamps => $show_timezone,
+      port                      => $port,
+    }
+
+    ::rsyslog::snippet{ '00-disable-EscapeControlCharactersOnReceive':
+      content => '$EscapeControlCharactersOnReceive off'
     }
 
     # Fuel specific config for logging parse formats used for /var/log/remote
-    $logconf = "${::rsyslog::params::rsyslog_d}30-remote-log.conf"
-    file { $logconf :
+    ::rsyslog::snippet { '30-remote-log':
         content => template("${module_name}/30-server-remote-log.conf.erb"),
-        require => Class['::rsyslog::server'],
     }
-
   }
 
+  Rsyslog::Snippet <| |> -> Service["$::rsyslog::params::service_name"]
+
   # Configure log rotation
-  class {"::openstack::logrotate":
-    role           => $role,
-    rotation       => $rotation,
-    keep           => $keep,
-    minsize        => $minsize,
-    maxsize        => $maxsize,
-    debug          => $debug,
+  class { '::openstack::logrotate':
+    role     => $role,
+    rotation => $rotation,
+    keep     => $keep,
+    minsize  => $minsize,
+    maxsize  => $maxsize,
+    debug    => $debug,
   }
 
   # Deprecated stuff handling section
@@ -333,6 +392,7 @@ class openstack::logging (
 
   # Ensure all OS services logging reconfiguration for deleted log_configs
   # (log_config was deprecated and should be removed from existing configs)
+  # lint:ignore:80chars
   Ceilometer_config <| title == 'DEFAULT/log_config' |> { ensure => absent }
   Cinder_config <| title == 'DEFAULT/log_config' |> { ensure => absent }
   Glance_api_config <| title == 'DEFAULT/log_config' |> { ensure => absent }
