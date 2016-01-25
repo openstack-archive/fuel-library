@@ -7,7 +7,7 @@ $management_vip         = hiera('management_vip')
 $queue_provider         = hiera('queue_provider', 'rabbitmq')
 $cinder_volume_group    = hiera('cinder_volume_group', 'cinder')
 $nodes_hash             = hiera('nodes', {})
-$storage_hash           = hiera_hash('storage', {})
+$storage_hash           = hiera_hash('storage_hash', {})
 $ceilometer_hash        = hiera_hash('ceilometer_hash',{})
 $sahara_hash            = hiera_hash('sahara_hash',{})
 $rabbit_hash            = hiera_hash('rabbit_hash', {})
@@ -47,9 +47,12 @@ $privileged_auth_uri = "${keystone_auth_protocol}://${keystone_auth_host}:${serv
 # Determine who should get the volume service
 if (member($roles, 'cinder') and $storage_hash['volumes_lvm']) {
   $manage_volumes = 'iscsi'
+  $volume_backend_name = $storage_hash['volume_backend_names']['volumes_lvm']
 } elsif ($storage_hash['volumes_ceph']) {
   $manage_volumes = 'ceph'
+  $volume_backend_name = $storage_hash['volume_backend_names']['volumes_ceph']
 } else {
+  $volume_backend_name = false
   $manage_volumes = false
 }
 
@@ -76,6 +79,7 @@ class {'openstack::cinder':
   amqp_password        => $rabbit_hash['password'],
   rabbit_ha_queues     => true,
   volume_group         => $cinder_volume_group,
+  volume_backend_name  => $volume_backend_name,
   physical_volume      => undef,
   manage_volumes       => $manage_volumes,
   enabled              => true,

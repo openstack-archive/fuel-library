@@ -424,6 +424,13 @@ if hiera('memcached_addresses', false) {
   $memcached_addresses = ipsort(values(get_node_to_ipaddr_map_by_network_role($memcache_nodes, 'mgmt/memcache')))
 }
 
+$cinder_backends = {
+  'volumes_ceph' => $storage_hash['volumes_ceph'] ? { true => 'RBD-backend', default => false },
+  'volumes_lvm' => $storage_hash['volumes_lvm'] ? { true => 'LVM-backend', default => false },
+  'volumes_block_device' => $storage_hash['volumes_block_device'] ? { true => 'BDD-backend', default => false },
+}
+$storage_hash_real = merge($storage_hash, { 'volume_backend_names' => $cinder_backends })
+
 # save all these global variables into hiera yaml file for later use
 # by other manifests with hiera function
 file { $globals_yaml_file :
