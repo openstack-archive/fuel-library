@@ -63,7 +63,6 @@ class openstack::nova::controller (
   $queue_provider                       = 'rabbitmq',
   $amqp_hosts                           = ['127.0.0.1:5672'],
   $amqp_user                            = 'nova',
-  $amqp_password                        = 'rabbit_pw',
   $rabbit_ha_queues                     = false,
   $rabbitmq_bind_ip_address             = 'UNSET',
   $rabbitmq_bind_port                   = '5672',

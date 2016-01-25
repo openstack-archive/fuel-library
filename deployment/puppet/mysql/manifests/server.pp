@@ -33,7 +33,6 @@ class mysql::server (
   $rep_user                = 'replicator',
   $rep_pass                = 'replicant666',
   $replication_roles       = 'SELECT, PROCESS, FILE, SUPER, REPLICATION CLIENT, REPLICATION SLAVE, RELOAD',
-  $use_syslog              = false,
   $initscript_file         = 'puppet:///modules/mysql/mysql-single.init',
   $root_password           = 'UNSET',
   $old_root_password       = '',
