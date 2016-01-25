@@ -4,10 +4,6 @@ manifest = 'logging/logging.pp'
 
 describe manifest do
   shared_examples 'catalog' do
-    syslog_user = syslog_group = {
-      'Ubuntu' => 'syslog',
-      'CentOS' => 'root'
-    }
     it {
       if facts[:operatingsystem] == 'Ubuntu'
         should contain_file('/var/log').with(
@@ -22,8 +18,8 @@ describe manifest do
     if Noop.hiera('role') == 'ironic'
       it {
         should contain_file('/etc/rsyslog.d/70-ironic.conf').with(
-          'owner' => syslog_user[facts[:operatingsystem]],
-          'group' => syslog_group[facts[:operatingsystem]],
+          'owner' => 'root',
+          'group' => 'syslog',
           'mode'  => '0640',
         )
       }
