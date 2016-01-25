@@ -1,7 +1,7 @@
 notice('MODULAR: setup_repositories.pp')
 
 $repo_setup = hiera('repo_setup', {})
-$repos = $repo_setup['repos']
+$repos      = $repo_setup['repos']
 
 if $::osfamily == 'Debian' {
   include ::apt
@@ -17,8 +17,20 @@ if $::osfamily == 'Debian' {
     create_resources(apt::pin, $pins)
   }
 
-  apt::conf { 'AllowUnathenticated':
+  apt::conf { 'allow-unathenticated':
     content       => 'APT::Get::AllowUnauthenticated 1;',
+    priority      => '02',
+    notify_update => false,
+  } ->
+
+  apt::conf { 'install-recommends':
+    content       => 'APT::Install-Recommends "false";',
+    priority      => '02',
+    notify_update => false,
+  } ->
+
+  apt::conf { 'install-suggests':
+    content       => 'APT::Install-Suggests "false";',
     priority      => '02',
     notify_update => false,
   }
