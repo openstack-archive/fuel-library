@@ -4,7 +4,6 @@ class openstack::mongo (
   $auth                       = true,
   $ceilometer_database        = "ceilometer",
   $ceilometer_user            = "ceilometer",
-  $ceilometer_metering_secret = undef,
   $ceilometer_db_password     = "ceilometer",
   $ceilometer_metering_secret = "ceilometer",
   $ceilometer_replset_members = ['127.0.0.1'],

@@ -26,8 +26,6 @@ class openstack::nova::controller (
   $private_interface,
   # Database Required
   $db_host,
-  # Rabbit Required
-  $amqp_password,
   # Nova Required
   $nova_user_password,
   $nova_db_password,
