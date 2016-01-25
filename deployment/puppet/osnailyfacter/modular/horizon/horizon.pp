@@ -113,15 +113,4 @@ haproxy_backend_status { 'keystone-admin' :
 Class['openstack::horizon'] -> Haproxy_backend_status['keystone-admin']
 Class['openstack::horizon'] -> Haproxy_backend_status['keystone-public']
 
-# TODO(aschultz): remove this if openstack-dashboard stops installing
-# openstack-dashboard-apache
-if $::osfamily == 'Debian' {
-  # LP#1513252 - remove this package if it's installed by the
-  # openstack-dashboard package installation.
-  package { 'openstack-dashboard-apache':
-    ensure  => 'absent',
-    require => Package['openstack-dashboard']
-  } ~> Service[$::apache::params::service_name]
-}
-
 include ::tweaks::apache_wrappers

@@ -134,13 +134,6 @@ describe manifest do
       )
     }
 
-    it "should handle openstack-dashboard-apache package based on osfamily" do
-      if facts[:osfamily] == 'Debian'
-        should contain_package('openstack-dashboard-apache').with_ensure('absent')
-      else
-        should_not contain_package('openstack-dashboard-apache')
-      end
-    end
   end
 
   test_ubuntu_and_centos manifest
