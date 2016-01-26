@@ -27,10 +27,14 @@ module NoopTests
   PUPPET_GEM_VERSION = '~> 3.8.0'
   TEST_LIBRARY_DIR = 'spec/hosts'
   GLOBALS_YAML_FOLDER = 'globals'
+  FIXTURES_YAML_DIR_DEFAULT = './tests/noop/spec/fixtures/modules/fuel-noop-fixtures/astute.yaml'
 
   def self.options
     return @options if @options
     @options = {}
+    # defaults
+    @options[:astute_yaml_dir] = FIXTURES_YAML_DIR_DEFAULT
+
     optparse = OptionParser.new do|opts|
       opts.separator 'Main options:'
       opts.on('-b', '--bundle', 'Use bundle to setup environment') do
@@ -547,6 +551,7 @@ module NoopTests
     end
 
     # ensure fixtures
+    prepare_bundle if options[:bundle]
     rake_prep
 
     if options[:missing_specs]

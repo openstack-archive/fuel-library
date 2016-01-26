@@ -1,4 +1,0 @@
-network_metadata:
-  vips:
-    management:
-      namespace: 'haproxy'

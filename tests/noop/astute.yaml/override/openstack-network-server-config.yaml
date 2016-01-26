@@ -1,8 +1,0 @@
----
-configuration:
-  neutron_config:
-    DEFAULT/debug:
-      value: True
-  neutron_api_config:
-    test/test:
-      value: 20
