@@ -44,6 +44,13 @@ describe manifest do
         pnets = neutron_config.fetch('L2',{}).fetch('phys_nets',{})
         segmentation_type = neutron_config.fetch('L2',{}).fetch('segmentation_type')
         l2_population = adv_neutron_config.fetch('neutron_l2_pop', false)
+        pci_vendor_devs = neutron_config.fetch('supported_pci_vendor_devs', false)
+
+        if pci_vendor_devs
+          firewall_driver = 'neutron.agent.firewall.NoopFirewallDriver'
+        else
+          firewall_driver =  'neutron.agent.linux.iptables_firewall.OVSHybridIptablesFirewallDriver'
+        end
 
         if segmentation_type == 'vlan'
           network_type   = 'vlan'
@@ -92,6 +99,9 @@ describe manifest do
         )}
         it { should contain_class('neutron::agents::ml2::ovs').with(
           'tunnel_types' => tunnel_types
+        )}
+        it { should contain_class('neutron::agents::ml2::ovs').with(
+          'firewall_driver' => firewall_driver
         )}
         it {
           if segmentation_type == 'vlan'
