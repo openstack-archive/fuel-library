@@ -4,14 +4,13 @@ describe 'openstack::corosync' do
 
   let(:default_params) { {
     :bind_address             => '127.0.0.1',
-    :multicast_address        => '239.1.1.2',
+    :multicast_address        => nil,
     :secauth                  => false,
     :stonith                  => false,
     :quorum_policy            => 'ignore',
-    :expected_quorum_votes    => '2',
-    :corosync_nodes           => ["UNSET"],
-    :corosync_version         => '1',
-    :packages                 => ['corosync', 'pacemaker'],
+    :quorum_members           => ['localhost'],
+    :unicast_addresses        => ['127.0.0.1'],
+    :packages                 => nil,
     :cluster_recheck_interval => '190s'
   } }
 
@@ -31,16 +30,17 @@ describe 'openstack::corosync' do
         should contain_class('corosync').with(
           :enable_secauth        => p[:secauth],
           :bind_address          => p[:bind_address],
-          :multicast_address     => p[:multicast_address],
-          :corosync_nodes        => p[:corosync_nodes],
-          :corosync_version      => p[:corosync_version],
-          :packages              => p[:packages],
+          :set_votequorum        => true,
+          :quorum_members        => p[:quorum_members],
+          :unicast_addresses     => p[:unicast_addresses],
           :debug                 => false,
+          :log_stderr            => false,
+          :log_function_name     => true,
         ).that_comes_before('Anchor[corosync-done]')
         should contain_file("limitsconf").that_comes_before(
           'Service[corosync]')
         should contain_corosync__service('pacemaker').with(
-          :version => '0'
+          :version => '1'
         ).that_notifies('Service[corosync]')
         {
           'no-quorum-policy'         => p[:quorum_policy],
@@ -54,6 +54,21 @@ describe 'openstack::corosync' do
             :provider => 'crm',
             :value    => val,
           ).that_comes_before('Anchor[corosync-done]')
+        end
+      end
+    end
+
+    context 'with custom packages' do
+       before do
+         params.merge!({
+           :packages => ['baz', 'qux'],
+         })
+      end
+
+      it 'configures packages' do
+        ['baz', 'qux'].each do |package|
+          should contain_package(package).that_comes_before(
+             'Anchor[corosync-done]')
         end
       end
     end
