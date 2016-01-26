@@ -152,6 +152,18 @@
     puppet_modules: /etc/puppet/modules
     timeout: 1800
 
+- id: openstack-network-agents-sriov
+  type: puppet
+  version: 2.0.0
+  groups: [compute]
+  required_for: [openstack-network-end]
+  requires: [openstack-network-plugins-l2]
+  refresh_on: [neutron_sriov_agent_config]
+  parameters:
+    puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/openstack-network/agents/sriov.pp
+    puppet_modules: /etc/puppet/modules
+    timeout: 1800
+
 - id: openstack-network-server-nova
   type: puppet
   version: 2.0.0
