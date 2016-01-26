@@ -5,6 +5,7 @@ apt
 ceilometer
 cinder
 concat
+corosync
 datacat
 filemapper
 firewall

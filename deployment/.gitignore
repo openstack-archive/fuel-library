@@ -37,3 +37,4 @@ puppet/sysctl
 puppet/tftp
 puppet/vcsrepo
 puppet/xinetd
+puppet/corosync

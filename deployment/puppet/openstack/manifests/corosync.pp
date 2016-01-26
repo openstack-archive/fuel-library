@@ -1,13 +1,12 @@
 class openstack::corosync (
   $bind_address             = '127.0.0.1',
-  $multicast_address        = '239.1.1.2',
+  $multicast_address        = undef,
   $secauth                  = false,
   $stonith                  = false,
   $quorum_policy            = 'ignore',
-  $expected_quorum_votes    = '2',
-  $corosync_nodes           = undef,
-  $corosync_version         = '1',
-  $packages                 = ['corosync', 'pacemaker'],
+  $quorum_members           = ['localhost'],
+  $unicast_addresses        = ['127.0.0.1'],
+  $packages                 = undef,
   $cluster_recheck_interval = '190s',
 ) {
 
@@ -24,6 +23,12 @@ class openstack::corosync (
 
   anchor {'corosync':}
 
+  if $packages {
+    package { $packages:
+      ensure => present,
+    } -> Anchor['corosync-done']
+  }
+
   Anchor['corosync'] -> Cs_property<||>
 
   Class['::corosync']->Cs_shadow<||>
@@ -34,14 +39,8 @@ class openstack::corosync (
     Cs_property['stonith-enabled']->
       Cs_property['start-failure-is-fatal']
 
-  if $corosync_version == '2' {
-    $version_real = '1'
-  } else {
-    $version_real = '0'
-  }
-
   corosync::service { 'pacemaker':
-    version => $version_real,
+    version => '1',
   }
 
   Anchor['corosync'] -> Corosync::Service['pacemaker']
@@ -53,12 +52,18 @@ class openstack::corosync (
     enable_secauth    => $secauth,
     bind_address      => $bind_address,
     multicast_address => $multicast_address,
-    corosync_nodes    => $corosync_nodes,
-    corosync_version  => $corosync_version,
-    packages          => $packages,
+    set_votequorum    => true,
+    quorum_members    => $quorum_members,
+    unicast_addresses => $unicast_addresses,
     # NOTE(bogdando) debug is *too* verbose
-    debug             => false,
-  } -> Anchor['corosync-done']
+    debug              => false,
+  } ->
+  service { 'pacemaker':
+    ensure    => running,
+    enable    => true,
+    subscribe => Service['corosync'],
+  } ->
+  Anchor['corosync-done']
 
   Cs_property {
     ensure   => present,

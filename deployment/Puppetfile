@@ -195,3 +195,9 @@ mod 'datacat',
 mod 'mcollective',
     :git => 'https://github.com/fuel-infra/puppet-mcollective.git',
     :ref => 'v2.1.1'
+
+# Pull in puppet-corosync
+# FIXME(bogdando) We need the 0.8.0-4d98158. Use the 0.9.0 once released.
+mod 'corosync',
+    :git => 'https://github.com/puppet-community/puppet-corosync.git',
+    :ref => '4d98158'
