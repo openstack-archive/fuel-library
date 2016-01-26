@@ -7,10 +7,13 @@ require 'puppetlabs_spec_helper/module_spec_helper'
 require 'yaml'
 require 'fileutils'
 require 'find'
+#Load puppet spec additional libraries to use puppet internal matchers
+$LOAD_PATH << File.expand_path('../spec',Gem::Specification.find_by_name('puppet').lib_dirs_glob)
+require File.expand_path('../spec/spec_helper.rb',Gem::Specification.find_by_name('puppet').lib_dirs_glob)
 
 class Noop
   lib_dir = File.expand_path File.absolute_path File.join File.dirname(__FILE__), 'lib'
-  submodules = %w(catalog coverage debug facts files helpers overrides path spec tasks)
+  submodules = %w(catalog coverage debug facts files helpers matchers overrides path spec tasks)
 
   submodules.each do |submodule|
     require File.join lib_dir, submodule
