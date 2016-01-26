@@ -1,13 +1,13 @@
 class openstack::corosync (
   $bind_address             = '127.0.0.1',
-  $multicast_address        = '239.1.1.2',
+  $multicast_address        = undef,
   $secauth                  = false,
   $stonith                  = false,
   $quorum_policy            = 'ignore',
-  $expected_quorum_votes    = '2',
-  $corosync_nodes           = undef,
-  $corosync_version         = '1',
-  $packages                 = ['corosync', 'pacemaker'],
+  $quorum_members           = ['localhost'],
+  $quorum_members_ids       = undef,
+  $unicast_addresses        = ['127.0.0.1'],
+  $packages                 = undef,
   $cluster_recheck_interval = '190s',
 ) {
 
@@ -24,8 +24,14 @@ class openstack::corosync (
 
   anchor {'corosync':}
 
+  if $packages {
+    package { $packages:
+      ensure => present,
+    } -> Anchor['corosync-done']
+  }
   Anchor['corosync'] ->
     Pcmk_property<||>
+
 
   Class['::corosync']->
     Pcmk_property<||>->
@@ -35,14 +41,8 @@ class openstack::corosync (
     Pcmk_property['stonith-enabled']->
       Pcmk_property['start-failure-is-fatal']
 
-  if $corosync_version == '2' {
-    $version_real = '1'
-  } else {
-    $version_real = '0'
-  }
-
   corosync::service { 'pacemaker':
-    version => $version_real,
+    version => '1',
   }
 
   Anchor['corosync'] -> Corosync::Service['pacemaker']
@@ -51,15 +51,19 @@ class openstack::corosync (
 
 
   class { '::corosync':
-    enable_secauth    => $secauth,
-    bind_address      => $bind_address,
-    multicast_address => $multicast_address,
-    corosync_nodes    => $corosync_nodes,
-    corosync_version  => $corosync_version,
-    packages          => $packages,
+    enable_secauth     => $secauth,
+    bind_address       => $bind_address,
+    multicast_address  => $multicast_address,
+    set_votequorum     => true,
+    quorum_members     => $quorum_members,
+    quorum_members_ids => $quorum_members_ids,
+    unicast_addresses  => $unicast_addresses,
     # NOTE(bogdando) debug is *too* verbose
-    debug             => false,
-  } -> Anchor['corosync-done']
+    debug              => false,
+    log_stderr         => false,
+    log_function_name  => true,
+  } ->
+  Anchor['corosync-done']
 
   Pcmk_property {
     ensure   => 'present',
