@@ -40,6 +40,9 @@ class DeploymentGraph(object):
 
             if 'groups' in task:
                 for req in task['groups']:
+                    # check if group is defined as regular expression
+                    if req.startswith('/'):
+                       continue
                     graph.add_edge(task_id, req)
             if 'tasks' in task:
                 for req in task['tasks']:
