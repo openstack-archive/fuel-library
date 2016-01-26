@@ -5,6 +5,7 @@ ceilometer
 cinder
 common
 concat
+corosync
 datacat
 docker
 erlang
