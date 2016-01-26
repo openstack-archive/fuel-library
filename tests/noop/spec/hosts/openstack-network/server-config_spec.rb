@@ -46,6 +46,13 @@ describe manifest do
         role = Noop.hiera('role')
         adv_neutron_config = Noop.hiera_hash('neutron_advanced_configuration')
         dvr = adv_neutron_config.fetch('neutron_dvr', false)
+        pci_vendor_devs = neutron_config.fetch('supported_pci_vendor_devs', false)
+
+        if pci_vendor_devs
+          use_sriov = true
+        else
+          use_sriov = false
+        end
 
         if segmentation_type == 'vlan'
           network_type   = 'vlan'
@@ -210,10 +217,35 @@ describe manifest do
 
         l2_population = adv_neutron_config.fetch('neutron_l2_pop', false)
 
+        default_mechanism_drivers = ['openvswitch']
+        l2_population_mech_driver = ['l2population']
+        sriov_mech_driver         = ['sriovnicswitch']
+        mechanism_drivers         = default_mechanism_drivers
+
         if l2_population
-          default_mechanism_drivers = 'openvswitch,l2population'
-        else
-          default_mechanism_drivers = 'openvswitch'
+          mechanism_drivers = mechanism_drivers.concat(l2_population_mech_driver)
+        end
+        if use_sriov
+          mechanism_drivers = mechanism_drivers.concat(sriov_mech_driver)
+        end
+
+        it 'enables ml2_sriov_config for neutron-server' do
+          if role != 'compute' and facts[:osfamily] == 'Debian' and pci_vendor_devs
+            should contain_file_line('/etc/default/neutron-server:ml2_sriov_config').with(
+              'path' => '/etc/default/neutron-server',
+              'line' => 'DAEMON_ARGS="--config-file /etc/neutron/plugins/ml2/ml2_conf_sriov.ini"',
+            ).that_notifies('Service[neutron-server]')
+            should contain_class('neutron::plugins::ml2').that_comes_before('File_line[/etc/default/neutron-server:ml2_sriov_config]')
+          end
+        end
+
+        if pci_vendor_devs
+          it { should contain_class('neutron::plugins::ml2').with(
+            'supported_pci_vendor_devs' => pci_vendor_devs,
+          )}
+          it { should contain_class('neutron::plugins::ml2').with(
+            'sriov_agent_required' => use_sriov,
+          )}
         end
 
         it { should contain_service('neutron-server').with(
@@ -233,7 +265,7 @@ describe manifest do
           'tenant_network_types' => ['flat', network_type],
         )}
         it { should contain_class('neutron::plugins::ml2').with(
-          'mechanism_drivers' => neutron_config.fetch('L2', {}).fetch('mechanism_drivers', default_mechanism_drivers).split(',')
+          'mechanism_drivers' => neutron_config.fetch('L2', {}).fetch('mechanism_drivers', mechanism_drivers)
         )}
         it { should contain_class('neutron::plugins::ml2').with(
           'network_vlan_ranges' => network_vlan_ranges,
