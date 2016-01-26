@@ -23,6 +23,7 @@ if $use_neutron {
   $neutron_config = hiera_hash('neutron_config')
   $neutron_server_enable = pick($neutron_config['neutron_server_enable'], true)
   $neutron_nodes = hiera_hash('neutron_nodes')
+  $pci_vendor_devs = pick($neutron_config['supported_pci_vendor_devs'], false)
 
   $management_vip         = hiera('management_vip')
   $service_endpoint       = hiera('service_endpoint', $management_vip)
@@ -46,6 +47,12 @@ if $use_neutron {
   $l2_population     = try_get_value($neutron_advanced_config, 'neutron_l2_pop', false)
   $dvr               = try_get_value($neutron_advanced_config, 'neutron_dvr', false)
   $segmentation_type = try_get_value($neutron_config, 'L2/segmentation_type')
+
+  if $pci_vendor_devs {
+    $firewall_driver = 'neutron.agent.firewall.NoopFirewallDriver'
+  } else {
+    $firewall_driver = 'neutron.agent.linux.iptables_firewall.OVSHybridIptablesFirewallDriver'
+  }
 
   if $compute and ! $dvr {
     $do_floating = false
@@ -92,6 +99,7 @@ if $use_neutron {
     enable_distributed_routing => $dvr,
     l2_population              => $l2_population,
     arp_responder              => $l2_population,
+    firewall_driver            => $firewall_driver,
     manage_vswitch             => false,
     manage_service             => true,
     enabled                    => true,

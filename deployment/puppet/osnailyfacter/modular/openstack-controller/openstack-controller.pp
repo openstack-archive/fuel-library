@@ -32,6 +32,8 @@ $api_bind_address             = get_network_role_property('nova/api', 'ipaddr')
 $rabbit_hash                  = hiera_hash('rabbit_hash', {})
 $service_endpoint             = hiera('service_endpoint')
 $ssl_hash                     = hiera_hash('use_ssl', {})
+$sahara_enabled               = pick($sahara_hash['enabled'], false)
+$pci_passthrough_whitelist    = get_nic_passthrough_whitelist('sriov')
 
 $internal_auth_protocol = get_ssl_property($ssl_hash, {}, 'keystone', 'internal', 'protocol', [$nova_hash['auth_protocol'], 'http'])
 $internal_auth_address  = get_ssl_property($ssl_hash, {}, 'keystone', 'internal', 'hostname', [$service_endpoint, $management_vip])
@@ -68,6 +70,13 @@ $external_lb                  = hiera('external_lb', false)
 $neutron_config                = hiera_hash('quantum_settings')
 $neutron_metadata_proxy_secret = $neutron_config['metadata']['metadata_proxy_shared_secret']
 $default_floating_net          = pick($neutron_config['default_floating_net'], 'net04_ext')
+$pci_vendor_devs               = pick($neutron_config['supported_pci_vendor_devs'], false)
+
+if $pci_vendor_devs {
+  $sriov_enabled = true
+} else {
+  $sriov_enabled = false
+}
 
 $db_type     = 'mysql'
 $db_host     = pick($nova_hash['db_host'], hiera('database_vip'))
@@ -409,11 +418,10 @@ nova_config {
   'DEFAULT/teardown_unused_network_gateway': value => 'True'
 }
 
-if $sahara_hash['enabled'] {
-  $nova_scheduler_default_filters = [ 'DifferentHostFilter' ]
-} else {
-  $nova_scheduler_default_filters = []
-}
+$nova_scheduler_default_filters = [ 'RetryFilter', 'AvailabilityZoneFilter', 'RamFilter', 'CoreFilter', 'DiskFilter', 'ComputeFilter', 'ComputeCapabilitiesFilter', 'ImagePropertiesFilter', 'ServerGroupAntiAffinityFilter', 'ServerGroupAffinityFilter' ]
+$sriov_filters                  = $sriov_enabled ? { true => [ 'PciPassthroughFilter','AggregateInstanceExtraSpecsFilter' ], default => []}
+$sahara_filters                 = $sahara_enabled ? { true => [ 'DifferentHostFilter' ], default => []}
+$nova_scheduler_filters         = unique(concat(pick($nova_config_hash['default_filters'], $nova_scheduler_default_filters), $sahara_filters, $sriov_filters))
 
 if $ironic_hash['enabled'] {
   $scheduler_host_manager = 'nova.scheduler.ironic_host_manager.IronicHostManager'
@@ -424,7 +432,7 @@ class { '::nova::scheduler::filter':
   disk_allocation_ratio      => pick($nova_hash['disk_allocation_ratio'], '1.0'),
   ram_allocation_ratio       => pick($nova_hash['ram_allocation_ratio'], '1.0'),
   scheduler_host_subset_size => pick($nova_hash['scheduler_host_subset_size'], '30'),
-  scheduler_default_filters  => concat($nova_scheduler_default_filters, pick($nova_config_hash['default_filters'], [ 'RetryFilter', 'AvailabilityZoneFilter', 'RamFilter', 'CoreFilter', 'DiskFilter', 'ComputeFilter', 'ComputeCapabilitiesFilter', 'ImagePropertiesFilter', 'ServerGroupAntiAffinityFilter', 'ServerGroupAffinityFilter' ])),
+  scheduler_default_filters  => $nova_scheduler_filters,
   scheduler_host_manager     => $scheduler_host_manager,
 }
 
