@@ -5,13 +5,14 @@ class MemcachedPostTest < Test::Unit::TestCase
     assert TestCommon::Process.running?('memcached'), 'Memcached is not running!'
   end
 
-  def test_memcached_on_internal
-    ip = TestCommon::Settings.internal_address
-    assert TestCommon::Network.connection?(ip, 11211), 'Cannot connect to memcached on the internal address!'
+  def get_node
+    metadata = TestCommon::Settings.network_metadata
+    node_name = TestCommon::Settings.node_name
+    return metadata['nodes'][node_name]
   end
 
-  def test_memcached_no_public
-    ip = TestCommon::Settings.public_address
-    assert TestCommon::Network.no_connection?(ip, 11211), 'Memcached should not be accessible from the public network!'
+  def test_memcached_listen
+    ip = get_node['network_roles']['mgmt/memcache']
+    assert TestCommon::Network.connection?(ip, 11211), 'Cannot connect to memcached on the internal address!'
   end
 end
