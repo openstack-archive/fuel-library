@@ -214,7 +214,7 @@ class ceph::radosgw (
 
   exec { "Populate ${radosgw_auth_key} keyring":
     command => "ceph auth get-or-create ${radosgw_auth_key} > ${keyring_path}",
-    creates => $keyring_path
+    creates => $keyring_path,
   }
 
   exec { "Create ${rgw_large_pool_name} pool":
@@ -223,6 +223,11 @@ class ceph::radosgw (
   }
 
   file { $keyring_path: mode => '0640', }
+
+  file {"${rgw_data}/ceph-${rgw_id}/done":
+    ensure => present,
+    mode   => '0644',
+  }
 
   Ceph_conf <||> ->
   Package<| title == 'httpd' |> ->
@@ -240,6 +245,7 @@ class ceph::radosgw (
         $rgw_log_file,]] ->
   Exec["ceph create ${radosgw_auth_key}"] ->
   Exec["Populate ${radosgw_auth_key} keyring"] ->
+  File["${rgw_data}/ceph-${rgw_id}/done"] ->
   File[$keyring_path] ->
   Exec["Create ${rgw_large_pool_name} pool"] ->
   Firewall['012 RadosGW allow'] ~>
