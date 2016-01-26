@@ -31,11 +31,13 @@ class cluster::haproxy_ocf (
       'timeout'  => '60'
     },
       'start'   => {
-      'timeout' => '60'
-    },
+        'interval' => '0',
+        'timeout'  => '60'
+      },
       'stop'    => {
-      'timeout' => '60'
-    },
+        'interval' => '0',
+        'timeout'  => '60'
+      },
   }
 
   pacemaker_wrappers::service { $service_name :

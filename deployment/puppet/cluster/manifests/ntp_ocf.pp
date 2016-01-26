@@ -25,10 +25,12 @@ class cluster::ntp_ocf inherits ntp::params {
       'timeout'  => '10'
     },
     'start' => {
-      'timeout' => '30'
+      'interval' => '0',
+      'timeout'  => '30'
     },
     'stop' => {
-      'timeout' => '30'
+      'interval' => '0',
+      'timeout'  => '30'
     },
   }
 

@@ -39,10 +39,12 @@ define cluster::corosync::cs_service (
           'timeout'  => $csr_mon_timeout
         },
         'start'   => {
-          'timeout' => $csr_timeout
+          'interval' => '0',
+          'timeout'  => $csr_timeout
         },
         'stop'    => {
-          'timeout' => $csr_timeout
+          'interval' => '0',
+          'timeout'  => $csr_timeout
         }
       }
     }
