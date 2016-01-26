@@ -1,10 +1,6 @@
 # These are per-OS parameters and should be considered static
 class ceph::params {
 
-  #1.2.9 debian package service name is libvirtd
-  #http://http.debian.net/debian/pool/main/libv/libvirt/libvirt_1.2.9-9.debian.tar.xz
-  $libvirt_service_name           = 'libvirtd'
-
   case $::osfamily {
     'RedHat': {
       $service_name               = 'ceph'
