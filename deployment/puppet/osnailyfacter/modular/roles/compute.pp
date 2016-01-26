@@ -309,6 +309,7 @@ class { '::openstack::compute':
   network_provider            => $network_provider,
   neutron_user_password       => $oc_neutron_user_password,
   base_mac                    => $base_mac,
+  pci_passthrough_whitelist   => get_nic_passthrough_whitelist('sriov'),
 
   use_syslog                  => $use_syslog,
   syslog_log_facility         => $syslog_log_facility_nova,

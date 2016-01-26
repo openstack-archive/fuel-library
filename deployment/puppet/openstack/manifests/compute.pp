@@ -111,6 +111,7 @@ class openstack::compute (
   $ssh_public_key                 = '/var/lib/astute/nova/nova.pub',
   $cache_server_ip                = ['127.0.0.1'],
   $cache_server_port              = '11211',
+  $pci_passthrough_whitelist      = undef,
   # if the cinder management components should be installed
   $manage_volumes                 = false,
   $nv_physical_volume             = undef,
@@ -310,6 +311,7 @@ class openstack::compute (
     force_config_drive            => $nova_hash['force_config_drive'],
     #NOTE(bogdando) default became true in 4.0.0 puppet-nova (was false)
     neutron_enabled               => ($network_provider == 'neutron'),
+    pci_passthrough               => nic_whitelist_to_json(get_nic_passthrough_whitelist('sriov')),
     install_bridge_utils          => $install_bridge_utils,
     network_device_mtu            => $network_device_mtu,
     instance_usage_audit          => $instance_usage_audit,
