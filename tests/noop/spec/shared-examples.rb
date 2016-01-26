@@ -46,6 +46,24 @@ shared_examples 'save_files_list' do
 end
 
 shared_examples 'OS' do
+  include FuelRelationshipGraphMatchers
+
+  let (:catalog) do
+     catalog = subject
+     catalog = catalog.call if catalog.is_a? Proc
+   end
+
+  let (:ral) do
+     ral = catalog.to_ral
+     ral.finalize
+     ral
+  end
+
+  let (:graph) do
+    graph = Puppet::Graph::RelationshipGraph.new(Puppet::Graph::TitleHashPrioritizer.new)
+    graph.populate_from(ral)
+    graph
+  end
 
   include_examples 'compile'
 
