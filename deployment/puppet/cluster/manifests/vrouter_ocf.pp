@@ -26,10 +26,12 @@ class cluster::vrouter_ocf (
       'timeout'  => '60'
     },
     'start'   => {
-      'timeout' => '30'
+      'interval' => '0',
+      'timeout'  => '30'
     },
     'stop'    => {
-      'timeout' => '60'
+      'interval' => '0',
+      'timeout'  => '60'
     },
   }
 
