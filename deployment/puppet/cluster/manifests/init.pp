@@ -4,28 +4,40 @@
 #
 class cluster (
     $internal_address         = '127.0.0.1',
-    $corosync_nodes           = undef,
+    $quorum_members           = ['localhost'],
+    $unicast_addresses        = ['127.0.0.1'],
     $cluster_recheck_interval = '190s',
 ) {
 
     #todo: move half of openstack::corosync
     #to this module, another half -- to Neutron
 
+    case $::osfamily {
+      'Debian' : {
+        $packages = ['crmsh', 'pcs']
+      }
+      'RedHat' : {
+        # pcs will be installed by the corosync automatically
+        $packages = ['crmsh']
+      }
+      default: {}
+    }
+
     if defined(Stage['corosync_setup']) {
       class { 'openstack::corosync':
         bind_address             => $internal_address,
-        corosync_nodes           => $corosync_nodes,
         stage                    => 'corosync_setup',
-        corosync_version         => '2',
-        packages                 => ['corosync', 'pacemaker', 'crmsh', 'pcs'],
+        quorum_members           => $quorum_members,
+        unicast_addresses        => $unicast_addresses,
+        packages                 => $packages,
         cluster_recheck_interval => $cluster_recheck_interval,
       }
     } else {
       class { 'openstack::corosync':
         bind_address             => $internal_address,
-        corosync_nodes           => $corosync_nodes,
-        corosync_version         => '2',
-        packages                 => ['corosync', 'pacemaker', 'crmsh', 'pcs'],
+        quorum_members           => $quorum_members,
+        unicast_addresses        => $unicast_addresses,
+        packages                 => $packages,
         cluster_recheck_interval => $cluster_recheck_interval,
       }
     }
