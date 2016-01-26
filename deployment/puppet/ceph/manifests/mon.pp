@@ -16,17 +16,16 @@ class ceph::mon (
   exec {'ceph-deploy mon create':
     command   => "ceph-deploy mon create ${node_hostname}:${mon_addr}",
     logoutput => true,
-    unless    => "ceph mon dump | grep -E '^[0-9]+: +${mon_addr}:.* mon\\.${node_hostname}\$'",
+    unless    => "ceph mon dump | grep -qE '^[0-9]+: +${mon_addr}:.* mon\\.${node_hostname}\$'",
   }
 
   exec {'Wait for Ceph quorum':
-    # this can be replaced with "ceph mon status mon.$::host" for Dumpling
-    command   => 'ps ax|grep -vq ceph-create-keys',
-    returns   => 0,
-    tries     => 60,  # This is necessary to prevent a race: mon must establish
+    command     => "ceph mon stat | grep -q 'quorum.*${node_hostname}'",
+    tries       => 12,  # This is necessary to prevent a race: mon must establish
     # a quorum before it can generate keys, observed this takes upto 15 seconds
     # Keys must exist prior to other commands running
-    try_sleep => 1,
+    try_sleep   => 5,
+    refreshonly => true,
   }
 
   exec {'ceph-deploy gatherkeys':
@@ -38,7 +37,7 @@ class ceph::mon (
   }
 
   Firewall['010 ceph-mon allow'] ->
-  Exec['ceph-deploy mon create'] ->
+  Exec['ceph-deploy mon create'] ~>
   Exec['Wait for Ceph quorum']   ->
   Exec['ceph-deploy gatherkeys']
 
@@ -52,15 +51,7 @@ class ceph::mon (
       'global/mon_initial_members': value => join($mon_hosts, ' ');
     }
 
-    # Has to be an exec: Puppet can't reload a service without declaring
-    # an ordering relationship.
-    exec {'reload Ceph for HA':
-      command   => 'service ceph reload',
-      subscribe => [Ceph_conf['global/mon_host'], Ceph_conf['global/mon_initial_members']]
-    }
-
-    Exec['ceph-deploy gatherkeys'] ->
     Ceph_conf[['global/mon_host', 'global/mon_initial_members']] ->
-    Exec['reload Ceph for HA']
+    Exec['Wait for Ceph quorum']
   }
 }

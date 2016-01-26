@@ -209,6 +209,7 @@ class ceph::radosgw (
 
   exec { "ceph create ${radosgw_auth_key}":
     command => "ceph auth get-or-create ${radosgw_auth_key} osd 'allow rwx' mon 'allow rw'",
+    unless  => "ceph auth list | fgrep -qx ${radosgw_auth_key}",
   }
 
   exec { "Populate ${radosgw_auth_key} keyring":
