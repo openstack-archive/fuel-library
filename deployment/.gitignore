@@ -40,3 +40,5 @@ puppet/tftp
 puppet/vcsrepo
 puppet/xinetd
 puppet/rabbitmq
+puppet/corosync
+puppet/rabbitmq
