@@ -114,7 +114,7 @@ describe manifest do
             :mode  => '0644',
           })
           should contain_service("docker-#{container}").with({
-            :ensure => nil, # we shouldn't start container from puppet
+            :ensure => 'running',
             :enable => 'true',
           })
         end
