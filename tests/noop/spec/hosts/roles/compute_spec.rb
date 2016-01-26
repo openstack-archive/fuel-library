@@ -44,6 +44,19 @@ describe manifest do
       { 'reserved_host_memory' => [[Float(facts[:memorysize_mb]).floor * 0.2, 512].max, 1536].min }
     end
 
+    let(:network_scheme) do
+      Noop.hiera_hash('network_scheme', {})
+    end
+
+    let(:prepare) do
+      Noop.puppet_function('prepare_network_config', network_scheme)
+    end
+
+    let(:nic_passthrough_whitelist) do
+      prepare
+      Noop.puppet_function('get_nic_passthrough_whitelist', 'sriov')
+    end
+
     # Libvirtd.conf
     it 'should configure listen_tls, listen_tcp and auth_tcp in libvirtd.conf' do
       should contain_augeas('libvirt-conf').with(
@@ -216,6 +229,12 @@ describe manifest do
       should contain_class('openstack::compute').with(
         'glance_api_servers' => glance_api_servers
       )
+    end
+
+    enable_sriov = Noop.hiera_structure 'quantum_settings/supported_pci_vendor_devs', false
+    it 'should pass pci_passthrough_whitelist to nova::compute' , :if => enable_sriov do
+      pci_passthrough_json = Noop.puppet_function 'nic_whitelist_to_json', nic_passthrough_whitelist
+      should contain_class('nova::compute').with('pci_passthrough' => pci_passthrough_json)
     end
 
     # Check out nova config params

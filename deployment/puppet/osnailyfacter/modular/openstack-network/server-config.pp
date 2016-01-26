@@ -30,6 +30,7 @@ if $use_neutron {
   $nova_endpoint           = hiera('nova_endpoint', $management_vip)
   $nova_hash               = hiera_hash('nova', { })
   $primary_controller      = roles_include(['primary-controller'])
+  $pci_vendor_devs         = $neutron_config['supported_pci_vendor_devs']
 
   $db_type     = 'mysql'
   $db_password = $neutron_config['database']['passwd']
@@ -50,6 +51,15 @@ if $use_neutron {
     'password' => $db_password,
     'extra'    => $extra_params
   })
+
+  if $pci_vendor_devs {
+    # Boolean value for further usage
+    $use_sriov = true
+    $ml2_sriov_value = 'set DAEMON_ARGS \'"--config-file /etc/neutron/plugins/ml2/ml2_conf_sriov.ini"\''
+  } else {
+    $use_sriov = false
+    $ml2_sriov_value = 'rm DAEMON_ARGS'
+  }
 
   $auth_password           = $neutron_config['keystone']['admin_password']
   $auth_user               = pick($neutron_config['keystone']['admin_user'], 'neutron')
@@ -86,14 +96,25 @@ if $use_neutron {
   $nova_auth_password      = $nova_hash['user_password']
   $nova_auth_tenant        = pick($nova_hash['tenant'], 'services')
 
-  $type_drivers = ['local', 'flat', 'vlan', 'gre', 'vxlan']
-  $default_mechanism_drivers = $l2_population ? { true => 'openvswitch,l2population', default => 'openvswitch'}
-  $mechanism_drivers = split(try_get_value($neutron_config, 'L2/mechanism_drivers', $default_mechanism_drivers), ',')
-  $flat_networks = ['*']
-  $segmentation_type = try_get_value($neutron_config, 'L2/segmentation_type')
+  $type_drivers              = ['local', 'flat', 'vlan', 'gre', 'vxlan']
+  $default_mechanism_drivers = ['openvswitch']
+  $l2_population_mech_driver = $l2_population ? { true => ['l2population'], default => []}
+  $sriov_mech_driver         = $use_sriov ? { true => ['sriovnicswitch'], default => []}
+  $mechanism_drivers         = delete(try_get_value($neutron_config, 'L2/mechanism_drivers', concat($default_mechanism_drivers,$l2_population_mech_driver,$sriov_mech_driver)), "")
+  $flat_networks             = ['*']
+  $segmentation_type         = try_get_value($neutron_config, 'L2/segmentation_type')
 
-  $network_scheme = hiera_hash('network_scheme')
+  $network_scheme = hiera_hash('network_scheme', {})
   prepare_network_config($network_scheme)
+
+  if ! $compute and $::osfamily == 'Debian' {
+    augeas { '/etc/default/neutron-server:ml2_sriov_config':
+      context => '/files/etc/default/neutron-server',
+      changes => $ml2_sriov_value,
+      notify  => Service['neutron-server'],
+    }
+    Class['neutron::plugins::ml2'] -> Augeas['/etc/default/neutron-server:ml2_sriov_config']
+  }
 
   if $segmentation_type == 'vlan' {
     $net_role_property    = 'neutron/private'
@@ -153,17 +174,19 @@ if $use_neutron {
   $tenant_network_types  = ['flat', $network_type]
 
   class { 'neutron::plugins::ml2':
-    type_drivers          => $type_drivers,
-    tenant_network_types  => $tenant_network_types,
-    mechanism_drivers     => $mechanism_drivers,
-    flat_networks         => $flat_networks,
-    network_vlan_ranges   => $network_vlan_ranges,
-    tunnel_id_ranges      => $tunnel_id_ranges,
-    vxlan_group           => $vxlan_group,
-    vni_ranges            => $tunnel_id_ranges,
-    physical_network_mtus => $physical_network_mtus,
-    path_mtu              => $overlay_net_mtu,
-    extension_drivers     => $extension_drivers,
+    type_drivers              => $type_drivers,
+    tenant_network_types      => $tenant_network_types,
+    mechanism_drivers         => $mechanism_drivers,
+    flat_networks             => $flat_networks,
+    network_vlan_ranges       => $network_vlan_ranges,
+    tunnel_id_ranges          => $tunnel_id_ranges,
+    vxlan_group               => $vxlan_group,
+    vni_ranges                => $tunnel_id_ranges,
+    physical_network_mtus     => $physical_network_mtus,
+    path_mtu                  => $overlay_net_mtu,
+    extension_drivers         => $extension_drivers,
+    supported_pci_vendor_devs => $pci_vendor_devs,
+    sriov_agent_required      => $use_sriov,
   }
 
   class { 'neutron::server':
