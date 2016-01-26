@@ -13,11 +13,16 @@ $corosync_nodes = corosync_nodes(
     ),
     'mgmt/corosync'
 )
+# Sort the corosync nodes by node ids
+# and then extract IPs and host names
+$corosync_nodes_processed = corosync_nodes_process($corosync_nodes)
+
 $cluster_recheck_interval = hiera('cluster_recheck_interval', '190s')
 
 class { 'cluster':
   internal_address         => get_network_role_property('mgmt/corosync', 'ipaddr'),
-  corosync_nodes           => $corosync_nodes,
+  quorum_members           => $corosync_nodes_processed['hosts'],
+  unicast_addresses        => $corosync_nodes_processed['ips'],
   cluster_recheck_interval => $cluster_recheck_interval,
 }
 
