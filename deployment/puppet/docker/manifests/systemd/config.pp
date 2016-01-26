@@ -23,13 +23,19 @@ define docker::systemd::config( $release, $depends, $timeout ) {
     owner   => 'root',
     group   => 'root',
     mode    => '0644',
-    notify  => Service["docker-${title}"]
+    notify  => Exec['/usr/bin/systemctl daemon-reload'],
   }
 
-  # We use ensure => undef to prevent unnecessary start service
-  # because at first boot time, the container is launched by dockerctl
+  if !defined(Exec['/usr/bin/systemctl daemon-reload']) {
+    exec { '/usr/bin/systemctl daemon-reload':
+      command     => '/usr/bin/systemctl daemon-reload',
+      refreshonly => true,
+    }
+  }
+
   service { "docker-${title}":
-    ensure => undef,
-    enable => true,
+    ensure    => running,
+    enable    => true,
+    subscribe => File["/usr/lib/systemd/system/docker-${title}.service"],
   }
 }
