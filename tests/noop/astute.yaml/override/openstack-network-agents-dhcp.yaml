@@ -1,5 +1,0 @@
----
-configuration:
-  neutron_dhcp_agent_config:
-    DEFAULT/resync_interval:
-      value: 25

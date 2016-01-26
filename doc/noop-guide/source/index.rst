@@ -17,6 +17,7 @@ Contents
    :maxdepth: 2
 
    README.rst
+   noop_fixtures.rst
 
 Search in this guide
 ~~~~~~~~~~~~~~~~~~~~
