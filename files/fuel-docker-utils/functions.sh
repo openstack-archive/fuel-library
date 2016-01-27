@@ -284,7 +284,11 @@ function start_container {
       # Clean up broken mounts if needed
       id=$(get_container_id $container_name)
       grep "$id" /proc/mounts | awk '{print $2}' | sort -r | xargs --no-run-if-empty -n1 umount -l 2>/dev/null
-      ${DOCKER} start $container_name
+      if [ -x "$SYSTEMCTL" ] ; then
+        ${SYSTEMCTL} start "docker-${container}"
+      else
+        ${DOCKER} start $container_name
+      fi
     fi
     post_start_hooks $1
     if [ -z "$SUPERVISOR_PROCESS_NAME" -a -n "$(get_supervisor_pid)" ]; then
@@ -304,7 +308,11 @@ function start_container {
 function shutdown_container {
   echo "Stopping $1..."
   kill $2
-  ${DOCKER} stop $1
+  if [ -x "$SYSTEMCTL" ] ; then
+    ${SYSTEMCTL} stop "docker-${container}"
+  else
+    ${DOCKER} stop ${CONTAINER_NAMES[$container]}
+  fi
   exit 0
 }
 
@@ -368,8 +376,11 @@ function stop_container {
     if [ -z "$SUPERVISOR_PROCESS_NAME" -a -n "$(get_supervisor_pid)" ]; then
       supervisorctl stop "docker-${container}" > /dev/null
     fi
-
-    ${DOCKER} stop ${CONTAINER_NAMES[$container]}
+      if [ -x "$SYSTEMCTL" ] ; then
+        ${SYSTEMCTL} stop "docker-${container}"
+      else
+        ${DOCKER} stop ${CONTAINER_NAMES[$container]}
+      fi
   done
   unlock
 }
@@ -432,7 +443,11 @@ function inspect {
 }
 
 function restart_container {
-  ${DOCKER} restart ${CONTAINER_NAMES[$1]}
+  if [ -x "$SYSTEMCTL" ] ; then
+    ${SYSTEMCTL} restart "docker-${1}"
+  else
+    ${DOCKER} restart ${CONTAINER_NAMES[$1]}
+  fi
 }
 
 function container_lookup {
@@ -586,7 +601,7 @@ function backup {
   parse_backup_dir $1
   [[ $use_rsync -eq 1 ]] && ssh_copy_id
   mkdir -p $SYSTEM_DIRS $backup_dir
-  [[ "$backup_dir" =~ var ]] && [[ "$fullbackup" == "1" ]] && verify_disk_space "backup"
+  verify_disk_space "backup" "$fullbackup"
   if check_nailgun_tasks; then
     echo "There are currently running Fuel tasks. Please wait for them to \
 finish or cancel them." 1>&2
@@ -878,13 +893,13 @@ function verify_disk_space {
   if [[ "$2" != "$fullbackup" ]]; then
     #2gb free space required for light backup
     (( required  = 2 * 1024 * 1024 ))
-    spaceerror="Insufficient disk space to perform $1. At least 2gb must be free on /var partition."
+    spaceerror="Insufficient disk space to perform $1. At least 2gb must be free on ${BACKUP_ROOT} partition."
   else
      #11gb free space required to backup and restore
      (( required = 11 * 1024 * 1024 ))
-    spaceerror="Insufficient disk space to perform $1. At least 11gb must be free on /var partition."
+    spaceerror="Insufficient disk space to perform $1. At least 11gb must be free on ${BACKUP_ROOT} partition."
   fi
-  avail=$(df /var | grep /var | awk '{print $4}')
+  avail=$(df --output=avail ${BACKUP_ROOT} | tail -1)
   if (( avail < required )); then
     echo "$spaceerror" 1>&2
     exit 1
