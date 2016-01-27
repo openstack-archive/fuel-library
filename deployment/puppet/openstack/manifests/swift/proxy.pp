@@ -185,7 +185,7 @@ class openstack::swift::proxy (
     # resource ordering
     Swift::Ringbuilder::Rebalance <||> -> Service['swift-proxy']
     Swift::Ringbuilder::Rebalance <||> -> Swift::Storage::Generic <| |>
-    Swift::Ringbuilder::Create<||> ->
+    File['/etc/swift/backups'] -> Swift::Ringbuilder::Create<||> ->
     Ring_devices<||> ~>
     Swift::Ringbuilder::Rebalance <||>
   } else {
