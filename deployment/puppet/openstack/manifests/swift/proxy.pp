@@ -67,15 +67,6 @@ class openstack::swift::proxy (
     }
   }
 
-  file { '/etc/swift/backups':
-    ensure  => directory,
-    owner   => 'swift',
-    group   => 'swift',
-    mode    => '2770',
-    require => Package['swift'],
-    before  => Class['::swift::proxy'],
-  }
-
   # calculate log_level
   if $debug {
     $log_level = 'DEBUG'
