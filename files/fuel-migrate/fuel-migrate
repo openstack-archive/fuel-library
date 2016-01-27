@@ -383,6 +383,7 @@ umm(){
 [[ "$1" == "--help" ]] && usage
 # Check if already running
 file_lock
+export LC_ALL=C
 
 if [[ "$1" == "start" ]] && [[ -f "$fuel_migrate_vars" ]] ; then
 
