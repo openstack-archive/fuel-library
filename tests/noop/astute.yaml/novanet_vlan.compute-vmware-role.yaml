@@ -458,6 +458,7 @@ vcenter:
     vc_password: Qwer!1234
     vc_user: administrator@vsphere.local
   esxi_vlan_interface: vmnic0
+node_name: node-4
 nova_quota: false
 ceilometer:
   db_password: r56XkOlD
