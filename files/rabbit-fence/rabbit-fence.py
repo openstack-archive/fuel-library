@@ -46,6 +46,10 @@ def catchall_signal_lh(*args, **kwargs):
         this_node = socket.gethostname().split('.')[0]
         node_name = node.split('.')[0]
         node_to_remove = 'rabbit@%s' % node_name
+        node_name_prefix = bash_command('hiera node_name_prefix_for_messaging')
+        node_name_to_remove = ('rabbit@%s' % node_name
+                               if node_name_prefix == 'nil' else
+                               'rabbit@%s%s' % (node_name_prefix, node_name))
 
         my_logger.info("Got %s that left cluster" % node)
         my_logger.debug(kwargs)
@@ -58,13 +62,14 @@ def catchall_signal_lh(*args, **kwargs):
             my_logger.debug('Ignoring the node %s' % node_to_remove)
             return
 
+        cmd = ('rabbitmqctl eval '
+               '"mnesia:system_info(db_nodes)."'
+               '| grep -o %s') % node_name_to_remove
+
         # NOTE(bogdando) when the rabbit node went down, its status
         # remains 'running' for a while, so few retries are required
         count = 0
         while True:
-            cmd = ('rabbitmqctl eval '
-                   '"mnesia:system_info(running_db_nodes)."'
-                   '| grep -o %s') % node_to_remove
             results = bash_command(cmd)
             is_running = results != ''
 
@@ -78,9 +83,6 @@ def catchall_signal_lh(*args, **kwargs):
             my_logger.warn('Ignoring alive node %s' % node_to_remove)
             return
 
-        cmd = ('rabbitmqctl eval '
-               '"mnesia:system_info(db_nodes)."'
-               '| grep -o %s') % node_to_remove
         results = bash_command(cmd)
         in_cluster = results != ''
 
@@ -94,7 +96,7 @@ def catchall_signal_lh(*args, **kwargs):
         bash_command(cmd)
 
         my_logger.info('Forgetting cluster node %s' % node_to_remove)
-        cmd = ('rabbitmqctl forget_cluster_node %s') % node_to_remove
+        cmd = 'rabbitmqctl forget_cluster_node %s' % node_name_to_remove
         bash_command(cmd)
 
 
