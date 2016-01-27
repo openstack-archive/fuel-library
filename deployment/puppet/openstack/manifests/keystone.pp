@@ -174,6 +174,13 @@ class openstack::keystone (
       memcache_pool_unused_timeout => '60',
     }
 
+    if $memcache_servers {
+      Service<| title == 'memcached' |> -> Service<| title == 'keystone'|>
+      keystone_config {
+        'cache/memcache_servers': value => join($memcache_servers_real, ',');
+      }
+    }
+
     # TODO (iberezovskiy): Move to globals (as it is done for sahara)
     # after new sync with upstream because of
     # https://github.com/openstack/puppet-keystone/blob/master/manifests/init.pp#L564
