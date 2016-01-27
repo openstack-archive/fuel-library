@@ -5,19 +5,20 @@ class Puppet::Provider::L23_stored_config_ovs_centos < Puppet::Provider::L23_sto
   def self.property_mappings
     rv = super
     rv.merge!({
-      :devicetype     => 'DEVICETYPE',
-      :vlan_id        => 'OVS_OPTIONS',
-      :jacks          => 'OVS_PATCH_PEER',
-      :bridge         => 'OVS_BRIDGE',
-      :lnx_bridge     => 'BRIDGE',
-      :bond_slaves    => 'BOND_IFACES',
-      :bonding_opts   => 'OVS_OPTIONS',
-      :bond_mode      => 'bond_mode',
-      :bond_miimon    => 'other_config:bond-miimon-interval',
-      :bond_lacp      => 'lacp',
-      :bond_lacp_rate => 'other_config:lacp-time',
-      :bond_updelay   => 'bond_updelay',
-      :bond_downdelay => 'bond_downdelay',
+      :devicetype       => 'DEVICETYPE',
+      :vlan_id          => 'OVS_OPTIONS',
+      :jacks            => 'OVS_PATCH_PEER',
+      :bridge           => 'OVS_BRIDGE',
+      :lnx_bridge       => 'BRIDGE',
+      :bond_slaves      => 'BOND_IFACES',
+      :bond_mode        => 'bond_mode',
+      :bond_use_carrier => 'other_config:bond-detect-mode',
+      :bond_miimon      => 'other_config:bond-miimon-interval',
+      :bond_lacp        => 'lacp',
+      :bond_lacp_rate   => 'other_config:lacp-time',
+      :bond_updelay     => 'bond_updelay',
+      :bond_downdelay   => 'bond_downdelay',
+      :bonding_opts     => 'OVS_OPTIONS',
     })
     #delete non-OVS params
     [:bond_ad_select, :bond_xmit_hash_policy, :bond_master].each { |p| rv.delete(p) }
@@ -93,12 +94,12 @@ class Puppet::Provider::L23_stored_config_ovs_centos < Puppet::Provider::L23_sto
     bond_options = []
     bond_properties = property_mappings.select { |k, v|  k.to_s =~ %r{bond_.*} and !([:bond_slaves].include?(k)) }
     bond_properties.each do |param, transform |
-      if props.has_key?(param)
-        bond_options << "#{transform}=#{props[param]}"
-        props.delete(param)
+      if props.has_key?(transform)
+        bond_options << "#{transform}=#{props[transform]}"
+        props.delete(transform)
       end
     end
-    props[:bonding_opts]  = "\"#{bond_options.join(' ')}\""
+    props['OVS_OPTIONS']  = "\"#{bond_options.join(' ')}\""
     props
   end
 
@@ -175,6 +176,18 @@ class Puppet::Provider::L23_stored_config_ovs_centos < Puppet::Provider::L23_sto
   def self.mangle__vlan_id(val)
     val =  val.gsub('"', '').split('=')[1]
     val
+  end
+
+  def self.unmangle__bond_use_carrier(provider, data)
+    values = [ 'miimon', 'carrier' ]
+    rv = values[data.to_i] if data.to_i <= values.size
+    rv ||= nil
+  end
+
+  def self.mangle__bond_use_carrier(data)
+    values = [ 'miimon', 'carrier' ]
+    rv = values.index(data) if data
+    rv ||= nil
   end
 
 end

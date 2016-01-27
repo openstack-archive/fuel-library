@@ -14,22 +14,23 @@ describe Puppet::Type.type(:l23_stored_config).provider(:lnx_centos7) do
   let(:input_data) do
     {
       :lnx_bond1 => {
-        :name           => 'lnx-bond1',
-        :ensure         => 'present',
-        :if_type        => 'bond',
-        :bridge         => 'lnx-br0',
-        :mtu            => '9000',
-        :onboot         => true,
-        :method         => 'manual',
-        :bond_mode      => 'balance-tcp',
-        :bond_slaves    => ['eth2', 'eth3'],
-        :bond_miimon    => '60',
-        :bond_lacp_rate => 'fast',
-        :bond_lacp      => 'active',
-        :bond_updelay   => '123',
-        :bond_downdelay => '155',
-        :bond_ad_select => '2',   # unused for OVS
-        :provider       => "lnx_centos7",
+        :name             => 'lnx-bond1',
+        :ensure           => 'present',
+        :if_type          => 'bond',
+        :bridge           => 'lnx-br0',
+        :mtu              => '9000',
+        :onboot           => true,
+        :method           => 'manual',
+        :bond_mode        => 'balance-tcp',
+        :bond_slaves      => ['eth2', 'eth3'],
+        :bond_miimon      => '60',
+        :bond_use_carrier => '0',
+        :bond_lacp_rate   => 'fast',
+        :bond_lacp        => 'active',
+        :bond_updelay     => '123',
+        :bond_downdelay   => '155',
+        :bond_ad_select   => '2',   # unused for OVS
+        :provider         => "lnx_centos7",
       },
     }
   end
@@ -86,7 +87,7 @@ describe Puppet::Type.type(:l23_stored_config).provider(:lnx_centos7) do
       it { expect(cfg_file).to match(%r{TYPE=Bond}) }
       it { expect(cfg_file).to match(%r{BRIDGE=lnx-br0}) }
       it { expect(cfg_file).to match(%r{MTU=9000}) }
-      it { expect(cfg_file).to match(%r{BONDING_OPTS="mode=balance-tcp miimon=60 lacp_rate=fast ad_select=2 updelay=123 downdelay=155"}) }
+      it { expect(cfg_file).to match(%r{BONDING_OPTS="mode=balance-tcp miimon=60 use_carrier=0 lacp_rate=fast ad_select=2 updelay=123 downdelay=155"}) }
       it { expect(cfg_file.split(/\n/).reject{|x| x=~/(^\s*$)|(^#.*$)/}.length). to eq(7) }  #  no more lines in the interface file
 
     end
@@ -99,6 +100,7 @@ describe Puppet::Type.type(:l23_stored_config).provider(:lnx_centos7) do
       it { expect(res[:if_type].to_s).to eq 'bond' }
       it { expect(res[:bond_mode]).to eq 'balance-tcp' }
       it { expect(res[:bond_miimon]).to eq '60' }
+      it { expect(res[:bond_use_carrier]).to eq '0' }
       it { expect(res[:bond_lacp_rate]).to eq 'fast' }
       it { expect(res[:bond_lacp]).not_to eq 'active' }
       it { expect(res[:bond_updelay]).to eq '123' }
