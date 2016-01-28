@@ -53,6 +53,16 @@ describe manifest do
       end
     end
 
+    it 'should set permissions for /dev/kvm under Ubuntu' do
+      if facts[:operatingsystem] == 'Ubuntu'
+        should contain_file('/dev/kvm').with(
+          :ensure => 'present',
+          :group  => 'kvm',
+          :mode   => '0660',
+        ).that_comes_before('Exec[generate_vms]')
+      end
+    end
+
   end
   test_ubuntu_and_centos manifest
 end
