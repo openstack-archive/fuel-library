@@ -47,3 +47,14 @@ exec { 'generate_vms':
   path        => ['/usr/sbin', '/usr/bin' , '/sbin', '/bin'],
   require     => [File["${template_dir}"], File["${libvirt_dir}/autostart"]],
 }
+
+if $::operatingsystem == 'Ubuntu' {
+  #(FIXME) https://bugs.launchpad.net/ubuntu/+source/qemu-kvm/+bug/1057024
+  file { '/dev/kvm':
+    ensure => present,
+    group  => 'kvm',
+    mode   => '0660',
+  }
+
+  Package<||> ~> File['/dev/kvm'] -> Exec['generate_vms']
+}
