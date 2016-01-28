@@ -6,7 +6,6 @@ $cinder_hash            = hiera_hash('cinder_hash', {})
 $management_vip         = hiera('management_vip')
 $queue_provider         = hiera('queue_provider', 'rabbitmq')
 $cinder_volume_group    = hiera('cinder_volume_group', 'cinder')
-$nodes_hash             = hiera('nodes', {})
 $storage_hash           = hiera_hash('storage', {})
 $ceilometer_hash        = hiera_hash('ceilometer_hash',{})
 $sahara_hash            = hiera_hash('sahara_hash',{})
@@ -18,7 +17,6 @@ $cinder_user_password   = $cinder_hash[user_password]
 $keystone_user          = pick($cinder_hash['user'], 'cinder')
 $keystone_tenant        = pick($cinder_hash['tenant'], 'services')
 $region                 = hiera('region', 'RegionOne')
-$roles                  = node_roles($nodes_hash, hiera('uid'))
 $ssl_hash               = hiera_hash('use_ssl', {})
 $primary_controller     = hiera('primary_controller')
 
@@ -51,7 +49,7 @@ $glance_ssl_usage       = get_ssl_property($ssl_hash, {}, 'glance', 'internal', 
 if $glance_ssl_usage {
   $glance_api_servers = "${glance_protocol}://${glance_endpoint}:9292"
 } else {
-  $glance_api_servers    = hiera('glance_api_servers', "${management_vip}:9292")
+  $glance_api_servers = hiera('glance_api_servers', "${management_vip}:9292")
 }
 
 $service_port        = '5000'
@@ -61,7 +59,7 @@ $identity_uri        = "${keystone_auth_protocol}://${keystone_auth_host}:${serv
 $privileged_auth_uri = "${keystone_auth_protocol}://${keystone_auth_host}:${service_port}/v2.0/"
 
 # Determine who should get the volume service
-if (member($roles, 'cinder') and $storage_hash['volumes_lvm']) {
+if roles_include(['cinder']) and $storage_hash['volumes_lvm'] {
   $manage_volumes = 'iscsi'
 } elsif ($storage_hash['volumes_ceph']) {
   $manage_volumes = 'ceph'

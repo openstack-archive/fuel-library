@@ -19,7 +19,6 @@ $syslog_log_facility_keystone = hiera('syslog_log_facility_keystone', 'LOG_LOCAL
 $management_vip               = hiera('management_vip')
 $public_vip                   = hiera('public_vip')
 $sahara_hash                  = hiera_hash('sahara', {})
-$nodes_hash                   = hiera('nodes', {})
 $mysql_hash                   = hiera_hash('mysql', {})
 $access_hash                  = hiera_hash('access', {})
 $keystone_hash                = hiera_hash('keystone', {})
@@ -65,7 +64,6 @@ $ironic_hash                  = hiera_hash('ironic', {})
 
 $memcached_server             = hiera('memcached_addresses')
 $memcached_port               = hiera('memcache_server_port', '11211')
-$roles                        = node_roles($nodes_hash, hiera('uid'))
 $openstack_controller_hash    = hiera_hash('openstack_controller', {})
 
 $external_lb                  = hiera('external_lb', false)
