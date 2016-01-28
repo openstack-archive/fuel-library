@@ -79,10 +79,12 @@ define cluster::virtual_ip (
       'timeout'  => '20',
     },
     'start'   => {
-      'timeout' => '30',
+      'interval' => '0',
+      'timeout'  => '30',
     },
     'stop'    => {
-      'timeout' => '30',
+      'interval' => '0',
+      'timeout'  => '30',
     },
   }
 
