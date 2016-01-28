@@ -18,6 +18,12 @@ if $horizon_hash['secret_key'] {
   $secret_key = 'dummy_secret_key'
 }
 
+if $::os_package_type == 'debian' {
+  $custom_theme_path = hiera('custom_theme_path', 'themes/mirantis')
+} else {
+  $custom_theme_path = undef
+}
+
 # TODO(aschultz): the horizon.backends.memcached.HorizonMemcached is only part
 # of the MOS package set. This should be contributed upstream and then we can
 # use this as the default.
