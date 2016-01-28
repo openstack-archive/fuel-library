@@ -201,7 +201,7 @@ dnsmasq_start()
   fi
 
   # run the dnsmasq binary
-  ocf_run_as_root ${COMMAND} ${OCF_RESKEY_extraconf} --conf-file=${CONF_FILE} --pid-file="${PIDFILE}"
+        ocf_run ${COMMAND} ${OCF_RESKEY_extraconf} --conf-file=${CONF_FILE} --pid-file="${PIDFILE}"
   if [ $? -ne 0 ]; then
     ocf_log err "Error. dnsmasq daemon returned error $?."
     return $OCF_ERR_GENERIC
