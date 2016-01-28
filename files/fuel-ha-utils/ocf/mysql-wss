@@ -435,14 +435,19 @@ mysql_status() {
     i=${2:-3}
     sleeptime=${3:-5}
     while [ $i -gt 0 ]; do
+        if [ -f "${OCF_RESKEY_datadir}"/sst_in_progress ]; then
+            ocf_log 'SST is in progress'
+            return $OCF_SUCCESS
+        fi
+
         if [ -f "$OCF_RESKEY_pid" ]; then
+            ocf_log 'MySQL PID found'
             break
         fi
         sleep $sleeptime
         (( i-- ))
         ocf_log info "PIDFile ${OCF_RESKEY_pid} of MySQL server not found. Sleeping for $sleeptime seconds. ${i} retries left"
     done
-
 
     if [ $i -eq 0 ]; then
         ocf_log $1 "MySQL is not running"
@@ -469,7 +474,6 @@ mysql_monitor() {
     if ocf_is_probe; then
         status_loglevel="info"
     fi
-
 
     if [ -f "${OCF_RESKEY_datadir}"/sst_in_progress ]; then
         ocf_log 'SST is in progress'
