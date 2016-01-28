@@ -210,5 +210,8 @@ if $use_neutron {
   override_resources { 'neutron_config':
     data => $override_configuration['neutron_config']
   }
+  override_resources { 'neutron_plugin_ml2':
+    data => $override_configuration['neutron_plugin_ml2']
+  }
 
 }
