@@ -440,7 +440,7 @@ haproxy_start()
 	fi
 
 	# run the haproxy binary
-	ocf_run_as_root ${COMMAND} ${OCF_RESKEY_extraconf} -f "${CONF_FILE}" -p "${PIDFILE}"
+	ocf_run ${COMMAND} ${OCF_RESKEY_extraconf} -f "${CONF_FILE}" -p "${PIDFILE}"
 	if [ $? -ne 0 ]; then
 		ocf_log err "Error. haproxy daemon returned error $?."
 		return $OCF_ERR_GENERIC
@@ -472,7 +472,7 @@ haproxy_reload()
           ocf_log warn "Cannot block all SYN for the Haproxy reload operation!"
       fi
       # reload haproxy binary replacing the old process
-      ocf_run_as_root ${COMMAND} ${OCF_RESKEY_extraconf} -f "${CONF_FILE}" -p "${PIDFILE}" -sf "${PID}"
+      ocf_run ${COMMAND} ${OCF_RESKEY_extraconf} -f "${CONF_FILE}" -p "${PIDFILE}" -sf "${PID}"
       rc=$?
       unblock_client_access
       ocf_log info "Unblocked all SYN for the Haproxy reload operation"
