@@ -20,6 +20,20 @@ Puppet::Type.newtype(:sahara_cluster_template) do
   newproperty(:node_groups, :array_matching => :all) do
     desc 'The array of node groups for cluster'
     defaultto { fail 'node groups is required!' }
+    def insync?(is)
+      return false unless is.count == should.count
+
+      should.sort_by! { |n| n["name"] }
+      is.sort_by! { |n| n["name"] }
+      should.zip(is).each do |should_node,is_node|
+        should_node.keys.each do |field|
+          unless (is_node.has_key?(field) && should_node[field].to_s == is_node[field].to_s)
+            return false
+          end
+        end
+      end
+      return true
+    end
   end
 
   newproperty(:hadoop_version) do
