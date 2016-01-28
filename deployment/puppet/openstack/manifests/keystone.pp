@@ -174,6 +174,13 @@ class openstack::keystone (
       memcache_pool_unused_timeout => '60',
     }
 
+    # TODO(aschultz): Remove when LP#1523393 has been addressed in upstream
+    # keystone module. Should switch this to cache_memache_servers param on
+    # the keystone class.
+    keystone_config {
+      'cache/memcache_servers': value => join(any2array($memcache_servers_real), ',');
+    }
+
     # TODO (iberezovskiy): Move to globals (as it is done for sahara)
     # after new sync with upstream because of
     # https://github.com/openstack/puppet-keystone/blob/master/manifests/init.pp#L564
