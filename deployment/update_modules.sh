@@ -37,7 +37,7 @@
 #
 # Variables:
 #  PUPPET_GEM_VERSION - the version of puppet to be pulled down by bundler
-#                       Defaults to '3.4.3'
+#                       Defaults to '3.8.5'
 #  BUNDLE_DIR - The folder to store the bundle gems in.
 #               Defaults to '/var/tmp/.bundle_home'
 #  GEM_HOME - The folder to store the gems in to not require root.
@@ -108,7 +108,7 @@ shift "$((OPTIND-1))"
 DEPLOYMENT_DIR=$(cd `dirname $0` && pwd -P)
 # Timeout in seconds for running puppet librarian
 TIMEOUT=600
-export PUPPET_GEM_VERSION=${PUPPET_GEM_VERSION:-'3.4.3'}
+export PUPPET_GEM_VERSION=${PUPPET_GEM_VERSION:-'3.8.5'}
 export BUNDLE_DIR=${BUNDLE_DIR:-'/var/tmp/.bundle_home'}
 export GEM_HOME=${GEM_HOME:-'/var/tmp/.gem_home'}
 
