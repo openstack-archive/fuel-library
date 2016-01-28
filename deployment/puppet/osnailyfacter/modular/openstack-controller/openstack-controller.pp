@@ -1,7 +1,6 @@
 notice('MODULAR: openstack-controller.pp')
 
 $network_scheme = hiera_hash('network_scheme', {})
-$override_configuration = hiera_hash('configuration', {})
 $network_metadata = hiera_hash('network_metadata', {})
 prepare_network_config($network_scheme)
 
@@ -273,18 +272,15 @@ nova_config {
   'DEFAULT/ram_weight_multiplier':        value => '1.0'
 }
 
-# override nova options
-override_resources { 'nova_config':
-  data => $override_configuration['nova_config']
-}
-
-# override nova-api options
-override_resources { 'nova_paste_api_ini':
-  data => $override_configuration['nova_paste_api_ini']
-}
-
 if $storage_hash['volumes_ceph'] {
   package { 'open-iscsi':
     ensure => present,
   }
 }
+
+$override_configuration = hiera_hash('configuration', {})
+# override nova options
+override_resources('nova_config', $override_configuration['nova_config'])
+
+# override nova-api options
+override_resources('nova_paste_api_ini', $override_configuration['nova_paste_api_ini'])

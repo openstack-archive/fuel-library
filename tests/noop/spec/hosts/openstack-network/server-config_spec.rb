@@ -254,18 +254,6 @@ describe manifest do
           'extension_drivers' => extension_drivers,
         )}
 
-        it 'neutron config should be modified by override_resources' do
-          is_expected.to contain_override_resources('neutron_config').with(:data => neutron_config_override_resources)
-        end
-
-        it 'neutron api config should be modified by override_resources' do
-          is_expected.to contain_override_resources('neutron_api_config').with(:data => neutron_api_config_override_resources)
-        end
-
-        it 'neutron plugin ml2 should be modified by override_resources' do
-          is_expected.to contain_override_resources('neutron_plugin_ml2').with(:data => neutron_plugin_ml2_override_resources)
-        end
-
         it 'should use "override_resources" to update the catalog' do
           ral_catalog = Noop.create_ral_catalog self
           neutron_config_override_resources.each do |title, params|
