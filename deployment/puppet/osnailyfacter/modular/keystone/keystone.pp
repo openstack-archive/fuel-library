@@ -267,6 +267,4 @@ if ($::operatingsystem == 'Ubuntu') {
 
 # Override confguration options
 $override_configuration = hiera_hash('configuration', {})
-override_resources { 'keystone_config':
-  data => $override_configuration['keystone_config']
-}
+override_resources('keystone_config', $override_configuration['keystone_config'])

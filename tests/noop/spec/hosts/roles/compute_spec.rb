@@ -153,20 +153,12 @@ describe manifest do
       should_not contain_nova_config('database/connection')
     end
 
-    it 'nova config should be modified by override_resources' do
-       is_expected.to contain_override_resources('nova_config').with(:data => nova_config_override_resources)
-    end
-
     it 'should use override_resources to update nova_config' do
       ral_catalog = Noop.create_ral_catalog self
       nova_config_override_resources.each do |title, params|
         params['value'] = 'True' if params['value'].is_a? TrueClass
         expect(ral_catalog).to contain_nova_config(title).with(params)
       end
-    end
-
-    it 'nova_paste_api_ini should be modified by override_resources' do
-      is_expected.to contain_override_resources('nova_paste_api_ini').with(:data => nova_paste_api_ini_override_resources)
     end
 
     it 'should use override_resources to update nova_paste_api_ini' do

@@ -191,14 +191,8 @@ if $use_neutron {
 
   # override neutron options
   $override_configuration = hiera_hash('configuration', {})
-  override_resources { 'neutron_api_config':
-    data => $override_configuration['neutron_api_config']
-  }
-  override_resources { 'neutron_config':
-    data => $override_configuration['neutron_config']
-  }
-  override_resources { 'neutron_plugin_ml2':
-    data => $override_configuration['neutron_plugin_ml2']
-  }
+  override_resources('neutron_api_config', $override_configuration['neutron_api_config'])
+  override_resources('neutron_config', $override_configuration['neutron_config'])
+  override_resources('neutron_plugin_ml2', $override_configuration['neutron_plugin_ml2'])
 
 }

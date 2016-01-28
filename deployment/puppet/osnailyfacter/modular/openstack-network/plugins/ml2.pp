@@ -142,8 +142,6 @@ if $use_neutron {
 
   # override neutron options
   $override_configuration = hiera_hash('configuration', {})
-  override_resources { 'neutron_agent_ovs':
-    data => $override_configuration['neutron_agent_ovs']
-  }
+  override_resources('neutron_agent_ovs', $override_configuration['neutron_agent_ovs'])
 
 }

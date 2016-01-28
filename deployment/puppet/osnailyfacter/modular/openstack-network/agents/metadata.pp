@@ -60,8 +60,6 @@ if $use_neutron and ($controller or ($dvr and $compute)) {
 
   # override neutron options
   $override_configuration = hiera_hash('configuration', {})
-  override_resources { 'neutron_metadata_agent_config':
-    data => $override_configuration['neutron_metadata_agent_config']
-  }
+  override_resources('neutron_metadata_agent_config', $override_configuration['neutron_metadata_agent_config'])
 
 }
