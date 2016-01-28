@@ -57,6 +57,7 @@
 
 import fnmatch
 import os
+import re
 import sys
 import argparse
 import yaml
@@ -266,7 +267,7 @@ class TaskGraph(object):
         self.graph.add_edge(id_from, id_to, options)
 
     @staticmethod
-    def filter_nodes(node, filter=None):
+    def filter_nodes(node_id, node, filter=None):
         # if group is not specified accept only the group tasks
         # and show only them on the graph/list
         # if there is a group, filter out group tasks
@@ -291,6 +292,11 @@ class TaskGraph(object):
         if 'groups' in node:
             if ('*' in node['groups']) or (filter in node['groups']):
                 return True
+
+            for group in node['groups']:
+                pattern = re.compile(group.strip('/'))
+                if pattern.match(node_id):
+                    return True
         return False
 
     def process_data(self):
@@ -340,7 +346,8 @@ class TaskGraph(object):
 
     def filter_processed_data(self, filter=None):
         for node_id in self.data.keys():
-            if not self.filter_nodes(self.data[node_id], filter=filter):
+            if not self.filter_nodes(node_id, self.data[node_id],
+                                     filter=filter):
                 self.data.pop(node_id)
 
     def build_graph(self):
