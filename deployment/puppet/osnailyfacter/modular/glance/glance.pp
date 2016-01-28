@@ -19,7 +19,9 @@ $max_pool_size         = hiera('max_pool_size')
 $max_overflow          = hiera('max_overflow')
 $ceilometer_hash       = hiera_hash('ceilometer', {})
 $region                = hiera('region','RegionOne')
-$service_workers       = pick($glance_hash['glance_workers'], min(max($::processorcount, 2), 16))
+$workers_max           = hiera('workers_max', 16)
+$service_workers       = pick($glance_hash['glance_workers'],
+                              min(max($::processorcount, 2), $workers_max))
 $ironic_hash           = hiera_hash('ironic', {})
 $primary_controller    = hiera('primary_controller')
 

@@ -6,6 +6,7 @@ describe manifest do
   shared_examples 'catalog' do
 
     # TODO All this stuff should be moved to shared examples controller* tests.
+    workers_max = Noop.hiera 'workers_max'
     glance_config = Noop.hiera_structure 'glance'
     storage_config = Noop.hiera_structure 'storage'
     max_pool_size = Noop.hiera('max_pool_size')
@@ -44,6 +45,19 @@ describe manifest do
         'auth_uri'     => auth_uri,
         'identity_uri' => identity_uri,
       )
+    end
+
+    it 'should declare openstack::glance class with 4 processess on 4 CPU & 32G system' do
+      should contain_class('openstack::glance').with(
+        'service_workers' => '4',
+      )
+    end
+
+    it 'should configure workers for API, registry services' do
+      fallback_workers = [[facts[:processorcount].to_i, 2].max, workers_max.to_i].min
+      service_workers = glance_config.fetch('glance_workers', fallback_workers)
+      should contain_glance_api_config('DEFAULT/workers').with(:value => service_workers)
+      should contain_glance_registry_config('DEFAULT/workers').with(:value => service_workers)
     end
 
     it 'should declare glance classes' do

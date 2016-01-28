@@ -4,6 +4,7 @@ manifest = 'swift/swift.pp'
 
 describe manifest do
   shared_examples 'catalog' do
+    workers_max = Noop.hiera 'workers_max'
     role = Noop.hiera 'role'
     storage_hash = Noop.hiera 'storage'
     swift_hash = Noop.hiera 'swift'
@@ -175,8 +176,34 @@ describe manifest do
           'group'  => 'swift',
         )
       end
+
+      it 'should configure proxy workers' do
+        fallback_workers = [[facts[:processorcount].to_i, 2].max, workers_max.to_i].min
+        workers = swift_hash.fetch('workers', fallback_workers)
+        should contain_class('swift::proxy').with(
+          'workers' => workers)
+      end
+
+      it 'should declare swift::proxy class with 4 processess on 4 CPU & 32G system' do
+        should contain_class('swift::proxy').with(
+          'workers' => '4',
+        )
+      end
     end
     if deploy_swift_proxy
+      it 'should configure proxy workers' do
+        fallback_workers = [[facts[:processorcount].to_i, 2].max, workers_max.to_i].min
+        workers = swift_hash.fetch('workers', fallback_workers)
+        should contain_class('swift::proxy').with(
+          'workers' => workers)
+      end
+
+      it 'should declare swift::proxy class with 4 processess on 4 CPU & 32G system' do
+        should contain_class('swift::proxy').with(
+          'workers' => '4',
+        )
+      end
+
       it 'should contain rabbit params' do
         should contain_class('openstack::swift::proxy').with(
           :rabbit_user     => rabbit_user,
