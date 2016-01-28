@@ -36,10 +36,6 @@ describe manifest do
               configuration_override.fetch('neutron_l3_agent_config', {})
             end
 
-            it 'neutron l3 agent config should be modified by override_resources' do
-              is_expected.to contain_override_resources('neutron_l3_agent_config').with(:data => neutron_l3_agent_config_override_resources)
-            end
-
             it 'should use "override_resources" to update the catalog' do
               ral_catalog = Noop.create_ral_catalog self
               neutron_l3_agent_config_override_resources.each do |title, params|
@@ -91,10 +87,6 @@ describe manifest do
 
           let(:neutron_l3_agent_config_override_resources) do
             configuration_override.fetch('neutron_l3_agent_config', {})
-          end
-
-          it 'neutron l3 agent config should be modified by override_resources' do
-            is_expected.to contain_override_resources('neutron_l3_agent_config').with(:data => neutron_l3_agent_config_override_resources)
           end
 
           it 'should use "override_resources" to update the catalog' do

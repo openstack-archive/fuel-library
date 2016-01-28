@@ -228,10 +228,6 @@ describe manifest do
        should contain_keystone_config('DEFAULT/use_stderr').with(:value => 'false')
      end
 
-     it 'should create/update params with override_resources' do
-       is_expected.to contain_override_resources('keystone_config').with(:data => keystone_config_override)
-     end
-
     it 'should use "override_resources" to update the catalog' do
       ral_catalog = Noop.create_ral_catalog self
       keystone_config_override.each do |title, params|

@@ -38,8 +38,6 @@ if $use_neutron {
 
   # override neutron options
   $override_configuration = hiera_hash('configuration', {})
-  override_resources { 'neutron_dhcp_agent_config':
-    data => $override_configuration['neutron_dhcp_agent_config']
-  }
+  override_resources('neutron_dhcp_agent_config', $override_configuration['neutron_dhcp_agent_config'])
 
 }

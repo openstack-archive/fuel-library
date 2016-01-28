@@ -43,10 +43,6 @@ describe manifest do
           'enable_isolated_metadata' => isolated_metadata
         )}
 
-        it 'neutron dhcp agent config should be modified by override_resources' do
-          is_expected.to contain_override_resources('neutron_dhcp_agent_config').with(:data => neutron_dhcp_agent_config_override_resources)
-        end
-
         it 'should use "override_resources" to update the catalog' do
           ral_catalog = Noop.create_ral_catalog self
           neutron_dhcp_agent_config_override_resources.each do |title, params|

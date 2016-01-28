@@ -99,10 +99,6 @@ describe manifest do
           'enable_tunneling' => (segmentation_type != 'vlan')
         )}
 
-        it 'neutron agent ovs should be modified by override_resources' do
-          is_expected.to contain_override_resources('neutron_agent_ovs').with(:data => neutron_agent_ovs_override_resources)
-        end
-
         it 'should use "override_resources" to update the catalog' do
           ral_catalog = Noop.create_ral_catalog self
           neutron_agent_ovs_override_resources.each do |title, params|

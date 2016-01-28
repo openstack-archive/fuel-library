@@ -77,9 +77,6 @@ describe manifest do
             it { should contain_class('neutron::agents::metadata').with(
               'auth_password' => ks_password
             )}
-            it 'neutron metadata agent config should be modified by override_resources' do
-              is_expected.to contain_override_resources('neutron_metadata_agent_config').with(:data => neutron_metadata_agent_config_override_resources)
-            end
             it 'should use "override_resources" to update the catalog' do
               ral_catalog = Noop.create_ral_catalog self
               neutron_metadata_agent_config_override_resources.each do |title, params|
@@ -99,9 +96,6 @@ describe manifest do
             configuration_override.fetch('neutron_metadata_agent_config', {})
           end
 
-          it 'neutron metadata agent config should be modified by override_resources' do
-            is_expected.to contain_override_resources('neutron_metadata_agent_config').with(:data => neutron_metadata_agent_config_override_resources)
-          end
           it 'should use "override_resources" to update the catalog' do
             ral_catalog = Noop.create_ral_catalog self
             neutron_metadata_agent_config_override_resources.each do |title, params|
