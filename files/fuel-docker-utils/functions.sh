@@ -735,6 +735,42 @@ function check_nailgun_tasks {
   return $?
 }
 
+function stop_systemd_containers () {
+  lock
+  if [ "${1}" = "all" ]; then
+    for container in ${!CONTAINER_NAMES[@]}; do
+      if $(systemctl is-active docker-${container} -q); then
+        systemctl stop docker-${container}
+      fi
+    done
+    return
+  fi
+  for container in $@; do
+    if $(systemctl is-active docker-${container} -q); then
+      systemctl stop docker-${container}
+    fi
+  done
+  unlock
+}
+
+function start_systemd_containers () {
+  lock
+  if [ "${1}" = "all" ]; then
+    for container in ${CONTAINER_SEQUENCE}; do
+      if ! $(systemctl is-active docker-${container} -q); then
+        systemctl start docker-${container}
+      fi
+    done
+    return
+  fi
+  for container in $@; do
+    if ! $(systemctl is-active docker-${container} -q); then
+      systemctl start docker-${container}
+    fi
+  done
+  unlock
+}
+
 function restore {
 #TODO(mattymo): Optionally not include system dirs during restore
 #TODO(mattymo): support remote file such as ssh://user@myhost/backup.tar.lrz
@@ -771,7 +807,11 @@ finish or cancel them. Run \"fuel task list\" for more details." 1>&2
     exit 3
   fi
   restoredir="$BACKUP_ROOT/restore-$timestamp/"
-  disable_supervisor
+  if [ "${SYSTEMD}" == "true" ]; then
+    stop_systemd_containers all
+  else
+    disable_supervisor
+  fi
   if [ "$fullrestore" == "1" ]; then
     echo "Stopping and destroying existing containers..."
     destroy_container all
@@ -786,7 +826,11 @@ finish or cancel them. Run \"fuel task list\" for more details." 1>&2
   set +e
   echo "Starting containers..."
   start_container all
-  enable_supervisor
+  if [ "${SYSTEMD}" == "true" ]; then
+    start_systemd_containers all
+  else
+    enable_supervisor
+  fi
   for container in $CONTAINER_SEQUENCE; do
     check_ready $container
   done
