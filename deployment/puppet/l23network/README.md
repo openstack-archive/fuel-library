@@ -1,24 +1,33 @@
 L23network
 ==========
-Puppet module for configuring network interfaces on 2nd and 3rd level (802.1q vlans, access ports, NIC-bondind, assign IP addresses, dhcp, and interfaces without IP addresses). 
-Can work together with Open vSwitch or standart linux way.
-At this moment support Centos 6.3+ (RHEL6) and Ubuntu 12.04 or above.
 
-L23network module have a same behavior for both operation systems.
+This puppet module is for configuring L2 and L3 network interfaces (e.g 802.1q
+vlans, access ports, NIC-bonding, assigning IP addresses, DHCP, and interfaces
+without IP addresses).
 
-**WARNING!!!** This is a L23network v1.1, it contains some incompatibles with earlier versions. *Be carefully*.
+It works with standard Linux interfaces as well as with Open vSwitch
+interfaces. At the moment, it supports CentOS/RHEL 6.3+ and Ubuntu 12.04+. The
+module should have the same behavior across both operating systems.
+
+**WARNING!!!** This is l23network v1.1, which contains some incompatibilities
+with earlier versions. *Be careful*.
+
 
 ## Usage
 
-### Initializing 
 
-Place this module at /etc/puppet/modules/l23network or another directory with your puppet modules.
 
-Include L23network module and initialize it. It is recommended to do it on the early stage:
+### Initialization
 
-    #Network configuration
-    stage {'netconfig':
-      before  => Stage['main'],
+Place this module at /etc/puppet/modules/l23network or in the directory where
+your puppet modules are stored.
+
+Include the l23network module and initialize it. It is recommended to do this
+during an early puppet stage (before the main stage). E.g.
+
+    # Network configuration
+    stage { 'netconfig':
+      before => Stage['main'],
     }
     class { 'l23network':
       use_ovs => true,
@@ -26,7 +35,7 @@ Include L23network module and initialize it. It is recommended to do it on the e
       stage   => 'netconfig'
     }
 
-Initialization class 'l23network' has following incoming parameters and its default values:
+The 'l23network' class has the following parameters and default values:
 
     class { 'l23network':
       use_ovs                      => false,
@@ -42,33 +51,39 @@ Initialization class 'l23network' has following incoming parameters and its defa
       ovs_common_package_name      => undef,
     }
 
-For highly customized configurations you can redefine each of ones. For example, if you plan to use open vSwitch you should enable it:
+If you plan to use Open vSwitch you can enable it as follows:
 
-    class {'l23network': 
-      use_ovs=>true
+    class { 'l23network':
+      use_ovs => true,
     }
 
 
-### L2 network features configuation
 
-Current layout is:
-* *bridges* -- A "Bridge" is a virtual ethernet L2 switch. You can plug ports into it.
-* *ports* -- A Port is an interface you plug into the bridge. It may be virtual or native interface.
+### L2 Network Configuration
 
-Then in your manifest you can either use it as a parameterized classes:
+The following L2 concepts are used:
 
-    l23network::l2::bridge{"br-mgmt": }
-    l23network::l2::port{"eth0": bridge => "br-mgmt"}
-    
-    l23network::l2::bridge{"br-ex": provider => ovs }
-    l23network::l2::port{"eth1": bridge => "br-ex" }
-    l23network::l2::port{"ve0": bridge => "br-ex" }
-    l23network::l2::port{"ve1": bridge => "br-ex" }
+* *bridge* - a virtual ethernet L2 switch. You can plug ports into
+  a bridge.
+* *port* - an interface that you plug into the bridge. A port may be a virtual
+  or a physical interface.
+
+These can be used as parameterized classes:
+
+    l23network::l2::bridge { 'br-mgmt': }
+    l23network::l2::port { 'eth0': bridge => 'br-mgmt' }
+
+    l23network::l2::bridge { 'br-ex': provider => ovs }
+    l23network::l2::port { 'eth1': bridge => 'br-ex' }
+    l23network::l2::port { 've0': bridge => 'br-ex' }
+    l23network::l2::port { 've1': bridge => 'br-ex' }
+
+The following sections describe their usage in more detail.
 
 
-#### L2::Bridge
+#### L2::bridge
 
-This resource implemented for configire of bridge.
+This resource is for configuring bridges:
 
     l23network::l2::bridge { 'br1':
       ensure          => present,
@@ -79,40 +94,42 @@ This resource implemented for configire of bridge.
       provider        => lnx,
     }
 
-Non-obligatory fields:
+Optional parameters:
 
-* *stp* -- enable/disable STP for bridge
-* *bpdu_forward* -- enable/disable BPDU forward on bridge
-* *bridge_id* -- bridge_id for STP protocol.
-* *vendor_specific* -- vendor_specific hash (see below)
-* *delay_while_up* -- delay, in seconds, which will happens each time while node will boot after interface up.
+* *stp* - enable/disable STP for the bridge
+* *bpdu_forward* - enable/disable BPDU forwarding on the bridge
+* *bridge_id* - bridge_id for the STP protocol
+* *vendor_specific* - vendor_specific hash (see below)
+* *delay_while_up* - delay, in seconds, after the interface comes up, which
+  happens every time the nodes boots
 
-#### L2::Port
 
-Resource for configuring port L2 options. Only L2 options. For configuring
-L3 options -- use *L23network::l3::ifconfig* resource
+#### L2::port
+
+This resource is for configuring ports with L2 options. To configure L3
+options, use the *l23network::l3::ifconfig* resource.
 
     l23network::l2::port { 'eth1':
-      mtu     => 9000,   # MTU value, unchanged if absent.
-      onboot  => true,   # whether port has UP state after setup or node boot
+      mtu     => 9000,  # MTU value, unchanged if absent
+      onboot  => true,  # Whether port has UP state after setup or node boot
       ethtool => {
         .....
       },
       vendor_specific => {
         .....
       },
-      provider => lnx
+      provider => lnx,
     }
 
     l23network::l2::port { 'eth1.101':
-      ensure    => present,
-      bridge    => 'br1',  # port can be a member of bridge. 
-                           # If no value given this property was unchanged, 
-                           # if given 'absent' port will be excluded from any
-                           # bridges.
-      onboot    => true,
-      delay_while_up => 10
-      provider  => lnx
+      ensure         => present,
+      bridge         => 'br1',  # port can be a member of a bridge
+                                # If no value is given this property remains
+                                # unchanged. If 'absent' is given the port will
+                                # be excluded from any bridges
+      onboot         => true,
+      delay_while_up => 10,
+      provider       => lnx,
     }
 
 Alternative VLAN definition (not recommended for 'lnx' provider)
@@ -120,20 +137,22 @@ Alternative VLAN definition (not recommended for 'lnx' provider)
     l23network::l2::port { 'vlan77':
       vlan_id   => 77,
       vlan_dev  => eth1,
-      provider  => lnx
+      provider  => lnx,
     }
 
-#### L2::Bond
 
-It's a special type of port. Designed for bonding two or more interfaces.
-Detail description of bonding feature you can read here:
-https://www.kernel.org/doc/Documentation/networking/bonding.txt
-If you plan use LACP -- we highly recommend do not use OVS.
-Also we don't recommend insert native linux bonds to OVS bridges. This case works, but leads many heavy diagnostic surprises.
+#### L2::bond
+
+This is a special type of port for bonding two or more interfaces. A detailed
+description of bonding is available
+[here](https://www.kernel.org/doc/Documentation/networking/bonding.txt).
+If you plan to use LACP, we highly recommend not using OVS. We also recommend
+not inserting native linux bonds into OVS bridges. This case works, but leads
+to many complications when troubleshooting.
 
     l23network::l2::bond { 'bond0':
       interfaces      => ['eth1', 'eth2'],
-      bridge          => 'br0',  # obligatory only for OVS provider
+      bridge          => 'br0',  # only required for OVS provider
       mtu             => 9000,
       onboot          => true,
       bond_properties => {  # bond configuration properties (see bonding.txt)
@@ -141,7 +160,7 @@ Also we don't recommend insert native linux bonds to OVS bridges. This case work
         lacp_rate        => 'slow',
         xmit_hash_policy => 'encap3+4'
       },
-      interface_properties => {  # config properties for included ifaces
+      interface_properties => {  # config properties for included interfaces
         ethtool => {
           .....
         },
@@ -149,12 +168,12 @@ Also we don't recommend insert native linux bonds to OVS bridges. This case work
       vendor_specific => {
         .....
       },
-      delay_while_up => 45
+      delay_while_up => 45,
       provider => lnx,
     }
 
-Bond **mode** and **xmit_hash_policy** configuration has some differences for
-*lnx* and *ovs* providers:
+**mode** and **xmit_hash_policy** parameters have some differences depending
+on whether the provider is *lnx* or *ovs*:
 
 For *lnx* provider **mode** can be:
 
@@ -166,8 +185,8 @@ For *lnx* provider **mode** can be:
 * balance-tlb
 * balance-alb
 
-For 802.3ad (LACP), balance-xor, balance-tlb and balance-alb cases should be
-defined **xmit_hash_policy** as one of:
+For 802.3ad (LACP) with balance-xor, balance-tlb or balance-alb
+ **xmit_hash_policy** should be defined as one of:
 
 * layer2  *(default)*
 * layer2+3
@@ -181,68 +200,73 @@ For *ovs* provider **mode** can be:
 * balance-slb  *(default)*
 * balance-tcp
 
-Field **xmit_hash_policy** shouldn't use for any mode.
-For *balance-tcp* mode **lacp** bond-property should be set
-to 'active' or 'passive' value.
+If **mode** is balance-tcp, **lacp** should be set to 'active' or 'passive'.
 
-While bond will created also will created ports, included to the bond. This
-ports will be created as slave ports for this bond with properties, listed in
-**interface_properties** field. If you want more flexibility, you can create
-this ports by *l23network::l2::port* resource and shouldn't define
-**interface_properties** field.
+The **xmit_hash_policy** parameter is not used for *ovs* bonds at all.
 
-**MTU** field, setted for bond interface will be passed to interfaces, included
-to the bond automatically.
+When the bond is created, it will also create the ports for the bond slaves.
+These ports will be created with the properties specified by the
+**interface_properties** parameter. For further flexibility, these ports can be
+created using the *l23network::l2::port* resource. In this case, do not use the
+**interface_properties** parameter.
 
-I recommend use **delay_while_up** property, while configure LACP bonds, because such bonds may take some time for settle.
+When the **mtu** parameter is set on a bonded interface, the MTU will also be
+assigned to slave interfaces automatically.
 
-For some providers (ex: ovs) **bridge** field is obligatory.
+It is recommended to use the **delay_while_up** parameter when configuring LACP
+bonds, because such bonds may take some time to settle.
 
-#### L2::Patch
+For some providers (e.g. *ovs*), the **bridge** parameter is obligatory.
 
-It's a patchcord for connecting two bridges. Architecture limitation: two
-bridges may be connected only by one patchcord. Name for patchcord interfaces
-calculated automatically and can't changed in configuration.
 
-OVS provider can connect OVS-to-OVS and OVS-to-LNX bridges. If you connect
-OVS-to-LNX bridges, you SHOULD put OVS bridge first in order.
+#### L2::patch
+
+This resource is a patchcord for connecting two bridges. One architecture
+limitation is that two bridges can only be connected by one patchcord. The name
+for the patchcord interfaces is calculated automatically and cannot be changed.
+
+The *ovs* provider can connect OVS-to-OVS, OVS-to-LNX and LNX-to-LNX bridges.
+You should always create the bridges before using this resource.
 
     l23network::l2::patch { 'patch__br0--br1':
-      bridges => ['br0','br1'],
+      bridges         => ['br0','br1'],
       vendor_specific => {
         .....
       },
     }
 
-**Naming conviency**
+##### Naming Conventions
 
-Each low-level puppet patchcord resource *l2_patch* has his name in
-'bridge__%bridge1%--%bridge2%' format, and bridges provided
-in alphabetical order for all providers. This resource also contain 'bridges'
-property.  It's a array of two bridge names.
-Order of names depends of provider implementation.
-For example, 'ovs' provider bridge names listed in alphabetical order for
-OVS-to-OVS connectivity, and ovs-bridge always first for OVS-to-LNX bridges
-connectivity.
+Each low-level patchcord resource l2::patch has its name in the following
+format: 'bridge__%bridge1%--%bridge2%', with the bridges in alphabetical order
+for all providers.
 
-Each *L2_patch* instance contains read-only 'jacks' property. It's a array
-of two names of jacks, 'inserted' to each bridge. This property has the same
-ordering style, that a 'bridges' property for this provider.
+This resource also contains a 'bridges' property which is an array of the two
+bridge names. The order of the names depends on the provider implementation.
+For example, the *ovs* provider bridge names are listed in alphabetical order
+for OVS-to-OVS connections, and ovs-bridge is always listed first for
+OVS-to-LNX bridges.
 
-If patchcord connect two bridges different nature, the 'cross' flag will be
-setting to 'true'.
+Each L2::patch instance contains a read-only 'jacks' property, which is an
+array of two names of jacks, 'inserted' into each bridge. This property has the
+same ordering style as the 'bridges' property for each provider.
+
+If a patchcord connects two different types of bridges, the 'cross' property will
+be set to 'true'.
+
 
 #### Ethtool hash and offloading settings
 
-You can manage offloading and another options, controlled by ethtool utility,
-for any resources, that has *ethtool* hash as one of incoming properties.
-*Ethtool* field look like hash of hashes. Keys of the external hash -- are a
-section names from ethtool manual. Ones maps to an internal hashes. Internal
-hashes -- is a option to value mappings. Option names corresponds to ethtool
-output option naming. For example, you can see list of offloading options by
-executing 'ethtool -k eth0'.
+To manage offloading and other ethtool options for any resources, it is
+possible to use the *ethtool* parameter. This is like a hash of hashes. Keys of
+the external hash map to section names from the ethtool manual. Each section
+name maps to an internal hash. Internal hashes are option to value mappings,
+where option names correspond to ethtool output option naming. For example, you
+can see list of offloading options by executing 'ethtool -k eth0'.
+
 Ethtool options are pre-defined and stateful.
-All implemented sections and options you can see bellow:
+
+All implemented sections and options are listed below.
 
     ethtool => {
       offload => {
@@ -277,61 +301,72 @@ All implemented sections and options you can see bellow:
           rx-vlan-stag-hw-parse        => true or false,
           rx-vlan-stag-filter          => true or false,
       },
-      #settings => {
-      #   duplex => 'half',
-      #   mdix   => off
-      #}
+      settings => {
+         duplex => 'half',
+         mdix   => off
+      }
     }
 
 
-### L3 network configuration
 
-#### L3::Ifconfig
+### L3 Network Configuration
 
-Resource for configuring IP addresses on interface. Only L3 options.
-For configuring L2 options -- use corresponded L2 resource.
+
+#### L3::ifconfig
+
+This resource is for configuring IP addresses on an interface. Only L3 options.
+For configuring L2 options, use the L2 resources.
 
     l23network::l3::ifconfig { 'eth1.101':
       ensure           => present,
       ipaddr           => ['192.168.10.3/24', '10.20.30.40/25'],
       gateway          => '192.168.10.1',
-      gateway_metric   => 10,  # different Ifconfig resources should not has
-                               # gateways with same metrics
-      vendor_specific => {
+      gateway_metric   => 10,  # different ifconfig resources should not have
+                               # gateways with same metric
+      vendor_specific  => {
         .....
       },
     }
 
-**DHCP or address-less interfaces**
+The option *ipaddr* may contain an array of IP addresses (even to configure a
+single IP address), 'dhcp', or 'none'. CIDR-notation is required for the IP
+address.
 
-    l23network::l3::ifconfig {"eth2": ipaddr=>'dhcp'}
-    l23network::l3::ifconfig {"eth3": ipaddr=>'none'}
+DHCP or address-less interfaces are configured as follows:
 
-Option *ipaddr* can contains array of IP addresses (even setup one ipaddr), 'dhcp', or 'none' string. 
+    l23network::l3::ifconfig { 'eth2': ipaddr => 'dhcp' }
+    l23network::l3::ifconfig { 'eth3': ipaddr => 'none' }
 
-CIDR-notated form of IP address is required. 
+The default gateway can be configured as follows:
 
-**Default gateway**
-
-    l23network::l3::ifconfig {"eth1":
+    l23network::l3::ifconfig { 'eth1':
       ipaddr         => ['192.168.2.5/24'],
       gateway        => '192.168.2.1',
       gateway_metric => 10,
     }
 
-if *gateway_metric* omited, gateway will be setup without metric definition.
+If *gateway_metric* is omitted, the gateway will be configured without a
+metric.
 
 
 
-## Network Scheme
+## Network Schemes
 
-Network scheme is a hierarchical-based manner for define network topology for host. In following examples I use yaml format for represent it. 
-Main idea:
-  * when we got undeployed server we have some number of NICs. NICs, managed by puppet should be listed in *interfaces* section. It is giveg.
-  * The result of our network configuration process is a some network topology on the host and some interfaces with assignet IP addresses (or without IPs). It's a *endpoints*. 
-  * Interfaces become endpoints by successive *transformations*. I try explain how it works in the following document: [Transformations. How they work.](https://docs.google.com/document/d/12RvBjOYO83_yqeiAgxttrRaa90-8un80aEO8OzDlQ9Y)
+*network_scheme* is a hierarchical-based scheme to define a network topology
+for a host. In the following examples the yaml format is used.
 
-Example of typical network scheme:
+The main idea is as follows:
+  * When we have an undeployed server we have a number of NICs. NICs, managed
+    by puppet should be listed in the *interfaces* section.
+  * The result of our network configuration process is a network topology on
+    the host with interfaces that are assigned IP addresses (or not). These
+    are the *endpoints*.
+  * Interfaces become endpoints by successive *transformations*.
+    Transformations are explained in the following document:
+    [Transformations. How they work.](https://docs.google.com/document/d/12RvBjOYO83_yqeiAgxttrRaa90-8un80aEO8OzDlQ9Y)
+
+
+Example of a typical network scheme:
 
     ---
     network_scheme:
@@ -402,11 +437,11 @@ Example of typical network scheme:
         storage: br-storage
 
 
-Example of typical network scheme with bonds and disabling offloads:
+Example of typical network scheme with bonding and offloads disabled:
 
     ---
     network_scheme:
-      version: "1.1"
+      version: 1.1
       provider: lnx
       interfaces:
         eth1:
@@ -481,22 +516,24 @@ Example of typical network scheme with bonds and disabling offloads:
         storage: br-storage
 
 
-## Vendor_specific hash
 
-**Vendor_specific** field - is a hash, empty by default,
-required only for plug-ins. It allows plugin developers not to change custom
-type code for adding non-standart parameters. Due to inheriting and extending
-puppet type (not the provider one), is a non-trivial task. Plugin developers
-may pass any data structures by this hash and its subhashes. All data from
-this hash pass to the provider transparently.
+## Vendor-specific Parameters
+
+The **vendor_specific** parameter is a hash, empty by default, required only
+for plug-ins. It allows plugin developers to use custom code for adding
+non-standard parameters. As a result of inheriting and extending the
+puppet type (not the provider), this a non-trivial task. Plugin developers
+may pass any data structures using this hash and its subhashes. All data from
+this hash is passed to the provider transparently.
+
 
 
 ## Debugging
 
-For debug purpose you can use following puppet calls for get prefetchable
-properties for existing resources. Please note, that bridges and bonds in linux
-are a port too, and present in l2_port output with corresponded flags
-(if_type).
+For debug purposes you can use following puppet calls to get prefetchable
+properties for existing resources. Please note that bridges and bonds in linux
+are ports too, and are present in the l2_port output with the corresponding
+flags (if_type).
 
     # puppet resource -vd --trace l23_stored_config
     # puppet resource -vd --trace l2_port
@@ -505,39 +542,46 @@ are a port too, and present in l2_port output with corresponded flags
     # puppet resource -vd --trace l3_ifconfig
     # puppet resource -vd --trace l3_route
 
-This commands may be fail before 1st configuration networking by L23network
-because some kernel modules may wasn't loaded or some command-line tools
-wasn't installed.
+These commands may fail before the initial configuration run by L23network
+because some kernel modules are not loaded or some command-line tools are not
+installed.
+
 
 
 ## Internals
 
-Each L23network resource has interface trought puppet 'define' resource.
-This define may conains some non difficult logic, define provider for low-level resources and call two low level resources:
-  * *l23_stored_config* -- for modifying OS config files 
-  * low level resource for configuring it in runtime (e.x: *l2_bridge*)
+Each L23network resource has an interface through the puppet 'define' resource.
+These defines contain some simple logic, including the define provider for
+low-level resources and a call to two low-level resources:
+  * *l23_stored_config* - for modifying OS config files
+  * low-level resource for live-configuring the resource (e.g. *l2_bridge*)
 
-### L23_stored_config custom type
 
-This resource is implemented to manage interface config files. Each possible
-parameter should be described in resource type.
+### L23_stored_config Custom Type
 
-This resource allows to forget about ERB templates, because in some cases
-(i.e.  bridge + port with same name + ip address for this port) we should
-modify config file content three times.
+This resource manages the interface configuration files directly. Each
+possible parameter should be described in the resource type.
+
+This resource allows us to avoid using ERB templates, because in some cases
+(e.g. bridge and port with the same name and IP address) we need to modify the
+same config file content three times.
 
     l23_stored_config { 'br1':
       onboot   => true,
       method   => manual,
       mtu      => 1500,
-      ethtool => {
+      ethtool  => {
         .....
       },
-      provider => lnx_ubuntu
+      provider => lnx_ubuntu,
     }
 
-Place of config files location defined inside provider for corresponded
-operation system and provider. Provider name for l23_stored_config depends from operation system (may be with version) and network provider (native linux, ovs, etc...)
+The location of the configuration files is defined inside the provider for the
+corresponding operating system and provider. The provider name for
+*l23_stored_config* also depends on the operating system, the operating system
+version, and the specific network provider (native linux, ovs, etc...)
+
+
 
 ## References
 
