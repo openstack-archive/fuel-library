@@ -8,8 +8,9 @@ Restart=on-failure
 RestartSec=10
 StartLimitBurst=5
 StartLimitInterval=60
-ExecStartPre=/usr/bin/dockerctl create <%= @title %>
-ExecStart=/usr/bin/docker start -a fuel-core-<%= @release %>-<%= @title %>
+ExecStartPre=/usr/bin/dockerctl build <%= @title %>
+ExecStartPre=/usr/bin/dockerctl check <%= @title %>
+ExecStart=/usr/bin/docker attach --no-stdin=true fuel-core-<%= @release %>-<%= @title %>
 ExecStop=/usr/bin/docker stop -t <%= @timeout %> fuel-core-<%= @release %>-<%= @title %>
 
 [Install]
