@@ -3,6 +3,7 @@ notice('MODULAR: ironic/ironic.pp')
 $ironic_hash                = hiera_hash('ironic', {})
 $public_vip                 = hiera('public_vip')
 $management_vip             = hiera('management_vip')
+$service_endpoint           = hiera('service_endpoint')
 
 $network_metadata           = hiera_hash('network_metadata', {})
 
@@ -46,6 +47,11 @@ $db_connection = os_database_connection({
 $ironic_tenant              = pick($ironic_hash['tenant'],'services')
 $ironic_user                = pick($ironic_hash['auth_name'],'ironic')
 $ironic_user_password       = pick($ironic_hash['user_password'],'ironic')
+$ssl_hash                   = hiera_hash('use_ssl', {})
+$internal_auth_protocol     = get_ssl_property($ssl_hash, {}, 'keystone', 'internal', 'protocol', 'http')
+$internal_auth_address      = get_ssl_property($ssl_hash, {}, 'keystone', 'internal', 'hostname', [$service_endpoint, $management_vip])
+$internal_auth_url          = "${internal_auth_protocol}://${internal_auth_address}:5000"
+
 
 prepare_network_config(hiera_hash('network_scheme', {}))
 
@@ -68,26 +74,11 @@ class { 'ironic':
   sync_db              => $primary_controller,
 }
 
-# TODO (iberezovskiy): Move to globals (as it is done for sahara)
-# after new sync with upstream because of
-# https://github.com/openstack/puppet-ironic/blob/master/manifests/init.pp#L261
-if $default_log_levels {
-  ironic_config {
-    'DEFAULT/default_log_levels' :
-      value => join(sort(join_keys_to_values($default_log_levels, '=')), ',');
-  }
-} else {
-  ironic_config {
-    'DEFAULT/default_log_levels' : ensure => absent;
-  }
-}
-#
-
 class { 'ironic::client': }
 
 class { 'ironic::api':
   host_ip           => get_network_role_property('ironic/api', 'ipaddr'),
-  auth_host         => $keystone_endpoint,
+  auth_uri          => $internal_auth_url,
   admin_tenant_name => $ironic_tenant,
   admin_user        => $ironic_user,
   admin_password    => $ironic_user_password,
