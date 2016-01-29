@@ -54,7 +54,7 @@
   type: shell
   version: 2.0.0
   role: [primary-controller, compute-vmware]
-  requires: [post_deployment_start]
+  requires: [post_deployment_start, enable_nova_compute_service]
   required_for: [post_deployment_end]
   condition: "settings:common.use_vcenter.value == true"
   parameters:
@@ -64,7 +64,7 @@
 - id: enable_nova_compute_service
   type: puppet
   version: 2.0.0
-  role: [compute]
+  role: [compute, compute-vmware]
   requires: [post_deployment_start]
   required_for: [post_deployment_end]
   refresh_on: [nova_config, nova_paste_api_ini]

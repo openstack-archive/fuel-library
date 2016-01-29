@@ -4,7 +4,7 @@
 #
 # It does the following:
 # - configure keystone auth parameters
-# - reload ceilometer compute agent service, package is already
+# - reload ceilometer polling agent service, package is already
 #   installed by ceilometer-compute deployment task
 #
 # === Parameters
@@ -72,10 +72,10 @@ class vmware::ceilometer::compute_vmware(
 
   include ceilometer::params
 
-  service { 'ceilometer-agent-compute':
+  service { 'ceilometer-polling':
     ensure => running,
-    name   => $::ceilometer::params::agent_compute_service_name,
+    name   => $::ceilometer::params::agent_polling_service_name,
   }
 
-  Ceilometer_config<| |> ~> Service['ceilometer-agent-compute']
+  Ceilometer_config<| |> ~> Service['ceilometer-polling']
 }
