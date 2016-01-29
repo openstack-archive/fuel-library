@@ -42,6 +42,8 @@ describe manifest do
     management_vip= Noop.hiera('management_vip')
     public_ssl_hash = Noop.hiera('public_ssl')
 
+    let(:auth_suffix) { Noop.puppet_function 'pick', keystone_hash['auth_suffix'], '/' }
+
     let(:ssl_hash) { Noop.hiera_hash 'use_ssl', {} }
 
     let(:public_auth_protocol) { Noop.puppet_function 'get_ssl_property',ssl_hash,public_ssl_hash,'keystone','public','protocol','http' }
@@ -110,9 +112,9 @@ describe manifest do
       )
     end
 
-    it 'should declare openstack::auth_file class with right controller node parameter' do
+    it 'should declare openstack::auth_file class with proper authentication URL' do
       should contain_class('openstack::auth_file').with(
-        'controller_node' => internal_auth_address,
+        'auth_url'        => "#{internal_url}#{auth_suffix}",
       )
     end
 
