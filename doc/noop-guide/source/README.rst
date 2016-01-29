@@ -101,3 +101,17 @@ Confirming the data changes made to became a new committed state
 
 Use the same patterns as if making the Initial data templates generation.
 Amend generated files to the commit (the change-set under test).
+
+Using additional data rspec matchers
+------------------------------------
+
+There are some matchers for RSpec one would like to use
+
+ensure_transitive_dependency(before, after)
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+This matcher allows one to check whether there is a
+dependency between *after* and *before* resources
+even if this dependency is transitional by means
+of several other resources or containers such
+as classes or defines.
