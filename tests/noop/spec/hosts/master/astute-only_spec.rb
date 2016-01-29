@@ -64,6 +64,12 @@ describe manifest do
           :require    => 'Class[Nailgun::Astute]'
         )
         params[:services].each do |service|
+          should contain_file('/etc/astute/astuted.conf').with({
+              :mode    => '0644',
+              :owner   => 'root',
+              :group   => 'root',
+              :require => 'File[/etc/astute]'
+          }).that_notifies(Service['astute'])
           should contain_file("/etc/systemd/system/#{service}.service.d/fuel.conf").with({
             :mode  => '0644',
             :owner => 'root',
