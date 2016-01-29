@@ -9,18 +9,24 @@ if ironic_enabled
     shared_examples 'catalog' do
       rabbit_user = Noop.hiera_structure 'rabbit/user', 'nova'
       rabbit_password = Noop.hiera_structure 'rabbit/password'
-      default_log_levels_hash = Noop.hiera_hash 'default_log_levels'
-      default_log_levels = Noop.puppet_function 'join_keys_to_values',default_log_levels_hash,'='
       primary_controller = Noop.hiera 'primary_controller'
       amqp_durable_queues = Noop.hiera_structure 'ironic/amqp_durable_queues', 'false'
+      admin_tenant = Noop.hiera_structure('ironic_hash/tenant', 'services')
+      admin_user = Noop.hiera_structure('ironic_hash/user', 'ironic')
+      admin_password = Noop.hiera_structure('ironic_hash/user_password', 'ironic')
 
       database_vip = Noop.hiera('database_vip')
       ironic_db_password = Noop.hiera_structure 'ironic/db_password', 'ironic'
       ironic_db_user = Noop.hiera_structure 'ironic/db_user', 'ironic'
       ironic_db_name = Noop.hiera_structure 'ironic/db_name', 'ironic'
 
-      it 'should configure default_log_levels' do
-        should contain_ironic_config('DEFAULT/default_log_levels').with_value(default_log_levels.sort.join(','))
+      service_endpoint = Noop.hiera 'service_endpoint'
+      management_vip = Noop.hiera 'management_vip'
+      let(:ssl_hash) { Noop.hiera_hash 'use_ssl', {} }
+      let(:internal_auth_protocol) { Noop.puppet_function 'get_ssl_property',ssl_hash,{},'keystone','internal','protocol','http' }
+      let(:internal_auth_address) { Noop.puppet_function 'get_ssl_property',ssl_hash,{},'keystone','internal','hostname',[service_endpoint, management_vip] }
+      let(:internal_auth_url) do
+          "#{internal_auth_protocol}://#{internal_auth_address}:5000"
       end
 
       it 'should declare ironic class correctly' do
@@ -31,6 +37,15 @@ if ironic_enabled
           'control_exchange'     => 'ironic',
           'amqp_durable_queues'  => amqp_durable_queues,
           'database_max_retries' => '-1',
+        )
+      end
+
+      it 'should declare ironic::api class correctly' do
+        should contain_class('ironic::api').with(
+          'auth_uri'             => internal_auth_url,
+          'admin_tenant_name'    => admin_tenant,
+          'admin_user'           => admin_user,
+          'admin_password'       => admin_password
         )
       end
 
@@ -45,10 +60,6 @@ if ironic_enabled
         )
       end
 
-      # TODO (iberezovskiy): uncomment this test after ironic module update
-      #it 'should configure default log levels' do
-      #  should contain_class('ironic::logging').with('default_log_levels' => default_log_levels)
-      #end
     end
     test_ubuntu_and_centos manifest
   end
