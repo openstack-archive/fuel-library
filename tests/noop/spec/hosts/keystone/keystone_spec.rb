@@ -46,7 +46,7 @@ describe manifest do
 
     let(:public_auth_protocol) { Noop.puppet_function 'get_ssl_property',ssl_hash,public_ssl_hash,'keystone','public','protocol','http' }
 
-    let(:public_auth_address) { Noop.puppet_function 'get_ssl_property',ssl_hash,{},'keystone','public','hostname',[public_vip] }
+    let(:public_auth_address) { Noop.puppet_function 'get_ssl_property',ssl_hash,public_ssl_hash,'keystone','public','hostname',[public_vip] }
 
     let(:internal_auth_protocol) { Noop.puppet_function 'get_ssl_property',ssl_hash,{},'keystone','internal','protocol','http' }
 
