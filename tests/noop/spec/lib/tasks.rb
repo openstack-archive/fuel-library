@@ -38,10 +38,12 @@ class Noop
         next unless task['parameters']['puppet_manifest'] == manifest_path
         if task['role']
           return true if task['role'] == '*'
+          return true if task['role'].include?('/.*/')
           return true if task['role'].include?(role)
         end
         if task['groups']
           return true if task['groups'] == '*'
+          return true if task['groups'].include?('/.*/')
           return true if task['groups'].include?(role)
         end
       end
