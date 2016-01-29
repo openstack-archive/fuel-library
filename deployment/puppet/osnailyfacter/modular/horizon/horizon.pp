@@ -17,6 +17,12 @@ if $horizon_hash['secret_key'] {
   $secret_key = 'dummy_secret_key'
 }
 
+if $::os_package_type == 'debian' {
+  $custom_theme_path = hiera('custom_theme_path', 'themes/mirantis')
+} else {
+  $custom_theme_path = undef
+}
+
 $neutron_dvr = pick($neutron_advanced_config['neutron_dvr'], false)
 
 $ssl_hash               = hiera_hash('use_ssl', {})
@@ -65,6 +71,7 @@ class { 'openstack::horizon':
   overview_days_range  => $overview_days_range,
   file_upload_temp_dir => $file_upload_temp_dir,
   file_upload_max_size => $file_upload_max_size,
+  custom_theme_path    => $custom_theme_path,
 }
 
 $haproxy_stats_url = "http://${service_endpoint}:10000/;csv"
