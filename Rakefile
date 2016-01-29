@@ -63,13 +63,25 @@ namespace :common do
       }
     end
 
-    Dir.glob('./deployment/puppet/*') do |mod|
-      next unless File.directory?(mod)
-      if skip_module_list.include?(File.basename(mod))
-        $stderr.puts "Skipping tests... modules.disable_rspec includes #{mod}"
-        next
+    $git_module_directories = %x[git diff --name-only HEAD~ 2>/dev/null |\
+      grep -o 'deployment/puppet/[^/]*/' | sort -u]
+
+    if $git_module_directories.empty?
+      $stderr.puts '-'*80
+      $stderr.puts "No changes found! Build modules list..."
+      $stderr.puts '-'*80
+      Dir.glob('deployment/puppet/*') do |mod|
+        next unless File.directory?(mod)
+        if skip_module_list.include?(File.basename(mod))
+          $stderr.puts "Skipping tests... modules.disable_rspec includes #{mod}"
+          next
+        end
+        $module_directories << mod
       end
-      $module_directories << mod
+    else
+      $git_module_directories.each_line do |mod|
+        $module_directories << mod.chomp
+      end
     end
   end
 
@@ -85,6 +97,9 @@ namespace :spec do
 
   desc 'Run prep to install gems and pull down module dependencies'
   task :prep do |t|
+    $stderr.puts '-'*80
+    $stderr.puts "Install gems and pull down module dependencies..."
+    $stderr.puts '-'*80
     library_dir = Dir.pwd
     ENV['GEM_HOME']="#{library_dir}/.bundled_gems"
     system("gem install bundler --no-rdoc --no-ri --verbose")
@@ -145,6 +160,9 @@ namespace :lint do
     library_dir = Dir.pwd
     status = true
 
+    $stderr.puts '-'*80
+    $stderr.puts "Install gems..."
+    $stderr.puts '-'*80
     ENV['GEM_HOME']="#{library_dir}/.bundled_gems"
     system("gem install bundler --no-rdoc --no-ri --verbose")
 
