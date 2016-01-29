@@ -114,6 +114,89 @@ quality. The fuel-library leverages existing Puppet module rspec tests,
 [bats](https://github.com/sstephenson/bats) tests for bash scripts and noop
 tests for testing the module deployment tasks in fuel-library.
 
+### Module Unit Tests
+---------------------
+
+The modules contained within fuel-library require that the module dependencies
+have been downloaded prior to running their spec tests. Their fixtures.yml have
+been updated to use relative links to the modules contained within the
+deployment/puppet/ folder.  Because of this we have updated the rake tasks for
+the fuel-library root folder to include the ability to download the module
+dependencies as well as run all of the module unit tests with one command. You
+can run the following from the root of the fuel-library to run all module unit
+tests.
+
+```
+bundle install
+bundle exec rake spec
+```
+
+By default, running this command will only test the modules modified in the
+previous commit. To test all modules, please run:
+
+```
+bundle install
+bundle exec rake spec_all
+```
+
+If you only wish to download the module dependencies, you can run the following
+in the root of the fuel-library.
+
+```
+bundle install
+bundle exec rake spec_prep
+```
+
+If you wish to clean up the dependencies, you can run the following in the root
+of the fuel-library.
+
+```
+bundle install
+bundle exec rake spec_clean
+```
+
+Once you have downloaded the dependencies, you can also just work within a
+particular module using the usual rake spec commands if you only want to run a
+single module's unit tests. The upstream module dependencies are not included
+in the unit tests run by this command. They are excluded by having their name
+in the utils/jenkins/modules.disable_rspec file.
+
+### Module Syntax Tests
+-----------------------
+
+From within the fuel-library root, you can run the following to perform the
+syntax checks for the files within fuel-library.
+
+```
+bundle install
+bundle exec rake syntax
+```
+
+This will run syntax checks against all puppet, python, shell and hiera files
+within fuel-libray.
+
+### Module Lint Checks
+
+By default, Lint Checks will only test the modules modified in the previous
+commit. From within the fuel-library root, you can run the following commands:
+
+```
+bundle install
+bundle exec rake lint
+```
+
+To run lint on all of our puppet files you should use the following commands:
+
+```
+bundle install
+bundle exec rake lint_all
+```
+
+This will run puppet-lint against all of the modules within fuel-library but
+will skip checking the upstream module dependencies. The upstream module
+dependencies are skipped by adding their name to the
+util/jenkins/modules.disable_rake-lint file.
+
 ## Building docs
 ----------------
 
@@ -158,7 +241,7 @@ See also the [bats how-to](https://blog.engineyard.com/2014/bats-test-command-li
 ### fuel-library noop
 
 The Noop testing framework is used for testing of the known deploy paths
-with existing modular tasks. For details, see the [README](tests/noop/README.rst)
+with existing modular tasks. For details, see the [README](doc/noop-guide/source/README.rst)
 
 ## Development
 --------------
