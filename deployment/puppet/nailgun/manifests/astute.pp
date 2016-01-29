@@ -31,35 +31,35 @@ class nailgun::astute(
     owner   => 'root',
     group   => 'root',
     mode    => '0644'
-  }
+  } ~> Service <| title == 'astute' |>
 
   file { '/usr/bin/astuted':
     content => template('nailgun/astuted.erb'),
-    owner => 'root',
-    group => 'root',
-    mode => 0755,
-  }
+    owner   => 'root',
+    group   => 'root',
+    mode    => '0755',
+  } ~> Service <| title == 'astute' |>
 
   file {"/etc/astute":
     ensure => directory,
-    owner => 'root',
-    group => 'root',
-    mode => 0755,
+    owner  => 'root',
+    group  => 'root',
+    mode   => '0755',
   }
 
   file {"/etc/astute/astuted.conf":
-    content => template("nailgun/astuted.conf.erb"),
-    owner => 'root',
-    group => 'root',
-    mode => 0644,
-    require => File["/etc/astute"],
-  }
+    content => template('nailgun/astuted.conf.erb'),
+    owner   => 'root',
+    group   => 'root',
+    mode    => '0644',
+    require => File['/etc/astute'],
+  } ~> Service <| title == 'astute' |>
 
   file {"/var/log/astute":
     ensure => directory,
-    owner => 'root',
-    group => 'root',
-    mode => 0755,
+    owner  => 'root',
+    group  => 'root',
+    mode   => '0755',
   }
 
 }
