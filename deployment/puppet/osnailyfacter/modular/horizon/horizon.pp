@@ -17,6 +17,12 @@ if $horizon_hash['secret_key'] {
   $secret_key = 'dummy_secret_key'
 }
 
+if $::os_package_type == 'debian' {
+  $custom_theme_path = hiera('custom_theme_path', 'themes/mirantis')
+ } else {
+  $custom_theme_path = undef
+}
+
 $neutron_dvr = pick($neutron_advanced_config['neutron_dvr'], false)
 
 $ssl_hash               = hiera_hash('use_ssl', {})
