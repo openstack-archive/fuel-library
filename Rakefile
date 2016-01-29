@@ -22,7 +22,8 @@
 #   the respective lint or test tasks for each module. It will then return 0 if
 #   there are issues or return 1 if any of the modules fail.
 #
-# Author Alex Schultz <aschultz@mirantis.com>
+# Authors: Alex Schultz <aschultz@mirantis.com>
+#          Maksim Malchuk <mmalchuk@mirantis.com>
 #
 require 'rake'
 
@@ -36,25 +37,56 @@ PuppetSyntax.exclude_paths << "**/vendor/**/*"
 
 # Main task list
 task :default => ["common:help"]
-desc "Pull down module dependencies, run tests and cleanup"
+task :help => ["common:help"]
+
+# RSpec task list
+desc "Pull down module dependencies, run tests against Git changes and cleanup"
 task :spec => ["spec:prep", "spec:gemfile", "spec:clean"]
+task :spec_all => ["spec:all"]
 task :spec_prep => ["spec:prep"]
 task :spec_clean => ["spec:clean"]
 task :spec_standalone => ["spec:gemfile"]
+
+# Lint task list
 # TODO(aschultz): Use puppet-lint for the lint tasks
 desc "Run lint tasks"
 task :lint => ["lint:manual"]
+task :lint_all => ["lint:all"]
+task :lint_manual => ["lint:manual"]
+
+# Syntax task list
 task :syntax => ["syntax:manifests", "syntax:hiera", "syntax:files", "syntax:templates"]
+task :syntax_files => ["syntax:files"]
 
 
+# The common tasks is for internal use, so its description is commented
 namespace :common do
-  desc 'Task to generate a list of modules to skip'
-  task :modulelist, [:skip_file] do |t,args|
+
+  # desc "Task to generate a list of modules with Git changes"
+  task :modulesgit, [:skip_file] do |t, args|
     args.with_defaults(:skip_file => nil)
 
-    library_dir = Dir.pwd
+    $module_directories = []
+
+    $git_module_directories = %x[git diff --name-only HEAD~ 2>/dev/null |\
+      grep -o 'deployment/puppet/[^/]*/' | sort -u]
+
+    if $git_module_directories.empty?
+      Rake::Task["common:modules"].invoke(:skip_file)
+    else
+      $git_module_directories.each_line do |mod|
+        $module_directories << mod.chomp
+      end
+    end
+  end
+
+  # desc 'Task to generate a list of all modules'
+  task :modules, [:skip_file] do |t, args|
+    args.with_defaults(:skip_file => nil)
+
     skip_module_list = []
     $module_directories = []
+
     # TODO(aschultz): Fix all modules so they have tests and we no longer need
     # this file to exclude bad module tests
     if not args[:skip_file].nil? and File.exists?(args[:skip_file])
@@ -63,7 +95,10 @@ namespace :common do
       }
     end
 
-    Dir.glob('./deployment/puppet/*') do |mod|
+    $stderr.puts '-'*80
+    $stderr.puts "No changes found! Build modules list..."
+    $stderr.puts '-'*80
+    Dir.glob('deployment/puppet/*') do |mod|
       next unless File.directory?(mod)
       if skip_module_list.include?(File.basename(mod))
         $stderr.puts "Skipping tests... modules.disable_rspec includes #{mod}"
@@ -73,18 +108,21 @@ namespace :common do
     end
   end
 
-  desc "Display the list of available rake tasks"
+  # desc "Display the list of available rake tasks"
   task :help do
-        system("rake -T")
+    system("rake -T")
   end
 end
 
 
-# our spec task to loop through the modules and run the tests
+# our spec tasks to loop through the modules and run the 'rake spec'
 namespace :spec do
 
   desc 'Run prep to install gems and pull down module dependencies'
   task :prep do |t|
+    $stderr.puts '-'*80
+    $stderr.puts "Install gems and pull down module dependencies..."
+    $stderr.puts '-'*80
     library_dir = Dir.pwd
     ENV['GEM_HOME']="#{library_dir}/.bundled_gems"
     system("gem install bundler --no-rdoc --no-ri --verbose")
@@ -96,14 +134,25 @@ namespace :spec do
     system("./deployment/remove_modules.sh")
   end
 
+  desc "Pull down module dependencies, run tests against all modules and cleanup"
+  task :all do |t|
+    Rake::Task["spec:prep"].invoke
+    Rake::Task["common:modules"].invoke('./utils/jenkins/modules.disable_rspec')
+    Rake::Task["spec:gemfile"].invoke
+    Rake::Task["spec:clean"].invoke
+  end
+
   desc 'Run spec tasks via module bundler with Gemfile'
   task :gemfile do |t|
-    Rake::Task["common:modulelist"].invoke('./utils/jenkins/modules.disable_rspec')
-    library_dir = Dir.pwd
-    status = true
 
+    if $module_directories.nil?
+      Rake::Task["common:modulesgit"].invoke('./utils/jenkins/modules.disable_rspec')
+    end
+
+    library_dir = Dir.pwd
     ENV['GEM_HOME']="#{library_dir}/.bundled_gems"
 
+    status = true
     $module_directories.each do |mod|
       next unless File.exists?("#{mod}/Gemfile")
       $stderr.puts '-'*80
@@ -128,11 +177,23 @@ namespace :spec do
   end
 end
 
-# Our lint tasks
+
+# our lint tasks to loop through the modules and run the puppet-lint
 namespace :lint do
-  desc 'Find all the puppet files and run puppet-lint on them'
+
+  desc 'Find all the puppet modules and run puppet-lint on them'
+  task :all do |t|
+    Rake::Task["common:modules"].invoke('./utils/jenkins/modules.disable_rake-lint')
+    Rake::Task["lint:manual"].invoke
+  end
+
+  desc 'Find the puppet modules with Git changes and run puppet-lint on them'
   task :manual do |t|
-    Rake::Task["common:modulelist"].invoke('./utils/jenkins/modules.disable_rake-lint')
+
+    if $module_directories.nil?
+      Rake::Task["common:modulesgit"].invoke('./utils/jenkins/modules.disable_rake-lint')
+    end
+
     # lint checks to skip if no Gemfile or Rakefile
     skip_checks = [ "--no-80chars-check",
         "--no-autoloader_layout-check",
@@ -142,12 +203,15 @@ namespace :lint do
         "--no-hard_tabs-check",
         "--no-class_inherits_from_params_class-check",
         "--with-filename"]
-    library_dir = Dir.pwd
-    status = true
 
+    $stderr.puts '-'*80
+    $stderr.puts "Install gems..."
+    $stderr.puts '-'*80
+    library_dir = Dir.pwd
     ENV['GEM_HOME']="#{library_dir}/.bundled_gems"
     system("gem install bundler --no-rdoc --no-ri --verbose")
 
+    status = true
     $module_directories.each do |mod|
       # TODO(aschultz): uncomment this when :rakefile works
       #next if File.exists?("#{mod}/Rakefile")
@@ -170,22 +234,26 @@ namespace :lint do
           $stderr.puts "ERROR: Unable to run lint for #{mod}, #{e.message}"
           status = false
       end
-     Dir.chdir(library_dir)
+      Dir.chdir(library_dir)
     end
     fail unless status
   end
 
   # TODO(aschultz): fix all the modules with Rakefiles to make sure they work
   # then include this task
-  desc 'Run lint tasks from modules with an existing Gemfile/Rakefile'
+  desc 'Find the puppet modules with Git changes and run lint tasks using existing Gemfile/Rakefile'
   task :rakefile do |t|
-    Rake::Task["common:modulelist"].invoke('./utils/jenkins/modules.disable_rake-lint')
-    library_dir = Dir.pwd
-    status = true
 
+    Rake::Task["common:modulesgit"].invoke('./utils/jenkins/modules.disable_rake-lint')
+
+    $stderr.puts '-'*80
+    $stderr.puts "Install gems..."
+    $stderr.puts '-'*80
+    library_dir = Dir.pwd
     ENV['GEM_HOME']="#{library_dir}/.bundled_gems"
     system("gem install bundler --no-rdoc --no-ri --verbose")
 
+    status = true
     $module_directories.each do |mod|
       next unless File.exists?("#{mod}/Rakefile")
       $stderr.puts '-'*80
@@ -193,7 +261,7 @@ namespace :lint do
       $stderr.puts '-'*80
       Dir.chdir(mod)
       begin
-        result = system("bundle exec rake lint > /dev/null")
+        result = system("bundle exec rake lint >/dev/null")
         $stderr.puts result
         if !result
           status = false
