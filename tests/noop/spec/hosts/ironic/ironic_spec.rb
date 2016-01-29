@@ -19,8 +19,11 @@ if ironic_enabled
       ironic_db_user = Noop.hiera_structure 'ironic/db_user', 'ironic'
       ironic_db_name = Noop.hiera_structure 'ironic/db_name', 'ironic'
 
-      it 'should configure default_log_levels' do
-        should contain_ironic_config('DEFAULT/default_log_levels').with_value(default_log_levels.sort.join(','))
+      let(:ssl_hash) { Noop.hiera_hash 'use_ssl', {} }
+      let(:internal_auth_protocol) { Noop.puppet_function 'get_ssl_property',ssl_hash,{},'keystone','internal','protocol','http' }
+      let(:internal_auth_address) { Noop.puppet_function 'get_ssl_property',ssl_hash,{},'keystone','internal','hostname',[service_endpoint, management_vip] }
+      let(:internal_auth_url) do
+          "#{internal_auth_protocol}://#{internala_auth_address}:5000"
       end
 
       it 'should declare ironic class correctly' do
@@ -31,6 +34,7 @@ if ironic_enabled
           'control_exchange'     => 'ironic',
           'amqp_durable_queues'  => amqp_durable_queues,
           'database_max_retries' => '-1',
+          'aut_uri'              => internal_auth_url
         )
       end
 
@@ -45,10 +49,9 @@ if ironic_enabled
         )
       end
 
-      # TODO (iberezovskiy): uncomment this test after ironic module update
-      #it 'should configure default log levels' do
-      #  should contain_class('ironic::logging').with('default_log_levels' => default_log_levels)
-      #end
+      it 'should configure default log levels' do
+        should contain_class('ironic::logging').with('default_log_levels' => default_log_levels)
+      end
     end
     test_ubuntu_and_centos manifest
   end
