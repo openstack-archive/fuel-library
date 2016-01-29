@@ -16,6 +16,8 @@ if [ -z "$VERSION" ]; then
   VERSION="_VERSION_"
 fi
 
+[[ "$VERSION" < "8.0" ]] || SYSTEMCTL=/usr/bin/systemctl
+
 SYSTEMD="<%= @use_systemd.to_s %>"
 
 IMAGE_PREFIX="fuel"

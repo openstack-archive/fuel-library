@@ -10,6 +10,7 @@ FUEL_RELEASE_FILE="/etc/fuel_release"
 DOCKER_ENGINE="native"
 ADMIN_IP="10.20.0.2"
 LOCAL_IP="127.0.0.1"
+SYSTEMCTL="/usr/bin/systemctl"
 
 # Version of Fuel to deploy
 VERSION=${VERSION_OVERRIDE:-$(cat $FUEL_RELEASE_FILE)}
