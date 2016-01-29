@@ -75,6 +75,13 @@ describe manifest do
           })
         end
       end
+
+      should contain_file('/etc/astute/astuted.conf').with({
+          :mode    => '0644',
+          :owner   => 'root',
+          :group   => 'root',
+          :require => 'File[/etc/astute]'
+      }).that_notifies('Service[astute]')
     end
 
   end
