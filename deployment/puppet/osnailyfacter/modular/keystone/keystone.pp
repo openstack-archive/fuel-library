@@ -73,6 +73,9 @@ $public_url   = "${public_protocol}://${public_address}:${public_port}"
 $admin_url    = "${admin_protocol}://${admin_address}:${admin_port}"
 $internal_url = "${internal_protocol}://${internal_address}:${internal_port}"
 
+$auth_suffix  = pick($keystone_hash['auth_suffix'], '/v2.0')
+$auth_url     = "${internal_url}${auth_suffix}"
+
 $revoke_driver = 'keystone.contrib.revoke.backends.sql.Revoke'
 
 $enabled = true
@@ -199,7 +202,7 @@ class { 'openstack::auth_file':
   admin_password      => $admin_password,
   admin_tenant        => $admin_tenant,
   region_name         => $region,
-  controller_node     => $internal_address,
+  auth_url            => $auth_url,
   murano_repo_url     => $murano_repo_url,
   murano_glare_plugin => $murano_glare_plugin,
 }
