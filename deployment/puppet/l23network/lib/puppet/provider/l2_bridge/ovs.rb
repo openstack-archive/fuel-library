@@ -52,6 +52,10 @@ Puppet::Type.type(:l2_bridge).provide(:ovs, :parent => Puppet::Provider::Ovs_bas
           end
         end
       end
+      vs = (@property_flush[:vendor_specific] || {})
+      if vs.has_key? :datapath_type
+        vsctl('set', 'Bridge', @resource[:bridge], "datapath_type=#{vs[:datapath_type]}")
+      end
       #
       @property_hash = resource.to_hash
     end
@@ -80,7 +84,10 @@ Puppet::Type.type(:l2_bridge).provide(:ovs, :parent => Puppet::Provider::Ovs_bas
     @property_hash[:vendor_specific] || :absent
   end
   def vendor_specific=(val)
-    @property_flush[:vendor_specific] = val
+    old = @property_hash[:vendor_specific] || {}
+    # we're prefetching properties as hashes w/ keys as symbols, and set props as hashes w/ keys as strings
+    # so here is normalization
+    @property_flush[:vendor_specific] = Hash[val.map{|(k,v)| [k,v] if old[k.to_sym] != v }]
   end
 
   def stp

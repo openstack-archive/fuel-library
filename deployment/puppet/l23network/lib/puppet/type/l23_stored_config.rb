@@ -336,6 +336,11 @@ Puppet::Type.newtype(:l23_stored_config) do
     end
   end
 
+  newproperty(:datapath_type) do
+    desc "OVS datapath type"
+    newvalues(/^\w+$/)
+  end
+
   newproperty(:vendor_specific) do
     desc "Hash of vendor specific properties"
     #defaultto {}  # no default value should be!!!
