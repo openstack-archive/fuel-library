@@ -108,7 +108,7 @@ shift "$((OPTIND-1))"
 DEPLOYMENT_DIR=$(cd `dirname $0` && pwd -P)
 # Timeout in seconds for running puppet librarian
 TIMEOUT=600
-export PUPPET_GEM_VERSION=${PUPPET_GEM_VERSION:-'3.4.3'}
+export PUPPET_GEM_VERSION=${PUPPET_GEM_VERSION:-'~>3.8'}
 export BUNDLE_DIR=${BUNDLE_DIR:-'/var/tmp/.bundle_home'}
 export GEM_HOME=${GEM_HOME:-'/var/tmp/.gem_home'}
 
