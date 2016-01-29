@@ -126,8 +126,21 @@ describe provider_class do
                 :provider => "ovs",
                 :stp => false,
                 :vendor_specific => {
+                    :datapath_type=>"",
                     :external_ids => {
                         :"bridge-id" => "br-prv"
+                    },
+                    :other_config => {},
+                    :status => {}}},
+            "br-dpdk" => {
+                :port_type => ["bridge"],
+                :br_type => "ovs",
+                :provider => "ovs",
+                :stp => false,
+                :vendor_specific => {
+                    :datapath_type=>"netdev",
+                    :external_ids => {
+                        :"bridge-id" => "br-dpdk"
                     },
                     :other_config => {},
                     :status => {}}},
@@ -137,6 +150,7 @@ describe provider_class do
                 :provider => "ovs",
                 :stp => false,
                 :vendor_specific => {
+                    :datapath_type=>"",
                     :external_ids => {},
                     :other_config => {},
                     :status => {}
@@ -153,6 +167,7 @@ describe provider_class do
               :ensure=>:present,
               :name=>"br-prv",
               :vendor_specific=>{
+                  :datapath_type=>"",
                   :external_ids=>{
                       :"bridge-id"=>"br-prv"
                   },
@@ -166,8 +181,25 @@ describe provider_class do
           },
           {
               :ensure=>:present,
+              :name=>"br-dpdk",
+              :vendor_specific=>{
+                  :datapath_type=>"netdev",
+                  :external_ids=>{
+                      :"bridge-id"=>"br-dpdk"
+                  },
+                  :other_config=>{},
+                  :status=>{}
+              },
+              :port_type=>"ovs:bridge",
+              :br_type=>"ovs",
+              :provider=>"ovs",
+              :stp=>false
+          },
+          {
+              :ensure=>:present,
               :name=>"br-int",
               :vendor_specific=>{
+                  :datapath_type=>"",
                   :external_ids=>{},
                   :other_config=>{},
                   :status=>{}
@@ -192,7 +224,7 @@ describe provider_class do
     provider_class.stubs(:ovs_vsctl_show).returns ovs_vsctl_show
     instances = provider_class.instances
     expect(instances).to be_a Array
-    expect(instances.length).to eq 2
+    expect(instances.length).to eq 3
     instances.each do |provider|
       expect(provider).to be_a Puppet::Type::L2_bridge::ProviderOvs
       class << provider

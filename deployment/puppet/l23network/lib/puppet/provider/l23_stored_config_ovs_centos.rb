@@ -19,6 +19,7 @@ class Puppet::Provider::L23_stored_config_ovs_centos < Puppet::Provider::L23_sto
       :bond_updelay     => 'bond_updelay',
       :bond_downdelay   => 'bond_downdelay',
       :bonding_opts     => 'OVS_OPTIONS',
+      :datapath_type    => 'OVS_EXTRA',
     })
     #delete non-OVS params
     [:bond_ad_select, :bond_xmit_hash_policy, :bond_master].each { |p| rv.delete(p) }
@@ -190,6 +191,18 @@ class Puppet::Provider::L23_stored_config_ovs_centos < Puppet::Provider::L23_sto
     rv ||= nil
   end
 
+  def self.unmangle__datapath_type(provider, val)
+    if provider.if_type.to_s == 'bridge'
+      if provider.datapath_type
+        "\"set Bridge #{provider.name} datapath_type=#{provider.datapath_type}\""
+      end
+    end
+  end
+
+  def self.mangle__datapath_type(data)
+    val = data.match(/set\s+Bridge\s+([a-z][0-9a-z\-]*[0-9a-z])\s+datapath_type=([a-z]+)/)[2]
+    val
+  end
 end
 
 # vim: set ts=2 sw=2 et :

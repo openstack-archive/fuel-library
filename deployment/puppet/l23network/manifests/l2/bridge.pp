@@ -20,7 +20,7 @@ define l23network::l2::bridge (
 # $bridge_id       = undef,  # will be implemented later
   $external_ids    = { 'bridge-id' => $name },
   $delay_while_up  = undef,
-  $vendor_specific = undef,
+  $vendor_specific = {},
   $provider        = undef,
 ) {
   include ::stdlib
@@ -49,6 +49,7 @@ define l23network::l2::bridge (
       bridge_ports    => ['none'],  # this property will be fulled by l2_port
       vendor_specific => $vendor_specific,
       delay_while_up  => $delay_while_up,
+      datapath_type   => $vendor_specific['datapath_type'],
       provider        => $config_provider
     }
 
