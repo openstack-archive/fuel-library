@@ -77,6 +77,7 @@ class pacemaker_wrappers::rabbitmq (
   $enable_rpc_ha           = true,
   $enable_notifications_ha = true,
   $fqdn_prefix             = '',
+  $pid_file                = undef,
 ) inherits ::rabbitmq::service {
 
   if $host_ip == 'UNSET' or $host_ip == '0.0.0.0' {
@@ -96,6 +97,7 @@ class pacemaker_wrappers::rabbitmq (
     'enable_rpc_ha'           => $enable_rpc_ha,
     'enable_notifications_ha' => $enable_notifications_ha,
     'fqdn_prefix'             => $fqdn_prefix,
+    'pid_file'                => $pid_file,
   }
 
   $metadata        = {

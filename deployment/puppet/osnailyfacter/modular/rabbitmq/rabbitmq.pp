@@ -10,7 +10,6 @@ $queue_provider = hiera('queue_provider', 'rabbitmq')
 if $queue_provider == 'rabbitmq' {
   $erlang_cookie   = hiera('erlang_cookie', 'EOKOWXQREETZSHFNTPEY')
   $version         = hiera('rabbit_version', '3.3.5')
-  $deployment_mode = hiera('deployment_mode', 'ha_compact')
   $amqp_port       = hiera('amqp_port', '5673')
   $rabbit_hash     = hiera_hash('rabbit_hash',
     {
@@ -21,6 +20,7 @@ if $queue_provider == 'rabbitmq' {
   $debug           = pick($rabbit_hash['debug'], hiera('debug', false))
   $enabled         = pick($rabbit_hash['enabled'], true)
   $use_pacemaker   = pick($rabbit_hash['pacemaker'], true)
+  $pid_file        = pick($rabbit_hash['pid_file'], '/var/run/rabbitmq/p_pid')
 
   case $::osfamily {
     'RedHat': {
@@ -101,16 +101,11 @@ if $queue_provider == 'rabbitmq' {
   # NOTE(bogdando) to get the limit for threads, the max amount of worker processess will be doubled
   $thread_pool_calc = min($workers_max*2,max(12*$physicalprocessorcount,30))
 
-  if $deployment_mode == 'ha_compact' {
-    $rabbit_pid_file                   = '/var/run/rabbitmq/p_pid'
-    } else {
-    $rabbit_pid_file                   = '/var/run/rabbitmq/pid'
-  }
   $environment_variables_init = hiera('rabbit_environment_variables',
     {
       'SERVER_ERL_ARGS'     => "\"+K true +A${thread_pool_calc} +P 1048576\"",
       'ERL_EPMD_ADDRESS'    => $epmd_bind_ip_address,
-      'PID_FILE'            => $rabbit_pid_file,
+      'PID_FILE'            => $pid_file,
     }
   )
   $environment_variables = merge($environment_variables_init,{'NODENAME' => "rabbit@${fqdn_prefix}${hostname}"})
@@ -170,6 +165,7 @@ if $queue_provider == 'rabbitmq' {
         enable_rpc_ha           => $enable_rpc_ha,
         enable_notifications_ha => $enable_notifications_ha,
         fqdn_prefix             => $fqdn_prefix,
+        pid_file                => $pid_file,
       }
     }
 
