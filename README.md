@@ -131,6 +131,14 @@ bundle install
 bundle exec rake spec
 ```
 
+By default, running this command will only test the modules modified in the
+previous commit. To test all modules, please run:
+
+```
+bundle install
+bundle exec rake spec:all
+```
+
 If you only wish to download the module dependencies, you can run the following
 in the root of the fuel-library.
 
@@ -169,12 +177,19 @@ within fuel-libray.
 
 ### Module Lint Checks
 
-From within the fuel-library root, you can run the following to run lint on
-all of our puppet files.
+By default, Lint Checks will only test the modules modified in the previous
+commit. From within the fuel-library root, you can run the following commands:
 
 ```
 bundle install
 bundle exec rake lint
+```
+
+To run lint on all of our puppet files you should use commands:
+
+```
+bundle install
+bundle exec rake lint:all
 ```
 
 This will run puppet-lint against all of the modules within fuel-library but
