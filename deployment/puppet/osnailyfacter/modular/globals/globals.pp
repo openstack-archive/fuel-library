@@ -97,6 +97,7 @@ $syslog_log_facility_heat       = hiera('syslog_log_facility_heat','LOG_LOCAL0')
 $syslog_log_facility_sahara     = hiera('syslog_log_facility_sahara','LOG_LOCAL0')
 $syslog_log_facility_ceilometer = hiera('syslog_log_facility_ceilometer','LOG_LOCAL0')
 $syslog_log_facility_ceph       = hiera('syslog_log_facility_ceph','LOG_LOCAL0')
+$syslog_log_facility_ironic     = hiera('syslog_log_facility_ironic','LOG_LOCAL0')
 
 $nova_report_interval           = hiera('nova_report_interval', 60)
 $nova_service_down_time         = hiera('nova_service_down_time', 180)
