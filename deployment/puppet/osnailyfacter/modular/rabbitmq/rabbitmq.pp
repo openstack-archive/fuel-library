@@ -10,7 +10,6 @@ $queue_provider = hiera('queue_provider', 'rabbitmq')
 if $queue_provider == 'rabbitmq' {
   $erlang_cookie   = hiera('erlang_cookie', 'EOKOWXQREETZSHFNTPEY')
   $version         = hiera('rabbit_version', '3.3.5')
-  $deployment_mode = hiera('deployment_mode', 'ha_compact')
   $amqp_port       = hiera('amqp_port', '5673')
   $rabbit_hash     = hiera_hash('rabbit_hash',
     {
@@ -21,6 +20,8 @@ if $queue_provider == 'rabbitmq' {
   $debug           = pick($rabbit_hash['debug'], hiera('debug', false))
   $enabled         = pick($rabbit_hash['enabled'], true)
   $use_pacemaker   = pick($rabbit_hash['pacemaker'], true)
+  $file_limit     = pick($rabbit_hash['file_limit'], '100000')
+  $pid_file        = pick($rabbit_hash['pid_file'], '/var/run/rabbitmq/p_pid')
 
   case $::osfamily {
     'RedHat': {
@@ -61,17 +62,6 @@ if $queue_provider == 'rabbitmq' {
   }
 
   # NOTE(bogdando) not a hash. Keep an indentation as is
-  $rabbit_tcp_listen_options    = hiera('rabbit_tcp_listen_options',
-    '[
-      binary,
-      {packet, raw},
-      {reuseaddr, true},
-      {backlog, 128},
-      {nodelay, true},
-      {exit_on_close, false},
-      {keepalive, true}
-    ]'
-  )
   $config_kernel_variables = hiera('rabbit_config_kernel_variables',
     {
       'inet_dist_listen_min'         => '41055',
@@ -85,62 +75,60 @@ if $queue_provider == 'rabbitmq' {
       'log_levels'                   => $rabbit_levels,
       'default_vhost'                => "<<\"/\">>",
       'default_permissions'          => '[<<".*">>, <<".*">>, <<".*">>]',
-      'tcp_listen_options'           => $rabbit_tcp_listen_options,
       'cluster_partition_handling'   => $cluster_partition_handling,
       'mnesia_table_loading_timeout' => $mnesia_table_loading_timeout,
       'collect_statistics_interval'  => '30000',
       'disk_free_limit'              => '5000000', # Corosync checks for disk space, reduce rabbitmq check to 5M see LP#1493520 comment #15
     }
   )
+  #NOTE(bogdando) custom listener IP is not supported upstream
   $config_management_variables = hiera('rabbit_config_management_variables',
     {
       'rates_mode' => 'none',
-      'listener'   => "[{port, 15672}, {ip,\"${management_bind_ip_address}\"}]",
+      'listener'   => "[{ip,\"${management_bind_ip_address}\"}]",
     }
   )
   # NOTE(bogdando) to get the limit for threads, the max amount of worker processess will be doubled
   $thread_pool_calc = min($workers_max*2,max(12*$physicalprocessorcount,30))
 
-  if $deployment_mode == 'ha_compact' {
-    $rabbit_pid_file                   = '/var/run/rabbitmq/p_pid'
-    } else {
-    $rabbit_pid_file                   = '/var/run/rabbitmq/pid'
-  }
   $environment_variables_init = hiera('rabbit_environment_variables',
     {
       'SERVER_ERL_ARGS'     => "\"+K true +A${thread_pool_calc} +P 1048576\"",
       'ERL_EPMD_ADDRESS'    => $epmd_bind_ip_address,
-      'PID_FILE'            => $rabbit_pid_file,
+      'PID_FILE'            => $pid_file,
     }
   )
   $environment_variables = merge($environment_variables_init,{'NODENAME' => "rabbit@${fqdn_prefix}${hostname}"})
 
   if ($enabled) {
     class { '::rabbitmq':
-      admin_enable                         => true,
-      repos_ensure                         => false,
-      package_provider                     => $package_provider,
-      package_source                       => undef,
-      service_ensure                       => 'running',
-      service_manage                       => true,
-      port                                 => $amqp_port,
-      delete_guest_user                    => true,
-      default_user                         => $rabbit_hash['user'],
-      default_pass                         => $rabbit_hash['password'],
+      admin_enable                => true,
+      management_port             => 15672,
+      repos_ensure                => false,
+      package_provider            => $package_provider,
+      package_source              => undef,
+      service_ensure              => 'running',
+      service_manage              => true,
+      port                        => $amqp_port,
+      delete_guest_user           => true,
+      default_user                => $rabbit_hash['user'],
+      default_pass                => $rabbit_hash['password'],
       # NOTE(bogdando) set to true and uncomment the lines below, if puppet should create a cluster
       # We don't want it as far as OCF script creates the cluster
-      config_cluster                       => false,
-      #erlang_cookie                       => $erlang_cookie,
-      #wipe_db_on_cookie_change            => true,
-      #cluster_nodes                       => $rabbitmq_cluster_nodes,
-      #cluster_node_type                   => 'disc',
-      #cluster_partition_handling          => $cluster_partition_handling,
-      version                              => $version,
-      node_ip_address                      => $rabbitmq_bind_ip_address,
-      config_kernel_variables              => $config_kernel_variables,
-      config_management_variables          => $config_management_variables,
-      config_variables                     => $config_variables,
-      environment_variables                => $environment_variables,
+      config_cluster              => false,
+      #erlang_cookie              => $erlang_cookie,
+      #wipe_db_on_cookie_change   => true,
+      #cluster_nodes              => $rabbitmq_cluster_nodes,
+      #cluster_node_type          => 'disc',
+      #cluster_partition_handling => $cluster_partition_handling,
+      version                     => $version,
+      node_ip_address             => $rabbitmq_bind_ip_address,
+      config_kernel_variables     => $config_kernel_variables,
+      config_management_variables => $config_management_variables,
+      config_variables            => $config_variables,
+      environment_variables       => $environment_variables,
+      file_limit                  => $file_limit,
+      tcp_keepalive               => true,
     }
 
     # NOTE(bogdando) retries for the rabbitmqadmin curl command, unmerged MODULES-1650
@@ -188,6 +176,7 @@ if $queue_provider == 'rabbitmq' {
         enable_rpc_ha           => $enable_rpc_ha,
         enable_notifications_ha => $enable_notifications_ha,
         fqdn_prefix             => $fqdn_prefix,
+        pid_file                => $pid_file,
       }
     }
 
