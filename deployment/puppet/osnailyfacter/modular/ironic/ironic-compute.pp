@@ -26,7 +26,7 @@ $nova_service_down_time         = hiera('nova_service_down_time')
 $neutron_config                 = hiera_hash('quantum_settings')
 
 $ironic_tenant                  = pick($ironic_hash['tenant'],'services')
-$ironic_user                    = pick($ironic_hash['auth_name'],'ironic')
+$ironic_username                = pick($ironic_hash['auth_name'],'ironic')
 $ironic_user_password           = pick($ironic_hash['user_password'],'ironic')
 
 $db_type                        = 'mysql'
@@ -104,9 +104,9 @@ class { '::nova::compute':
 
 class { 'nova::compute::ironic':
   admin_url         => "${admin_identity_uri}/v2.0",
-  admin_user        => $ironic_user,
+  admin_username    => $ironic_username,
   admin_tenant_name => $ironic_tenant,
-  admin_passwd      => $ironic_user_password,
+  admin_password    => $ironic_user_password,
   api_endpoint      => "http://${ironic_endpoint}:6385/v1",
 }
 
