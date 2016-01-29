@@ -37,6 +37,12 @@ define l23network::l2::bridge (
       fail("Delay for waiting after UP bridge ${name} should be numeric, not an '${delay_while_up}'.")
     }
 
+    if is_hash($vendor_specific) {
+      $datapath_type = $vendor_specific['datapath_type']
+    } else {
+      $datapath_type = undef
+    }
+
     if ! defined (L23_stored_config[$name]) {
       l23_stored_config { $name: }
     }
@@ -49,6 +55,7 @@ define l23network::l2::bridge (
       bridge_ports    => ['none'],  # this property will be fulled by l2_port
       vendor_specific => $vendor_specific,
       delay_while_up  => $delay_while_up,
+      datapath_type   => $datapath_type,
       provider        => $config_provider
     }
 

@@ -236,6 +236,7 @@ type                : patch
                 :provider=>"ovs",
                 :stp=>false,
                 :vendor_specific=>{
+                    :datapath_type=>"",
                     :external_ids=>{:"bridge-id"=>"br-prv"},
                     :other_config=>{}, :status=>{}
                 }
@@ -246,6 +247,7 @@ type                : patch
                 :provider=>"ovs",
                 :stp=>false,
                 :vendor_specific=>{
+                    :datapath_type=>"",
                     :external_ids=>{},
                     :other_config=>{},
                     :status=>{}
