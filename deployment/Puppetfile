@@ -179,7 +179,7 @@ mod 'tftp',
 # Pull in puppet-ironic
 mod 'ironic',
     :git => 'https://github.com/fuel-infra/puppet-ironic.git',
-    :ref => '7.0.0-rc2'
+    :ref => '8.0.0-rc1'
 
 # Pull in puppet-murano
 mod 'murano',
