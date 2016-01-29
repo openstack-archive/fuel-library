@@ -14,6 +14,14 @@ describe manifest do
         default_router = (neutron_config['default_router'] or 'router04')
 
         context 'Private network', :if => nets.has_key?(private_net) do
+          case neutron_config['L2']['segmentation_type']
+          when 'vlan'
+            network_type = 'vlan'
+          when 'gre'
+            network_type = 'gre'
+          else
+            network_type = 'vxlan'
+          end
           if nets[private_net]['L2']['segment_id']
             segment_id = nets[private_net]['L2']['segment_id']
           else
@@ -27,7 +35,7 @@ describe manifest do
             should contain_neutron_network(private_net).with(
               'ensure'                    => 'present',
               'provider_physical_network' => (nets[private_net]['L2']['physnet'] or false),
-              'provider_network_type'     => nets[private_net]['L2']['network_type'],
+              'provider_network_type'     => network_type,
               'provider_segmentation_id'  => segment_id,
               'router_external'           => nets[private_net]['L2']['router_ext'],
               'shared'                    => nets[private_net]['shared'],
@@ -56,8 +64,17 @@ describe manifest do
             )
           end
           floating_range = nets[floating_net]['L3']['floating']
-          if floating_range
-            floating_range = floating_range.split(':')
+          if floating_range and !floating_range.empty?
+            if floating_range.is_a?(Array)
+              # floating_range is array but we don't support more than one range
+              # so we just take first element
+              floating_range = floating_range[0].split(':')
+            else
+              # TODO: (adidenko) remove this condition when we update all fixtures
+              # in old astute.yaml fixtures floating_range is a string
+              # but in 8.0+ it's always array
+              floating_range = floating_range.split(':')
+            end
           end
           it 'should create subnet for floating' do
             should contain_neutron_subnet("#{floating_net}__subnet").with(
