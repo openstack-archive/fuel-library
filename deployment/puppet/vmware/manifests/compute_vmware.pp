@@ -1,5 +1,6 @@
 #    Copyright 2015 Mirantis, Inc.
 
+# FIXME(mattymo): Use standard class documentation format
 # vmware::compute_vmware resource deploys nova-compute service and configures it for use
 # with vmwareapi.VCDriver (vCenter server as hypervisor).  Depends on nova::params class.
 
@@ -17,6 +18,7 @@
 # datastore_regex        - regex that specifies vCenter datastores to use
 # api_retry_count        - number of tries on failures
 # use_quantum            - shows if neutron is enabled
+# service_enabled        - manage nova-compute service (Default: false)
 
 define vmware::compute_vmware(
   $availability_zone_name,
@@ -34,7 +36,8 @@ define vmware::compute_vmware(
   $nova_compute_conf  = '/etc/nova/nova-compute.conf',
   $task_poll_interval = 5.0,
   $use_linked_clone   = true,
-  $wsdl_location      = undef
+  $wsdl_location      = undef,
+  $service_enabled    = false,
 )
 {
   include nova::params
@@ -63,7 +66,7 @@ define vmware::compute_vmware(
     service { 'nova-compute':
       ensure => running,
       name   => $::nova::params::compute_service_name,
-      enable => true,
+      enable => $service_enabled,
     }
 
     Package['python-oslo.vmware']->
