@@ -1,0 +1,1947 @@
+access:
+  email: admin@localhost
+  metadata:
+    group: general
+    label: Access
+    weight: 10
+  password: admin
+  tenant: admin
+  user: admin
+auth_key: ''
+auto_assign_floating_ip: false
+base_syslog:
+  syslog_port: '514'
+  syslog_server: 10.145.0.2
+ceilometer:
+  db_password: p7iCE2KZKljrVVz0uMzvgYbv
+  enabled: false
+  metering_secret: t3v9FLxl145fuOnpKcnazDEM
+  user_password: J22PgmQIyjlgcwe2HryGRCv7
+cinder:
+  db_password: PTNv6TuwyGLWtO7D3pbbkxuN
+  fixed_key: 5953a5ee5ec4f035122ce41f165dc1cccf4c57c7266ed5e67d2c3694ed9c10ac
+  user_password: YwEA4qhoHZDlOnaGBxGYbPYB
+cobbler:
+  profile: ubuntu_1404_x86_64
+corosync:
+  group: 226.94.1.1
+  metadata:
+    group: general
+    label: Corosync
+    restrictions:
+    - action: hide
+      condition: 'true'
+    weight: 50
+  port: '12000'
+  verified: false
+debug: false
+deployment_id: 1
+deployment_mode: ha_compact
+external_dns:
+  dns_list: 8.8.8.8
+  metadata:
+    group: network
+    label: Host OS DNS Servers
+    weight: 30
+external_mongo:
+  hosts_ip: ''
+  metadata:
+    group: openstack_services
+    label: External MongoDB
+    restrictions:
+    - action: hide
+      condition: settings:additional_components.mongo.value == false
+      message: Ceilometer and MongoDB are not enabled on the Additional Components
+        section
+    weight: 20
+  mongo_db_name: ceilometer
+  mongo_password: ceilometer
+  mongo_replset: ''
+  mongo_user: ceilometer
+external_ntp:
+  metadata:
+    group: network
+    label: Host OS NTP Servers
+    weight: 40
+  ntp_list: 0.fuel.pool.ntp.org, 1.fuel.pool.ntp.org, 2.fuel.pool.ntp.org
+fail_if_error: true
+fqdn: node-1.domain.tld
+fuel_version: '8.0'
+glance:
+  db_password: V2vSizKfj7FhJ8Udsej5JgpP
+  image_cache_max_size: '0'
+  user_password: BStrSmB4E32MG50FUwmLTlg5
+heat:
+  auth_encryption_key: a19ba308b92c67311f28d1c1b862b19a
+  db_password: 1os6n2hAHSgBNKAqNVqk9MZN
+  enabled: true
+  rabbit_password: Is8gNuzYLusDwHYsatpAGo5O
+  user_password: sGK76m9AaN0eKoBp2SS4uDzJ
+horizon:
+  secret_key: 1d7085ebea4cd82109d25983938852e13121123196e1f95775531a7d0d535fa5
+ironic:
+  db_password: Iqryv0TZZLa78LLqVFG8RxLu
+  enabled: false
+  swift_tempurl_key: UaobWA5jKITdEb8pg3NNtmbZ
+  user_password: YiGPYyRXpzZUCj82uixUpoBQ
+kernel_params:
+  kernel: console=tty0 net.ifnames=0 biosdevname=0 rootdelay=90 nomodeset
+  metadata:
+    group: general
+    label: Kernel parameters
+    weight: 60
+keystone:
+  admin_token: OGyk2SvupPS4pbp9if6qjusy
+  db_password: tk8LwzqvQ4GsKgMMxyD26NXO
+last_controller: node-3
+libvirt_type: qemu
+management_network_range: 10.145.2.0/24
+master_ip: 10.145.0.2
+metadata:
+  label: Common
+  weight: 10
+mongo:
+  enabled: false
+mp:
+- point: '1'
+  weight: '1'
+- point: '2'
+  weight: '2'
+murano:
+  db_password: TafLQgH1oHle3HZof4HWA8DJ
+  enabled: false
+  rabbit_password: XPnT1JUFwDq3azD6hZO8BP0r
+  user_password: qiLSuLKHHnuk20Ghv6Pn3dPt
+murano-cfapi:
+  db_password: J0ANTPRKvV2rCxr6nLSBZX1j
+  enabled: false
+  rabbit_password: dbZosIwydD9gadjS5TpUpFVc
+  user_password: nJaiSjSbN1GMG6THp3Xf8HIf
+murano_glance_artifacts_plugin:
+  enabled: false
+murano_settings:
+  metadata:
+    group: openstack_services
+    label: Murano Settings
+    restrictions:
+    - action: hide
+      condition: settings:additional_components.murano.value == false
+      message: Murano is not enabled on the Additional Components section
+    weight: 20
+  murano_repo_url: http://storage.apps.openstack.org/
+mysql:
+  root_password: xsyQO3pyE6839bMlBN8ssKHi
+  wsrep_password: Fs1szg9gr5Xu1YYC3spaVxew
+network_metadata:
+  nodes:
+    node-1:
+      fqdn: node-1.domain.tld
+      name: node-1
+      network_roles:
+        admin/pxe: 10.146.0.10
+        ceilometer/api: 10.146.2.12
+        ceph/public: 10.146.2.12
+        ceph/radosgw: 10.146.1.10
+        ceph/replication: 10.145.3.15
+        cinder/api: 10.146.2.12
+        cinder/iscsi: 10.145.3.15
+        ex: 10.146.1.10
+        fw-admin: 10.146.0.10
+        glance/api: 10.146.2.12
+        heat/api: 10.146.2.12
+        horizon: 10.146.2.12
+        ironic/api: 10.146.2.12
+        keystone/api: 10.146.2.12
+        management: 10.146.2.12
+        mgmt/corosync: 10.146.2.12
+        mgmt/database: 10.146.2.12
+        mgmt/memcache: 10.146.2.12
+        mgmt/messaging: 10.146.2.12
+        mgmt/vip: 10.146.2.12
+        mongo/db: 10.146.2.12
+        murano/api: 10.146.2.12
+        murano/cfapi: 10.146.2.12
+        neutron/api: 10.146.2.12
+        neutron/floating: null
+        neutron/mesh: 10.146.4.11
+        neutron/private: null
+        nova/api: 10.146.2.12
+        nova/migration: 10.146.2.12
+        public/vip: 10.146.1.10
+        sahara/api: 10.146.2.12
+        storage: 10.145.3.15
+        swift/api: 10.146.2.12
+        swift/replication: 10.145.3.15
+      node_roles:
+      - primary-controller
+      swift_zone: '1'
+      uid: '1'
+      user_node_name: Untitled (51:42)
+    node-2:
+      fqdn: node-2.domain.tld
+      name: node-2
+      network_roles:
+        admin/pxe: 10.144.0.11
+        ceilometer/api: 10.144.2.10
+        ceph/public: 10.144.2.10
+        ceph/radosgw: 10.144.1.10
+        ceph/replication: 10.145.3.12
+        cinder/api: 10.144.2.10
+        cinder/iscsi: 10.145.3.12
+        ex: 10.144.1.10
+        fw-admin: 10.144.0.11
+        glance/api: 10.144.2.10
+        heat/api: 10.144.2.10
+        horizon: 10.144.2.10
+        ironic/api: 10.144.2.10
+        keystone/api: 10.144.2.10
+        management: 10.144.2.10
+        mgmt/corosync: 10.144.2.10
+        mgmt/database: 10.144.2.10
+        mgmt/memcache: 10.144.2.10
+        mgmt/messaging: 10.144.2.10
+        mgmt/vip: 10.144.2.10
+        mongo/db: 10.144.2.10
+        murano/api: 10.144.2.10
+        murano/cfapi: 10.144.2.10
+        neutron/api: 10.144.2.10
+        neutron/floating: null
+        neutron/mesh: 10.144.4.10
+        neutron/private: null
+        nova/api: 10.144.2.10
+        nova/migration: 10.144.2.10
+        public/vip: 10.144.1.10
+        sahara/api: 10.144.2.10
+        storage: 10.145.3.12
+        swift/api: 10.144.2.10
+        swift/replication: 10.145.3.12
+      node_roles:
+      - controller
+      swift_zone: '2'
+      uid: '2'
+      user_node_name: Untitled (ff:af)
+    node-3:
+      fqdn: node-3.domain.tld
+      name: node-3
+      network_roles:
+        admin/pxe: 10.145.0.8
+        ceilometer/api: 10.145.2.13
+        ceph/public: 10.145.2.13
+        ceph/radosgw: 10.145.1.12
+        ceph/replication: 10.145.3.11
+        cinder/api: 10.145.2.13
+        cinder/iscsi: 10.145.3.11
+        ex: 10.145.1.12
+        fw-admin: 10.145.0.8
+        glance/api: 10.145.2.13
+        heat/api: 10.145.2.13
+        horizon: 10.145.2.13
+        ironic/api: 10.145.2.13
+        keystone/api: 10.145.2.13
+        management: 10.145.2.13
+        mgmt/corosync: 10.145.2.13
+        mgmt/database: 10.145.2.13
+        mgmt/memcache: 10.145.2.13
+        mgmt/messaging: 10.145.2.13
+        mgmt/vip: 10.145.2.13
+        mongo/db: 10.145.2.13
+        murano/api: 10.145.2.13
+        murano/cfapi: 10.145.2.13
+        neutron/api: 10.145.2.13
+        neutron/floating: null
+        neutron/mesh: 10.145.4.11
+        neutron/private: null
+        nova/api: 10.145.2.13
+        nova/migration: 10.145.2.13
+        public/vip: 10.145.1.12
+        sahara/api: 10.145.2.13
+        storage: 10.145.3.11
+        swift/api: 10.145.2.13
+        swift/replication: 10.145.3.11
+      node_roles:
+      - controller
+      swift_zone: '3'
+      uid: '3'
+      user_node_name: Untitled (f9:37)
+    node-4:
+      fqdn: node-4.domain.tld
+      name: node-4
+      network_roles:
+        admin/pxe: 10.146.0.13
+        ceilometer/api: 10.146.2.10
+        ceph/public: 10.146.2.10
+        ceph/replication: 10.145.3.16
+        cinder/api: 10.146.2.10
+        cinder/iscsi: 10.145.3.16
+        fw-admin: 10.146.0.13
+        glance/api: 10.146.2.10
+        heat/api: 10.146.2.10
+        horizon: 10.146.2.10
+        ironic/api: 10.146.2.10
+        keystone/api: 10.146.2.10
+        management: 10.146.2.10
+        mgmt/corosync: 10.146.2.10
+        mgmt/database: 10.146.2.10
+        mgmt/memcache: 10.146.2.10
+        mgmt/messaging: 10.146.2.10
+        mgmt/vip: 10.146.2.10
+        mongo/db: 10.146.2.10
+        murano/api: 10.146.2.10
+        murano/cfapi: 10.146.2.10
+        neutron/api: 10.146.2.10
+        neutron/floating: null
+        neutron/mesh: 10.146.4.12
+        neutron/private: null
+        nova/api: 10.146.2.10
+        nova/migration: 10.146.2.10
+        sahara/api: 10.146.2.10
+        storage: 10.145.3.16
+        swift/api: 10.146.2.10
+        swift/replication: 10.145.3.16
+      node_roles:
+      - compute
+      swift_zone: '4'
+      uid: '4'
+      user_node_name: Untitled (0b:09)
+    node-5:
+      fqdn: node-5.domain.tld
+      name: node-5
+      network_roles:
+        admin/pxe: 10.144.0.12
+        ceilometer/api: 10.144.2.11
+        ceph/public: 10.144.2.11
+        ceph/replication: 10.145.3.13
+        cinder/api: 10.144.2.11
+        cinder/iscsi: 10.145.3.13
+        fw-admin: 10.144.0.12
+        glance/api: 10.144.2.11
+        heat/api: 10.144.2.11
+        horizon: 10.144.2.11
+        ironic/api: 10.144.2.11
+        keystone/api: 10.144.2.11
+        management: 10.144.2.11
+        mgmt/corosync: 10.144.2.11
+        mgmt/database: 10.144.2.11
+        mgmt/memcache: 10.144.2.11
+        mgmt/messaging: 10.144.2.11
+        mgmt/vip: 10.144.2.11
+        mongo/db: 10.144.2.11
+        murano/api: 10.144.2.11
+        murano/cfapi: 10.144.2.11
+        neutron/api: 10.144.2.11
+        neutron/floating: null
+        neutron/mesh: 10.144.4.11
+        neutron/private: null
+        nova/api: 10.144.2.11
+        nova/migration: 10.144.2.11
+        sahara/api: 10.144.2.11
+        storage: 10.145.3.13
+        swift/api: 10.144.2.11
+        swift/replication: 10.145.3.13
+      node_roles:
+      - compute
+      swift_zone: '5'
+      uid: '5'
+      user_node_name: Untitled (fb:60)
+    node-6:
+      fqdn: node-6.domain.tld
+      name: node-6
+      network_roles:
+        admin/pxe: 10.145.0.9
+        ceilometer/api: 10.145.2.12
+        ceph/public: 10.145.2.12
+        ceph/replication: 10.145.3.10
+        cinder/api: 10.145.2.12
+        cinder/iscsi: 10.145.3.10
+        fw-admin: 10.145.0.9
+        glance/api: 10.145.2.12
+        heat/api: 10.145.2.12
+        horizon: 10.145.2.12
+        ironic/api: 10.145.2.12
+        keystone/api: 10.145.2.12
+        management: 10.145.2.12
+        mgmt/corosync: 10.145.2.12
+        mgmt/database: 10.145.2.12
+        mgmt/memcache: 10.145.2.12
+        mgmt/messaging: 10.145.2.12
+        mgmt/vip: 10.145.2.12
+        mongo/db: 10.145.2.12
+        murano/api: 10.145.2.12
+        murano/cfapi: 10.145.2.12
+        neutron/api: 10.145.2.12
+        neutron/floating: null
+        neutron/mesh: 10.145.4.10
+        neutron/private: null
+        nova/api: 10.145.2.12
+        nova/migration: 10.145.2.12
+        sahara/api: 10.145.2.12
+        storage: 10.145.3.10
+        swift/api: 10.145.2.12
+        swift/replication: 10.145.3.10
+      node_roles:
+      - ceph-osd
+      swift_zone: '6'
+      uid: '6'
+      user_node_name: Untitled (e0:11)
+    node-7:
+      fqdn: node-7.domain.tld
+      name: node-7
+      network_roles:
+        admin/pxe: 10.146.0.12
+        ceilometer/api: 10.146.2.11
+        ceph/public: 10.146.2.11
+        ceph/replication: 10.145.3.14
+        cinder/api: 10.146.2.11
+        cinder/iscsi: 10.145.3.14
+        fw-admin: 10.146.0.12
+        glance/api: 10.146.2.11
+        heat/api: 10.146.2.11
+        horizon: 10.146.2.11
+        ironic/api: 10.146.2.11
+        keystone/api: 10.146.2.11
+        management: 10.146.2.11
+        mgmt/corosync: 10.146.2.11
+        mgmt/database: 10.146.2.11
+        mgmt/memcache: 10.146.2.11
+        mgmt/messaging: 10.146.2.11
+        mgmt/vip: 10.146.2.11
+        mongo/db: 10.146.2.11
+        murano/api: 10.146.2.11
+        murano/cfapi: 10.146.2.11
+        neutron/api: 10.146.2.11
+        neutron/floating: null
+        neutron/mesh: 10.146.4.10
+        neutron/private: null
+        nova/api: 10.146.2.11
+        nova/migration: 10.146.2.11
+        sahara/api: 10.146.2.11
+        storage: 10.145.3.14
+        swift/api: 10.146.2.11
+        swift/replication: 10.145.3.14
+      node_roles:
+      - ceph-osd
+      swift_zone: '7'
+      uid: '7'
+      user_node_name: Untitled (1f:4a)
+  vips:
+    vrouter:
+      ipaddr: 192.168.0.3
+      network_role: mgmt/vip
+      vendor_specific:
+      namespace: false
+      node_roles:
+      - controller
+      - primary-controller
+    management:
+      ipaddr: 192.168.0.2
+      network_role: mgmt/vip
+      vendor_specific:
+      namespace: false
+      node_roles:
+      - controller
+      - primary-controller
+    public:
+      ipaddr: 10.109.1.2
+      network_role: public/vip
+      vendor_specific:
+      namespace: false
+      node_roles:
+      - controller
+      - primary-controller
+    vrouter_pub:
+      ipaddr: 10.109.1.3
+      network_role: public/vip
+      vendor_specific:
+        iptables_rules:
+          ns_start:
+          - iptables -t nat -A POSTROUTING -o <%INT%> -j MASQUERADE
+          ns_stop:
+          - iptables -t nat -D POSTROUTING -o <%INT%> -j MASQUERADE
+      namespace: false
+      node_roles:
+      - controller
+      - primary-controller
+network_scheme:
+  endpoints:
+    br-ex:
+      IP:
+      - 10.146.1.10/24
+      gateway: 10.146.1.1
+      routes:
+      - net: 10.144.1.0/24
+        via: 10.146.1.1
+      - net: 10.145.1.0/24
+        via: 10.146.1.1
+    br-floating:
+      IP: none
+    br-fw-admin:
+      IP:
+      - 10.146.0.10/24
+      routes:
+      - net: 10.144.0.0/24
+        via: 10.146.0.1
+      - net: 10.145.0.0/24
+        via: 10.146.0.1
+    br-mesh:
+      IP:
+      - 10.146.4.11/24
+      routes:
+      - net: 10.145.4.0/24
+        via: 10.146.4.5
+      - net: 10.144.4.0/24
+        via: 10.146.4.5
+    br-mgmt:
+      IP:
+      - 10.146.2.12/24
+      routes:
+      - net: 10.144.2.0/24
+        via: 10.146.2.5
+      - net: 10.145.2.0/24
+        via: 10.146.2.5
+    br-storage:
+      IP:
+      - 10.145.3.15/24
+      routes: []
+  interfaces:
+    enp0s3:
+      vendor_specific:
+        bus_info: '0000:00:03.0'
+        driver: e1000
+    enp0s4:
+      vendor_specific:
+        bus_info: '0000:00:04.0'
+        driver: e1000
+    enp0s5:
+      vendor_specific:
+        bus_info: '0000:00:05.0'
+        driver: e1000
+    enp0s6:
+      vendor_specific:
+        bus_info: '0000:00:06.0'
+        driver: e1000
+    enp0s7:
+      vendor_specific:
+        bus_info: '0000:00:07.0'
+        driver: e1000
+  provider: lnx
+  roles:
+    admin/pxe: br-fw-admin
+    ceilometer/api: br-mgmt
+    ceph/public: br-mgmt
+    ceph/radosgw: br-ex
+    ceph/replication: br-storage
+    cinder/api: br-mgmt
+    cinder/iscsi: br-storage
+    ex: br-ex
+    fw-admin: br-fw-admin
+    glance/api: br-mgmt
+    heat/api: br-mgmt
+    horizon: br-mgmt
+    ironic/api: br-mgmt
+    keystone/api: br-mgmt
+    management: br-mgmt
+    mgmt/corosync: br-mgmt
+    mgmt/database: br-mgmt
+    mgmt/memcache: br-mgmt
+    mgmt/messaging: br-mgmt
+    mgmt/vip: br-mgmt
+    mongo/db: br-mgmt
+    murano/api: br-mgmt
+    murano/cfapi: br-mgmt
+    neutron/api: br-mgmt
+    neutron/floating: br-floating
+    neutron/mesh: br-mesh
+    nova/api: br-mgmt
+    nova/migration: br-mgmt
+    public/vip: br-ex
+    sahara/api: br-mgmt
+    storage: br-storage
+    swift/api: br-mgmt
+    swift/replication: br-storage
+  transformations:
+  - action: add-br
+    name: br-fw-admin
+  - action: add-br
+    name: br-mgmt
+  - action: add-br
+    name: br-storage
+  - action: add-br
+    name: br-ex
+  - action: add-br
+    name: br-floating
+    provider: ovs
+  - action: add-patch
+    bridges:
+    - br-floating
+    - br-ex
+    mtu: 65000
+    provider: ovs
+  - action: add-br
+    name: br-mesh
+  - action: add-port
+    bridge: br-fw-admin
+    name: enp0s3
+  - action: add-port
+    bridge: br-ex
+    name: enp0s4
+  - action: add-port
+    bridge: br-mgmt
+    name: enp0s5
+  - action: add-port
+    bridge: br-mesh
+    name: enp0s6
+  - action: add-port
+    bridge: br-storage
+    name: enp0s7
+  version: '1.1'
+neutron_advanced_configuration:
+  metadata:
+    group: network
+    label: Neutron Advanced Configuration
+    restrictions:
+    - action: hide
+      condition: cluster:net_provider != 'neutron'
+    weight: 20
+  neutron_dvr: false
+  neutron_l2_pop: false
+  neutron_l3_ha: false
+neutron_mellanox:
+  metadata:
+    enabled: true
+    group: network
+    label: Mellanox Neutron components
+    restrictions:
+    - action: hide
+      condition: not ('experimental' in version:feature_groups)
+    toggleable: false
+    weight: 50
+  plugin: disabled
+  vf_num: '16'
+node_volumes:
+- extra:
+  - disk/by-id/virtio-1aedf04dc0154c5091e8
+  free_space: 50444
+  id: vda
+  name: vda
+  size: 51200
+  type: disk
+  volumes:
+  - size: 300
+    type: boot
+  - file_system: ext2
+    mount: /boot
+    name: Boot
+    size: 200
+    type: raid
+  - size: 0
+    type: lvm_meta_pool
+  - lvm_meta_size: 64
+    size: 19520
+    type: pv
+    vg: os
+  - lvm_meta_size: 64
+    size: 10304
+    type: pv
+    vg: logs
+  - lvm_meta_size: 64
+    size: 20544
+    type: pv
+    vg: mysql
+  - lvm_meta_size: 64
+    size: 332
+    type: pv
+    vg: horizon
+- extra:
+  - disk/by-id/virtio-5bb54a096e0a4a208256
+  free_space: 50444
+  id: vdb
+  name: vdb
+  size: 51200
+  type: disk
+  volumes:
+  - size: 300
+    type: boot
+  - file_system: ext2
+    mount: /boot
+    name: Boot
+    size: 200
+    type: raid
+  - size: 192
+    type: lvm_meta_pool
+  - lvm_meta_size: 0
+    size: 0
+    type: pv
+    vg: os
+  - lvm_meta_size: 0
+    size: 0
+    type: pv
+    vg: logs
+  - lvm_meta_size: 0
+    size: 0
+    type: pv
+    vg: mysql
+  - lvm_meta_size: 64
+    size: 11060
+    type: pv
+    vg: horizon
+- extra:
+  - disk/by-id/virtio-b25b427525ba4760b840
+  free_space: 50444
+  id: vdc
+  name: vdc
+  size: 51200
+  type: disk
+  volumes:
+  - size: 300
+    type: boot
+  - file_system: ext2
+    mount: /boot
+    name: Boot
+    size: 200
+    type: raid
+  - size: 256
+    type: lvm_meta_pool
+  - lvm_meta_size: 0
+    size: 0
+    type: pv
+    vg: os
+  - lvm_meta_size: 0
+    size: 0
+    type: pv
+    vg: logs
+  - lvm_meta_size: 0
+    size: 0
+    type: pv
+    vg: mysql
+  - lvm_meta_size: 0
+    size: 0
+    type: pv
+    vg: horizon
+- _allocate_size: min
+  id: os
+  label: Base System
+  min_size: 19456
+  type: vg
+  volumes:
+  - file_system: ext4
+    mount: /
+    name: root
+    size: 15360
+    type: lv
+  - file_system: swap
+    mount: swap
+    name: swap
+    size: 4096
+    type: lv
+- _allocate_size: min
+  id: logs
+  label: Logs
+  min_size: 10240
+  type: vg
+  volumes:
+  - file_system: ext4
+    mount: /var/log
+    name: log
+    size: 10240
+    type: lv
+- _allocate_size: min
+  id: mysql
+  label: Mysql Database
+  min_size: 20480
+  type: vg
+  volumes:
+  - file_system: ext4
+    mount: /var/lib/mysql
+    name: root
+    size: 20480
+    type: lv
+- _allocate_size: min
+  id: horizon
+  label: Horizon Temp Storage
+  min_size: 11264
+  type: vg
+  volumes:
+  - file_system: xfs
+    mount: /var/lib/horizon
+    name: horizontmp
+    size: 11264
+    type: lv
+nodes:
+- fqdn: node-1.domain.tld
+  internal_address: 10.146.2.12
+  internal_netmask: 255.255.255.0
+  name: node-1
+  public_address: 10.146.1.10
+  public_netmask: 255.255.255.0
+  role: primary-controller
+  storage_address: 10.145.3.15
+  storage_netmask: 255.255.255.0
+  swift_zone: '1'
+  uid: '1'
+  user_node_name: Untitled (51:42)
+- fqdn: node-2.domain.tld
+  internal_address: 10.144.2.10
+  internal_netmask: 255.255.255.0
+  name: node-2
+  public_address: 10.144.1.10
+  public_netmask: 255.255.255.0
+  role: controller
+  storage_address: 10.145.3.12
+  storage_netmask: 255.255.255.0
+  swift_zone: '2'
+  uid: '2'
+  user_node_name: Untitled (ff:af)
+- fqdn: node-3.domain.tld
+  internal_address: 10.145.2.13
+  internal_netmask: 255.255.255.0
+  name: node-3
+  public_address: 10.145.1.12
+  public_netmask: 255.255.255.0
+  role: controller
+  storage_address: 10.145.3.11
+  storage_netmask: 255.255.255.0
+  swift_zone: '3'
+  uid: '3'
+  user_node_name: Untitled (f9:37)
+- fqdn: node-4.domain.tld
+  internal_address: 10.146.2.10
+  internal_netmask: 255.255.255.0
+  name: node-4
+  role: compute
+  storage_address: 10.145.3.16
+  storage_netmask: 255.255.255.0
+  swift_zone: '4'
+  uid: '4'
+  user_node_name: Untitled (0b:09)
+- fqdn: node-5.domain.tld
+  internal_address: 10.144.2.11
+  internal_netmask: 255.255.255.0
+  name: node-5
+  role: compute
+  storage_address: 10.145.3.13
+  storage_netmask: 255.255.255.0
+  swift_zone: '5'
+  uid: '5'
+  user_node_name: Untitled (fb:60)
+- fqdn: node-6.domain.tld
+  internal_address: 10.145.2.12
+  internal_netmask: 255.255.255.0
+  name: node-6
+  role: ceph-osd
+  storage_address: 10.145.3.10
+  storage_netmask: 255.255.255.0
+  swift_zone: '6'
+  uid: '6'
+  user_node_name: Untitled (e0:11)
+- fqdn: node-7.domain.tld
+  internal_address: 10.146.2.11
+  internal_netmask: 255.255.255.0
+  name: node-7
+  role: ceph-osd
+  storage_address: 10.145.3.14
+  storage_netmask: 255.255.255.0
+  swift_zone: '7'
+  uid: '7'
+  user_node_name: Untitled (1f:4a)
+nova:
+  db_password: KqZwu12EYHuhbigtmiUSiYiy
+  state_path: /var/lib/nova
+  user_password: HLNnR0DHFkG3jTXed6yuLOSU
+nova_quota: false
+online: true
+openstack_version: liberty-8.0
+openstack_version_prev: null
+plugins:
+- external_loadbalancer
+priority: 100
+private_network_range: 10.145.4.0/24
+provision:
+  codename: trusty
+  image_data:
+    /:
+      container: gzip
+      format: ext4
+      uri: http://10.145.0.2:8080/targetimages/env_1_ubuntu_1404_amd64.img.gz
+    /boot:
+      container: gzip
+      format: ext2
+      uri: http://10.145.0.2:8080/targetimages/env_1_ubuntu_1404_amd64-boot.img.gz
+  metadata:
+    group: general
+    label: Provision
+    restrictions:
+    - action: hide
+      condition: 'true'
+    weight: 80
+  method: image
+public_network_assignment:
+  assign_to_all_nodes: false
+  metadata:
+    group: network
+    label: Public network assignment
+    restrictions:
+    - action: hide
+      condition: cluster:net_provider != 'neutron'
+    weight: 10
+public_ssl:
+  cert_data:
+    content: '-----BEGIN CERTIFICATE-----
+
+      MIIDrTCCApWgAwIBAgIJAMs9hkBvD343MA0GCSqGSIb3DQEBBQUAMGQxCzAJBgNV
+
+      BAYTAlVTMRMwEQYDVQQIEwpDYWxpZm9ybmlhMRYwFAYDVQQHEw1Nb3VudGFpbiBW
+
+      aWV3MQ0wCwYDVQQKEwRGdWVsMRkwFwYDVQQLExBGdWVsIERlcGxveSBUZWFtMB4X
+
+      DTE2MDEwNzE4NDk1NVoXDTI2MDEwNDE4NDk1NVowZDELMAkGA1UEBhMCVVMxEzAR
+
+      BgNVBAgTCkNhbGlmb3JuaWExFjAUBgNVBAcTDU1vdW50YWluIFZpZXcxDTALBgNV
+
+      BAoTBEZ1ZWwxGTAXBgNVBAsTEEZ1ZWwgRGVwbG95IFRlYW0wggEiMA0GCSqGSIb3
+
+      DQEBAQUAA4IBDwAwggEKAoIBAQC3Pf/K0J23/7OnOtYZz0NwGI5CBmDzO2lAhGfQ
+
+      Lmnq2eWeAD21qcEdhBqGgF8tCoYZLd7cNj8ujovPFgPRv5XWa1gU80203gSt/ab3
+
+      hwc3SQZOGh9Qodk7/3i0/Sfj40IEYAK48kqW+cHlepuGhgOzyvrZSyA7Uey+epYf
+
+      x/WAI3esWevvYnvV/RhfBKZqEJQIZB6qjx81t1zt/+RW9nHyiXGbEfcLiaRMJpC2
+
+      YEehEuR8vLcYxlMVkMs8GcdoWXZa3F/tMBdCzzSWgrNya4h1mRtlgVSM1f+9ypO/
+
+      GQht3GMxYyGfCdk5pOx1ATPW6FPCdQ/G8D2OdtSYqhgGjuaJAgMBAAGjYjBgMAkG
+
+      A1UdEwQCMAAwHQYDVR0OBBYEFIkHKILQ449yoduD/00dIFaH0eASMDQGA1UdEQQt
+
+      MCuCEXB1YmxpYy5mdWVsLmxvY2FsgRZyb290QHB1YmxpYy5mdWVsLmxvY2FsMA0G
+
+      CSqGSIb3DQEBBQUAA4IBAQARkeLVDMvVBaSH0kQQYe0KMcgz/cA4svZSvkyQmNXU
+
+      a1BUknvucqP4SRWTBCwCYCRZmvOpMmTXbX0pHSYVVtyz2qJ71aTZ/z/QWkulKNc2
+
+      Bt+YLdUwAVl1xchCHgHEqlTmspB8s/pmjcWRW10AEYhV8UG9RqBIL5GhNI9VPIfm
+
+      qLvt/gCNqzTRmfjzi1nfXmgYgaA5FgaTZO+E5BaPc7eV+cXblfaQTvwaRi69Vfle
+
+      qssScpVzf+dVTt5RSrroHGDhjdObYx2M9agpgn9hfVcN5shRK/n8w2XjeqJqHfpV
+
+      LzAFvO8587fksHpVLC+utmYzlVCCk/nMPdR0OsKDKEjK
+
+      -----END CERTIFICATE-----
+
+      -----BEGIN PRIVATE KEY-----
+
+      MIIEvAIBADANBgkqhkiG9w0BAQEFAASCBKYwggSiAgEAAoIBAQC3Pf/K0J23/7On
+
+      OtYZz0NwGI5CBmDzO2lAhGfQLmnq2eWeAD21qcEdhBqGgF8tCoYZLd7cNj8ujovP
+
+      FgPRv5XWa1gU80203gSt/ab3hwc3SQZOGh9Qodk7/3i0/Sfj40IEYAK48kqW+cHl
+
+      epuGhgOzyvrZSyA7Uey+epYfx/WAI3esWevvYnvV/RhfBKZqEJQIZB6qjx81t1zt
+
+      /+RW9nHyiXGbEfcLiaRMJpC2YEehEuR8vLcYxlMVkMs8GcdoWXZa3F/tMBdCzzSW
+
+      grNya4h1mRtlgVSM1f+9ypO/GQht3GMxYyGfCdk5pOx1ATPW6FPCdQ/G8D2OdtSY
+
+      qhgGjuaJAgMBAAECggEAFb9T9lwf+9BrH/PJqTKCDHG9oHRlWTi52yBbucdoZqkJ
+
+      qWDZ8g99jeU5yLC/mvbex2o8QuJlST89tIwmU+RrAhGnWIUvucGHyKaMBGCQKK2Q
+
+      BADxqn4q7AX7628IJvG3yhEjAZQv6g8mRffxMVwCYHo8n0FdR+0HLewamRcAOf7H
+
+      /rbd4TwK5KgZ3ProYahOfOmfCwpIoikglJ7QTRTAX3Pm3APhBStkrtG1DP5uxPZN
+
+      BK4eDjjV79e6D1iTVxxxQUJb5b8FFqHDb2/tKM0Ju9NwjQ9Hw+k5FOFSo40q1ivB
+
+      cVB4LGVCBwZAzNhi6S4dx1ACm9vpVCVUTGEJiViXAQKBgQDsmxIhDz5WDl2xxhvg
+
+      EzUPEBBzLldBGwxhj3baI+47F18zMuvv9Mu33PY9RZ+c6ymvrw2JmYZilz+2AKkR
+
+      XXeuAgwtTWQ2tSRj3SHb40sDRL3Ye6H8u2GSTzIB+vn4tfHAZcXkLvKMYa0cc+6Z
+
+      q3ip36wYhEE6/hsIqm+a+PgaeQKBgQDGQyYR1VkiRJhGPaXqdaRJOZ+RyoIhfv7i
+
+      9LS362DE50ShSAA1hykHSN1jeqTDnO1reSAcszk4Sbt2So87au4lXq8/D956iJIP
+
+      8a5dwXpbKjw2MUzJIe2lxrl/oo5cj1kKPV2aOZrwi5mN8aFSkIMd5CyhS42Yx01d
+
+      rjNyo80okQKBgEaHs0/Hi317qtJji8uv7hEfaMfs+HWf6oDqkzNToqBaxzYr58kP
+
+      3+pfI8gACSRttW95bz+lVDnvfD500/EpO5PTaG3YtBbayI48TOuPRb0jsLPnptH/
+
+      yYYjtXSBrCJHmlkP/X2XwRW3yDLDHE0SoFWDJ3nncspzFPvwUnSP4uWBAoGAfgYM
+
+      2uUchVXI3U0ue7xPs2P3dDqfQR9ycV1OymHJ3x+KVmJoD55cjA7a+vLobJcBq4EQ
+
+      0m1x/7+Oc4CtTv2HZyWqi5FQv96zyYK8bUgguHY+U8w+nNL+NpP9MY5oo5lS5dlf
+
+      +DqJrEFwV/OxscO+NG/nlpdp6CU3nkau2T4ZmKECgYBhWQiSXRed7/ilecjgdL9b
+
+      kWhEQSfsgs37yD0mTxi6HOUo4mUXPHUs+qyi+klQ/AmCkqwI0RMKueTXLtYC7gf0
+
+      bvuqPHKfvoBWq9D+nhfLSfWVA+eaXNTKWvjtFiuWsP3b/PAf5Dc/BzBHjQY0orTJ
+
+      jEQbGdQ/tC5p2Kp+eLGJKw==
+
+      -----END PRIVATE KEY-----
+
+      '
+    name: public_haproxy.pem
+  cert_source: user_uploaded
+  horizon: true
+  hostname: public.fuel.local
+  metadata:
+    group: security
+    label: Public TLS
+    weight: 110
+  services: true
+puppet:
+  manifests: rsync://10.145.0.2:/puppet/liberty-8.0/manifests/
+  modules: rsync://10.145.0.2:/puppet/liberty-8.0/modules/
+puppet_debug: true
+quantum: true
+quantum_settings:
+  L2:
+    base_mac: fa:16:3e:00:00:00
+    phys_nets:
+      physnet1:
+        bridge: br-floating
+        vlan_range: null
+    segmentation_type: tun
+    tunnel_id_ranges: 2:65535
+  L3:
+    use_namespaces: true
+  database:
+    passwd: rsuKYCs4oTrXfClMNxSUG6BI
+  default_floating_net: admin_floating_net
+  default_private_net: admin_internal_net
+  keystone:
+    admin_password: 4MF6XuQjhmDuokIye9nEe8Un
+  metadata:
+    metadata_proxy_shared_secret: 1xqxGx1IUtAgmESyqebYrUw3
+  predefined_networks:
+    admin_floating_net:
+      L2:
+        network_type: flat
+        physnet: physnet1
+        router_ext: true
+        segment_id: null
+      L3:
+        enable_dhcp: false
+        floating:
+        - 10.144.1.130:10.144.1.254
+        gateway: 10.144.1.1
+        nameservers: []
+        subnet: 10.144.1.0/24
+      shared: false
+      tenant: admin
+    admin_internal_net:
+      L2:
+        network_type: tun
+        physnet: null
+        router_ext: false
+        segment_id: null
+      L3:
+        enable_dhcp: true
+        floating: null
+        gateway: 192.168.111.1
+        nameservers:
+        - 8.8.4.4
+        - 8.8.8.8
+        subnet: 192.168.111.0/24
+      shared: false
+      tenant: admin
+rabbit:
+  password: StxrZ8EMHXzCjpgnrw3sRXgA
+repo_setup:
+  installer_initrd:
+    local: /var/www/nailgun/ubuntu/x86_64/images/initrd.gz
+    remote_relative: dists/trusty/main/installer-amd64/current/images/netboot/ubuntu-installer/amd64/initrd.gz
+  installer_kernel:
+    local: /var/www/nailgun/ubuntu/x86_64/images/linux
+    remote_relative: dists/trusty/main/installer-amd64/current/images/netboot/ubuntu-installer/amd64/linux
+  metadata:
+    always_editable: true
+    group: general
+    label: Repositories
+    weight: 50
+  repos:
+  - name: ubuntu
+    priority: null
+    section: main universe multiverse
+    suite: trusty
+    type: deb
+    uri: http://archive.ubuntu.com/ubuntu/
+  - name: ubuntu-updates
+    priority: null
+    section: main universe multiverse
+    suite: trusty-updates
+    type: deb
+    uri: http://archive.ubuntu.com/ubuntu/
+  - name: ubuntu-security
+    priority: null
+    section: main universe multiverse
+    suite: trusty-security
+    type: deb
+    uri: http://archive.ubuntu.com/ubuntu/
+  - name: mos
+    priority: 1050
+    section: main restricted
+    suite: mos8.0
+    type: deb
+    uri: http://10.145.0.2:8080/liberty-8.0/ubuntu/x86_64
+  - name: mos-updates
+    priority: 1050
+    section: main restricted
+    suite: mos8.0-updates
+    type: deb
+    uri: http://mirror.fuel-infra.org/mos-repos/ubuntu/8.0/
+  - name: mos-security
+    priority: 1050
+    section: main restricted
+    suite: mos8.0-security
+    type: deb
+    uri: http://mirror.fuel-infra.org/mos-repos/ubuntu/8.0/
+  - name: mos-holdback
+    priority: 1100
+    section: main restricted
+    suite: mos8.0-holdback
+    type: deb
+    uri: http://mirror.fuel-infra.org/mos-repos/ubuntu/8.0/
+  - name: Auxiliary
+    priority: 1150
+    section: main restricted
+    suite: auxiliary
+    type: deb
+    uri: http://10.145.0.2:8080/liberty-8.0/ubuntu/auxiliary
+resume_guests_state_on_host_boot: true
+role: primary-controller
+sahara:
+  db_password: DsrcljbGqFssjiT3HaIKcHkY
+  enabled: false
+  user_password: Ca0CQ4ruHT9JJ3fXsh8ntfiP
+status: error
+storage:
+  ephemeral_ceph: true
+  images_ceph: true
+  images_vcenter: false
+  iser: false
+  metadata:
+    group: storage
+    label: Storage Backends
+    weight: 60
+  objects_ceph: true
+  osd_pool_size: '2'
+  per_pool_pg_nums:
+    .rgw: 64
+    backups: 64
+    compute: 64
+    default_pg_num: 64
+    images: 64
+    volumes: 128
+  pg_num: 64
+  volumes_block_device: false
+  volumes_ceph: true
+  volumes_lvm: false
+storage_network_range: 10.145.3.0/24
+swift:
+  user_password: NCdIEIv8qaJnoCQc8E2ZVWen
+syslog:
+  metadata:
+    enabled: false
+    group: logging
+    label: Syslog
+    toggleable: true
+    weight: 50
+  syslog_port: '514'
+  syslog_server: ''
+  syslog_transport: tcp
+task_deploy: false
+tasks:
+- id: external-lb-hiera
+  parameters:
+    cwd: /etc/fuel/plugins/external_loadbalancer-0.1/
+    puppet_manifest: puppet/manifests/create_hiera_config.pp
+    puppet_modules: puppet/modules:/etc/puppet/modules
+    timeout: 360
+  priority: 100
+  type: puppet
+  uids:
+  - '1'
+- id: hiera
+  parameters:
+    cwd: /
+    puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/hiera/hiera.pp
+    puppet_modules: /etc/puppet/modules
+    timeout: 3600
+  priority: 200
+  type: puppet
+  uids:
+  - '1'
+- id: setup_repositories
+  parameters:
+    cwd: /
+    puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/fuel_pkgs/setup_repositories.pp
+    puppet_modules: /etc/puppet/modules
+    timeout: 600
+  priority: 300
+  type: puppet
+  uids:
+  - '1'
+- id: fuel_pkgs
+  parameters:
+    cwd: /
+    puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/fuel_pkgs/fuel_pkgs.pp
+    puppet_modules: /etc/puppet/modules
+    timeout: 600
+  priority: 400
+  type: puppet
+  uids:
+  - '1'
+- id: globals
+  parameters:
+    cwd: /
+    puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/globals/globals.pp
+    puppet_modules: /etc/puppet/modules
+    timeout: 3600
+  priority: 500
+  type: puppet
+  uids:
+  - '1'
+- id: logging
+  parameters:
+    cwd: /
+    puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/logging/logging.pp
+    puppet_modules: /etc/puppet/modules
+    timeout: 3600
+  priority: 600
+  type: puppet
+  uids:
+  - '1'
+- id: tools
+  parameters:
+    cwd: /
+    puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/tools/tools.pp
+    puppet_modules: /etc/puppet/modules
+    timeout: 3600
+  priority: 700
+  type: puppet
+  uids:
+  - '1'
+- id: umm
+  parameters:
+    cwd: /
+    puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/umm/umm.pp
+    puppet_modules: /etc/puppet/modules
+    timeout: 3600
+  priority: 800
+  type: puppet
+  uids:
+  - '1'
+- id: netconfig
+  parameters:
+    cwd: /
+    puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/netconfig/netconfig.pp
+    puppet_modules: /etc/puppet/modules
+    timeout: 3600
+  priority: 900
+  type: puppet
+  uids:
+  - '1'
+- id: connectivity_tests
+  parameters:
+    cwd: /
+    puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/netconfig/connectivity_tests.pp
+    puppet_modules: /etc/puppet/modules
+    timeout: 3600
+  priority: 1000
+  type: puppet
+  uids:
+  - '1'
+- id: firewall
+  parameters:
+    cwd: /
+    puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/firewall/firewall.pp
+    puppet_modules: /etc/puppet/modules
+    timeout: 3600
+  priority: 1100
+  type: puppet
+  uids:
+  - '1'
+- id: ssl-keys-saving
+  parameters:
+    cwd: /
+    puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/ssl/ssl_keys_saving.pp
+    puppet_modules: /etc/puppet/modules
+    timeout: 3600
+  priority: 1200
+  type: puppet
+  uids:
+  - '1'
+- id: ssl-add-trust-chain
+  parameters:
+    cwd: /
+    puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/ssl/ssl_add_trust_chain.pp
+    puppet_modules: /etc/puppet/modules
+    timeout: 3600
+  priority: 1300
+  type: puppet
+  uids:
+  - '1'
+- id: ssl-dns-setup
+  parameters:
+    cwd: /
+    puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/ssl/ssl_dns_setup.pp
+    puppet_modules: /etc/puppet/modules
+    timeout: 3600
+  priority: 1400
+  type: puppet
+  uids:
+  - '1'
+- id: hosts
+  parameters:
+    cwd: /
+    puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/hosts/hosts.pp
+    puppet_modules: /etc/puppet/modules
+    timeout: 3600
+  priority: 1500
+  type: puppet
+  uids:
+  - '1'
+- id: primary-cluster
+  parameters:
+    cwd: /
+    puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/cluster/cluster.pp
+    puppet_modules: /etc/puppet/modules
+    timeout: 3600
+  priority: 1600
+  type: puppet
+  uids:
+  - '1'
+- id: cluster_health
+  parameters:
+    cwd: /
+    puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/cluster/health.pp
+    puppet_modules: /etc/puppet/modules
+    timeout: 600
+  priority: 1700
+  type: puppet
+  uids:
+  - '1'
+- id: cluster-vrouter
+  parameters:
+    cwd: /
+    puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/cluster-vrouter/cluster-vrouter.pp
+    puppet_modules: /etc/puppet/modules
+    timeout: 3600
+  priority: 1800
+  type: puppet
+  uids:
+  - '1'
+- id: external-lb-ovs-to-ns-port
+  parameters:
+    cwd: /etc/fuel/plugins/external_loadbalancer-0.1/
+    puppet_manifest: puppet/manifests/ovs_to_ns_ocf.pp
+    puppet_modules: puppet/modules:/etc/puppet/modules
+    timeout: 600
+  priority: 1900
+  type: puppet
+  uids:
+  - '1'
+- id: virtual_ips
+  parameters:
+    cwd: /
+    puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/virtual_ips/virtual_ips.pp
+    puppet_modules: /etc/puppet/modules
+    timeout: 3600
+  priority: 2000
+  type: puppet
+  uids:
+  - '1'
+- id: primary-cluster-haproxy
+  parameters:
+    cwd: /
+    puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/cluster-haproxy/cluster-haproxy.pp
+    puppet_modules: /etc/puppet/modules
+    timeout: 3600
+  priority: 2100
+  type: puppet
+  uids:
+  - '1'
+- id: openstack-haproxy-horizon
+  parameters:
+    cwd: /
+    puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/openstack-haproxy/openstack-haproxy-horizon.pp
+    puppet_modules: /etc/puppet/modules
+    timeout: 300
+  priority: 2200
+  type: puppet
+  uids:
+  - '1'
+- id: openstack-haproxy-keystone
+  parameters:
+    cwd: /
+    puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/openstack-haproxy/openstack-haproxy-keystone.pp
+    puppet_modules: /etc/puppet/modules
+    timeout: 300
+  priority: 2300
+  type: puppet
+  uids:
+  - '1'
+- id: openstack-haproxy-nova
+  parameters:
+    cwd: /
+    puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/openstack-haproxy/openstack-haproxy-nova.pp
+    puppet_modules: /etc/puppet/modules
+    timeout: 300
+  priority: 2400
+  type: puppet
+  uids:
+  - '1'
+- id: openstack-haproxy-heat
+  parameters:
+    cwd: /
+    puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/openstack-haproxy/openstack-haproxy-heat.pp
+    puppet_modules: /etc/puppet/modules
+    timeout: 300
+  priority: 2500
+  type: puppet
+  uids:
+  - '1'
+- id: openstack-haproxy-glance
+  parameters:
+    cwd: /
+    puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/openstack-haproxy/openstack-haproxy-glance.pp
+    puppet_modules: /etc/puppet/modules
+    timeout: 300
+  priority: 2600
+  type: puppet
+  uids:
+  - '1'
+- id: openstack-haproxy-cinder
+  parameters:
+    cwd: /
+    puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/openstack-haproxy/openstack-haproxy-cinder.pp
+    puppet_modules: /etc/puppet/modules
+    timeout: 300
+  priority: 2700
+  type: puppet
+  uids:
+  - '1'
+- id: openstack-haproxy-neutron
+  parameters:
+    cwd: /
+    puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/openstack-haproxy/openstack-haproxy-neutron.pp
+    puppet_modules: /etc/puppet/modules
+    timeout: 300
+  priority: 2800
+  type: puppet
+  uids:
+  - '1'
+- id: openstack-haproxy-mysqld
+  parameters:
+    cwd: /
+    puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/openstack-haproxy/openstack-haproxy-mysqld.pp
+    puppet_modules: /etc/puppet/modules
+    timeout: 300
+  priority: 2900
+  type: puppet
+  uids:
+  - '1'
+- id: openstack-haproxy-swift
+  parameters:
+    cwd: /
+    puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/openstack-haproxy/openstack-haproxy-swift.pp
+    puppet_modules: /etc/puppet/modules
+    timeout: 300
+  priority: 3000
+  type: puppet
+  uids:
+  - '1'
+- id: openstack-haproxy-radosgw
+  parameters:
+    cwd: /
+    puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/openstack-haproxy/openstack-haproxy-radosgw.pp
+    puppet_modules: /etc/puppet/modules
+    timeout: 300
+  priority: 3100
+  type: puppet
+  uids:
+  - '1'
+- id: openstack-haproxy-ceilometer
+  parameters:
+    cwd: /
+    puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/openstack-haproxy/openstack-haproxy-ceilometer.pp
+    puppet_modules: /etc/puppet/modules
+    timeout: 300
+  priority: 3200
+  type: puppet
+  uids:
+  - '1'
+- id: openstack-haproxy-sahara
+  parameters:
+    cwd: /
+    puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/openstack-haproxy/openstack-haproxy-sahara.pp
+    puppet_modules: /etc/puppet/modules
+    timeout: 300
+  priority: 3300
+  type: puppet
+  uids:
+  - '1'
+- id: openstack-haproxy-murano
+  parameters:
+    cwd: /
+    puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/openstack-haproxy/openstack-haproxy-murano.pp
+    puppet_modules: /etc/puppet/modules
+    timeout: 300
+  priority: 3400
+  type: puppet
+  uids:
+  - '1'
+- id: openstack-haproxy-stats
+  parameters:
+    cwd: /
+    puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/openstack-haproxy/openstack-haproxy-stats.pp
+    puppet_modules: /etc/puppet/modules
+    timeout: 300
+  priority: 3500
+  type: puppet
+  uids:
+  - '1'
+- id: conntrackd
+  parameters:
+    cwd: /
+    puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/virtual_ips/conntrackd.pp
+    puppet_modules: /etc/puppet/modules
+    timeout: 3600
+  priority: 3600
+  type: puppet
+  uids:
+  - '1'
+- id: openstack-haproxy
+  parameters:
+    cwd: /
+    puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/openstack-haproxy/openstack-haproxy.pp
+    puppet_modules: /etc/puppet/modules
+    timeout: 300
+  priority: 3700
+  type: puppet
+  uids:
+  - '1'
+- id: primary-database
+  parameters:
+    cwd: /
+    puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/database/database.pp
+    puppet_modules: /etc/puppet/modules
+    timeout: 3600
+  priority: 3800
+  type: puppet
+  uids:
+  - '1'
+- id: keystone-db
+  parameters:
+    cwd: /
+    puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/keystone/db.pp
+    puppet_modules: /etc/puppet/modules
+    timeout: 1800
+  priority: 3900
+  type: puppet
+  uids:
+  - '1'
+- id: nova-db
+  parameters:
+    cwd: /
+    puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/openstack-controller/db.pp
+    puppet_modules: /etc/puppet/modules
+    timeout: 1800
+  priority: 4000
+  type: puppet
+  uids:
+  - '1'
+- id: neutron-db
+  parameters:
+    cwd: /
+    puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/openstack-network/db.pp
+    puppet_modules: /etc/puppet/modules
+    timeout: 1800
+  priority: 4100
+  type: puppet
+  uids:
+  - '1'
+- id: heat-db
+  parameters:
+    cwd: /
+    puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/heat/db.pp
+    puppet_modules: /etc/puppet/modules
+    timeout: 1800
+  priority: 4200
+  type: puppet
+  uids:
+  - '1'
+- id: glance-db
+  parameters:
+    cwd: /
+    puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/glance/db.pp
+    puppet_modules: /etc/puppet/modules
+    timeout: 1800
+  priority: 4300
+  type: puppet
+  uids:
+  - '1'
+- id: cinder-db
+  parameters:
+    cwd: /
+    puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/openstack-cinder/db.pp
+    puppet_modules: /etc/puppet/modules
+    timeout: 1800
+  priority: 4400
+  type: puppet
+  uids:
+  - '1'
+- id: apache
+  parameters:
+    cwd: /
+    puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/apache/apache.pp
+    puppet_modules: /etc/puppet/modules
+    timeout: 1200
+  priority: 4500
+  type: puppet
+  uids:
+  - '1'
+- id: api-proxy
+  parameters:
+    cwd: /
+    puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/api-proxy/api-proxy.pp
+    puppet_modules: /etc/puppet/modules
+    timeout: 3600
+  priority: 4600
+  type: puppet
+  uids:
+  - '1'
+- id: primary-rabbitmq
+  parameters:
+    cwd: /
+    puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/rabbitmq/rabbitmq.pp
+    puppet_modules: /etc/puppet/modules
+    timeout: 3600
+  priority: 4700
+  type: puppet
+  uids:
+  - '1'
+- id: primary-dns-server
+  parameters:
+    cwd: /
+    puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/dns/dns-server.pp
+    puppet_modules: /etc/puppet/modules
+    timeout: 3600
+  priority: 4800
+  type: puppet
+  uids:
+  - '1'
+- id: memcached
+  parameters:
+    cwd: /
+    puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/memcached/memcached.pp
+    puppet_modules: /etc/puppet/modules
+    timeout: 3600
+  priority: 4900
+  type: puppet
+  uids:
+  - '1'
+- id: keystone
+  parameters:
+    cwd: /
+    puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/keystone/keystone.pp
+    puppet_modules: /etc/puppet/modules
+    timeout: 3600
+  priority: 5000
+  type: puppet
+  uids:
+  - '1'
+- id: workloads_collector_add
+  parameters:
+    cwd: /
+    puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/keystone/workloads_collector_add.pp
+    puppet_modules: /etc/puppet/modules
+    timeout: 1800
+  priority: 5100
+  type: puppet
+  uids:
+  - '1'
+- id: nova-keystone
+  parameters:
+    cwd: /
+    puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/openstack-controller/keystone.pp
+    puppet_modules: /etc/puppet/modules
+    timeout: 1800
+  priority: 5200
+  type: puppet
+  uids:
+  - '1'
+- id: neutron-keystone
+  parameters:
+    cwd: /
+    puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/openstack-network/keystone.pp
+    puppet_modules: /etc/puppet/modules
+    timeout: 1800
+  priority: 5300
+  type: puppet
+  uids:
+  - '1'
+- id: heat-keystone
+  parameters:
+    cwd: /
+    puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/heat/keystone.pp
+    puppet_modules: /etc/puppet/modules
+    timeout: 1800
+  priority: 5400
+  type: puppet
+  uids:
+  - '1'
+- id: swift-keystone
+  parameters:
+    cwd: /
+    puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/swift/keystone.pp
+    puppet_modules: /etc/puppet/modules
+    timeout: 1800
+  priority: 5500
+  type: puppet
+  uids:
+  - '1'
+- id: glance-keystone
+  parameters:
+    cwd: /
+    puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/glance/keystone.pp
+    puppet_modules: /etc/puppet/modules
+    timeout: 1800
+  priority: 5600
+  type: puppet
+  uids:
+  - '1'
+- id: glance
+  parameters:
+    cwd: /
+    puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/glance/glance.pp
+    puppet_modules: /etc/puppet/modules
+    timeout: 3600
+  priority: 5700
+  type: puppet
+  uids:
+  - '1'
+- id: cinder-keystone
+  parameters:
+    cwd: /
+    puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/openstack-cinder/keystone.pp
+    puppet_modules: /etc/puppet/modules/
+    timeout: 1800
+  priority: 5800
+  type: puppet
+  uids:
+  - '1'
+- id: openstack-cinder
+  parameters:
+    cwd: /
+    puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/openstack-cinder/openstack-cinder.pp
+    puppet_modules: /etc/puppet/modules
+    timeout: 1200
+  priority: 5900
+  type: puppet
+  uids:
+  - '1'
+- id: openstack-controller
+  parameters:
+    cwd: /
+    puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/openstack-controller/openstack-controller.pp
+    puppet_modules: /etc/puppet/modules
+    timeout: 3600
+  priority: 6000
+  type: puppet
+  uids:
+  - '1'
+- id: openstack-network-common-config
+  parameters:
+    cwd: /
+    puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/openstack-network/common-config.pp
+    puppet_modules: /etc/puppet/modules
+    timeout: 1800
+  priority: 6100
+  type: puppet
+  uids:
+  - '1'
+- id: openstack-network-server-config
+  parameters:
+    cwd: /
+    puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/openstack-network/server-config.pp
+    puppet_modules: /etc/puppet/modules
+    timeout: 1800
+  priority: 6200
+  type: puppet
+  uids:
+  - '1'
+- id: primary-openstack-network-plugins-l2
+  parameters:
+    cwd: /
+    puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/openstack-network/plugins/ml2.pp
+    puppet_modules: /etc/puppet/modules
+    timeout: 1800
+  priority: 6300
+  type: puppet
+  uids:
+  - '1'
+- id: openstack-network-networks
+  parameters:
+    cwd: /
+    puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/openstack-network/networks.pp
+    puppet_modules: /etc/puppet/modules
+    timeout: 1800
+  priority: 6400
+  type: puppet
+  uids:
+  - '1'
+- id: openstack-network-routers
+  parameters:
+    cwd: /
+    puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/openstack-network/routers.pp
+    puppet_modules: /etc/puppet/modules
+    timeout: 1800
+  priority: 6500
+  type: puppet
+  uids:
+  - '1'
+- id: primary-openstack-network-agents-l3
+  parameters:
+    cwd: /
+    puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/openstack-network/agents/l3.pp
+    puppet_modules: /etc/puppet/modules
+    timeout: 1800
+  priority: 6600
+  type: puppet
+  uids:
+  - '1'
+- id: openstack-network-server-nova
+  parameters:
+    cwd: /
+    puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/openstack-network/server-nova.pp
+    puppet_modules: /etc/puppet/modules
+    timeout: 1800
+  priority: 6700
+  type: puppet
+  uids:
+  - '1'
+- id: primary-openstack-network-agents-dhcp
+  parameters:
+    cwd: /
+    puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/openstack-network/agents/dhcp.pp
+    puppet_modules: /etc/puppet/modules
+    timeout: 1800
+  priority: 6800
+  type: puppet
+  uids:
+  - '1'
+- id: primary-openstack-network-agents-metadata
+  parameters:
+    cwd: /
+    puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/openstack-network/agents/metadata.pp
+    puppet_modules: /etc/puppet/modules
+    timeout: 1800
+  priority: 6900
+  type: puppet
+  uids:
+  - '1'
+- id: heat
+  parameters:
+    cwd: /
+    puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/heat/heat.pp
+    puppet_modules: /etc/puppet/modules
+    timeout: 3600
+  priority: 7000
+  type: puppet
+  uids:
+  - '1'
+- id: swift-rebalance-cron
+  parameters:
+    cwd: /
+    puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/swift/rebalance_cronjob.pp
+    puppet_modules: /etc/puppet/modules
+    timeout: 300
+  priority: 7100
+  type: puppet
+  uids:
+  - '1'
+- id: primary-swift
+  parameters:
+    cwd: /
+    puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/swift/swift.pp
+    puppet_modules: /etc/puppet/modules
+    timeout: 3600
+  priority: 7200
+  type: puppet
+  uids:
+  - '1'
+- id: horizon
+  parameters:
+    cwd: /
+    puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/horizon/horizon.pp
+    puppet_modules: /etc/puppet/modules
+    timeout: 3600
+  priority: 7300
+  type: puppet
+  uids:
+  - '1'
+- id: primary-ceph-mon
+  parameters:
+    cwd: /
+    puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/ceph/mon.pp
+    puppet_modules: /etc/puppet/modules
+    timeout: 3600
+  priority: 7400
+  type: puppet
+  uids:
+  - '1'
+- id: ceph-radosgw
+  parameters:
+    cwd: /
+    puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/ceph/radosgw.pp
+    puppet_modules: /etc/puppet/modules
+    timeout: 3600
+  priority: 7500
+  type: puppet
+  uids:
+  - '1'
+- id: controller_remaining_tasks
+  parameters:
+    cwd: /
+    puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/roles/controller.pp
+    puppet_modules: /etc/puppet/modules
+    timeout: 3600
+  priority: 7600
+  type: puppet
+  uids:
+  - '1'
+test_vm_image:
+  container_format: bare
+  disk_format: qcow2
+  glance_properties: ''
+  img_name: TestVM
+  img_path: /usr/share/cirros-testvm/cirros-x86_64-disk.img
+  min_ram: 64
+  os_name: cirros
+  public: 'true'
+uid: '1'
+use_cow_images: true
+use_vcenter: false
+user_node_name: Untitled (51:42)
+vms_conf: []
+workloads_collector:
+  create_user: false
+  enabled: true
+  metadata:
+    group: general
+    label: Workloads Collector User
+    restrictions:
+    - action: hide
+      condition: 'true'
+    weight: 10
+  password: d2sqMg2Ay5EU1SqbeqCUJp4D
+  tenant: services
+  username: fuel_stats_user
