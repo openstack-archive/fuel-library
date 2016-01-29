@@ -53,6 +53,7 @@ class nailgun::astute(
     group => 'root',
     mode => 0644,
     require => File["/etc/astute"],
+    notify => Service["astute"],
   }
 
   file {"/var/log/astute":
