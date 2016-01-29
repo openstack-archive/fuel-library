@@ -226,10 +226,10 @@
   requires: [pre_deployment_start]
   required_for: [pre_deployment_end]
   parameters:
-    cmd: timeout --foreground --preserve-status 30 ntpdate -u -v -s $(awk '/^server/ { if ($2 !~ /127\.127\.[0-9]+\.[0-9]+/) {ORS=" "; print $2}}' /etc/ntp.conf)
+    cmd: timeout -s9 40 ntpdate -u -v -s $(awk '/^server/ { if ($2 !~ /127\.127\.[0-9]+\.[0-9]+/) {ORS=" "; print $2}}' /etc/ntp.conf)
     retries: 10
     interval: 30
-    timeout: 180
+    timeout: 300
 
 - id: pre_hiera_config
   type: puppet
