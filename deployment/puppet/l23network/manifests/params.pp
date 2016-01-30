@@ -16,6 +16,7 @@ class l23network::params {
       $ovs_datapath_package_name = 'openvswitch-datapath-dkms'
       $ovs_common_package_name   = 'openvswitch-switch'
       $ovs_kern_module_name      = 'openvswitch'
+      $network_manager_name      = 'network-manager'
       $extra_tools               = 'iputils-arping'
     }
     /(?i:redhat|centos)/: {
@@ -30,6 +31,7 @@ class l23network::params {
       $ovs_datapath_package_name = 'kmod-openvswitch'
       $ovs_common_package_name   = 'openvswitch'
       $ovs_kern_module_name      = 'openvswitch'
+      $network_manager_name      = 'NetworkManager'
       $extra_tools               = 'iputils'
     }
     /(?i)darwin/: {
