@@ -2,8 +2,7 @@ require 'spec_helper'
 
 describe 'l23network', :type => :class do
 
-  context 'default init of l23network module' do
-#    let(:title) { 'empty network scheme' }
+  context 'default init of l23network module(Ubuntu)' do
     let(:facts) { {
       :osfamily => 'Debian',
       :operatingsystem => 'Ubuntu',
@@ -25,9 +24,66 @@ describe 'l23network', :type => :class do
       should contain_package('ethtool').with_ensure('present')
       should contain_package('ifenslave').with_ensure('present')
       should contain_package('vlan').with_ensure('present')
+      should contain_package('network-manager').with_ensure('purged')
       should contain_anchor('l23network::l2::init').that_comes_before('Anchor[l23network::init]')
       should contain_anchor('l23network::l2::init').that_requires('Package[vlan]')
       should contain_anchor('l23network::l2::init').that_requires('Package[ifenslave]')
+      should contain_anchor('l23network::l2::init').that_requires('Package[ethtool]')
+    end
+  end
+
+  context 'default init of l23network module(CentOS6)' do
+    let(:facts) { {
+      :operatingsystem => 'CentOS',
+      :kernel => 'Linux',
+      :l23_os => 'centos6',
+      :l3_fqdn_hostname => 'stupid_hostname',
+    } }
+
+    before(:each) do
+      puppet_debug_override()
+    end
+
+    it do
+      should compile.with_all_deps
+    end
+
+    it do
+      should contain_package('bridge-utils').with_ensure('present')
+      should contain_package('ethtool').with_ensure('present')
+      should_not contain_package('ifenslave').with_ensure('present')
+      should_not contain_package('vlan').with_ensure('present')
+      should contain_package('NetworkManager').with_ensure('purged')
+      should_not contain_service('NetworkManager').with_ensure('stopped')
+      should contain_anchor('l23network::l2::init').that_comes_before('Anchor[l23network::init]')
+      should contain_anchor('l23network::l2::init').that_requires('Package[ethtool]')
+    end
+  end
+
+  context 'default init of l23network module(CentOS7/RHEL7)' do
+    let(:facts) { {
+      :operatingsystem => 'CentOS',
+      :kernel => 'Linux',
+      :l23_os => 'centos7',
+      :l3_fqdn_hostname => 'stupid_hostname',
+    } }
+
+    before(:each) do
+      puppet_debug_override()
+    end
+
+    it do
+      should compile.with_all_deps
+    end
+
+    it do
+      should contain_package('bridge-utils').with_ensure('present')
+      should contain_package('ethtool').with_ensure('present')
+      should_not contain_package('ifenslave').with_ensure('present')
+      should_not contain_package('vlan').with_ensure('present')
+      should contain_package('NetworkManager').with_ensure('purged')
+      should contain_service('NetworkManager').with_ensure('stopped')
+      should contain_anchor('l23network::l2::init').that_comes_before('Anchor[l23network::init]')
       should contain_anchor('l23network::l2::init').that_requires('Package[ethtool]')
     end
   end
