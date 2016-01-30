@@ -25,6 +25,12 @@
 #   (optional) Enables to disable hotplug system temporarily during network configuration
 #   Defaults to true
 #
+# [*network_manager*]
+#   (optional) Specify whether to use NetworkManager or not.
+#   It is not recommended to use NetworkManager and this module because it leads
+#   to unpredictable behaviour
+#   Defaults to false
+
 class l23network (
   $ensure_package               = 'present',
   $use_lnx                      = true,
@@ -39,6 +45,7 @@ class l23network (
   $ovs_datapath_package_name    = undef,
   $ovs_common_package_name      = undef,
   $disable_hotplug              = true,
+  $network_manager              = false,
 ){
 
   include ::stdlib
@@ -90,6 +97,24 @@ class l23network (
 
   Anchor['l23network::l2::init'] -> Anchor['l23network::init']
   anchor { 'l23network::init': }
+
+  unless $network_manager {
+    package{$::l23network::params::network_manager_name:
+      ensure => 'purged',
+    }
+    Package[$::l23network::params::network_manager_name] -> Anchor['l23network::init']
+
+    # It is not enough to just remove package, we have to stop the service as well.
+    # Because SystemD continues running the service after package removing,
+    # with Upstart - all is ok.
+    if $::l23_os =~ /(?i:redhat7|centos7)/ {
+      service{$::l23network::params::network_manager_name:
+        ensure => 'stopped',
+      }
+      Package[$::l23network::params::network_manager_name] ~> Service[$::l23network::params::network_manager_name]
+      Service[$::l23network::params::network_manager_name] -> Anchor['l23network::init']
+    }
+  }
 
   if $disable_hotplug {
     disable_hotplug { 'global':
