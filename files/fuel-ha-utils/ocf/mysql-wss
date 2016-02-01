@@ -436,12 +436,12 @@ mysql_status() {
     sleeptime=${3:-5}
     while [ $i -gt 0 ]; do
         if [ -f "${OCF_RESKEY_datadir}"/sst_in_progress ]; then
-            ocf_log 'SST is in progress'
+            ocf_log info 'SST is in progress'
             return $OCF_SUCCESS
         fi
 
         if [ -f "$OCF_RESKEY_pid" ]; then
-            ocf_log 'MySQL PID found'
+            ocf_log info 'MySQL PID found'
             break
         fi
         sleep $sleeptime
