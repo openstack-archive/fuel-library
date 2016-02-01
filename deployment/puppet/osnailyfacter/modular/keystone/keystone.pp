@@ -49,7 +49,7 @@ $ssl_hash                = hiera_hash('use_ssl', {})
 $public_cert             = get_ssl_property($ssl_hash, $public_ssl_hash, 'keystone', 'public', 'path', [''])
 
 $public_protocol = get_ssl_property($ssl_hash, $public_ssl_hash, 'keystone', 'public', 'protocol', 'http')
-$public_address  = get_ssl_property($ssl_hash, {}, 'keystone', 'public', 'hostname', [$public_vip])
+$public_address  = get_ssl_property($ssl_hash, $public_ssl_hash, 'keystone', 'public', 'hostname', [$public_vip])
 $public_port     = '5000'
 
 $internal_protocol = get_ssl_property($ssl_hash, {}, 'keystone', 'internal', 'protocol', 'http')
