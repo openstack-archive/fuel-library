@@ -274,13 +274,20 @@ describe manifest do
       should contain_keystone_config('DEFAULT/secure_proxy_ssl_header').with(:value => 'HTTP_X_FORWARDED_PROTO')
     end
 
+    it 'should have explicit ordering between LB classes and particular actions' do
+      expect(graph).to ensure_transitive_dependency("Haproxy_backend_status[keystone-public]",
+                                                      "Class[keystone::roles::admin]")
+      expect(graph).to ensure_transitive_dependency("Haproxy_backend_status[keystone-admin]",
+                                                      "Class[keystone::endpoint]")
+    end
+
     it {
       if Noop.hiera('external_lb', false)
         url = internal_url
         provider = 'http'
       else
         url = 'http://' + Noop.hiera('service_endpoint').to_s + ':10000/;csv'
-        provider = nil
+        provider = Puppet::Type.type(:haproxy_backend_status).defaultprovider.name
       end
       should contain_haproxy_backend_status('keystone-public').with(
         :url      => url,

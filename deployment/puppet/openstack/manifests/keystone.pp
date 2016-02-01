@@ -212,6 +212,5 @@ class openstack::keystone (
     }
 
     Exec <| title == 'keystone-manage db_sync' |> -> Class['keystone::endpoint']
-    Haproxy_backend_status<||> -> Class['keystone::endpoint']
   }
 }

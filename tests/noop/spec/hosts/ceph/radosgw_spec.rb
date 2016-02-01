@@ -75,13 +75,17 @@ describe manifest do
         )
       end
 
-      it { should contain_haproxy_backend_status('keystone-public').that_comes_before('Class[ceph::keystone]') }
-      it { should contain_haproxy_backend_status('keystone-admin').that_comes_before('Class[ceph::keystone]') }
+      it 'should have explicit ordering between LB classes and particular actions' do
+        expect(graph).to ensure_transitive_dependency("Haproxy_backend_status[keystone-public]", "Class[ceph::keystone]")
+        expect(graph).to ensure_transitive_dependency("Haproxy_backend_status[keystone-admin]", "Class[ceph::keystone]")
+      end
+
       it { should contain_service('httpd').with(
           :hasrestart => true,
           :restart    => 'sleep 30 && apachectl graceful || apachectl restart',
         )
       }
+
       it { should contain_exec("Create #{rgw_large_pool_name} pool").with(
            :command => "ceph -n #{radosgw_auth_key} osd pool create #{rgw_large_pool_name} #{rgw_large_pool_pg_nums} #{rgw_large_pool_pg_nums}",
            :unless  => "rados lspools | grep '^#{rgw_large_pool_name}$'"
@@ -94,7 +98,7 @@ describe manifest do
           provider = 'http'
         else
           url = 'http://' + Noop.hiera('service_endpoint').to_s + ':10000/;csv'
-          provider = nil
+          provider = Puppet::Type.type(:haproxy_backend_status).defaultprovider.name 
         end
         should contain_haproxy_backend_status('keystone-public').with(
           :url      => url,
@@ -108,7 +112,7 @@ describe manifest do
           provider = 'http'
         else
           url = 'http://' + Noop.hiera('service_endpoint').to_s + ':10000/;csv'
-          provider = nil
+          provider = Puppet::Type.type(:haproxy_backend_status).defaultprovider.name
         end
         should contain_haproxy_backend_status('keystone-admin').with(
           :url      => url,
