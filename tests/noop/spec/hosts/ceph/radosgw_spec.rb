@@ -42,7 +42,6 @@ describe manifest do
 
     if (storage_hash['images_ceph'] or storage_hash['objects_ceph'] or storage_hash['objects_ceph'])
       rgw_id = 'radosgw.gateway'
-      rgw_s3_auth_use_keystone = Noop.hiera 'rgw_s3_auth_use_keystone', true
 
       it 'should configure apache mods' do
         if facts[:osfamily] == 'Debian'
@@ -61,15 +60,6 @@ describe manifest do
            'rgw_frontends' => 'fastcgi socket_port=9000 socket_host=127.0.0.1',
            )
         }
-
-      it 'should configure s3 keystone authentication for RadosGW' do
-        should contain_class('ceph::radosgw').with(
-          :rgw_use_keystone => true,
-        )
-        should contain_ceph_conf("client.#{rgw_id}/rgw_s3_auth_use_keystone").with(
-          :value => rgw_s3_auth_use_keystone,
-        )
-      end
 
       it 'should have explicit ordering between LB classes and particular actions' do
         expect(graph).to ensure_transitive_dependency("Haproxy_backend_status[keystone-public]", "Class[ceph::keystone]")
