@@ -45,8 +45,13 @@ class Noop
       catalog = catalog.call if catalog.is_a? Proc
       ral_catalog = catalog.to_ral
       ral_catalog.resources.each do |resource|
-        next unless resource.respond_to? :generate
-        generated = resource.generate
+        if resource.respond_to? :generate
+          generated = resource.generate
+        elsif resource.respond_to? :eval_generate
+          generated = resource.eval_generate
+        else
+          next
+        end
         next unless generated.is_a? Array
         generated.each do |generated_resource|
           next unless generated_resource.is_a? Puppet::Type
