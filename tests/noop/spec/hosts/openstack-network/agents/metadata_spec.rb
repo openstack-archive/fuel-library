@@ -80,13 +80,6 @@ describe manifest do
             it 'neutron metadata agent config should be modified by override_resources' do
               is_expected.to contain_override_resources('neutron_metadata_agent_config').with(:data => neutron_metadata_agent_config_override_resources)
             end
-            it 'should use "override_resources" to update the catalog' do
-              ral_catalog = Noop.create_ral_catalog self
-              neutron_metadata_agent_config_override_resources.each do |title, params|
-                params['value'] = 'True' if params['value'].is_a? TrueClass
-                expect(ral_catalog).to contain_neutron_metadata_agent_config(title).with(params)
-              end
-            end
           else
             it { should_not contain_class('neutron::agents::metadata') }
           end
@@ -102,14 +95,6 @@ describe manifest do
           it 'neutron metadata agent config should be modified by override_resources' do
             is_expected.to contain_override_resources('neutron_metadata_agent_config').with(:data => neutron_metadata_agent_config_override_resources)
           end
-          it 'should use "override_resources" to update the catalog' do
-            ral_catalog = Noop.create_ral_catalog self
-            neutron_metadata_agent_config_override_resources.each do |title, params|
-              params['value'] = 'True' if params['value'].is_a? TrueClass
-              expect(ral_catalog).to contain_neutron_metadata_agent_config(title).with(params)
-            end
-          end
-
           it { should contain_class('neutron::agents::metadata').with(
             'debug' => Noop.hiera('debug', true)
           )}

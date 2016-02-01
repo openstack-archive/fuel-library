@@ -230,14 +230,6 @@ describe manifest do
        is_expected.to contain_override_resources('keystone_config').with(:data => keystone_config_override)
      end
 
-    it 'should use "override_resources" to update the catalog' do
-      ral_catalog = Noop.create_ral_catalog self
-      keystone_config_override.each do |title, params|
-        params['value'] = 'True' if params['value'].is_a? TrueClass
-        expect(ral_catalog).to contain_keystone_config(title).with(params)
-      end
-    end
-
     if ceilometer_hash['enabled']
       it 'should configure notification driver' do
         should contain_keystone_config('DEFAULT/notification_driver').with(:value => ceilometer_hash['notification_driver'])
