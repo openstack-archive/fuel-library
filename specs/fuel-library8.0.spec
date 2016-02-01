@@ -357,7 +357,3 @@ For further information go to http://wiki.openstack.org/Fuel
 
 %clean
 rm -rf ${buildroot}
-
-%changelog
-* Tue Jun 9 2015 Igor Shishkin <ishishkin@mirantis.com> - 7.0
-- Create spec
