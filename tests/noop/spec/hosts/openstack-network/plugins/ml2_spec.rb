@@ -103,14 +103,6 @@ describe manifest do
           is_expected.to contain_override_resources('neutron_agent_ovs').with(:data => neutron_agent_ovs_override_resources)
         end
 
-        it 'should use "override_resources" to update the catalog' do
-          ral_catalog = Noop.create_ral_catalog self
-          neutron_agent_ovs_override_resources.each do |title, params|
-            params['value'] = 'True' if params['value'].is_a? TrueClass
-            expect(ral_catalog).to contain_neutron_agent_ovs(title).with(params)
-          end
-        end
-
         # check whether Neutron server started only on controllers
         if role =~ /controller/
           it { should contain_service('neutron-server').with(

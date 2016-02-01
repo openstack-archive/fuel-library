@@ -40,14 +40,6 @@ describe manifest do
               is_expected.to contain_override_resources('neutron_l3_agent_config').with(:data => neutron_l3_agent_config_override_resources)
             end
 
-            it 'should use "override_resources" to update the catalog' do
-              ral_catalog = Noop.create_ral_catalog self
-              neutron_l3_agent_config_override_resources.each do |title, params|
-                params['value'] = 'True' if params['value'].is_a? TrueClass
-                expect(ral_catalog).to contain_neutron_l3_agent_config(title).with(params)
-              end
-            end
-
             l2pop = na_config.fetch('neutron_l2_pop', false)
             it { should contain_class('neutron::agents::l3').with(
               'agent_mode' => 'dvr',
@@ -95,14 +87,6 @@ describe manifest do
 
           it 'neutron l3 agent config should be modified by override_resources' do
             is_expected.to contain_override_resources('neutron_l3_agent_config').with(:data => neutron_l3_agent_config_override_resources)
-          end
-
-          it 'should use "override_resources" to update the catalog' do
-            ral_catalog = Noop.create_ral_catalog self
-            neutron_l3_agent_config_override_resources.each do |title, params|
-              params['value'] = 'True' if params['value'].is_a? TrueClass
-              expect(ral_catalog).to contain_neutron_l3_agent_config(title).with(params)
-            end
           end
 
           it { should contain_class('neutron::agents::l3').with(
