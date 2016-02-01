@@ -62,6 +62,18 @@ task :syntax_files => ["syntax:files"]
 # The common tasks is for internal use, so its description is commented
 namespace :common do
 
+  # desc "Task to load list of modules to skip"
+  task :load_skip_file, :skip_file do |t, args|
+    $skip_module_list = []
+    # TODO(aschultz): Fix all modules so they have tests and we no longer need
+    # this file to exclude bad module tests
+    if not args[:skip_file].nil? and File.exists?(args[:skip_file])
+      File.open(args[:skip_file], 'r').each_line { |line|
+        $skip_module_list << line.chomp
+      }
+    end
+  end
+
   # desc "Task to generate a list of modules with Git changes"
   task :modulesgit, [:skip_file] do |t, args|
     args.with_defaults(:skip_file => nil)
@@ -74,7 +86,16 @@ namespace :common do
     if $git_module_directories.empty?
       Rake::Task["common:modules"].invoke(args[:skip_file])
     else
+      Rake::Task["common:load_skip_file"].invoke(args[:skip_file])
+
+      $stderr.puts '-'*80
+      $stderr.puts "Git changes found! Build modules list..."
+      $stderr.puts '-'*80
       $git_module_directories.each_line do |mod|
+        if $skip_module_list.include?(File.basename(mod.chomp))
+          $stderr.puts "Skipping tests... modules.disable_rspec includes #{mod}"
+          next
+        end
         $module_directories << mod.chomp
       end
     end
@@ -84,23 +105,16 @@ namespace :common do
   task :modules, [:skip_file] do |t, args|
     args.with_defaults(:skip_file => nil)
 
-    skip_module_list = []
     $module_directories = []
 
-    # TODO(aschultz): Fix all modules so they have tests and we no longer need
-    # this file to exclude bad module tests
-    if not args[:skip_file].nil? and File.exists?(args[:skip_file])
-      File.open(args[:skip_file], 'r').each_line { |line|
-        skip_module_list << line.chomp
-      }
-    end
+    Rake::Task["common:load_skip_file"].invoke(args[:skip_file])
 
     $stderr.puts '-'*80
     $stderr.puts "No changes found! Build modules list..."
     $stderr.puts '-'*80
     Dir.glob('deployment/puppet/*') do |mod|
       next unless File.directory?(mod)
-      if skip_module_list.include?(File.basename(mod))
+      if $skip_module_list.include?(File.basename(mod))
         $stderr.puts "Skipping tests... modules.disable_rspec includes #{mod}"
         next
       end
