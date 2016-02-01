@@ -336,7 +336,6 @@ class openstack::controller (
 
   $nova_config_hash = {
     'DEFAULT/force_raw_images' => { value => $nova_hash['force_raw_images'] },
-    'conductor/use_local'      => { value => $nova_hash['use_local'] },
   }
 
   class {'nova::config':
