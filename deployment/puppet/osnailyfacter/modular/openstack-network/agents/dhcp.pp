@@ -2,6 +2,14 @@ notice('MODULAR: openstack-network/agents/dhcp.pp')
 
 $use_neutron = hiera('use_neutron', false)
 
+if $use_neutron {
+  # override neutron options
+  $override_configuration = hiera_hash('configuration', {})
+  override_resources { 'neutron_dhcp_agent_config':
+    data => $override_configuration['neutron_dhcp_agent_config']
+  } ~> Service['neutron-dhcp-service']
+}
+
 class neutron {}
 class { 'neutron' :}
 
@@ -34,12 +42,6 @@ if $use_neutron {
   package { 'neutron':
     name   => 'binutils',
     ensure => 'installed',
-  }
-
-  # override neutron options
-  $override_configuration = hiera_hash('configuration', {})
-  override_resources { 'neutron_dhcp_agent_config':
-    data => $override_configuration['neutron_dhcp_agent_config']
   }
 
 }
