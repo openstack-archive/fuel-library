@@ -2,6 +2,12 @@ require 'spec_helper'
 
 describe 'openstack::compute' do
 
+  before :each do
+    Puppet::Parser::Functions.newfunction(:is_pkg_installed, :type => :rvalue) {
+      |args| true
+    }
+  end
+
   let(:default_params) { {
     :internal_address   => nil,
     :nova_user_password => nil,
@@ -127,6 +133,7 @@ describe 'openstack::compute' do
           :force_config_drive => false,
           :neutron_enabled => false,
           :install_bridge_utils => p[:install_bridge_utils],
+          :network_device_mtu => '65000',
           :instance_usage_audit => true,
           :instance_usage_audit_period => 'hour',
           :default_availability_zone => 'nova',
@@ -154,16 +161,33 @@ describe 'openstack::compute' do
         should contain_class('nova::client')
         should contain_install_ssh_keys('nova_ssh_key_for_migration')
         should contain_file('/var/lib/nova/.ssh/config')
+
+        if facts[:operatingsystem] == 'Ubuntu'
+          should contain_package('cpufrequtils').with(
+            :ensure => 'present'
+          )
+          should contain_file('/etc/default/cpufrequtils').with(
+            :content => "GOVERNOR=\"performance\"\n",
+            :require => 'Package[cpufrequtils]',
+            :notify  => 'Service[cpufrequtils]',
+          )
+          should contain_service('cpufrequtils').with(
+            :ensure => 'running',
+            :enable => true,
+            :status => '/bin/true',
+          )
+        end
       end
     end
   end
 
   context 'on Debian platforms' do
     let :facts do
-      { :osfamily => 'Debian',
-        :operatingsystem => 'Debian',
-        :hostname => 'hostname.example.com',
-        :openstack_version => {'nova' => 'present' },
+      {
+        :osfamily           => 'Debian',
+        :operatingsystem    => 'Ubuntu',
+        :hostname           => 'hostname.example.com',
+        :openstack_version  => { 'nova' => 'present' },
         :os_service_default => '<SERVICE DEFAULT>',
       }
     end
@@ -173,9 +197,11 @@ describe 'openstack::compute' do
 
   context 'on RedHat platforms' do
     let :facts do
-      { :osfamily => 'RedHat',
-        :hostname => 'hostname.example.com',
-        :openstack_version => {'nova' => 'present' },
+      {
+        :osfamily           => 'RedHat',
+        :operatingsystem    => 'CentOS',
+        :hostname           => 'hostname.example.com',
+        :openstack_version  => { 'nova' => 'present' },
         :os_service_default => '<SERVICE DEFAULT>',
       }
     end
