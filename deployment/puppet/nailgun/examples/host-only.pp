@@ -196,3 +196,12 @@ augeas { 'Password complexity':
   onlyif  => "match *[type='password'][control='requisite'][module='pam_pwquality.so' or module='pam_cracklib.so'] size > 0",
 }
 
+augeas { 'Enable only SSHv2 connections from the master node':
+  lens    => 'ssh.lns',
+  incl    => '/etc/ssh/ssh_config',
+  changes => [
+    'rm Protocol',
+    'ins Protocol before Host[1]',
+    'set Protocol 2',
+  ],
+}
