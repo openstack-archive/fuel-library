@@ -25,21 +25,21 @@ describe Puppet::Type.type(:override_resources) do
   it 'should be a resource type to override' do
     expect {
       @overres[:type] = ''
-      @overres.generate
+      @overres.eval_generate
     }.to raise_error(Puppet::Error, /Title should be a resource type to override!$/)
   end
 
   it 'should contain resource hash' do
     expect {
       @overres[:data] = 'string => data'
-      @overres.generate
+      @overres.eval_generate
     }.to raise_error(Puppet::Error, /Data should contain resource hash!$/)
   end
 
   it 'should contain resource defaults hash' do
     expect {
       @overres[:defaults] = 'string => data'
-      @overres.generate
+      @overres.eval_generate
     }.to raise_error(Puppet::Error, /Defaults should contain resource defaults hash!$/)
   end
 
