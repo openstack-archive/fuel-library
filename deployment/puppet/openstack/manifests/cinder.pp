@@ -16,6 +16,7 @@ class openstack::cinder(
   $rabbit_ha_queues       = false,
   $volume_group           = 'cinder-volumes',
   $physical_volume        = undef,
+  $volume_backend_name    = 'DEFAULT',
   $manage_volumes         = false,
   $iser                   = false,
   $enabled                = true,
@@ -199,9 +200,10 @@ class openstack::cinder(
 
     case $manage_volumes {
       true, 'iscsi': {
-        class { 'cinder::volume::iscsi':
-          iscsi_ip_address => $iscsi_bind_host,
-          volume_group     => $volume_group,
+        cinder::backend::iscsi { 'DEFAULT':
+          iscsi_ip_address    => $iscsi_bind_host,
+          volume_group        => $volume_group,
+          volume_backend_name => $volume_backend_name,
         }
         class { 'mellanox_openstack::cinder':
           iser            => $iser,
@@ -211,13 +213,14 @@ class openstack::cinder(
       'ceph': {
         if defined(Class['::ceph']) {
           Ceph::Pool<| title == $::ceph::cinder_pool |> ->
-          Class['cinder::volume::rbd']
+          Cinder::Backend::Rbd['DEFAULT']
         }
 
-        class { 'cinder::volume::rbd':
-          rbd_pool        => $rbd_pool,
-          rbd_user        => $rbd_user,
-          rbd_secret_uuid => $rbd_secret_uuid,
+        cinder::backend::rbd { 'DEFAULT':
+          rbd_pool            => $rbd_pool,
+          rbd_user            => $rbd_user,
+          rbd_secret_uuid     => $rbd_secret_uuid,
+          volume_backend_name => $volume_backend_name,
         }
 
         class { 'cinder::backup':
@@ -235,7 +238,7 @@ class openstack::cinder(
             'DEFAULT/iscsi_ip_address'    => { value => $iscsi_bind_host },
             'DEFAULT/iscsi_helper'        => { value => 'fake' },
             'DEFAULT/iscsi_protocol'      => { value => 'iscsi' },
-            'DEFAULT/volume_backend_name' => { value => 'DEFAULT' },
+            'DEFAULT/volume_backend_name' => { value => $volume_backend_name },
             'DEFAULT/volume_driver'       => { value => 'cinder.volume.drivers.block_device.BlockDeviceDriver' },
             'DEFAULT/volume_group'        => { value => 'cinder' },
             'DEFAULT/volume_dir'          => { value => '/var/lib/cinder/volumes' },
