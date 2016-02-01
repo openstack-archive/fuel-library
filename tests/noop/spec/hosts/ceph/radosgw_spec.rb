@@ -45,7 +45,6 @@ describe manifest do
       rgw_large_pool_pg_nums = storage_hash['per_pool_pg_nums'][rgw_large_pool_name]
       rgw_id = 'radosgw.gateway'
       radosgw_auth_key = "client.#{rgw_id}"
-      rgw_s3_auth_use_keystone = Noop.hiera 'rgw_s3_auth_use_keystone', true
 
       it 'should configure apache mods' do
         if facts[:osfamily] == 'Debian'
@@ -64,16 +63,6 @@ describe manifest do
            'rgw_frontends' => 'fastcgi socket_port=9000 socket_host=127.0.0.1',
            )
         }
-
-      it 'should configure s3 keystone authentication for RadosGW' do
-        should contain_class('ceph::radosgw').with(
-          :rgw_use_keystone => true,
-          :rgw_keystone_url => admin_url,
-        )
-        should contain_ceph_conf("client.#{rgw_id}/rgw_s3_auth_use_keystone").with(
-          :value => rgw_s3_auth_use_keystone,
-        )
-      end
 
       it { should contain_haproxy_backend_status('keystone-public').that_comes_before('Class[ceph::keystone]') }
       it { should contain_haproxy_backend_status('keystone-admin').that_comes_before('Class[ceph::keystone]') }
