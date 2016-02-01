@@ -141,6 +141,7 @@ class openstack::compute (
   $install_bridge_utils           = false,
   $compute_driver                 = 'libvirt.LibvirtDriver',
   $config_drive_format            = undef,
+  $network_device_mtu             = '65000',
 ) {
 
   include ::nova::params
@@ -310,6 +311,7 @@ class openstack::compute (
     #NOTE(bogdando) default became true in 4.0.0 puppet-nova (was false)
     neutron_enabled               => ($network_provider == 'neutron'),
     install_bridge_utils          => $install_bridge_utils,
+    network_device_mtu            => $network_device_mtu,
     instance_usage_audit          => $instance_usage_audit,
     instance_usage_audit_period   => $instance_usage_audit_period,
     reserved_host_memory          => $nova_hash['reserved_host_memory'],
@@ -380,24 +382,23 @@ class openstack::compute (
 
   # From legacy libvirt.pp
   if $::operatingsystem == 'Ubuntu' {
-
     package { 'cpufrequtils':
       ensure => present;
     }
     file { '/etc/default/cpufrequtils':
-      content => "GOVERNOR=\"performance\" \n",
+      content => "GOVERNOR=\"performance\"\n",
       require => Package['cpufrequtils'],
       notify  => Service['cpufrequtils'],
     }
     service { 'cpufrequtils':
-      name   => 'cpufrequtils',
-      enable => true,
-      ensure => true,
+      ensure    => 'running',
+      enable    => true,
+      status    => '/bin/true',
     }
+
     Package<| title == 'cpufrequtils'|> ~> Service<| title == 'cpufrequtils'|>
     if !defined(Service['cpufrequtils']) {
-      notify{ "Module ${module_name} cannot notify service cpufrequtils\
- on package update": }
+      notify{ "Module ${module_name} cannot notify service cpufrequtils on package update": }
     }
   }
 
@@ -436,10 +437,6 @@ class openstack::compute (
   Service<| title == 'libvirt'|> ~> Service<| title == 'nova-compute'|>
   Package<| title == "nova-compute-${libvirt_type}"|> ~>
   Service<| title == 'nova-compute'|>
-  if !defined(Service['nova-compute']) {
-    notify{ "Module ${module_name} cannot notify service nova-compute\
-on packages update": }
-  }
 
   case $::osfamily {
     'RedHat': {
@@ -474,8 +471,7 @@ on packages update": }
 
   Package<| title == 'nova-compute'|> ~> Service<| title == 'nova-compute'|>
   if !defined(Service['nova-compute']) {
-    notify{ "Module ${module_name} cannot notify service nova-compute\
- on packages update": }
+    notify{ "Module ${module_name} cannot notify service nova-compute on packages update": }
   }
 
   Package<| title == 'libvirt'|> ~> Service<| title == 'libvirt'|>
