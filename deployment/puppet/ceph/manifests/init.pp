@@ -56,7 +56,6 @@ class ceph (
   $rgw_pub_ip                         = $cluster_node_address,
   $rgw_adm_ip                         = $cluster_node_address,
   $rgw_int_ip                         = $cluster_node_address,
-  $rgw_s3_auth_use_keystone           = true,
 
 # Cinder settings
   $volume_driver                      = 'cinder.volume.drivers.rbd.RBDDriver',

@@ -92,7 +92,6 @@ if $use_ceph and $storage_hash['objects_ceph'] {
     rgw_keystone_accepted_roles      => '_member_, Member, admin, swiftoperator',
     rgw_keystone_revocation_interval => '1000000',
     rgw_nss_db_path                  => '/etc/ceph/nss',
-    rgw_s3_auth_use_keystone         => hiera('rgw_s3_auth_use_keystone', true),
 
     #rgw Log settings
     use_syslog                       => hiera('use_syslog', true),
