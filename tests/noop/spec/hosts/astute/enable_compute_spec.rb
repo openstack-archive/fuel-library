@@ -5,19 +5,40 @@ manifest = 'astute/enable_compute.pp'
 describe manifest do
   shared_examples 'catalog' do
 
-    it "should contain nova-compute service" do
-      case facts[:operatingsystem]
+    it 'should contain nova-compute service' do
+      service_name = case facts[:operatingsystem]
       when 'Ubuntu'
-        service_name = 'nova-compute'
+        'nova-compute'
       when 'CentOS'
-        service_name = 'openstack-nova-compute'
+        'openstack-nova-compute'
       else
-        service_name = 'nova-compute'
+        'nova-compute'
       end
 
-      should contain_service(service_name)
+      is_expected.to contain_service('nova-compute').with(
+        :ensure     => 'running',
+        :name       => service_name,
+        :enable     => true,
+        :hasstatus  => true,
+        :hasrestart => true,
+      )
+    end
+
+    if Noop.hiera('use_neutron') && Noop.hiera('role') == 'compute'
+      neutron_integration_bridge = 'br-int'
+      bridge_exists_check = "ovs-vsctl br-exists #{neutron_integration_bridge}"
+
+      it 'should contain wait-for-int-br exec' do
+        is_expected.to contain_exec('wait-for-int-br').with(
+            :command   => bridge_exists_check,
+            :unless    => bridge_exists_check,
+            :try_sleep => 6,
+            :tries     => 10,
+          ).that_comes_before('Service[nova-compute]')
+      end
     end
 
   end
+
   test_ubuntu_and_centos manifest
 end

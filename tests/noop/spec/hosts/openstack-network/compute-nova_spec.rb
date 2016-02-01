@@ -122,17 +122,12 @@ describe manifest do
         it { expect(subject).to contain_nova_config('DEFAULT/linuxnet_interface_driver').with(
           :value => 'nova.network.linux_net.LinuxOVSInterfaceDriver'
         )}
-        it { expect(subject).to contain_nova_config('DEFAULT/linuxnet_interface_driver').that_notifies('Service[nova-compute]') }
+        it { expect(subject).to contain_nova_config('DEFAULT/linuxnet_interface_driver') }
         #
         it { expect(subject).to contain_nova_config('DEFAULT/linuxnet_ovs_integration_bridge').with(
           :value => neutron_integration_bridge
         )}
-        it { expect(subject).to contain_nova_config('DEFAULT/linuxnet_ovs_integration_bridge').that_notifies('Service[nova-compute]') }
-        #
-        it { expect(subject).to contain_nova_config('DEFAULT/network_device_mtu').with(
-          :value => '65000'
-        )}
-        it { expect(subject).to contain_nova_config('DEFAULT/network_device_mtu').that_notifies('Service[nova-compute]') }
+        it { expect(subject).to contain_nova_config('DEFAULT/linuxnet_ovs_integration_bridge') }
         #
         it { expect(subject).to contain_class('nova::network::neutron').with(
           :neutron_admin_password    => admin_password,
@@ -172,17 +167,6 @@ describe manifest do
           :changes => "set net.bridge.bridge-nf-call-ip6tables '1'",
         )}
         it { expect(subject).to contain_augeas('sysctl-net.bridge.bridge-nf-call-arptables').that_comes_before('Service[libvirt]')}
-        #
-        it { expect(subject).to contain_service('nova-compute').with(
-          :ensure => 'running',
-        )}
-        #
-        it { expect(subject).to contain_exec('wait-for-int-br').with(
-          :command   => "ovs-vsctl br-exists #{neutron_integration_bridge}",
-          :try_sleep => 6,
-          :tries     => 10,
-        )}
-        it { expect(subject).to contain_exec('wait-for-int-br').that_comes_before('Service[nova-compute]') }
         #
       end
     elsif !Noop.hiera('use_neutron') && Noop.hiera('role') == 'compute'
