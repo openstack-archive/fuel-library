@@ -17,7 +17,7 @@ describe 'l23network::l2' do
 
     context 'with a default params' do
        let :params do
-        { }
+        { :use_lnx => true }
       end
 
       it { should compile.with_all_deps }
@@ -126,7 +126,7 @@ describe 'l23network::l2' do
 
     context 'with a default params' do
        let :params do
-        { }
+        { :use_lnx => true }
       end
 
       it { should compile.with_all_deps }
