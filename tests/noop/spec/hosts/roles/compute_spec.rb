@@ -76,6 +76,28 @@ describe manifest do
       ).that_notifies('Service[libvirt]')
     end
 
+    it 'should install qemu-kvm package' do
+      should contain_package('qemu-kvm').with('ensure' => 'present')
+    end
+
+    enable_hugepages = Noop.hiera_structure 'nova/enable_hugepages', false
+    if enable_hugepages
+      qemu_hugepages_value = 'set KVM_HUGEPAGES 1'
+    else
+      qemu_hugepages_value = 'rm KVM_HUGEPAGES'
+    end
+    it 'should set up huge pages support for qemu-kvm' do
+      if facts[:osfamily] == 'Debian'
+        should contain_augeas('qemu_hugepages').with(
+          'context' => '/files/etc/default/qemu-kvm',
+          'changes' => qemu_hugepages_value,
+        ).that_notifies('Service[libvirt]')
+
+        should contain_augeas('qemu_hugepages').that_notifies('Service[qemu-kvm]')
+        should contain_service('qemu-kvm').that_comes_before('Service[libvirt]')
+      end
+    end
+
     # libvirt/qemu with(out) selinux/apparmor
     it 'libvirt/qemu config should have proper security_driver and apparmor configuration' do
       if facts[:osfamily] == 'RedHat'
