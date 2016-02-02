@@ -24,6 +24,7 @@ describe 'openstack::controller' do
           :private_interface => 'eth1',
           :internal_address => '127.0.0.1',
           :admin_address => '127.0.0.1',
+          :use_huge_pages => false,
         }
       end
 

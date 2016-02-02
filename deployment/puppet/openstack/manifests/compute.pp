@@ -104,6 +104,7 @@ class openstack::compute (
   $ceilometer_user_password       = 'ceilometer_pass',
   # nova compute configuration parameters
   $nova_hash                      = {},
+  $use_huge_pages                 = pick($nova_hash['enable_hugepages'], false),
   $verbose                        = false,
   $debug                          = false,
   $service_endpoint               = '127.0.0.1',
@@ -251,6 +252,28 @@ class openstack::compute (
     ],
     onlyif  => "match /files/etc/libvirt/libvirtd.conf/host_uuid size == 0",
     notify  => Service['libvirt'],
+  }
+
+  if $use_huge_pages {
+    case $::osfamily {
+      'Debian': {
+        file_line { 'qemu_hugepages':
+          path    => '/etc/default/qemu-kvm',
+          line    => 'KVM_HUGEPAGES=1',
+          require => File['/etc/default/qemu-kvm'],
+          notify  => Service['libvirt'],
+        }
+        file { '/etc/default/qemu-kvm':
+          ensure  => present,
+          owner   => 'root',
+          group   => 'root',
+          mode    => '0644',
+        }
+      }
+    }
+
+    File_line['qemu_hugepages'] ~> Service<| title == 'qemu-kvm'|>
+    Service<| title == 'qemu-kvm'|> -> Service<| title == 'libvirt'|>
   }
 
   $memcached_addresses =  suffix($cache_server_ip, inline_template(":<%= @cache_server_port %>"))

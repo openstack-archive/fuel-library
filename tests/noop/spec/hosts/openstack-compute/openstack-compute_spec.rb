@@ -8,6 +8,7 @@ describe manifest do
     storage_hash = Noop.hiera_structure 'storage'
     ironic_enabled = Noop.hiera_structure 'ironic/enabled'
     nova_hash = Noop.hiera_structure 'nova_hash'
+    libvirt_type = Noop.hiera_structure 'libvirt_type'
 
     if ironic_enabled
       compute_driver = 'ironic.IronicDriver'
@@ -18,6 +19,26 @@ describe manifest do
       should contain_class('nova::compute').with(
         'install_bridge_utils' => false,
       )
+    end
+
+    huge_pages_enabled = nova_hash.fetch('enable_hugepages', false)
+    if huge_pages_enabled and libvirt_type == 'kvm'
+      it 'should enable huge pages support for qemu-kvm' do
+        if facts[:osfamily] == 'Debian'
+          should contain_file_line('qemu_hugepages').with(
+            'path' => '/etc/default/qemu-kvm',
+            'line' => 'KVM_HUGEPAGES=1',
+          ).that_notifies('Service[libvirt]')
+
+          should contain_file('/etc/default/qemu-kvm').with(
+            'ensure' => 'present',
+            'owner'  => 'root',
+            'group'  => 'root',
+            'mode'   => '0644',
+          )
+          should contain_service('qemu-kvm').that_comes_before('Service[libvirt]')
+        end
+      end
     end
 
     cinder_catalog_info = Noop.puppet_function 'pick',nova_hash['cinder_catalog_info'],'volumev2:cinderv2:internalURL'
