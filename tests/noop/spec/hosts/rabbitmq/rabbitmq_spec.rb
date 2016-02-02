@@ -51,8 +51,8 @@ describe manifest do
       node_ip_address = Noop.puppet_function 'get_network_role_property', 'mgmt/messaging', 'ipaddr'
       listener = "[{port, 15672}, {ip,\"#{node_ip_address}\"}]"
       should contain_class('rabbitmq').with_config_variables(/#{collect_statistics_interval}/)
-      should contain_class('rabbitmq').with_config_rabbitmq_management_variables(/#{rates_mode}/)
-      should contain_class('rabbitmq').with_config_rabbitmq_management_variables(/#{listener}/)
+      should contain_class('rabbitmq').with_config_management_variables(/#{rates_mode}/)
+      should contain_class('rabbitmq').with_config_management_variables(/#{listener}/)
     end
 
     # Partial LP#1493520
