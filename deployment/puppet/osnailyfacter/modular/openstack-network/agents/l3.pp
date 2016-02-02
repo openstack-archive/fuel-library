@@ -1,21 +1,15 @@
 notice('MODULAR: openstack-network/agents/l3.pp')
 
 $use_neutron = hiera('use_neutron', false)
-$neutron_advanced_config = hiera_hash('neutron_advanced_configuration', { })
-$dvr = pick($neutron_advanced_config['neutron_dvr'], false)
-$controller = roles_include(['controller', 'primary-controller'])
-$compute = roles_include('compute')
-
-if $use_neutron and ($controller or ($dvr and $compute)) {
-  # override neutron options
-  $override_configuration = hiera_hash('configuration', {})
-  override_resources { 'neutron_l3_agent_config':
-    data => $override_configuration['neutron_l3_agent_config']
-  } ~> Service['neutron-l3']
-}
 
 class neutron {}
 class { 'neutron' :}
+
+$neutron_advanced_config = hiera_hash('neutron_advanced_configuration', { })
+$dvr = pick($neutron_advanced_config['neutron_dvr'], false)
+
+$controller = roles_include(['controller', 'primary-controller'])
+$compute = roles_include('compute')
 
 if $use_neutron and ($controller or ($dvr and $compute)) {
   $debug                   = hiera('debug', true)
@@ -58,6 +52,12 @@ if $use_neutron and ($controller or ($dvr and $compute)) {
   package { 'neutron':
     name   => 'binutils',
     ensure => 'installed',
+  }
+
+  # override neutron options
+  $override_configuration = hiera_hash('configuration', {})
+  override_resources { 'neutron_l3_agent_config':
+    data => $override_configuration['neutron_l3_agent_config']
   }
 
 }

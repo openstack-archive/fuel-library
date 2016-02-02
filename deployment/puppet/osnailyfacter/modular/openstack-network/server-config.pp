@@ -3,20 +3,6 @@ notice('MODULAR: openstack-network/server-config.pp')
 $use_neutron = hiera('use_neutron', false)
 $compute     = roles_include('compute')
 
-if $use_neutron {
-  # override neutron options
-  $override_configuration = hiera_hash('configuration', {})
-  override_resources { 'neutron_api_config':
-    data => $override_configuration['neutron_api_config']
-  } ~> Service['neutron-server']
-  override_resources { 'neutron_config':
-    data => $override_configuration['neutron_config']
-  } ~> Service['neutron-server']
-  override_resources { 'neutron_plugin_ml2':
-    data => $override_configuration['neutron_plugin_ml2']
-  } ~> Service['neutron-server']
-}
-
 class neutron { }
 class { 'neutron' : }
 
@@ -214,6 +200,18 @@ if $use_neutron {
   package { 'neutron':
     name   => 'binutils',
     ensure => 'installed',
+  }
+
+  # override neutron options
+  $override_configuration = hiera_hash('configuration', {})
+  override_resources { 'neutron_api_config':
+    data => $override_configuration['neutron_api_config']
+  }
+  override_resources { 'neutron_config':
+    data => $override_configuration['neutron_config']
+  }
+  override_resources { 'neutron_plugin_ml2':
+    data => $override_configuration['neutron_plugin_ml2']
   }
 
 }
