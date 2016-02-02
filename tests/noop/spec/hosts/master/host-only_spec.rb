@@ -162,6 +162,18 @@ describe manifest do
       )
     end
 
+    it 'sould configure ssh client to use only v2 protocol' do
+      should contain_augeas('Enable only SSHv2 connections from the master node').with(
+        :lens    => 'ssh.lns',
+        :incl    => '/etc/ssh/ssh_config',
+        :changes => [
+          'rm Protocol',
+          'ins Protocol before Host[1]',
+          'set Protocol 2',
+        ],
+      )
+    end
+
   end #shared_examples
 
   test_centos manifest
