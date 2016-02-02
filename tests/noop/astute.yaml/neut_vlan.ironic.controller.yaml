@@ -704,6 +704,8 @@ quantum_settings:
       tenant: admin
   metadata:
     metadata_proxy_shared_secret: IFcIv8CuNbllNccJs2bvcrkH
+  supported_pci_vendor_devs:
+    - 8086:1515
 use_vcenter: false
 openstack_version: 2016.1.0-9.0
 kernel_params:
