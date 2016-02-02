@@ -107,17 +107,23 @@ describe manifest do
       )
     end
 
+    it 'should have explicit ordering between LB classes and particular actions' do
+      expect(graph).to ensure_transitive_dependency("Haproxy_backend_status[keystone-public]",
+                                                      "Class[heat::keystone::domain]")
+      expect(graph).to ensure_transitive_dependency("Haproxy_backend_status[keystone-admin]",
+                                                      "Class[heat::keystone::domain]")
+    end
     if Noop.hiera('external_lb', false)
-      url = "#{admin_auth_protocol}://#{admin_auth_address}:35357/"
+      url = "#{admin_auth_protocol}://#{admin_auth_address}:35357/v3"
       provider = 'http'
     else
       url = 'http://' + Noop.hiera('service_endpoint').to_s + ':10000/;csv'
-      provider = nil
+      provider = Puppet::Type.type(:haproxy_backend_status).defaultprovider.name
     end
 
     it {
       should contain_haproxy_backend_status('keystone-admin').with(
-        :url      => url,
+        :url      => "#{url}",
         :provider => provider
       )
     }

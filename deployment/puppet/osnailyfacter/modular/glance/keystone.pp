@@ -14,6 +14,8 @@ $service_name        = pick($glance_hash['service_name'], 'glance')
 $tenant              = pick($glance_hash['tenant'], 'services')
 $ssl_hash            = hiera_hash('use_ssl', {})
 
+Class['::osnailyfacter::wait_for_keystone_backends'] -> Class['::glance::keystone::auth']
+
 $public_protocol     = get_ssl_property($ssl_hash, $public_ssl_hash, 'glance', 'public', 'protocol', 'http')
 $public_address      = get_ssl_property($ssl_hash, $public_ssl_hash, 'glance', 'public', 'hostname', [$public_vip])
 $internal_protocol   = get_ssl_property($ssl_hash, {}, 'glance', 'internal', 'protocol', 'http')
@@ -27,6 +29,8 @@ $admin_url  = "${admin_protocol}://${admin_address}:9292"
 
 validate_string($public_address)
 validate_string($password)
+
+class {'::osnailyfacter::wait_for_keystone_backends':}
 
 class { '::glance::keystone::auth':
   password            => $password,
