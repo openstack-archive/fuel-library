@@ -1,0 +1,16 @@
+#!/bin/bash
+. /etc/init.d/functions
+cd /etc/sysconfig/network-scripts
+. ./network-functions
+
+CONFIG="${1}"
+source_config
+
+SYSFSPATH="/sys/class/net/${SYSCTLDEVICE}/device/sriov_numvfs"
+if [ ${SRIOV_NUMFS:-0} -gt 0 -a -f "${SYSFSPATH}" ]
+then
+	echo 0 > "${SYSFSPATH}"
+	echo "${SRIOV_NUMFS:-0}" > "${SYSFSPATH}"
+fi
+
+exec ./ifup-eth "${@}"
