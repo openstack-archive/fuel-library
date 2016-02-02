@@ -95,6 +95,7 @@ describe 'openstack::compute' do
           :network_manager    => 'something',
           :amqp_hosts         => '127.0.0.1:55555',
           :glance_api_servers => 'localhost:9292',
+          :use_huge_pages     => false,
         }
       end
 
