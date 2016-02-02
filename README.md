@@ -155,11 +155,12 @@ bundle install
 bundle exec rake spec_clean
 ```
 
-Once you have downloaded the dependencies, you can also just work within a
-particular module using the usual rake spec commands if you only want to run a
-single module's unit tests. The upstream module dependencies are not included
-in the unit tests run by this command. They are excluded by having their name
-in the utils/jenkins/modules.disable_rspec file.
+Once you have downloaded the dependencies, you can also just work with a
+particular module using the usual 'rake spec' commands if you only want to run
+a single module's unit tests. The upstream modules defined in the fuel-library
+Puppetfile are automatically excluded from rspec unit tests.  To prevent non-
+upstream modules that live in fuel-library from being included in unit tests,
+add the name of the module to the utils/jenkins/modules.disable_rspec file.
 
 ### Module Syntax Tests
 -----------------------
@@ -194,7 +195,8 @@ bundle exec rake lint_all
 
 This will run puppet-lint against all of the modules within fuel-library but
 will skip checking the upstream module dependencies. The upstream module
-dependencies are skipped by adding their name to the
+dependencies are skipped by having their name in the deployment/Puppetfile
+file, but also, additional modules could be defined in the
 util/jenkins/modules.disable_rake-lint file.
 
 ## Building docs
