@@ -20,6 +20,25 @@ describe manifest do
       )
     end
 
+    huge_pages_enabled = nova_hash.fetch('enable_huge_pages', false)
+    if huge_pages_enabled
+      it 'should enable huge pages support for qemu-kvm' do
+        if facts[:osfamily] == 'Debian'
+          should contain_file_line('qemu_hugepages').with(
+            'path' => '/etc/default/qemu-kvm',
+            'line' => 'KVM_HUGEPAGES=1',
+          ).that_notifies('Service[libvirt]')
+
+          should contain_file('/etc/default/qemu-kvm').with(
+            'ensure' => 'present',
+            'owner'  => 'root',
+            'group'  => 'root',
+            'mode'   => '0644',
+          )
+        end
+      end
+    end
+
     cinder_catalog_info = Noop.puppet_function 'pick',nova_hash['cinder_catalog_info'],'volumev2:cinderv2:internalURL'
     it 'should configure cinder_catalog_info for nova' do
       should contain_nova_config('cinder/catalog_info').with(:value => cinder_catalog_info)

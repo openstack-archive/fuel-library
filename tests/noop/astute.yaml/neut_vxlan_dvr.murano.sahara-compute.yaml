@@ -493,6 +493,7 @@ nova:
   db_password: mqnsUMgC
   state_path: /var/lib/nova
   user_password: fj4wVCEs
+  enable_huge_pages: true
 nova_quota: false
 online: true
 openstack_version: 2014.2-6.1
