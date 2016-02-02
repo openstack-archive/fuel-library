@@ -104,6 +104,7 @@ class openstack::compute (
   $ceilometer_user_password       = 'ceilometer_pass',
   # nova compute configuration parameters
   $nova_hash                      = {},
+  $use_huge_pages                 = false,
   $verbose                        = false,
   $debug                          = false,
   $service_endpoint               = '127.0.0.1',
@@ -253,6 +254,22 @@ class openstack::compute (
     notify  => Service['libvirt'],
   }
 
+  if $::osfamily == 'Debian' {
+    if $use_huge_pages {
+      $qemu_hugepages_value = 'set KVM_HUGEPAGES 1'
+    } else {
+      $qemu_hugepages_value = 'rm KVM_HUGEPAGES'
+    }
+    augeas { 'qemu_hugepages':
+      context => '/files/etc/default/qemu-kvm',
+      changes => $qemu_hugepages_value,
+      notify  => Service['libvirt'],
+    }
+
+    Augeas['qemu_hugepages'] ~> Service<| title == 'qemu-kvm'|>
+    Service<| title == 'qemu-kvm'|> -> Service<| title == 'libvirt'|>
+  }
+
   $memcached_addresses =  suffix($cache_server_ip, inline_template(":<%= @cache_server_port %>"))
   $notify_on_state_change = 'vm_and_task_state'
 
@@ -400,30 +417,29 @@ class openstack::compute (
     }
   }
 
-  case $libvirt_type {
-    'kvm': {
-      package { $libvirt_type_kvm:
-        ensure => present,
-        before => Package[$::nova::params::compute_package_name],
-      }
-      case $::osfamily {
-        'RedHat': {
-          exec { '/etc/sysconfig/modules/kvm.modules':
-            path      => '/sbin:/usr/sbin:/bin:/usr/bin',
-            unless    => 'lsmod | grep -q kvm',
-            require   => Package[$libvirt_type_kvm],
-          }
+  package { $libvirt_type_kvm:
+    ensure => present,
+    before => Package[$::nova::params::compute_package_name],
+  }
+
+  case $::osfamily {
+    'RedHat': {
+      if $libvirt_type =='kvm' {
+        exec { '/etc/sysconfig/modules/kvm.modules':
+          path      => '/sbin:/usr/sbin:/bin:/usr/bin',
+          unless    => 'lsmod | grep -q kvm',
+          require   => Package[$libvirt_type_kvm],
         }
-        'Debian': {
-          service { 'qemu-kvm':
-            ensure    => running,
-            require   => Package[$libvirt_type_kvm],
-            subscribe => Package[$libvirt_type_kvm],
-          }
-        }
-        default: { fail("Unsupported osfamily: ${osfamily}") }
       }
     }
+    'Debian': {
+      service { 'qemu-kvm':
+        ensure    => running,
+        require   => Package[$libvirt_type_kvm],
+        subscribe => Package[$libvirt_type_kvm],
+      }
+    }
+    default: { fail("Unsupported osfamily: ${osfamily}") }
   }
 
   Service<| title == 'libvirt'|> ~> Service<| title == 'nova-compute'|>

@@ -89,6 +89,7 @@ describe manifest do
     default_log_levels = Noop.puppet_function 'join_keys_to_values',default_log_levels_hash,'='
 
     storage_hash = Noop.hiera_structure 'storage'
+    sahara_hash  = Noop.hiera_structure 'sahara'
     nova_internal_protocol = Noop.puppet_function 'get_ssl_property',
       Noop.hiera_hash('use_ssl', {}), {}, 'nova', 'internal', 'protocol',
       'http'
@@ -390,6 +391,28 @@ describe manifest do
       it 'should install open-iscsi if ceph is used as cinder backend' do
         should contain_package('open-iscsi').with('ensure' => 'present')
       end
+    end
+
+    it 'should declare nova::scheduler::filter with an appropriate filters' do
+      nova_scheduler_filters         = []
+      nova_scheduler_default_filters = [ 'RetryFilter', 'AvailabilityZoneFilter', 'RamFilter', 'CoreFilter', 'DiskFilter', 'ComputeFilter', 'ComputeCapabilitiesFilter', 'ImagePropertiesFilter', 'ServerGroupAntiAffinityFilter', 'ServerGroupAffinityFilter' ]
+      huge_pages_filters             = [ 'AggregateInstanceExtraSpecsFilter' ]
+      sahara_filters                 = [ 'DifferentHostFilter' ]
+      enable_hugepages   = Noop.hiera_structure 'nova/enable_hugepages', false
+      enable_sahara      = Noop.hiera_structure 'sahara/enabled', false
+
+      nova_scheduler_filters = nova_scheduler_filters.concat(nova_scheduler_default_filters)
+
+      if enable_sahara
+        nova_scheduler_filters = nova_scheduler_filters.concat(sahara_filters)
+      end
+      if enable_hugepages
+        nova_scheduler_filters = nova_scheduler_filters.concat(huge_pages_filters)
+      end
+
+      should contain_class('nova::scheduler::filter').with(
+        'scheduler_default_filters' => nova_scheduler_filters.uniq(),
+      )
     end
 
     if primary_controller
