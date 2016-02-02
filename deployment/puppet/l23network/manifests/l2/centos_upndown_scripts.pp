@@ -18,5 +18,11 @@ class l23network::l2::centos_upndown_scripts {
     mode   => '0755',
     source => 'puppet:///modules/l23network/centos_ifup-pre-local',
   } ->
+  file {'/etc/sysconfig/network-scripts/ifup-sriov':
+    ensure => present,
+    owner  => 'root',
+    mode   => '0755',
+    source => 'puppet:///modules/l23network/centos_ifup-sriov',
+  } ->
   anchor { 'l23network::l2::centos_upndown_scripts': }
 }

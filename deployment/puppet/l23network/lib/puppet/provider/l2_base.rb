@@ -55,6 +55,7 @@ class Puppet::Provider::L2_base < Puppet::Provider::InterfaceToolset
     # Fetch information about interfaces, visible in network namespace from /sys/class/net
     interfaces = Dir['/sys/class/net/*'].select{ |f| File.symlink? f}
     interfaces.each do |if_dir|
+      next if File.exists? "#{if_dir}/device/physfn"
       if_name = if_dir.split('/')[-1]
       port[if_name] = {
         :name         => if_name,
@@ -92,6 +93,11 @@ class Puppet::Provider::L2_base < Puppet::Provider::InterfaceToolset
         # this interface is a 802.1q subinterface
         port[if_name].merge! vlan_ifaces[if_name]
         port[if_name][:port_type] << 'vlan'
+      end
+      sriov_numvfs = File.read("#{if_dir}/device/sriov_numvfs").to_i if File.exists? "#{if_dir}/device/sriov_numvfs"
+      if sriov_numvfs and sriov_numvfs > 0
+        port[if_name][:provider] = 'sriov'
+        port[if_name][:vendor_specific] = {'sriov_numvfs' => sriov_numvfs}
       end
     end
     # Check, whether port is a slave of anything another
