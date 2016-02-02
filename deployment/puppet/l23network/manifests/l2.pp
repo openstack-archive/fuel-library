@@ -89,9 +89,9 @@ class l23network::l2 (
       'ensure' => $ensure_package,
     })
     Package[$::l23network::params::lnx_bond_tools] -> Anchor['l23network::l2::init']
-  }
-  @k_mod{'bonding':
-    ensure => $mod_bonding_ensure
+    @k_mod{'bonding':
+      ensure => $mod_bonding_ensure
+    }
   }
 
   if $install_brtool and $::l23network::params::lnx_bridge_tools {
