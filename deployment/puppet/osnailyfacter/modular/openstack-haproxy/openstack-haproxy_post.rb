@@ -7,7 +7,8 @@ def expected_backends
     horizon
     keystone-1
     keystone-2
-    nova-api
+    nova-api-1
+    nova-api-2
     nova-metadata-api
     cinder-api
     glance-api

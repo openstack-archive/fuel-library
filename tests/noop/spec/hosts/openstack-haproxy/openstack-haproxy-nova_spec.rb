@@ -24,8 +24,21 @@ describe manifest do
     if use_nova and !Noop.hiera('external_lb', false)
       it "should properly configure nova haproxy based on ssl" do
         public_ssl_nova = Noop.hiera_structure('public_ssl/services', false)
-        should contain_openstack__ha__haproxy_service('nova-api').with(
+        should contain_openstack__ha__haproxy_service('nova-api-1').with(
           'order'                  => '040',
+          'ipaddresses'            => ipaddresses,
+          'server_names'           => server_names,
+          'listen_port'            => 8773,
+          'public'                 => true,
+          'public_ssl'             => public_ssl_nova,
+          'require_service'        => 'nova-api',
+          'haproxy_config_options' => {
+            'timeout server' => '600s',
+            'http-request'   => 'set-header X-Forwarded-Proto https if { ssl_fc }',
+          },
+        )
+        should contain_openstack__ha__haproxy_service('nova-api-2').with(
+          'order'                  => '050',
           'ipaddresses'            => ipaddresses,
           'server_names'           => server_names,
           'listen_port'            => 8774,
@@ -42,7 +55,7 @@ describe manifest do
       end
       it "should properly configure nova-metadata-api haproxy" do
         should contain_openstack__ha__haproxy_service('nova-metadata-api').with(
-          'order'                  => '050',
+          'order'                  => '060',
           'ipaddresses'            => ipaddresses,
           'server_names'           => server_names,
           'listen_port'            => 8775,

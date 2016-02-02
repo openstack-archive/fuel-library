@@ -7,7 +7,6 @@ describe manifest do
 
     storage_hash = Noop.hiera_structure 'storage'
     ironic_enabled = Noop.hiera_structure 'ironic/enabled'
-    nova_hash = Noop.hiera_structure 'nova_hash'
 
     if ironic_enabled
       compute_driver = 'ironic.IronicDriver'
@@ -18,15 +17,6 @@ describe manifest do
       should contain_class('nova::compute').with(
         'install_bridge_utils' => false,
       )
-    end
-
-    cinder_catalog_info = Noop.puppet_function 'pick',nova_hash['cinder_catalog_info'],'volume:cinder:internalURL'
-    it 'should configure cinder_catalog_info for nova' do
-      should contain_nova_config('cinder/catalog_info').with(:value => cinder_catalog_info)
-    end
-
-    it 'should allow to resize to same host' do
-      should contain_nova_config('DEFAULT/allow_resize_to_same_host').with(:value => true)
     end
 
     it 'should configure libvirt_inject_partition for compute node' do

@@ -1,5 +1,6 @@
 notice('MODULAR: openstack-controller.pp')
 
+$network_scheme = hiera_hash('network_scheme', {})
 $override_configuration = hiera_hash('configuration', {})
 # override nova options
 override_resources { 'nova_config':
@@ -191,13 +192,15 @@ if $primary_controller {
   $lb_defaults = { 'provider' => 'haproxy', 'url' => $haproxy_stats_url }
 
   if $external_lb {
+    Haproxy_backend_status<||> {
+      provider => 'http',
+    }
     $lb_backend_provider = 'http'
     $lb_url = $nova_url
   }
 
   $lb_hash = {
-    'nova-api' => {
-      name     => 'nova-api',
+    name    => 'nova-api-2',
       provider => $lb_backend_provider,
       url      => $lb_url
     }
@@ -250,9 +253,15 @@ if $primary_controller {
 
 
   if ! $use_neutron {
-    nova_floating { $floating_ips_range:
+    nova_floating_range { $floating_ips_range:
       ensure          => 'present',
       pool            => 'nova',
+      username        => $access_hash[user],
+      api_key         => $access_hash[password],
+      auth_method     => 'password',
+      auth_url        => "${internal_auth_protocol}://${internal_auth_address}:5000/v2.0/",
+      authtenant_name => $access_hash[tenant],
+      api_retries     => 10,
     }
   }
 }

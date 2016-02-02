@@ -188,7 +188,7 @@ describe manifest do
     elsif !Noop.hiera('use_neutron') && Noop.hiera('role') == 'compute'
       context 'Nova-network is used' do
         it { expect(subject).to contain_nova_config('DEFAULT/multi_host').with(
-          :value => true
+          :value => 'True'
         )}
         it {expect(subject).to contain_nova_config('DEFAULT/send_arp_for_ha').with(
           :value => 'True'

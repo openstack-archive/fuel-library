@@ -64,6 +64,8 @@ class openstack::compute (
   # Required Nova
   $nova_user_password,
   # Network
+  # DB
+  $database_connection            = false,
   # Nova
   $purge_nova_config              = false,
   # RPC
@@ -256,28 +258,28 @@ class openstack::compute (
   $notify_on_state_change = 'vm_and_task_state'
 
   class { 'nova':
-    install_utilities      => false,
-    ensure_package         => $::openstack_version['nova'],
-    rpc_backend            => $rpc_backend,
-    #FIXME(bogdando) we have to split amqp_hosts until all modules synced
-    rabbit_hosts           => split($amqp_hosts, ','),
-    rabbit_userid          => $amqp_user,
-    rabbit_password        => $amqp_password,
-    kombu_reconnect_delay  => '5.0',
-    image_service          => 'nova.image.glance.GlanceImageService',
-    glance_api_servers     => $glance_api_servers,
-    verbose                => $verbose,
-    debug                  => $debug,
-    use_syslog             => $use_syslog,
-    use_stderr             => $use_stderr,
-    log_facility           => $syslog_log_facility,
-    state_path             => $state_path,
-    report_interval        => $nova_report_interval,
-    service_down_time      => $nova_service_down_time,
-    notify_on_state_change => $notify_on_state_change,
-    notification_driver    => $notification_driver,
-    memcached_servers      => $memcached_addresses,
-    cinder_catalog_info    => pick($nova_hash['cinder_catalog_info'], 'volume:cinder:internalURL'),
+      install_utilities      => false,
+      ensure_package         => $::openstack_version['nova'],
+      database_connection    => $database_connection,
+      rpc_backend            => $rpc_backend,
+      #FIXME(bogdando) we have to split amqp_hosts until all modules synced
+      rabbit_hosts           => split($amqp_hosts, ','),
+      rabbit_userid          => $amqp_user,
+      rabbit_password        => $amqp_password,
+      kombu_reconnect_delay  => '5.0',
+      image_service          => 'nova.image.glance.GlanceImageService',
+      glance_api_servers     => $glance_api_servers,
+      verbose                => $verbose,
+      debug                  => $debug,
+      use_syslog             => $use_syslog,
+      use_stderr             => $use_stderr,
+      log_facility           => $syslog_log_facility,
+      state_path             => $state_path,
+      report_interval        => $nova_report_interval,
+      service_down_time      => $nova_service_down_time,
+      notify_on_state_change => $notify_on_state_change,
+      notification_driver    => $notification_driver,
+      memcached_servers      => $memcached_addresses,
   }
 
   if str2bool($::is_virtual) {
@@ -316,12 +318,12 @@ class openstack::compute (
     default_availability_zone     => $nova_hash['default_availability_zone'],
     default_schedule_zone         => $nova_hash['default_schedule_zone'],
     config_drive_format           => $config_drive_format,
-    allow_resize_to_same_host     => true,
   }
 
   nova_config {
     'libvirt/live_migration_flag':  value => 'VIR_MIGRATE_UNDEFINE_SOURCE,VIR_MIGRATE_PEER2PEER,VIR_MIGRATE_LIVE,VIR_MIGRATE_PERSIST_DEST';
     'libvirt/block_migration_flag': value => 'VIR_MIGRATE_UNDEFINE_SOURCE,VIR_MIGRATE_PEER2PEER,VIR_MIGRATE_LIVE,VIR_MIGRATE_NON_SHARED_INC';
+    'cinder/catalog_info':          value => pick($nova_hash['cinder_catalog_info'], 'volume:cinder:internalURL');
     'DEFAULT/connection_type':      value => 'libvirt';
   }
 
@@ -496,6 +498,9 @@ on packages update": }
       ensure => installed
     }
   }
+
+  # From legacy init.pp
+  nova_config { 'DEFAULT/allow_resize_to_same_host':  value => true; }
 
   # Install ssh keys and config file
   install_ssh_keys {'nova_ssh_key_for_migration':
