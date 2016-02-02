@@ -18,6 +18,13 @@ if $horizon_hash['secret_key'] {
   $secret_key = 'dummy_secret_key'
 }
 
+#TODO(myatsenko): this section should be updated for MOS 9.0 .
+if $::os_package_type == 'debian' {
+  $custom_theme_path = hiera('custom_theme_path', 'themes/vendor')
+} else {
+  $custom_theme_path = undef
+}
+
 # TODO(aschultz): the horizon.backends.memcached.HorizonMemcached is only part
 # of the MOS package set. This should be contributed upstream and then we can
 # use this as the default.
@@ -77,6 +84,7 @@ class { 'openstack::horizon':
   overview_days_range  => $overview_days_range,
   file_upload_temp_dir => $file_upload_temp_dir,
   file_upload_max_size => $file_upload_max_size,
+  custom_theme_path    => $custom_theme_path,
 }
 
 
