@@ -89,6 +89,7 @@ describe manifest do
     default_log_levels = Noop.puppet_function 'join_keys_to_values',default_log_levels_hash,'='
 
     storage_hash = Noop.hiera_structure 'storage'
+    sahara_hash  = Noop.hiera_structure 'sahara'
     nova_internal_protocol = Noop.puppet_function 'get_ssl_property',
       Noop.hiera_hash('use_ssl', {}), {}, 'nova', 'internal', 'protocol',
       'http'
@@ -397,9 +398,11 @@ describe manifest do
       nova_scheduler_default_filters = [ 'RetryFilter', 'AvailabilityZoneFilter', 'RamFilter', 'CoreFilter', 'DiskFilter', 'ComputeFilter', 'ComputeCapabilitiesFilter', 'ImagePropertiesFilter', 'ServerGroupAntiAffinityFilter', 'ServerGroupAffinityFilter' ]
       sahara_filters                 = [ 'DifferentHostFilter' ]
       sriov_filters                  = [ 'PciPassthroughFilter','AggregateInstanceExtraSpecsFilter' ]
+      huge_pages_filters             = [ 'AggregateInstanceExtraSpecsFilter' ]
 
-      enable_sahara = Noop.hiera_structure 'sahara/enabled', false
-      enable_sriov  = Noop.hiera_structure 'quantum_settings/supported_pci_vendor_devs', false
+      enable_sahara    = Noop.hiera_structure 'sahara/enabled', false
+      enable_sriov     = Noop.hiera_structure 'quantum_settings/supported_pci_vendor_devs', false
+      enable_hugepages = Noop.hiera_structure 'nova/enable_hugepages', false
 
       nova_scheduler_filters = nova_scheduler_filters.concat(nova_scheduler_default_filters)
 
@@ -409,12 +412,14 @@ describe manifest do
       if enable_sriov
         nova_scheduler_filters = nova_scheduler_filters.concat(sriov_filters)
       end
+      if enable_hugepages
+        nova_scheduler_filters = nova_scheduler_filters.concat(huge_pages_filters)
+      end
 
       should contain_class('nova::scheduler::filter').with(
         'scheduler_default_filters' => nova_scheduler_filters.uniq(),
       )
     end
-
 
     if primary_controller
       it 'should have explicit ordering between LB classes and particular actions' do
