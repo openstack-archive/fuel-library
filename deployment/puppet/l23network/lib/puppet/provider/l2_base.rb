@@ -1,4 +1,5 @@
 require 'puppetx/l23_ethtool_name_commands_mapping'
+require 'json'
 require File.join(File.dirname(__FILE__), 'interface_toolset')
 
 class Puppet::Provider::L2_base < Puppet::Provider::InterfaceToolset
@@ -558,14 +559,58 @@ class Puppet::Provider::L2_base < Puppet::Provider::InterfaceToolset
     self.lnx_bond_allowed_properties.keys.sort
   end
 
+  def self.get_ovs_bonds
+    # search all OVS bonds on the host, and return hash with
+    # bond_name => { bond options }
+    all_ports_json = JSON.parse(`ovs-vsctl -f json list port`)
+    bonds_list = {}
+    all_ports_headings_to_data_hash = []
+    all_ports_json['data'].each do | port |
+      all_ports_headings_to_data_hash << Hash[all_ports_json['headings'].zip(port)]
+    end
+
+    all_ports_headings_to_data_hash.each do | each_port |
+      unless each_port['bond_active_slave'].is_a?(Array)
+        bond_propss = {}
+        bond_name = each_port['name']
+        bonds_list[bond_name] = {}
+        self.ovs_bond_allowed_properties.each do | p_name, prop |
+          transf_prop = prop[:property]
+          get_value = prop[:default] if prop[:default]
+          if transf_prop.match(%{config:})
+            transf_prop = "#{transf_prop.split(':')[1]}"
+            each_port['other_config'][1].each do |x|
+              get_value = x[1] unless x.select{ |y| y == transf_prop }.empty?
+            end
+          else
+            get_value = each_port[transf_prop]
+          end
+          bond_propss[p_name] = get_value.to_s.gsub('"', '') unless get_value.to_s.empty?
+        end
+        slaves = []
+        each_port['interfaces'][1].collect{ |int| int[1] }.each do | sl |
+          slaves << ovs_vsctl(['get', 'interface', sl, 'name' ]).join().gsub('"', '')
+        end
+        bonds_list[bond_name][:slaves] = slaves
+        bonds_list[bond_name][:bond_properties] = bond_propss
+      end
+    end
+
+    debug("get_ovs_bonds: OVS bond list #{bonds_list}\n")
+    return bonds_list
+  end
+
+
   def self.ovs_bond_allowed_properties
     {
       :downdelay   => {:property => 'bond_downdelay'},
       :updelay     => {:property => 'bond_updelay'},
       :use_carrier => {:property => 'other_config:bond-detect-mode',
-                       :override_integer => ['miimon', 'carrier'] },
+                       :override_integer => ['miimon', 'carrier'],
+                       :default => 'carrier' },
       :mode        => {:property => 'bond_mode',
-                       :allow    => ['balance-slb', 'active-backup', 'balance-tcp', 'stable'] },
+                       :allow    => ['balance-slb', 'active-backup', 'balance-tcp', 'stable'],
+                       :default => 'active-backup' },
       :lacp        => {:property => 'lacp',
                        :allow => ['off', 'active', 'passive'] },
       :lacp_rate   => {:property => 'other_config:lacp_time'},

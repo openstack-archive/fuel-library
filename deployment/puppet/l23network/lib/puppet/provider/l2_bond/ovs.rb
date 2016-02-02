@@ -4,17 +4,21 @@ Puppet::Type.type(:l2_bond).provide(:ovs, :parent => Puppet::Provider::Ovs_base)
   commands  :vsctl       => 'ovs-vsctl',
             :ethtool_cmd => 'ethtool'
 
-
-  # def self.add_unremovable_flag(port_props)
-  #   # calculate 'unremovable' flag. Should be re-defined in chield providers
-  #   if port_props[:port_type].include? 'bridge' or port_props[:port_type].include? 'bond'
-  #     port_props[:port_type] << 'unremovable'
-  #   end
-  # end
-
-  def self.get_instances(big_hash)
-    # didn't use .select{...} here for backward compatibility with ruby 1.8
-    big_hash.fetch(:port, {}).reject{|k,v| !v[:port_type].include?('bond')}
+  def self.instances
+    bonds ||= self.get_ovs_bonds()
+    debug("bonds found: #{bonds.keys}")
+    rv = []
+    bonds.each_pair do |bond_name, bond_props|
+        props = {
+          :ensure          => :present,
+          :name            => bond_name,
+          :vendor_specific => {}
+        }
+        props.merge! bond_props
+        debug("PREFETCHED properties for '#{bond_name}': #{props}")
+        rv << new(props)
+    end
+    rv
   end
 
   #-----------------------------------------------------------------
@@ -63,9 +67,15 @@ Puppet::Type.type(:l2_bond).provide(:ovs, :parent => Puppet::Provider::Ovs_base)
         #   ovs-vsctl show
       end
       if @property_flush.has_key? :bond_properties
+        bond_properties_to_change = @property_flush[:bond_properties]
+        if @old_property_hash[:bond_properties] and !@old_property_hash[:bond_properties].empty?
+          bond_properties_to_change = @property_flush[:bond_properties].to_a - @old_property_hash[:bond_properties].to_a
+          bond_properties_to_change = Hash[*bond_properties_to_change.flatten]
+        end
+        debug("Bond properties which are going to be changed #{bond_properties_to_change}")
         # change bond_properties
         allowed_properties = self.class.ovs_bond_allowed_properties()
-        @property_flush[:bond_properties].each_pair do |prop, val|
+        bond_properties_to_change.each_pair do |prop, val|
           if self.class.ovs_bond_allowed_properties_list.include? prop.to_sym
             act_val = val.to_s
           else
