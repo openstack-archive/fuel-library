@@ -55,6 +55,7 @@ class Puppet::Provider::L2_base < Puppet::Provider::InterfaceToolset
     # Fetch information about interfaces, visible in network namespace from /sys/class/net
     interfaces = Dir['/sys/class/net/*'].select{ |f| File.symlink? f}
     interfaces.each do |if_dir|
+      next if File.exists? "#{if_dir}/device/physfn"
       if_name = if_dir.split('/')[-1]
       port[if_name] = {
         :name         => if_name,

@@ -43,7 +43,7 @@ define l23network::l2::port (
   $master                = undef,  # used for bonds automatically
   $slave                 = undef,  # used for bonds automatically
 # $type                  = undef,  # was '',
-  $vendor_specific       = undef,
+  $vendor_specific       = {},
   $provider              = undef,
   # deprecated parameters, in the future ones will be moved to the vendor_specific hash
 # $skip_existing         = undef,
@@ -142,7 +142,8 @@ define l23network::l2::port (
       ethtool         => $ethtool,
       delay_while_up  => $delay_while_up,
       vendor_specific => $vendor_specific,
-      provider        => $config_provider
+      provider        => $config_provider,
+      sriov_numvfs    => $vendor_specific['sriov_numvfs']
     }
 
     l2_port { $port_name :
