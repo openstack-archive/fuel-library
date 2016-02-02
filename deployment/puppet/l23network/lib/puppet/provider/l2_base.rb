@@ -93,6 +93,11 @@ class Puppet::Provider::L2_base < Puppet::Provider::InterfaceToolset
         port[if_name].merge! vlan_ifaces[if_name]
         port[if_name][:port_type] << 'vlan'
       end
+      sriov_numvfs = File.open("#{if_dir}/device/sriov_numvfs").read.chomp.to_i if File.exists? "#{if_dir}/device/sriov_numvfs"
+      if sriov_numvfs and sriov_numvfs > 0
+        port[if_name][:provider] = 'sriov'
+        port[if_name][:vendor_specific] = {'sriov_numvfs' => sriov_numvfs}
+      end
     end
     # Check, whether port is a slave of anything another
     port.keys.each do |p_name|

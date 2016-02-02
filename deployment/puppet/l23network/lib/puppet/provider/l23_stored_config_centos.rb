@@ -17,6 +17,8 @@ class Puppet::Provider::L23_stored_config_centos < Puppet::Provider::L23_stored_
       entries = entries.reject { |entry| open(entry).grep(regoc_regex).empty? }
     elsif provider =~ /lnx_/
       entries = entries.select { |entry| open(entry).grep(regoc_regex).empty? }
+    elsif provider =~ /sriov_/
+      entries = entries.select { |entry| open(entry).grep(regoc_regex).empty? }
     end
     entries
   end

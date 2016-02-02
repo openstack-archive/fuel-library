@@ -351,8 +351,14 @@ Puppet::Parser::Functions::newfunction(:generate_network_config, :type => :rvalu
         trans = L23network.sanitize_transformation(t, default_provider)
         #debug("TTT: '#{trans[:name]}' =>  '#{trans.to_yaml.gsub('!ruby/sym ','')}'.")
 
-        if !ports_properties[trans[:name].to_sym()].nil?
-          trans.merge! ports_properties[trans[:name].to_sym()]
+        # merge interface properties with transformations
+        port_props = ports_properties[trans[:name].to_sym()]
+        if !port_props.nil?
+          trans.merge! port_props.select{|x,y| x != :vendor_specific}
+          if !port_props[:vendor_specific].nil?
+            trans[:vendor_specific] = {} unless trans[:vendor_specific]
+            trans[:vendor_specific].merge! port_props[:vendor_specific]
+          end
         end
 
         if trans.has_key?(:mtu) && !trans[:name].nil? && trans[:name] != 'unnamed'

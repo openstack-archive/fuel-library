@@ -1,0 +1,13 @@
+# *********************************************************************
+# This file is being managed by Puppet. Changes to interfaces
+# that are not being managed by Puppet will persist;
+# however changes to interfaces that are being managed by Puppet will
+# be overwritten.
+# *********************************************************************
+# Intel Corporation Ethernet Controller 10-Gigabit X540-AT2
+DEVICE=eth0
+ONBOOT=yes
+BOOTPROTO=none
+TYPE=sriov
+DEVICETYPE=sriov
+SRIOV_NUMFS=63
