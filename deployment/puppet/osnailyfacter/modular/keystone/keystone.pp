@@ -1,11 +1,5 @@
 notice('MODULAR: keystone.pp')
 
-# Override confguration options
-$override_configuration = hiera_hash('configuration', {})
-override_resources { 'keystone_config':
-  data => $override_configuration['keystone_config']
-} ~> Service['httpd']
-
 $network_scheme = hiera_hash('network_scheme', {})
 $network_metadata = hiera_hash('network_metadata', {})
 prepare_network_config($network_scheme)
@@ -256,4 +250,10 @@ if ($::operatingsystem == 'Ubuntu') {
   tweaks::ubuntu_service_override { 'keystone':
     package_name => 'keystone',
   }
+}
+
+# Override confguration options
+$override_configuration = hiera_hash('configuration', {})
+override_resources { 'keystone_config':
+  data => $override_configuration['keystone_config']
 }

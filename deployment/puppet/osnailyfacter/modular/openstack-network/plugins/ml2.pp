@@ -3,14 +3,6 @@ notice('MODULAR: openstack-network/plugins/ml2.pp')
 $use_neutron = hiera('use_neutron', false)
 $compute     = roles_include('compute')
 
-if $use_neutron {
-  # override neutron options
-  $override_configuration = hiera_hash('configuration', {})
-  override_resources { 'neutron_agent_ovs':
-    data => $override_configuration['neutron_agent_ovs']
-  } ~> Service['neutron-ovs-agent-service']
-}
-
 class neutron {}
 class { 'neutron' :}
 
@@ -160,6 +152,12 @@ if $use_neutron {
   package { 'neutron':
     name   => 'binutils',
     ensure => 'installed',
+  }
+
+  # override neutron options
+  $override_configuration = hiera_hash('configuration', {})
+  override_resources { 'neutron_agent_ovs':
+    data => $override_configuration['neutron_agent_ovs']
   }
 
 }
