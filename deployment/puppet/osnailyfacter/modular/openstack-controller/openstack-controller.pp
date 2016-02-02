@@ -57,6 +57,9 @@ $region                       = hiera('region', 'RegionOne')
 $workers_max                  = hiera('workers_max', 16)
 $service_workers              = pick($nova_hash['workers'],
                                       min(max($::processorcount, 2), $workers_max))
+$use_huge_pages               = pick($nova_hash['enable_hugepages'], false)
+$sahara_enabled               = pick($sahara_hash['enabled'], false)
+
 $ironic_hash                  = hiera_hash('ironic', {})
 
 $memcached_server             = hiera('memcached_addresses')
@@ -409,11 +412,10 @@ nova_config {
   'DEFAULT/teardown_unused_network_gateway': value => 'True'
 }
 
-if $sahara_hash['enabled'] {
-  $nova_scheduler_default_filters = [ 'DifferentHostFilter' ]
-} else {
-  $nova_scheduler_default_filters = []
-}
+$nova_scheduler_default_filters = [ 'RetryFilter', 'AvailabilityZoneFilter', 'RamFilter', 'CoreFilter', 'DiskFilter', 'ComputeFilter', 'ComputeCapabilitiesFilter', 'ImagePropertiesFilter', 'ServerGroupAntiAffinityFilter', 'ServerGroupAffinityFilter' ]
+$huge_pages_filters             = $use_huge_pages ? { true => [ 'AggregateInstanceExtraSpecsFilter' ], default => []}
+$sahara_filters                 = $sahara_enabled ? { true => [ 'DifferentHostFilter' ], default => []}
+$nova_scheduler_filters         = unique(concat(pick($nova_config_hash['default_filters'], $nova_scheduler_default_filters), $sahara_filters, $huge_pages_filters))
 
 if $ironic_hash['enabled'] {
   $scheduler_host_manager = 'nova.scheduler.ironic_host_manager.IronicHostManager'
@@ -424,7 +426,7 @@ class { '::nova::scheduler::filter':
   disk_allocation_ratio      => pick($nova_hash['disk_allocation_ratio'], '1.0'),
   ram_allocation_ratio       => pick($nova_hash['ram_allocation_ratio'], '1.0'),
   scheduler_host_subset_size => pick($nova_hash['scheduler_host_subset_size'], '30'),
-  scheduler_default_filters  => concat($nova_scheduler_default_filters, pick($nova_config_hash['default_filters'], [ 'RetryFilter', 'AvailabilityZoneFilter', 'RamFilter', 'CoreFilter', 'DiskFilter', 'ComputeFilter', 'ComputeCapabilitiesFilter', 'ImagePropertiesFilter', 'ServerGroupAntiAffinityFilter', 'ServerGroupAffinityFilter' ])),
+  scheduler_default_filters  => $nova_scheduler_filters,
   scheduler_host_manager     => $scheduler_host_manager,
 }
 

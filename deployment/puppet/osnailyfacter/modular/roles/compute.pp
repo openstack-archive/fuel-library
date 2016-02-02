@@ -62,6 +62,7 @@ $nova_service_down_time         = hiera('nova_service_down_time')
 $config_drive_format            = 'vfat'
 $public_ssl_hash                = hiera('public_ssl')
 $ssl_hash                       = hiera_hash('use_ssl', {})
+$use_huge_pages                 = pick($nova_hash['enable_hugepages'], false),
 
 $glance_protocol                = get_ssl_property($ssl_hash, {}, 'glance', 'internal', 'protocol', 'http')
 $glance_endpoint                = get_ssl_property($ssl_hash, {}, 'glance', 'internal', 'hostname', [hiera('glance_endpoint', $management_vip)])
@@ -320,6 +321,7 @@ class { '::openstack::compute':
   neutron_settings            => $neutron_config,
   storage_hash                => $storage_hash,
   config_drive_format         => $config_drive_format,
+  use_huge_pages              => $use_huge_pages,
 }
 
 # Required for fping API extension, see LP#1486404
