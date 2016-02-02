@@ -1,0 +1,5 @@
+auto p2p4
+iface p2p4 inet manual
+  up echo 0 > /sys/class/net/p2p4/device/sriov_numvfs
+  up echo ${IF_SRIOV_NUMVFS:-0} > /sys/class/net/enp1s0f0/device/sriov_numvfs
+  sriov_numvfs 7

@@ -29,11 +29,12 @@ describe 'l23network::l3::ifconfig', :type => :define do
 
     it do
       should contain_l23_stored_config('eth4').only_with({
-        'ensure'         => 'present',
-        'name'           => 'eth4',
-        'method'         => 'manual',
-        'ipaddr'         => 'none',
-        'ipaddr_aliases' => nil,
+        'ensure'          => 'present',
+        'name'            => 'eth4',
+        'method'          => 'manual',
+        'ipaddr'          => 'none',
+        'ipaddr_aliases'  => nil,
+        'vendor_specific' => {},
       })
     end
 
