@@ -1,7 +1,16 @@
 notice('MODULAR: openstack-controller.pp')
 
-$network_scheme = hiera_hash('network_scheme', {})
 $override_configuration = hiera_hash('configuration', {})
+# override nova options
+override_resources { 'nova_config':
+  data => $override_configuration['nova_config']
+} ~> Exec['post-nova_config']
+# override nova-api options
+override_resources { 'nova_paste_api_ini':
+  data => $override_configuration['nova_paste_api_ini']
+} ~> Exec['post-nova_config']
+
+$network_scheme = hiera_hash('network_scheme', {})
 $network_metadata = hiera_hash('network_metadata', {})
 prepare_network_config($network_scheme)
 
@@ -274,16 +283,6 @@ class { '::nova::scheduler::filter':
 # From logasy filter.pp
 nova_config {
   'DEFAULT/ram_weight_multiplier':        value => '1.0'
-}
-
-# override nova options
-override_resources { 'nova_config':
-  data => $override_configuration['nova_config']
-}
-
-# override nova-api options
-override_resources { 'nova_paste_api_ini':
-  data => $override_configuration['nova_paste_api_ini']
 }
 
 if $storage_hash['volumes_ceph'] {
