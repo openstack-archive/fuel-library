@@ -1,0 +1,10 @@
+# *********************************************************************
+# This file is being managed by Puppet. Changes to interfaces
+# that are not being managed by Puppet will persist;
+# however changes to interfaces that are being managed by Puppet will
+# be overwritten.
+# *********************************************************************
+auto p2p4
+allow-sriov p2p4
+iface p2p4 inet manual
+  up echo 7 > /sys/class/net/p2p4/device/sriov_numvfs

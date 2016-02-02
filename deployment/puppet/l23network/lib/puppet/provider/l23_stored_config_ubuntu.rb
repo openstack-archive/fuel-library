@@ -187,6 +187,10 @@ class Puppet::Provider::L23_stored_config_ubuntu < Puppet::Provider::L23_stored_
                 hash['if_provider'] = "ovs"
                 hash['if_type'] = "bridge"
               end
+              if $1 == 'sriov'
+                hash['if_provider'] = "sriov"
+                #hash['if_type'] = "bridge"
+              end
               if ! hash.has_key?('iface')
                 # setup iface name if it not given in iface directive
                 mm = val.split(/\s+/)
