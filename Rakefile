@@ -64,14 +64,35 @@ namespace :common do
 
   # desc "Task to load list of modules to skip"
   task :load_skip_file, :skip_file do |t, args|
-    $skip_module_list = []
+
+    def mod(name, options = {})
+      @modules ||= {}
+      module_name = name.split('/', 2).last
+      @modules[module_name] = options
+    end
+
+    module_list = []
+
+    library_dir = Dir.pwd
+    puppetfile = "#{library_dir}/deployment/Puppetfile"
+
+    if File.exists?(puppetfile)
+      eval(File.read(puppetfile))
+      @modules.each { |module_name|
+        module_list << module_name[0]
+      }
+    end
+
     # TODO(aschultz): Fix all modules so they have tests and we no longer need
     # this file to exclude bad module tests
     if not args[:skip_file].nil? and File.exists?(args[:skip_file])
       File.open(args[:skip_file], 'r').each_line { |line|
-        $skip_module_list << line.chomp
+        next if line =~ /^\s*#/
+        module_list << line.chomp
       }
     end
+
+    $skip_module_list = module_list.uniq
   end
 
   # desc "Task to generate a list of modules with Git changes"
