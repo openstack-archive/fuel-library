@@ -57,7 +57,6 @@ class ceph (
   $rgw_pub_ip                         = $cluster_node_address,
   $rgw_adm_ip                         = $cluster_node_address,
   $rgw_int_ip                         = $cluster_node_address,
-  $rgw_s3_auth_use_keystone           = true,
 
   $rgw_large_pool_name                = '.rgw',
   $rgw_large_pool_pg_nums             = '512',
