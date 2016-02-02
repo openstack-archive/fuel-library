@@ -140,7 +140,7 @@ Puppet::Type.newtype(:l2_bond) do
         val.keys.each do |k|
           if k.is_a? String
             unless val.has_key? k.to_sym
-              val[k.to_sym] = val[k] unless [:undef, :absent, ''].include?(val[k])
+              val[k.to_sym] = val[k].to_s unless [:undef, :absent, ''].include?(val[k])
             end
             val.delete(k)
           end
