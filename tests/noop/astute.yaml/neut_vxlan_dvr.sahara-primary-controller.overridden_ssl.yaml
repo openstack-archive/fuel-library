@@ -250,7 +250,7 @@ keystone:
   admin_token: 0be9G8hj
   db_password: 32TWl29R
 last_controller: node-131
-libvirt_type: qemu
+libvirt_type: kvm
 management_network_range: 192.168.0.0/24
 management_vip: 192.168.0.6
 management_vrouter_vip: 192.168.0.7
@@ -633,6 +633,7 @@ nova:
   db_password: mqnsUMgC
   state_path: /var/lib/nova
   user_password: fj4wVCEs
+  enable_hugepages: true
 nova_quota: false
 online: true
 openstack_version: 2014.2-6.1
