@@ -310,6 +310,7 @@ class { '::openstack::compute':
   neutron_settings            => $neutron_config,
   storage_hash                => $storage_hash,
   config_drive_format         => $config_drive_format,
+  pci_passthrough             => get_pci_passthrough_whitelist('sriov'),
 }
 
 # Required for fping API extension, see LP#1486404

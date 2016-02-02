@@ -51,6 +51,7 @@
 # [ssh_private_key] path to private ssh key temporary location on this server where it was uploaded or generated
 # [ssh_public_key] path to public ssh key temporary location on this server where it was uploaded or generated
 # [compute_driver] Driver to use for controlling virtualization.
+# [pci_passthrough] Pci passthrough hash. Optional.
 #
 # class { 'openstack::nova::compute':
 #   internal_address   => '192.168.2.2',
@@ -141,6 +142,7 @@ class openstack::compute (
   $install_bridge_utils           = false,
   $compute_driver                 = 'libvirt.LibvirtDriver',
   $config_drive_format            = undef,
+  $pci_passthrough                = undef,
 ) {
 
   include ::nova::params
@@ -317,6 +319,7 @@ class openstack::compute (
     default_schedule_zone         => $nova_hash['default_schedule_zone'],
     config_drive_format           => $config_drive_format,
     allow_resize_to_same_host     => true,
+    pci_passthrough               => $pci_passthrough,
   }
 
   nova_config {
