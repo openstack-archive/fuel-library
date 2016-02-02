@@ -84,6 +84,14 @@ describe manifest do
              )
     end
 
+    it 'should specify default custom theme for horizon' do
+      if facts[:os_package_type] == 'debian'
+          custom_theme_path = 'themes/vendor'
+      else
+          custom_theme_path = 'undef'
+      end
+    end
+
     it 'should declare horizon class with correct values' do
       should contain_class('horizon').with(
                  'cache_backend'       => 'horizon.backends.memcached.HorizonMemcached',
