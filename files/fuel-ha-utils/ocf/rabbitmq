@@ -1402,12 +1402,18 @@ get_monitor() {
             nodelist=$(get_alive_pacemaker_nodes_but)
             for node in $nodelist
             do
+                status_master=1
                 # Do not refetch the master status for *this* node as we know it already
                 if [ $rc -ne $OCF_RUNNING_MASTER ] ; then
                     ocf_log info "${LH} rabbit app is running. looking for master on $node"
                     is_master $node
                     status_master=$?
                     ocf_log info "${LH} fetched master attribute for $node. attr value is ${status_master}"
+                else
+                    # The master is always running inside of its cluster
+                    ocf_log info "${LH} rabbit app is running and is member of healthy cluster"
+                    rc_check=$OCF_SUCCESS
+                    break
                 fi
                 if [ $status_master -eq 0 ] ; then
                     ocf_log info "${LH} rabbit app is running. master is $node"
