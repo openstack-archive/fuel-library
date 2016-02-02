@@ -91,14 +91,6 @@ describe manifest do
         end
       end
 
-      it 'should create /etc/swift/backups directory with correct ownership' do
-        should contain_file('/etc/swift/backups').with(
-          'ensure' => 'directory',
-          'owner'  => 'swift',
-          'group'  => 'swift',
-        ).that_comes_before('Class[swift::proxy]')
-      end
-
       it 'should declare swift::proxy::cache class with correct memcache_servers parameter' do
         should contain_class('swift::proxy::cache').with(
           'memcache_servers' => memcached_servers,
