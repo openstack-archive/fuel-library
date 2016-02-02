@@ -640,6 +640,12 @@ network_scheme:
   - action: add-port
     bridge: br-storage
     name: eth0.102
+  - action: add-port
+    name: eth1
+    provider: sriov
+    vendor_specific:
+      sriov_numvfs: 7
+      physnet: physnet2
   roles:
     murano/api: br-mgmt
     keystone/api: br-mgmt

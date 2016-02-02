@@ -18,6 +18,8 @@ class Puppet::Provider::L23_stored_config_ubuntu < Puppet::Provider::L23_stored_
       entries.select! { |entry| !open(entry).grep(regoc_regex).empty? }
     elsif provider =~ /lnx_/
       entries.select! { |entry| open(entry).grep(regoc_regex).empty? }
+    elsif provider =~ /sriov_/
+      entries.select! { |entry| open(entry).grep(regoc_regex).empty? }
     end
     entries
   end
@@ -186,6 +188,10 @@ class Puppet::Provider::L23_stored_config_ubuntu < Puppet::Provider::L23_stored_
               if $1 == 'ovs'
                 hash['if_provider'] = "ovs"
                 hash['if_type'] = "bridge"
+              end
+              if $1 == 'sriov'
+                hash['if_provider'] = "sriov"
+                #hash['if_type'] = "bridge"
               end
               if ! hash.has_key?('iface')
                 # setup iface name if it not given in iface directive
