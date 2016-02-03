@@ -1,10 +1,10 @@
 notice('MODULAR: logging.pp')
 
-$base_syslog_hash = hiera('base_syslog_hash')
-$syslog_hash      = hiera('syslog_hash')
-$use_syslog       = hiera('use_syslog', true)
-$debug            = pick($syslog_hash['debug'], hiera('debug', false))
-
+$base_syslog_hash   = hiera('base_syslog_hash')
+$syslog_hash        = hiera('syslog_hash')
+$use_syslog         = hiera('use_syslog', true)
+$debug              = pick($syslog_hash['debug'], hiera('debug', false))
+$rabbit_fqdn_prefix = hiera('node_name_prefix_for_messaging', 'messaging-')
 ##################################################
 
 $base_syslog_rserver  = {
@@ -41,26 +41,27 @@ if $use_syslog {
   }
 
   class { '::openstack::logging':
-    role             => 'client',
-    show_timezone    => true,
+    role               => 'client',
+    show_timezone      => true,
     # log both locally include auth, and remote
-    log_remote       => true,
-    log_local        => true,
-    log_auth_local   => true,
+    log_remote         => true,
+    log_local          => true,
+    log_auth_local     => true,
     # keep four weekly log rotations,
     # force rotate if 300M size have exceeded
-    rotation         => 'weekly',
-    keep             => '4',
-    minsize          => '10M',
-    maxsize          => '100M',
+    rotation           => 'weekly',
+    keep               => '4',
+    minsize            => '10M',
+    maxsize            => '100M',
     # remote servers to send logs to
-    rservers         => $rservers,
+    rservers           => $rservers,
     # should be true, if client is running at virtual node
-    virtual          => str2bool($::is_virtual),
+    virtual            => str2bool($::is_virtual),
+    rabbit_fqdn_prefix => $rabbit_fqdn_prefix,
     # Rabbit doesn't support syslog directly
-    rabbit_log_level => 'NOTICE',
-    debug            => $debug,
-    ironic_collector => $ironic_collector,
+    rabbit_log_level   => 'NOTICE',
+    debug              => $debug,
+    ironic_collector   => $ironic_collector,
   }
 
   class { '::cluster::haproxy::rsyslog': }

@@ -19,24 +19,25 @@
 #   (rabbit does not support syslog, imfile is used for log capturing)
 #
 class openstack::logging (
-    $role             = 'client',
-    $log_remote       = true,
-    $log_local        = false,
-    $log_auth_local   = false,
-    $rotation         = 'daily',
-    $keep             = '7',
-    $minsize          = '10M',
-    $maxsize          = '100M',
-    $rservers         = [{'remote_type'=>'udp', 'server'=>'master', 'port'=>'514'},],
-    $port             = '514',
-    $proto            = 'udp',
-    $show_timezone    = false,
-    $virtual          = false,
-    $rabbit_log_level = 'NOTICE',
-    $production       = 'prod',
-    $escapenewline    = false,
-    $debug            = false,
-    $ironic_collector = false,
+    $role               = 'client',
+    $log_remote         = true,
+    $log_local          = false,
+    $log_auth_local     = false,
+    $rotation           = 'daily',
+    $keep               = '7',
+    $minsize            = '10M',
+    $maxsize            = '100M',
+    $rservers           = [{'remote_type'=>'udp', 'server'=>'master', 'port'=>'514'},],
+    $port               = '514',
+    $proto              = 'udp',
+    $show_timezone      = false,
+    $virtual            = false,
+    $rabbit_log_level   = 'NOTICE',
+    $rabbit_fqdn_prefix = '',
+    $production         = 'prod',
+    $escapenewline      = false,
+    $debug              = false,
+    $ironic_collector   = false,
 ) {
 
   validate_re($proto, 'tcp|udp|both')
@@ -71,14 +72,14 @@ class openstack::logging (
     # Configure logging templates for rsyslog client side
     # Rabbitmq does not support syslogging, use imfile
     ::rsyslog::imfile { "04-rabbitmq" :
-      file_name     => "/var/log/rabbitmq/rabbit@${hostname}.log",
+      file_name     => "/var/log/rabbitmq/rabbit@${rabbit_fqdn_prefix}${hostname}.log",
       file_tag      => "rabbitmq",
       file_facility => "syslog",
       file_severity => $rabbit_log_level,
     }
 
     ::rsyslog::imfile { "04-rabbitmq-sasl" :
-      file_name     => "/var/log/rabbitmq/rabbit@${hostname}-sasl.log",
+      file_name     => "/var/log/rabbitmq/rabbit@${rabbit_fqdn_prefix}${hostname}-sasl.log",
       file_tag      => "rabbitmq-sasl",
       file_facility => "syslog",
       file_severity => $rabbit_log_level,
@@ -91,11 +92,25 @@ class openstack::logging (
       file_severity => "ERROR",
     }
 
+    ::rsyslog::imfile { "04-rabbitmq-startup_log" :
+      file_name     => "/var/log/rabbitmq/startup_log",
+      file_tag      => "rabbitmq-startup_log",
+      file_facility => "syslog",
+      file_severity => $rabbit_log_level,
+    }
+
     ::rsyslog::imfile { "04-rabbitmq-shutdown_err" :
       file_name     => "/var/log/rabbitmq/shutdown_err",
       file_tag      => "rabbitmq-shutdown_err",
       file_facility => "syslog",
       file_severity => "ERROR",
+    }
+
+    ::rsyslog::imfile { "04-rabbitmq-shutdown_log" :
+      file_name     => "/var/log/rabbitmq/shutdown_log",
+      file_tag      => "rabbitmq-shutdown_log",
+      file_facility => "syslog",
+      file_severity => $rabbit_log_level,
     }
 
     ::rsyslog::imfile { '05-apache2-error':
