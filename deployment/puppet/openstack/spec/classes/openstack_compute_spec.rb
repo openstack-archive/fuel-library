@@ -80,6 +80,7 @@ describe 'openstack::compute' do
 
 
     context 'with a default config' do
+
       let :params do
         { :internal_address   => '127.0.0.1',
           :nova_user_password => 'password',
@@ -96,6 +97,11 @@ describe 'openstack::compute' do
       end
 
       it 'configures with the default params' do
+        if facts[:os_package_type] == 'debian' or facts[:osfamily] == 'RedHat'
+          libvirt_service_name = 'libvirtd'
+        else
+          libvirt_service_name = 'libvirt-bin'
+        end
         should contain_class('nova').with(
           :install_utilities => false,
           :ensure_package    => 'present',
@@ -139,7 +145,7 @@ describe 'openstack::compute' do
           :migration_suport     => p[:migration_support],
           :remove_unused_original_minimum_age_seconds => '86400',
           :compute_driver       => p[:compute_driver],
-          :libvirt_service_name => 'libvirtd'
+          :libvirt_service_name => libvirt_service_name,
         )
         should contain_augeas('libvirt-conf-uuid').with(
           :context => '/files/etc/libvirt/libvirtd.conf',
@@ -165,6 +171,7 @@ describe 'openstack::compute' do
         :hostname => 'hostname.example.com',
         :openstack_version => {'nova' => 'present' },
         :os_service_default => '<SERVICE DEFAULT>',
+        :os_package_type => 'debian',
       }
     end
 
@@ -177,6 +184,7 @@ describe 'openstack::compute' do
         :hostname => 'hostname.example.com',
         :openstack_version => {'nova' => 'present' },
         :os_service_default => '<SERVICE DEFAULT>',
+        :os_package_type    => 'rpm',
       }
     end
 
