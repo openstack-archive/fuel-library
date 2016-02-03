@@ -9,6 +9,18 @@
 #   (optional) The state of used packages
 #   Defaults to 'present'
 #
+# [*modprobe_bridge*]
+#   (optional) Load kernel module bridge
+#   Defaults to true
+#
+# [*modprobe_8021q*]
+#   (optional) Load kernel module 8021q
+#   Defaults to true
+#
+# [*modprobe_bonding*]
+#   (optional) Load kernel module bonding
+#   Defaults to true
+#
 # [*use_ovs_dkms_datapath_module*]
 #   (optional) The usage of DKMS datapath openVswitch or kernel build-in module
 #   Defaults to true
@@ -37,9 +49,12 @@ class l23network (
   $use_ovs                      = false,
   $install_ovs                  = $use_ovs,
   $install_brtool               = $use_lnx,
-  $install_ethtool              = $use_lnx,
+  $modprobe_bridge              = $use_lnx,
   $install_bondtool             = $use_lnx,
+  $modprobe_bonding             = $use_lnx,
   $install_vlantool             = $use_lnx,
+  $modprobe_8021q               = $use_lnx,
+  $install_ethtool              = $use_lnx,
   $ovs_module_name              = undef,
   $use_ovs_dkms_datapath_module = true,
   $ovs_datapath_package_name    = undef,
@@ -57,9 +72,12 @@ class l23network (
     use_lnx                      => $use_lnx,
     install_ovs                  => $install_ovs,
     install_brtool               => $install_brtool,
-    install_ethtool              => $install_ethtool,
+    modprobe_bridge              => $modprobe_bridge,
     install_bondtool             => $install_bondtool,
+    modprobe_bonding             => $modprobe_bonding,
     install_vlantool             => $install_vlantool,
+    modprobe_8021q               => $modprobe_8021q,
+    install_ethtool              => $install_ethtool,
     ovs_module_name              => $ovs_module_name,
     use_ovs_dkms_datapath_module => $use_ovs_dkms_datapath_module,
     ovs_datapath_package_name    => $ovs_datapath_package_name,

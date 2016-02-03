@@ -9,15 +9,30 @@
 #   (optional) The state of used packages
 #   Defaults to 'present'
 #
+# [*modprobe_bridge*]
+#   (optional) Load kernel module bridge
+#   Defaults to true
+#
+# [*modprobe_8021q*]
+#   (optional) Load kernel module 8021q
+#   Defaults to true
+#
+# [*modprobe_bonding*]
+#   (optional) Load kernel module bonding
+#   Defaults to true
+#
 class l23network::l2 (
   $ensure_package               = 'present',
   $use_lnx                      = true,
   $use_ovs                      = false,
   $install_ovs                  = $use_ovs,
   $install_brtool               = $use_lnx,
-  $install_ethtool              = $use_lnx,
+  $modprobe_bridge              = $use_lnx,
   $install_bondtool             = $use_lnx,
+  $modprobe_bonding             = $use_lnx,
   $install_vlantool             = $use_lnx,
+  $modprobe_8021q               = $use_lnx,
+  $install_ethtool              = $use_lnx,
   $ovs_module_name              = $::l23network::params::ovs_kern_module_name,
   $use_ovs_dkms_datapath_module = true,
   $ovs_datapath_package_name    = $::l23network::params::ovs_datapath_package_name,
@@ -64,24 +79,17 @@ class l23network::l2 (
     ensure => $ovs_mod_ensure
   }
 
-  if $use_lnx {
-    $mod_8021q_ensure = present
-    $mod_bonding_ensure = present
-    $mod_bridge_ensure = present
-  } else {
-    $mod_8021q_ensure = absent
-    $mod_bonding_ensure = absent
-    $mod_bridge_ensure = absent
-  }
-
   if $install_vlantool and $::l23network::params::lnx_vlan_tools {
     ensure_packages($::l23network::params::lnx_vlan_tools, {
       'ensure' => $ensure_package,
     })
     Package[$::l23network::params::lnx_vlan_tools] -> Anchor['l23network::l2::init']
   }
-  @k_mod{'8021q':
-    ensure => $mod_8021q_ensure
+
+  if $modprobe_8021q {
+    @k_mod{'8021q':
+      ensure => present
+    }
   }
 
   if $install_bondtool and $::l23network::params::lnx_bond_tools {
@@ -90,18 +98,24 @@ class l23network::l2 (
     })
     Package[$::l23network::params::lnx_bond_tools] -> Anchor['l23network::l2::init']
   }
-  @k_mod{'bonding':
-    ensure => $mod_bonding_ensure
+
+  if $modprobe_bonding {
+    @k_mod{'bonding':
+      ensure => present
+    }
   }
 
   if $install_brtool and $::l23network::params::lnx_bridge_tools {
     ensure_packages($::l23network::params::lnx_bridge_tools, {
       'ensure' => $ensure_package,
     })
-    #Package[$::l23network::params::lnx_bridge_tools] -> Anchor['l23network::l2::init']
+    Package[$::l23network::params::lnx_bridge_tools] -> Anchor['l23network::l2::init']
   }
-  @k_mod{'bridge':
-    ensure => $mod_bridge_ensure
+
+  if $modprobe_bridge {
+    @k_mod{'bridge':
+      ensure => present
+    }
   }
 
   if $install_ethtool and $::l23network::params::lnx_ethernet_tools {
