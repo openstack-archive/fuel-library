@@ -134,7 +134,7 @@ mod 'swift',
 # Pull in puppet-ceilometer
 mod 'ceilometer',
     :git => 'https://github.com/fuel-infra/puppet-ceilometer.git',
-    :ref => '7.0.0-rc3'
+    :ref => '8.0.0-rc1'
 
 # Pull in openstack-cinder
 mod 'cinder',
