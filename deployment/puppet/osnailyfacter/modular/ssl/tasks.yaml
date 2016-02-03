@@ -32,7 +32,7 @@
   groups: [primary-controller, controller]
   requires: [firewall, ssl-add-trust-chain]
   condition: "settings:public_ssl.horizon.value == true or settings:public_ssl.services.value == true"
-  required_for: [deploy_end]
+  required_for: [hosts]
   parameters:
     puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/ssl/ssl_dns_setup.pp
     puppet_modules: /etc/puppet/modules
