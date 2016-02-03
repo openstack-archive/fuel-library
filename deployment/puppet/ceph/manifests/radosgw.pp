@@ -32,7 +32,6 @@ class ceph::radosgw (
   $pub_ip                           = $::ceph::rgw_pub_ip,
   $adm_ip                           = $::ceph::rgw_adm_ip,
   $int_ip                           = $::ceph::rgw_int_ip,
-  $rgw_s3_auth_use_keystone         = $::ceph::rgw_s3_auth_use_keystone,
 
   #rgw Log settings
   $use_syslog                       = $::ceph::use_syslog,
@@ -113,7 +112,6 @@ class ceph::radosgw (
       "client.${rgw_id}/rgw_keystone_accepted_roles":      value => $rgw_keystone_accepted_roles;
       "client.${rgw_id}/rgw_keystone_token_cache_size":    value => $rgw_keystone_token_cache_size;
       "client.${rgw_id}/rgw_keystone_revocation_interval": value => $rgw_keystone_revocation_interval;
-      "client.${rgw_id}/rgw_s3_auth_use_keystone":         value => $rgw_s3_auth_use_keystone;
     }
 
     if ($rgw_use_pki) {
