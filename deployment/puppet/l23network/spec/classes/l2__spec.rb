@@ -108,6 +108,36 @@ describe 'l23network::l2' do
 
     end
 
+    context 'with a with params install_bondtool, install_vlantool and install_brtool to true' do
+       let :params do
+        { :install_bondtool => true,
+          :install_vlantool => true,
+          :install_brtool   => true,
+        }
+      end
+
+      it { should compile.with_all_deps }
+      it { should contain_k_mod('bonding').with_ensure('present') }
+      it { should contain_k_mod('8021q').with_ensure('present') }
+      it { should contain_k_mod('bridge').with_ensure('present') }
+
+    end
+
+    context 'with a with params install_bondtool, install_vlantool and install_brtool to false' do
+       let :params do
+        { :install_bondtool => false,
+          :install_vlantool => false,
+          :install_brtool   => false,
+        }
+      end
+
+      it { should compile.with_all_deps }
+      it { should contain_k_mod('bonding').with_ensure('absent') }
+      it { should contain_k_mod('8021q').with_ensure('absent') }
+      it { should contain_k_mod('bridge').with_ensure('absent') }
+
+    end
+
   end
 
 
