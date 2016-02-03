@@ -21,7 +21,6 @@ class docker (
     '/var/log/docker-logs/puppet',
     '/var/log/docker-logs/rabbitmq',
     '/var/log/docker-logs/supervisor',
-    '/var/log/dump',
     '/var/lib/fuel',
     '/var/lib/fuel/keys',
     '/var/lib/fuel/ibp',

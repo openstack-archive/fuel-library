@@ -19,9 +19,8 @@ describe 'docker' do
 
     context 'with valid params' do
       let :params do
-        release = '9.0'
         default_params.merge!({
-          :release => release,
+          :release => '9.0',
           :dependent_dirs => ["/var/log/docker-logs", "/var/log/docker-logs/remote",
               "/var/log/docker-logs/audit", "/var/log/docker-logs/cobbler",
               "/var/log/docker-logs/ConsoleKit", "/var/log/docker-logs/coredump",
@@ -30,12 +29,11 @@ describe 'docker' do
               "/var/log/docker-logs/nginx", "/var/log/docker-logs/ntpstats",
               "/var/log/docker-logs/puppet", "/var/log/docker-logs/rabbitmq",
               "/var/log/docker-logs/supervisor",
-              "/var/log/dump",
               "/var/lib/fuel", "/var/lib/fuel/keys", "/var/lib/fuel/ibp",
               "/var/lib/fuel/container_data",
-              "/var/lib/fuel/container_data/#{release}",
-              "/var/lib/fuel/container_data/#{release}/cobbler",
-              "/var/lib/fuel/container_data/#{release}/postgres",
+              "/var/lib/fuel/container_data/8.0",
+              "/var/lib/fuel/container_data/8.0/cobbler",
+              "/var/lib/fuel/container_data/8.0/postgres",
                   ]
         })
       end
