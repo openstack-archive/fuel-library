@@ -152,7 +152,7 @@ if $use_neutron {
   }
 
   class { 'neutron::server':
-    sync_db                          =>  false,
+    sync_db                          =>  true,
 
     auth_password                    => $auth_password,
     auth_tenant                      => $auth_tenant,
