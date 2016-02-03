@@ -3,9 +3,10 @@ notice('MODULAR: generate_vms.pp')
 $libvirt_dir = '/etc/libvirt/qemu'
 $template_dir = '/var/lib/nova'
 $packages = ['qemu-utils', 'qemu-kvm', 'libvirt-bin', 'xmlstarlet']
-$libvirt_service_name = 'libvirtd'
 
 $vms = hiera_array('vms_conf')
+
+include nova::params
 
 define vm_config {
   $details = $name
@@ -22,7 +23,7 @@ package { $packages:
   ensure => 'installed',
 }
 
-service { $libvirt_service_name:
+service { $::nova::params::libvirt_service_name:
   ensure  => 'running',
   require => Package[$packages],
   before  => Exec['generate_vms'],
