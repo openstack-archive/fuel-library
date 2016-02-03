@@ -8,6 +8,14 @@ $compute                  = roles_include($neutron_compute_roles)
 $neutron_advanced_config  = hiera_hash('neutron_advanced_configuration', { })
 $dvr                      = pick($neutron_advanced_config['neutron_dvr'], false)
 
+if $use_neutron and ($controller or ($dvr and $compute)) {
+  # override neutron options
+  $override_configuration = hiera_hash('configuration', {})
+  override_resources { 'neutron_metadata_agent_config':
+    data => $override_configuration['neutron_metadata_agent_config']
+  } ~> Service['neutron-metadata']
+}
+
 class neutron {}
 class { 'neutron' :}
 
@@ -56,12 +64,6 @@ if $use_neutron and ($controller or ($dvr and $compute)) {
   package { 'neutron':
     name   => 'binutils',
     ensure => 'installed',
-  }
-
-  # override neutron options
-  $override_configuration = hiera_hash('configuration', {})
-  override_resources { 'neutron_metadata_agent_config':
-    data => $override_configuration['neutron_metadata_agent_config']
   }
 
 }

@@ -24,6 +24,9 @@ Puppet::Type.newtype(:override_resources) do
     parameters.each do |parameter, value|
       resource[parameter] = value
     end
+    if parameters.has_key?('value') and resource.property('ensure')
+      resource['ensure'] = :present
+    end
   end
 
   def create_resource(type, title, parameters = {})
@@ -31,7 +34,7 @@ Puppet::Type.newtype(:override_resources) do
     Puppet::Type.type(type.to_sym).new(parameters)
   end
 
-  def generate
+  def eval_generate
     type = self[:type]
     data = self[:data] || {}
     defaults = self[:defaults] || {}
