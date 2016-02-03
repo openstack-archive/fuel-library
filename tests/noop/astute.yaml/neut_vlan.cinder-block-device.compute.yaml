@@ -131,7 +131,7 @@ storage_hash:
     ".rgw": 128
   objects_ceph: false
   ephemeral_ceph: false
-  volumes_lvm: true
+  volumes_lvm: false
   volumes_block_device: true
   images_vcenter: false
   osd_pool_size: '2'
@@ -141,6 +141,10 @@ storage_hash:
     group: storage
     weight: 60
     label: Storage
+  volume_backend_names:
+    volumes_ceph: false
+    volumes_lvm: false
+    volumes_block_device: BDD-backend
 nova:
   db_password: wPFuGzlctG0bWM5i94Xsu1ub
   user_password: Ss4soYvBMf8v9G7fApevpCD8
