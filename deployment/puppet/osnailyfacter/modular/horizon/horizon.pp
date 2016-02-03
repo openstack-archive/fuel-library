@@ -28,11 +28,13 @@ if $::os_package_type == 'debian' {
 # TODO(aschultz): the horizon.backends.memcached.HorizonMemcached is only part
 # of the MOS package set. This should be contributed upstream and then we can
 # use this as the default.
-if !$::os_package_type or $::os_package_type == 'debian' {
-  $horizon_cache_backend = try_get_value($horizon_hash, 'cache_backend', 'horizon.backends.memcached.HorizonMemcached')
-} else {
-  $horizon_cache_backend = try_get_value($horizon_hash, 'cache_backend', 'django.core.cache.backends.memcached.MemcachedCache')
-}
+#if !$::os_package_type or $::os_package_type == 'debian' {
+#  $horizon_cache_backend = try_get_value($horizon_hash, 'cache_backend', 'horizon.backends.memcached.HorizonMemcached')
+#} else {
+#  $horizon_cache_backend = try_get_value($horizon_hash, 'cache_backend', 'django.core.cache.backends.memcached.MemcachedCache')
+#}
+# TODO(skolekonov): Since Horizon code is from upstream repo use default backend
+$horizon_cache_backend = try_get_value($horizon_hash, 'cache_backend', 'django.core.cache.backends.memcached.MemcachedCache')
 
 $neutron_dvr = pick($neutron_advanced_config['neutron_dvr'], false)
 
@@ -90,16 +92,5 @@ class { 'openstack::horizon':
 
 class {'::osnailyfacter::wait_for_keystone_backends':}
 Class['openstack::horizon'] -> Class['::osnailyfacter::wait_for_keystone_backends']
-
-# TODO(aschultz): remove this if openstack-dashboard stops installing
-# openstack-dashboard-apache
-if $::osfamily == 'Debian' {
-  # LP#1513252 - remove this package if it's installed by the
-  # openstack-dashboard package installation.
-  package { 'openstack-dashboard-apache':
-    ensure  => 'absent',
-    require => Package['openstack-dashboard']
-  } ~> Service[$::apache::params::service_name]
-}
 
 include ::tweaks::apache_wrappers

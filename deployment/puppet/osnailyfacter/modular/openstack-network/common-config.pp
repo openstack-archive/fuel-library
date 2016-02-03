@@ -72,6 +72,7 @@ if $use_neutron {
     debug                   => $debug,
     use_syslog              => $use_syslog,
     use_stderr              => $use_stderr,
+    lock_path               => '/var/lib/neutron/lock',
     log_facility            => $log_facility,
     bind_host               => $bind_host,
     base_mac                => $base_mac,
