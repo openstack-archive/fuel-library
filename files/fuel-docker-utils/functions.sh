@@ -136,7 +136,7 @@ function check_ready {
   echo "checking container $1"
 
   case $1 in
-      nailgun)  if [ "${SYSTEMD:-false}" == "true" ]; then
+      nailgun)  if [ "${SYSTEMD:-false}" = "true" ]; then
                   retry_checker "shell_container nailgun systemctl is-active nailgun"
                 else
                   retry_checker "shell_container nailgun supervisorctl status nailgun | grep -q RUNNING"
@@ -572,10 +572,12 @@ function backup {
   lock
   trap backup_fail EXIT
 
-  if [ "$1" == "--full" ]; then
+  local fullbackup
+  fullbackup=0
+  if [ "$1" = "--full" ]; then
     fullbackup=1
     shift
-  elif [ "$2" == "--full" ]; then
+  elif [ "$2" = "--full" ]; then
     fullbackup=1
   fi
 
@@ -735,13 +737,95 @@ function check_nailgun_tasks {
   return $?
 }
 
+# Defer expression evaluation until the current subshell exits.
+# They will be called in reverse order.
+# Think of it as of appending an expression to the top of a finally{…}
+# block after a try{…}, so it will be evaluated no matter whether an
+# error occurs or not. It looks cleaner than multiple nested scopes
+# with EXIT traps.
+function defer {
+  declare -ga traps
+  traps[${#traps[*]}]=`trap`
+  local trapcmd
+  # We need to escape all shell metacharacters,
+  trapcmd="$(printf "%q " "$@"); __finally"
+  # and then unescape them inside the trap.
+  # This trick ensures that variable expansion will be
+  # delayed until the "defer" phase.
+  trap "eval eval \"$(printf '"%q" ' "$trapcmd")\"" EXIT
+}
+
+# Helper function for "defer".
+# It unwinds "traps" stack.
+function __finally {
+  declare -ga traps
+  local cmd
+  cmd="${traps[${#traps[@]}-1]}"
+  unset traps[${#traps[@]}-1]
+  # Parse `trap` output.
+  eval set -- "${cmd}"
+  if [ "$1/$2/$4" = "trap/--/EXIT" ]; then
+    # It's an EXIT trap - evaluate the code.
+    eval "$3" || true
+  else
+    # Other trap - just restore it.
+    eval "${cmd}"
+  fi
+}
+
+function update_ssh_keys {
+# Copy masternode's public keys inside the active bootstrap image
+  local sqfs relative_path SQ_MOUNT_POINT COMP
+  ssh-agent sh -c 'ssh-add ; ssh-add -L' > /tmp/authorized_keys
+  sqfs=$(realpath /var/www/nailgun/bootstraps/active_bootstrap/root.squashfs)
+  test -s "$sqfs" || return 0
+  relative_path=$(realpath --relative-to=/var/www/nailgun/bootstraps "$sqfs")
+
+  (
+    set -e
+
+    SQ_MOUNT_POINT=$(mktemp -d)
+    defer rmdir $SQ_MOUNT_POINT
+
+    mount -o loop,ro $sqfs $SQ_MOUNT_POINT
+    defer umount $SQ_MOUNT_POINT
+
+    mount -t tmpfs tmpfs $SQ_MOUNT_POINT/mnt
+    defer umount $SQ_MOUNT_POINT/mnt
+
+    mkdir $SQ_MOUNT_POINT/mnt/{bootstraps,src}
+    defer rmdir $SQ_MOUNT_POINT/mnt/{bootstraps,src}
+
+    # Let chroot environment reach out to bootstrap images outside.
+    mount --bind /var/www/nailgun/bootstraps $SQ_MOUNT_POINT/mnt/bootstraps
+    defer umount $SQ_MOUNT_POINT/mnt/bootstraps
+
+    mount --bind $SQ_MOUNT_POINT $SQ_MOUNT_POINT/mnt/src
+    defer umount $SQ_MOUNT_POINT/mnt/src
+
+    # We call unsquashfs inside the bootstrap image because there are no
+    # squashfs-tools installed on a node itself.
+    COMP=$(chroot $SQ_MOUNT_POINT unsquashfs -s "/mnt/bootstraps/$relative_path" | awk '/Compression/ { print $2 }')
+
+    mount --bind /tmp/authorized_keys $SQ_MOUNT_POINT/root/.ssh/authorized_keys
+    defer umount $SQ_MOUNT_POINT/root/.ssh/authorized_keys
+
+    chroot $SQ_MOUNT_POINT mksquashfs /mnt/src/ "/mnt/bootstraps/$relative_path~" -comp $COMP -no-progress -noappend
+
+    mv "$sqfs~" "$sqfs"
+  )
+}
+
 function restore {
 #TODO(mattymo): Optionally not include system dirs during restore
 #TODO(mattymo): support remote file such as ssh://user@myhost/backup.tar.lrz
 #               or http://myhost/backup.tar.lrz
 
-  if [ "$2" == "--full" ]; then
+  local fullrestore
+  if [ "$2" = "--full" ]; then
     fullrestore=1
+  else
+    fullrestore=0
   fi
 
   set -e
@@ -772,7 +856,7 @@ finish or cancel them. Run \"fuel task list\" for more details." 1>&2
   fi
   restoredir="$BACKUP_ROOT/restore-$timestamp/"
   disable_supervisor
-  if [ "$fullrestore" == "1" ]; then
+  if [ "$fullrestore" = "1" ]; then
     echo "Stopping and destroying existing containers..."
     destroy_container all
   else
@@ -780,8 +864,11 @@ finish or cancel them. Run \"fuel task list\" for more details." 1>&2
     stop_container all
   fi
   unpack_archive "$backupfile" "$restoredir"
-  [ "$fullrestore" == "1" ] && restore_images "$restoredir"
-  [ "$fullrestore" == "1" ] && rename_images "$timestamp"
+  [ "$fullrestore" = "1" ] && restore_images "$restoredir"
+  [ "$fullrestore" = "1" ] && rename_images "$timestamp"
+  # We don't need to update ssh keys for a full backup/restore,
+  # because it contains both keys and matching bootstrap images.
+  [ "$fullrestore" = "0" ] && update_ssh_keys
   restore_systemdirs "$restoredir"
   set +e
   echo "Starting containers..."
