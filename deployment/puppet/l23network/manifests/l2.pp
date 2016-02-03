@@ -64,42 +64,50 @@ class l23network::l2 (
     ensure => $ovs_mod_ensure
   }
 
-  if $use_lnx {
+  if $install_vlantool {
     $mod_8021q_ensure = present
-    $mod_bonding_ensure = present
-    $mod_bridge_ensure = present
+    if $::l23network::params::lnx_vlan_tools {
+      ensure_packages($::l23network::params::lnx_vlan_tools, {
+        'ensure' => $ensure_package,
+      })
+      Package[$::l23network::params::lnx_vlan_tools] -> Anchor['l23network::l2::init']
+    }
   } else {
     $mod_8021q_ensure = absent
-    $mod_bonding_ensure = absent
-    $mod_bridge_ensure = absent
   }
 
-  if $install_vlantool and $::l23network::params::lnx_vlan_tools {
-    ensure_packages($::l23network::params::lnx_vlan_tools, {
-      'ensure' => $ensure_package,
-    })
-    Package[$::l23network::params::lnx_vlan_tools] -> Anchor['l23network::l2::init']
-  }
   @k_mod{'8021q':
     ensure => $mod_8021q_ensure
   }
 
-  if $install_bondtool and $::l23network::params::lnx_bond_tools {
-    ensure_packages($::l23network::params::lnx_bond_tools, {
-      'ensure' => $ensure_package,
-    })
-    Package[$::l23network::params::lnx_bond_tools] -> Anchor['l23network::l2::init']
+  if $install_bondtool {
+    $mod_bonding_ensure = present
+    if $::l23network::params::lnx_bond_tools {
+      ensure_packages($::l23network::params::lnx_bond_tools, {
+        'ensure' => $ensure_package,
+      })
+      Package[$::l23network::params::lnx_bond_tools] -> Anchor['l23network::l2::init']
+    }
+  } else {
+    $mod_bonding_ensure = absent
   }
+
   @k_mod{'bonding':
     ensure => $mod_bonding_ensure
   }
 
-  if $install_brtool and $::l23network::params::lnx_bridge_tools {
-    ensure_packages($::l23network::params::lnx_bridge_tools, {
-      'ensure' => $ensure_package,
-    })
-    #Package[$::l23network::params::lnx_bridge_tools] -> Anchor['l23network::l2::init']
+  if $install_brtool {
+    $mod_bridge_ensure = present
+    if $::l23network::params::lnx_bridge_tools {
+      ensure_packages($::l23network::params::lnx_bridge_tools, {
+        'ensure' => $ensure_package,
+      })
+      Package[$::l23network::params::lnx_bridge_tools] -> Anchor['l23network::l2::init']
+    }
+  } else {
+    $mod_bridge_ensure = absent
   }
+
   @k_mod{'bridge':
     ensure => $mod_bridge_ensure
   }
