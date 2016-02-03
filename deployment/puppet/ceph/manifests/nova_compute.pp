@@ -13,17 +13,6 @@ class ceph::nova_compute (
     content => template('ceph/secret.erb')
   }
 
-  # TODO(aschultz): Just use $::nova::params::libvirt_service_name when a
-  # version of puppet-nova has been pulled in that uses os_package_type to
-  # correctly handle the service names for ubuntu vs debian. Upstream bug
-  # LP#1515076
-  # NOTE: for debian packages and centos the name is the same ('libvirtd') so
-  # we are defaulting to that for backwards compatibility. LP#1469308
-  $libvirt_service_name = $::os_package_type ? {
-    'ubuntu' => $::nova::params::libvirt_service_name,
-    default  => 'libvirtd'
-  }
-
   ensure_resource('service', 'libvirt', {
     ensure => 'running',
     name   => $libvirt_service_name,
