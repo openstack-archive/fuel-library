@@ -52,6 +52,16 @@ $nova_service_down_time         = hiera('nova_service_down_time')
 $config_drive_format            = 'vfat'
 $public_ssl_hash                = hiera('public_ssl')
 $ssl_hash                       = hiera_hash('use_ssl', {})
+$libvirt_type                   = hiera('libvirt_type', undef)
+
+if ($libvirt_type == 'auto') {
+  $virtualization_type = $::virtualization_support ? {
+    'true'  => 'kvm', #lint:ignore:quoted_booleans
+    default => 'qemu'
+  }
+} else {
+  $virtualization_type = $libvirt_type
+}
 
 $glance_protocol                = get_ssl_property($ssl_hash, {}, 'glance', 'internal', 'protocol', 'http')
 $glance_endpoint                = get_ssl_property($ssl_hash, {}, 'glance', 'internal', 'hostname', [hiera('glance_endpoint', $management_vip)])
@@ -259,7 +269,7 @@ class { '::openstack::compute':
   public_interface            => $oc_public_interface,
   private_interface           => $oc_private_interface,
   internal_address            => get_network_role_property('nova/api', 'ipaddr'),
-  libvirt_type                => hiera('libvirt_type', undef),
+  libvirt_type                => $virtualization_type,
   # FIXME(bogdando) remove after fixed upstream https://review.openstack.org/131710
   host_uuid                   => hiera('host_uuid', generate('/bin/sh', '-c', 'uuidgen')),
   fixed_range                 => $oc_fixed_range,

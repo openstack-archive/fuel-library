@@ -118,7 +118,7 @@ syslog:
   metadata:
     weight: 50
     label: Syslog
-libvirt_type: qemu
+libvirt_type: auto
 host_uuid: '00000000-0000-0000-0000-000000000000'
 puppet:
   modules: rsync://10.122.5.2:/puppet/liberty-9.0/modules/

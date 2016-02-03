@@ -58,8 +58,17 @@ class vmware::controller (
   }
 
   $libvirt_type = hiera('libvirt_type')
+  if ($libvirt_type == 'auto') {
+    $virtualization_type = $::virtualization_support ? {
+      'true'  => 'kvm', #lint:ignore:quoted_booleans
+      default => 'qemu'
+    }
+  } else {
+    $virtualization_type = $libvirt_type
+  }
+
   tweaks::ubuntu_service_override { 'nova-compute':
-    package_name => "nova-compute-${libvirt_type}",
+    package_name => "nova-compute-${virtualization_type}",
   }
 
   package { 'nova-compute':

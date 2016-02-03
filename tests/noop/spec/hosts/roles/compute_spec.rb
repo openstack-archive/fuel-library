@@ -28,6 +28,16 @@ describe manifest do
       end
     end
 
+    let(:virtualization_type) do
+      libvirt_type = Noop.hiera 'libvirt_type'
+      if libvirt_type == 'auto'
+        # we aren't providing the virtualization_support fact so default qemue
+        'qemu'
+      else
+        libvirt_type
+      end
+    end
+
     let(:nova_hash) do
       Noop.hiera_structure 'nova'
     end
@@ -207,6 +217,12 @@ describe manifest do
     it 'should properly configure glance api servers with (non-)ssl' do
       should contain_class('openstack::compute').with(
         'glance_api_servers' => glance_api_servers
+      )
+    end
+
+    it 'should properly configure libvirt type' do
+      should contain_class('openstack::compute').with(
+        'libvirt_type' => virtualization_type
       )
     end
 
