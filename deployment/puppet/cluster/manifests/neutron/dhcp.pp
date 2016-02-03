@@ -22,12 +22,21 @@ class cluster::neutron::dhcp (
     default => $::neutron::params::dhcp_agent_package
   }
 
+  #TODO (skolekonov) Upstream neutron-netns-cleanup script doesn't support
+  # per-agent namespaces cleanup, so it can't be used. Remove this block
+  # when it will be usptreamed
+  if $::os_package_type == 'debian' {
+    $remove_artifacts_on_stop_start = true
+  } else {
+    $remove_artifacts_on_stop_start = false
+  }
+
   #TODO (bogdando) move to extras ha wrappers
   cluster::corosync::cs_service {'dhcp':
     ocf_script      => 'ocf-neutron-dhcp-agent',
     csr_parameters  => {
       'plugin_config'                  => $plugin_config,
-      'remove_artifacts_on_stop_start' => true,
+      'remove_artifacts_on_stop_start' => $remove_artifacts_on_stop_start,
     },
     csr_metadata        => $csr_metadata,
     csr_complex_type    => $csr_complex_type,
