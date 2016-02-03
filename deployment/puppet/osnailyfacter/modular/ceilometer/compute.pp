@@ -54,10 +54,13 @@ if ($ceilometer_enabled) {
     http_timeout               => $ceilometer_hash['http_timeout'],
   }
 
-  # We need to restart nova-compute service in orderto apply new settings
-  include ::nova::params
-  service { 'nova-compute':
-    ensure => 'running',
-    name   => $::nova::params::compute_service_name,
+  # On a compute node we need to restart nova-compute service in orderto apply
+  # new settings. On a compute-vmware the top-role-compute-vmware task do it.
+  if (roles_include('compute')) {
+    include ::nova::params
+    service { 'nova-compute':
+      ensure => 'running',
+      name   => $::nova::params::compute_service_name,
+    }
   }
 }
