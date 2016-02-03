@@ -33,6 +33,7 @@ $ssl_hash                   = hiera_hash('use_ssl', {})
 
 $keystone_protocol          = get_ssl_property($ssl_hash, {}, 'keystone', 'internal', 'protocol', 'http')
 $keystone_endpoint          = get_ssl_property($ssl_hash, {}, 'keystone', 'internal', 'hostname', [hiera('service_endpoint', ''), $management_vip])
+$is_not_compute_vmware      = hiera('role')
 
 if ($ceilometer_enabled) {
   class { 'openstack::ceilometer':
@@ -59,10 +60,13 @@ if ($ceilometer_enabled) {
     http_timeout               => $ceilometer_hash['http_timeout'],
   }
 
-  # We need to restart nova-compute service in orderto apply new settings
-  include ::nova::params
-  service { 'nova-compute':
-    ensure => 'running',
-    name   => $::nova::params::compute_service_name,
+  # On a compute node we need to restart nova-compute service in orderto apply
+  # new settings. On a compute-vmware the top-role-compute-vmware task do it.
+  if (roles_include('compute')) {
+    include ::nova::params
+    service { 'nova-compute':
+      ensure => 'running',
+      name   => $::nova::params::compute_service_name,
+    }
   }
 }
