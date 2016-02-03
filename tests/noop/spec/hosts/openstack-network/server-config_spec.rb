@@ -31,6 +31,7 @@ describe manifest do
         management_vip   = Noop.hiera('management_vip')
         service_endpoint = Noop.hiera('service_endpoint', management_vip)
         l3_ha            = Noop.hiera_hash('neutron_advanced_configuration', {}).fetch('neutron_l3_ha', false)
+        sync_db          = Noop.hiera('primary_controller')
         extension_drivers = ['port_security']
         segmentation_type = neutron_config.fetch('L2',{}).fetch('segmentation_type')
         pnets = neutron_config.fetch('L2',{}).fetch('phys_nets',{})
@@ -82,7 +83,7 @@ describe manifest do
           db_connection = "mysql://#{db_user}:#{db_password}@#{db_host}/#{db_name}#{extra_params}"
 
           should contain_class('neutron::server').with(
-            'sync_db'                 => 'false',
+            'sync_db'                 => sync_db,
             'database_retry_interval' => '2',
             'database_connection'     => db_connection,
             'database_max_retries'    => '-1',

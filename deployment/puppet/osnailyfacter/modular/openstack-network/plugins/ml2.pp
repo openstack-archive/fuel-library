@@ -112,11 +112,6 @@ if $use_neutron {
     enabled                    => true,
   }
 
-  # Synchronize database after plugin was configured
-  if $primary_controller {
-    include ::neutron::db::sync
-  }
-
   if $node_name in keys($neutron_nodes) {
     if $neutron_server_enable {
       $service_ensure = 'running'
