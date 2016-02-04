@@ -40,7 +40,6 @@ describe 'osnailyfacter::atop' do
 
       it { is_expected.to contain_exec('initialize atop_current').with(
         :command     => '/etc/cron.daily/atop_retention',
-        :refreshonly => true,
       ) }
     end
 
