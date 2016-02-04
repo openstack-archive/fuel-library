@@ -25,28 +25,34 @@
 # vcenter_datastore_regex - the datastore_regex setting specifies the data stores to use with Compute
 # vlan_interface - interface which is used on ESXi hosts when nova-network uses VlanManager
 # use_quantum - shows if neutron enabled
+# vncproxy_protocol - Protocol to use for access vnc proxy
+# vncproxy_host - Host that serves as vnc proxy
 
 class vmware (
-  $vcenter_settings = undef,
-  $vcenter_user     = 'user',
-  $vcenter_password = 'password',
-  $vcenter_host_ip  = '10.10.10.10',
-  $vcenter_cluster  = 'cluster',
-  $vlan_interface   = undef,
-  $use_quantum      = false,
-  $vnc_address      = '0.0.0.0',
-  $ceilometer       = false,
-  $debug            = false,
+  $vcenter_settings  = undef,
+  $vcenter_user      = 'user',
+  $vcenter_password  = 'password',
+  $vcenter_host_ip   = '10.10.10.10',
+  $vcenter_cluster   = 'cluster',
+  $vlan_interface    = undef,
+  $use_quantum       = false,
+  $vncproxy_protocol = 'http',
+  $vncproxy_host     = undef,
+  $nova_hash         = {},
+  $ceilometer        = false,
+  $debug             = false,
 )
 {
   class { 'vmware::controller':
-    vcenter_settings => $vcenter_settings,
-    vcenter_user     => $vcenter_user,
-    vcenter_password => $vcenter_password,
-    vcenter_host_ip  => $vcenter_host_ip,
-    vlan_interface   => $vlan_interface,
-    use_quantum      => $use_quantum,
-    vnc_address      => $vnc_address,
+    vcenter_settings  => $vcenter_settings,
+    vcenter_user      => $vcenter_user,
+    vcenter_password  => $vcenter_password,
+    vcenter_host_ip   => $vcenter_host_ip,
+    vlan_interface    => $vlan_interface,
+    use_quantum       => $use_quantum,
+    vncproxy_protocol => $vncproxy_protocol,
+    vncproxy_host     => $vncproxy_host,
+    vncproxy_port     => $nova_hash['vncproxy_port'],
   }
 
   if $ceilometer {
