@@ -36,7 +36,6 @@ python-cinderclient==1.0.6
 python-heatclient==0.2.6
 python-keystoneclient==0.4.1
 python-mimeparse==0.1.4
-python-muranoclient==0.4.1
 python-novaclient==2.15.0
 python-savannaclient==0.3
 requests==1.1.0
