@@ -10,7 +10,7 @@ describe Puppet::Provider::Pacemaker_common do
   end
 
   let(:resources_regexp) do
-    %r{nova|cinder|glance|keystone|neutron|sahara|murano|ceilometer|heat|swift}
+    %r{nova|cinder|glance|keystone|neutron|sahara|ceilometer|heat|swift}
   end
 
   ###########################

@@ -252,15 +252,6 @@ tasks:
     puppet_manifest: "/etc/puppet/modules/osnailyfacter/modular/openstack-haproxy/openstack-haproxy-sahara.pp"
     timeout: 300
     cwd: "/"
-- priority: 3000
-  type: puppet
-  uids:
-  - '1'
-  parameters:
-    puppet_modules: "/etc/puppet/modules"
-    puppet_manifest: "/etc/puppet/modules/osnailyfacter/modular/openstack-haproxy/openstack-haproxy-murano.pp"
-    timeout: 300
-    cwd: "/"
 - priority: 3100
   type: puppet
   uids:
@@ -694,20 +685,6 @@ external_dns:
   metadata:
     weight: 90
     label: Host OS DNS Servers
-murano:
-  db_password: SHNCzmlD
-  user_password: FAzO3etA
-  enabled: false
-  rabbit_password: 8yYepd8f
-murano_settings:
-  murano_repo_url: http://storage.apps.openstack.org/
-  metadata:
-    restrictions:
-    - action: hide
-      message: Murano is not enabled on the Additional Components section
-      condition: settings:additional_components.murano.value == false
-    weight: 20
-    label: Murano Settings
 role: primary-controller
 deployment_mode: ha_compact
 external_mongo:
@@ -831,7 +808,6 @@ network_metadata:
       uid: '4'
       fqdn: node-4.domain.local
       network_roles:
-        murano/api: 10.122.12.5
         keystone/api: 10.122.12.5
         neutron/api: 10.122.12.5
         mgmt/database: 10.122.12.5
@@ -892,7 +868,6 @@ network_metadata:
         fw-admin: 10.122.10.6
         glance/api: 10.122.12.3
         mgmt/vip: 10.122.12.3
-        murano/api: 10.122.12.3
         nova/api: 10.122.12.3
         horizon: 10.122.12.3
         nova/migration: 10.122.12.3
@@ -909,7 +884,6 @@ network_metadata:
       uid: '3'
       fqdn: node-3.domain.local
       network_roles:
-        murano/api: 10.122.12.4
         keystone/api: 10.122.12.4
         neutron/api: 10.122.12.4
         mgmt/database: 10.122.12.4
@@ -946,7 +920,6 @@ network_metadata:
       uid: '2'
       fqdn: node-2.domain.local
       network_roles:
-        murano/api: 10.122.12.6
         keystone/api: 10.122.12.6
         neutron/api: 10.122.12.6
         mgmt/database: 10.122.12.6
@@ -1048,7 +1021,6 @@ network_scheme:
     bridge: br-ex
     name: eth1
   roles:
-    murano/api: br-mgmt
     keystone/api: br-mgmt
     neutron/api: br-mgmt
     mgmt/database: br-mgmt

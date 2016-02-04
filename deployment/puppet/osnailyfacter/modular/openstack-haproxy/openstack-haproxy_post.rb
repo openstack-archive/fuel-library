@@ -21,7 +21,6 @@ def expected_backends
     nova-novncproxy
   )
   backends += %w(sahara) if TestCommon::Settings.sahara['enabled']
-  backends += %w(murano murano_rabbitmq) if TestCommon::Settings.murano['enabled']
   $expected_backends = backends
 end
 
