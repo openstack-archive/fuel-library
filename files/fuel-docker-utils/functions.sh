@@ -757,56 +757,6 @@ function check_nailgun_tasks {
   return $?
 }
 
-# Defer expression evaluation until the current subshell exits
-function defer {
-  declare -ga traps
-  traps[${#traps[*]}]=`trap`
-  trapcmd="$(printf "%q " "$@"); __finally"
-  trap "eval eval \"$(printf '"%q" ' "$trapcmd")\"" EXIT
-}
-
-# Helper function for "defer"
-function __finally {
-  declare -ga traps
-  local cmd
-  cmd="${traps[${#traps[@]}-1]}"
-  unset traps[${#traps[@]}-1]
-  eval set -- "${cmd}"
-  if [ "$1/$2/$4" = "trap/--/EXIT" ]; then
-    eval "$3" || true
-  else
-    eval "${cmd}"
-  fi
-}
-
-function update_ssh_keys {
-# Copy masternode's .ssh/id*.pub to all bootstrap images
-  cat /root/.ssh/id*.pub > /tmp/authorized_keys
-  SQ_MOUNT_POINT=$(mktemp -d)
-  sqfs=/var/www/nailgun/bootstraps/active_bootstrap/root.squashfs
-  test -e /var/www/nailgun/bootstraps/active_bootstrap/root.squashfs || return 0
-  b=${sqfs#/var/www/nailgun/bootstraps/}
-  (
-    set -e
-    mount -o loop,ro $sqfs $SQ_MOUNT_POINT
-    defer umount $SQ_MOUNT_POINT
-    mount -t tmpfs tmpfs $SQ_MOUNT_POINT/mnt
-    defer umount $SQ_MOUNT_POINT/mnt
-    mkdir $SQ_MOUNT_POINT/mnt/{bootstraps,src}
-    defer rmdir $SQ_MOUNT_POINT/mnt/{bootstraps,src}
-    mount --bind /var/www/nailgun/bootstraps $SQ_MOUNT_POINT/mnt/bootstraps
-    defer umount $SQ_MOUNT_POINT/mnt/bootstraps
-    mount --bind $SQ_MOUNT_POINT $SQ_MOUNT_POINT/mnt/src
-    defer umount $SQ_MOUNT_POINT/mnt/src
-    COMP=$(chroot $SQ_MOUNT_POINT unsquashfs -s /mnt/bootstraps/$b | awk '/Compression/ { print $2 }')
-    mount --bind /tmp/authorized_keys $SQ_MOUNT_POINT/root/.ssh/authorized_keys
-    defer umount $SQ_MOUNT_POINT/root/.ssh/authorized_keys
-    chroot $SQ_MOUNT_POINT mksquashfs /mnt/src/ /mnt/bootstraps/$b~ -comp $COMP -no-progress -noappend
-    mv $sqfs~ $sqfs
-  )
-  rmdir $SQ_MOUNT_POINT
-}
-
 function restore {
 #TODO(mattymo): Optionally not include system dirs during restore
 #TODO(mattymo): support remote file such as ssh://user@myhost/backup.tar.lrz
@@ -854,7 +804,6 @@ finish or cancel them. Run \"fuel task list\" for more details." 1>&2
   unpack_archive "$backupfile" "$restoredir"
   [ "$fullrestore" == "1" ] && restore_images "$restoredir"
   [ "$fullrestore" == "1" ] && rename_images "$timestamp"
-  [ "$fullrestore" == "1" ] || update_ssh_keys
   restore_systemdirs "$restoredir"
   set +e
   echo "Starting containers..."
