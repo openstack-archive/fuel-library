@@ -10,7 +10,7 @@ class nailgun::nginx(
   $repo_root = '/var/www/nailgun',
   $staticdir = '/opt/nailgun/share/nailgun/static',
   $templatedir = '/opt/nailgun/share/nailgun/static',
-  $logdumpdir = '/var/log/dump',
+  $logdumpdir = '/var/dump',
   $service_enabled = true,
   $ostf_host = '127.0.0.1',
   $keystone_host = '127.0.0.1',
