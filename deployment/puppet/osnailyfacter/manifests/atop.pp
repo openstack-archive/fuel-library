@@ -104,11 +104,12 @@ class osnailyfacter::atop (
   file { $atop_retention:
     mode    => '0755',
     content => template('osnailyfacter/atop_retention.erb'),
-  } ~>
+  } ->
 
   exec { 'initialize atop_current':
-    command     => $atop_retention,
-    refreshonly => true,
+    command => $atop_retention,
+    path    => ['/bin', '/usr/bin'],
+    unless  => "test -L ${logpath}/atop_current",
   }
 
 }
