@@ -34,7 +34,7 @@ define file_link {
 
 if !empty($ssl_hash) {
   $services = [ 'horizon', 'keystone', 'nova', 'heat', 'glance', 'cinder',
-    'neutron', 'swift', 'sahara', 'murano', 'ceilometer', 'radosgw']
+    'neutron', 'swift', 'sahara', 'ceilometer', 'radosgw']
 
   file_link { $services: }
 

@@ -37,7 +37,6 @@ CONTROLLER_RULES = [
     'pcsd-server',
     'openvswitch db',
     'ceilometer',
-    'murano-rabbitmq',
     'heat-api',
     'heat-api-cfn',
     'heat-api-cloudwatch',

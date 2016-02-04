@@ -112,19 +112,6 @@ mp:
   weight: '1'
 - point: '2'
   weight: '2'
-murano:
-  db_password: R3SuvZbh
-  enabled: false
-  rabbit_password: ZNdTAgF3
-  user_password: xP8WtHQw
-murano_settings:
-  metadata:
-    label: Murano Settings
-    restrictions:
-    - action: hide
-      condition: settings:additional_components.murano.value == false
-    weight: 20
-  murano_repo_url: http://catalog.openstack.org/
 mysql:
   root_password: Lz18BpbQ
   wsrep_password: JrlrVOHu
@@ -161,7 +148,6 @@ network_metadata:
         fw-admin: 10.109.0.9
         glance/api: 192.168.0.1
         mgmt/vip: 192.168.0.1
-        murano/api: 192.168.0.1
         nova/api: 192.168.0.1
         horizon: 192.168.0.1
         mgmt/memcache: 192.168.0.1
@@ -202,7 +188,6 @@ network_metadata:
         fw-admin: 10.108.0.3
         glance/api: 192.168.0.2
         mgmt/vip: 192.168.0.2
-        murano/api: 192.168.0.2
         nova/api: 192.168.0.2
         horizon: 192.168.0.2
         mgmt/memcache: 192.168.0.2
@@ -244,7 +229,6 @@ network_metadata:
         fw-admin: 10.108.0.6
         glance/api: 192.168.0.3
         mgmt/vip: 192.168.0.3
-        murano/api: 192.168.0.3
         nova/api: 192.168.0.3
         horizon: 192.168.0.3
         mgmt/memcache: 192.168.0.3
@@ -285,7 +269,6 @@ network_metadata:
         fw-admin: 10.109.0.9
         glance/api: 192.168.0.4
         mgmt/vip: 192.168.0.4
-        murano/api: 192.168.0.4
         nova/api: 192.168.0.4
         horizon: 192.168.0.4
         mgmt/memcache: 192.168.0.4
@@ -326,7 +309,6 @@ network_metadata:
         fw-admin: 10.109.0.9
         glance/api: 192.168.0.4
         mgmt/vip: 192.168.0.4
-        murano/api: 192.168.0.4
         nova/api: 192.168.0.4
         horizon: 192.168.0.4
         mgmt/memcache: 192.168.0.4
@@ -451,7 +433,6 @@ network_scheme:
     fw-admin: br-fw-admin
     glance/api: br-mgmt
     heat/api: br-mgmt
-    murano/api: br-mgmt
     nova/api: br-mgmt
     horizon: br-mgmt
     mgmt/memcache: br-mgmt
@@ -923,15 +904,6 @@ tasks:
     puppet_modules: /etc/puppet/modules
     timeout: 3600
   priority: 2700
-  type: puppet
-  uids:
-  - '128'
-- parameters:
-    cwd: /
-    puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/murano/murano.pp
-    puppet_modules: /etc/puppet/modules
-    timeout: 3600
-  priority: 2800
   type: puppet
   uids:
   - '128'

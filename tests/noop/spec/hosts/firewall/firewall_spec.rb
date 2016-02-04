@@ -93,14 +93,6 @@ describe manifest do
         end
       end
 
-      it 'should create rules for murano rabbitmq port' do
-        should contain_firewall('203 murano-rabbitmq').with(
-          'dport'    => [ 55572 ],
-          'proto'   => 'tcp',
-          'action'  => 'accept',
-        )
-      end
-
       it 'should create rules for heat' do
         should contain_firewall('204 heat-api').with(
           'port'    => [ 8004 ],

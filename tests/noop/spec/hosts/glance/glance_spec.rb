@@ -24,7 +24,6 @@ describe manifest do
     else
        pipeline = 'keystone'
     end
-    murano_glance_artifacts_plugin = Noop.hiera('murano_glance_artifacts_plugin', {})
     database_vip = Noop.hiera('database_vip')
     glance_db_password = Noop.hiera_structure 'glance/db_password', 'glance'
     glance_db_user = Noop.hiera_structure 'glance/db_user', 'glance'
@@ -134,15 +133,6 @@ describe manifest do
     it 'should configure default_log_levels' do
       should contain_glance_api_config('DEFAULT/default_log_levels').with_value(default_log_levels.sort.join(','))
       should contain_glance_registry_config('DEFAULT/default_log_levels').with_value(default_log_levels.sort.join(','))
-    end
-
-    if murano_glance_artifacts_plugin and murano_glance_artifacts_plugin['enabled']
-      it 'should install murano-glance-artifacts-plugin package' do
-        should contain_package('murano-glance-artifacts-plugin').with(:ensure  => 'installed')
-      end
-      it 'should configure glance-api to use v3' do
-        should contain_glance_api_config('DEFAULT/enable_v3_api').with_value(true)
-      end
     end
 
     if storage_config && storage_config.has_key?('images_ceph') && storage_config['images_ceph']
