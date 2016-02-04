@@ -18,7 +18,6 @@ fixtures:
     ceilometer: "#{source_dir}/../ceilometer"
     cinder: "#{source_dir}/../cinder"
     sahara: "#{source_dir}/../sahara"
-    murano: "#{source_dir}/../murano"
     xinetd: "#{source_dir}/../xinetd"
     osnailyfacter: "#{source_dir}/../osnailyfacter"
     l23network: "#{source_dir}/../l23network"

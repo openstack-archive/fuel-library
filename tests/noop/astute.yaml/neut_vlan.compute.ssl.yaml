@@ -254,20 +254,6 @@ external_dns:
   metadata:
     weight: 90
     label: Host OS DNS Servers
-murano:
-  db_password: gjBrHFFZ
-  user_password: crLmJ5b0
-  enabled: false
-  rabbit_password: ra45kjwS
-murano_settings:
-  murano_repo_url: http://storage.apps.openstack.org/
-  metadata:
-    restrictions:
-    - action: hide
-      message: Murano is not enabled on the Additional Components section
-      condition: settings:additional_components.murano.value == false
-    weight: 20
-    label: Murano Settings
 role: compute
 deployment_mode: ha_compact
 external_mongo:
@@ -391,7 +377,6 @@ network_metadata:
       uid: '5'
       fqdn: node-5.domain.local
       network_roles:
-        murano/api: 10.122.7.3
         keystone/api: 10.122.7.3
         neutron/api: 10.122.7.3
         mgmt/database: 10.122.7.3
@@ -428,7 +413,6 @@ network_metadata:
       uid: '4'
       fqdn: node-4.domain.local
       network_roles:
-        murano/api: 10.122.7.2
         keystone/api: 10.122.7.2
         neutron/api: 10.122.7.2
         mgmt/database: 10.122.7.2
@@ -489,7 +473,6 @@ network_metadata:
         fw-admin: 10.122.5.3
         glance/api: 10.122.7.1
         mgmt/vip: 10.122.7.1
-        murano/api: 10.122.7.1
         nova/api: 10.122.7.1
         horizon: 10.122.7.1
         nova/migration: 10.122.7.1
@@ -530,7 +513,6 @@ network_metadata:
         fw-admin: 10.122.5.6
         glance/api: 10.122.7.5
         mgmt/vip: 10.122.7.5
-        murano/api: 10.122.7.5
         nova/api: 10.122.7.5
         horizon: 10.122.7.5
         nova/migration: 10.122.7.5
@@ -571,7 +553,6 @@ network_metadata:
         fw-admin: 10.122.5.7
         glance/api: 10.122.7.4
         mgmt/vip: 10.122.7.4
-        murano/api: 10.122.7.4
         nova/api: 10.122.7.4
         horizon: 10.122.7.4
         nova/migration: 10.122.7.4
@@ -639,7 +620,6 @@ network_scheme:
     bridge: br-storage
     name: eth0.102
   roles:
-    murano/api: br-mgmt
     keystone/api: br-mgmt
     neutron/api: br-mgmt
     mgmt/database: br-mgmt

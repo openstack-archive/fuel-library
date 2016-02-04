@@ -78,9 +78,6 @@ $admin_auth_protocol    = get_ssl_property($ssl_hash, {}, 'keystone', 'admin', '
 $admin_auth_address     = get_ssl_property($ssl_hash, {}, 'keystone', 'admin', 'hostname', [hiera('service_endpoint', ''), $management_vip])
 $glance_endpoint        = get_ssl_property($ssl_hash, {}, 'glance', 'internal', 'hostname', [$management_vip])
 
-$murano_hash    = hiera_hash('murano_hash', {})
-$murano_plugins = pick($murano_hash['plugins'], {})
-
 $auth_uri     = "${internal_auth_protocol}://${internal_auth_address}:5000/"
 $identity_uri = "${admin_auth_protocol}://${admin_auth_address}:35357/"
 
@@ -146,15 +143,6 @@ class { 'openstack::glance':
   notification_driver            => $ceilometer_hash['notification_driver'],
   service_workers                => $service_workers,
   rados_connect_timeout          => $rados_connect_timeout,
-}
-
-if $murano_plugins and $murano_plugins['glance_artifacts_plugin'] and $murano_plugins['glance_artifacts_plugin']['enabled'] {
-  package {'murano-glance-artifacts-plugin':
-    ensure  => installed,
-  }
-  glance_api_config {
-    'DEFAULT/enable_v3_api': value => true,
-  }
 }
 
 ####### Disable upstart startup on install #######

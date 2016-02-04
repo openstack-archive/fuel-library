@@ -58,7 +58,7 @@ define cert_file (
 }
 
 if !empty($ssl_hash) {
-  $services = [ 'horizon', 'keystone', 'nova', 'heat', 'glance', 'cinder', 'neutron', 'swift', 'sahara', 'murano', 'ceilometer', 'radosgw']
+  $services = [ 'horizon', 'keystone', 'nova', 'heat', 'glance', 'cinder', 'neutron', 'swift', 'sahara', 'ceilometer', 'radosgw']
 
   cert_file { $services:
     ssl_hash => $ssl_hash,

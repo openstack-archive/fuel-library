@@ -3,7 +3,7 @@
 for yaml in \
   novanet-compute.yaml \
   neut_vlan.ceph.ceil-primary-controller.yaml \
-  neut_vxlan.murano.sahara-primary-controller.yaml \
+  neut_vxlan.sahara-primary-controller.yaml \
   novanet-primary-controller.yaml \
   ; do
   for spec in \
