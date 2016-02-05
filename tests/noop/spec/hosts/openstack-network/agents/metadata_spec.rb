@@ -2,7 +2,17 @@ require 'spec_helper'
 require 'shared-examples'
 manifest = 'openstack-network/agents/metadata.pp'
 
+# DISABLE_SPEC
+
 describe manifest do
+
+  before(:each) do
+    Noop.puppet_function_load :is_pkg_installed
+    MockFunction.new(:is_pkg_installed) do |function|
+      allow(function).to receive(:call).and_return false
+    end
+  end
+
   shared_examples 'catalog' do
     if Noop.hiera('use_neutron')
 
@@ -14,7 +24,7 @@ describe manifest do
         Noop.hiera_structure 'configuration'
       end
 
-      na_config                = Noop.hiera_hash('neutron_advanced_configuration')
+      na_config                = Noop.hiera_hash('neutron_advanced_configuration', {})
       neutron_config           = Noop.hiera_hash('neutron_config')
       neutron_controller_roles = Noop.hiera('neutron_controller_nodes', ['controller', 'primary-controller'])
       neutron_compute_roles    = Noop.hiera('neutron_compute_nodes', ['compute'])
