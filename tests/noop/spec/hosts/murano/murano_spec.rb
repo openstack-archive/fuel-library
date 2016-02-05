@@ -3,6 +3,14 @@ require 'shared-examples'
 manifest = 'murano/murano.pp'
 
 describe manifest do
+
+  before(:each) do
+    Noop.puppet_function_load :is_pkg_installed
+    MockFunction.new(:is_pkg_installed) do |function|
+      allow(function).to receive(:call).and_return false
+    end
+  end
+
   shared_examples 'catalog' do
 
     let(:murano_user) { Noop.hiera_structure('murano/user', 'murano') }
@@ -235,7 +243,7 @@ describe manifest do
           url = murano_url
           provider = 'http'
         else
-          url = 'http://' + Noop.hiera('service_endpoint').to_s + ':10000/;csv'
+          url = 'http://' + Noop.hiera('management_vip').to_s + ':10000/;csv'
           provider = Puppet::Type.type(:haproxy_backend_status).defaultprovider.name
         end
         should contain_haproxy_backend_status('murano-api').with(
