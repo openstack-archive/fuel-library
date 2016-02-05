@@ -38,6 +38,7 @@ $syslog_log_facility_nova       = hiera('syslog_log_facility_nova','LOG_LOCAL6')
 $syslog_log_facility_keystone   = hiera('syslog_log_facility_keystone', 'LOG_LOCAL7')
 $syslog_log_facility_sahara     = hiera('syslog_log_facility_sahara','LOG_LOCAL0')
 $syslog_log_facility_ceph       = hiera('syslog_log_facility_ceph','LOG_LOCAL0')
+$proxy_port                     = hiera('proxy_port', '8080')
 
 $keystone_user                  = pick($cinder_hash['user'], 'cinder')
 $keystone_tenant                = pick($cinder_hash['tenant'], 'services')
@@ -71,6 +72,12 @@ $keystone_auth_host             = get_ssl_property($ssl_hash, {}, 'keystone', 'i
 $glance_protocol                = get_ssl_property($ssl_hash, {}, 'glance', 'internal', 'protocol', 'http')
 $glance_endpoint                = get_ssl_property($ssl_hash, {}, 'glance', 'internal', 'hostname', [$management_vip])
 $glance_internal_ssl            = get_ssl_property($ssl_hash, {}, 'glance', 'internal', 'usage', false)
+
+$swift_internal_protocol = get_ssl_property($ssl_hash, {}, 'swift', 'internal', 'protocol', 'http')
+$swift_internal_address  = get_ssl_property($ssl_hash, {}, 'swift', 'internal', 'hostname', [$management_vip])
+
+$swift_url = "${swift_internal_protocol}://${swift_internal_address}:${proxy_port}"
+
 if $glance_internal_ssl {
   $glance_api_servers = "${glance_protocol}://${glance_endpoint}:9292"
 } else {
@@ -318,6 +325,7 @@ class { '::openstack::cinder':
   vmware_host_password => $vcenter_hash['vc_password'],
   auth_uri             => $auth_uri,
   identity_uri         => $auth_uri,
+  swift_url            => $swift_url,
 }
 
 cinder_config { 'keymgr/fixed_key':
