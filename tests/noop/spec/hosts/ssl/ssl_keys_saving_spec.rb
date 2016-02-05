@@ -2,6 +2,8 @@ require 'spec_helper'
 require 'shared-examples'
 manifest = 'ssl/ssl_keys_saving.pp'
 
+# DISABLE_SPEC
+
 describe manifest do
   shared_examples 'catalog' do
     if Noop.hiera('use_ssl', false)
