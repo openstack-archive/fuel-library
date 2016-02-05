@@ -19,7 +19,7 @@ class ceph::osds (
 
   exec {'ceph-disk activate-all':
     command     => 'ceph-disk activate-all',
-    returns     => 0,
+    returns     => [0, 1],
     logoutput   => true,
   } ->
 
