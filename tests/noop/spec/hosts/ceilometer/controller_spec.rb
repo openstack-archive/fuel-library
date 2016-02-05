@@ -2,6 +2,8 @@ require 'spec_helper'
 require 'shared-examples'
 manifest = 'ceilometer/controller.pp'
 
+# DISABLE_SPEC
+
 describe manifest do
   shared_examples 'catalog' do
 

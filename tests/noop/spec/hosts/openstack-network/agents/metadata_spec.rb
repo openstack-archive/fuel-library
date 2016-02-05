@@ -2,6 +2,8 @@ require 'spec_helper'
 require 'shared-examples'
 manifest = 'openstack-network/agents/metadata.pp'
 
+# DISABLE_SPEC
+
 describe manifest do
   shared_examples 'catalog' do
     if Noop.hiera('use_neutron')

@@ -2,6 +2,8 @@ require 'spec_helper'
 require 'shared-examples'
 manifest = 'roles/ironic-compute.pp'
 
+# DISABLE_SPEC
+
 describe manifest do
   shared_examples 'catalog' do
     ironic_user_password = Noop.hiera_structure 'ironic/user_password'
@@ -45,7 +47,7 @@ describe manifest do
         should contain_nova_config('DEFAULT/compute_driver').with(:value => 'ironic.IronicDriver')
         should contain_nova_config('DEFAULT/compute_manager').with(:value => 'ironic.nova.compute.manager.ClusteredComputeManager')
         should contain_nova_config('ironic/admin_url').with(:value => "#{admin_uri}/v2.0")
-        should contain_nova_config('neutron/admin_auth_url')..with(:value => "#{admin_uri}/v2.0")
+        should contain_nova_config('neutron/admin_auth_url').with(:value => "#{admin_uri}/v2.0")
       end
 
       it 'nova config should have reserved_host_memory_mb set to 0' do
