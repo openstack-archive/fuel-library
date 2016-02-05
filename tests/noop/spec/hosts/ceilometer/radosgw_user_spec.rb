@@ -6,7 +6,7 @@ describe manifest do
   shared_examples 'catalog' do
 
     ceilometer_hash = Noop.hiera_structure 'ceilometer'
-    storage_hash = Noop.hiera 'storage'
+    storage_hash = Noop.hiera_hash 'storage'
 
     if ceilometer_hash['enabled'] and storage_hash['objects_ceph']
       it 'should configure Ceilometer user in RadosGW' do

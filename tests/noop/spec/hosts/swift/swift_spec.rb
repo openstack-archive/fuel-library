@@ -4,17 +4,17 @@ manifest = 'swift/swift.pp'
 
 describe manifest do
   shared_examples 'catalog' do
-    workers_max = Noop.hiera 'workers_max'
-    role = Noop.hiera 'role'
-    storage_hash = Noop.hiera 'storage'
-    swift_hash = Noop.hiera 'swift'
-    network_scheme     = Noop.hiera_hash 'network_scheme'
-    network_metadata     = Noop.hiera_hash 'network_metadata'
+    workers_max      = Noop.hiera 'workers_max'
+    role             = Noop.hiera 'role'
+    storage_hash     = Noop.hiera_hash 'storage'
+    swift_hash       = Noop.hiera_hash 'swift'
+    network_scheme   = Noop.hiera_hash 'network_scheme'
+    network_metadata = Noop.hiera_hash 'network_metadata'
 
-    memcached_nodes = Noop.puppet_function('get_nodes_hash_by_roles', network_metadata, ['primary-controller', 'controller'])
+    memcached_nodes     = Noop.puppet_function('get_nodes_hash_by_roles', network_metadata, ['primary-controller', 'controller'])
     memcached_addresses = Noop.hiera 'memcached_addresses'
-    memcached_port = Noop.hiera 'memcache_server_port', '11211'
-    memcached_servers = memcached_addresses.sort.map{ |n| n = n + ':' + memcached_port }
+    memcached_port      = Noop.hiera 'memcache_server_port', '11211'
+    memcached_servers   = memcached_addresses.sort.map{ |n| n = n + ':' + memcached_port }
 
     swift_operator_roles = storage_hash.fetch('swift_operator_roles', ['admin', 'SwiftOperator'])
     ring_part_power = swift_hash.fetch('ring_part_power', 10)

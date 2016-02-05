@@ -7,7 +7,7 @@ describe manifest do
 
     storage_hash = Noop.hiera_structure 'storage'
     ironic_enabled = Noop.hiera_structure 'ironic/enabled'
-    nova_hash = Noop.hiera_structure 'nova_hash'
+    nova_hash = Noop.hiera_structure 'nova'
 
     if ironic_enabled
       compute_driver = 'ironic.IronicDriver'

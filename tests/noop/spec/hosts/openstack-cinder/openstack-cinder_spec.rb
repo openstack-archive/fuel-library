@@ -25,7 +25,7 @@ describe manifest do
   default_log_levels_hash = Noop.hiera_hash 'default_log_levels'
   default_log_levels = Noop.puppet_function 'join_keys_to_values',default_log_levels_hash,'='
   primary_controller = Noop.hiera 'primary_controller'
-  volume_backend_name = Noop.hiera_structure 'storage_hash/volume_backend_names'
+  volume_backend_name = Noop.hiera_structure 'storage/volume_backend_names'
 
   database_vip = Noop.hiera('database_vip')
   cinder = Noop.puppet_function 'roles_include', 'cinder'
@@ -37,8 +37,8 @@ describe manifest do
   ubuntu_tgt_service_name = 'tgt'
   ubuntu_tgt_package_name = 'tgt'
 
-  sahara  = Noop.hiera_structure 'sahara_hash/enabled'
-  storage = Noop.hiera_hash 'storage_hash'
+  sahara  = Noop.hiera_structure 'sahara/enabled'
+  storage = Noop.hiera_hash 'storage'
 
   let(:manage_volumes) do
     if cinder and storage['volumes_lvm']

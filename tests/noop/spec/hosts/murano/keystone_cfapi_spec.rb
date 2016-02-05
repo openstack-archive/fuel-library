@@ -40,9 +40,9 @@ describe manifest do
     end
 
     let(:region) { Noop.hiera('region', 'RegionOne') }
-    let(:tenant) { Noop.hiera_structure('murano_hash/tenant', 'services') }
+    let(:tenant) { Noop.hiera_structure('murano/tenant', 'services') }
 
-    let(:murano_password) { Noop.hiera_structure('murano_hash/user_password') }
+    let(:murano_password) { Noop.hiera_structure('murano/user_password') }
 
     ##########################################################################
 
