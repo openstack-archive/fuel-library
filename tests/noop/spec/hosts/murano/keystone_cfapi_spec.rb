@@ -10,7 +10,7 @@ describe manifest do
     api_bind_port = '8083'
 
     internal_protocol = 'http'
-    internal_address = Noop.hiera('service_endpoint')
+    internal_address = Noop.hiera('management_vip')
     admin_protocol = 'http'
     admin_address = internal_address
 

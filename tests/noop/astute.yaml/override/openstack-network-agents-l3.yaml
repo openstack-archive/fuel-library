@@ -1,5 +1,0 @@
----
-configuration:
-  neutron_l3_agent_config:
-    DEFAULT/send_arp_for_ha:
-      value: 5
