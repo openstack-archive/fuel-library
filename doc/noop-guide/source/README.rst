@@ -6,109 +6,180 @@ Using the fuel_noop_tests.sh wrapper util
 
 In order to test just execute these commands::
 
-  export WORKSPACE=/tmp/fuel_noop_tests
-  mkdir -p $WORKSPACE
   ./utils/jenkins/fuel_noop_tests.sh
 
-In order to run specific test and/or specific astute.yaml, you can
-set appropriate env variables. For example::
+The script will try to run tests for all specs in the library.
 
-  export NOOP_TEST='keystone/*'
-  export NOOP_YAMLS='/path/to/your/astute.yaml'
-  ./utils/jenkins/fuel_noop_tests.sh
-
-If you also want to store puppet logs in case of catalog
-compilation errors, please set PUPPET_LOGS_DIR env variable::
-
-  export PUPPET_LOGS_DIR=/tmp/puppet_error_logs
-
-If you want to store all the delcarated File and Package resources,
-please set NOOP_SAVE_RESOURCES_DIR env variable::
-
-  export NOOP_SAVE_RESOURCES_DIR=/tmp/puppet_resources
-
-Using the fuel_noop_tests.rb util directly
-------------------------------------------
+Using the noop_tests util directly
+----------------------------------
 
 The tool provides an advanced functionality.
-Use the -h key to get the help.
+Use the -h key to get the help::
 
-Deployment data layer checks
-============================
+  tests/noop/noop_tests.sh -h
 
-Below are typical use cases for the `fuel_noop_tests.rb`
-tool to perform a data layer checks of a change-set
-(a patch) against the committed state of the data layer.
+Output::
 
-Ruby and puppet version to be used (optional)
----------------------------------------------
+  Usage: noop_tests [options]
+  Main options:
+      -j, --jobs JOBS                  Parallel run RSpec jobs
+      -g, --globals                    Run all globals tasks and update saved globals YAML files
+      -b, --bundle_setup               Setup Ruby environment using Bundle
+      -B, --bundle_exec                Use "bundle exec" to run rspec
+      -l, --update-librarian           Run librarian-puppet update in the deployment directory prior to testing
+      -L, --reset-librarian            Reset puppet modules to librarian versions in the deployment directory prior to testing
+      -o, --report_only_failed         Show only failed tasks and examples in the report
+      -r, --load_saved_reports         Read saved report JSON files from the previous run and show tasks report
+      -R, --run_failed_tasks           Run the task that have previously failed again
+      -M, --list_missing               List all task manifests without a spec file
+      -x, --xunit_report               Save report in xUnit format to a file
+  List options:
+      -Y, --list_hiera                 List all hiera yaml files
+      -S, --list_specs                 List all task spec files
+      -F, --list_facts                 List all facts yaml files
+      -T, --list_tasks                 List all task manifest files
+  Filter options:
+      -s, --specs SPEC1,SPEC2          Run only these spec files. Example: "hosts/hosts_spec.rb,apache/apache_spec.rb"
+      -y, --yamls YAML1,YAML2          Run only these hiera yamls. Example: "controller.yaml,compute.yaml"
+      -f, --facts FACTS1,FACTS2        Run only these facts yamls. Example: "ubuntu.yaml,centos.yaml"
+  Debug options:
+      -c, --task_console               Run PRY console
+      -C, --rspec_console              Run PRY console in the
+      -d, --task_debug                 Show framework debug messages
+      -D, --puppet_debug               Show Puppet debug messages
+          --debug_log FILE             Write all debug messages to this files
+      -t, --self-check                 Perform self-check and diagnostic procedures
+      -p, --pretend                    Show which tasks will be run without actually running them
+  Path options:
+          --dir_root DIR               Path to the test root folder
+          --dir_deployment DIR         Path to the test deployment folder
+          --dir_hiera_yamls DIR        Path to the folder with hiera files
+          --dir_facts_yamls DIR        Path to the folder with facts yaml files
+          --dir_spec_files DIR         Path to the folder with task spec files (changing this may break puppet-rspec)
+          --dir_task_files DIR         Path to the folder with task manifest files
+          --dir_puppet_modules DIR     Path to the puppet modules
+  Spec options:
+      -A, --catalog_show               Show catalog content debug output
+      -a, --spec_status                Show spec status blocks
 
-::
+Data files
+----------
 
-  rvm use ruby-1.9.3-p545
-  PUPPET_GEM_VERSION=3.4.0
-  PUPPET_VERSION=3.4.0
+To run a noop test on a spec following files are required:
 
+* A spec file: (spec/hosts/my/my_spec.rb)
+* A task file: (modular/my/my.pp)
+* One of Facts sets: (ubuntu.yaml)
+* One of Hiera files: (neut_vlan.ceph.controller-ephemeral-ceph.yaml)
 
-Initial data templates generation (preparing the committed state)
------------------------------------------------------------------
+RSpec framework will try to compile the Puppet catalog using the manifest
+file and modules from the module path. It will use facts from the facts file
+and Hiera data from the hiera file.
 
-Generate *all* data templates of all specs of all deployment scenarios
-making a reset [#]_ & update of librarian puppet before
+If the spec is empty it will test only that catalog have compiled without any
+errors. It's actually not bad because even empty specs can catch a lot or
+different errors.
 
-::
+It the spec has `shared_examples 'catalog'` block defined and there are
+defined examples they will be run against the compiled catalog and matchers
+will be used if they pass or not.
 
-  ./utils/jenkins/fuel_noop_tests.rb -Q -b -r -u
+Every hiera yaml file also has a corresponding globals yaml file that contains
+aditional processed variables. These files are also used by all spec tests.
+If you make any changes to the hiera yaml files you should also recreate
+globals files by running `globals/globals` specs with `save globals` option
+enabled. Later new files can be commited to the fixtures repository.
 
-.. [#] Use `./deployment/remove_modules.sh` to forcibly remove external
-  modules in order to re-fetch them by the `-r` parameter.
+Typical use cases
+-----------------
 
-the same but only for a particular ap-proxi spec
-(use -S to get the full list)
+Let's discuss the most common use cases of the Noop test framework.
 
-::
+Running all tests using multiple processes
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-  ./utils/jenkins/fuel_noop_tests.rb -Q -b -s api-proxy/api-proxy_spec.rb
+Running `tests/noop/noop_tests.sh` without any options will try to execute
+all spec tasks one by one. The list of spec tasks will be generated by
+combining all possible combinations of specs, hiera files and facts files
+that are allowed for this spec.
 
+Adding `-p` options allows you to review the list of tasks that will be run
+without actually running them.
 
-the same but only for the particular ap-proxi spec and the particular
-deployment scenario (use -Y to get the full list)
+Running tasks one by one will be a very time consuming process, so you should
+try to use multiprocess run instead by providing the `-j` options with a
+number of processes that can be started simulteniously. In this mode you
+will not see output of every RSpec process, but you will get the combined
+result report at the end of the process.
 
-::
+You can monitor the progress of tasks by using the debug option `-d`. It will
+show you which tasks are starting and finishing.
 
-  ./utils/jenkins/fuel_noop_tests.rb -Q -b -s api-proxy/api-proxy_spec.rb -y novanet-compute.yaml
+Running only a subset of tasks
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Running the data regression checks against a change-set under test
-------------------------------------------------------------------
+If you want to run only a subset of tasks, up to only one task, you can use
+filters. Providing `-s`, `-y` and `-f` will allow you to set one or more
+specs, yams and facts that you want to use. The list of tasks will be build
+by filtering out everything else. Don't forget that you can use `-p` options
+to review the list of tasks before actually running them.
 
-Run checks against the committed state of the data templates and save
-failed cases as a replay file
+List options `-Y`, `-F`, `-S` and `-T` can be used to view the list of all
+hiera yaml files, facts files, specs and tasks. These lists are very helpful
+for finding out correct values for the filter options.
 
-::
+Recreating globals yaml files
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-  ./utils/jenkins/fuel_noop_tests.rb -q -b -A replay.log
+Globals files should already be precreated and commited to the fixtures
+repository and there is no need for you to create them again in most cases.
+But, if you have made some changes to the existing yaml files or have
+added a new one, you should create globals yamls again.
 
-Re-run the data regression checks against the committed state of the data
-templates using the replay file and skipping all of the globals templates
-being re-generated again (a handy shourtcut for the test time)
+You can do it by running `tests/noop/noop_tests.sh` with `-g` options.
+It will set filters to run only globals tasks as well as enabling the options
+to save the generated files. Using `-j` option will make the process
+much faster.
 
-::
+Spec file annotations
+---------------------
 
-  ./utils/jenkins/fuel_noop_tests.rb -q -b -g -a replay.log
+TODO
 
-Confirming the data changes made to became a new committed state
-----------------------------------------------------------------
+Using hiera and facts overrides
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Use the same patterns as if making the Initial data templates generation.
-Amend generated files to the commit (the change-set under test).
+TODO
 
-Using additional data rspec matchers
-------------------------------------
+Working with reports and fixing task failures
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+TODO
+
+Catalog debugging
+~~~~~~~~~~~~~~~~~
+
+TODO
+
+Initial setup options
+~~~~~~~~~~~~~~~~~~~~~
+
+TODO
+
+Using external environment variables and custom paths
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+TODO
+
+Using additional data rspec matchers and helpers
+------------------------------------------------
 
 There are some matchers for RSpec one would like to use
 
+
+
 ensure_transitive_dependency(before, after)
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 This matcher allows one to check whether there is a
 dependency between *after* and *before* resources

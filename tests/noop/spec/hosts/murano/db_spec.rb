@@ -2,6 +2,8 @@ require 'spec_helper'
 require 'shared-examples'
 manifest = 'murano/db.pp'
 
+# DISABLE_SPEC
+
 describe manifest do
   shared_examples 'catalog' do
     murano_enabled = Noop.hiera_structure('murano/enabled', false)
