@@ -111,15 +111,19 @@ class fuel::nailgun::server (
   }
 
   exec {"nailgun_syncdb":
-    command => "/usr/bin/nailgun_syncdb",
-    require => [
-      File["/etc/nailgun/settings.yaml"],
-    ],
+    command     => "/usr/bin/nailgun_syncdb",
+    refreshonly => true,
+    subscribe   => File["/etc/nailgun/settings.yaml"],
+    tries       => 50,
+    try_sleep   => 5,
   }
 
   exec {"nailgun_upload_fixtures":
-    command => "/usr/bin/nailgun_fixtures",
-    require => Exec["nailgun_syncdb"],
+    command     => '/usr/bin/nailgun_fixtures',
+    refreshonly => true,
+    subscribe   => File["/etc/nailgun/settings.yaml"],
+    tries       => 50,
+    try_sleep   => 5,
   }
 
   file {"/etc/cron.daily/capacity":
