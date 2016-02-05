@@ -15,7 +15,7 @@ describe manifest do
         baremetal_router         = (neutron_config['baremetal_router'] or 'baremetal')
         l3_ha                    = Noop.hiera_hash('neutron_advanced_configuration', {}).fetch('neutron_l3_ha', false)
         dvr                      = Noop.hiera_hash('neutron_advanced_configuration', {}).fetch('neutron_dvr', false)
-        network_metadata         = Noop.hiera('network_metadata')
+        network_metadata         = Noop.hiera_hash('network_metadata')
         neutron_controller_roles = Noop.hiera('neutron_controller_nodes', ['controller', 'primary-controller'])
         neutron_controller_nodes = Noop.puppet_function 'get_nodes_hash_by_roles', network_metadata, neutron_controller_roles
         neutron_controllers_num  = neutron_controller_nodes.size

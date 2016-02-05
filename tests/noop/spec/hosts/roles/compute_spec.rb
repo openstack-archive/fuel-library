@@ -3,6 +3,14 @@ require 'shared-examples'
 manifest = 'roles/compute.pp'
 
 describe manifest do
+
+  before(:each) do
+    Noop.puppet_function_load :is_pkg_installed
+    MockFunction.new(:is_pkg_installed) do |function|
+      allow(function).to receive(:call).and_return false
+    end
+  end
+
   shared_examples 'catalog' do
 
     host_uuid = Noop.hiera 'host_uuid'
