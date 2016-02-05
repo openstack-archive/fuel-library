@@ -5,8 +5,8 @@ manifest = 'roles/cinder.pp'
 describe manifest do
   shared_examples 'catalog' do
 
-  storage_hash = Noop.hiera 'storage_hash'
-  ceilometer_hash = Noop.hiera 'ceilometer_hash', { 'enabled' => false }
+  storage_hash = Noop.hiera_hash 'storage'
+  ceilometer_hash = Noop.hiera_hash 'ceilometer', { 'enabled' => false }
   use_ceph = Noop.hiera 'use_ceph'
   volume_backend_name = storage_hash['volume_backend_names']
 
@@ -103,7 +103,7 @@ describe manifest do
   end
 
   let :ceilometer_hash do
-    Noop.hiera 'ceilometer_hash', { 'enabled' => false }
+    Noop.hiera_hash 'ceilometer', { 'enabled' => false }
   end
 
   if ceilometer_hash['enabled']

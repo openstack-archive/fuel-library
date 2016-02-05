@@ -5,7 +5,7 @@ manifest = 'murano/cfapi.pp'
 describe manifest do
   shared_examples 'catalog' do
 
-    let(:tenant) { Noop.hiera_structure('access_hash/tenant', 'admin') }
+    let(:tenant) { Noop.hiera_structure('access/tenant', 'admin') }
 
     let(:network_scheme) do
       Noop.hiera_hash 'network_scheme'

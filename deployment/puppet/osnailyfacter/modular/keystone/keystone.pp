@@ -10,7 +10,7 @@ $debug                 = pick($keystone_hash['debug'], hiera('debug', false))
 $use_neutron           = hiera('use_neutron', false)
 $use_syslog            = hiera('use_syslog', true)
 $use_stderr            = hiera('use_stderr', false)
-$access_hash           = hiera_hash('access',{})
+$access_hash           = hiera_hash('access', {})
 $management_vip        = hiera('management_vip')
 $database_vip          = hiera('database_vip')
 $public_vip            = hiera('public_vip')
@@ -18,9 +18,9 @@ $service_endpoint      = hiera('service_endpoint')
 $glance_hash           = hiera_hash('glance', {})
 $nova_hash             = hiera_hash('nova', {})
 $cinder_hash           = hiera_hash('cinder', {})
-$ceilometer_hash       = hiera_hash('ceilometer_hash', {})
+$ceilometer_hash       = hiera_hash('ceilometer', {})
 $syslog_log_facility   = hiera('syslog_log_facility_keystone')
-$rabbit_hash           = hiera_hash('rabbit_hash', {})
+$rabbit_hash           = hiera_hash('rabbit', {})
 $neutron_user_password = hiera('neutron_user_password', false)
 $workers_max           = hiera('workers_max', 16)
 $service_workers       = pick($keystone_hash['workers'],
@@ -56,7 +56,7 @@ $admin_user     = $access_hash['user']
 $admin_password = $access_hash['password']
 $region         = hiera('region', 'RegionOne')
 
-$public_ssl_hash         = hiera('public_ssl')
+$public_ssl_hash         = hiera_hash('public_ssl')
 $ssl_hash                = hiera_hash('use_ssl', {})
 
 $public_cert             = get_ssl_property($ssl_hash, $public_ssl_hash, 'keystone', 'public', 'path', [''])
@@ -106,14 +106,14 @@ $max_overflow  = hiera('max_overflow')
 $max_retries   = '-1'
 $database_idle_timeout  = '3600'
 
-$murano_settings_hash = hiera('murano_settings', {})
+$murano_settings_hash = hiera_hash('murano_settings', {})
 if has_key($murano_settings_hash, 'murano_repo_url') {
   $murano_repo_url = $murano_settings_hash['murano_repo_url']
 } else {
   $murano_repo_url = 'http://storage.apps.openstack.org'
 }
 
-$murano_hash    = hiera_hash('murano_hash', {})
+$murano_hash    = hiera_hash('murano', {})
 $murano_plugins = pick($murano_hash['plugins'], {})
 $murano_glare_plugin = pick($murano_plugins['glance_artifacts_plugin']['enabled'], false)
 

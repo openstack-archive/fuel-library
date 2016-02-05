@@ -82,14 +82,14 @@ describe manifest do
       it 'should declare sahara class correctly' do
         facts[:processorcount] = 10
         sahara_plugins = %w(ambari cdh mapr spark vanilla)
-        sahara_user = Noop.hiera_structure('sahara_hash/user', 'sahara')
-        sahara_password = Noop.hiera_structure('sahara_hash/user_password')
+        sahara_user = Noop.hiera_structure('sahara/user', 'sahara')
+        sahara_password = Noop.hiera_structure('sahara/user_password')
         primary_controller = Noop.hiera 'primary_controller'
-        tenant = Noop.hiera_structure('sahara_hash/tenant', 'services')
-        db_user = Noop.hiera_structure('sahara_hash/db_user', 'sahara')
-        db_name = Noop.hiera_structure('sahara_hash/db_name', 'sahara')
-        db_password = Noop.hiera_structure('sahara_hash/db_password')
-        db_host = Noop.hiera_structure('sahara_hash/db_host', database_vip)
+        tenant = Noop.hiera_structure('sahara/tenant', 'services')
+        db_user = Noop.hiera_structure('sahara/db_user', 'sahara')
+        db_name = Noop.hiera_structure('sahara/db_name', 'sahara')
+        db_password = Noop.hiera_structure('sahara/db_password')
+        db_host = Noop.hiera_structure('sahara/db_host', database_vip)
         max_pool_size =[facts[:processorcount] * 5 + 0, 30 + 0].min
         max_overflow = [facts[:processorcount] * 5 + 0, 60 + 0].min
         max_retries  = '-1'

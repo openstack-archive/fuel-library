@@ -40,7 +40,7 @@ describe manifest do
     workers_max = Noop.hiera 'workers_max'
     debug = Noop.hiera('debug', false)
     threads_max = 2*workers_max.to_i
-    rabbit_hash = Noop.hiera_structure 'rabbit_hash'
+    rabbit_hash = Noop.hiera_structure 'rabbit'
     use_pacemaker = rabbit_hash.fetch(['pacemaker'], true)
     pid_file = rabbit_hash.fetch('pid_file', '/var/run/rabbitmq/p_pid')
     file_limit = rabbit_hash.fetch('file_limits', 100000)

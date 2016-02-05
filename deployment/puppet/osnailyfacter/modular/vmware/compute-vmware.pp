@@ -2,7 +2,7 @@ notice('MODULAR: vmware/compute-vmware.pp')
 
 $debug = hiera('debug', true)
 
-$vcenter_hash = hiera('vcenter', {})
+$vcenter_hash = hiera_hash('vcenter', {})
 $computes_hash = parse_vcenter_settings($vcenter_hash['computes'])
 
 $defaults = {
@@ -10,10 +10,10 @@ $defaults = {
   vlan_interface => $vcenter_hash['esxi_vlan_interface']
 }
 
-create_resources(vmware::compute_vmware, $computes_hash, $defaults)
+create_resources(vmware::compute_vmware, $computes, $defaults)
 
 
-$ceilometer_hash = hiera('ceilometer', {})
+$ceilometer_hash = hiera_hash('ceilometer', {})
 $ceilometer_enabled = $ceilometer_hash['enabled']
 
 if $ceilometer_enabled {
