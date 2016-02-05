@@ -6,12 +6,12 @@ describe manifest do
   shared_examples 'catalog' do
     context 'running on CentOS 6' do
       let(:facts) do
-        Noop.centos_facts.merge({
+        task.facts_data.merge({
           :operatingsystemmajrelease => '6'
         })
       end
       it 'configure nailgun supervisor' do
-        fuel_settings = Noop.puppet_function 'parseyaml',facts[:astute_settings_yaml]
+        fuel_settings = task.puppet_function 'parseyaml',facts[:astute_settings_yaml]
         if fuel_settings['PRODUCTION']
           production = fuel_settings['PRODUCTION']
         else
@@ -61,14 +61,14 @@ describe manifest do
 
     context 'running on CentOS 7' do
       let(:facts) do
-        Noop.centos_facts.merge({
+        task.facts_data.merge({
           :operatingsystemmajrelease => '7'
         })
       end
       let(:params) { { :services => [ 'ostf' ] } }
 
       it 'configures service with valid params' do
-        fuel_settings = Noop.puppet_function 'parseyaml',facts[:astute_settings_yaml]
+        fuel_settings = task.puppet_function 'parseyaml',facts[:astute_settings_yaml]
         if fuel_settings['PRODUCTION']
           production = fuel_settings['PRODUCTION']
         else

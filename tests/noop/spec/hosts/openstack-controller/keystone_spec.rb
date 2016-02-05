@@ -8,24 +8,24 @@ describe manifest do
       contain_class('nova::keystone::auth')
     end
 
-    public_vip           = Noop.hiera('public_vip')
+    public_vip           = task.hiera('public_vip')
     internal_protocol    = 'http'
-    internal_address     = Noop.hiera('management_vip')
+    internal_address     = task.hiera('management_vip')
     admin_protocol       = 'http'
     admin_address        = internal_address
-    public_ssl           = Noop.hiera_structure('public_ssl/services')
-    tenant               = Noop.hiera_structure('nova/tenant', 'services')
+    public_ssl           = task.hiera_structure('public_ssl/services')
+    tenant               = task.hiera_structure('nova/tenant', 'services')
 
-    if Noop.hiera_structure('use_ssl')
+    if task.hiera_structure('use_ssl')
       public_protocol   = 'https'
-      public_address    = Noop.hiera_structure('use_ssl/nova_public_hostname')
+      public_address    = task.hiera_structure('use_ssl/nova_public_hostname')
       internal_protocol = 'https'
-      internal_address  = Noop.hiera_structure('use_ssl/nova_internal_hostname')
+      internal_address  = task.hiera_structure('use_ssl/nova_internal_hostname')
       admin_protocol    = 'https'
-      admin_address     = Noop.hiera_structure('use_ssl/nova_admin_hostname')
+      admin_address     = task.hiera_structure('use_ssl/nova_admin_hostname')
     elsif public_ssl
       public_protocol = 'https'
-      public_address  = Noop.hiera_structure('public_ssl/hostname')
+      public_address  = task.hiera_structure('public_ssl/hostname')
     else
       public_protocol = 'http'
       public_address  = public_vip

@@ -6,8 +6,8 @@ describe manifest do
   shared_examples 'catalog' do
     keystone_db_user = 'keystone'
     keystone_db_dbname = 'keystone'
-    keystone_db_password = Noop.hiera_structure 'keystone/db_password'
-    allowed_hosts = [Noop.hostname,'localhost','127.0.0.1','%']
+    keystone_db_password = task.hiera_structure 'keystone/db_password'
+    allowed_hosts = [task.hostname,'localhost','127.0.0.1','%']
 
     it 'should install proper mysql-client' do
       if facts[:osfamily] == 'RedHat'

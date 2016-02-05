@@ -5,12 +5,12 @@ manifest = 'openstack-haproxy/openstack-haproxy-swift.pp'
 describe manifest do
   shared_examples 'catalog' do
 
-    ironic_enabled = Noop.hiera_structure 'ironic/enabled'
+    ironic_enabled = task.hiera_structure 'ironic/enabled'
 
     # Determine if swift is used
-    images_ceph = Noop.hiera_structure('storage/images_ceph', false)
-    objects_ceph = Noop.hiera_structure('storage/objects_ceph', false)
-    images_vcenter = Noop.hiera_structure('storage/images_vcenter', false)
+    images_ceph = task.hiera_structure('storage/images_ceph', false)
+    objects_ceph = task.hiera_structure('storage/objects_ceph', false)
+    images_vcenter = task.hiera_structure('storage/images_vcenter', false)
 
     if images_ceph or objects_ceph or images_vcenter
       use_swift = false
@@ -19,8 +19,8 @@ describe manifest do
     end
 
     let (:bind_to_one) {
-      api_ip = Noop.puppet_function 'get_network_role_property', 'swift/api', 'ipaddr'
-      storage_ip = Noop.puppet_function 'get_network_role_property', 'swift/replication', 'ipaddr'
+      api_ip = task.puppet_function 'get_network_role_property', 'swift/api', 'ipaddr'
+      storage_ip = task.puppet_function 'get_network_role_property', 'swift/replication', 'ipaddr'
       api_ip == storage_ip
     }
 
@@ -40,7 +40,7 @@ describe manifest do
       }
     end
 
-    if use_swift and !Noop.hiera('external_lb', false)
+    if use_swift and !task.hiera('external_lb', false)
 
       it "should declare openstack::ha:swift class with valid params" do
         should contain_class('openstack::ha::swift').with(
@@ -49,7 +49,7 @@ describe manifest do
       end
 
       it "should properly configure swift haproxy based on ssl" do
-        public_ssl_swift = Noop.hiera_structure('public_ssl/services', false)
+        public_ssl_swift = task.hiera_structure('public_ssl/services', false)
         should contain_openstack__ha__haproxy_service('swift').with(
           'order'                  => '120',
           'listen_port'            => 8080,
@@ -62,7 +62,7 @@ describe manifest do
 
       if ironic_enabled
 
-        baremetal_virtual_ip = Noop.hiera_structure 'network_metadata/vips/baremetal/ipaddr'
+        baremetal_virtual_ip = task.hiera_structure 'network_metadata/vips/baremetal/ipaddr'
 
         it 'should declare ::openstack::ha::swift class with baremetal_virtual_ip' do
           should contain_class('openstack::ha::swift').with(

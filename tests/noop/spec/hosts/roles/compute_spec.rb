@@ -5,19 +5,19 @@ manifest = 'roles/compute.pp'
 describe manifest do
   shared_examples 'catalog' do
 
-    host_uuid = Noop.hiera 'host_uuid'
+    host_uuid = task.hiera 'host_uuid'
 
-    network_metadata     = Noop.hiera 'network_metadata'
-    memcache_roles       = Noop.hiera 'memcache_roles'
-    memcache_addresses   = Noop.hiera 'memcached_addresses', false
-    memcache_server_port = Noop.hiera 'memcache_server_port', '11211'
+    network_metadata     = task.hiera 'network_metadata'
+    memcache_roles       = task.hiera 'memcache_roles'
+    memcache_addresses   = task.hiera 'memcached_addresses', false
+    memcache_server_port = task.hiera 'memcache_server_port', '11211'
 
     let(:memcache_nodes) do
-      Noop.puppet_function 'get_nodes_hash_by_roles', network_metadata, memcache_roles
+      task.puppet_function 'get_nodes_hash_by_roles', network_metadata, memcache_roles
     end
 
     let(:memcache_address_map) do
-      Noop.puppet_function 'get_node_to_ipaddr_map_by_network_role', memcache_nodes, 'mgmt/memcache'
+      task.puppet_function 'get_node_to_ipaddr_map_by_network_role', memcache_nodes, 'mgmt/memcache'
     end
 
     let (:memcache_servers) do
@@ -29,7 +29,7 @@ describe manifest do
     end
 
     let(:nova_hash) do
-      Noop.hiera_structure 'nova'
+      task.hiera_structure 'nova'
     end
 
     let(:rhost_mem) do
@@ -76,7 +76,7 @@ describe manifest do
     end
 
     let(:configuration_override) do
-      Noop.hiera_structure 'configuration'
+      task.hiera_structure 'configuration'
     end
 
     let(:nova_config_override_resources) do
@@ -158,7 +158,7 @@ describe manifest do
     end
 
     it 'should use override_resources to update nova_config' do
-      ral_catalog = Noop.create_ral_catalog self
+      ral_catalog = task.task.create_ral_catalog self
       nova_config_override_resources.each do |title, params|
         params['value'] = 'True' if params['value'].is_a? TrueClass
         expect(ral_catalog).to contain_nova_config(title).with(params)
@@ -170,7 +170,7 @@ describe manifest do
     end
 
     it 'should use override_resources to update nova_paste_api_ini' do
-      ral_catalog = Noop.create_ral_catalog self
+      ral_catalog = task.task.create_ral_catalog self
       nova_paste_api_ini_override_resources.each do |title, params|
        params['value'] = 'True' if params['value'].is_a? TrueClass
        expect(ral_catalog).to contain_nova_paste_api_ini(title).with(params)
@@ -179,19 +179,19 @@ describe manifest do
 
 
     # SSL support
-    management_vip = Noop.hiera('management_vip')
+    management_vip = task.hiera('management_vip')
     glance_api_servers = "#{management_vip}:9292"
     vncproxy_protocol = 'https'
 
-    if Noop.hiera_structure('use_ssl')
-      vncproxy_host = Noop.hiera_structure('use_ssl/nova_public_hostname')
+    if task.hiera_structure('use_ssl')
+      vncproxy_host = task.hiera_structure('use_ssl/nova_public_hostname')
       glance_protocol = 'https'
-      glance_endpoint = Noop.hiera_structure('use_ssl/glance_internal_hostname')
+      glance_endpoint = task.hiera_structure('use_ssl/glance_internal_hostname')
       glance_api_servers = "#{glance_protocol}://#{glance_endpoint}:9292"
-    elsif Noop.hiera_structure('public_ssl/services')
-      vncproxy_host = Noop.hiera_structure('public_ssl/hostname')
+    elsif task.hiera_structure('public_ssl/services')
+      vncproxy_host = task.hiera_structure('public_ssl/hostname')
     else
-      vncproxy_host = Noop.hiera('public_vip')
+      vncproxy_host = task.hiera('public_vip')
       vncproxy_protocol = 'http'
     end
 
@@ -212,8 +212,8 @@ describe manifest do
 
     # Check out nova config params
     it 'should properly configure nova' do
-      node_name = Noop.hiera('node_name')
-      network_metadata = Noop.hiera_hash('network_metadata')
+      node_name = task.hiera('node_name')
+      network_metadata = task.hiera_hash('network_metadata')
       roles = network_metadata['nodes'][node_name]['node_roles']
       nova_hash.merge!({'vncproxy_protocol' => vncproxy_protocol})
 

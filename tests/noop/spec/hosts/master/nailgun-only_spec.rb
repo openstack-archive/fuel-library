@@ -5,7 +5,7 @@ manifest = 'master/nailgun-only.pp'
 describe manifest do
 
   before(:each) do
-    Noop.puppet_function_load :file
+    task.puppet_function_load :file
     MockFunction.new(:file) do |function|
       allow(function).to receive(:call).with(['/root/.ssh/id_rsa.pub']).and_return('key')
     end
@@ -15,7 +15,7 @@ describe manifest do
 
     context 'running on CentOS 6' do
       let(:facts) do
-        Noop.centos_facts.merge({
+        task.facts_data.merge({
           :operatingsystemmajrelease => '6'
         })
       end
@@ -52,7 +52,7 @@ describe manifest do
 
     context 'running on CentOS 7' do
       let(:facts) do
-        Noop.centos_facts.merge({
+        task.facts_data.merge({
           :operatingsystemmajrelease => '7'
         })
       end
@@ -71,7 +71,7 @@ describe manifest do
 
 
       it 'configures service with valid params' do
-        fuel_settings = Noop.puppet_function 'parseyaml',facts[:astute_settings_yaml]
+        fuel_settings = task.puppet_function 'parseyaml',facts[:astute_settings_yaml]
         if fuel_settings['PRODUCTION']
           production = fuel_settings['PRODUCTION']
         else

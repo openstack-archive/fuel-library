@@ -5,91 +5,91 @@ manifest = 'sahara/sahara.pp'
 describe manifest do
   shared_examples 'catalog' do
 
-    let(:use_neutron) { Noop.hiera 'use_neutron' }
-    let(:rabbit_user) { Noop.hiera_structure 'rabbit/user', 'nova' }
-    let(:rabbit_password) { Noop.hiera_structure 'rabbit/password' }
-    let(:auth_user) { Noop.hiera_structure 'access/user' }
-    let(:auth_password) { Noop.hiera_structure 'access/password' }
-    let(:auth_tenant) { Noop.hiera_structure 'access/tenant' }
-    let(:service_endpoint) { Noop.hiera('service_endpoint') }
-    let(:public_vip) { Noop.hiera('public_vip') }
-    let(:internal_net) { Noop.hiera_structure('neutron_config/default_private_net', 'admin_internal_net') }
+    let(:use_neutron) { task.hiera 'use_neutron' }
+    let(:rabbit_user) { task.hiera_structure 'rabbit/user', 'nova' }
+    let(:rabbit_password) { task.hiera_structure 'rabbit/password' }
+    let(:auth_user) { task.hiera_structure 'access/user' }
+    let(:auth_password) { task.hiera_structure 'access/password' }
+    let(:auth_tenant) { task.hiera_structure 'access/tenant' }
+    let(:service_endpoint) { task.hiera('service_endpoint') }
+    let(:public_vip) { task.hiera('public_vip') }
+    let(:internal_net) { task.hiera_structure('neutron_config/default_private_net', 'admin_internal_net') }
 
     let(:network_scheme) do
-      Noop.hiera_hash 'network_scheme'
+      task.hiera_hash 'network_scheme'
     end
 
     let(:prepare) do
-      Noop.puppet_function 'prepare_network_config', network_scheme
+      task.puppet_function 'prepare_network_config', network_scheme
     end
 
     let(:bind_address) do
       prepare
-      Noop.puppet_function 'get_network_role_property', 'sahara/api', 'ipaddr'
+      task.puppet_function 'get_network_role_property', 'sahara/api', 'ipaddr'
     end
 
     let(:public_ip) do
-      Noop.hiera 'public_vip'
+      task.hiera 'public_vip'
     end
 
     let(:public_ssl_hostname) do
-      Noop.hiera_structure('public_ssl/hostname')
+      task.hiera_structure('public_ssl/hostname')
     end
 
-    let(:database_vip) { Noop.hiera('database_vip', bind_address) }
-    let(:amqp_port) { Noop.hiera('amqp_port') }
-    let(:amqp_hosts) { Noop.hiera('amqp_hosts') }
-    let(:debug) { Noop.hiera('debug', false) }
-    let(:verbose) { Noop.hiera('verbose', true) }
-    let(:use_syslog) { Noop.hiera('use_syslog', true) }
-    let(:log_facility_sahara) { Noop.hiera('syslog_log_facility_sahara') }
-    let(:rabbit_ha_queues) { Noop.hiera('rabbit_ha_queues') }
-    let(:public_ssl) { Noop.hiera_structure('public_ssl/services') }
+    let(:database_vip) { task.hiera('database_vip', bind_address) }
+    let(:amqp_port) { task.hiera('amqp_port') }
+    let(:amqp_hosts) { task.hiera('amqp_hosts') }
+    let(:debug) { task.hiera('debug', false) }
+    let(:verbose) { task.hiera('verbose', true) }
+    let(:use_syslog) { task.hiera('use_syslog', true) }
+    let(:log_facility_sahara) { task.hiera('syslog_log_facility_sahara') }
+    let(:rabbit_ha_queues) { task.hiera('rabbit_ha_queues') }
+    let(:public_ssl) { task.hiera_structure('public_ssl/services') }
 
     let(:public_protocol) { public_ssl ? 'https' : 'http' }
     let(:public_address) { public_ssl ? public_ssl_hostname : public_ip }
 
     let(:api_bind_port) { '8386' }
 
-    let(:ssl_hash) { Noop.hiera_hash 'use_ssl', {} }
+    let(:ssl_hash) { task.hiera_hash 'use_ssl', {} }
 
     let (:sahara_protocol){
-      Noop.puppet_function 'get_ssl_property', ssl_hash, {}, 'sahara',
+      task.puppet_function 'get_ssl_property', ssl_hash, {}, 'sahara',
         'internal', 'protocol', 'http'
     }
 
     let (:sahara_address){
-      Noop.puppet_function 'get_ssl_property', ssl_hash, {}, 'sahara',
+      task.puppet_function 'get_ssl_property', ssl_hash, {}, 'sahara',
         'internal', 'hostname',
-        [Noop.hiera('service_endpoint', ''), Noop.hiera('management_vip')]
+        [task.hiera('service_endpoint', ''), task.hiera('management_vip')]
     }
 
     let (:sahara_url){
       "#{sahara_protocol}://#{sahara_address}:#{api_bind_port}"
     }
 
-    let(:admin_auth_protocol) { Noop.puppet_function 'get_ssl_property',ssl_hash,{},'keystone', 'admin','protocol','http' }
-    let(:admin_auth_address) { Noop.puppet_function 'get_ssl_property',ssl_hash,{},'keystone','admin', 'hostname', [Noop.hiera('service_endpoint', Noop.hiera('management_vip'))]}
+    let(:admin_auth_protocol) { task.puppet_function 'get_ssl_property',ssl_hash,{},'keystone', 'admin','protocol','http' }
+    let(:admin_auth_address) { task.puppet_function 'get_ssl_property',ssl_hash,{},'keystone','admin', 'hostname', [task.hiera('service_endpoint', task.hiera('management_vip'))]}
     let(:admin_uri) { "#{admin_auth_protocol}://#{admin_auth_address}:35357" }
-    let(:internal_auth_protocol) { Noop.puppet_function 'get_ssl_property',ssl_hash,{},'keystone','internal','protocol','http' }
-    let(:internal_auth_address) { Noop.puppet_function 'get_ssl_property',ssl_hash,{},'keystone','internal','hostname',[Noop.hiera('service_endpoint', ''), Noop.hiera('management_vip')] }
+    let(:internal_auth_protocol) { task.puppet_function 'get_ssl_property',ssl_hash,{},'keystone','internal','protocol','http' }
+    let(:internal_auth_address) { task.puppet_function 'get_ssl_property',ssl_hash,{},'keystone','internal','hostname',[task.hiera('service_endpoint', ''), task.hiera('management_vip')] }
     let(:auth_url) { "#{internal_auth_protocol}://#{internal_auth_address}:5000/v2.0/" }
 
     ############################################################################
 
-    enable = Noop.hiera_structure('sahara/enabled')
+    enable = task.hiera_structure('sahara/enabled')
     context 'if sahara is enabled', :if => enable do
       it 'should declare sahara class correctly' do
         facts[:processorcount] = 10
         sahara_plugins = %w(ambari cdh mapr spark vanilla)
-        sahara_user = Noop.hiera_structure('sahara_hash/user', 'sahara')
-        sahara_password = Noop.hiera_structure('sahara_hash/user_password')
-        primary_controller = Noop.hiera 'primary_controller'
-        tenant = Noop.hiera_structure('sahara_hash/tenant', 'services')
-        db_user = Noop.hiera_structure('sahara_hash/db_user', 'sahara')
-        db_name = Noop.hiera_structure('sahara_hash/db_name', 'sahara')
-        db_password = Noop.hiera_structure('sahara_hash/db_password')
-        db_host = Noop.hiera_structure('sahara_hash/db_host', database_vip)
+        sahara_user = task.hiera_structure('sahara_hash/user', 'sahara')
+        sahara_password = task.hiera_structure('sahara_hash/user_password')
+        primary_controller = task.hiera 'primary_controller'
+        tenant = task.hiera_structure('sahara_hash/tenant', 'services')
+        db_user = task.hiera_structure('sahara_hash/db_user', 'sahara')
+        db_name = task.hiera_structure('sahara_hash/db_name', 'sahara')
+        db_password = task.hiera_structure('sahara_hash/db_password')
+        db_host = task.hiera_structure('sahara_hash/db_host', database_vip)
         max_pool_size =[facts[:processorcount] * 5 + 0, 30 + 0].min
         max_overflow = [facts[:processorcount] * 5 + 0, 60 + 0].min
         max_retries  = '-1'
@@ -132,13 +132,13 @@ describe manifest do
                )
       end
 
-      default_log_levels_hash = Noop.hiera_hash 'default_log_levels'
-      default_log_levels = Noop.puppet_function 'join_keys_to_values',default_log_levels_hash,'='
+      default_log_levels_hash = task.hiera_hash 'default_log_levels'
+      default_log_levels = task.puppet_function 'join_keys_to_values',default_log_levels_hash,'='
       it 'should configure default_log_levels' do
         should contain_sahara_config('DEFAULT/default_log_levels').with_value(default_log_levels.sort.join(','))
       end
 
-      enable = (Noop.hiera_structure('sahara/enabled') and Noop.hiera_structure('public_ssl/services'))
+      enable = (task.hiera_structure('sahara/enabled') and task.hiera_structure('public_ssl/services'))
       context 'with public_ssl enabled', :if => enable do
         it { should contain_file('/etc/pki/tls/certs').with(
            'mode' => 755
@@ -164,7 +164,7 @@ describe manifest do
         should contain_class('sahara::client')
       end
 
-      enable = (Noop.hiera_structure('sahara/enabled') and Noop.hiera_structure('ceilometer/enabled'))
+      enable = (task.hiera_structure('sahara/enabled') and task.hiera_structure('ceilometer/enabled'))
       context 'with ceilometer', :if => enable do
         it 'should declare sahara::notify class correctly' do
           should contain_class('sahara::notify').with(
@@ -173,7 +173,7 @@ describe manifest do
         end
       end
 
-      enable = (Noop.hiera_structure('sahara/enabled') and Noop.hiera('role') == 'primary-controller')
+      enable = (task.hiera_structure('sahara/enabled') and task.hiera('role') == 'primary-controller')
       context 'on primary-controller', :if => enable do
 
         it 'should declare sahara_templates class correctly' do
@@ -198,11 +198,11 @@ describe manifest do
       end
 
       it {
-        if Noop.hiera('external_lb', false)
+        if task.hiera('external_lb', false)
           url = sahara_url
           provider = 'http'
         else
-          url = 'http://' + Noop.hiera('service_endpoint').to_s + ':10000/;csv'
+          url = 'http://' + task.hiera('service_endpoint').to_s + ':10000/;csv'
           provider = Puppet::Type.type(:haproxy_backend_status).defaultprovider.name
         end
         should contain_haproxy_backend_status('sahara').with(

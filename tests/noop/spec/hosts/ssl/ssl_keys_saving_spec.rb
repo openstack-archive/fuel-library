@@ -4,13 +4,13 @@ manifest = 'ssl/ssl_keys_saving.pp'
 
 describe manifest do
   shared_examples 'catalog' do
-    if Noop.hiera('use_ssl', false)
+    if task.hiera('use_ssl', false)
       context 'for services that have all endpoint types' do
         services = [ 'keystone', 'nova', 'heat', 'glance', 'cinder', 'neutron', 'swift', 'sahara', 'murano', 'ceilometer' ]
         types = [ 'public', 'internal', 'admin' ]
         services.each do |service|
           types.each do |type|
-            certdata = Noop.hiera_structure "use_ssl/#{service}_#{type}_certdata/content"
+            certdata = task.hiera_structure "use_ssl/#{service}_#{type}_certdata/content"
             it "should create certificate file with all data for #{type} #{service} in /etc/" do
               should contain_file("/etc/pki/tls/certs/#{type}_#{service}.pem").with(
                 'ensure'  => 'present',
@@ -31,7 +31,7 @@ describe manifest do
       context 'for public-only services' do
         services = [ 'horizon', 'radosgw' ]
         services.each do |service|
-          certdata = Noop.hiera_structure "use_ssl/#{service}_public_certdata/content"
+          certdata = task.hiera_structure "use_ssl/#{service}_public_certdata/content"
           it "should create certificate file with all data for public #{service} in /etc/" do
             should contain_file("/etc/pki/tls/certs/public_#{service}.pem").with(
               'ensure'  => 'present',
@@ -65,8 +65,8 @@ describe manifest do
         end
       end
 
-    elsif Noop.hiera('public_ssl', false)
-      certdata = Noop.hiera_structure "public_ssl/cert_data/content"
+    elsif task.hiera('public_ssl', false)
+      certdata = task.hiera_structure "public_ssl/cert_data/content"
       it "should create certificate file for public endpoints in /var/" do
         should contain_file("/var/lib/astute/haproxy/public_haproxy.pem").with(
           'ensure'  => 'present',

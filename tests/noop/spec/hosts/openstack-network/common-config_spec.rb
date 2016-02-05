@@ -4,34 +4,34 @@ manifest = 'openstack-network/common-config.pp'
 
 describe manifest do
   shared_examples 'catalog' do
-    if Noop.hiera('use_neutron')
+    if task.hiera('use_neutron')
 
       let(:network_scheme) do
-        Noop.hiera_hash('network_scheme', {})
+        task.hiera_hash('network_scheme', {})
       end
 
       let(:prepare) do
-        Noop.puppet_function('prepare_network_config', network_scheme)
+        task.puppet_function('prepare_network_config', network_scheme)
       end
 
       let(:bind_host) do
         prepare
-        Noop.puppet_function('get_network_role_property', 'neutron/api', 'ipaddr')
+        task.puppet_function('get_network_role_property', 'neutron/api', 'ipaddr')
       end
 
       context 'with Neutron' do
-        neutron_config = Noop.hiera('neutron_config')
-        openstack_network_hash = Noop.hiera('openstack_network', { })
+        neutron_config = task.hiera('neutron_config')
+        openstack_network_hash = task.hiera('openstack_network', { })
 
         it {
           verbose = openstack_network_hash['verbose']
-          verbose = Noop.hiera('verbose', true) if verbose.nil?
+          verbose = task.hiera('verbose', true) if verbose.nil?
           should contain_class('neutron').with('verbose' => verbose)
         }
 
         it {
           debug = openstack_network_hash['debug']
-          debug = Noop.hiera('debug', true) if debug.nil?
+          debug = task.hiera('debug', true) if debug.nil?
           should contain_class('neutron').with('debug' => debug)
         }
 
@@ -42,9 +42,9 @@ describe manifest do
         it { should contain_class('neutron').with('dhcp_lease_duration' => '600')}
         it { should contain_class('neutron').with('mac_generation_retries' => '32')}
         it { should contain_class('neutron').with('allow_overlapping_ips' => 'true')}
-        it { should contain_class('neutron').with('use_syslog' => Noop.hiera('use_syslog', true))}
-        it { should contain_class('neutron').with('use_stderr' => Noop.hiera('use_stderr', false))}
-        it { should contain_class('neutron').with('log_facility' => Noop.hiera('syslog_log_facility_neutron', 'LOG_LOCAL4'))}
+        it { should contain_class('neutron').with('use_syslog' => task.hiera('use_syslog', true))}
+        it { should contain_class('neutron').with('use_stderr' => task.hiera('use_stderr', false))}
+        it { should contain_class('neutron').with('log_facility' => task.hiera('syslog_log_facility_neutron', 'LOG_LOCAL4'))}
         it { should contain_class('neutron').with('base_mac' => neutron_config['L2']['base_mac'])}
         it { should contain_class('neutron').with('core_plugin' => 'neutron.plugins.ml2.plugin.Ml2Plugin')}
 
@@ -62,14 +62,14 @@ describe manifest do
         }
 
         it 'RMQ options' do
-          rabbit_hash = Noop.hiera('rabbit_hash', { })
+          rabbit_hash = task.hiera('rabbit_hash', { })
           should contain_class('neutron').with('rabbit_user' => rabbit_hash['user'])
           should contain_class('neutron').with('rabbit_password' => rabbit_hash['password'])
-          should contain_class('neutron').with('rabbit_hosts' => Noop.hiera('amqp_hosts', '').split(','))
+          should contain_class('neutron').with('rabbit_hosts' => task.hiera('amqp_hosts', '').split(','))
         end
 
-        default_log_levels_hash = Noop.hiera_hash 'default_log_levels'
-        default_log_levels = Noop.puppet_function 'join_keys_to_values',default_log_levels_hash,'='
+        default_log_levels_hash = task.hiera_hash 'default_log_levels'
+        default_log_levels = task.puppet_function 'join_keys_to_values',default_log_levels_hash,'='
         it 'should configure default_log_levels' do
           should contain_neutron_config('DEFAULT/default_log_levels').with_value(default_log_levels.sort.join(','))
         end

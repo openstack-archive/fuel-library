@@ -5,10 +5,10 @@ manifest = 'openstack-haproxy/openstack-haproxy-cinder.pp'
 describe manifest do
   shared_examples 'catalog' do
 
-    cinder_nodes = Noop.hiera_hash('cinder_nodes')
+    cinder_nodes = task.hiera_hash('cinder_nodes')
 
     let(:cinder_address_map) do
-      Noop.puppet_function 'get_node_to_ipaddr_map_by_network_role', cinder_nodes, 'heat/api'
+      task.puppet_function 'get_node_to_ipaddr_map_by_network_role', cinder_nodes, 'heat/api'
     end
 
     let(:ipaddresses) do
@@ -19,11 +19,11 @@ describe manifest do
       cinder_address_map.keys
     end
 
-    use_cinder = Noop.hiera_structure('cinder/enabled', true)
+    use_cinder = task.hiera_structure('cinder/enabled', true)
 
-    if use_cinder and !Noop.hiera('external_lb', false)
+    if use_cinder and !task.hiera('external_lb', false)
       it "should properly configure cinder haproxy based on ssl" do
-        public_ssl_cinder = Noop.hiera_structure('public_ssl/services', false)
+        public_ssl_cinder = task.hiera_structure('public_ssl/services', false)
         should contain_openstack__ha__haproxy_service('cinder-api').with(
           'order'                  => '070',
           'ipaddresses'            => ipaddresses,

@@ -5,9 +5,9 @@ manifest = 'roles/compute.pp'
 describe manifest do
   shared_examples 'catalog' do
 
-    storage_hash = Noop.hiera_structure 'storage'
-    ironic_enabled = Noop.hiera_structure 'ironic/enabled'
-    nova_hash = Noop.hiera_structure 'nova_hash'
+    storage_hash = task.hiera_structure 'storage'
+    ironic_enabled = task.hiera_structure 'ironic/enabled'
+    nova_hash = task.hiera_structure 'nova_hash'
 
     if ironic_enabled
       compute_driver = 'ironic.IronicDriver'
@@ -20,7 +20,7 @@ describe manifest do
       )
     end
 
-    cinder_catalog_info = Noop.puppet_function 'pick',nova_hash['cinder_catalog_info'],'volume:cinder:internalURL'
+    cinder_catalog_info = task.puppet_function 'pick',nova_hash['cinder_catalog_info'],'volume:cinder:internalURL'
     it 'should configure cinder_catalog_info for nova' do
       should contain_nova_config('cinder/catalog_info').with(:value => cinder_catalog_info)
     end

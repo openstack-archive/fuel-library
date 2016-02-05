@@ -4,20 +4,20 @@ manifest = 'openstack-network/server-nova.pp'
 
 describe manifest do
   shared_examples 'catalog' do
-    if Noop.hiera('use_neutron') && Noop.hiera('role') =~ /controller/
+    if task.hiera('use_neutron') && task.hiera('role') =~ /controller/
       context 'setup Nova on controller for using Neutron' do
-        na_config = Noop.hiera_hash('neutron_advanced_configuration')
-        neutron_config = Noop.hiera_hash('neutron_config')
+        na_config = task.hiera_hash('neutron_advanced_configuration')
+        neutron_config = task.hiera_hash('neutron_config')
 
         floating_net = neutron_config.fetch('default_floating_net', 'net04_ext')
         ks  = neutron_config.fetch('keystone', {})
         admin_password     = ks.fetch('admin_password')
         admin_tenant_name  = ks.fetch('admin_tenant', 'services')
         admin_username     = ks.fetch('admin_user', 'neutron')
-        region_name        = Noop.hiera('region', 'RegionOne')
-        management_vip     = Noop.hiera('management_vip')
-        service_endpoint   = Noop.hiera('service_endpoint', management_vip)
-        neutron_endpoint   = Noop.hiera('neutron_endpoint', management_vip)
+        region_name        = task.hiera('region', 'RegionOne')
+        management_vip     = task.hiera('management_vip')
+        service_endpoint   = task.hiera('service_endpoint', management_vip)
+        neutron_endpoint   = task.hiera('neutron_endpoint', management_vip)
         auth_api_version   = 'v2.0'
         admin_identity_uri = "http://#{service_endpoint}:35357"
         admin_auth_url     = "#{admin_identity_uri}/#{auth_api_version}"
@@ -44,16 +44,16 @@ describe manifest do
           'neutron_ovs_bridge' => 'br-int'
         )}
 
-        if Noop.hiera_structure('use_ssl', false)
+        if task.hiera_structure('use_ssl', false)
           context 'with overridden TLS' do
             admin_auth_protocol = 'https'
-            admin_auth_endpoint = Noop.hiera_structure('use_ssl/keystone_admin_hostname')
+            admin_auth_endpoint = task.hiera_structure('use_ssl/keystone_admin_hostname')
             it { should contain_class('nova::network::neutron').with(
               'neutron_admin_auth_url' => "#{admin_auth_protocol}://#{admin_auth_endpoint}:35357/#{auth_api_version}"
             )}
 
             neutron_internal_protocol = 'https'
-            neutron_internal_endpoint = Noop.hiera_structure('use_ssl/neutron_internal_hostname')
+            neutron_internal_endpoint = task.hiera_structure('use_ssl/neutron_internal_hostname')
             it { should contain_class('nova::network::neutron').with(
               'neutron_url' => "#{neutron_internal_protocol}://#{neutron_internal_endpoint}:9696"
             )}
@@ -70,18 +70,18 @@ describe manifest do
         end
       end
 
-    elsif !Noop.hiera('use_neutron') && Noop.hiera('role') =~ /controller/
+    elsif !task.hiera('use_neutron') && task.hiera('role') =~ /controller/
       context 'setup Nova on controller for using nova-network' do
 
-        private_interface  = Noop.hiera('private_int')
-        public_interface   = Noop.hiera('public_int')
-        fixed_range        = Noop.hiera('fixed_network_range')
-        network_manager    = Noop.hiera('network_manager')
-        network_config     = Noop.hiera('network_config', {})
-        num_networks       = Noop.hiera('num_networks')
-        network_size       = Noop.hiera('network_size')
-        nameservers        = Noop.hiera_array('dns_nameservers', [])
-        primary_controller = Noop.hiera('primary_controller', false)
+        private_interface  = task.hiera('private_int')
+        public_interface   = task.hiera('public_int')
+        fixed_range        = task.hiera('fixed_network_range')
+        network_manager    = task.hiera('network_manager')
+        network_config     = task.hiera('network_config', {})
+        num_networks       = task.hiera('num_networks')
+        network_size       = task.hiera('network_size')
+        nameservers        = task.hiera_array('dns_nameservers', [])
+        primary_controller = task.hiera('primary_controller', false)
 
         if nameservers
           if nameservers.size >= 2

@@ -1,4 +1,4 @@
-deprecations.log
+fuel-task-tests
+lib
+Gemfile
 Gemfile.lock
-coverage
-spec/fixtures

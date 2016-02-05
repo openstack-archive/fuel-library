@@ -6,11 +6,11 @@ describe manifest do
 
   shared_examples 'catalog' do
     let(:master_ip) do
-      Noop.hiera('master_ip')
+      task.hiera('master_ip')
     end
 
     let(:max_header_size) do
-      Noop.hiera('max_header_size', '81900')
+      task.hiera('max_header_size', '81900')
     end
 
     it {
@@ -28,7 +28,7 @@ describe manifest do
     end
 
     let (:apache_api_proxy_address) do
-      Noop.hiera('apache_api_proxy_address', '0.0.0.0')
+      task.hiera('apache_api_proxy_address', '0.0.0.0')
     end
 
     it 'should declare apache::vhost apache_api_proxy' do
@@ -43,7 +43,7 @@ describe manifest do
       )
     end
 
-    master_ip = Noop.hiera 'master_ip'
+    master_ip = task.hiera 'master_ip'
     it 'should contain 25-apache_api_proxy.conf with correct statements' do
         should contain_file('/tmp//25-apache_api_proxy.conf/fragments/270_apache_api_proxy-custom_fragment').with(
          'ensure' => 'file',

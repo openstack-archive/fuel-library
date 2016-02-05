@@ -4,7 +4,7 @@ manifest = 'umm/umm.pp'
 
 describe manifest do
   shared_examples 'catalog' do
-    role = Noop.hiera 'role'
+    role = task.hiera 'role'
     it 'ensures fuel-umm installed and /etc/umm.conf is present' do
       if role == 'primary-controller' or role == 'controller' 
         should contain_package('fuel-umm')

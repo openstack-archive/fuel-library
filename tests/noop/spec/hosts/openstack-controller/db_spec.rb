@@ -5,9 +5,9 @@ manifest = 'openstack-controller/db.pp'
 describe manifest do
   shared_examples 'catalog' do
     nova_db_user = 'nova'
-    nova_db_password = Noop.hiera_structure 'nova/db_password'
+    nova_db_password = task.hiera_structure 'nova/db_password'
     nova_db_dbname = 'nova'
-    allowed_hosts = [Noop.hostname,'localhost','127.0.0.1','%']
+    allowed_hosts = [task.hostname,'localhost','127.0.0.1','%']
 
     it 'should install proper mysql-client' do
       if facts[:osfamily] == 'RedHat'

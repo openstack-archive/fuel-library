@@ -19,7 +19,7 @@ describe manifest do
         should_not contain_file('/var/log')
       end
     }
-    if Noop.hiera('role') == 'ironic'
+    if task.hiera('role') == 'ironic'
       it {
         should contain_file('/etc/rsyslog.d/70-ironic.conf').with(
           'owner' => syslog_user[facts[:operatingsystem]],

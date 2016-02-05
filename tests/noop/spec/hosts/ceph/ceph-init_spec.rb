@@ -4,7 +4,7 @@ manifest = 'ceph/init.pp'
 
 describe manifest do
   shared_examples 'catalog' do
-    storage_hash = Noop.hiera 'storage'
+    storage_hash = task.hiera 'storage'
 
     it "should contain ceph service" do
       case facts[:operatingsystem]

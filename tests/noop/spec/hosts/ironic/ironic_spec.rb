@@ -2,22 +2,22 @@ require 'spec_helper'
 require 'shared-examples'
 manifest = 'ironic/ironic.pp'
 
-ironic_enabled = Noop.hiera_structure 'ironic/enabled'
+ironic_enabled = task.hiera_structure 'ironic/enabled'
 if ironic_enabled
 
   describe manifest do
     shared_examples 'catalog' do
-      rabbit_user = Noop.hiera_structure 'rabbit/user', 'nova'
-      rabbit_password = Noop.hiera_structure 'rabbit/password'
-      default_log_levels_hash = Noop.hiera_hash 'default_log_levels'
-      default_log_levels = Noop.puppet_function 'join_keys_to_values',default_log_levels_hash,'='
-      primary_controller = Noop.hiera 'primary_controller'
-      amqp_durable_queues = Noop.hiera_structure 'ironic/amqp_durable_queues', 'false'
+      rabbit_user = task.hiera_structure 'rabbit/user', 'nova'
+      rabbit_password = task.hiera_structure 'rabbit/password'
+      default_log_levels_hash = task.hiera_hash 'default_log_levels'
+      default_log_levels = task.puppet_function 'join_keys_to_values',default_log_levels_hash,'='
+      primary_controller = task.hiera 'primary_controller'
+      amqp_durable_queues = task.hiera_structure 'ironic/amqp_durable_queues', 'false'
 
-      database_vip = Noop.hiera('database_vip')
-      ironic_db_password = Noop.hiera_structure 'ironic/db_password', 'ironic'
-      ironic_db_user = Noop.hiera_structure 'ironic/db_user', 'ironic'
-      ironic_db_name = Noop.hiera_structure 'ironic/db_name', 'ironic'
+      database_vip = task.hiera('database_vip')
+      ironic_db_password = task.hiera_structure 'ironic/db_password', 'ironic'
+      ironic_db_user = task.hiera_structure 'ironic/db_user', 'ironic'
+      ironic_db_name = task.hiera_structure 'ironic/db_name', 'ironic'
 
       it 'should configure default_log_levels' do
         should contain_ironic_config('DEFAULT/default_log_levels').with_value(default_log_levels.sort.join(','))

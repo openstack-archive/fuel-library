@@ -5,15 +5,15 @@ manifest = 'roles/cinder.pp'
 describe manifest do
   shared_examples 'catalog' do
 
-  storage_hash = Noop.hiera 'storage_hash'
-  ceilometer_hash = Noop.hiera 'ceilometer_hash', { 'enabled' => false }
-  use_ceph = Noop.hiera 'use_ceph'
+  storage_hash = task.hiera 'storage_hash'
+  ceilometer_hash = task.hiera 'ceilometer_hash', { 'enabled' => false }
+  use_ceph = task.hiera 'use_ceph'
   volume_backend_name = storage_hash['volume_backend_names']
 
-  database_vip = Noop.hiera('database_vip')
-  cinder_db_password = Noop.hiera_structure 'cinder/db_password', 'cinder'
-  cinder_db_user = Noop.hiera_structure 'cinder/db_user', 'cinder'
-  cinder_db_name = Noop.hiera_structure 'cinder/db_name', 'cinder'
+  database_vip = task.hiera('database_vip')
+  cinder_db_password = task.hiera_structure 'cinder/db_password', 'cinder'
+  cinder_db_user = task.hiera_structure 'cinder/db_user', 'cinder'
+  cinder_db_name = task.hiera_structure 'cinder/db_name', 'cinder'
 
   it 'should configure the database connection string' do
     if facts[:os_package_type] == 'debian'
@@ -32,12 +32,12 @@ describe manifest do
 
   it { should contain_package('python-amqp') }
 
-  if Noop.hiera_structure('use_ssl')
+  if task.hiera_structure('use_ssl')
     glance_protocol = 'https'
-    glance_internal_address = Noop.hiera_structure('use_ssl/glance_internal_hostname')
+    glance_internal_address = task.hiera_structure('use_ssl/glance_internal_hostname')
   else
     glance_protocol = 'http'
-    glance_internal_address = Noop.hiera('management_vip')
+    glance_internal_address = task.hiera('management_vip')
   end
   glance_api_servers = "#{glance_protocol}://#{glance_internal_address}:9292"
 
@@ -52,14 +52,14 @@ describe manifest do
   end
 
   if storage_hash['volumes_block_device']
-    disks_metadata = Noop.hiera('node_volumes')
+    disks_metadata = task.hiera('node_volumes')
 
     let (:disks_list) do
-      disks_list = Noop.puppet_function('get_disks_list_by_role', disks_metadata, 'cinder-block-device')
+      disks_list = task.puppet_function('get_disks_list_by_role', disks_metadata, 'cinder-block-device')
     end
 
     let (:iscsi_bind_host) do
-      iscsi_bind_host = Noop.puppet_function('get_network_role_property', 'cinder/iscsi', 'ipaddr')
+      iscsi_bind_host = task.puppet_function('get_network_role_property', 'cinder/iscsi', 'ipaddr')
     end
 
     it 'should contain disks list for cinder block device role' do
@@ -103,7 +103,7 @@ describe manifest do
   end
 
   let :ceilometer_hash do
-    Noop.hiera 'ceilometer_hash', { 'enabled' => false }
+    task.hiera 'ceilometer_hash', { 'enabled' => false }
   end
 
   if ceilometer_hash['enabled']

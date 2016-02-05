@@ -6,8 +6,8 @@ describe manifest do
   shared_examples 'catalog' do
     heat_db_user = 'heat'
     heat_db_dbname = 'heat'
-    heat_db_password = Noop.hiera_structure 'heat/db_password'
-    allowed_hosts = [Noop.hostname,'localhost','127.0.0.1','%']
+    heat_db_password = task.hiera_structure 'heat/db_password'
+    allowed_hosts = [task.hostname,'localhost','127.0.0.1','%']
 
     it 'should install proper mysql-client' do
       if facts[:osfamily] == 'RedHat'
