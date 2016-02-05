@@ -4,23 +4,23 @@ manifest = 'openstack-network/plugins/ml2.pp'
 
 describe manifest do
   shared_examples 'catalog' do
-    if (Noop.hiera('use_neutron') and Noop.hiera('role') =~ /controller|compute|ironic/)
+    if (task.hiera('use_neutron') and task.hiera('role') =~ /controller|compute|ironic/)
 
       let(:network_scheme) do
-        Noop.hiera_hash('network_scheme', {})
+        task.hiera_hash('network_scheme', {})
       end
 
       let(:prepare) do
-        Noop.puppet_function('prepare_network_config', network_scheme)
+        task.puppet_function('prepare_network_config', network_scheme)
       end
 
       let(:bind_host) do
         prepare
-        Noop.puppet_function('get_network_role_property', 'neutron/mesh', 'ipaddr')
+        task.puppet_function('get_network_role_property', 'neutron/mesh', 'ipaddr')
       end
 
       let(:configuration_override) do
-        Noop.hiera_structure 'configuration'
+        task.hiera_structure 'configuration'
       end
 
       let(:neutron_agent_ovs_override_resources) do
@@ -29,9 +29,9 @@ describe manifest do
 
       context 'with Neutron-ml2-plugin' do
 
-        role = Noop.hiera('role')
-        neutron_config = Noop.hiera_hash('neutron_config')
-        adv_neutron_config = Noop.hiera_hash('neutron_advanced_configuration')
+        role = task.hiera('role')
+        neutron_config = task.hiera_hash('neutron_config')
+        adv_neutron_config = task.hiera_hash('neutron_advanced_configuration')
         dvr = adv_neutron_config.fetch('neutron_dvr', false)
         pnets = neutron_config.fetch('L2',{}).fetch('phys_nets',{})
         segmentation_type = neutron_config.fetch('L2',{}).fetch('segmentation_type')
@@ -104,7 +104,7 @@ describe manifest do
         end
 
         it 'should use "override_resources" to update the catalog' do
-          ral_catalog = Noop.create_ral_catalog self
+          ral_catalog = task.create_ral_catalog self
           neutron_agent_ovs_override_resources.each do |title, params|
             params['value'] = 'True' if params['value'].is_a? TrueClass
             expect(ral_catalog).to contain_neutron_agent_ovs(title).with(params)

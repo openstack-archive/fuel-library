@@ -6,7 +6,7 @@ describe manifest do
   shared_examples 'catalog' do
 
     let (:ping_host) {
-      ping_host = Noop.hiera_structure('network_scheme/endpoints/br-ex/gateway')
+      ping_host = task.hiera_structure('network_scheme/endpoints/br-ex/gateway')
       raise 'Could not get the ping host!' unless ping_host
       ping_host
     }

@@ -6,40 +6,40 @@ describe manifest do
   shared_examples 'catalog' do
 
     let(:network_scheme) do
-      Noop.hiera_hash 'network_scheme', {}
+      task.hiera_hash 'network_scheme', {}
     end
 
     let(:prepare) do
-      Noop.puppet_function 'prepare_network_config', network_scheme
+      task.puppet_function 'prepare_network_config', network_scheme
     end
 
     let(:management_nets) do
-      Noop.puppet_function 'get_routable_networks_for_network_role', network_scheme, 'management'
+      task.puppet_function 'get_routable_networks_for_network_role', network_scheme, 'management'
     end
 
     let(:storage_nets) do
-      Noop.puppet_function 'get_routable_networks_for_network_role', network_scheme, 'storage'
+      task.puppet_function 'get_routable_networks_for_network_role', network_scheme, 'storage'
     end
 
     let(:keystone_network) do
-      Noop.puppet_function 'get_routable_networks_for_network_role', network_scheme, 'keystone/api'
+      task.puppet_function 'get_routable_networks_for_network_role', network_scheme, 'keystone/api'
     end
 
     let(:baremetal_network) do
       prepare
-      Noop.puppet_function 'get_network_role_property', 'ironic/baremetal', 'network'
+      task.puppet_function 'get_network_role_property', 'ironic/baremetal', 'network'
     end
 
     let(:baremetal_ipaddr) do
       prepare
-      Noop.puppet_function 'get_network_role_property', 'ironic/baremetal', 'ipaddr'
+      task.puppet_function 'get_network_role_property', 'ironic/baremetal', 'ipaddr'
     end
 
-    node_name = Noop.hiera('node_name')
-    network_metadata = Noop.hiera_hash 'network_metadata', {}
+    node_name = task.hiera('node_name')
+    network_metadata = task.hiera_hash 'network_metadata', {}
     roles = network_metadata['nodes'][node_name]['node_roles']
 
-    if Noop.puppet_function 'member', roles, 'primary-controller' or Noop.puppet_function 'member', roles, 'controller'
+    if task.puppet_function 'member', roles, 'primary-controller' or task.puppet_function 'member', roles, 'controller'
       it 'should properly restrict rabbitmq admin traffic' do
         should contain_firewall('005 local rabbitmq admin').with(
           'sport'   => [ 15672 ],
@@ -125,7 +125,7 @@ describe manifest do
           'action'      => 'accept',
         )
       end
-    elsif Noop.puppet_function 'member', roles, 'compute'
+    elsif task.puppet_function 'member', roles, 'compute'
       it 'should accept connections to nova without ssl' do
         management_nets.each do |source|
           should contain_firewall("105 nova vnc from #{source}").with(
@@ -160,8 +160,8 @@ describe manifest do
       end
     end
 
-    if Noop.hiera_structure 'ironic/enabled'
-      if Noop.hiera('role') == 'controller' or Noop.hiera('role') == 'primary-controller'
+    if task.hiera_structure 'ironic/enabled'
+      if task.hiera('role') == 'controller' or task.hiera('role') == 'primary-controller'
         it 'should drop all traffic from baremetal network' do
           should contain_firewall('999 drop all baremetal').with(
             'chain'  => 'baremetal',
@@ -178,7 +178,7 @@ describe manifest do
         end
       end
 
-      if Noop.hiera('role') == 'ironic'
+      if task.hiera('role') == 'ironic'
         it 'should create rules for ironic on conductor' do
           should contain_firewall('102 allow baremetal-rsyslog').with(
             'chain'       => 'baremetal',

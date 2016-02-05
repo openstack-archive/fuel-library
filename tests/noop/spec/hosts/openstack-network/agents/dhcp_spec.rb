@@ -4,14 +4,14 @@ manifest = 'openstack-network/agents/dhcp.pp'
 
 describe manifest do
   shared_examples 'catalog' do
-    if (Noop.hiera('use_neutron') and Noop.hiera('role') =~ /controller/)
+    if (task.hiera('use_neutron') and task.hiera('role') =~ /controller/)
 
       let(:node_role) do
-        Noop.hiera('role')
+        task.hiera('role')
       end
 
       let(:configuration_override) do
-        Noop.hiera_structure 'configuration'
+        task.hiera_structure 'configuration'
       end
 
       let(:neutron_dhcp_agent_config_override_resources) do
@@ -19,13 +19,13 @@ describe manifest do
       end
 
       context 'with Neutron-l3-agent on controller' do
-        na_config = Noop.hiera_hash('neutron_advanced_configuration')
-        neutron_config = Noop.hiera_hash('neutron_config')
+        na_config = task.hiera_hash('neutron_advanced_configuration')
+        neutron_config = task.hiera_hash('neutron_config')
         isolated_metadata = neutron_config.fetch('metadata',{}).fetch('isolated_metadata', true)
         ha_agent   = na_config.fetch('dhcp_agent_ha', true)
 
         it { should contain_class('neutron::agents::dhcp').with(
-          'debug' => Noop.hiera('debug', true)
+          'debug' => task.hiera('debug', true)
         )}
         it { should contain_class('neutron::agents::dhcp').with(
           'enabled' => true
@@ -48,7 +48,7 @@ describe manifest do
         end
 
         it 'should use "override_resources" to update the catalog' do
-          ral_catalog = Noop.create_ral_catalog self
+          ral_catalog = task.create_ral_catalog self
           neutron_dhcp_agent_config_override_resources.each do |title, params|
             params['value'] = 'True' if params['value'].is_a? TrueClass
             expect(ral_catalog).to contain_neutron_dhcp_agent_config(title).with(params)

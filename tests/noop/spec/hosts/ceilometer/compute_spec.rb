@@ -4,9 +4,9 @@ manifest = 'ceilometer/compute.pp'
 
 describe manifest do
   shared_examples 'catalog' do
-    ceilometer_hash = Noop.hiera_structure 'ceilometer'
-    default_log_levels_hash = Noop.hiera_structure 'default_log_levels'
-    default_log_levels = Noop.puppet_function 'join_keys_to_values',default_log_levels_hash,'='
+    ceilometer_hash = task.hiera_structure 'ceilometer'
+    default_log_levels_hash = task.hiera_structure 'default_log_levels'
+    default_log_levels = task.puppet_function 'join_keys_to_values',default_log_levels_hash,'='
 
     if ceilometer_hash['enabled']
       it 'should configure OS ENDPOINT TYPE for ceilometer' do

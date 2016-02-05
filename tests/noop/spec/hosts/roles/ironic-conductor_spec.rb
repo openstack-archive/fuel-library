@@ -4,16 +4,16 @@ manifest = 'roles/ironic-conductor.pp'
 
 describe manifest do
   shared_examples 'catalog' do
-    rabbit_user = Noop.hiera_structure 'rabbit/user', 'nova'
-    rabbit_password = Noop.hiera_structure 'rabbit/password'
-    ironic_enabled = Noop.hiera_structure 'ironic/enabled'
-    storage_config = Noop.hiera_structure 'storage'
-    amqp_durable_queues = Noop.hiera_structure 'ironic/amqp_durable_queues', 'false'
+    rabbit_user = task.hiera_structure 'rabbit/user', 'nova'
+    rabbit_password = task.hiera_structure 'rabbit/password'
+    ironic_enabled = task.hiera_structure 'ironic/enabled'
+    storage_config = task.hiera_structure 'storage'
+    amqp_durable_queues = task.hiera_structure 'ironic/amqp_durable_queues', 'false'
 
-    database_vip = Noop.hiera('database_vip')
-    ironic_db_password = Noop.hiera_structure 'ironic/db_password', 'ironic'
-    ironic_db_user = Noop.hiera_structure 'ironic/db_user', 'ironic'
-    ironic_db_name = Noop.hiera_structure 'ironic/db_name', 'ironic'
+    database_vip = task.hiera('database_vip')
+    ironic_db_password = task.hiera_structure 'ironic/db_password', 'ironic'
+    ironic_db_user = task.hiera_structure 'ironic/db_user', 'ironic'
+    ironic_db_name = task.hiera_structure 'ironic/db_name', 'ironic'
 
     if ironic_enabled
       it 'should ensure that ironic-fa-deploy is installed' do
@@ -42,11 +42,11 @@ describe manifest do
         )
       end
 
-      management_vip = Noop.hiera 'management_vip'
-      service_endpoint = Noop.hiera 'service_endpoint', management_vip
-      neutron_endpoint = Noop.hiera 'neutron_endpoint', service_endpoint
+      management_vip = task.hiera 'management_vip'
+      service_endpoint = task.hiera 'service_endpoint', management_vip
+      neutron_endpoint = task.hiera 'neutron_endpoint', service_endpoint
       neutron_url = "http://#{neutron_endpoint}:9696"
-      ironic_user = Noop.hiera_structure 'ironic/user', 'ironic'
+      ironic_user = task.hiera_structure 'ironic/user', 'ironic'
       temp_url_endpoint_type = (storage_config['images_ceph']) ? 'radosgw' : 'swift'
       it 'ironic config should have propper config options' do
         should contain_ironic_config('pxe/tftp_root').with('value' => '/var/lib/ironic/tftpboot')

@@ -6,17 +6,17 @@ describe manifest do
   shared_examples 'catalog' do
 
     # TODO All this stuff should be moved to shared examples controller* tests.
-    workers_max = Noop.hiera 'workers_max'
-    rabbit_user = Noop.hiera_structure 'rabbit/user', 'nova'
-    rabbit_password = Noop.hiera_structure 'rabbit/password'
-    ceilometer_hash = Noop.hiera_structure 'ceilometer'
-    mongo_hash = Noop.hiera_structure('mongo', { 'enabled' => false })
-    network_metadata = Noop.hiera_structure 'network_metadata'
-    mongo_roles = Noop.hiera 'mongo_roles'
-    mongo_nodes = Noop.puppet_function 'get_nodes_hash_by_roles',network_metadata,mongo_roles
-    mongo_address_map = Noop.puppet_function 'get_node_to_ipaddr_map_by_network_role',mongo_nodes,'mongo/db'
+    workers_max = task.hiera 'workers_max'
+    rabbit_user = task.hiera_structure 'rabbit/user', 'nova'
+    rabbit_password = task.hiera_structure 'rabbit/password'
+    ceilometer_hash = task.hiera_structure 'ceilometer'
+    mongo_hash = task.hiera_structure('mongo', { 'enabled' => false })
+    network_metadata = task.hiera_structure 'network_metadata'
+    mongo_roles = task.hiera 'mongo_roles'
+    mongo_nodes = task.puppet_function 'get_nodes_hash_by_roles',network_metadata,mongo_roles
+    mongo_address_map = task.puppet_function 'get_node_to_ipaddr_map_by_network_role',mongo_nodes,'mongo/db'
     if mongo_hash['enabled'] and ceilometer_hash['enabled']
-      external_mongo_hash    = Noop.hiera_structure 'external_mongo'
+      external_mongo_hash    = task.hiera_structure 'external_mongo'
       ceilometer_db_user     = external_mongo_hash['mongo_user']
       ceilometer_db_password = external_mongo_hash['mongo_password']
       ceilometer_db_dbname   = external_mongo_hash['mongo_db_name']
@@ -26,21 +26,21 @@ describe manifest do
       ceilometer_db_user     = 'ceilometer'
       ceilometer_db_password = ceilometer_hash['db_password']
       ceilometer_db_dbname   = 'ceilometer'
-      addresses              = Noop.puppet_function 'values',mongo_address_map
-      db_hosts               = Noop.puppet_function 'join',addresses,','
+      addresses              = task.puppet_function 'values',mongo_address_map
+      db_hosts               = task.puppet_function 'join',addresses,','
       mongo_replicaset       = 'ceilometer'
     end
     rabbit_ha_queues = 'true'
-    default_log_levels_hash = Noop.hiera_structure 'default_log_levels'
-    default_log_levels = Noop.puppet_function 'join_keys_to_values',default_log_levels_hash,'='
-    primary_controller = Noop.hiera 'primary_controller'
+    default_log_levels_hash = task.hiera_structure 'default_log_levels'
+    default_log_levels = task.puppet_function 'join_keys_to_values',default_log_levels_hash,'='
+    primary_controller = task.hiera 'primary_controller'
 
 
-    management_vip         = Noop.hiera 'management_vip'
-    service_endpoint       = Noop.hiera 'service_endpoint', management_vip
-    ssl_hash               = Noop.hiera_structure('use_ssl', {})
-    internal_auth_protocol = Noop.puppet_function 'get_ssl_property',ssl_hash,{},'keystone','internal','protocol','http'
-    internal_auth_endpoint = Noop.puppet_function 'get_ssl_property',ssl_hash,{},'keystone','internal','hostname',[service_endpoint]
+    management_vip         = task.hiera 'management_vip'
+    service_endpoint       = task.hiera 'service_endpoint', management_vip
+    ssl_hash               = task.hiera_structure('use_ssl', {})
+    internal_auth_protocol = task.puppet_function 'get_ssl_property',ssl_hash,{},'keystone','internal','protocol','http'
+    internal_auth_endpoint = task.puppet_function 'get_ssl_property',ssl_hash,{},'keystone','internal','hostname',[service_endpoint]
     keystone_identity_uri  = "#{internal_auth_protocol}://#{internal_auth_endpoint}:35357/"
     keystone_auth_uri      = "#{internal_auth_protocol}://#{internal_auth_endpoint}:5000/"
 
@@ -109,7 +109,7 @@ describe manifest do
 
       it 'should configure workers for API, Collector and Agent Notification services' do
         fallback_workers = [[facts[:processorcount].to_i, 2].max, workers_max.to_i].min
-        service_workers = Noop.puppet_function 'pick', ceilometer_hash['workers'], fallback_workers
+        service_workers = task.puppet_function 'pick', ceilometer_hash['workers'], fallback_workers
 
         should contain_ceilometer_config('DEFAULT/api_workers').with(:value => service_workers)
         should contain_ceilometer_config('DEFAULT/collector_workers').with(:value => service_workers)

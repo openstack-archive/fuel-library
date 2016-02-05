@@ -5,10 +5,10 @@ manifest = 'openstack-haproxy/openstack-haproxy-keystone.pp'
 describe manifest do
   shared_examples 'catalog' do
 
-    keystone_nodes = Noop.hiera_hash('keystone_nodes')
+    keystone_nodes = task.hiera_hash('keystone_nodes')
 
     let(:keystone_address_map) do
-      Noop.puppet_function 'get_node_to_ipaddr_map_by_network_role', keystone_nodes, 'heat/api'
+      task.puppet_function 'get_node_to_ipaddr_map_by_network_role', keystone_nodes, 'heat/api'
     end
 
     let(:ipaddresses) do
@@ -19,11 +19,11 @@ describe manifest do
       keystone_address_map.keys
     end
 
-    use_keystone = Noop.hiera_structure('keystone/enabled', true)
+    use_keystone = task.hiera_structure('keystone/enabled', true)
 
-    if use_keystone and !Noop.hiera('external_lb', false)
+    if use_keystone and !task.hiera('external_lb', false)
       it "should properly configure keystone haproxy based on ssl" do
-        public_ssl_keystone = Noop.hiera_structure('public_ssl/services', false)
+        public_ssl_keystone = task.hiera_structure('public_ssl/services', false)
         should contain_openstack__ha__haproxy_service('keystone-1').with(
           'order'                  => '020',
           'ipaddresses'            => ipaddresses,
@@ -40,7 +40,7 @@ describe manifest do
         )
       end
       it "should properly configure keystone haproxy admin without public" do
-        public_ssl_keystone = Noop.hiera_structure('public_ssl/services', false)
+        public_ssl_keystone = task.hiera_structure('public_ssl/services', false)
         should contain_openstack__ha__haproxy_service('keystone-2').with(
           'order'                  => '030',
           'ipaddresses'            => ipaddresses,

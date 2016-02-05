@@ -6,35 +6,35 @@ describe manifest do
   shared_examples 'catalog' do
 
     let(:network_scheme) do
-      Noop.hiera_hash 'network_scheme'
+      task.hiera_hash 'network_scheme'
     end
 
     let(:service_endpoint) do
-      Noop.hiera 'service_endpoint'
+      task.hiera 'service_endpoint'
     end
 
     let(:prepare) do
-      Noop.puppet_function 'prepare_network_config', network_scheme
+      task.puppet_function 'prepare_network_config', network_scheme
     end
 
     let(:bind_address) do
       prepare
-      Noop.puppet_function 'get_network_role_property', 'horizon', 'ipaddr'
+      task.puppet_function 'get_network_role_property', 'horizon', 'ipaddr'
     end
 
     let(:nova_quota) do
-      Noop.hiera 'nova_quota'
+      task.hiera 'nova_quota'
     end
 
     let(:management_vip) do
-      Noop.hiera 'management_vip'
+      task.hiera 'management_vip'
     end
 
-    let(:ssl_hash) { Noop.hiera_hash 'use_ssl', {} }
+    let(:ssl_hash) { task.hiera_hash 'use_ssl', {} }
 
-    let(:internal_auth_protocol) { Noop.puppet_function 'get_ssl_property',ssl_hash,{},'keystone','internal','protocol','http' }
+    let(:internal_auth_protocol) { task.puppet_function 'get_ssl_property',ssl_hash,{},'keystone','internal','protocol','http' }
 
-    let(:internal_auth_address) { Noop.puppet_function 'get_ssl_property',ssl_hash,{},'keystone','internal','hostname',[service_endpoint, management_vip] }
+    let(:internal_auth_address) { task.puppet_function 'get_ssl_property',ssl_hash,{},'keystone','internal','hostname',[service_endpoint, management_vip] }
 
     let(:keystone_url) do
       "#{internal_auth_protocol}://#{internal_auth_address}:5000/v3"
@@ -48,15 +48,15 @@ describe manifest do
       }
     end
 
-    memcache_addresses   = Noop.hiera 'memcached_addresses', false
-    memcache_server_port = Noop.hiera 'memcache_server_port', '11211'
+    memcache_addresses   = task.hiera 'memcached_addresses', false
+    memcache_server_port = task.hiera 'memcache_server_port', '11211'
 
     let(:memcache_nodes) do
-      Noop.puppet_function 'get_nodes_hash_by_roles', network_metadata, memcache_roles
+      task.puppet_function 'get_nodes_hash_by_roles', network_metadata, memcache_roles
     end
 
     let(:memcache_address_map) do
-      Noop.puppet_function 'get_node_to_ipaddr_map_by_network_role', memcache_nodes, 'mgmt/memcache'
+      task.puppet_function 'get_node_to_ipaddr_map_by_network_role', memcache_nodes, 'mgmt/memcache'
     end
 
     let (:memcache_servers) do
@@ -67,7 +67,7 @@ describe manifest do
       end
     end
 
-    storage_hash = Noop.hiera 'storage_hash'
+    storage_hash = task.hiera 'storage_hash'
     let(:cinder_options) do
       { 'enable_backup' => storage_hash.fetch('volumes_ceph', false) }
     end
@@ -113,11 +113,11 @@ describe manifest do
              )
     end
 
-    context 'with Neutron DVR', :if => Noop.hiera_structure('neutron_advanced_configuration/neutron_dvr') do
+    context 'with Neutron DVR', :if => task.hiera_structure('neutron_advanced_configuration/neutron_dvr') do
       it 'should configure horizon for neutron DVR' do
         should contain_class('openstack::horizon').with(
                    'neutron_options' => {
-                       'enable_distributed_router' => Noop.hiera_structure('neutron_advanced_configuration/neutron_dvr')
+                       'enable_distributed_router' => task.hiera_structure('neutron_advanced_configuration/neutron_dvr')
                    }
                )
       end

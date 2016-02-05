@@ -12,7 +12,7 @@ tools = [
   'man-db',
 ]
 
-puppet = Noop.hiera('puppet')
+puppet = task.hiera('puppet')
 
 describe manifest do
   shared_examples 'catalog' do

@@ -5,10 +5,10 @@ manifest = 'openstack-haproxy/openstack-haproxy-horizon.pp'
 describe manifest do
   shared_examples 'catalog' do
 
-    horizon_nodes = Noop.hiera_hash('horizon_nodes')
+    horizon_nodes = task.hiera_hash('horizon_nodes')
 
     let(:horizon_address_map) do
-      Noop.puppet_function 'get_node_to_ipaddr_map_by_network_role', horizon_nodes, 'heat/api'
+      task.puppet_function 'get_node_to_ipaddr_map_by_network_role', horizon_nodes, 'heat/api'
     end
 
     let(:ipaddresses) do
@@ -19,9 +19,9 @@ describe manifest do
       horizon_address_map.keys
     end
 
-    unless Noop.hiera('external_lb', false)
+    unless task.hiera('external_lb', false)
       it "should properly configure horizon haproxy based on ssl" do
-        public_ssl_horizon = Noop.hiera_structure('public_ssl/horizon', false)
+        public_ssl_horizon = task.hiera_structure('public_ssl/horizon', false)
         if public_ssl_horizon
           # http horizon should redirect to ssl horizon
           should contain_openstack__ha__haproxy_service('horizon').with(

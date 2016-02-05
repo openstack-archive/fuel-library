@@ -5,7 +5,7 @@ manifest = 'cluster/cluster.pp'
 describe manifest do
   shared_examples 'catalog' do
 
-    cluster_recheck_interval = Noop.hiera('cluster_recheck_interval', '190s')
+    cluster_recheck_interval = task.hiera('cluster_recheck_interval', '190s')
 
     it { should contain_class('cluster').with({
       'cluster_recheck_interval' => cluster_recheck_interval,

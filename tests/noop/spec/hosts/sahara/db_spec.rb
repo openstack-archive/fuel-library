@@ -4,7 +4,7 @@ manifest = 'sahara/db.pp'
 
 describe manifest do
   shared_examples 'catalog' do
-    sahara_enabled = Noop.hiera_structure('sahara/enabled', false)
+    sahara_enabled = task.hiera_structure('sahara/enabled', false)
 
     it 'should install proper mysql-client', :if => sahara_enabled do
       if facts[:osfamily] == 'RedHat'

@@ -7,7 +7,7 @@ describe manifest do
     it 'should have osnailyfacter::apache class' do
       should contain_class('osnailyfacter::apache').with(
         :purge_configs => false,
-        :listen_ports  => Noop.hiera_array('apache_ports', ['0.0.0.0:80']),
+        :listen_ports  => task.hiera_array('apache_ports', ['0.0.0.0:80']),
       )
     end
 

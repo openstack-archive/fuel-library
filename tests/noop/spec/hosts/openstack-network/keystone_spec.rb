@@ -5,36 +5,36 @@ manifest = 'openstack-network/keystone.pp'
 describe manifest do
   shared_examples 'catalog' do
     internal_protocol = 'http'
-    internal_address  = Noop.hiera('management_vip')
+    internal_address  = task.hiera('management_vip')
     admin_protocol = internal_protocol
     admin_address  = internal_address
-    if Noop.hiera_structure('use_ssl', false)
+    if task.hiera_structure('use_ssl', false)
       public_protocol = 'https'
-      public_address  = Noop.hiera_structure('use_ssl/neutron_public_hostname')
+      public_address  = task.hiera_structure('use_ssl/neutron_public_hostname')
       internal_protocol = 'https'
-      internal_address  = Noop.hiera_structure('use_ssl/neutron_internal_hostname')
+      internal_address  = task.hiera_structure('use_ssl/neutron_internal_hostname')
       admin_protocol = 'https'
-      admin_address  = Noop.hiera_structure('use_ssl/neutron_admin_hostname')
-    elsif Noop.hiera_structure('public_ssl/services', false)
-      public_address  = Noop.hiera_structure('public_ssl/hostname')
+      admin_address  = task.hiera_structure('use_ssl/neutron_admin_hostname')
+    elsif task.hiera_structure('public_ssl/services', false)
+      public_address  = task.hiera_structure('public_ssl/hostname')
       public_protocol = 'https'
     else
       public_protocol = 'http'
-      public_address  = Noop.hiera('public_vip')
+      public_address  = task.hiera('public_vip')
     end
-    region              = Noop.hiera_structure('quantum_settings/region', 'RegionOne')
-    password            = Noop.hiera_structure('quantum_settings/keystone/admin_password')
-    auth_name           = Noop.hiera_structure('quantum_settings/auth_name', 'neutron')
-    configure_endpoint  = Noop.hiera_structure('quantum_settings/configure_endpoint', true)
-    configure_user      = Noop.hiera_structure('quantum_settings/configure_user', true)
-    configure_user_role = Noop.hiera_structure('quantum_settings/configure_user_role', true)
-    service_name        = Noop.hiera_structure('quantum_settings/service_name', 'neutron')
-    tenant              = Noop.hiera_structure('quantum_settings/tenant', 'services')
+    region              = task.hiera_structure('quantum_settings/region', 'RegionOne')
+    password            = task.hiera_structure('quantum_settings/keystone/admin_password')
+    auth_name           = task.hiera_structure('quantum_settings/auth_name', 'neutron')
+    configure_endpoint  = task.hiera_structure('quantum_settings/configure_endpoint', true)
+    configure_user      = task.hiera_structure('quantum_settings/configure_user', true)
+    configure_user_role = task.hiera_structure('quantum_settings/configure_user_role', true)
+    service_name        = task.hiera_structure('quantum_settings/service_name', 'neutron')
+    tenant              = task.hiera_structure('quantum_settings/tenant', 'services')
     port                ='9696'
     public_url          = "#{public_protocol}://#{public_address}:#{port}"
     internal_url        = "#{internal_protocol}://#{internal_address}:#{port}"
     admin_url           = "#{admin_protocol}://#{admin_address}:#{port}"
-    use_neutron         = Noop.hiera('use_neutron', false)
+    use_neutron         = task.hiera('use_neutron', false)
 
     if use_neutron
 

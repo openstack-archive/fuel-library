@@ -5,10 +5,10 @@ manifest = 'openstack-haproxy/openstack-haproxy-ceilometer.pp'
 describe manifest do
   shared_examples 'catalog' do
 
-    ceilometer_nodes = Noop.hiera_hash('ceilometer_nodes')
+    ceilometer_nodes = task.hiera_hash('ceilometer_nodes')
 
     let(:ceilometer_address_map) do
-      Noop.puppet_function 'get_node_to_ipaddr_map_by_network_role', ceilometer_nodes, 'heat/api'
+      task.puppet_function 'get_node_to_ipaddr_map_by_network_role', ceilometer_nodes, 'heat/api'
     end
 
     let(:ipaddresses) do
@@ -19,11 +19,11 @@ describe manifest do
       ceilometer_address_map.keys
     end
 
-    use_ceilometer = Noop.hiera_structure('ceilometer/enabled', false)
+    use_ceilometer = task.hiera_structure('ceilometer/enabled', false)
 
-    if use_ceilometer and !Noop.hiera('external_lb', false)
+    if use_ceilometer and !task.hiera('external_lb', false)
       it "should properly configure ceilometer haproxy based on ssl" do
-        public_ssl_ceilometer = Noop.hiera_structure('public_ssl/services', false)
+        public_ssl_ceilometer = task.hiera_structure('public_ssl/services', false)
         should contain_openstack__ha__haproxy_service('ceilometer').with(
           'order'                  => '140',
           'ipaddresses'            => ipaddresses,

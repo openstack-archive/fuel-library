@@ -6,7 +6,7 @@ describe manifest do
   shared_examples 'catalog' do
 
     before(:each) do
-      Noop.puppet_function_load :generate_apt_pins
+      task.puppet_function_load :generate_apt_pins
       MockFunction.new(:generate_apt_pins) do |function|
         allow(function).to receive(:call).and_return({})
       end

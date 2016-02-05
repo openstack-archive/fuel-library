@@ -6,7 +6,7 @@ describe manifest do
   shared_examples 'catalog' do
     # TODO: test vip parameters too
 
-    Noop.hiera_structure('network_metadata/vips', {}).each do |name, params|
+    task.hiera_structure('network_metadata/vips', {}).each do |name, params|
       next unless params['network_role']
       next unless params['node_roles']
 

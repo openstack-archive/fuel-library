@@ -6,7 +6,7 @@ manifest = 'master/host-only.pp'
 describe manifest do
 
   before(:each) do
-    Noop.puppet_function_load :file
+    task.puppet_function_load :file
     MockFunction.new(:file) do |function|
       allow(function).to receive(:call).with(['/etc/dockerctl/config']).and_return('dockerctl_data')
     end
@@ -72,7 +72,7 @@ describe manifest do
 
     context 'running on centos 6' do
       let(:facts) do
-        Noop.centos_facts.merge({
+        task.facts_data.merge({
           :operatingsystemmajrelease => '6'
         })
       end
@@ -95,7 +95,7 @@ describe manifest do
 
     context 'running on centos 7' do
       let(:facts) do
-        Noop.centos_facts.merge({
+        task.facts_data.merge({
           :operatingsystemmajrelease => '7'
         })
       end

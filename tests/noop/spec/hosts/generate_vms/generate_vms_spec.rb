@@ -9,7 +9,7 @@ describe manifest do
     libvirt_service = 'libvirtd'
     packages = ['qemu-utils', 'qemu-kvm', 'libvirt-bin', 'xmlstarlet']
 
-    vms = Noop.hiera 'vms_conf'
+    vms = task.hiera 'vms_conf'
 
     it 'should exec generate_vms' do
       should contain_exec('generate_vms').with(
