@@ -51,7 +51,7 @@ describe manifest do
     db_password = aodh_hash['db_password']
 
     rabbit_ha_queues = Noop.hiera 'rabbit_ha_queues'
-    rabbit_hash = Noop.hiera_structure 'rabbit_hash', {}
+    rabbit_hash = Noop.hiera_hash 'rabbit', {}
     rabbit_userid = rabbit_hash.fetch('user', 'nova')
     rabbit_password = rabbit_hash['password']
 

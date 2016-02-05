@@ -4,9 +4,9 @@ manifest = 'ceph/radosgw.pp'
 
 describe manifest do
   shared_examples 'catalog' do
-    storage_hash = Noop.hiera 'storage'
+    storage_hash = Noop.hiera_hash 'storage'
     ceph_monitor_nodes = Noop.hiera 'ceph_monitor_nodes'
-    public_ssl_hash = Noop.hiera('public_ssl')
+    public_ssl_hash = Noop.hiera_hash('public_ssl')
 
     let(:ssl_hash) { Noop.hiera_hash 'use_ssl', {} }
 
