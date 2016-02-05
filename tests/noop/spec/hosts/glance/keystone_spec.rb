@@ -2,37 +2,40 @@ require 'spec_helper'
 require 'shared-examples'
 manifest = 'glance/keystone.pp'
 
+# HIERA: neut_vlan.ceph.controller-ephemeral-ceph
+# FACTS: ubuntu
+
 describe manifest do
   shared_examples 'catalog' do
 
     internal_protocol = 'http'
-    internal_address = Noop.hiera('management_vip')
+    internal_address = task.hiera('management_vip')
     admin_protocol = 'http'
     admin_address = internal_address
 
-    if Noop.hiera_structure('use_ssl', false)
+    if task.hiera_structure('use_ssl', false)
       public_protocol   = 'https'
-      public_address    = Noop.hiera_structure('use_ssl/glance_public_hostname')
+      public_address    = task.hiera_structure('use_ssl/glance_public_hostname')
       internal_protocol = 'https'
-      internal_address  = Noop.hiera_structure('use_ssl/glance_internal_hostname')
+      internal_address  = task.hiera_structure('use_ssl/glance_internal_hostname')
       admin_protocol    = 'https'
-      admin_address     = Noop.hiera_structure('use_ssl/glance_admin_hostname')
-    elsif Noop.hiera_structure('public_ssl/services')
-      public_address  = Noop.hiera_structure('public_ssl/hostname')
+      admin_address     = task.hiera_structure('use_ssl/glance_admin_hostname')
+    elsif task.hiera_structure('public_ssl/services')
+      public_address  = task.hiera_structure('public_ssl/hostname')
       public_protocol = 'https'
     else
-      public_address  = Noop.hiera('public_vip')
+      public_address  = task.hiera('public_vip')
       public_protocol = 'http'
     end
 
-    auth_name           = Noop.hiera_structure('glance/auth_name', 'glance')
-    password            = Noop.hiera_structure('glance/user_password')
-    configure_endpoint  = Noop.hiera_structure('glance/configure_endpoint', true)
-    configure_user      = Noop.hiera_structure('glance/configure_user', true)
-    configure_user_role = Noop.hiera_structure('glance/configure_user_role', true)
-    region              = Noop.hiera_structure('glance/region', 'RegionOne')
-    tenant              = Noop.hiera_structure('glance/tenant', 'services') 
-    service_name        = Noop.hiera_structure('glance/service_name', 'glance')
+    auth_name           = task.hiera_structure('glance/auth_name', 'glance')
+    password            = task.hiera_structure('glance/user_password')
+    configure_endpoint  = task.hiera_structure('glance/configure_endpoint', true)
+    configure_user      = task.hiera_structure('glance/configure_user', true)
+    configure_user_role = task.hiera_structure('glance/configure_user_role', true)
+    region              = task.hiera_structure('glance/region', 'RegionOne')
+    tenant              = task.hiera_structure('glance/tenant', 'services') 
+    service_name        = task.hiera_structure('glance/service_name', 'glance')
     public_url          = "#{public_protocol}://#{public_address}:9292"
     internal_url        = "#{internal_protocol}://#{internal_address}:9292"
     admin_url           = "#{admin_protocol}://#{admin_address}:9292"

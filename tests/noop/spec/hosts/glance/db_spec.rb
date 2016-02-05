@@ -2,12 +2,15 @@ require 'spec_helper'
 require 'shared-examples'
 manifest = 'glance/db.pp'
 
+# HIERA: neut_vlan.ceph.controller-ephemeral-ceph
+# FACTS: ubuntu
+
 describe manifest do
   shared_examples 'catalog' do
     glance_db_user = 'glance'
     glance_db_dbname = 'glance'
-    glance_db_password = Noop.hiera_structure 'glance/db_password'
-    allowed_hosts = [Noop.hostname,'localhost','127.0.0.1','%']
+    glance_db_password = task.hiera_structure 'glance/db_password'
+    allowed_hosts = [task.hostname,'localhost','127.0.0.1','%']
 
     it 'should install proper mysql-client' do
       if facts[:osfamily] == 'RedHat'

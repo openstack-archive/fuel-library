@@ -2,16 +2,19 @@ require 'spec_helper'
 require 'shared-examples'
 manifest = 'rabbitmq/rabbitmq.pp'
 
+# HIERA: neut_vlan.ceph.controller-ephemeral-ceph
+# FACTS: ubuntu
+
 describe manifest do
   shared_examples 'catalog' do
     before do
-      $environment_variables = Noop.resource_parameter_value self, 'class',
+      $environment_variables = task.resource_parameter_value self, 'class',
         'rabbitmq', 'environment_variables'
-      $config_kernel_variables = Noop.resource_parameter_value self, 'class',
+      $config_kernel_variables = task.resource_parameter_value self, 'class',
         'rabbitmq', 'config_kernel_variables'
-      $config_variables = Noop.resource_parameter_value self, 'class',
+      $config_variables = task.resource_parameter_value self, 'class',
         'rabbitmq', 'config_variables'
-      $config_management_variables = Noop.resource_parameter_value self, 'class',
+      $config_management_variables = task.resource_parameter_value self, 'class',
         'rabbitmq', 'config_management_variables'
       case facts[:osfamily]
       when 'RedHat'
@@ -23,33 +26,33 @@ describe manifest do
       end
     end
 
-    network_scheme = Noop.hiera_structure('network_scheme', {})
+    network_scheme = task.hiera_structure('network_scheme', {})
     let(:prepare) do
-      Noop.puppet_function 'prepare_network_config', network_scheme
+      task.puppet_function 'prepare_network_config', network_scheme
     end
 
     let(:rabbitmq_bind_ip_address) do
       prepare
-      Noop.puppet_function 'get_network_role_property',
+      task.puppet_function 'get_network_role_property',
        'mgmt/messaging', 'ipaddr' || 'UNSET'
     end
 
-    erlang_cookie = Noop.hiera('erlang_cookie', 'EOKOWXQREETZSHFNTPEY')
-    version = Noop.hiera('rabbit_version', '3.3.5')
-    amqp_port = Noop.hiera('amqp_port', '5673')
-    workers_max = Noop.hiera 'workers_max'
-    debug = Noop.hiera('debug', false)
+    erlang_cookie = task.hiera('erlang_cookie', 'EOKOWXQREETZSHFNTPEY')
+    version = task.hiera('rabbit_version', '3.3.5')
+    amqp_port = task.hiera('amqp_port', '5673')
+    workers_max = task.hiera 'workers_max'
+    debug = task.hiera('debug', false)
     threads_max = 2*workers_max.to_i
-    rabbit_hash = Noop.hiera_structure 'rabbit_hash'
+    rabbit_hash = task.hiera_structure 'rabbit_hash'
     use_pacemaker = rabbit_hash.fetch(['pacemaker'], true)
     pid_file = rabbit_hash.fetch('pid_file', '/var/run/rabbitmq/p_pid')
     file_limit = rabbit_hash.fetch('file_limits', 100000)
     enabled = rabbit_hash.fetch('enabled', true)
-    management_bind_ip_address = Noop.hiera('management_bind_ip_address', '127.0.0.1')
-    management_port = Noop.hiera('rabbit_management_port', '15672')
-    enable_rpc_ha = Noop.hiera('enable_rpc_ha', 'true')
-    enable_notifications_ha = Noop.hiera('enable_notifications_ha', 'true')
-    fqdn_prefix = Noop.hiera('node_name_prefix_for_messaging', 'messaging-')
+    management_bind_ip_address = task.hiera('management_bind_ip_address', '127.0.0.1')
+    management_port = task.hiera('rabbit_management_port', '15672')
+    enable_rpc_ha = task.hiera('enable_rpc_ha', 'true')
+    enable_notifications_ha = task.hiera('enable_notifications_ha', 'true')
+    fqdn_prefix = task.hiera('node_name_prefix_for_messaging', 'messaging-')
 
     let (:params) do {
       :admin_enable                => true,
@@ -83,12 +86,12 @@ describe manifest do
     end
 
     it 'has correct ERL_EPMD_ADDRESS in environment_variables' do
-      node_ip_address = Noop.puppet_function 'get_network_role_property', 'mgmt/messaging', 'ipaddr'
+      node_ip_address = task.puppet_function 'get_network_role_property', 'mgmt/messaging', 'ipaddr'
       expect($environment_variables['ERL_EPMD_ADDRESS']).to eq node_ip_address
     end
 
     it "should contain nodename" do
-      fqdn_prefix = Noop.hiera('node_name_prefix_for_messaging', 'messaging-')
+      fqdn_prefix = task.hiera('node_name_prefix_for_messaging', 'messaging-')
       node_name = "rabbit@#{fqdn_prefix}#{facts[:hostname]}"
       expect($environment_variables['NODENAME']).to eq node_name
     end
@@ -166,7 +169,7 @@ describe manifest do
     it "should configure rabbitmq management" do
       collect_statistics_interval = '[{collect_statistics_interval,30000}]'
       rates_mode = '[{rates_mode, none}]'
-      node_ip_address = Noop.puppet_function 'get_network_role_property', 'mgmt/messaging', 'ipaddr'
+      node_ip_address = task.puppet_function 'get_network_role_property', 'mgmt/messaging', 'ipaddr'
       listener = "[{port, #{management_port}}, {ip,\"#{node_ip_address}\"}]"
       should contain_class('rabbitmq').with_config_variables(/#{collect_statistics_interval}/)
       should contain_class('rabbitmq').with_config_management_variables(/#{rates_mode}/)

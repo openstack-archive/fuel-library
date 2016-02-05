@@ -2,15 +2,18 @@ require 'spec_helper'
 require 'shared-examples'
 manifest = 'openstack-network/db.pp'
 
+# HIERA: neut_vlan.ceph.controller-ephemeral-ceph neut_vlan.ceph.compute-ephemeral-ceph
+# FACTS: ubuntu
+
 describe manifest do
   #TODO: uncomment in neutron module adaptation patch
   shared_examples 'catalog' do
-    use_neutron = Noop.hiera 'use_neutron'
-    allowed_hosts = [Noop.hostname,'localhost','127.0.0.1','%']
+    use_neutron = task.hiera 'use_neutron'
+    allowed_hosts = [task.hostname,'localhost','127.0.0.1','%']
 
     if use_neutron
       neutron_db_user = 'neutron'
-      neutron_db_password = Noop.hiera'neutron_db_password'
+      neutron_db_password = task.hiera'neutron_db_password'
       neutron_db_dbname = 'neutron'
 
       it 'should install proper mysql-client' do

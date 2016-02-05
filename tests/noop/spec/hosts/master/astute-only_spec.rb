@@ -2,17 +2,20 @@ require 'spec_helper'
 require 'shared-examples'
 manifest = 'master/astute-only.pp'
 
+# HIERA: master
+# FACTS: master_centos6 master_centos7
+
 describe manifest do
   shared_examples 'catalog' do
     context 'running on CentOS 6' do
       let(:facts) do
-        Noop.centos_facts.merge({
+        task.facts_data.merge({
           :operatingsystemmajrelease => '6'
         })
       end
       it 'configure nailgun supervisor' do
-        fuel_settings = Noop.puppet_function 'parseyaml',facts[:astute_settings_yaml]
-        production = Noop.puppet_function 'pick',fuel_settings['PRODUCTION'],'docker'
+        fuel_settings = task.puppet_function 'parseyaml',facts[:astute_settings_yaml]
+        production = task.puppet_function 'pick',fuel_settings['PRODUCTION'],'docker'
         if production== 'prod'
         env_path = '/usr'
         else
@@ -49,15 +52,15 @@ describe manifest do
 
     context 'running on CentOS 7' do
       let(:facts) do
-        Noop.centos_facts.merge({
+        task.facts_data.merge({
           :operatingsystemmajrelease => '7'
         })
       end
       let(:params) { { :services => [ 'astute' ] } }
 
       it 'configures service with valid params' do
-        fuel_settings = Noop.puppet_function 'parseyaml',facts[:astute_settings_yaml]
-        production = Noop.puppet_function 'pick',fuel_settings['PRODUCTION'],'docker'
+        fuel_settings = task.puppet_function 'parseyaml',facts[:astute_settings_yaml]
+        production = task.puppet_function 'pick',fuel_settings['PRODUCTION'],'docker'
         should contain_class('nailgun::systemd').with(
           :production => production,
           :services   => params[:services],

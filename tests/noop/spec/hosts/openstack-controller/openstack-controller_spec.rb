@@ -2,11 +2,14 @@ require 'spec_helper'
 require 'shared-examples'
 manifest = 'openstack-controller/openstack-controller.pp'
 
+# HIERA: neut_vlan.ceph.controller-ephemeral-ceph
+# FACTS: ubuntu
+
 describe manifest do
   shared_examples 'catalog' do
 
     let(:configuration_override) do
-      Noop.hiera_structure 'configuration'
+      task.hiera_structure 'configuration'
     end
 
     let(:nova_config_override_resources) do
@@ -17,18 +20,18 @@ describe manifest do
       configuration_override.fetch('nova_paste_api_ini', {})
     end
 
-    workers_max          = Noop.hiera 'workers_max'
-    network_metadata     = Noop.hiera 'network_metadata'
-    memcache_roles       = Noop.hiera 'memcache_roles'
-    memcache_addresses   = Noop.hiera 'memcached_addresses', false
-    memcache_server_port = Noop.hiera 'memcache_server_port', '11211'
+    workers_max          = task.hiera 'workers_max'
+    network_metadata     = task.hiera 'network_metadata'
+    memcache_roles       = task.hiera 'memcache_roles'
+    memcache_addresses   = task.hiera 'memcached_addresses', false
+    memcache_server_port = task.hiera 'memcache_server_port', '11211'
 
     let(:memcache_nodes) do
-      Noop.puppet_function 'get_nodes_hash_by_roles', network_metadata, memcache_roles
+      task.puppet_function 'get_nodes_hash_by_roles', network_metadata, memcache_roles
     end
 
     let(:memcache_address_map) do
-      Noop.puppet_function 'get_node_to_ipaddr_map_by_network_role', memcache_nodes, 'mgmt/memcache'
+      task.puppet_function 'get_node_to_ipaddr_map_by_network_role', memcache_nodes, 'mgmt/memcache'
     end
 
     let (:memcache_servers) do
@@ -39,41 +42,41 @@ describe manifest do
       end
     end
 
-    use_neutron = Noop.hiera 'use_neutron'
-    primary_controller = Noop.hiera 'primary_controller'
+    use_neutron = task.hiera 'use_neutron'
+    primary_controller = task.hiera 'primary_controller'
     if !use_neutron && primary_controller
-      floating_ips_range = Noop.hiera 'floating_network_range'
-      access_hash  = Noop.hiera_structure 'access'
+      floating_ips_range = task.hiera 'floating_network_range'
+      access_hash  = task.hiera_structure 'access'
     end
-    service_endpoint = Noop.hiera 'service_endpoint'
-    management_vip = Noop.hiera 'management_vip'
+    service_endpoint = task.hiera 'service_endpoint'
+    management_vip = task.hiera 'management_vip'
 
-    let(:nova_hash) { Noop.hiera_hash 'nova_hash' }
+    let(:nova_hash) { task.hiera_hash 'nova_hash' }
 
-    let(:ssl_hash) { Noop.hiera_hash 'use_ssl', {} }
+    let(:ssl_hash) { task.hiera_hash 'use_ssl', {} }
 
-    let(:internal_auth_protocol) { Noop.puppet_function 'get_ssl_property',ssl_hash,{},'keystone','internal','protocol',[nova_hash['auth_protocol'],'http'] }
+    let(:internal_auth_protocol) { task.puppet_function 'get_ssl_property',ssl_hash,{},'keystone','internal','protocol',[nova_hash['auth_protocol'],'http'] }
 
-    let(:internal_auth_address) { Noop.puppet_function 'get_ssl_property',ssl_hash,{},'keystone','internal','hostname',[service_endpoint, management_vip] }
+    let(:internal_auth_address) { task.puppet_function 'get_ssl_property',ssl_hash,{},'keystone','internal','hostname',[service_endpoint, management_vip] }
 
-    let(:admin_auth_protocol) { Noop.puppet_function 'get_ssl_property',ssl_hash,{},'keystone','admin','protocol',[nova_hash['auth_protocol'],'http'] }
+    let(:admin_auth_protocol) { task.puppet_function 'get_ssl_property',ssl_hash,{},'keystone','admin','protocol',[nova_hash['auth_protocol'],'http'] }
 
-    let(:admin_auth_address) { Noop.puppet_function 'get_ssl_property',ssl_hash,{},'keystone','admin','hostname',[service_endpoint, management_vip] }
+    let(:admin_auth_address) { task.puppet_function 'get_ssl_property',ssl_hash,{},'keystone','admin','hostname',[service_endpoint, management_vip] }
 
     let(:keystone_auth_uri) { "#{internal_auth_protocol}://#{internal_auth_address}:5000/" }
     let(:keystone_identity_uri) { "#{admin_auth_protocol}://#{admin_auth_address}:35357/" }
     let(:keystone_ec2_url) { "#{keystone_auth_uri}v2.0/ec2tokens" }
 
-    default_log_levels_hash = Noop.hiera_hash 'default_log_levels'
-    default_log_levels = Noop.puppet_function 'join_keys_to_values',default_log_levels_hash,'='
+    default_log_levels_hash = task.hiera_hash 'default_log_levels'
+    default_log_levels = task.puppet_function 'join_keys_to_values',default_log_levels_hash,'='
 
-    storage_hash = Noop.hiera_structure 'storage'
-    nova_internal_protocol = Noop.puppet_function 'get_ssl_property',
-      Noop.hiera_hash('use_ssl', {}), {}, 'nova', 'internal', 'protocol',
+    storage_hash = task.hiera_structure 'storage'
+    nova_internal_protocol = task.puppet_function 'get_ssl_property',
+      task.hiera_hash('use_ssl', {}), {}, 'nova', 'internal', 'protocol',
       'http'
-    nova_endpoint = Noop.hiera('nova_endpoint', Noop.hiera('management_vip'))
-    nova_internal_endpoint = Noop.puppet_function 'get_ssl_property',
-      Noop.hiera_hash('use_ssl', {}), {}, 'nova', 'internal', 'hostname',
+    nova_endpoint = task.hiera('nova_endpoint', task.hiera('management_vip'))
+    nova_internal_endpoint = task.puppet_function 'get_ssl_property',
+      task.hiera_hash('use_ssl', {}), {}, 'nova', 'internal', 'hostname',
       [nova_endpoint]
 
     # TODO All this stuff should be moved to shared examples controller* tests.
@@ -129,7 +132,7 @@ describe manifest do
     end
 
     it 'should configure cinder_catalog_info for nova' do
-      cinder_catalog_info = Noop.puppet_function 'pick',nova_hash['cinder_catalog_info'],'volume:cinder:internalURL'
+      cinder_catalog_info = task.puppet_function 'pick',nova_hash['cinder_catalog_info'],'volume:cinder:internalURL'
       should contain_nova_config('cinder/catalog_info').with(:value => cinder_catalog_info)
     end
 
@@ -145,7 +148,7 @@ describe manifest do
     end
 
     it 'should use "override_resources" to update the catalog' do
-      ral_catalog = Noop.create_ral_catalog self
+      ral_catalog = task.create_ral_catalog self
       nova_config_override_resources.each do |title, params|
         params['value'] = 'True' if params['value'].is_a? TrueClass
         expect(ral_catalog).to contain_nova_config(title).with(params)
@@ -157,7 +160,7 @@ describe manifest do
     end
 
     it 'should use override_resources to update nova_paste_api_ini' do
-      ral_catalog = Noop.create_ral_catalog self
+      ral_catalog = task.create_ral_catalog self
       nova_paste_api_ini_override_resources.each do |title, params|
        params['value'] = 'True' if params['value'].is_a? TrueClass
        expect(ral_catalog).to contain_nova_paste_api_ini(title).with(params)
@@ -190,7 +193,7 @@ describe manifest do
       end
     end
 
-    ironic_enabled = Noop.hiera_structure 'ironic/enabled'
+    ironic_enabled = task.hiera_structure 'ironic/enabled'
     if ironic_enabled
       it 'should declare nova::scheduler::filter class with scheduler_host_manager' do
         should contain_class('nova::scheduler::filter').with(
@@ -223,11 +226,11 @@ describe manifest do
         end
       end
 
-      if Noop.hiera('external_lb', false)
+      if task.hiera('external_lb', false)
         url = "#{nova_internal_protocol}://#{nova_internal_endpoint}:8774"
         provider = 'http'
       else
-        url = 'http://' + Noop.hiera('service_endpoint').to_s + ':10000/;csv'
+        url = 'http://' + task.hiera('service_endpoint').to_s + ':10000/;csv'
         provider = Puppet::Type.type(:haproxy_backend_status).defaultprovider.name
       end
 

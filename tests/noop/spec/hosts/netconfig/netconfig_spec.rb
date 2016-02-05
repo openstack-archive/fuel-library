@@ -1,15 +1,19 @@
 require 'spec_helper'
 require 'shared-examples'
 manifest = 'netconfig/netconfig.pp'
+
+# HIERA: neut_vlan.ceph.controller-ephemeral-ceph
+# FACTS: ubuntu
+
 describe manifest do
   shared_examples 'catalog' do
 
-    network_metadata = Noop.hiera_hash 'network_metadata'
-    network_scheme   = Noop.hiera_hash 'network_scheme'
-    use_neutron      = Noop.hiera 'use_neutron'
-    default_gateway  = Noop.hiera 'default_gateway'
-    set_xps          = Noop.hiera 'set_xps', true
-    set_rps          = Noop.hiera 'set_rps', true
+    network_metadata = task.hiera_hash 'network_metadata'
+    network_scheme   = task.hiera_hash 'network_scheme'
+    use_neutron      = task.hiera 'use_neutron'
+    default_gateway  = task.hiera 'default_gateway'
+    set_xps          = task.hiera 'set_xps', true
+    set_rps          = task.hiera 'set_rps', true
 
     it { should contain_class('l23network').with('use_ovs' => use_neutron) }
     it { should contain_sysctl__value('net.ipv4.conf.all.arp_accept').with('value' => '1') }

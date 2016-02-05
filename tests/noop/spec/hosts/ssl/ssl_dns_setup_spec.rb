@@ -2,15 +2,18 @@ require 'spec_helper'
 require 'shared-examples'
 manifest = 'ssl/ssl_dns_setup.pp'
 
+# HIERA: neut_vlan.ceph.controller-ephemeral-ceph
+# FACTS: ubuntu
+
 describe manifest do
   shared_examples 'catalog' do
 
-    if Noop.hiera_structure('use_ssl', false)
+    if task.hiera_structure('use_ssl', false)
       context "when all services have hostnames" do
         public_services = [ 'horizon', 'keystone', 'nova', 'heat', 'glance', 'cinder', 'neutron', 'swift', 'sahara', 'murano', 'ceilometer', 'radosgw']
         public_services.each do |service|
-          public_vip = Noop.hiera_structure("use_ssl/#{service}_public_ip", Noop.hiera('public_vip'))
-          public_hostname = Noop.hiera_structure "use_ssl/#{service}_public_hostname", Noop.hiera('management_vip')
+          public_vip = task.hiera_structure("use_ssl/#{service}_public_ip", task.hiera('public_vip'))
+          public_hostname = task.hiera_structure "use_ssl/#{service}_public_hostname", task.hiera('management_vip')
 
           it "should set #{service} resolving for public hostanme" do
             should contain_host("#{public_hostname}").with(
@@ -22,10 +25,10 @@ describe manifest do
 
         ia_services = [ 'keystone', 'nova', 'heat', 'glance', 'cinder', 'neutron', 'swift', 'sahara', 'murano', 'ceilometer' ]
         ia_services.each do |service|
-          management_vip = Noop.hiera_structure("use_ssl/#{service}_internal_ip", Noop.hiera('management_vip'))
-          admin_vip = Noop.hiera_structure("use_ssl/#{service}_admin_ip", Noop.hiera('management_vip'))
-          internal_hostname = Noop.hiera_structure "use_ssl/#{service}_internal_hostname"
-          admin_hostname = Noop.hiera_structure "use_ssl/#{service}_admin_hostname"
+          management_vip = task.hiera_structure("use_ssl/#{service}_internal_ip", task.hiera('management_vip'))
+          admin_vip = task.hiera_structure("use_ssl/#{service}_admin_ip", task.hiera('management_vip'))
+          internal_hostname = task.hiera_structure "use_ssl/#{service}_internal_hostname"
+          admin_hostname = task.hiera_structure "use_ssl/#{service}_admin_hostname"
 
           it "should set #{service} resolving for internal hostname" do
             should contain_host("#{internal_hostname}").with(
@@ -44,12 +47,12 @@ describe manifest do
       end
 
       context "when keystone external ip set" do
-        let(:public_ip) { Noop.hiera_structure "use_ssl/keystone_public_ip" }
-        public_hostname = Noop.hiera_structure "use_ssl/keystone_public_hostname"
-        let(:internal_ip) { Noop.hiera_structure "use_ssl/keystone_internal_ip" }
-        internal_hostname = Noop.hiera_structure "use_ssl/keystone_internal_hostname"
-        let(:admin_ip) { Noop.hiera_structure "use_ssl/keystone_admin_ip" }
-        admin_hostname = Noop.hiera_structure "use_ssl/keystone_admin_hostname"
+        let(:public_ip) { task.hiera_structure "use_ssl/keystone_public_ip" }
+        public_hostname = task.hiera_structure "use_ssl/keystone_public_hostname"
+        let(:internal_ip) { task.hiera_structure "use_ssl/keystone_internal_ip" }
+        internal_hostname = task.hiera_structure "use_ssl/keystone_internal_hostname"
+        let(:admin_ip) { task.hiera_structure "use_ssl/keystone_admin_ip" }
+        admin_hostname = task.hiera_structure "use_ssl/keystone_admin_hostname"
 
         it "should set resolve with keystone public external ip" do
           should contain_host("#{public_hostname}").with(
@@ -72,10 +75,10 @@ describe manifest do
           )
         end
       end
-    elsif Noop.hiera_structure('public_ssl/services', false)
+    elsif task.hiera_structure('public_ssl/services', false)
       it "should set resolving for public endpoints" do
-        public_vip = Noop.hiera('public_vip')
-        public_hostname = Noop.hiera_structure('public_ssl/hostname')
+        public_vip = task.hiera('public_vip')
+        public_hostname = task.hiera_structure('public_ssl/hostname')
 
         should contain_host("#{public_hostname}").with(
           'ensure' => 'present',

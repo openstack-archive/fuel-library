@@ -2,6 +2,8 @@ require 'spec_helper'
 require 'shared-examples'
 manifest = 'fuel_pkgs/fuel_pkgs.pp'
 
+# FACTS: ubuntu
+
 describe manifest do
   shared_examples 'catalog' do
     it 'should have ruby gem deep_merge installed' do

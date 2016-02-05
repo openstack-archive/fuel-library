@@ -2,9 +2,12 @@ require 'spec_helper'
 require 'shared-examples'
 manifest = 'ceph/init.pp'
 
+# HIERA: neut_vlan.ceph.controller-ephemeral-ceph neut_vlan.ceph.ceil-primary-controller.overridden_ssl
+# FACTS: ubuntu
+
 describe manifest do
   shared_examples 'catalog' do
-    storage_hash = Noop.hiera 'storage'
+    storage_hash = task.hiera 'storage'
 
     it "should contain ceph service" do
       case facts[:operatingsystem]
@@ -14,7 +17,7 @@ describe manifest do
         service_name = 'ceph'
       end
 
-      if (storage_hash['images_ceph'] or storage_hash['objects_ceph'] or storage_hash['objects_ceph'])
+      if storage_hash['images_ceph'] or storage_hash['objects_ceph'] or storage_hash['objects_ceph']
 
         should contain_service('ceph').with(
           'name'   => service_name,
@@ -22,9 +25,9 @@ describe manifest do
           'enable' => 'true'
         )
 
-        if (facts[:operatingsystem] == 'Ubuntu')
+        if facts[:operatingsystem] == 'Ubuntu'
           should contain_service('ceph').with_name(service_name)
-        elsif (facts[:operatingsystem] == 'CentOS')
+        elsif facts[:operatingsystem] == 'CentOS'
           should contain_service('ceph').with_name(service_name)
         end
       else

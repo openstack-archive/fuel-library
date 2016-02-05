@@ -2,9 +2,12 @@ require 'spec_helper'
 require 'shared-examples'
 manifest = 'ceph/ceph_pools.pp'
 
+# HIERA: neut_vlan.ceph.controller-ephemeral-ceph neut_vlan.ceph.ceil-primary-controller.overridden_ssl
+# FACTS: ubuntu
+
 describe manifest do
   shared_examples 'catalog' do
-    storage_hash       = Noop.hiera 'storage'
+    storage_hash       = task.hiera 'storage'
     glance_pool        = 'images'
     cinder_pool        = 'volumes'
     cinder_backup_pool = 'backups'

@@ -2,23 +2,26 @@ require 'spec_helper'
 require 'shared-examples'
 manifest = 'keystone/keystone.pp'
 
+# HIERA: neut_vlan.ceph.controller-ephemeral-ceph
+# FACTS: ubuntu
+
 describe manifest do
   shared_examples 'catalog' do
 
     # TODO All this stuff should be moved to shared examples controller* tests.
-    keystone_hash        = Noop.hiera_structure 'keystone'
-    workers_max          = Noop.hiera 'workers_max'
-    network_metadata     = Noop.hiera 'network_metadata'
-    memcache_roles       = Noop.hiera 'memcache_roles'
-    memcache_addresses   = Noop.hiera 'memcached_addresses', false
-    memcache_server_port = Noop.hiera 'memcache_server_port', '11211'
+    keystone_hash        = task.hiera_structure 'keystone'
+    workers_max          = task.hiera 'workers_max'
+    network_metadata     = task.hiera 'network_metadata'
+    memcache_roles       = task.hiera 'memcache_roles'
+    memcache_addresses   = task.hiera 'memcached_addresses', false
+    memcache_server_port = task.hiera 'memcache_server_port', '11211'
 
     let(:memcache_nodes) do
-      Noop.puppet_function 'get_nodes_hash_by_roles', network_metadata, memcache_roles
+      task.puppet_function 'get_nodes_hash_by_roles', network_metadata, memcache_roles
     end
 
     let(:memcache_address_map) do
-      Noop.puppet_function 'get_node_to_ipaddr_map_by_network_role', memcache_nodes, 'mgmt/memcache'
+      task.puppet_function 'get_node_to_ipaddr_map_by_network_role', memcache_nodes, 'mgmt/memcache'
     end
 
     let (:memcache_servers) do
@@ -30,33 +33,33 @@ describe manifest do
     end
 
     let(:configuration_override) do
-      Noop.hiera_structure 'configuration'
+      task.hiera_structure 'configuration'
     end
 
     let(:keystone_config_override) do
       configuration_override.fetch('keystone_config', {})
     end
 
-    admin_token = Noop.hiera_structure 'keystone/admin_token'
-    public_vip = Noop.hiera('public_vip')
-    management_vip= Noop.hiera('management_vip')
-    public_ssl_hash = Noop.hiera('public_ssl')
+    admin_token = task.hiera_structure 'keystone/admin_token'
+    public_vip = task.hiera('public_vip')
+    management_vip= task.hiera('management_vip')
+    public_ssl_hash = task.hiera('public_ssl')
 
-    let(:auth_suffix) { Noop.puppet_function 'pick', keystone_hash['auth_suffix'], '/' }
+    let(:auth_suffix) { task.puppet_function 'pick', keystone_hash['auth_suffix'], '/' }
 
-    let(:ssl_hash) { Noop.hiera_hash 'use_ssl', {} }
+    let(:ssl_hash) { task.hiera_hash 'use_ssl', {} }
 
-    let(:public_auth_protocol) { Noop.puppet_function 'get_ssl_property',ssl_hash,public_ssl_hash,'keystone','public','protocol','http' }
+    let(:public_auth_protocol) { task.puppet_function 'get_ssl_property',ssl_hash,public_ssl_hash,'keystone','public','protocol','http' }
 
-    let(:public_auth_address) { Noop.puppet_function 'get_ssl_property',ssl_hash,public_ssl_hash,'keystone','public','hostname',[public_vip] }
+    let(:public_auth_address) { task.puppet_function 'get_ssl_property',ssl_hash,public_ssl_hash,'keystone','public','hostname',[public_vip] }
 
-    let(:internal_auth_protocol) { Noop.puppet_function 'get_ssl_property',ssl_hash,{},'keystone','internal','protocol','http' }
+    let(:internal_auth_protocol) { task.puppet_function 'get_ssl_property',ssl_hash,{},'keystone','internal','protocol','http' }
 
-    let(:internal_auth_address) { Noop.puppet_function 'get_ssl_property',ssl_hash,{},'keystone','internal','hostname',[Noop.hiera('service_endpoint', ''), management_vip] }
+    let(:internal_auth_address) { task.puppet_function 'get_ssl_property',ssl_hash,{},'keystone','internal','hostname',[task.hiera('service_endpoint', ''), management_vip] }
 
-    let(:admin_auth_protocol) { Noop.puppet_function 'get_ssl_property',ssl_hash,{},'keystone','admin','protocol','http' }
+    let(:admin_auth_protocol) { task.puppet_function 'get_ssl_property',ssl_hash,{},'keystone','admin','protocol','http' }
 
-    let(:admin_auth_address) { Noop.puppet_function 'get_ssl_property',ssl_hash,{},'keystone','admin','hostname',[Noop.hiera('service_endpoint', ''), management_vip] }
+    let(:admin_auth_address) { task.puppet_function 'get_ssl_property',ssl_hash,{},'keystone','admin','hostname',[task.hiera('service_endpoint', ''), management_vip] }
 
     let(:public_url) { "#{public_auth_protocol}://#{public_auth_address}:5000" }
 
@@ -66,21 +69,21 @@ describe manifest do
 
     revoke_driver = 'keystone.contrib.revoke.backends.sql.Revoke'
     database_idle_timeout = '3600'
-    ceilometer_hash = Noop.hiera 'ceilometer_hash', { 'enabled' => false }
-    murano_hash = Noop.hiera 'murano_hash', { 'enabled' => false }
+    ceilometer_hash = task.hiera 'ceilometer_hash', { 'enabled' => false }
+    murano_hash = task.hiera 'murano_hash', { 'enabled' => false }
     murano_hash['plugins'] = { 'glance_artifacts_plugin' => { 'enabled' => false } }
     murano_plugins = murano_hash['plugins']
     murano_glare_plugin = murano_plugins['glance_artifacts_plugin']
-    token_provider = Noop.hiera('token_provider')
-    primary_controller = Noop.hiera 'primary_controller'
+    token_provider = task.hiera('token_provider')
+    primary_controller = task.hiera 'primary_controller'
 
-    database_vip = Noop.hiera('database_vip')
-    keystone_db_password = Noop.hiera_structure 'keystone/db_password', 'keystone'
-    keystone_db_user = Noop.hiera_structure 'keystone/db_user', 'keystone'
-    keystone_db_name = Noop.hiera_structure 'keystone/db_name', 'keystone'
+    database_vip = task.hiera('database_vip')
+    keystone_db_password = task.hiera_structure 'keystone/db_password', 'keystone'
+    keystone_db_user = task.hiera_structure 'keystone/db_user', 'keystone'
+    keystone_db_name = task.hiera_structure 'keystone/db_name', 'keystone'
 
-    default_log_levels_hash = Noop.hiera_hash 'default_log_levels'
-    default_log_levels = Noop.puppet_function 'join_keys_to_values',default_log_levels_hash,'='
+    default_log_levels_hash = task.hiera_hash 'default_log_levels'
+    default_log_levels = task.puppet_function 'join_keys_to_values',default_log_levels_hash,'='
 
     it 'should configure default_log_levels' do
       should contain_keystone_config('DEFAULT/default_log_levels').with_value(default_log_levels.sort.join(','))
@@ -210,7 +213,7 @@ describe manifest do
      end
 
      let (:keystone_api_address) do
-       keystone_api_address = Noop.puppet_function('get_network_role_property', 'keystone/api', 'ipaddr')
+       keystone_api_address = task.puppet_function('get_network_role_property', 'keystone/api', 'ipaddr')
      end
 
      it 'should configure apache to listen 5000 keystone port on correct IP address' do
@@ -233,7 +236,7 @@ describe manifest do
      end
 
     it 'should use "override_resources" to update the catalog' do
-      ral_catalog = Noop.create_ral_catalog self
+      ral_catalog = task.create_ral_catalog self
       keystone_config_override.each do |title, params|
         params['value'] = 'True' if params['value'].is_a? TrueClass
         expect(ral_catalog).to contain_keystone_config(title).with(params)
@@ -284,11 +287,11 @@ describe manifest do
     end
 
     it {
-      if Noop.hiera('external_lb', false)
+      if task.hiera('external_lb', false)
         url = internal_url
         provider = 'http'
       else
-        url = 'http://' + Noop.hiera('service_endpoint').to_s + ':10000/;csv'
+        url = 'http://' + task.hiera('service_endpoint').to_s + ':10000/;csv'
         provider = Puppet::Type.type(:haproxy_backend_status).defaultprovider.name
       end
       should contain_haproxy_backend_status('keystone-public').with(

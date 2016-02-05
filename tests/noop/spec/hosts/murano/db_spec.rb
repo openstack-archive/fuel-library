@@ -2,9 +2,12 @@ require 'spec_helper'
 require 'shared-examples'
 manifest = 'murano/db.pp'
 
+# HIERA: neut_vlan.ceph.controller-ephemeral-ceph
+# FACTS: ubuntu
+
 describe manifest do
   shared_examples 'catalog' do
-    murano_enabled = Noop.hiera_structure('murano/enabled', false)
+    murano_enabled = task.hiera_structure('murano/enabled', false)
 
     it 'should install proper mysql-client', :if => murano_enabled do
       if facts[:osfamily] == 'RedHat'

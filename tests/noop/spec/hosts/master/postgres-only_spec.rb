@@ -2,11 +2,14 @@ require 'spec_helper'
 require 'shared-examples'
 manifest = 'master/postgres-only.pp'
 
+# HIERA: master
+# FACTS: master_centos6 master_centos7
+
 describe manifest do
   shared_examples 'catalog' do
     context 'running on CentOS 6' do
       let(:facts) do
-        Noop.centos_facts.merge({
+        task.facts_data.merge({
           :operatingsystemmajrelease => '6'
         })
       end
@@ -30,7 +33,7 @@ describe manifest do
 
     context 'running on CentOS 7' do
       let(:facts) do
-        Noop.centos_facts.merge({
+        task.facts_data.merge({
           :operatingsystemmajrelease => '7'
         })
       end
@@ -49,7 +52,7 @@ describe manifest do
     end
 
     it 'should configure nailgun database' do
-      fuel_settings = Noop.puppet_function('parseyaml',
+      fuel_settings = task.puppet_function('parseyaml',
                                            facts[:astute_settings_yaml])
       database_name = fuel_settings['postgres']['nailgun_dbname']
       database_user = fuel_settings['postgres']['nailgun_user']
@@ -63,7 +66,7 @@ describe manifest do
     end
 
     it 'should configure keystone database' do
-      fuel_settings = Noop.puppet_function('parseyaml',
+      fuel_settings = task.puppet_function('parseyaml',
                                            facts[:astute_settings_yaml])
       keystone_dbname = fuel_settings['postgres']['keystone_dbname']
       keystone_dbuser = fuel_settings['postgres']['keystone_user']
@@ -77,7 +80,7 @@ describe manifest do
     end
 
     it 'should configure ostf database' do
-      fuel_settings = Noop.puppet_function('parseyaml',
+      fuel_settings = task.puppet_function('parseyaml',
                                            facts[:astute_settings_yaml])
       ostf_dbname   = fuel_settings['postgres']['ostf_dbname']
       ostf_dbuser   = fuel_settings['postgres']['ostf_user']

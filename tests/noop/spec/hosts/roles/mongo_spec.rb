@@ -2,20 +2,23 @@ require 'spec_helper'
 require 'shared-examples'
 manifest = 'roles/mongo.pp'
 
+# HIERA: neut_vlan_l3ha.ceph.ceil-primary-mongo
+# FACTS: ubuntu
+
 describe manifest do
 
   before(:each) do
-    Noop.puppet_function_load :file
+    task.puppet_function_load :file
     MockFunction.new(:file) do |function|
       allow(function).to receive(:call).with(['/var/lib/astute/mongodb/mongodb.key']).and_return('key')
     end
   end
 
   shared_examples 'catalog' do
-    debug = Noop.hiera 'debug'
-    use_syslog = Noop.hiera 'use_syslog'
-    ceilometer_hash = Noop.hiera_structure 'ceilometer'
-    mongodb_port = Noop.hiera('mongodb_port', '27017')
+    debug = task.hiera 'debug'
+    use_syslog = task.hiera 'use_syslog'
+    ceilometer_hash = task.hiera_structure 'ceilometer'
+    mongodb_port = task.hiera('mongodb_port', '27017')
 
     it 'should configure MongoDB only with replica set' do
       should contain_class('mongodb::server').with('replset' => 'ceilometer')

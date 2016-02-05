@@ -2,22 +2,25 @@ require 'spec_helper'
 require 'shared-examples'
 manifest = 'openstack-network/routers.pp'
 
+# HIERA: neut_vlan.ceph.controller-ephemeral-ceph neut_vlan.ceph.compute-ephemeral-ceph
+# FACTS: ubuntu
+
 describe manifest do
   shared_examples 'catalog' do
-    if (Noop.hiera('use_neutron') and Noop.hiera('primary_controller'))
+    if (task.hiera('use_neutron') and task.hiera('primary_controller'))
       context 'with Neutron' do
-        neutron_config = Noop.hiera('neutron_config')
+        neutron_config = task.hiera('neutron_config')
         nets = neutron_config['predefined_networks']
 
         floating_net             = (neutron_config['default_floating_net'] or 'net04_ext')
         private_net              = (neutron_config['default_private_net'] or 'net04')
         default_router           = (neutron_config['default_router'] or 'router04')
         baremetal_router         = (neutron_config['baremetal_router'] or 'baremetal')
-        l3_ha                    = Noop.hiera_hash('neutron_advanced_configuration', {}).fetch('neutron_l3_ha', false)
-        dvr                      = Noop.hiera_hash('neutron_advanced_configuration', {}).fetch('neutron_dvr', false)
-        network_metadata         = Noop.hiera('network_metadata')
-        neutron_controller_roles = Noop.hiera('neutron_controller_nodes', ['controller', 'primary-controller'])
-        neutron_controller_nodes = Noop.puppet_function 'get_nodes_hash_by_roles', network_metadata, neutron_controller_roles
+        l3_ha                    = task.hiera_hash('neutron_advanced_configuration', {}).fetch('neutron_l3_ha', false)
+        dvr                      = task.hiera_hash('neutron_advanced_configuration', {}).fetch('neutron_dvr', false)
+        network_metadata         = task.hiera('network_metadata')
+        neutron_controller_roles = task.hiera('neutron_controller_nodes', ['controller', 'primary-controller'])
+        neutron_controller_nodes = task.puppet_function 'get_nodes_hash_by_roles', network_metadata, neutron_controller_roles
         neutron_controllers_num  = neutron_controller_nodes.size
 
         if (neutron_controllers_num < 2 and l3_ha)

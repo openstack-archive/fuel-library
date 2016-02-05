@@ -2,31 +2,34 @@ require 'spec_helper'
 require 'shared-examples'
 manifest = 'murano/keystone_cfapi.pp'
 
+# HIERA: neut_vlan.ceph.controller-ephemeral-ceph
+# FACTS: ubuntu
+
 describe manifest do
   shared_examples 'catalog' do
 
-    let(:service_endpoint) { Noop.hiera 'service_endpoint' }
-    let(:network_scheme) { Noop.hiera_hash 'network_scheme' }
+    let(:service_endpoint) { task.hiera 'service_endpoint' }
+    let(:network_scheme) { task.hiera_hash 'network_scheme' }
     api_bind_port = '8083'
 
     internal_protocol = 'http'
-    internal_address = Noop.hiera('service_endpoint')
+    internal_address = task.hiera('service_endpoint')
     admin_protocol = 'http'
     admin_address = internal_address
 
-    if Noop.hiera_structure('use_ssl', false)
+    if task.hiera_structure('use_ssl', false)
       public_protocol = 'https'
-      public_address = Noop.hiera_structure('use_ssl/murano_public_hostname')
+      public_address = task.hiera_structure('use_ssl/murano_public_hostname')
       internal_protocol = 'https'
-      internal_address = Noop.hiera_structure('use_ssl/murano_internal_hostname')
+      internal_address = task.hiera_structure('use_ssl/murano_internal_hostname')
       admin_protocol = 'https'
-      admin_address = Noop.hiera_structure('use_ssl/murano_admin_hostname')
-    elsif Noop.hiera_structure('public_ssl/services')
+      admin_address = task.hiera_structure('use_ssl/murano_admin_hostname')
+    elsif task.hiera_structure('public_ssl/services')
       public_protocol = 'https'
-      public_address = Noop.hiera_structure('public_ssl/hostname')
+      public_address = task.hiera_structure('public_ssl/hostname')
     else
       public_protocol = 'http'
-      public_address = Noop.hiera 'public_vip'
+      public_address = task.hiera 'public_vip'
     end
     public_url = "#{public_protocol}://#{public_address}:#{api_bind_port}"
     internal_url = "#{internal_protocol}://#{internal_address}:#{api_bind_port}"
@@ -39,10 +42,10 @@ describe manifest do
                                                       "Class[murano::keystone::cfapi_auth]")
     end
 
-    let(:region) { Noop.hiera('region', 'RegionOne') }
-    let(:tenant) { Noop.hiera_structure('murano_hash/tenant', 'services') }
+    let(:region) { task.hiera('region', 'RegionOne') }
+    let(:tenant) { task.hiera_structure('murano_hash/tenant', 'services') }
 
-    let(:murano_password) { Noop.hiera_structure('murano_hash/user_password') }
+    let(:murano_password) { task.hiera_structure('murano_hash/user_password') }
 
     ##########################################################################
 

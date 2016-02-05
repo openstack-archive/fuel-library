@@ -2,43 +2,46 @@ require 'spec_helper'
 require 'shared-examples'
 manifest = 'glance/glance.pp'
 
+# HIERA: neut_vlan.ceph.controller-ephemeral-ceph
+# FACTS: ubuntu
+
 describe manifest do
   shared_examples 'catalog' do
 
     # TODO All this stuff should be moved to shared examples controller* tests.
-    workers_max = Noop.hiera 'workers_max'
-    glance_config = Noop.hiera_structure 'glance'
-    storage_config = Noop.hiera_structure 'storage'
-    max_pool_size = Noop.hiera('max_pool_size')
-    max_overflow = Noop.hiera('max_overflow')
+    workers_max = task.hiera 'workers_max'
+    glance_config = task.hiera_structure 'glance'
+    storage_config = task.hiera_structure 'storage'
+    max_pool_size = task.hiera('max_pool_size')
+    max_overflow = task.hiera('max_overflow')
     max_retries = '-1'
-    use_syslog = Noop.hiera('use_syslog', 'true')
-    use_stderr = Noop.hiera('use_stderr', 'false')
-    region = Noop.hiera('region', 'RegionOne')
-    ironic_enabled = Noop.hiera_structure('ironic/enabled', false)
-    default_log_levels_hash = Noop.hiera_hash 'default_log_levels'
-    default_log_levels = Noop.puppet_function 'join_keys_to_values',default_log_levels_hash,'='
-    primary_controller = Noop.hiera 'primary_controller'
+    use_syslog = task.hiera('use_syslog', 'true')
+    use_stderr = task.hiera('use_stderr', 'false')
+    region = task.hiera('region', 'RegionOne')
+    ironic_enabled = task.hiera_structure('ironic/enabled', false)
+    default_log_levels_hash = task.hiera_hash 'default_log_levels'
+    default_log_levels = task.puppet_function 'join_keys_to_values',default_log_levels_hash,'='
+    primary_controller = task.hiera 'primary_controller'
     if glance_config && glance_config.has_key?('pipeline')
        pipeline = glance_config['pipeline']
     else
        pipeline = 'keystone'
     end
-    murano_glance_artifacts_plugin = Noop.hiera('murano_glance_artifacts_plugin', {})
-    database_vip = Noop.hiera('database_vip')
-    glance_db_password = Noop.hiera_structure 'glance/db_password', 'glance'
-    glance_db_user = Noop.hiera_structure 'glance/db_user', 'glance'
-    glance_db_name = Noop.hiera_structure 'glance/db_name', 'glance'
+    murano_glance_artifacts_plugin = task.hiera('murano_glance_artifacts_plugin', {})
+    database_vip = task.hiera('database_vip')
+    glance_db_password = task.hiera_structure 'glance/db_password', 'glance'
+    glance_db_user = task.hiera_structure 'glance/db_user', 'glance'
+    glance_db_name = task.hiera_structure 'glance/db_name', 'glance'
 
-    let(:ssl_hash) { Noop.hiera_hash 'use_ssl', {} }
+    let(:ssl_hash) { task.hiera_hash 'use_ssl', {} }
 
-    let(:internal_auth_protocol) { Noop.puppet_function 'get_ssl_property',ssl_hash,{},'keystone','internal','protocol','http' }
+    let(:internal_auth_protocol) { task.puppet_function 'get_ssl_property',ssl_hash,{},'keystone','internal','protocol','http' }
 
-    let(:internal_auth_address) { Noop.puppet_function 'get_ssl_property',ssl_hash,{},'keystone','internal','hostname',[Noop.hiera('service_endpoint', ''), Noop.hiera('management_vip')] }
+    let(:internal_auth_address) { task.puppet_function 'get_ssl_property',ssl_hash,{},'keystone','internal','hostname',[task.hiera('service_endpoint', ''), task.hiera('management_vip')] }
 
-    let(:admin_auth_protocol) { Noop.puppet_function 'get_ssl_property',ssl_hash,{},'keystone','admin','protocol','http' }
+    let(:admin_auth_protocol) { task.puppet_function 'get_ssl_property',ssl_hash,{},'keystone','admin','protocol','http' }
 
-    let(:admin_auth_address) { Noop.puppet_function 'get_ssl_property',ssl_hash,{},'keystone','admin','hostname',[Noop.hiera('service_endpoint', ''), Noop.hiera('management_vip')] }
+    let(:admin_auth_address) { task.puppet_function 'get_ssl_property',ssl_hash,{},'keystone','admin','hostname',[task.hiera('service_endpoint', ''), task.hiera('management_vip')] }
 
     let(:auth_uri) { "#{internal_auth_protocol}://#{internal_auth_address}:5000/" }
 

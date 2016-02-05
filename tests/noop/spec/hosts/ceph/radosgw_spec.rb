@@ -2,34 +2,37 @@ require 'spec_helper'
 require 'shared-examples'
 manifest = 'ceph/radosgw.pp'
 
+# HIERA: neut_vlan.ceph.controller-ephemeral-ceph neut_vlan.ceph.ceil-primary-controller.overridden_ssl
+# FACTS: ubuntu
+
 describe manifest do
   shared_examples 'catalog' do
-    storage_hash = Noop.hiera 'storage'
-    ceph_monitor_nodes = Noop.hiera 'ceph_monitor_nodes'
-    public_ssl_hash = Noop.hiera('public_ssl')
+    storage_hash = task.hiera 'storage'
+    ceph_monitor_nodes = task.hiera 'ceph_monitor_nodes'
+    public_ssl_hash = task.hiera('public_ssl')
 
-    let(:ssl_hash) { Noop.hiera_hash 'use_ssl', {} }
+    let(:ssl_hash) { task.hiera_hash 'use_ssl', {} }
 
     let(:internal_auth_protocol) {
-      Noop.puppet_function 'get_ssl_property',ssl_hash,{},'keystone',
+      task.puppet_function 'get_ssl_property',ssl_hash,{},'keystone',
         'internal','protocol','http'
     }
 
     let(:internal_auth_address) {
-      Noop.puppet_function 'get_ssl_property',ssl_hash,{},'keystone',
+      task.puppet_function 'get_ssl_property',ssl_hash,{},'keystone',
         'internal','hostname',
-        [Noop.hiera('service_endpoint', Noop.hiera('management_vip'))]
+        [task.hiera('service_endpoint', task.hiera('management_vip'))]
     }
 
     let(:admin_auth_protocol) {
-      Noop.puppet_function 'get_ssl_property',ssl_hash,{},'keystone',
+      task.puppet_function 'get_ssl_property',ssl_hash,{},'keystone',
         'admin','protocol','http'
     }
 
     let(:admin_auth_address) {
-      Noop.puppet_function 'get_ssl_property',ssl_hash,{},'keystone','admin',
+      task.puppet_function 'get_ssl_property',ssl_hash,{},'keystone','admin',
       'hostname',
-        [Noop.hiera('service_endpoint', Noop.hiera('management_vip'))]
+        [task.hiera('service_endpoint', task.hiera('management_vip'))]
     }
 
     let(:internal_url) {
@@ -82,11 +85,11 @@ describe manifest do
       }
 
       it {
-        if Noop.hiera('external_lb', false)
+        if task.hiera('external_lb', false)
           url = internal_url
           provider = 'http'
         else
-          url = 'http://' + Noop.hiera('service_endpoint').to_s + ':10000/;csv'
+          url = 'http://' + task.hiera('service_endpoint').to_s + ':10000/;csv'
           provider = Puppet::Type.type(:haproxy_backend_status).defaultprovider.name 
         end
         should contain_haproxy_backend_status('keystone-public').with(
@@ -96,11 +99,11 @@ describe manifest do
       }
 
       it {
-        if Noop.hiera('external_lb', false)
+        if task.hiera('external_lb', false)
           url = admin_url
           provider = 'http'
         else
-          url = 'http://' + Noop.hiera('service_endpoint').to_s + ':10000/;csv'
+          url = 'http://' + task.hiera('service_endpoint').to_s + ':10000/;csv'
           provider = Puppet::Type.type(:haproxy_backend_status).defaultprovider.name
         end
         should contain_haproxy_backend_status('keystone-admin').with(

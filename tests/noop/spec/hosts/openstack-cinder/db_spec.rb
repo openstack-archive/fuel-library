@@ -2,12 +2,15 @@ require 'spec_helper'
 require 'shared-examples'
 manifest = 'openstack-cinder/db.pp'
 
+# HIERA: neut_vlan.ceph.controller-ephemeral-ceph
+# FACTS: ubuntu
+
 describe manifest do
   shared_examples 'catalog' do
     cinder_db_user = 'cinder'
-    cinder_db_password = Noop.hiera_structure 'cinder/db_password'
+    cinder_db_password = task.hiera_structure 'cinder/db_password'
     cinder_db_dbname = 'cinder'
-    allowed_hosts = [Noop.hostname,'localhost','127.0.0.1','%']
+    allowed_hosts = [task.hostname,'localhost','127.0.0.1','%']
 
     it 'should install proper mysql-client' do
       if facts[:osfamily] == 'RedHat'

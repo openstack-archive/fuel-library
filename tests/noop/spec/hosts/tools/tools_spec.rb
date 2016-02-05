@@ -2,19 +2,16 @@ require 'spec_helper'
 require 'shared-examples'
 manifest = 'tools/tools.pp'
 
-tools = [
-  'screen',
-  'tmux',
-  'htop',
-  'tcpdump',
-  'strace',
-  'fuel-misc',
-  'man-db',
-]
+tools = %w(screen tmux htop tcpdump strace fuel-misc man-db)
 
-puppet = Noop.hiera('puppet')
+# HIERA: neut_vlan.ceph.controller-ephemeral-ceph
+# FACTS: ubuntu centos6
 
 describe manifest do
+  let(:puppet) do
+    task.hiera('puppet')
+  end
+
   shared_examples 'catalog' do
     it "should contain ssh host keygen exec for Debian OS only" do
       if facts[:osfamily] == 'Debian'

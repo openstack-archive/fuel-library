@@ -2,52 +2,55 @@ require 'spec_helper'
 require 'shared-examples'
 manifest = 'swift/swift.pp'
 
+# HIERA: neut_vlan.ceph.controller-ephemeral-ceph
+# FACTS: ubuntu
+
 describe manifest do
   shared_examples 'catalog' do
-    workers_max = Noop.hiera 'workers_max'
-    role = Noop.hiera 'role'
-    storage_hash = Noop.hiera 'storage'
-    swift_hash = Noop.hiera 'swift'
-    network_scheme     = Noop.hiera_hash 'network_scheme'
-    network_metadata     = Noop.hiera_hash 'network_metadata'
+    workers_max = task.hiera 'workers_max'
+    role = task.hiera 'role'
+    storage_hash = task.hiera 'storage'
+    swift_hash = task.hiera 'swift'
+    network_scheme     = task.hiera_hash 'network_scheme'
+    network_metadata     = task.hiera_hash 'network_metadata'
 
-    memcached_nodes = Noop.puppet_function('get_nodes_hash_by_roles', network_metadata, ['primary-controller', 'controller'])
-    memcached_addresses = Noop.puppet_function('get_node_to_ipaddr_map_by_network_role', memcached_nodes, 'mgmt/memcache').values
+    memcached_nodes = task.puppet_function('get_nodes_hash_by_roles', network_metadata, ['primary-controller', 'controller'])
+    memcached_addresses = task.puppet_function('get_node_to_ipaddr_map_by_network_role', memcached_nodes, 'mgmt/memcache').values
     memcached_servers = memcached_addresses.sort.map{ |n| n = n + ':11211' }
 
 
     swift_operator_roles = storage_hash.fetch('swift_operator_roles', ['admin', 'SwiftOperator'])
     ring_part_power = swift_hash.fetch('ring_part_power', 10)
-    ring_min_part_hours = Noop.hiera 'swift_ring_min_part_hours', 1
-    deploy_swift_proxy = Noop.hiera('deploy_swift_proxy')
-    rabbit_hosts       = Noop.hiera('amqp_hosts')
-    rabbit_user        = Noop.hiera_structure('rabbit/user', 'nova')
-    rabbit_password    = Noop.hiera_structure('rabbit/password')
-    network_scheme     = Noop.hiera_hash 'network_scheme'
+    ring_min_part_hours = task.hiera 'swift_ring_min_part_hours', 1
+    deploy_swift_proxy = task.hiera('deploy_swift_proxy')
+    rabbit_hosts       = task.hiera('amqp_hosts')
+    rabbit_user        = task.hiera_structure('rabbit/user', 'nova')
+    rabbit_password    = task.hiera_structure('rabbit/password')
+    network_scheme     = task.hiera_hash 'network_scheme'
 
     let (:storage_nets){
-        Noop.puppet_function 'get_routable_networks_for_network_role', network_scheme, 'swift/replication', ' '
+        task.puppet_function 'get_routable_networks_for_network_role', network_scheme, 'swift/replication', ' '
     }
 
     let (:mgmt_nets){
-        Noop.puppet_function 'get_routable_networks_for_network_role', network_scheme, 'swift/api', ' '
+        task.puppet_function 'get_routable_networks_for_network_role', network_scheme, 'swift/api', ' '
     }
 
     let (:bind_to_one) {
-      api_ip = Noop.puppet_function 'get_network_role_property', 'swift/api', 'ipaddr'
-      storage_ip = Noop.puppet_function 'get_network_role_property', 'swift/replication', 'ipaddr'
+      api_ip = task.puppet_function 'get_network_role_property', 'swift/api', 'ipaddr'
+      storage_ip = task.puppet_function 'get_network_role_property', 'swift/replication', 'ipaddr'
       api_ip == storage_ip
     }
 
-    let(:ssl_hash) { Noop.hiera_hash 'use_ssl' }
+    let(:ssl_hash) { task.hiera_hash 'use_ssl' }
 
-    let(:internal_auth_protocol) { Noop.puppet_function 'get_ssl_property',ssl_hash,{},'keystone','internal','protocol','http' }
+    let(:internal_auth_protocol) { task.puppet_function 'get_ssl_property',ssl_hash,{},'keystone','internal','protocol','http' }
 
-    let(:internal_auth_address) { Noop.puppet_function 'get_ssl_property',ssl_hash,{},'keystone','internal','hostname',[Noop.hiera('service_endpoint', ''), management_vip] }
+    let(:internal_auth_address) { task.puppet_function 'get_ssl_property',ssl_hash,{},'keystone','internal','hostname',[task.hiera('service_endpoint', ''), management_vip] }
 
-    let(:admin_auth_protocol) { Noop.puppet_function 'get_ssl_property',ssl_hash,{},'keystone','admin','protocol','http' }
+    let(:admin_auth_protocol) { task.puppet_function 'get_ssl_property',ssl_hash,{},'keystone','admin','protocol','http' }
 
-    let(:admin_auth_address) { Noop.puppet_function 'get_ssl_property',ssl_hash,{},'keystone','admin','hostname',[Noop.hiera('service_endpoint', ''), management_vip] }
+    let(:admin_auth_address) { task.puppet_function 'get_ssl_property',ssl_hash,{},'keystone','admin','hostname',[task.hiera('service_endpoint', ''), management_vip] }
 
     let(:auth_uri) { "#{internal_auth_protocol}://#{internal_auth_address}:5000/" }
 
@@ -55,7 +58,7 @@ describe manifest do
 
     # Swift
     if !(storage_hash['images_ceph'] and storage_hash['objects_ceph']) and !storage_hash['images_vcenter']
-      swift_partition = Noop.hiera 'swift_partition'
+      swift_partition = task.hiera 'swift_partition'
       if !swift_partition
         swift_partition = '/var/lib/glance/node'
         it 'should allow swift user to write into /var/lib/glance directory' do
@@ -109,9 +112,9 @@ describe manifest do
         )
       end
 
-      if Noop.hiera('use_ssl', false)
+      if task.hiera('use_ssl', false)
         context 'with enabled internal TLS for keystone' do
-          keystone_endpoint = Noop.hiera_structure 'use_ssl/keystone_internal_hostname'
+          keystone_endpoint = task.hiera_structure 'use_ssl/keystone_internal_hostname'
           it 'should declare swift::dispersion' do
             if bind_to_one
               should contain_class('swift::dispersion').with(
@@ -126,7 +129,7 @@ describe manifest do
         end
 
         context 'with enabled internal TLS for swift' do
-          swift_endpoint = Noop.hiera_structure 'use_ssl/swift_internal_hostname'
+          swift_endpoint = task.hiera_structure 'use_ssl/swift_internal_hostname'
             it {
               if bind_to_one
                 should contain_class('openstack::swift::status').with(
@@ -139,7 +142,7 @@ describe manifest do
             }
         end
       else
-        keystone_endpoint = Noop.hiera 'service_endpoint'
+        keystone_endpoint = task.hiera 'service_endpoint'
         context 'with disabled internal TLS for keystone' do
           it 'should declare swift::dispersion' do
             if bind_to_one

@@ -2,11 +2,14 @@ require 'spec_helper'
 require 'shared-examples'
 manifest = 'openstack-network/compute-nova.pp'
 
+# HIERA: neut_vlan.ceph.controller-ephemeral-ceph neut_vlan.ceph.compute-ephemeral-ceph
+# FACTS: ubuntu
+
 describe manifest do
   shared_examples 'catalog' do
 
     let(:nova_hash) do
-      Noop.hiera_hash 'nova'
+      task.hiera_hash 'nova'
     end
 
     let(:nova_user_password) do
@@ -14,71 +17,71 @@ describe manifest do
     end
 
     let(:network_scheme) do
-      Noop.hiera_hash 'network_scheme'
+      task.hiera_hash 'network_scheme'
     end
 
     let(:prepare_network_config) do
-      Noop.puppet_function 'prepare_network_config', network_scheme
+      task.puppet_function 'prepare_network_config', network_scheme
     end
 
     let(:bind_address) do
-      Noop.puppet_function 'get_network_role_property', 'nova/api', 'ipaddr'
+      task.puppet_function 'get_network_role_property', 'nova/api', 'ipaddr'
     end
 
     let(:nova_migration_ip) do
-      Noop.puppet_function 'get_network_role_property', 'nova/migration', 'ipaddr'
+      task.puppet_function 'get_network_role_property', 'nova/migration', 'ipaddr'
     end
 
     let(:nova_rate_limits) do
-      Noop.hiera_hash 'nova_rate_limits'
+      task.hiera_hash 'nova_rate_limits'
     end
 
     let(:public_interface) do
-      Noop.puppet_function('get_network_role_property', 'public/vip', 'interface') || ''
+      task.puppet_function('get_network_role_property', 'public/vip', 'interface') || ''
     end
 
     let(:private_interface) do
-      Noop.puppet_function 'get_network_role_property', 'nova/private', 'interface'
+      task.puppet_function 'get_network_role_property', 'nova/private', 'interface'
     end
 
     let(:fixed_network_range) do
-      Noop.hiera 'fixed_network_range'
+      task.hiera 'fixed_network_range'
     end
 
     let(:network_size) do
-      Noop.hiera 'network_size', nil
+      task.hiera 'network_size', nil
     end
 
     let(:num_networks) do
-      Noop.hiera 'num_networks', nil
+      task.hiera 'num_networks', nil
     end
 
     let(:network_config) do
-      Noop.hiera('network_config', {})
+      task.hiera('network_config', {})
     end
 
     let(:dns_nameservers) do
-      Noop.hiera_array('dns_nameservers', [])
+      task.hiera_array('dns_nameservers', [])
     end
 
     let(:use_vcenter) do
-      Noop.hiera 'use_vcenter', false
+      task.hiera 'use_vcenter', false
     end
 
-    if Noop.hiera('use_neutron') && Noop.hiera('role') == 'compute'
+    if task.hiera('use_neutron') && task.hiera('role') == 'compute'
       context 'Neutron is used' do
-        nova_hash = Noop.hiera_hash('nova')
+        nova_hash = task.hiera_hash('nova')
         neutron_integration_bridge = 'br-int'
         libvirt_vif_driver = nova_hash.fetch('libvirt_vif_driver', 'nova.virt.libvirt.vif.LibvirtGenericVIFDriver')
-        neutron_config = Noop.hiera_hash('neutron_config')
+        neutron_config = task.hiera_hash('neutron_config')
         ks = neutron_config.fetch('keystone', {})
-        management_vip     = Noop.hiera('management_vip')
-        service_endpoint   = Noop.hiera('service_endpoint', management_vip)
-        neutron_endpoint   = Noop.hiera('neutron_endpoint', management_vip)
+        management_vip     = task.hiera('management_vip')
+        service_endpoint   = task.hiera('service_endpoint', management_vip)
+        neutron_endpoint   = task.hiera('neutron_endpoint', management_vip)
         admin_password     = ks.fetch('admin_password')
         admin_tenant_name  = ks.fetch('admin_tenant', 'services')
         admin_username     = ks.fetch('admin_user', 'neutron')
-        region_name        = Noop.hiera('region', 'RegionOne')
+        region_name        = task.hiera('region', 'RegionOne')
         auth_api_version   = 'v2.0'
         admin_identity_uri = "http://#{service_endpoint}:35357"
         admin_auth_url     = "#{admin_identity_uri}/#{auth_api_version}"
@@ -141,9 +144,9 @@ describe manifest do
           :neutron_admin_username    => admin_username,
           :neutron_ovs_bridge        => neutron_integration_bridge,
         )}
-        if Noop.hiera_structure('use_ssl', false)
-          admin_identity_address = Noop.hiera_structure('use_ssl/keystone_admin_hostname')
-          neutron_internal_address = Noop.hiera_structure('use_ssl/neutron_internal_hostname')
+        if task.hiera_structure('use_ssl', false)
+          admin_identity_address = task.hiera_structure('use_ssl/keystone_admin_hostname')
+          neutron_internal_address = task.hiera_structure('use_ssl/neutron_internal_hostname')
           it { expect(subject).to contain_class('nova::network::neutron').with(
             :neutron_admin_auth_url    => "https://#{admin_identity_address}:35357/v2.0",
             :neutron_url               => "https://#{neutron_internal_address}:9696",
@@ -185,7 +188,7 @@ describe manifest do
         it { expect(subject).to contain_exec('wait-for-int-br').that_comes_before('Service[nova-compute]') }
         #
       end
-    elsif !Noop.hiera('use_neutron') && Noop.hiera('role') == 'compute'
+    elsif !task.hiera('use_neutron') && task.hiera('role') == 'compute'
       context 'Nova-network is used' do
         it { expect(subject).to contain_nova_config('DEFAULT/multi_host').with(
           :value => true

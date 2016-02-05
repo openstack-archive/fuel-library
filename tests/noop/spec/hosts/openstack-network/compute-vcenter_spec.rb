@@ -2,13 +2,16 @@ require 'spec_helper'
 require 'shared-examples'
 manifest = 'openstack-network/compute-nova.pp'
 
+# HIERA: neut_vlan.ceph.controller-ephemeral-ceph neut_vlan.ceph.compute-ephemeral-ceph
+# FACTS: ubuntu
+
 describe manifest do
   shared_examples 'catalog' do
-    use_neutron = Noop.hiera('use_neutron', false)
-    use_vcenter = Noop.hiera('use_vcenter', false)
+    use_neutron = task.hiera('use_neutron', false)
+    use_vcenter = task.hiera('use_vcenter', false)
 
     let(:nova_hash) do
-      Noop.hiera_hash 'nova'
+      task.hiera_hash 'nova'
     end
 
     let(:nova_user_password) do
@@ -16,58 +19,58 @@ describe manifest do
     end
 
     let(:network_scheme) do
-      Noop.hiera_hash 'network_scheme'
+      task.hiera_hash 'network_scheme'
     end
 
     let(:prepare_network_config) do
-      Noop.puppet_function 'prepare_network_config', network_scheme
+      task.puppet_function 'prepare_network_config', network_scheme
     end
 
     let(:bind_address) do
-      Noop.puppet_function 'get_network_role_property', 'nova/api', 'ipaddr'
+      task.puppet_function 'get_network_role_property', 'nova/api', 'ipaddr'
     end
 
     let(:nova_rate_limits) do
-      Noop.hiera_hash 'nova_rate_limits'
+      task.hiera_hash 'nova_rate_limits'
     end
 
     let(:public_interface) do
-      Noop.puppet_function('get_network_role_property', 'public/vip', 'interface') || ''
+      task.puppet_function('get_network_role_property', 'public/vip', 'interface') || ''
     end
 
     let(:private_interface) do
-      Noop.puppet_function 'get_network_role_property', 'nova/private', 'interface'
+      task.puppet_function 'get_network_role_property', 'nova/private', 'interface'
     end
 
     let(:fixed_network_range) do
-      Noop.hiera 'fixed_network_range'
+      task.hiera 'fixed_network_range'
     end
 
     let(:network_size) do
-      Noop.hiera 'network_size', nil
+      task.hiera 'network_size', nil
     end
 
     let(:num_networks) do
-      Noop.hiera 'num_networks', nil
+      task.hiera 'num_networks', nil
     end
 
     let(:network_config) do
-      Noop.hiera('network_config', {})
+      task.hiera('network_config', {})
     end
 
     let(:dns_nameservers) do
-      Noop.hiera_array('dns_nameservers', [])
+      task.hiera_array('dns_nameservers', [])
     end
 
     let(:use_vcenter) do
-      Noop.hiera 'use_vcenter', false
+      task.hiera 'use_vcenter', false
     end
 
-    if Noop.hiera('use_neutron') && Noop.hiera('use_vcenter', false) && Noop.hiera('role') == 'compute'
+    if task.hiera('use_neutron') && task.hiera('use_vcenter', false) && task.hiera('role') == 'compute'
       context 'if Vcenter+Neutron is used' do
         # TODO: neutron tests
       end
-    elsif !Noop.hiera('use_neutron') && Noop.hiera('use_vcenter', false) && Noop.hiera('role') == 'compute'
+    elsif !task.hiera('use_neutron') && task.hiera('use_vcenter', false) && task.hiera('role') == 'compute'
       context 'if Vcenter+Nova-network is used' do
         it {
           expect(subject).to contain_nova_config('DEFAULT/force_snat_range').with(:value => '0.0.0.0/0')

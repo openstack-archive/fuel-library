@@ -2,47 +2,50 @@ require 'spec_helper'
 require 'shared-examples'
 manifest = 'heat/heat.pp'
 
+# HIERA: neut_vlan.ceph.controller-ephemeral-ceph
+# FACTS: ubuntu
+
 describe manifest do
   shared_examples 'catalog' do
 
     let(:network_scheme) do
-      Noop.hiera_hash 'network_scheme'
+      task.hiera_hash 'network_scheme'
     end
 
     let(:prepare) do
-      Noop.puppet_function 'prepare_network_config', network_scheme
+      task.puppet_function 'prepare_network_config', network_scheme
     end
 
     let(:memcache_address) do
       prepare
-      Noop.puppet_function 'get_network_role_property', 'mgmt/memcache', 'ipaddr'
+      task.puppet_function 'get_network_role_property', 'mgmt/memcache', 'ipaddr'
     end
 
     admin_auth_protocol = 'http'
-    admin_auth_address = Noop.hiera('service_endpoint')
-    if Noop.hiera_structure('use_ssl', false)
+    admin_auth_address = task.hiera('service_endpoint')
+    if task.hiera_structure('use_ssl', false)
       public_auth_protocol = 'https'
-      public_auth_address = Noop.hiera_structure('use_ssl/keystone_public_hostname')
+      public_auth_address = task.hiera_structure('use_ssl/keystone_public_hostname')
       admin_auth_protocol = 'https'
-      admin_auth_address = Noop.hiera_structure('use_ssl/keystone_admin_hostname')
-    elsif Noop.hiera_structure('public_ssl/services')
+      admin_auth_address = task.hiera_structure('use_ssl/keystone_admin_hostname')
+    elsif task.hiera_structure('public_ssl/services')
       public_auth_protocol = 'https'
-      public_auth_address = Noop.hiera_structure('public_ssl/hostname')
+      public_auth_address = task.hiera_structure('public_ssl/hostname')
     else
       public_auth_protocol = 'http'
-      public_auth_address = Noop.hiera('public_vip')
+      public_auth_address = task.hiera('public_vip')
     end
 
-    use_syslog = Noop.hiera 'use_syslog'
-    default_log_levels_hash = Noop.hiera_hash 'default_log_levels'
-    default_log_levels = Noop.puppet_function 'join_keys_to_values',default_log_levels_hash,'='
-    primary_controller = Noop.hiera 'primary_controller'
-    sahara = Noop.hiera_structure('sahara/enabled')
+    use_syslog = task.hiera 'use_syslog'
+    default_log_levels_hash = task.hiera_hash 'default_log_levels'
+    default_log_levels = task.puppet_function 'join_keys_to_values',default_log_levels_hash,'='
+    primary_controller = task.hiera 'primary_controller'
+    sahara = task.hiera_structure('sahara/enabled')
 
-    database_vip = Noop.hiera('database_vip')
-    heat_db_password = Noop.hiera_structure 'heat/db_password', 'heat'
-    heat_db_user = Noop.hiera_structure 'heat/db_user', 'heat'
-    heat_db_name = Noop.hiera('heat_db_name', 'heat')
+    database_vip = task.hiera('database_vip')
+    heat_db_password = task.hiera_structure 'heat/db_password', 'heat'
+    heat_db_user = task.hiera_structure 'heat/db_user', 'heat'
+    heat_db_name = task.hiera('heat_db_name', 'heat')
 
     it 'should install heat-docker package only after heat-engine' do
       if !facts.has_key?(:os_package_type) or facts[:os_package_type] != 'ubuntu'
@@ -125,7 +128,7 @@ describe manifest do
     end
 
     it 'should configure region name for heat' do
-      region = Noop.hiera 'region'
+      region = task.hiera 'region'
       if !region
         region = 'RegionOne'
       end
@@ -140,11 +143,11 @@ describe manifest do
       expect(graph).to ensure_transitive_dependency("Haproxy_backend_status[keystone-admin]",
                                                       "Class[heat::keystone::domain]")
     end
-    if Noop.hiera('external_lb', false)
+    if task.hiera('external_lb', false)
       url = "#{admin_auth_protocol}://#{admin_auth_address}:35357/"
       provider = 'http'
     else
-      url = 'http://' + Noop.hiera('service_endpoint').to_s + ':10000/;csv'
+      url = 'http://' + task.hiera('service_endpoint').to_s + ':10000/;csv'
       provider = Puppet::Type.type(:haproxy_backend_status).defaultprovider.name
     end
 

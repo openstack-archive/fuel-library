@@ -2,13 +2,16 @@ require 'spec_helper'
 require 'shared-examples'
 manifest = 'openstack-haproxy/openstack-haproxy-sahara.pp'
 
+# HIERA: neut_vlan.ceph.controller-ephemeral-ceph
+# FACTS: ubuntu
+
 describe manifest do
   shared_examples 'catalog' do
 
-    sahara_nodes = Noop.hiera_hash('sahara_nodes')
+    sahara_nodes = task.hiera_hash('sahara_nodes')
 
     let(:sahara_address_map) do
-      Noop.puppet_function 'get_node_to_ipaddr_map_by_network_role', sahara_nodes, 'heat/api'
+      task.puppet_function 'get_node_to_ipaddr_map_by_network_role', sahara_nodes, 'heat/api'
     end
 
     let(:ipaddresses) do
@@ -19,12 +22,12 @@ describe manifest do
       sahara_address_map.keys
     end
 
-    use_sahara = Noop.hiera_structure('sahara/enabled', false)
+    use_sahara = task.hiera_structure('sahara/enabled', false)
 
-    if use_sahara and !Noop.hiera('external_lb', false)
+    if use_sahara and !task.hiera('external_lb', false)
 
       it "should properly configure sahara haproxy based on ssl" do
-        public_ssl_sahara = Noop.hiera_structure('public_ssl/services', false)
+        public_ssl_sahara = task.hiera_structure('public_ssl/services', false)
         should contain_openstack__ha__haproxy_service('sahara').with(
           'order'                  => '150',
           'ipaddresses'            => ipaddresses,

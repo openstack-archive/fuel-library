@@ -2,20 +2,23 @@ require 'spec_helper'
 require 'shared-examples'
 manifest = 'database/database.pp'
 
+# HIERA: neut_vlan.ceph.controller-ephemeral-ceph
+# FACTS: ubuntu centos6
+
 describe manifest do
   shared_examples 'catalog' do
     let(:facts) {
-      Noop.ubuntu_facts.merge({
+      task.facts_data.merge({
         :mounts => '/,/boot,/var/log,/var/lib/glance,/var/lib/mysql'
       })
     }
 
     let(:endpoints) do
-      Noop.hiera_hash('network_scheme', {}).fetch('endpoints', {})
+      task.hiera_hash('network_scheme', {}).fetch('endpoints', {})
     end
 
     let(:other_networks) do
-      Noop.puppet_function 'direct_networks', endpoints, 'br-mgmt', 'netmask'
+      task.puppet_function 'direct_networks', endpoints, 'br-mgmt', 'netmask'
     end
 
     let(:access_networks) do
@@ -23,15 +26,15 @@ describe manifest do
     end
 
     let(:database_nodes) do
-      Noop.hiera('database_nodes')
+      task.hiera('database_nodes')
     end
 
     let(:galera_node_address) do
-      Noop.puppet_function 'get_network_role_property', 'mgmt/database', 'ipaddr'
+      task.puppet_function 'get_network_role_property', 'mgmt/database', 'ipaddr'
     end
 
     let(:galera_nodes) do
-      (Noop.puppet_function 'get_node_to_ipaddr_map_by_network_role', database_nodes, 'mgmt/database').values
+      (task.puppet_function 'get_node_to_ipaddr_map_by_network_role', database_nodes, 'mgmt/database').values
     end
 
     it "should declare osnailyfacter::mysql_user with correct other_networks" do
@@ -66,12 +69,12 @@ describe manifest do
       )
     end
 
-    if Noop.hiera('external_lb', false)
-      database_vip = Noop.hiera('database_vip', Noop.hiera('management_vip'))
+    if task.hiera('external_lb', false)
+      database_vip = task.hiera('database_vip', task.hiera('management_vip'))
       url = "http://#{database_vip}:49000"
       provider = 'http'
     else
-      url = 'http://' + Noop.hiera('service_endpoint').to_s + ':10000/;csv'
+      url = 'http://' + task.hiera('service_endpoint').to_s + ':10000/;csv'
       provider = Puppet::Type.type(:haproxy_backend_status).defaultprovider.name
     end
 

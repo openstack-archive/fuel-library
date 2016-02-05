@@ -2,15 +2,18 @@ require 'spec_helper'
 require 'shared-examples'
 manifest = 'openstack-haproxy/openstack-haproxy-ironic.pp'
 
-ironic_enabled = Noop.hiera_structure 'ironic/enabled'
+# HIERA: neut_vlan.ceph.controller-ephemeral-ceph
+# FACTS: ubuntu
+
+ironic_enabled = task.hiera_structure 'ironic/enabled'
 if ironic_enabled
   describe manifest do
     shared_examples 'catalog' do
 
-      ironic_api_nodes = Noop.hiera_hash('ironic_api_nodes')
+      ironic_api_nodes = task.hiera_hash('ironic_api_nodes')
 
       let(:ironic_address_map) do
-        Noop.puppet_function 'get_node_to_ipaddr_map_by_network_role', ironic_api_nodes, 'ironic/api'
+        task.puppet_function 'get_node_to_ipaddr_map_by_network_role', ironic_api_nodes, 'ironic/api'
       end
 
       let(:ipaddresses) do
@@ -21,11 +24,11 @@ if ironic_enabled
         ironic_address_map.keys
       end
 
-      use_ironic = Noop.hiera_structure('ironic/enabled', true)
-      baremetal_virtual_ip = Noop.hiera_structure 'network_metadata/vips/baremetal/ipaddr'
-      public_ssl_ironic = Noop.hiera_structure('public_ssl/services', false)
+      use_ironic = task.hiera_structure('ironic/enabled', true)
+      baremetal_virtual_ip = task.hiera_structure 'network_metadata/vips/baremetal/ipaddr'
+      public_ssl_ironic = task.hiera_structure('public_ssl/services', false)
 
-      if use_ironic and !Noop.hiera('external_lb', false)
+      if use_ironic and !task.hiera('external_lb', false)
         it "should properly configure ironic haproxy based on ssl" do
           should contain_openstack__ha__haproxy_service('ironic').with(
             'order'                  => '180',

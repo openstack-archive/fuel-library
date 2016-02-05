@@ -2,16 +2,19 @@ require 'spec_helper'
 require 'shared-examples'
 manifest = 'ceph/updatedb.pp'
 
+# HIERA: neut_vlan.ceph.controller-ephemeral-ceph neut_vlan.ceph.ceil-primary-controller.overridden_ssl
+# FACTS: ubuntu
+
 describe manifest do
   shared_examples 'catalog' do
-    storage_hash = Noop.hiera 'storage'
+    storage_hash = task.hiera 'storage'
 
-    if (storage_hash['images_ceph'] or storage_hash['objects_ceph'] or storage_hash['objects_ceph'])
+    if storage_hash['images_ceph'] or storage_hash['objects_ceph'] or storage_hash['objects_ceph']
       it { should contain_exec('Ensure /var/lib/ceph in the updatedb PRUNEPATH').with(
-        :path    => [ '/usr/bin', '/bin' ],
-        :command => "sed -i -Ee 's|(PRUNEPATHS *= *\"[^\"]*)|\\1 /var/lib/ceph|' /etc/updatedb.conf",
-        :unless  => "test ! -f /etc/updatedb.conf || grep 'PRUNEPATHS *= *.*/var/lib/ceph.*' /etc/updatedb.conf",
-      )
+                      :path => %w(/usr/bin /bin),
+                      :command => "sed -i -Ee 's|(PRUNEPATHS *= *\"[^\"]*)|\\1 /var/lib/ceph|' /etc/updatedb.conf",
+                      :unless => "test ! -f /etc/updatedb.conf || grep 'PRUNEPATHS *= *.*/var/lib/ceph.*' /etc/updatedb.conf",
+                  )
       }
     else
       it { should_not contain_exec('Ensure /var/lib/ceph in the updatedb PRUNEPATH') }

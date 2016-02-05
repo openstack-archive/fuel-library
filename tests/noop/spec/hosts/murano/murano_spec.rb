@@ -2,60 +2,63 @@ require 'spec_helper'
 require 'shared-examples'
 manifest = 'murano/murano.pp'
 
+# HIERA: neut_vlan.ceph.controller-ephemeral-ceph
+# FACTS: ubuntu
+
 describe manifest do
   shared_examples 'catalog' do
 
-    let(:murano_user) { Noop.hiera_structure('murano/user', 'murano') }
-    let(:murano_password) { Noop.hiera_structure('murano/user_password') }
-    let(:tenant) { Noop.hiera_structure('murano/tenant', 'services') }
-    let(:rabbit_os_user) { Noop.hiera_structure('rabbit/user', 'nova') }
-    let(:rabbit_os_password) { Noop.hiera_structure('rabbit/password') }
+    let(:murano_user) { task.hiera_structure('murano/user', 'murano') }
+    let(:murano_password) { task.hiera_structure('murano/user_password') }
+    let(:tenant) { task.hiera_structure('murano/tenant', 'services') }
+    let(:rabbit_os_user) { task.hiera_structure('rabbit/user', 'nova') }
+    let(:rabbit_os_password) { task.hiera_structure('rabbit/password') }
 
     let(:rabbit_own_vhost) { '/' }
     let(:rabbit_own_port) { '55572' }
 
     let(:network_scheme) do
-      Noop.hiera_hash 'network_scheme'
+      task.hiera_hash 'network_scheme'
     end
 
     let(:prepare) do
-      Noop.puppet_function 'prepare_network_config', network_scheme
+      task.puppet_function 'prepare_network_config', network_scheme
     end
 
     let(:public_ip) do
-      Noop.hiera 'public_vip'
+      task.hiera 'public_vip'
     end
 
     let(:management_ip) do
-      Noop.hiera 'management_vip'
+      task.hiera 'management_vip'
     end
 
     let(:bind_address) do
       prepare
-      Noop.puppet_function 'get_network_role_property', 'murano/api', 'ipaddr'
+      task.puppet_function 'get_network_role_property', 'murano/api', 'ipaddr'
     end
 
-    let(:region) { Noop.hiera('region', 'RegionOne') }
-    let(:use_neutron) { Noop.hiera('use_neutron', false) }
-    let(:service_endpoint) { Noop.hiera('service_endpoint') }
-    let(:syslog_log_facility_murano) { Noop.hiera('syslog_log_facility_murano') }
-    let(:debug) { Noop.hiera('debug', false) }
-    let(:verbose) { Noop.hiera('verbose', true) }
-    let(:use_syslog) { Noop.hiera('use_syslog', true) }
-    let(:rabbit_ha_queues) { Noop.hiera('rabbit_ha_queues') }
-    let(:amqp_port) { Noop.hiera('amqp_port') }
-    let(:amqp_hosts) { Noop.hiera('amqp_hosts') }
-    let(:public_ssl) { Noop.hiera_structure('public_ssl/services') }
+    let(:region) { task.hiera('region', 'RegionOne') }
+    let(:use_neutron) { task.hiera('use_neutron', false) }
+    let(:service_endpoint) { task.hiera('service_endpoint') }
+    let(:syslog_log_facility_murano) { task.hiera('syslog_log_facility_murano') }
+    let(:debug) { task.hiera('debug', false) }
+    let(:verbose) { task.hiera('verbose', true) }
+    let(:use_syslog) { task.hiera('use_syslog', true) }
+    let(:rabbit_ha_queues) { task.hiera('rabbit_ha_queues') }
+    let(:amqp_port) { task.hiera('amqp_port') }
+    let(:amqp_hosts) { task.hiera('amqp_hosts') }
+    let(:public_ssl) { task.hiera_structure('public_ssl/services') }
 
-    let(:db_user) { Noop.hiera_structure('murano/db_user', 'murano') }
-    let(:db_name) { Noop.hiera_structure('murano/db_name', 'murano') }
-    let(:db_host) { Noop.hiera_structure('murano/db_host', service_endpoint) }
-    let(:db_password) { Noop.hiera_structure('murano/db_password') }
+    let(:db_user) { task.hiera_structure('murano/db_user', 'murano') }
+    let(:db_name) { task.hiera_structure('murano/db_name', 'murano') }
+    let(:db_host) { task.hiera_structure('murano/db_host', service_endpoint) }
+    let(:db_password) { task.hiera_structure('murano/db_password') }
 
-    let(:predefined_networks) { Noop.hiera_structure('neutron_config/predefined_networks') }
+    let(:predefined_networks) { task.hiera_structure('neutron_config/predefined_networks') }
 
     let(:default_repository_url) { 'http://storage.apps.openstack.org' }
-    let(:repository_url) { Noop.hiera_structure('murano_settings/murano_repo_url', default_repository_url) }
+    let(:repository_url) { task.hiera_structure('murano_settings/murano_repo_url', default_repository_url) }
 
     let(:api_bind_port) { '8082' }
 
@@ -68,64 +71,64 @@ describe manifest do
       "mysql://#{db_user}:#{db_password}@#{db_host}/#{db_name}#{extra_params}"
     end
 
-    let(:ssl_hash) { Noop.hiera_hash 'use_ssl', {} }
+    let(:ssl_hash) { task.hiera_hash 'use_ssl', {} }
 
     let(:admin_auth_protocol) {
-      Noop.puppet_function 'get_ssl_property',ssl_hash,{},'keystone','admin',
+      task.puppet_function 'get_ssl_property',ssl_hash,{},'keystone','admin',
         'protocol','http'
     }
 
     let(:admin_auth_address) {
-      Noop.puppet_function 'get_ssl_property',ssl_hash,{},'keystone','admin',
-        'hostname',[Noop.hiera('service_endpoint', ''), Noop.hiera('management_vip')]
+      task.puppet_function 'get_ssl_property',ssl_hash,{},'keystone','admin',
+        'hostname',[task.hiera('service_endpoint', ''), task.hiera('management_vip')]
     }
 
     let(:admin_url) { "#{admin_auth_protocol}://#{admin_auth_address}:35357" }
 
     let (:murano_protocol){
-      Noop.puppet_function 'get_ssl_property', ssl_hash, {}, 'murano',
+      task.puppet_function 'get_ssl_property', ssl_hash, {}, 'murano',
         'internal', 'protocol', 'http'
     }
 
     let (:murano_address){
-      Noop.puppet_function 'get_ssl_property', ssl_hash, {}, 'murano',
+      task.puppet_function 'get_ssl_property', ssl_hash, {}, 'murano',
         'internal', 'hostname',
-        [Noop.hiera('service_endpoint', ''), Noop.hiera('management_vip')]
+        [task.hiera('service_endpoint', ''), task.hiera('management_vip')]
     }
 
     let (:murano_url){
       "#{murano_protocol}://#{murano_address}:#{api_bind_port}"
     }
 
-    primary_controller = Noop.hiera 'primary_controller'
-    if Noop.hiera_structure('use_ssl', false)
+    primary_controller = task.hiera 'primary_controller'
+    if task.hiera_structure('use_ssl', false)
       public_auth_protocol = 'https'
-      public_auth_address = Noop.hiera_structure('use_ssl/keystone_public_hostname')
-    elsif Noop.hiera_structure('public_ssl/services', false)
+      public_auth_address = task.hiera_structure('use_ssl/keystone_public_hostname')
+    elsif task.hiera_structure('public_ssl/services', false)
       public_auth_protocol = 'https'
-      public_auth_address = Noop.hiera_structure('public_ssl/hostname')
+      public_auth_address = task.hiera_structure('public_ssl/hostname')
     else
       public_auth_protocol = 'http'
-      public_auth_address = Noop.hiera('public_vip')
+      public_auth_address = task.hiera('public_vip')
     end
 
     let(:external_network) do
       if use_neutron
-        Noop.puppet_function 'get_ext_net_name', predefined_networks
+        task.puppet_function 'get_ext_net_name', predefined_networks
       else
         nil
       end
     end
 
-    let(:default_dns) { Noop.hiera_structure('external_dns/dns_list') }
+    let(:default_dns) { task.hiera_structure('external_dns/dns_list') }
 
-    murano_glance_artifacts_plugin = Noop.hiera('murano_glance_artifacts_plugin', {})
+    murano_glance_artifacts_plugin = task.hiera('murano_glance_artifacts_plugin', {})
 
     #############################################################################
 
-    enable = Noop.hiera_structure('murano/enabled')
-    default_log_levels_hash = Noop.hiera_hash 'default_log_levels'
-    default_log_levels = Noop.puppet_function 'join_keys_to_values',default_log_levels_hash,'='
+    enable = task.hiera_structure('murano/enabled')
+    default_log_levels_hash = task.hiera_hash 'default_log_levels'
+    default_log_levels = task.puppet_function 'join_keys_to_values',default_log_levels_hash,'='
 
     context 'if murano is enabled', :if => enable do
       it 'should declare murano class correctly' do
@@ -192,7 +195,7 @@ describe manifest do
       it { should contain_concat__fragment('murano_dashboard_section').with_content(/METADATA_CACHE_DIR = '\/var\/cache\/murano-dashboard'/)}
       it { should_not contain_exec('django_syncdb') }
 
-      enable = (Noop.hiera_structure('murano/enabled') and Noop.hiera('role') == 'primary-controller')
+      enable = (task.hiera_structure('murano/enabled') and task.hiera('role') == 'primary-controller')
 
       if murano_glance_artifacts_plugin and murano_glance_artifacts_plugin['enabled']
         it 'should configure murano to use GLAR' do
@@ -216,11 +219,11 @@ describe manifest do
         end
        # Test for non-haproxy backend
         it {
-          if Noop.hiera('external_lb', false)
+          if task.hiera('external_lb', false)
             url = admin_url
             provider = 'http'
           else
-            url = 'http://' + Noop.hiera('service_endpoint').to_s + ':10000/;csv'
+            url = 'http://' + task.hiera('service_endpoint').to_s + ':10000/;csv'
             provider = Puppet::Type.type(:haproxy_backend_status).defaultprovider.name
           end
           should contain_haproxy_backend_status('keystone-admin').with(
@@ -231,11 +234,11 @@ describe manifest do
       end
 
       it {
-        if Noop.hiera('external_lb', false)
+        if task.hiera('external_lb', false)
           url = murano_url
           provider = 'http'
         else
-          url = 'http://' + Noop.hiera('service_endpoint').to_s + ':10000/;csv'
+          url = 'http://' + task.hiera('service_endpoint').to_s + ':10000/;csv'
           provider = Puppet::Type.type(:haproxy_backend_status).defaultprovider.name
         end
         should contain_haproxy_backend_status('murano-api').with(

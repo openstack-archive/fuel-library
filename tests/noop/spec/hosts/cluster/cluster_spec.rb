@@ -2,10 +2,13 @@ require 'spec_helper'
 require 'shared-examples'
 manifest = 'cluster/cluster.pp'
 
+# HIERA: neut_vlan.ceph.controller-ephemeral-ceph
+# FACTS: ubuntu centos6
+
 describe manifest do
   shared_examples 'catalog' do
 
-    cluster_recheck_interval = Noop.hiera('cluster_recheck_interval', '190s')
+    cluster_recheck_interval = task.hiera('cluster_recheck_interval', '190s')
 
     it { should contain_class('cluster').with({
       'cluster_recheck_interval' => cluster_recheck_interval,
@@ -20,7 +23,7 @@ describe manifest do
     }
 
     it do
-      if (facts[:operatingsystem] == 'Ubuntu')
+      if facts[:operatingsystem] == 'Ubuntu'
         should contain_file('/etc/corosync/uidgid.d/pacemaker').that_requires('File[/etc/corosync/corosync.conf]')
       elsif
         should_not contain_file('/etc/corosync/uidgid.d/pacemaker')
@@ -28,7 +31,7 @@ describe manifest do
     end
 
     it do
-      if (facts[:operatingsystem] == 'Ubuntu')
+      if facts[:operatingsystem] == 'Ubuntu'
         should contain_file('/etc/corosync/uidgid.d/pacemaker').that_comes_before('Service[corosync]')
       end
     end

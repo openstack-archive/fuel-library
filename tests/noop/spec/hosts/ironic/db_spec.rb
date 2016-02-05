@@ -2,15 +2,18 @@ require 'spec_helper'
 require 'shared-examples'
 manifest = 'ironic/db.pp'
 
+# HIERA: neut_vlan.ceph.controller-ephemeral-ceph
+# FACTS: ubuntu
+
 describe manifest do
   shared_examples 'catalog' do
-    ironic_enabled = Noop.hiera_structure 'ironic/enabled'
+    ironic_enabled = task.hiera_structure 'ironic/enabled'
 
     if ironic_enabled
       ironic_db_user = 'ironic'
       ironic_db_dbname = 'ironic'
-      ironic_db_password = Noop.hiera_structure 'ironic/db_password'
-      allowed_hosts = [Noop.hostname,'localhost','127.0.0.1','%']
+      ironic_db_password = task.hiera_structure 'ironic/db_password'
+      allowed_hosts = [task.hostname,'localhost','127.0.0.1','%']
 
       it 'should install proper mysql-client' do
         if facts[:osfamily] == 'RedHat'

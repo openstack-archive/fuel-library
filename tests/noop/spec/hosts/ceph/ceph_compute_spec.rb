@@ -2,15 +2,16 @@ require 'spec_helper'
 require 'shared-examples'
 manifest = 'ceph/ceph_compute.pp'
 
+# HIERA: neut_vlan.ceph.ceil-compute.overridden_ssl neut_vlan.ceph.compute-ephemeral-ceph
+# FACTS: ubuntu
+
 describe manifest do
   shared_examples 'catalog' do
-    storage_hash = Noop.hiera 'storage'
+    let(:storage_hash) do
+      task.hiera 'storage'
+    end
 
-    if (storage_hash['volumes_ceph'] or
-        storage_hash['images_ceph'] or
-        storage_hash['objects_ceph'] or
-        storage_hash['ephemeral_ceph']
-       )
+    if storage_hash['volumes_ceph'] or storage_hash['images_ceph'] or storage_hash['objects_ceph'] or storage_hash['ephemeral_ceph']
       it { should contain_class('ceph').with(
            'osd_pool_default_size'    => storage_hash['osd_pool_size'],
            'osd_pool_default_pg_num'  => storage_hash['pg_num'],

@@ -2,6 +2,9 @@ require 'spec_helper'
 require 'shared-examples'
 manifest = 'hiera/hiera.pp'
 
+# HIERA: neut_vlan.ceph.controller-ephemeral-ceph
+# FACTS: ubuntu
+
 describe manifest do
   shared_examples 'catalog' do
     it 'should setup hiera' do

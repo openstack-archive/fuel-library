@@ -2,6 +2,9 @@ require 'spec_helper'
 require 'shared-examples'
 manifest = 'astute/enable_compute.pp'
 
+# HIERA: neut_vlan.ceph.compute-ephemeral-ceph
+# FACTS: ubuntu
+
 describe manifest do
   shared_examples 'catalog' do
 

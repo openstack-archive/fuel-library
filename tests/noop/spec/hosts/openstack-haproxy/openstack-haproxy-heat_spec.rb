@@ -2,13 +2,16 @@ require 'spec_helper'
 require 'shared-examples'
 manifest = 'openstack-haproxy/openstack-haproxy-heat.pp'
 
+# HIERA: neut_vlan.ceph.controller-ephemeral-ceph
+# FACTS: ubuntu
+
 describe manifest do
   shared_examples 'catalog' do
 
-    heat_nodes = Noop.hiera_hash('heat_nodes')
+    heat_nodes = task.hiera_hash('heat_nodes')
 
     let(:heat_address_map) do
-      Noop.puppet_function 'get_node_to_ipaddr_map_by_network_role', heat_nodes, 'heat/api'
+      task.puppet_function 'get_node_to_ipaddr_map_by_network_role', heat_nodes, 'heat/api'
     end
 
     let(:ipaddresses) do
@@ -19,11 +22,11 @@ describe manifest do
       heat_address_map.keys
     end
 
-    public_virtual_ip = Noop.hiera('public_vip')
-    internal_virtual_ip = Noop.hiera('management_vip')
-    public_ssl = Noop.hiera_structure('public_ssl/services')
+    public_virtual_ip = task.hiera('public_vip')
+    internal_virtual_ip = task.hiera('management_vip')
+    public_ssl = task.hiera_structure('public_ssl/services')
 
-    unless Noop.hiera('external_lb', false)
+    unless task.hiera('external_lb', false)
       it 'should configure heat haproxy' do
         should contain_openstack__ha__haproxy_service('heat-api').with(
           'order'                  => '160',

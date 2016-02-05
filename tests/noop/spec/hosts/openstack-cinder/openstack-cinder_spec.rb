@@ -2,28 +2,31 @@ require 'spec_helper'
 require 'shared-examples'
 manifest = 'openstack-cinder/openstack-cinder.pp'
 
+# HIERA: neut_vlan.ceph.controller-ephemeral-ceph
+# FACTS: ubuntu
+
 describe manifest do
   shared_examples 'catalog' do
 
   max_pool_size = 20
   max_retries = '-1'
   max_overflow = 20
-  cinder_hash = Noop.hiera_structure 'cinder'
-  workers_max = Noop.hiera 'workers_max'
-  rabbit_ha_queues = Noop.hiera('rabbit_ha_queues')
-  cinder_user = Noop.hiera_structure('cinder/user', "cinder")
-  cinder_user_password = Noop.hiera_structure('cinder/user_password')
-  cinder_tenant = Noop.hiera_structure('cinder/tenant', "services")
-  default_log_levels_hash = Noop.hiera_hash 'default_log_levels'
-  default_log_levels = Noop.puppet_function 'join_keys_to_values',default_log_levels_hash,'='
-  primary_controller = Noop.hiera 'primary_controller'
-  volume_backend_name = Noop.hiera_structure 'storage_hash/volume_backend_names'
+  cinder_hash = task.hiera_structure 'cinder'
+  workers_max = task.hiera 'workers_max'
+  rabbit_ha_queues = task.hiera('rabbit_ha_queues')
+  cinder_user = task.hiera_structure('cinder/user', "cinder")
+  cinder_user_password = task.hiera_structure('cinder/user_password')
+  cinder_tenant = task.hiera_structure('cinder/tenant', "services")
+  default_log_levels_hash = task.hiera_hash 'default_log_levels'
+  default_log_levels = task.puppet_function 'join_keys_to_values',default_log_levels_hash,'='
+  primary_controller = task.hiera 'primary_controller'
+  volume_backend_name = task.hiera_structure 'storage_hash/volume_backend_names'
 
-  database_vip = Noop.hiera('database_vip')
-  cinder = Noop.puppet_function 'roles_include', 'cinder'
-  cinder_db_password = Noop.hiera_structure 'cinder/db_password', 'cinder'
-  cinder_db_user = Noop.hiera_structure 'cinder/db_user', 'cinder'
-  cinder_db_name = Noop.hiera_structure 'cinder/db_name', 'cinder'
+  database_vip = task.hiera('database_vip')
+  cinder = task.puppet_function 'roles_include', 'cinder'
+  cinder_db_password = task.hiera_structure 'cinder/db_password', 'cinder'
+  cinder_db_user = task.hiera_structure 'cinder/db_user', 'cinder'
+  cinder_db_name = task.hiera_structure 'cinder/db_name', 'cinder'
 
   it 'should configure default_log_levels' do
     should contain_cinder_config('DEFAULT/default_log_levels').with_value(default_log_levels.sort.join(','))
@@ -60,12 +63,12 @@ describe manifest do
     )
   end
 
-  if Noop.hiera_structure('use_ssl', false)
+  if task.hiera_structure('use_ssl', false)
     internal_auth_protocol = 'https'
-    keystone_auth_host = Noop.hiera_structure('use_ssl/keystone_internal_hostname')
+    keystone_auth_host = task.hiera_structure('use_ssl/keystone_internal_hostname')
   else
     internal_auth_protocol = 'http'
-    keystone_auth_host = Noop.hiera 'service_endpoint'
+    keystone_auth_host = task.hiera 'service_endpoint'
   end
   auth_uri            = "#{internal_auth_protocol}://#{keystone_auth_host}:5000/"
   identity_uri        = "#{internal_auth_protocol}://#{keystone_auth_host}:5000/"
@@ -112,7 +115,7 @@ describe manifest do
     should contain_cinder_config('DEFAULT/nova_catalog_info').with_value('compute:nova:internalURL')
   end
 
-  use_ceph = Noop.hiera_structure('storage/images_ceph')
+  use_ceph = task.hiera_structure('storage/images_ceph')
   ubuntu_tgt_service_name = 'tgt'
   ubuntu_tgt_package_name = 'tgt'
 
@@ -126,8 +129,8 @@ describe manifest do
     end
   end
 
-  sahara  = Noop.hiera_structure 'sahara_hash/enabled'
-  storage = Noop.hiera_hash 'storage_hash'
+  sahara  = task.hiera_structure 'sahara_hash/enabled'
+  storage = task.hiera_hash 'storage_hash'
   if (sahara and storage['volumes_lvm']) or storage['volumes_block_device']
     filters = [ 'InstanceLocalityFilter', 'AvailabilityZoneFilter', 'CapacityFilter', 'CapabilitiesFilter' ]
   else

@@ -2,11 +2,14 @@ require 'spec_helper'
 require 'shared-examples'
 manifest = 'openstack-network/networks.pp'
 
+# HIERA: neut_vlan.ceph.controller-ephemeral-ceph neut_vlan.ceph.compute-ephemeral-ceph
+# FACTS: ubuntu
+
 describe manifest do
   shared_examples 'catalog' do
-    if (Noop.hiera('use_neutron') and Noop.hiera('primary_controller'))
+    if (task.hiera('use_neutron') and task.hiera('primary_controller'))
       context 'with Neutron' do
-        neutron_config = Noop.hiera('neutron_config')
+        neutron_config = task.hiera('neutron_config')
         nets = neutron_config['predefined_networks']
 
         floating_net   = (neutron_config['default_floating_net'] or 'net04_ext')
@@ -83,7 +86,7 @@ describe manifest do
             )
           end
           let(:baremetal_allocation_pools) do
-            Noop.puppet_function 'format_allocation_pools', nets['baremetal']['L3']['floating']
+            task.puppet_function 'format_allocation_pools', nets['baremetal']['L3']['floating']
           end
           it 'should create baremetal network_subnet' do
             should contain_neutron_subnet('baremetal__subnet').with(

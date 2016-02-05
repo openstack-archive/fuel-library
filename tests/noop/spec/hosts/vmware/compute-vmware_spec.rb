@@ -2,6 +2,9 @@ require 'spec_helper'
 require 'shared-examples'
 manifest = 'vmware/compute-vmware.pp'
 
+# HIERA: neut_vlan.ceph.controller-ephemeral-ceph
+# FACTS: ubuntu
+
 describe manifest do
   shared_examples 'catalog' do
 
@@ -11,7 +14,7 @@ describe manifest do
       )
     end
 
-    network_manager = Noop.hiera_structure('novanetwork_parameters/network_manager')
+    network_manager = task.hiera_structure('novanetwork_parameters/network_manager')
 
     if network_manager == 'VlanManager'
       it 'should have vlan_interface option set to vmnic0' do
@@ -21,7 +24,7 @@ describe manifest do
       end
     end
 
-    ceilometer_enabled = Noop.hiera_structure('ceilometer/enabled')
+    ceilometer_enabled = task.hiera_structure('ceilometer/enabled')
 
     if ceilometer_enabled == 'true'
       it 'should have /etc/ceilometer/ceilometer.conf' do

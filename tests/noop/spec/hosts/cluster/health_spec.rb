@@ -2,28 +2,31 @@ require 'spec_helper'
 require 'shared-examples'
 manifest = 'cluster/health.pp'
 
+# HIERA: neut_vlan.ceph.controller-ephemeral-ceph
+# FACTS: ubuntu centos6
+
 describe manifest do
   shared_examples 'catalog' do
     let(:facts) {
-      Noop.ubuntu_facts.merge({
+      task.facts_data.merge({
         :mounts => '/,/boot,/var/log,/var/lib/glance,/var/lib/mysql,/var/lib/horizon'
       })
     }
 
     let(:disks) do
-      Noop.hiera 'corosync_disk_monitor', ['/', '/var/log', '/var/lib/glance', '/var/lib/mysql']
+      task.hiera 'corosync_disk_monitor', %w(/ /var/log /var/lib/glance /var/lib/mysql)
     end
 
     let(:min_disk_free) do
-      Noop.hiera 'corosync_min_disk_space', '512M'
+      task.hiera 'corosync_min_disk_space', '512M'
     end
 
     let(:disk_unit) do
-      Noop.hiera 'corosync_disk_unit', 'M'
+      task.hiera 'corosync_disk_unit', 'M'
     end
 
     let(:monitor_interval) do
-      Noop.hiera 'corosync_monitor_interval', '15s'
+      task.hiera 'corosync_monitor_interval', '15s'
     end
 
     it {

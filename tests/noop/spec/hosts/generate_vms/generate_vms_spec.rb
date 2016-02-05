@@ -2,14 +2,17 @@ require 'spec_helper'
 require 'shared-examples'
 manifest = 'generate_vms/generate_vms.pp'
 
+# HIERA: neut_vlan.ceph.compute-ephemeral-ceph
+# FACTS: ubuntu
+
 describe manifest do
   shared_examples 'catalog' do
     libvirt_dir = '/etc/libvirt/qemu'
     template_dir = '/var/lib/nova'
     libvirt_service = 'libvirtd'
-    packages = ['qemu-utils', 'qemu-kvm', 'libvirt-bin', 'xmlstarlet']
+    packages = %w(qemu-utils qemu-kvm libvirt-bin xmlstarlet)
 
-    vms = Noop.hiera 'vms_conf'
+    vms = task.hiera 'vms_conf'
 
     it 'should exec generate_vms' do
       should contain_exec('generate_vms').with(

@@ -2,6 +2,9 @@ require 'spec_helper'
 require 'shared-examples'
 manifest = 'logging/logging.pp'
 
+# HIERA: neut_vlan.ceph.controller-ephemeral-ceph
+# FACTS: ubuntu
+
 describe manifest do
   shared_examples 'catalog' do
     syslog_user = syslog_group = {
@@ -19,7 +22,7 @@ describe manifest do
         should_not contain_file('/var/log')
       end
     }
-    if Noop.hiera('role') == 'ironic'
+    if task.hiera('role') == 'ironic'
       it {
         should contain_file('/etc/rsyslog.d/70-ironic.conf').with(
           'owner' => syslog_user[facts[:operatingsystem]],

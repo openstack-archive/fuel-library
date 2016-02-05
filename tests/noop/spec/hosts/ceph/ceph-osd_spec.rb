@@ -2,25 +2,28 @@ require 'spec_helper'
 require 'shared-examples'
 manifest = 'ceph/ceph-osd.pp'
 
+# HIERA: neut_vlan_l3ha.ceph.ceil-ceph-osd
+# FACTS: ubuntu
+
 describe manifest do
   shared_examples 'catalog' do
-    storage_hash = Noop.hiera 'storage'
-    ceph_monitor_nodes = Noop.hiera 'ceph_monitor_nodes'
-    service_endpoint   = Noop.hiera 'service_endpoint'
+    storage_hash = task.hiera 'storage'
+    ceph_monitor_nodes = task.hiera 'ceph_monitor_nodes'
+    service_endpoint   = task.hiera 'service_endpoint'
     if storage_hash['debug']
       debug = storage_hash['debug']
     else
-      debug = Noop.hiera 'debug', true
+      debug = task.hiera 'debug', true
     end
-    ceph_tuning_settings = Noop.hiera 'ceph_tuning_settings'
+    ceph_tuning_settings = task.hiera 'ceph_tuning_settings'
 
-    public_ssl_hash = Noop.hiera('public_ssl')
-    let(:ssl_hash) { Noop.hiera_hash 'use_ssl', {} }
-    let(:admin_auth_protocol) { Noop.puppet_function 'get_ssl_property',ssl_hash,{},'keystone', 'admin','protocol','http' }
-    let(:admin_auth_address) { Noop.puppet_function 'get_ssl_property',ssl_hash,{},'keystone','admin', 'hostname', [Noop.hiera('service_endpoint', Noop.hiera('management_vip'))]}
+    public_ssl_hash = task.hiera('public_ssl')
+    let(:ssl_hash) { task.hiera_hash 'use_ssl', {} }
+    let(:admin_auth_protocol) { task.puppet_function 'get_ssl_property',ssl_hash,{},'keystone', 'admin','protocol','http' }
+    let(:admin_auth_address) { task.puppet_function 'get_ssl_property',ssl_hash,{},'keystone','admin', 'hostname', [task.hiera('service_endpoint', task.hiera('management_vip'))]}
     let(:admin_uri) { "#{admin_auth_protocol}://#{admin_auth_address}:35357" }
 
-    if (storage_hash['images_ceph'] or storage_hash['objects_ceph'])
+    if storage_hash['images_ceph'] or storage_hash['objects_ceph']
       it { should contain_class('ceph').with(
            'mon_hosts'                => ceph_monitor_nodes.keys,
            'osd_pool_default_size'    => storage_hash['osd_pool_size'],

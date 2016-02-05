@@ -2,11 +2,14 @@ require 'spec_helper'
 require 'shared-examples'
 manifest = 'hosts/hosts.pp'
 
+# HIERA: neut_vlan.ceph.controller-ephemeral-ceph
+# FACTS: ubuntu
+
 describe manifest do
   shared_examples 'catalog' do
 
-    network_metadata = Noop.hiera_structure('network_metadata/nodes')
-    messaging_fqdn_prefix = Noop.hiera('node_name_prefix_for_messaging', 'messaging-')
+    network_metadata = task.hiera_structure('network_metadata/nodes')
+    messaging_fqdn_prefix = task.hiera('node_name_prefix_for_messaging', 'messaging-')
 
     it 'should create basic host entries' do
       network_metadata.each do |node, params|

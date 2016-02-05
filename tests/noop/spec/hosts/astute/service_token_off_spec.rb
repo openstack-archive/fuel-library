@@ -2,10 +2,13 @@ require 'spec_helper'
 require 'shared-examples'
 manifest = 'astute/service_token_off.pp'
 
+# HIERA: neut_vlan.ceph.controller-ephemeral-ceph
+# FACTS: ubuntu
+
 describe manifest do
   shared_examples 'catalog' do
 
-    keystone_params  = Noop.hiera_structure 'keystone_hash'
+    keystone_params  = task.hiera_structure 'keystone_hash'
 
     if keystone_params['service_token_off']
       it 'should contain apache/mod_wsgi keystone service' do
@@ -37,7 +40,7 @@ describe manifest do
         end
 
         is_expected.to contain_exec('remove_admin_token_auth_middleware').with(
-          :path    => ['/bin', '/usr/bin'],
+          :path    => %w(/bin /usr/bin),
           :command => "sed -i.dist 's/ admin_token_auth//' #{paste_ini}",
           :onlyif  => "fgrep -q ' admin_token_auth' #{paste_ini}",
         )

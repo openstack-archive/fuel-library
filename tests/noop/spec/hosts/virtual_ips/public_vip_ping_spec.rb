@@ -2,11 +2,14 @@ require 'spec_helper'
 require 'shared-examples'
 manifest = 'virtual_ips/public_vip_ping.pp'
 
+# HIERA: neut_vlan.ceph.controller-ephemeral-ceph
+# FACTS: ubuntu
+
 describe manifest do
   shared_examples 'catalog' do
 
     let (:ping_host) {
-      ping_host = Noop.hiera_structure('network_scheme/endpoints/br-ex/gateway')
+      ping_host = task.hiera_structure('network_scheme/endpoints/br-ex/gateway')
       raise 'Could not get the ping host!' unless ping_host
       ping_host
     }

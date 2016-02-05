@@ -2,6 +2,9 @@ require 'spec_helper'
 require 'shared-examples'
 manifest = 'astute/enable_cinder.pp'
 
+# HIERA: neut_vlan.ceph.controller-ephemeral-ceph
+# FACTS: ubuntu
+
 describe manifest do
   shared_examples 'catalog' do
 

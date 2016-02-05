@@ -2,6 +2,9 @@ require 'spec_helper'
 require 'shared-examples'
 manifest = 'ceph/enable_rados.pp'
 
+# HIERA: neut_vlan.ceph.controller-ephemeral-ceph neut_vlan.ceph.ceil-primary-controller.overridden_ssl
+# FACTS: ubuntu
+
 describe manifest do
   shared_examples 'catalog' do
     it "should contain radowgw service" do

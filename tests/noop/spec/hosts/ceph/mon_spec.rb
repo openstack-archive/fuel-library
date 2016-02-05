@@ -2,10 +2,13 @@ require 'spec_helper'
 require 'shared-examples'
 manifest = 'ceph/mon.pp'
 
+# HIERA: neut_vlan.ceph.controller-ephemeral-ceph neut_vlan.ceph.ceil-primary-controller.overridden_ssl
+# FACTS: ubuntu
+
 describe manifest do
   shared_examples 'catalog' do
-    storage_hash = Noop.hiera 'storage'
-    ceph_monitor_nodes = Noop.hiera 'ceph_monitor_nodes'
+    storage_hash = task.hiera 'storage'
+    ceph_monitor_nodes = task.hiera 'ceph_monitor_nodes'
 
     if (storage_hash['volumes_ceph'] or
         storage_hash['images_ceph'] or

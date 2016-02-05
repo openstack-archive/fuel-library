@@ -2,15 +2,18 @@ require 'spec_helper'
 require 'shared-examples'
 manifest = 'openstack-network/server-config.pp'
 
+# HIERA: neut_vlan.ceph.controller-ephemeral-ceph neut_vlan.ceph.compute-ephemeral-ceph
+# FACTS: ubuntu
+
 describe manifest do
   shared_examples 'catalog' do
-    if (Noop.hiera('use_neutron') == true and Noop.hiera('role') =~ /controller/)
+    if (task.hiera('use_neutron') == true and task.hiera('role') =~ /controller/)
       let(:network_scheme) do
-        Noop.hiera_hash('network_scheme', {})
+        task.hiera_hash('network_scheme', {})
       end
 
       let(:configuration_override) do
-        Noop.hiera_structure 'configuration'
+        task.hiera_structure 'configuration'
       end
 
       let(:neutron_config_override_resources) do
@@ -26,16 +29,16 @@ describe manifest do
       end
 
       context 'with Neutron-server' do
-        workers_max      = Noop.hiera 'workers_max'
-        neutron_config   = Noop.hiera_hash('neutron_config')
-        management_vip   = Noop.hiera('management_vip')
-        service_endpoint = Noop.hiera('service_endpoint', management_vip)
-        l3_ha            = Noop.hiera_hash('neutron_advanced_configuration', {}).fetch('neutron_l3_ha', false)
+        workers_max      = task.hiera 'workers_max'
+        neutron_config   = task.hiera_hash('neutron_config')
+        management_vip   = task.hiera('management_vip')
+        service_endpoint = task.hiera('service_endpoint', management_vip)
+        l3_ha            = task.hiera_hash('neutron_advanced_configuration', {}).fetch('neutron_l3_ha', false)
         extension_drivers = ['port_security']
         segmentation_type = neutron_config.fetch('L2',{}).fetch('segmentation_type')
         pnets = neutron_config.fetch('L2',{}).fetch('phys_nets',{})
-        role = Noop.hiera('role')
-        adv_neutron_config = Noop.hiera_hash('neutron_advanced_configuration')
+        role = task.hiera('role')
+        adv_neutron_config = task.hiera_hash('neutron_advanced_configuration')
         dvr = adv_neutron_config.fetch('neutron_dvr', false)
 
         if segmentation_type == 'vlan'
@@ -69,7 +72,7 @@ describe manifest do
         end
 
         it 'database options' do
-          database_vip        = Noop.hiera('database_vip')
+          database_vip        = task.hiera('database_vip')
           db_password = neutron_config.fetch('database', {}).fetch('passwd')
           db_user     = neutron_config.fetch('database', {}).fetch('user', 'neutron')
           db_name     = neutron_config.fetch('database', {}).fetch('name', 'neutron')
@@ -89,10 +92,10 @@ describe manifest do
           )
         end
 
-        if Noop.hiera_structure('use_ssl', false)
+        if task.hiera_structure('use_ssl', false)
           context 'with overridden TLS for internal endpoints' do
             internal_auth_protocol = 'https'
-            internal_auth_endpoint = Noop.hiera_structure('use_ssl/keystone_internal_hostname')
+            internal_auth_endpoint = task.hiera_structure('use_ssl/keystone_internal_hostname')
 
             it 'should have correct auth options' do
               identity_uri     = "#{internal_auth_protocol}://#{internal_auth_endpoint}:5000/"
@@ -100,7 +103,7 @@ describe manifest do
               should contain_class('neutron::server').with(
                 'auth_password' => ks.fetch('admin_password'),
                 'auth_tenant'   => ks.fetch('admin_tenant', 'services'),
-                'auth_region'   => Noop.hiera('region', 'RegionOne'),
+                'auth_region'   => task.hiera('region', 'RegionOne'),
                 'auth_user'     => ks.fetch('admin_user', 'neutron'),
                 'identity_uri'  => identity_uri,
                 'auth_uri'      => identity_uri,
@@ -108,17 +111,17 @@ describe manifest do
             end
 
             admin_auth_protocol = 'https'
-            admin_auth_endpoint = Noop.hiera_structure('use_ssl/keystone_admin_hostname')
+            admin_auth_endpoint = task.hiera_structure('use_ssl/keystone_admin_hostname')
             nova_auth_protocol  = 'https'
-            internal_nova_endpoint = Noop.hiera_structure('use_ssl/nova_internal_hostname')
+            internal_nova_endpoint = task.hiera_structure('use_ssl/nova_internal_hostname')
             it 'should declare class neutron::server::notifications with TLS endpoints' do
               nova_admin_auth_url = "#{admin_auth_protocol}://#{admin_auth_endpoint}:35357/"
               nova_url            = "#{nova_auth_protocol}://#{internal_nova_endpoint}:8774/v2"
-              nova_hash           = Noop.hiera_hash('nova', {})
+              nova_hash           = task.hiera_hash('nova', {})
               should contain_class('neutron::server::notifications').with(
                 'nova_url'    => nova_url,
                 'auth_url'    => nova_admin_auth_url,
-                'region_name' => Noop.hiera('region', 'RegionOne'),
+                'region_name' => task.hiera('region', 'RegionOne'),
                 'username'    => nova_hash.fetch('user', 'nova'),
                 'tenant_name' => nova_hash.fetch('tenant', 'services'),
                 'password'    => nova_hash.fetch('user_password'),
@@ -133,7 +136,7 @@ describe manifest do
               should contain_class('neutron::server').with(
                 'auth_password' => ks.fetch('admin_password'),
                 'auth_tenant'   => ks.fetch('admin_tenant', 'services'),
-                'auth_region'   => Noop.hiera('region', 'RegionOne'),
+                'auth_region'   => task.hiera('region', 'RegionOne'),
                 'auth_user'     => ks.fetch('admin_user', 'neutron'),
                 'identity_uri'  => identity_uri,
                 'auth_uri'      => identity_uri,
@@ -142,13 +145,13 @@ describe manifest do
 
             it 'should declare neutron::server::notifications without TLS endpoints' do
               nova_admin_auth_url = "http://#{service_endpoint}:35357/"
-              nova_endpoint       = Noop.hiera('nova_endpoint', management_vip)
+              nova_endpoint       = task.hiera('nova_endpoint', management_vip)
               nova_url            = "http://#{nova_endpoint}:8774/v2"
-              nova_hash           = Noop.hiera_hash('nova', {})
+              nova_hash           = task.hiera_hash('nova', {})
               should contain_class('neutron::server::notifications').with(
                 'nova_url'    => nova_url,
                 'auth_url'    => nova_admin_auth_url,
-                'region_name' => Noop.hiera('region', 'RegionOne'),
+                'region_name' => task.hiera('region', 'RegionOne'),
                 'username'    => nova_hash.fetch('user', 'nova'),
                 'tenant_name' => nova_hash.fetch('tenant', 'services'),
                 'password'    => nova_hash.fetch('user_password'),
@@ -240,9 +243,9 @@ describe manifest do
         )}
         it {
           if segmentation_type == 'vlan'
-            physical_network_mtus = Noop.puppet_function('generate_physnet_mtus', Noop.hiera_hash('neutron_config'), network_scheme, { 'do_floating' => true, 'do_tenant' => true, 'do_provider' => false })
+            physical_network_mtus = task.puppet_function('generate_physnet_mtus', task.hiera_hash('neutron_config'), network_scheme, { 'do_floating' => true, 'do_tenant' => true, 'do_provider' => false })
           else
-            physical_network_mtus = Noop.puppet_function('generate_physnet_mtus', Noop.hiera_hash('neutron_config'), network_scheme, { 'do_floating' => true, 'do_tenant' => false, 'do_provider' => false })
+            physical_network_mtus = task.puppet_function('generate_physnet_mtus', task.hiera_hash('neutron_config'), network_scheme, { 'do_floating' => true, 'do_tenant' => false, 'do_provider' => false })
           end
           should contain_class('neutron::plugins::ml2').with(
           'physical_network_mtus' => physical_network_mtus,
@@ -267,7 +270,7 @@ describe manifest do
         end
 
         it 'should use "override_resources" to update the catalog' do
-          ral_catalog = Noop.create_ral_catalog self
+          ral_catalog = task.create_ral_catalog self
           neutron_config_override_resources.each do |title, params|
             params['value'] = 'True' if params['value'].is_a? TrueClass
             expect(ral_catalog).to contain_neutron_config(title).with(params)

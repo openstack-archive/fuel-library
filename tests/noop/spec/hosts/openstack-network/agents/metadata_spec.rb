@@ -2,22 +2,25 @@ require 'spec_helper'
 require 'shared-examples'
 manifest = 'openstack-network/agents/metadata.pp'
 
+# HIERA: neut_vlan.ceph.controller-ephemeral-ceph
+# FACTS: ubuntu
+
 describe manifest do
   shared_examples 'catalog' do
-    if Noop.hiera('use_neutron')
+    if task.hiera('use_neutron')
 
       let(:node_role) do
-        Noop.hiera('role')
+        task.hiera('role')
       end
 
       let(:configuration_override) do
-        Noop.hiera_structure 'configuration'
+        task.hiera_structure 'configuration'
       end
 
-      na_config                = Noop.hiera_hash('neutron_advanced_configuration')
-      neutron_config           = Noop.hiera_hash('neutron_config')
-      neutron_controller_roles = Noop.hiera('neutron_controller_nodes', ['controller', 'primary-controller'])
-      neutron_compute_roles    = Noop.hiera('neutron_compute_nodes', ['compute'])
+      na_config                = task.hiera_hash('neutron_advanced_configuration')
+      neutron_config           = task.hiera_hash('neutron_config')
+      neutron_controller_roles = task.hiera('neutron_controller_nodes', ['controller', 'primary-controller'])
+      neutron_compute_roles    = task.hiera('neutron_compute_nodes', ['compute'])
       isolated_metadata        = neutron_config.fetch('metadata',{}).fetch('isolated_metadata', true)
       ha_agent                 = na_config.fetch('dhcp_agent_ha', true)
 
@@ -28,19 +31,19 @@ describe manifest do
 
       secret = neutron_config.fetch('metadata',{}).fetch('metadata_proxy_shared_secret')
 
-      management_vip = Noop.hiera('management_vip')
-      nova_endpoint  = Noop.hiera('nova_endpoint', management_vip)
-      auth_region        = Noop.hiera('region', 'RegionOne')
-      service_endpoint   = Noop.hiera('service_endpoint')
+      management_vip = task.hiera('management_vip')
+      nova_endpoint  = task.hiera('nova_endpoint', management_vip)
+      auth_region        = task.hiera('region', 'RegionOne')
+      service_endpoint   = task.hiera('service_endpoint')
       auth_api_version   = 'v2.0'
-      let(:ssl_hash) { Noop.hiera_hash 'use_ssl', {} }
-      let(:admin_auth_protocol) { Noop.puppet_function 'get_ssl_property',ssl_hash,{},'keystone', 'admin','protocol','http' }
-      let(:admin_auth_address) { Noop.puppet_function 'get_ssl_property',ssl_hash,{},'keystone','admin', 'hostname', [Noop.hiera('service_endpoint', Noop.hiera('management_vip'))]}
+      let(:ssl_hash) { task.hiera_hash 'use_ssl', {} }
+      let(:admin_auth_protocol) { task.puppet_function 'get_ssl_property',ssl_hash,{},'keystone', 'admin','protocol','http' }
+      let(:admin_auth_address) { task.puppet_function 'get_ssl_property',ssl_hash,{},'keystone','admin', 'hostname', [task.hiera('service_endpoint', task.hiera('management_vip'))]}
       let(:admin_auth_url) { "#{admin_auth_protocol}://#{admin_auth_address}:35357/#{auth_api_version}" }
 
-      if neutron_compute_roles.include?(Noop.hiera('role'))
+      if neutron_compute_roles.include?(task.hiera('role'))
         context 'neutron-metadata-agent on compute' do
-          na_config = Noop.hiera_hash('neutron_advanced_configuration')
+          na_config = task.hiera_hash('neutron_advanced_configuration')
           dvr = na_config.fetch('neutron_dvr', false)
           if dvr
             let(:neutron_metadata_agent_config_override_resources) do
@@ -48,7 +51,7 @@ describe manifest do
             end
 
             it { should contain_class('neutron::agents::metadata').with(
-              'debug' => Noop.hiera('debug', true)
+              'debug' => task.hiera('debug', true)
             )}
             it { should contain_class('neutron::agents::metadata').with(
               'enabled' => true
@@ -81,7 +84,7 @@ describe manifest do
               is_expected.to contain_override_resources('neutron_metadata_agent_config').with(:data => neutron_metadata_agent_config_override_resources)
             end
             it 'should use "override_resources" to update the catalog' do
-              ral_catalog = Noop.create_ral_catalog self
+              ral_catalog = task.create_ral_catalog self
               neutron_metadata_agent_config_override_resources.each do |title, params|
                 params['value'] = 'True' if params['value'].is_a? TrueClass
                 expect(ral_catalog).to contain_neutron_metadata_agent_config(title).with(params)
@@ -92,7 +95,7 @@ describe manifest do
           end
           it { should_not contain_class('cluster::neutron::metadata') }
         end
-      elsif neutron_controller_roles.include?(Noop.hiera('role'))
+      elsif neutron_controller_roles.include?(task.hiera('role'))
         context 'with neutron-metadata-agent on controller' do
 
           let(:neutron_metadata_agent_config_override_resources) do
@@ -103,7 +106,7 @@ describe manifest do
             is_expected.to contain_override_resources('neutron_metadata_agent_config').with(:data => neutron_metadata_agent_config_override_resources)
           end
           it 'should use "override_resources" to update the catalog' do
-            ral_catalog = Noop.create_ral_catalog self
+            ral_catalog = task.create_ral_catalog self
             neutron_metadata_agent_config_override_resources.each do |title, params|
               params['value'] = 'True' if params['value'].is_a? TrueClass
               expect(ral_catalog).to contain_neutron_metadata_agent_config(title).with(params)
@@ -111,7 +114,7 @@ describe manifest do
           end
 
           it { should contain_class('neutron::agents::metadata').with(
-            'debug' => Noop.hiera('debug', true)
+            'debug' => task.hiera('debug', true)
           )}
           it { should contain_class('neutron::agents::metadata').with(
             'enabled' => true
