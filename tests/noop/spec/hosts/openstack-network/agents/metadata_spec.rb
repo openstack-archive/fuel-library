@@ -14,7 +14,7 @@ describe manifest do
         Noop.hiera_structure 'configuration'
       end
 
-      na_config                = Noop.hiera_hash('neutron_advanced_configuration')
+      na_config                = Noop.hiera_hash('neutron_advanced_configuration', {})
       neutron_config           = Noop.hiera_hash('neutron_config')
       neutron_controller_roles = Noop.hiera('neutron_controller_nodes', ['controller', 'primary-controller'])
       neutron_compute_roles    = Noop.hiera('neutron_compute_nodes', ['compute'])

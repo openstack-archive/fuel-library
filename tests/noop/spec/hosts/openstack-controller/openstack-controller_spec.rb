@@ -227,7 +227,7 @@ describe manifest do
         url = "#{nova_internal_protocol}://#{nova_internal_endpoint}:8774"
         provider = 'http'
       else
-        url = 'http://' + Noop.hiera('service_endpoint').to_s + ':10000/;csv'
+        url = 'http://' + Noop.hiera('management_vip').to_s + ':10000/;csv'
         provider = Puppet::Type.type(:haproxy_backend_status).defaultprovider.name
       end
 
