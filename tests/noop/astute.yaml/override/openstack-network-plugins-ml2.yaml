@@ -1,5 +1,0 @@
----
-configuration:
-  neutron_agent_ovs:
-    agent/polling_interval:
-      value: 15
