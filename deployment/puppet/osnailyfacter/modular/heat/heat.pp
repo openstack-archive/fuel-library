@@ -123,7 +123,7 @@ class { 'openstack::heat' :
 
 if hiera('heat_ha_engine', true){
   if ($deployment_mode == 'ha') or ($deployment_mode == 'ha_compact') {
-    include ::heat_ha::engine
+    include ::cluster::heat_engine
   }
 }
 
@@ -190,14 +190,14 @@ Class['heat'] ->
 ######################
 
 exec { 'wait_for_heat_config' :
-  command  => 'sync && sleep 3',
-  provider => 'shell',
+  command     => 'sync && sleep 3',
+  provider    => 'shell',
+  refreshonly => true,
 }
 
-Heat_config <||> -> Exec['wait_for_heat_config'] -> Service['heat-api']
-Heat_config <||> -> Exec['wait_for_heat_config'] -> Service['heat-api-cfn']
-Heat_config <||> -> Exec['wait_for_heat_config'] -> Service['heat-api-cloudwatch']
-Heat_config <||> -> Exec['wait_for_heat_config'] -> Service['heat-engine']
+Heat_config <||> ~>
+  Exec['wait_for_heat_config'] ->
+    Service <| tag == 'heat-service' |>
 
 ######################
 
