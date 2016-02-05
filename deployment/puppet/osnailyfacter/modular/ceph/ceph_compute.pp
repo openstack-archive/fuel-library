@@ -1,13 +1,13 @@
 notice('MODULAR: ceph/ceph_compute.pp')
 
 $mon_address_map          = get_node_to_ipaddr_map_by_network_role(hiera_hash('ceph_monitor_nodes'), 'ceph/public')
-$storage_hash             = hiera_hash('storage_hash', {})
+$storage_hash             = hiera_hash('storage', {})
 $use_neutron              = hiera('use_neutron')
 $public_vip               = hiera('public_vip')
 $management_vip           = hiera('management_vip')
 $use_syslog               = hiera('use_syslog', true)
 $syslog_log_facility_ceph = hiera('syslog_log_facility_ceph','LOG_LOCAL0')
-$keystone_hash            = hiera_hash('keystone_hash', {})
+$keystone_hash            = hiera_hash('keystone', {})
 # Cinder settings
 $cinder_pool              = 'volumes'
 # Glance settings
