@@ -19,6 +19,7 @@ $keystone_tenant        = pick($cinder_hash['tenant'], 'services')
 $region                 = hiera('region', 'RegionOne')
 $ssl_hash               = hiera_hash('use_ssl', {})
 $primary_controller     = hiera('primary_controller')
+$proxy_port             = hiera('proxy_port', '8080')
 
 $db_type                = 'mysql'
 $db_host                = pick($cinder_hash['db_host'], hiera('database_vip'))
@@ -46,6 +47,12 @@ $keystone_auth_host     = get_ssl_property($ssl_hash, {}, 'keystone', 'internal'
 $glance_protocol        = get_ssl_property($ssl_hash, {}, 'glance', 'internal', 'protocol', 'http')
 $glance_endpoint        = get_ssl_property($ssl_hash, {}, 'heat', 'internal', 'hostname', [hiera('glance_endpoint', ''), $management_vip])
 $glance_ssl_usage       = get_ssl_property($ssl_hash, {}, 'glance', 'internal', 'usage', false)
+
+$swift_internal_protocol = get_ssl_property($ssl_hash, {}, 'swift', 'internal', 'protocol', 'http')
+$swift_internal_address  = get_ssl_property($ssl_hash, {}, 'swift', 'internal', 'hostname', [$management_vip])
+
+$swift_url = "${swift_internal_protocol}://${swift_internal_address}:${proxy_port}"
+
 if $glance_ssl_usage {
   $glance_api_servers = "${glance_protocol}://${glance_endpoint}:9292"
 } else {
@@ -121,6 +128,7 @@ class {'openstack::cinder':
   idle_timeout         => $idle_timeout,
   notification_driver  => $ceilometer_hash['notification_driver'],
   service_workers      => $service_workers,
+  swift_url            => $swift_url,
 } # end class
 
 if $storage_hash['volumes_block_device'] or ($sahara_hash['enabled'] and $storage_hash['volumes_lvm']) {
