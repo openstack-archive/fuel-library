@@ -1,4 +1,0 @@
-fixtures:
-  repositories:
-    #TODO(bogdando) enable once switched to external fixtures
-    #fuel-noop-fixtures: "git://github.com/openstack/fuel-noop-fixtures.git"

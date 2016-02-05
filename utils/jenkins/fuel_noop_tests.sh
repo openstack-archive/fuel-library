@@ -1,9 +1,7 @@
-#!/bin/bash
-
+#!/bin/sh
 DIR=`dirname $0`
+cd $DIR || exit 1
 
-echo 'Ruby version:'
-ruby --version
-
-"${DIR}/fuel_noop_tests.rb" -b -d -u -O -m ${@}
-
+../../tests/noop/setup_and_diagnostics.sh $@
+../../tests/noop/run_globals.sh -b $@
+../../tests/noop/run_all.sh -b -o $@

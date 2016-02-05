@@ -2,6 +2,8 @@ require 'spec_helper'
 require 'shared-examples'
 manifest = 'ironic/ironic.pp'
 
+# SKIP_HIERA: neut_vlan.ironic.controller
+
 ironic_enabled = Noop.hiera_structure 'ironic/enabled'
 if ironic_enabled
 
