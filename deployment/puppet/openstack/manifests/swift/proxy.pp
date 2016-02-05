@@ -173,6 +173,17 @@ class openstack::swift::proxy (
       local_net_ip => $swift_replication_local_ipaddr,
     }
 
+    rsync::server::module { 'swift_backups':
+      path            => '/etc/swift/backups',
+      lock_file       => '/var/lock/swift_backups.lock',
+      uid             => 'swift',
+      gid             => 'swift',
+      incoming_chmod  => false,
+      outgoing_chmod  => false,
+      max_connections => '5',
+      read_only       => true,
+    }
+
     # resource ordering
     Swift::Ringbuilder::Rebalance <||> -> Service['swift-proxy-server']
     Swift::Ringbuilder::Rebalance <||> -> Swift::Storage::Generic <| |>
@@ -195,7 +206,7 @@ class openstack::swift::proxy (
     }
 
     rsync::get { "/etc/swift/backups/":
-      source    => "rsync://${master_swift_replication_ip}/swift_server/backups/",
+      source    => "rsync://${master_swift_replication_ip}/swift_backups/",
       recursive => true,
     }
 

@@ -216,6 +216,19 @@ describe manifest do
           'identity_uri' => identity_uri,
         )
       end
+
+      it 'should contain swift backups section in rsync conf' do
+        should contain rsync__server__module('swift_backups').with(
+          'path'            => '/etc/swift/backups',
+          'lock_file'       => '/var/lock/swift_backups.lock',
+          'uid'             => 'swift',
+          'gid'             => 'swift',
+          'incoming_chmod'  => false,
+          'outgoing_chmod'  => false,
+          'max_connections' => '5',
+          'read_only'       => true,
+        )
+      end
     end
   end
   test_ubuntu_and_centos manifest
