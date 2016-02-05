@@ -729,14 +729,16 @@ function backup_compress {
   component_tars=($backup_dir/*.tar)
   ( cd $backup_dir && tar cf $backup_dir/fuel_backup${image_suffix}.tar *.tar *.sql)
   rm -rf "${component_tars[@]}"
+  lrzopts="-L2 -H -q"
   #Improve compression on bare metal
   if [ -z "$(virt-what)" ] ; then
-    lrzopts="-L2 -U"
-  else
-    lrzopts="-L2"
+    lrzopts="${lrzopts} -U"
   fi
-  lrzip $lrzopts "$backup_dir/fuel_backup${image_suffix}.tar" -o "$backup_dir/fuel_backup${image_suffix}.tar.lrz"
-
+  backupfile="${backup_dir}/fuel_backup${image_suffix}.tar.lrz"
+  lrzip $lrzopts "$backup_dir/fuel_backup${image_suffix}.tar" -o "${backupfile}"
+  echo "Verifying integrity of archive..."
+  lrzip -t "${backupfile}"
+  echo "Archive integrity is OK."
 }
 
 function backup_rsync_upload {
@@ -870,6 +872,8 @@ finish or cancel them. Run \"fuel task list\" for more details." 1>&2
   elif ! [[ "$backupfile" =~ lrz$ ]]; then
     echo "Archive does not have lrz extension." 1>&2
     exit 2
+  elif ! lrzip -t "$backupfile"; then
+    echo "Backup file is corrupt and does not match its contained md5sum."
   fi
   timestamp=$(echo $backupfile | sed -n 's/.*\([0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9]_[0-9][0-9][0-9][0-9]\).*/\1/p')
   if [ -z "$timestamp" ]; then
@@ -983,8 +987,8 @@ function verify_disk_space {
     echo "Backup or restore operation not specified." 1>&2
     exit 1
   fi
-  fullbackup=1
-  if [[ "$2" != "$fullbackup" ]]; then
+
+  if [[ "$2" != "1" ]]; then
     #2gb free space required for light backup
     (( required  = 2 * 1024 * 1024 ))
     spaceerror="Insufficient disk space to perform $1. At least 2gb must be free on ${BACKUP_ROOT} partition."
