@@ -2,6 +2,8 @@ require 'spec_helper'
 require 'shared-examples'
 manifest = 'murano/keystone.pp'
 
+# DISABLE_SPEC
+
 describe manifest do
   shared_examples 'catalog' do
 
