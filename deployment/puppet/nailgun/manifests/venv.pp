@@ -86,22 +86,21 @@ class nailgun::venv(
     ensure  => link,
     target  => "/opt/nailgun/bin/fuel",
   }
-
   case $production {
     'docker': {
       exec {"nailgun_syncdb":
-        command   => "${venv}/bin/nailgun_syncdb",
-        require   => [
-                    File["/etc/nailgun/settings.yaml"],
-                    ],
-        tries     => 50,
-        try_sleep => 5,
+        command     => "${venv}/bin/nailgun_syncdb",
+        refreshonly => true,
+        subscribe   => File["/etc/nailgun/settings.yaml"],
+        tries       => 50,
+        try_sleep   => 5,
       }
       exec {"nailgun_upload_fixtures":
-        command   => "${venv}/bin/nailgun_fixtures",
-        require   => Exec["nailgun_syncdb"],
-        tries     => 50,
-        try_sleep => 5,
+        command     => "${venv}/bin/nailgun_fixtures",
+        refreshonly => true,
+        subscribe   => Exec["nailgun_syncdb"],
+        tries       => 50,
+        try_sleep   => 5,
       }
     }
     'prod': {
