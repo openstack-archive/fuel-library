@@ -158,6 +158,7 @@ class Puppet::Provider::L2_base < Puppet::Provider::InterfaceToolset
             :external_ids  => ovs_parse_opthash(buff['external_ids']),
             :other_config  => ovs_parse_opthash(buff['other_config']),
             :status        => ovs_parse_opthash(buff['status']),
+            :datapath_type => buff['datapath_type'],
           }
         }
         debug("Found OVS br: '#{buff['name']}' with properties: #{rv[buff['name']]}")

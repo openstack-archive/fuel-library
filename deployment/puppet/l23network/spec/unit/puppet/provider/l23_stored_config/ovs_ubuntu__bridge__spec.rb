@@ -13,6 +13,7 @@ describe Puppet::Type.type(:l23_stored_config).provider(:ovs_ubuntu) do
         :onboot         => true,
         :method         => 'manual',
         :provider       => "ovs_ubuntu",
+        :datapath_type  => "netdev",
       },
     }
   end
@@ -75,7 +76,8 @@ describe Puppet::Type.type(:l23_stored_config).provider(:ovs_ubuntu) do
       it { expect(cfg_file).to match(/iface\s+br9\s+inet\s+manual/) }
       it { expect(cfg_file).to match(/ovs_type\s+OVSBridge/) }
       it { expect(cfg_file).to match(/mtu\s+9000/) }
-      it { expect(cfg_file.split(/\n/).reject{|x| x=~/(^\s*$)|(^#.*$)/}.length). to eq(5) }  #  no more lines in the interface file
+      it { expect(cfg_file).to match(/ovs_extra\s+set\s+Bridge\s+br9\s+datapath_type=netdev/) }
+      it { expect(cfg_file.split(/\n/).reject{|x| x=~/(^\s*$)|(^#.*$)/}.length). to eq(6) }  #  no more lines in the interface file
     end
 
     context "parse data from fixture" do
@@ -85,6 +87,7 @@ describe Puppet::Type.type(:l23_stored_config).provider(:ovs_ubuntu) do
       it { expect(res[:mtu]).to eq '9000' }
       it { expect(res[:if_type].to_s).to eq 'bridge' }
       it { expect(res[:if_provider].to_s).to eq 'ovs' }
+      it { expect(res[:datapath_type].to_s).to eq 'netdev' }
     end
 
   end

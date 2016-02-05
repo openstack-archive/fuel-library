@@ -35,6 +35,7 @@ describe 'l23network::l2::bridge', :type => :define do
         'ipaddr'     => nil,
         'gateway'    => nil,
         'bridge_stp' => nil,
+        'vendor_specific' => {},
       })
     end
 
@@ -192,6 +193,7 @@ describe 'l23network::l2::bridge', :type => :define do
         'if_type'      => 'bridge',
         'bridge_ports' => ['none'],
         'provider'     => nil,
+        'vendor_specific' => {},
       })
     end
 
@@ -202,6 +204,7 @@ describe 'l23network::l2::bridge', :type => :define do
         'external_ids' => { 'bridge-id' => 'br-floating' },
         'stp'          => nil,
         'provider'     => nil,
+        'vendor_specific' => {},
       }).that_requires('L23_stored_config[br-floating]')
     end
   end
@@ -226,6 +229,7 @@ describe 'l23network::l2::bridge', :type => :define do
         'if_type'      => 'bridge',
         'bridge_ports' => ['none'],
         'provider'     => nil,
+        'vendor_specific' => {},
       })
     end
 
@@ -236,6 +240,7 @@ describe 'l23network::l2::bridge', :type => :define do
         'external_ids' => { 'bridge-id' => 'br-floating' },
         'stp'          => nil,
         'provider'     => nil,
+        'vendor_specific' => {},
       }).that_requires('L23_stored_config[br-floating]')
     end
   end

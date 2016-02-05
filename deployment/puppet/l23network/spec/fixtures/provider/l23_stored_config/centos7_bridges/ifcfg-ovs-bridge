@@ -9,4 +9,5 @@ DEVICE=ovs-bridge
 ONBOOT=yes
 MTU=9000
 TYPE=OVSBridge
+OVS_EXTRA="set Bridge ovs-bridge datapath_type=netdev"
 DEVICETYPE=ovs

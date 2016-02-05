@@ -21,6 +21,7 @@ describe Puppet::Type.type(:l23_stored_config).provider(:ovs_centos7) do
         :onboot         => true,
         :method         => 'manual',
         :provider       => 'ovs_centos7',
+        :datapath_type  => "netdev",
       },
     }
   end
@@ -76,8 +77,9 @@ describe Puppet::Type.type(:l23_stored_config).provider(:ovs_centos7) do
       it { expect(cfg_file).to match(%r{ONBOOT=yes}) }
       it { expect(cfg_file).to match(%r{TYPE=OVSBridge}) }
       it { expect(cfg_file).to match(%r{MTU=9000}) }
+      it { expect(cfg_file).to match(%r{OVS_EXTRA="set Bridge ovs-bridge datapath_type=netdev"}) }
       it { expect(cfg_file).to match(%r{DEVICETYPE=ovs}) }
-      it { expect(cfg_file.split(/\n/).reject{|x| x=~/(^\s*$)|(^#.*$)/}.length). to eq(6) }  #  no more lines in the interface file
+      it { expect(cfg_file.split(/\n/).reject{|x| x=~/(^\s*$)|(^#.*$)/}.length). to eq(7) }  #  no more lines in the interface file
 
     end
 
@@ -88,6 +90,7 @@ describe Puppet::Type.type(:l23_stored_config).provider(:ovs_centos7) do
       it { expect(res[:method].to_s).to eq 'manual' }
       it { expect(res[:mtu]).to eq '9000' }
       it { expect(res[:onboot]).to eq true }
+      it { expect(res[:datapath_type].to_s).to eq 'netdev' }
       it { expect(res[:provider]).to eq :ovs_centos7 }
     end
 

@@ -145,6 +145,10 @@ Puppet::Type.type(:l23_stored_config).provide(:ovs_ubuntu, :parent => Puppet::Pr
           :detect_re    => /(ovs_)?extra\s+--\s+set\s+Port\s+(.*[\d+])\s+tag=(\d+)/,
           :detect_shift => 3,
       },
+      :datapath_type  => {
+          :detect_re    => /(ovs_)?extra\s+set\s+Bridge\s+([a-z][0-9a-z\-]*[0-9a-z])\s+datapath_type=([a-z]+)/,
+          :detect_shift => 3,
+      },
     })
     return rv
   end
@@ -170,6 +174,19 @@ Puppet::Type.type(:l23_stored_config).provide(:ovs_ubuntu, :parent => Puppet::Pr
   end
 
   def self.mangle__vlan_id(data)
+    data.join()
+  end
+
+  def self.unmangle__datapath_type(provider, val)
+    if provider.if_type.to_s == 'bridge'
+      if provider.datapath_type
+        rv = []
+        rv << "ovs_extra set Bridge #{provider.name} datapath_type=#{provider.datapath_type}"
+      end
+    end
+  end
+
+  def self.mangle__datapath_type(data)
     data.join()
   end
 

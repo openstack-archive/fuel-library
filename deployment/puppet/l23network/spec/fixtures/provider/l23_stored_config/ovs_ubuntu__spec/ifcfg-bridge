@@ -8,3 +8,4 @@ allow-ovs br9
 iface br9 inet manual
   ovs_type OVSBridge
   mtu 9000
+  ovs_extra set Bridge br9 datapath_type=netdev
