@@ -4,9 +4,9 @@ notice('MODULAR: service_token_off.pp')
 # Used as singular by post-deployment action to disable admin_token
 #
 
-$keystone_params = hiera_hash('keystone_hash', {})
+$keystone_params_hash = hiera_hash('keystone', {})
 
-if $keystone_params['service_token_off'] {
+if $keystone_params_hash['service_token_off'] {
 
   include ::keystone::params
   include ::tweaks::apache_wrappers

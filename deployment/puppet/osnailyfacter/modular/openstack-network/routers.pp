@@ -11,7 +11,7 @@ $controllers_num          = size(get_nodes_hash_by_roles(hiera_hash('network_met
 
 if $use_neutron {
 
-  $access_hash           = hiera('access', { })
+  $access_hash           = hiera_hash('access', {})
   $keystone_admin_tenant = pick($access_hash['tenant'], 'admin')
   $neutron_config        = hiera_hash('neutron_config')
   $floating_net          = try_get_value($neutron_config, 'default_floating_net', 'net04_ext')

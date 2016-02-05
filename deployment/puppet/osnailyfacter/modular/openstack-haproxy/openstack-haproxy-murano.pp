@@ -1,7 +1,7 @@
 notice('MODULAR: openstack-haproxy-murano.pp')
 
-$murano_hash        = hiera_hash('murano_hash',{})
-$murano_cfapi_hash  = hiera_hash('murano-cfapi',{})
+$murano_hash        = hiera_hash('murano', {})
+$murano_cfapi_hash  = hiera_hash('murano-cfapi', {})
 # NOT enabled by default
 $use_murano         = pick($murano_hash['enabled'], false)
 $use_murano_cfapi   = pick($murano_cfapi_hash['enabled'], false)
