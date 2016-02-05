@@ -3,17 +3,17 @@ notice('MODULAR: openstack-controller/keystone.pp')
 $nova_hash           = hiera_hash('nova', {})
 $public_vip          = hiera('public_vip')
 $management_vip      = hiera('management_vip')
-$public_ssl_hash     = hiera('public_ssl')
+$public_ssl_hash     = hiera_hash('public_ssl')
 $ssl_hash            = hiera_hash('use_ssl', {})
 
-$public_protocol     = get_ssl_property($ssl_hash, $public_ssl_hash, 'nova', 'public', 'protocol', 'http')
-$public_address      = get_ssl_property($ssl_hash, $public_ssl_hash, 'nova', 'public', 'hostname', [$public_vip])
+$public_protocol     = get_ssl_property($ssl, $public_ssl_hash, 'nova', 'public', 'protocol', 'http')
+$public_address      = get_ssl_property($ssl, $public_ssl_hash, 'nova', 'public', 'hostname', [$public_vip])
 
-$internal_protocol   = get_ssl_property($ssl_hash, {}, 'nova', 'internal', 'protocol', 'http')
-$internal_address    = get_ssl_property($ssl_hash, {}, 'nova', 'internal', 'hostname', [$management_vip])
+$internal_protocol   = get_ssl_property($ssl, {}, 'nova', 'internal', 'protocol', 'http')
+$internal_address    = get_ssl_property($ssl, {}, 'nova', 'internal', 'hostname', [$management_vip])
 
-$admin_protocol      = get_ssl_property($ssl_hash, {}, 'nova', 'admin', 'protocol', 'http')
-$admin_address       = get_ssl_property($ssl_hash, {}, 'nova', 'admin', 'hostname', [$management_vip])
+$admin_protocol      = get_ssl_property($ssl, {}, 'nova', 'admin', 'protocol', 'http')
+$admin_address       = get_ssl_property($ssl, {}, 'nova', 'admin', 'hostname', [$management_vip])
 
 $compute_port      = '8774'
 $public_base_url   = "${public_protocol}://${public_address}:${compute_port}"

@@ -6,14 +6,14 @@ $use_keystone      = pick($keystone_hash['enabled'], true)
 $public_ssl_hash   = hiera_hash('public_ssl', {})
 $ssl_hash          = hiera_hash('use_ssl', {})
 
-$public_ssl        = get_ssl_property($ssl_hash, $public_ssl_hash, 'keystone', 'public', 'usage', false)
-$public_ssl_path   = get_ssl_property($ssl_hash, $public_ssl_hash, 'keystone', 'public', 'path', [''])
+$public_ssl        = get_ssl_property($ssl, $public_ssl_hash, 'keystone', 'public', 'usage', false)
+$public_ssl_path   = get_ssl_property($ssl, $public_ssl_hash, 'keystone', 'public', 'path', [''])
 
-$internal_ssl      = get_ssl_property($ssl_hash, {}, 'keystone', 'internal', 'usage', false)
-$internal_ssl_path = get_ssl_property($ssl_hash, {}, 'keystone', 'internal', 'path', [''])
+$internal_ssl      = get_ssl_property($ssl, {}, 'keystone', 'internal', 'usage', false)
+$internal_ssl_path = get_ssl_property($ssl, {}, 'keystone', 'internal', 'path', [''])
 
-$admin_ssl         = get_ssl_property($ssl_hash, {}, 'keystone', 'admin', 'usage', false)
-$admin_ssl_path    = get_ssl_property($ssl_hash, {}, 'keystone', 'admin', 'path', [''])
+$admin_ssl         = get_ssl_property($ssl, {}, 'keystone', 'admin', 'usage', false)
+$admin_ssl_path    = get_ssl_property($ssl, {}, 'keystone', 'admin', 'path', [''])
 
 $external_lb       = hiera('external_lb', false)
 

@@ -4,17 +4,17 @@ $use_neutron         = hiera('use_neutron', false)
 $neutron_hash        = hiera_hash('quantum_settings', {})
 $public_vip          = hiera('public_vip')
 $management_vip      = hiera('management_vip')
-$public_ssl_hash     = hiera('public_ssl')
+$public_ssl_hash     = hiera_hash('public_ssl')
 $ssl_hash            = hiera_hash('use_ssl', {})
 
-$public_protocol     = get_ssl_property($ssl_hash, $public_ssl_hash, 'neutron', 'public', 'protocol', 'http')
-$public_address      = get_ssl_property($ssl_hash, $public_ssl_hash, 'neutron', 'public', 'hostname', [$public_vip])
+$public_protocol     = get_ssl_property($ssl, $public_ssl_hash, 'neutron', 'public', 'protocol', 'http')
+$public_address      = get_ssl_property($ssl, $public_ssl_hash, 'neutron', 'public', 'hostname', [$public_vip])
 
-$internal_protocol   = get_ssl_property($ssl_hash, {}, 'neutron', 'internal', 'protocol', 'http')
-$internal_address    = get_ssl_property($ssl_hash, {}, 'neutron', 'internal', 'hostname', [$management_vip])
+$internal_protocol   = get_ssl_property($ssl, {}, 'neutron', 'internal', 'protocol', 'http')
+$internal_address    = get_ssl_property($ssl, {}, 'neutron', 'internal', 'hostname', [$management_vip])
 
-$admin_protocol      = get_ssl_property($ssl_hash, {}, 'neutron', 'admin', 'protocol', 'http')
-$admin_address       = get_ssl_property($ssl_hash, {}, 'neutron', 'admin', 'hostname', [$management_vip])
+$admin_protocol      = get_ssl_property($ssl, {}, 'neutron', 'admin', 'protocol', 'http')
+$admin_address       = get_ssl_property($ssl, {}, 'neutron', 'admin', 'hostname', [$management_vip])
 
 $region              = pick($neutron_hash['region'], hiera('region', 'RegionOne'))
 

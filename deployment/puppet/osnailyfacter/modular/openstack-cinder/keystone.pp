@@ -1,21 +1,21 @@
 notice('MODULAR: cinder/keystone.pp')
 
 $cinder_hash         = hiera_hash('cinder', {})
-$public_ssl_hash     = hiera('public_ssl')
+$public_ssl_hash     = hiera_hash('public_ssl')
 $ssl_hash            = hiera_hash('use_ssl', {})
 $public_vip          = hiera('public_vip')
 $management_vip      = hiera('management_vip')
 
 Class['::osnailyfacter::wait_for_keystone_backends'] -> Class['::cinder::keystone::auth']
 
-$public_protocol     = get_ssl_property($ssl_hash, $public_ssl_hash, 'cinder', 'public', 'protocol', 'http')
-$public_address      = get_ssl_property($ssl_hash, $public_ssl_hash, 'cinder', 'public', 'hostname', [$public_vip])
+$public_protocol     = get_ssl_property($ssl, $public_ssl_hash, 'cinder', 'public', 'protocol', 'http')
+$public_address      = get_ssl_property($ssl, $public_ssl_hash, 'cinder', 'public', 'hostname', [$public_vip])
 
-$internal_protocol   = get_ssl_property($ssl_hash, {}, 'cinder', 'internal', 'protocol', 'http')
-$internal_address    = get_ssl_property($ssl_hash, {}, 'cinder', 'internal', 'hostname', [$management_vip])
+$internal_protocol   = get_ssl_property($ssl, {}, 'cinder', 'internal', 'protocol', 'http')
+$internal_address    = get_ssl_property($ssl, {}, 'cinder', 'internal', 'hostname', [$management_vip])
 
-$admin_protocol      = get_ssl_property($ssl_hash, {}, 'cinder', 'admin', 'protocol', 'http')
-$admin_address       = get_ssl_property($ssl_hash, {}, 'cinder', 'admin', 'hostname', [$management_vip])
+$admin_protocol      = get_ssl_property($ssl, {}, 'cinder', 'admin', 'protocol', 'http')
+$admin_address       = get_ssl_property($ssl, {}, 'cinder', 'admin', 'hostname', [$management_vip])
 
 $port = '8776'
 

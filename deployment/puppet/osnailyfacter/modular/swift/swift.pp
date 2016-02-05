@@ -4,7 +4,7 @@ $network_scheme             = hiera_hash('network_scheme', {})
 $network_metadata           = hiera_hash('network_metadata', {})
 prepare_network_config($network_scheme)
 
-$swift_hash                 = hiera_hash('swift_hash')
+$swift_hash                 = hiera_hash('swift')
 $swift_master_role          = hiera('swift_master_role', 'primary-controller')
 $swift_nodes                = hiera_hash('swift_nodes', {})
 $swift_operator_roles       = pick($swift_hash['swift_operator_roles'], ['admin', 'SwiftOperator'])
@@ -13,7 +13,7 @@ $swift_proxies_addr_list    = values(get_node_to_ipaddr_map_by_network_role(hier
 $memcaches_addr_list        = values(get_node_to_ipaddr_map_by_network_role(hiera_hash('swift_proxy_caches', {}), 'management'))
 $is_primary_swift_proxy     = hiera('is_primary_swift_proxy', false)
 $proxy_port                 = hiera('proxy_port', '8080')
-$storage_hash               = hiera_hash('storage_hash')
+$storage_hash               = hiera_hash('storage')
 $mp_hash                    = hiera('mp')
 $management_vip             = hiera('management_vip')
 $public_vip                 = hiera('public_vip')
@@ -36,19 +36,19 @@ $workers_max                = hiera('workers_max', 16)
 $service_workers            = pick($swift_hash['workers'],
                                 min(max($::processorcount, 2), $workers_max))
 $ssl_hash                   = hiera_hash('use_ssl', {})
-$rabbit_hash                = hiera_hash('rabbit_hash')
+$rabbit_hash                = hiera_hash('rabbit')
 $rabbit_hosts               = hiera('amqp_hosts')
 
-$internal_auth_protocol = get_ssl_property($ssl_hash, {}, 'keystone', 'internal', 'protocol', [pick($swift_hash['auth_protocol'], 'http')])
-$internal_auth_address  = get_ssl_property($ssl_hash, {}, 'keystone', 'internal', 'hostname', [hiera('service_endpoint', ''), $management_vip])
-$admin_auth_protocol    = get_ssl_property($ssl_hash, {}, 'keystone', 'admin', 'protocol', [pick($swift_hash['auth_protocol'], 'http')])
-$admin_auth_address     = get_ssl_property($ssl_hash, {}, 'keystone', 'admin', 'hostname', [hiera('service_endpoint', ''), $management_vip])
+$internal_auth_protocol = get_ssl_property($ssl, {}, 'keystone', 'internal', 'protocol', [pick($swift_hash['auth_protocol'], 'http')])
+$internal_auth_address  = get_ssl_property($ssl, {}, 'keystone', 'internal', 'hostname', [hiera('service_endpoint', ''), $management_vip])
+$admin_auth_protocol    = get_ssl_property($ssl, {}, 'keystone', 'admin', 'protocol', [pick($swift_hash['auth_protocol'], 'http')])
+$admin_auth_address     = get_ssl_property($ssl, {}, 'keystone', 'admin', 'hostname', [hiera('service_endpoint', ''), $management_vip])
 
 $auth_uri     = "${internal_auth_protocol}://${internal_auth_address}:5000/"
 $identity_uri = "${admin_auth_protocol}://${admin_auth_address}:35357/"
 
-$swift_internal_protocol    = get_ssl_property($ssl_hash, {}, 'swift', 'internal', 'protocol', 'http')
-$swift_internal_address    = get_ssl_property($ssl_hash, {}, 'swift', 'internal', 'hostname', [$swift_api_ipaddr, $management_vip])
+$swift_internal_protocol    = get_ssl_property($ssl, {}, 'swift', 'internal', 'protocol', 'http')
+$swift_internal_address    = get_ssl_property($ssl, {}, 'swift', 'internal', 'hostname', [$swift_api_ipaddr, $management_vip])
 
 # Use Swift if it isn't replaced by vCenter, Ceph for BOTH images and objects
 if !($storage_hash['images_ceph'] and $storage_hash['objects_ceph']) and !$storage_hash['images_vcenter'] {

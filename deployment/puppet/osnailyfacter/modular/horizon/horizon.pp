@@ -5,9 +5,9 @@ $horizon_hash            = hiera_hash('horizon', {})
 $service_endpoint        = hiera('service_endpoint')
 $memcached_server        = hiera('memcached_addresses')
 $bind_address            = get_network_role_property('horizon', 'ipaddr')
-$storage_hash            = hiera_hash('storage_hash', {})
+$storage_hash            = hiera_hash('storage', {})
 $neutron_advanced_config = hiera_hash('neutron_advanced_configuration', {})
-$public_ssl              = hiera('public_ssl')
+$public_ssl              = hiera_hash('public_ssl')
 $ssl_no_verify           = $public_ssl['horizon']
 $overview_days_range     = pick($horizon_hash['overview_days_range'], 1)
 $external_lb             = hiera('external_lb', false)
@@ -29,16 +29,16 @@ if $::os_package_type == 'debian' {
 # of the MOS package set. This should be contributed upstream and then we can
 # use this as the default.
 if !$::os_package_type or $::os_package_type == 'debian' {
-  $horizon_cache_backend = try_get_value($horizon_hash, 'cache_backend', 'horizon.backends.memcached.HorizonMemcached')
+  $horizon_cache_backend = try_get_value($horizon, 'cache_backend', 'horizon.backends.memcached.HorizonMemcached')
 } else {
-  $horizon_cache_backend = try_get_value($horizon_hash, 'cache_backend', 'django.core.cache.backends.memcached.MemcachedCache')
+  $horizon_cache_backend = try_get_value($horizon, 'cache_backend', 'django.core.cache.backends.memcached.MemcachedCache')
 }
 
 $neutron_dvr = pick($neutron_advanced_config['neutron_dvr'], false)
 
 $ssl_hash               = hiera_hash('use_ssl', {})
-$internal_auth_protocol = get_ssl_property($ssl_hash, {}, 'keystone', 'internal', 'protocol', 'http')
-$internal_auth_address  = get_ssl_property($ssl_hash, {}, 'keystone', 'internal', 'hostname', [$service_endpoint, $management_vip])
+$internal_auth_protocol = get_ssl_property($ssl, {}, 'keystone', 'internal', 'protocol', 'http')
+$internal_auth_address  = get_ssl_property($ssl, {}, 'keystone', 'internal', 'hostname', [$service_endpoint, $management_vip])
 $internal_auth_port     = '5000'
 $keystone_api           = 'v3'
 $keystone_url           = "${internal_auth_protocol}://${internal_auth_address}:${internal_auth_port}/${keystone_api}"

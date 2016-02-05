@@ -21,11 +21,11 @@ if $use_neutron {
   $auth_api_version           = 'v2.0'
   $ssl_hash                   = hiera_hash('use_ssl', {})
 
-  $admin_identity_protocol    = get_ssl_property($ssl_hash, {}, 'keystone', 'admin', 'protocol', 'http')
-  $admin_identity_address     = get_ssl_property($ssl_hash, {}, 'keystone', 'admin', 'hostname', [$service_endpoint, $management_vip])
+  $admin_identity_protocol    = get_ssl_property($ssl, {}, 'keystone', 'admin', 'protocol', 'http')
+  $admin_identity_address     = get_ssl_property($ssl, {}, 'keystone', 'admin', 'hostname', [$service_endpoint, $management_vip])
 
-  $neutron_internal_protocol  = get_ssl_property($ssl_hash, {}, 'neutron', 'internal', 'protocol', 'http')
-  $neutron_endpoint           = get_ssl_property($ssl_hash, {}, 'neutron', 'internal', 'hostname', [hiera('neutron_endpoint', ''), $management_vip])
+  $neutron_internal_protocol  = get_ssl_property($ssl, {}, 'neutron', 'internal', 'protocol', 'http')
+  $neutron_endpoint           = get_ssl_property($ssl, {}, 'neutron', 'internal', 'hostname', [hiera('neutron_endpoint', ''), $management_vip])
 
   $admin_identity_uri         = "${admin_identity_protocol}://${admin_identity_address}:35357"
   $admin_auth_url             = "${admin_identity_uri}/${auth_api_version}"
@@ -146,7 +146,7 @@ if $use_neutron {
   $nova_rate_limits        = hiera('nova_rate_limits')
   $network_size            = hiera('network_size', undef)
   $network_manager         = hiera('network_manager', undef)
-  $network_config          = hiera('network_config', {})
+  $network_config          = hiera_hash('network_config', {})
   $create_networks         = true
   $num_networks            = hiera('num_networks', '1')
   $fixed_range             = hiera('fixed_network_range')

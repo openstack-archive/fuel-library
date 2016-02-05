@@ -3,19 +3,19 @@ notice('MODULAR: ceilometer/keystone.pp')
 $ceilometer_hash     = hiera_hash('ceilometer', {})
 $public_vip          = hiera('public_vip')
 $management_vip      = hiera('management_vip')
-$public_ssl_hash     = hiera('public_ssl')
+$public_ssl_hash     = hiera_hash('public_ssl')
 $ssl_hash            = hiera_hash('use_ssl', {})
 
 Class['::osnailyfacter::wait_for_keystone_backends'] -> Class['::ceilometer::keystone::auth']
 
-$public_protocol = get_ssl_property($ssl_hash, $public_ssl_hash, 'ceilometer', 'public', 'protocol', 'http')
-$public_address  = get_ssl_property($ssl_hash, $public_ssl_hash, 'ceilometer', 'public', 'hostname', [$public_vip])
+$public_protocol = get_ssl_property($ssl, $public_ssl_hash, 'ceilometer', 'public', 'protocol', 'http')
+$public_address  = get_ssl_property($ssl, $public_ssl_hash, 'ceilometer', 'public', 'hostname', [$public_vip])
 
-$internal_protocol = get_ssl_property($ssl_hash, {}, 'ceilometer', 'internal', 'protocol', 'http')
-$internal_address  = get_ssl_property($ssl_hash, {}, 'ceilometer', 'internal', 'hostname', [$management_vip])
+$internal_protocol = get_ssl_property($ssl, {}, 'ceilometer', 'internal', 'protocol', 'http')
+$internal_address  = get_ssl_property($ssl, {}, 'ceilometer', 'internal', 'hostname', [$management_vip])
 
-$admin_protocol = get_ssl_property($ssl_hash, {}, 'ceilometer', 'admin', 'protocol', 'http')
-$admin_address  = get_ssl_property($ssl_hash, {}, 'ceilometer', 'admin', 'hostname', [$management_vip])
+$admin_protocol = get_ssl_property($ssl, {}, 'ceilometer', 'admin', 'protocol', 'http')
+$admin_address  = get_ssl_property($ssl, {}, 'ceilometer', 'admin', 'hostname', [$management_vip])
 
 $region              = pick($ceilometer_hash['region'], hiera('region', 'RegionOne'))
 $password            = $ceilometer_hash['user_password']

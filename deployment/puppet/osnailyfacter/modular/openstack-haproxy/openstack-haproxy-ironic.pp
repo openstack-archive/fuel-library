@@ -4,8 +4,8 @@ $network_metadata     = hiera_hash('network_metadata')
 $public_ssl_hash      = hiera_hash('public_ssl', {})
 $ssl_hash             = hiera_hash('use_ssl', {})
 
-$public_ssl           = get_ssl_property($ssl_hash, $public_ssl_hash, 'ironic', 'public', 'usage', false)
-$public_ssl_path      = get_ssl_property($ssl_hash, $public_ssl_hash, 'ironic', 'public', 'path', [''])
+$public_ssl           = get_ssl_property($ssl, $public_ssl_hash, 'ironic', 'public', 'usage', false)
+$public_ssl_path      = get_ssl_property($ssl, $public_ssl_hash, 'ironic', 'public', 'path', [''])
 
 $ironic_address_map   = get_node_to_ipaddr_map_by_network_role(hiera('ironic_api_nodes'), 'ironic/api')
 

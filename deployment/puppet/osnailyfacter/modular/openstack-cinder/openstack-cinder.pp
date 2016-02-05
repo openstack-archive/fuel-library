@@ -2,14 +2,14 @@ notice('MODULAR: openstack-cinder.pp')
 
 #Network stuff
 prepare_network_config(hiera_hash('network_scheme', {}))
-$cinder_hash            = hiera_hash('cinder_hash', {})
+$cinder_hash            = hiera_hash('cinder', {})
 $management_vip         = hiera('management_vip')
 $queue_provider         = hiera('queue_provider', 'rabbitmq')
 $cinder_volume_group    = hiera('cinder_volume_group', 'cinder')
-$storage_hash           = hiera_hash('storage_hash', {})
-$ceilometer_hash        = hiera_hash('ceilometer_hash',{})
-$sahara_hash            = hiera_hash('sahara_hash',{})
-$rabbit_hash            = hiera_hash('rabbit_hash', {})
+$storage_hash           = hiera_hash('storage', {})
+$ceilometer_hash        = hiera_hash('ceilometer', {})
+$sahara_hash            = hiera_hash('sahara', {})
+$rabbit_hash            = hiera_hash('rabbit', {})
 $service_endpoint       = hiera('service_endpoint')
 $workers_max            = hiera('workers_max', 16)
 $service_workers        = pick($cinder_hash['workers'], min(max($::processorcount, 2), $workers_max))
@@ -40,12 +40,12 @@ $db_connection = os_database_connection({
   'extra'    => $extra_params
 })
 
-$keystone_auth_protocol = get_ssl_property($ssl_hash, {}, 'keystone', 'internal', 'protocol', 'http')
-$keystone_auth_host     = get_ssl_property($ssl_hash, {}, 'keystone', 'internal', 'hostname', [hiera('keystone_endpoint', ''), $service_endpoint, $management_vip])
+$keystone_auth_protocol = get_ssl_property($ssl, {}, 'keystone', 'internal', 'protocol', 'http')
+$keystone_auth_host     = get_ssl_property($ssl, {}, 'keystone', 'internal', 'hostname', [hiera('keystone_endpoint', ''), $service_endpoint, $management_vip])
 
-$glance_protocol        = get_ssl_property($ssl_hash, {}, 'glance', 'internal', 'protocol', 'http')
-$glance_endpoint        = get_ssl_property($ssl_hash, {}, 'heat', 'internal', 'hostname', [hiera('glance_endpoint', ''), $management_vip])
-$glance_ssl_usage       = get_ssl_property($ssl_hash, {}, 'glance', 'internal', 'usage', false)
+$glance_protocol        = get_ssl_property($ssl, {}, 'glance', 'internal', 'protocol', 'http')
+$glance_endpoint        = get_ssl_property($ssl, {}, 'heat', 'internal', 'hostname', [hiera('glance_endpoint', ''), $management_vip])
+$glance_ssl_usage       = get_ssl_property($ssl, {}, 'glance', 'internal', 'usage', false)
 if $glance_ssl_usage {
   $glance_api_servers = "${glance_protocol}://${glance_endpoint}:9292"
 } else {

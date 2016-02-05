@@ -6,8 +6,8 @@ $use_horizon         = pick($horizon_hash['enabled'], true)
 $public_ssl_hash     = hiera_hash('public_ssl', {})
 $ssl_hash            = hiera_hash('use_ssl', {})
 
-$public_ssl          = get_ssl_property($ssl_hash, $public_ssl_hash, 'horizon', 'public', 'usage', false)
-$public_ssl_path     = get_ssl_property($ssl_hash, $public_ssl_hash, 'horizon', 'public', 'path', [''])
+$public_ssl          = get_ssl_property($ssl, $public_ssl_hash, 'horizon', 'public', 'usage', false)
+$public_ssl_path     = get_ssl_property($ssl, $public_ssl_hash, 'horizon', 'public', 'path', [''])
 
 $external_lb = hiera('external_lb', false)
 

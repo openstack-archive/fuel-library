@@ -1,16 +1,16 @@
 notice('MODULAR: openstack-haproxy-cinder.pp')
 
-$cinder_hash        = hiera_hash('cinder_hash', {})
+$cinder_hash        = hiera_hash('cinder', {})
 # enabled by default
 $use_cinder         = pick($cinder_hash['enabled'], true)
 $public_ssl_hash    = hiera_hash('public_ssl', {})
 $ssl_hash           = hiera_hash('use_ssl', {})
 
-$public_ssl         = get_ssl_property($ssl_hash, $public_ssl_hash, 'cinder', 'public', 'usage', false)
-$public_ssl_path    = get_ssl_property($ssl_hash, $public_ssl_hash, 'cinder', 'public', 'path', [''])
+$public_ssl         = get_ssl_property($ssl, $public_ssl_hash, 'cinder', 'public', 'usage', false)
+$public_ssl_path    = get_ssl_property($ssl, $public_ssl_hash, 'cinder', 'public', 'path', [''])
 
-$internal_ssl       = get_ssl_property($ssl_hash, {}, 'cinder', 'internal', 'usage', false)
-$internal_ssl_path  = get_ssl_property($ssl_hash, {}, 'cinder', 'internal', 'path', [''])
+$internal_ssl       = get_ssl_property($ssl, {}, 'cinder', 'internal', 'usage', false)
+$internal_ssl_path  = get_ssl_property($ssl, {}, 'cinder', 'internal', 'path', [''])
 
 $external_lb        = hiera('external_lb', false)
 

@@ -44,14 +44,14 @@ if $use_neutron {
 
   $ssl_hash                = hiera_hash('use_ssl', {})
 
-  $internal_auth_protocol  = get_ssl_property($ssl_hash, {}, 'keystone', 'internal', 'protocol', 'http')
-  $internal_auth_endpoint  = get_ssl_property($ssl_hash, {}, 'keystone', 'internal', 'hostname', [$service_endpoint, $management_vip])
+  $internal_auth_protocol  = get_ssl_property($ssl, {}, 'keystone', 'internal', 'protocol', 'http')
+  $internal_auth_endpoint  = get_ssl_property($ssl, {}, 'keystone', 'internal', 'hostname', [$service_endpoint, $management_vip])
 
-  $admin_auth_protocol     = get_ssl_property($ssl_hash, {}, 'keystone', 'admin', 'protocol', 'http')
-  $admin_auth_endpoint     = get_ssl_property($ssl_hash, {}, 'keystone', 'admin', 'hostname', [$service_endpoint, $management_vip])
+  $admin_auth_protocol     = get_ssl_property($ssl, {}, 'keystone', 'admin', 'protocol', 'http')
+  $admin_auth_endpoint     = get_ssl_property($ssl, {}, 'keystone', 'admin', 'hostname', [$service_endpoint, $management_vip])
 
-  $nova_internal_protocol  = get_ssl_property($ssl_hash, {}, 'nova', 'internal', 'protocol', 'http')
-  $nova_internal_endpoint  = get_ssl_property($ssl_hash, {}, 'nova', 'internal', 'hostname', [$nova_endpoint])
+  $nova_internal_protocol  = get_ssl_property($ssl, {}, 'nova', 'internal', 'protocol', 'http')
+  $nova_internal_endpoint  = get_ssl_property($ssl, {}, 'nova', 'internal', 'hostname', [$nova_endpoint])
 
   $auth_api_version        = 'v2.0'
   $identity_uri            = "${internal_auth_protocol}://${internal_auth_endpoint}:5000/"

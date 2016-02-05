@@ -2,7 +2,7 @@ notice('MODULAR: glance/keystone.pp')
 
 $glance_hash         = hiera_hash('glance', {})
 $public_vip          = hiera('public_vip')
-$public_ssl_hash     = hiera('public_ssl')
+$public_ssl_hash     = hiera_hash('public_ssl')
 $management_vip      = hiera('management_vip')
 $region              = pick($glance_hash['region'], hiera('region', 'RegionOne'))
 $password            = $glance_hash['user_password']
@@ -16,12 +16,12 @@ $ssl_hash            = hiera_hash('use_ssl', {})
 
 Class['::osnailyfacter::wait_for_keystone_backends'] -> Class['::glance::keystone::auth']
 
-$public_protocol     = get_ssl_property($ssl_hash, $public_ssl_hash, 'glance', 'public', 'protocol', 'http')
-$public_address      = get_ssl_property($ssl_hash, $public_ssl_hash, 'glance', 'public', 'hostname', [$public_vip])
-$internal_protocol   = get_ssl_property($ssl_hash, {}, 'glance', 'internal', 'protocol', 'http')
-$internal_address    = get_ssl_property($ssl_hash, {}, 'glance', 'internal', 'hostname', [$management_vip])
-$admin_protocol      = get_ssl_property($ssl_hash, {}, 'glance', 'admin', 'protocol', 'http')
-$admin_address       = get_ssl_property($ssl_hash, {}, 'glance', 'admin', 'hostname', [$management_vip])
+$public_protocol     = get_ssl_property($ssl, $public_ssl_hash, 'glance', 'public', 'protocol', 'http')
+$public_address      = get_ssl_property($ssl, $public_ssl_hash, 'glance', 'public', 'hostname', [$public_vip])
+$internal_protocol   = get_ssl_property($ssl, {}, 'glance', 'internal', 'protocol', 'http')
+$internal_address    = get_ssl_property($ssl, {}, 'glance', 'internal', 'hostname', [$management_vip])
+$admin_protocol      = get_ssl_property($ssl, {}, 'glance', 'admin', 'protocol', 'http')
+$admin_address       = get_ssl_property($ssl, {}, 'glance', 'admin', 'hostname', [$management_vip])
 
 $public_url = "${public_protocol}://${public_address}:9292"
 $internal_url = "${internal_protocol}://${internal_address}:9292"

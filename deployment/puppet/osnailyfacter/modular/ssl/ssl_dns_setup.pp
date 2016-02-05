@@ -1,6 +1,6 @@
 notice('MODULAR: ssl_dns_setup.pp')
 
-$public_ssl_hash = hiera('public_ssl')
+$public_ssl_hash = hiera_hash('public_ssl')
 $ssl_hash = hiera_hash('use_ssl', {})
 $public_vip = hiera('public_vip')
 $management_vip = hiera('management_vip')
@@ -16,25 +16,25 @@ define hosts (
   $public_vip = hiera('public_vip')
   $management_vip = hiera('management_vip')
 
-  $public_hostname = try_get_value($ssl_hash, "${service}_public_hostname", "")
-  $internal_hostname = try_get_value($ssl_hash, "${service}_internal_hostname", "")
-  $admin_hostname = try_get_value($ssl_hash, "${service}_admin_hostname", $internal_hostname)
+  $public_hostname = try_get_value($ssl, "${service}_public_hostname", "")
+  $internal_hostname = try_get_value($ssl, "${service}_internal_hostname", "")
+  $admin_hostname = try_get_value($ssl, "${service}_admin_hostname", $internal_hostname)
 
-  $service_public_ip = try_get_value($ssl_hash, "${service}_public_ip", "")
+  $service_public_ip = try_get_value($ssl, "${service}_public_ip", "")
   if !empty($service_public_ip) {
     $public_ip = $service_public_ip
   } else {
     $public_ip = $public_vip
   }
 
-  $service_internal_ip = try_get_value($ssl_hash, "${service}_internal_ip", "")
+  $service_internal_ip = try_get_value($ssl, "${service}_internal_ip", "")
   if !empty($service_internal_ip) {
     $internal_ip = $service_internal_ip
   } else {
     $internal_ip = $management_vip
   }
 
-  $service_admin_ip = try_get_value($ssl_hash, "${service}_admin_ip", "")
+  $service_admin_ip = try_get_value($ssl, "${service}_admin_ip", "")
   if !empty($service_admin_ip) {
     $admin_ip = $service_admin_ip
   } else {

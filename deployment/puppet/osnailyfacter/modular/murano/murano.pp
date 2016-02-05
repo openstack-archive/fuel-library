@@ -2,9 +2,9 @@ notice('MODULAR: murano.pp')
 
 prepare_network_config(hiera_hash('network_scheme', {}))
 
-$murano_hash                = hiera_hash('murano_hash', {})
+$murano_hash                = hiera_hash('murano', {})
 $murano_settings_hash       = hiera_hash('murano_settings', {})
-$rabbit_hash                = hiera_hash('rabbit_hash', {})
+$rabbit_hash                = hiera_hash('rabbit', {})
 $neutron_config             = hiera_hash('neutron_config', {})
 $public_ip                  = hiera('public_vip')
 $database_ip                = hiera('database_vip')
@@ -26,14 +26,14 @@ $public_ssl_hash            = hiera_hash('public_ssl', {})
 $ssl_hash                   = hiera_hash('use_ssl', {})
 $primary_controller         = hiera('primary_controller')
 
-$public_auth_protocol       = get_ssl_property($ssl_hash, $public_ssl_hash, 'keystone', 'public', 'protocol', 'http')
-$public_auth_address        = get_ssl_property($ssl_hash, $public_ssl_hash, 'keystone', 'public', 'hostname', [$public_ip])
+$public_auth_protocol       = get_ssl_property($ssl, $public_ssl, 'keystone', 'public', 'protocol', 'http')
+$public_auth_address        = get_ssl_property($ssl, $public_ssl, 'keystone', 'public', 'hostname', [$public_ip])
 
-$internal_auth_protocol     = get_ssl_property($ssl_hash, {}, 'keystone', 'internal', 'protocol', 'http')
-$internal_auth_address      = get_ssl_property($ssl_hash, {}, 'keystone', 'internal', 'hostname', [hiera('keystone_endpoint', ''), $service_endpoint, $management_vip])
+$internal_auth_protocol     = get_ssl_property($ssl, {}, 'keystone', 'internal', 'protocol', 'http')
+$internal_auth_address      = get_ssl_property($ssl, {}, 'keystone', 'internal', 'hostname', [hiera('keystone_endpoint', ''), $service_endpoint, $management_vip])
 
-$admin_auth_protocol        = get_ssl_property($ssl_hash, {}, 'keystone', 'admin', 'protocol', 'http')
-$admin_auth_address         = get_ssl_property($ssl_hash, {}, 'keystone', 'admin', 'hostname', [hiera('keystone_endpoint', ''), $service_endpoint, $management_vip])
+$admin_auth_protocol        = get_ssl_property($ssl, {}, 'keystone', 'admin', 'protocol', 'http')
+$admin_auth_address         = get_ssl_property($ssl, {}, 'keystone', 'admin', 'hostname', [hiera('keystone_endpoint', ''), $service_endpoint, $management_vip])
 
 $api_bind_host              = get_network_role_property('murano/api', 'ipaddr')
 
@@ -77,7 +77,7 @@ if $murano_hash['enabled'] {
     default => undef,
   }
 
-  $repository_url = has_key($murano_settings_hash, 'murano_repo_url') ? {
+  $repository_url = has_key($murano_settings, 'murano_repo_url') ? {
     true    => $murano_settings_hash['murano_repo_url'],
     default => 'http://storage.apps.openstack.org',
   }
@@ -170,8 +170,8 @@ if $murano_hash['enabled'] {
 
   $haproxy_stats_url = "http://${management_ip}:10000/;csv"
 
-  $murano_protocol = get_ssl_property($ssl_hash, {}, 'murano', 'internal', 'protocol', 'http')
-  $murano_address  = get_ssl_property($ssl_hash, {}, 'murano', 'internal', 'hostname', [$service_endpoint, $management_vip])
+  $murano_protocol = get_ssl_property($ssl, {}, 'murano', 'internal', 'protocol', 'http')
+  $murano_address  = get_ssl_property($ssl, {}, 'murano', 'internal', 'hostname', [$service_endpoint, $management_vip])
   $murano_url      = "${murano_protocol}://${murano_address}:${api_bind_port}"
 
   $lb_defaults = { 'provider' => 'haproxy', 'url' => $haproxy_stats_url }
