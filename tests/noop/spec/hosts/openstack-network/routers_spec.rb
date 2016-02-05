@@ -2,6 +2,8 @@ require 'spec_helper'
 require 'shared-examples'
 manifest = 'openstack-network/routers.pp'
 
+# DISABLE_SPEC
+
 describe manifest do
   shared_examples 'catalog' do
     if (Noop.hiera('use_neutron') and Noop.hiera('primary_controller'))
