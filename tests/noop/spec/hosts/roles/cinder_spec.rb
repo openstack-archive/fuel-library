@@ -2,7 +2,17 @@ require 'spec_helper'
 require 'shared-examples'
 manifest = 'roles/cinder.pp'
 
+# SKIP_HIERA: neut_vlan.cinder-block-device.compute
+
 describe manifest do
+
+  before(:each) do
+    Noop.puppet_function_load :is_pkg_installed
+    MockFunction.new(:is_pkg_installed) do |function|
+      allow(function).to receive(:call).and_return false
+    end
+  end
+
   shared_examples 'catalog' do
 
   storage_hash = Noop.hiera 'storage_hash'
