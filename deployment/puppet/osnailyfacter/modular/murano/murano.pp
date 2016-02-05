@@ -2,9 +2,9 @@ notice('MODULAR: murano.pp')
 
 prepare_network_config(hiera_hash('network_scheme', {}))
 
-$murano_hash                = hiera_hash('murano_hash', {})
+$murano_hash                = hiera_hash('murano', {})
 $murano_settings_hash       = hiera_hash('murano_settings', {})
-$rabbit_hash                = hiera_hash('rabbit_hash', {})
+$rabbit_hash                = hiera_hash('rabbit', {})
 $neutron_config             = hiera_hash('neutron_config', {})
 $public_ip                  = hiera('public_vip')
 $database_ip                = hiera('database_vip')
@@ -26,8 +26,8 @@ $public_ssl_hash            = hiera_hash('public_ssl', {})
 $ssl_hash                   = hiera_hash('use_ssl', {})
 $primary_controller         = hiera('primary_controller')
 
-$public_auth_protocol       = get_ssl_property($ssl_hash, $public_ssl_hash, 'keystone', 'public', 'protocol', 'http')
-$public_auth_address        = get_ssl_property($ssl_hash, $public_ssl_hash, 'keystone', 'public', 'hostname', [$public_ip])
+$public_auth_protocol       = get_ssl_property($ssl_hash, $public_ssl, 'keystone', 'public', 'protocol', 'http')
+$public_auth_address        = get_ssl_property($ssl_hash, $public_ssl, 'keystone', 'public', 'hostname', [$public_ip])
 
 $internal_auth_protocol     = get_ssl_property($ssl_hash, {}, 'keystone', 'internal', 'protocol', 'http')
 $internal_auth_address      = get_ssl_property($ssl_hash, {}, 'keystone', 'internal', 'hostname', [hiera('keystone_endpoint', ''), $service_endpoint, $management_vip])

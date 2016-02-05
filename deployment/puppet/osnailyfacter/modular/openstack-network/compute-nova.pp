@@ -146,7 +146,7 @@ if $use_neutron {
   $nova_rate_limits        = hiera('nova_rate_limits')
   $network_size            = hiera('network_size', undef)
   $network_manager         = hiera('network_manager', undef)
-  $network_config          = hiera('network_config', {})
+  $network_config          = hiera_hash('network_config', {})
   $create_networks         = true
   $num_networks            = hiera('num_networks', '1')
   $fixed_range             = hiera('fixed_network_range')

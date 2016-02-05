@@ -127,7 +127,7 @@ describe manifest do
   end
 
   sahara  = Noop.hiera_structure 'sahara_hash/enabled'
-  storage = Noop.hiera_hash 'storage_hash'
+  storage = Noop.hiera_hash 'storage'
   if (sahara and storage['volumes_lvm']) or storage['volumes_block_device']
     filters = [ 'InstanceLocalityFilter', 'AvailabilityZoneFilter', 'CapacityFilter', 'CapabilitiesFilter' ]
   else

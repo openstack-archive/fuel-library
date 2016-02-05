@@ -2,7 +2,7 @@ notice('MODULAR: glance/keystone.pp')
 
 $glance_hash         = hiera_hash('glance', {})
 $public_vip          = hiera('public_vip')
-$public_ssl_hash     = hiera('public_ssl')
+$public_ssl_hash     = hiera_hash('public_ssl')
 $management_vip      = hiera('management_vip')
 $region              = pick($glance_hash['region'], hiera('region', 'RegionOne'))
 $password            = $glance_hash['user_password']

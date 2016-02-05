@@ -13,7 +13,7 @@ if $use_neutron {
     'neutron.services.metering.metering_plugin.MeteringPlugin',
   ]
 
-  $rabbit_hash      = hiera_hash('rabbit_hash', {})
+  $rabbit_hash      = hiera_hash('rabbit', {})
   $ceilometer_hash  = hiera_hash('ceilometer', {})
   $network_scheme   = hiera_hash('network_scheme', {})
 

@@ -1,10 +1,10 @@
 notice('MODULAR: murano/keystone.pp')
 
-$murano_hash       = hiera_hash('murano_hash', {})
+$murano_hash       = hiera_hash('murano', {})
 $public_ip         = hiera('public_vip')
 $management_ip     = hiera('management_vip')
 $region            = hiera('region', 'RegionOne')
-$public_ssl_hash   = hiera('public_ssl')
+$public_ssl_hash   = hiera_hash('public_ssl')
 $ssl_hash          = hiera_hash('use_ssl', {})
 
 Class['::osnailyfacter::wait_for_keystone_backends'] -> Class['murano::keystone::auth']

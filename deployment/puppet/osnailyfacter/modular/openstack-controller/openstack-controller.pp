@@ -27,8 +27,8 @@ $storage_hash                 = hiera_hash('storage', {})
 $nova_hash                    = hiera_hash('nova', {})
 $nova_config_hash             = hiera_hash('nova_config', {})
 $api_bind_address             = get_network_role_property('nova/api', 'ipaddr')
-$rabbit_hash                  = hiera_hash('rabbit_hash', {})
-$ceilometer_hash              = hiera_hash('ceilometer_hash',{})
+$rabbit_hash                  = hiera_hash('rabbit', {})
+$ceilometer_hash              = hiera_hash('ceilometer_hash', {})
 $syslog_log_facility_ceph     = hiera('syslog_log_facility_ceph','LOG_LOCAL0')
 $workloads_hash               = hiera_hash('workloads_collector', {})
 $service_endpoint             = hiera('service_endpoint')
@@ -115,10 +115,10 @@ class { '::openstack::controller':
   public_address                 => $public_vip,    # It is feature for HA mode.
   internal_address               => $management_vip,  # All internal traffic goes
   admin_address                  => $management_vip,  # through load balancer.
-  floating_range                 => $use_neutron ? { true =>$floating_hash, default  =>false},
+  floating_range                 => $use_neutron ? { true =>$floating, default  =>false},
   fixed_range                    => $use_neutron ? { true =>false, default =>hiera('fixed_network_range')},
   multi_host                     => $multi_host,
-  network_config                 => hiera('network_config', {}),
+  network_config                 => hiera_hash('network_config', {}),
   num_networks                   => hiera('num_networks', undef),
   network_size                   => hiera('network_size', undef),
   network_manager                => hiera('network_manager', undef),

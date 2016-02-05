@@ -40,7 +40,7 @@ describe manifest do
     admin_token = Noop.hiera_structure 'keystone/admin_token'
     public_vip = Noop.hiera('public_vip')
     management_vip= Noop.hiera('management_vip')
-    public_ssl_hash = Noop.hiera('public_ssl')
+    public_ssl_hash = Noop.hiera_hash('public_ssl')
 
     let(:auth_suffix) { Noop.puppet_function 'pick', keystone_hash['auth_suffix'], '/' }
 
@@ -66,8 +66,8 @@ describe manifest do
 
     revoke_driver = 'keystone.contrib.revoke.backends.sql.Revoke'
     database_idle_timeout = '3600'
-    ceilometer_hash = Noop.hiera 'ceilometer_hash', { 'enabled' => false }
-    murano_hash = Noop.hiera 'murano_hash', { 'enabled' => false }
+    ceilometer_hash = Noop.hiera_hash 'ceilometer_hash', { 'enabled' => false }
+    murano_hash = Noop.hiera_hash 'murano_hash', { 'enabled' => false }
     murano_hash['plugins'] = { 'glance_artifacts_plugin' => { 'enabled' => false } }
     murano_plugins = murano_hash['plugins']
     murano_glare_plugin = murano_plugins['glance_artifacts_plugin']
