@@ -138,8 +138,11 @@ if($::operatingsystem == 'Ubuntu') {
   tweaks::ubuntu_service_override { 'cinder-api':
     package_name => 'cinder-api',
   }
-  tweaks::ubuntu_service_override { 'cinder-backup':
-    package_name => 'cinder-backup',
+  if $manage_volumes == 'ceph' {
+    # we only pull in this package for ceph
+    tweaks::ubuntu_service_override { 'cinder-backup':
+      package_name => 'cinder-backup',
+    }
   }
   tweaks::ubuntu_service_override { 'cinder-scheduler':
     package_name => 'cinder-scheduler',
