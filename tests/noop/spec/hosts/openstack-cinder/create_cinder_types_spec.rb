@@ -5,10 +5,10 @@ manifest = 'openstack-cinder/create_cinder_types.pp'
 describe manifest do
   shared_examples 'catalog' do
 
-    access_admin         = Noop.hiera_structure('access_hash', {})
+    access_admin         = Noop.hiera_structure('access', {})
     public_vip           = Noop.hiera('public_vip')
     region               = Noop.hiera('region', 'RegionOne')
-    volume_backend_names = Noop.hiera_structure 'storage_hash/volume_backend_names'
+    volume_backend_names = Noop.hiera_structure 'storage/volume_backend_names'
     available_backends   = volume_backend_names.delete_if { |key,value| ! value }
     backend_names        = available_backends.keys
 

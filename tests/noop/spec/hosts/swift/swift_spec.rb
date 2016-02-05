@@ -4,16 +4,16 @@ manifest = 'swift/swift.pp'
 
 describe manifest do
   shared_examples 'catalog' do
-    workers_max = Noop.hiera 'workers_max'
-    role = Noop.hiera 'role'
-    storage_hash = Noop.hiera 'storage'
-    swift_hash = Noop.hiera 'swift'
-    network_scheme     = Noop.hiera_hash 'network_scheme'
-    network_metadata     = Noop.hiera_hash 'network_metadata'
+    workers_max      = Noop.hiera 'workers_max'
+    role             = Noop.hiera 'role'
+    storage_hash     = Noop.hiera_hash 'storage'
+    swift_hash       = Noop.hiera_hash 'swift'
+    network_scheme   = Noop.hiera_hash 'network_scheme'
+    network_metadata = Noop.hiera_hash 'network_metadata'
 
-    memcached_nodes = Noop.puppet_function('get_nodes_hash_by_roles', network_metadata, ['primary-controller', 'controller'])
+    memcached_nodes     = Noop.puppet_function('get_nodes_hash_by_roles', network_metadata, ['primary-controller', 'controller'])
     memcached_addresses = Noop.puppet_function('get_node_to_ipaddr_map_by_network_role', memcached_nodes, 'mgmt/memcache').values
-    memcached_servers = memcached_addresses.sort.map{ |n| n = n + ':11211' }
+    memcached_servers   = memcached_addresses.sort.map{ |n| n = n + ':11211' }
 
 
     swift_operator_roles = storage_hash.fetch('swift_operator_roles', ['admin', 'SwiftOperator'])

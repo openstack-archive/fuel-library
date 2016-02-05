@@ -21,7 +21,7 @@ describe manifest do
 
       context 'with Neutron' do
         neutron_config = Noop.hiera('neutron_config')
-        openstack_network_hash = Noop.hiera('openstack_network', { })
+        openstack_network_hash = Noop.hiera_hash('openstack_network', {})
 
         it {
           verbose = openstack_network_hash['verbose']
@@ -62,7 +62,7 @@ describe manifest do
         }
 
         it 'RMQ options' do
-          rabbit_hash = Noop.hiera('rabbit_hash', { })
+          rabbit_hash = Noop.hiera_hash('rabbit', {})
           should contain_class('neutron').with('rabbit_user' => rabbit_hash['user'])
           should contain_class('neutron').with('rabbit_password' => rabbit_hash['password'])
           should contain_class('neutron').with('rabbit_hosts' => Noop.hiera('amqp_hosts', '').split(','))

@@ -1,6 +1,6 @@
 notice('MODULAR: openstack-haproxy-cinder.pp')
 
-$cinder_hash        = hiera_hash('cinder_hash', {})
+$cinder_hash        = hiera_hash('cinder', {})
 # enabled by default
 $use_cinder         = pick($cinder_hash['enabled'], true)
 $public_ssl_hash    = hiera_hash('public_ssl', {})

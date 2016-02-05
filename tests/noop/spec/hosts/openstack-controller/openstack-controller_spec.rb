@@ -48,7 +48,7 @@ describe manifest do
     service_endpoint = Noop.hiera 'service_endpoint'
     management_vip = Noop.hiera 'management_vip'
 
-    let(:nova_hash) { Noop.hiera_hash 'nova_hash' }
+    let(:nova_hash) { Noop.hiera_hash 'nova' }
 
     let(:ssl_hash) { Noop.hiera_hash 'use_ssl', {} }
 

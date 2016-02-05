@@ -23,12 +23,12 @@ define create_cinder_types (
   }
 }
 
-$access_admin    = hiera_hash('access_hash', {})
+$access_admin    = hiera_hash('access', {})
 $public_vip      = hiera('public_vip')
-$public_ssl_hash = hiera('public_ssl')
+$public_ssl_hash = hiera_hash('public_ssl')
 $ssl_hash        = hiera_hash('use_ssl', {})
 $region          = hiera('region', 'RegionOne')
-$storage_hash    = hiera_hash('storage_hash', {})
+$storage_hash    = hiera_hash('storage', {})
 $backends        = $storage_hash['volume_backend_names']
 
 $public_protocol    = get_ssl_property($ssl_hash, $public_ssl_hash, 'keystone', 'public', 'protocol', 'http')

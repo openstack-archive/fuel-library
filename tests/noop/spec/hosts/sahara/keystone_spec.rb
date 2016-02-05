@@ -13,11 +13,11 @@ describe manifest do
     let(:public_protocol) { public_ssl ? 'https' : 'http' }
     let(:public_address) { public_ssl ? public_ssl_hostname : public_vip }
 
-    let(:sahara_user) { Noop.hiera_structure('sahara_hash/user', 'sahara') }
-    let(:sahara_password) { Noop.hiera_structure('sahara_hash/user_password') }
-    let(:tenant) { Noop.hiera_structure('sahara_hash/tenant', 'services') }
-    let(:region) { Noop.hiera_structure('sahara_hash/region', 'RegionOne') }
-    let(:service_name) { Noop.hiera_structure('sahara_hash/service_name', 'sahara') }
+    let(:sahara_user) { Noop.hiera_structure('sahara/user', 'sahara') }
+    let(:sahara_password) { Noop.hiera_structure('sahara/user_password') }
+    let(:tenant) { Noop.hiera_structure('sahara/tenant', 'services') }
+    let(:region) { Noop.hiera_structure('sahara/region', 'RegionOne') }
+    let(:service_name) { Noop.hiera_structure('sahara/service_name', 'sahara') }
     let(:public_url) { "#{public_protocol}://#{public_address}:#{api_bind_port}/v1.1/%(tenant_id)s" }
     let(:admin_url) { "http://#{admin_address}:#{api_bind_port}/v1.1/%(tenant_id)s" }
 
