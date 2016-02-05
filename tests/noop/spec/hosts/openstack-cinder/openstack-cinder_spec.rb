@@ -25,6 +25,23 @@ describe manifest do
   cinder_db_user = Noop.hiera_structure 'cinder/db_user', 'cinder'
   cinder_db_name = Noop.hiera_structure 'cinder/db_name', 'cinder'
 
+  use_ceph = Noop.hiera_structure('storage/images_ceph')
+  ubuntu_tgt_service_name = 'tgt'
+  ubuntu_tgt_package_name = 'tgt'
+
+  sahara  = Noop.hiera_structure 'sahara_hash/enabled'
+  storage = Noop.hiera_hash 'storage_hash'
+
+  let(:manage_volumes) do
+    if cinder and storage['volumes_lvm']
+      'iscsi'
+    elsif storage['volumes_ceph']
+      'ceph'
+    else
+      false
+    end
+  end
+
   it 'should configure default_log_levels' do
     should contain_cinder_config('DEFAULT/default_log_levels').with_value(default_log_levels.sort.join(','))
   end
@@ -112,9 +129,6 @@ describe manifest do
     should contain_cinder_config('DEFAULT/nova_catalog_info').with_value('compute:nova:internalURL')
   end
 
-  use_ceph = Noop.hiera_structure('storage/images_ceph')
-  ubuntu_tgt_service_name = 'tgt'
-  ubuntu_tgt_package_name = 'tgt'
 
   it 'ensures tgt is installed and stopped om Ubuntu with ceph' do
     if facts[:operatingsystem] == 'Ubuntu' and use_ceph
@@ -126,8 +140,15 @@ describe manifest do
     end
   end
 
-  sahara  = Noop.hiera_structure 'sahara_hash/enabled'
-  storage = Noop.hiera_hash 'storage_hash'
+
+  it 'adds tweaks for cinder-backup only with ceph' do
+    if manage_volumes == 'ceph' and facts[:operatingsystem] == 'Ubuntu'
+      should contain_tweaks__ubuntu_service_override('cinder-backup')
+    else
+      should_not contain_tweaks__ubuntu_service_override('cinder-backup')
+    end
+  end
+
   if (sahara and storage['volumes_lvm']) or storage['volumes_block_device']
     filters = [ 'InstanceLocalityFilter', 'AvailabilityZoneFilter', 'CapacityFilter', 'CapabilitiesFilter' ]
   else
@@ -141,15 +162,18 @@ describe manifest do
   it 'ensures that cinder have proper volume_backend_name' do
     if use_ceph
       should contain_class('openstack::cinder').with(
+        'manage_volumes'      => manage_volumes,
         'volume_backend_name' => volume_backend_name['volumes_ceph']
       )
     elsif storage['volumes_lvm']
       if cinder
         should contain_class('openstack::cinder').with(
+          'manage_volumes'      => manage_volumes,
           'volume_backend_name' => volume_backend_name['volumes_lvm']
         )
       else
         should contain_class('openstack::cinder').with(
+          'manage_volumes'      => manage_volumes,
           'volume_backend_name' => 'false'
         )
       end
