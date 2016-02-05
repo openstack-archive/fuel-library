@@ -126,6 +126,14 @@ describe manifest do
     end
   end
 
+  it 'adds tweaks for cinder-backup only with ceph' do
+    if use_ceph
+      should contain_tweaks__ubuntu_service_override('cinder-backup')
+    else
+      should_not contain_tweaks__ubuntu_service_override('cinder-backup')
+    end
+  end
+
   sahara  = Noop.hiera_structure 'sahara_hash/enabled'
   storage = Noop.hiera_hash 'storage_hash'
   if (sahara and storage['volumes_lvm']) or storage['volumes_block_device']
