@@ -1,6 +1,6 @@
 notice('MODULAR: ssl_add_trust_chain.pp')
 
-$public_ssl_hash    = hiera('public_ssl')
+$public_ssl_hash    = hiera_hash('public_ssl')
 $ssl_hash           = hiera_hash('use_ssl', {})
 
 Exec {

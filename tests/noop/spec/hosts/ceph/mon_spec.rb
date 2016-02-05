@@ -4,7 +4,7 @@ manifest = 'ceph/mon.pp'
 
 describe manifest do
   shared_examples 'catalog' do
-    storage_hash = Noop.hiera 'storage'
+    storage_hash = Noop.hiera_hash 'storage'
     ceph_monitor_nodes = Noop.hiera 'ceph_monitor_nodes'
 
     if (storage_hash['volumes_ceph'] or

@@ -5,7 +5,7 @@ $public_vip         = hiera('public_vip')
 # Allow a plugin to override the admin address using swift_hash:
 $management_vip     = pick($swift_hash['management_vip'], hiera('management_vip'))
 $region             = pick($swift_hash['region'], hiera('region', 'RegionOne'))
-$public_ssl_hash    = hiera('public_ssl')
+$public_ssl_hash    = hiera_hash('public_ssl')
 $ssl_hash           = hiera_hash('use_ssl', {})
 
 $public_protocol    = get_ssl_property($ssl_hash, $public_ssl_hash, 'swift', 'public', 'protocol', 'http')
