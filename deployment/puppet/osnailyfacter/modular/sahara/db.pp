@@ -3,7 +3,7 @@ notice('MODULAR: sahara/db.pp')
 $node_name      = hiera('node_name')
 $sahara_hash    = hiera_hash('sahara_hash', {})
 $sahara_enabled = pick($sahara_hash['enabled'], false)
-$mysql_hash     = hiera_hash('mysql_hash', {})
+$mysql_hash     = hiera_hash('mysql', {})
 $management_vip = hiera('management_vip', undef)
 $database_vip   = hiera('database_vip', undef)
 

@@ -1,7 +1,7 @@
 notice('MODULAR: cinder/db.pp')
 
 $cinder_hash    = hiera_hash('cinder', {})
-$mysql_hash     = hiera_hash('mysql_hash', {})
+$mysql_hash     = hiera_hash('mysql', {})
 $management_vip = hiera('management_vip', undef)
 $database_vip   = hiera('database_vip', undef)
 
