@@ -67,7 +67,7 @@ describe manifest do
     let(:api_db_name) { Noop.hiera_structure 'nova/api_db_name', 'nova_api' }
 
 
-    let(:nova_hash) { Noop.hiera_hash 'nova_hash' }
+    let(:nova_hash) { Noop.hiera_hash 'nova' }
 
     let(:ssl_hash) { Noop.hiera_hash 'use_ssl', {} }
 

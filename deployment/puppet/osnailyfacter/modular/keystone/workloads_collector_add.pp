@@ -1,6 +1,6 @@
 notice('MODULAR: keystone/workloads_collector_add.pp')
 
-$workloads_hash   = hiera('workloads_collector', {})
+$workloads_hash   = hiera_hash('workloads_collector', {})
 $external_lb      = hiera('external_lb', false)
 $ssl_hash         = hiera_hash('use_ssl', {})
 $management_vip   = hiera('management_vip')

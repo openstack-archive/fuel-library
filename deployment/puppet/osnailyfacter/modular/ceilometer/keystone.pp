@@ -3,7 +3,7 @@ notice('MODULAR: ceilometer/keystone.pp')
 $ceilometer_hash     = hiera_hash('ceilometer', {})
 $public_vip          = hiera('public_vip')
 $management_vip      = hiera('management_vip')
-$public_ssl_hash     = hiera('public_ssl')
+$public_ssl_hash     = hiera_hash('public_ssl')
 $ssl_hash            = hiera_hash('use_ssl', {})
 
 Class['::osnailyfacter::wait_for_keystone_backends'] -> Class['::ceilometer::keystone::auth']

@@ -1,6 +1,6 @@
 notice('MODULAR: sahara/db.pp')
 
-$sahara_hash    = hiera_hash('sahara_hash', {})
+$sahara_hash    = hiera_hash('sahara', {})
 $sahara_enabled = pick($sahara_hash['enabled'], false)
 $mysql_hash     = hiera_hash('mysql', {})
 $management_vip = hiera('management_vip', undef)
