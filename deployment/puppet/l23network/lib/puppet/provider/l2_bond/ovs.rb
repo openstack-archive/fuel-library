@@ -4,17 +4,21 @@ Puppet::Type.type(:l2_bond).provide(:ovs, :parent => Puppet::Provider::Ovs_base)
   commands  :vsctl       => 'ovs-vsctl',
             :ethtool_cmd => 'ethtool'
 
-
-  # def self.add_unremovable_flag(port_props)
-  #   # calculate 'unremovable' flag. Should be re-defined in chield providers
-  #   if port_props[:port_type].include? 'bridge' or port_props[:port_type].include? 'bond'
-  #     port_props[:port_type] << 'unremovable'
-  #   end
-  # end
-
-  def self.get_instances(big_hash)
-    # didn't use .select{...} here for backward compatibility with ruby 1.8
-    big_hash.fetch(:port, {}).reject{|k,v| !v[:port_type].include?('bond')}
+  def self.instances
+    bonds ||= self.get_ovs_bonds()
+    debug("found bonds: #{bonds.keys}")
+    rv = []
+    bonds.each_pair do |bond_name, bond_props|
+        props = {
+          :ensure          => :present,
+          :name            => bond_name,
+          :vendor_specific => {}
+        }
+        props.merge! bond_props
+        debug("PREFETCHED properties for '#{bond_name}': #{props}")
+        rv << new(props)
+    end
+    rv
   end
 
   #-----------------------------------------------------------------
@@ -33,16 +37,6 @@ Puppet::Type.type(:l2_bond).provide(:ovs, :parent => Puppet::Provider::Ovs_base)
     rescue Puppet::ExecutionFailure => error
       raise Puppet::ExecutionFailure, "Can't add bond '#{@resource[:bond]}'\n#{error}"
     end
-    # # set interface properties
-    # if @resource[:interface_properties]
-    #   for option in @resource[:interface_properties]
-    #     begin
-    #       vsctl('--', "set", "Interface", @resource[:interface], option.to_s)
-    #     rescue Puppet::ExecutionFailure => error
-    #       raise Puppet::ExecutionFailure, "Interface '#{@resource[:interface]}' can't set option '#{option}':\n#{error}"
-    #     end
-    #   end
-    # end
   end
 
   def destroy
@@ -63,9 +57,15 @@ Puppet::Type.type(:l2_bond).provide(:ovs, :parent => Puppet::Provider::Ovs_base)
         #   ovs-vsctl show
       end
       if @property_flush.has_key? :bond_properties
+        bond_properties_to_change = @property_flush[:bond_properties]
+        if @old_property_hash[:bond_properties] and !@old_property_hash[:bond_properties].empty?
+          bond_properties_to_change = @property_flush[:bond_properties].to_a - @old_property_hash[:bond_properties].to_a
+          bond_properties_to_change = Hash[*bond_properties_to_change.flatten]
+        end
+        debug("Bond properties which are going to be changed #{bond_properties_to_change}")
         # change bond_properties
         allowed_properties = self.class.ovs_bond_allowed_properties()
-        @property_flush[:bond_properties].each_pair do |prop, val|
+        bond_properties_to_change.each_pair do |prop, val|
           if self.class.ovs_bond_allowed_properties_list.include? prop.to_sym
             act_val = val.to_s
           else

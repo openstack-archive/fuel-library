@@ -1,4 +1,5 @@
 require 'puppetx/l23_ethtool_name_commands_mapping'
+require 'json'
 require File.join(File.dirname(__FILE__), 'interface_toolset')
 
 class Puppet::Provider::L2_base < Puppet::Provider::InterfaceToolset
@@ -523,6 +524,7 @@ class Puppet::Provider::L2_base < Puppet::Provider::InterfaceToolset
       end
       bond[bond_name][:onboot] = !self.get_iface_state(bond_name).nil?
     end
+    debug("get_lnx_bonds: LNX bond list #{bond}")
     return bond
   end
 
@@ -558,16 +560,61 @@ class Puppet::Provider::L2_base < Puppet::Provider::InterfaceToolset
     self.lnx_bond_allowed_properties.keys.sort
   end
 
+  def self.get_ovs_bonds
+    # search all OVS bonds on the host, and return hash with
+    # bond_name => { bond options }
+    all_ports_json = JSON.parse(ovs_vsctl(['-f json', 'list', 'port'])[0])
+    all_ports_headings_to_data_hash = []
+    all_ports_json['data'].each do | port |
+      all_ports_headings_to_data_hash << Hash[all_ports_json['headings'].zip(port)]
+    end
+
+    bond_list = {}
+    all_ports_headings_to_data_hash.each do | each_port |
+      unless each_port['bond_active_slave'].is_a?(Array)
+        bond_properties = {}
+        bond_name = each_port['name']
+        bond_list[bond_name] = {}
+        self.ovs_bond_allowed_properties.each do | p_name, prop |
+          transf_prop = prop[:property]
+          get_value = ''
+          get_value = prop[:default] if prop[:default]
+          if transf_prop.match(%{config:})
+            transf_prop = "#{transf_prop.split(':')[1]}"
+            each_port['other_config'][1].each do |each_config|
+              get_value = each_config[1] unless each_config.select{ |get_property| get_property == transf_prop }.empty?
+            end
+          else
+            get_value = each_port[transf_prop] unless each_port[transf_prop].is_a?(Array)
+          end
+          get_value = prop[:override_integer].index(get_value) if prop[:override_integer]
+          bond_properties[p_name] = get_value.to_s.gsub('"', '') unless get_value.to_s.empty?
+        end
+        slaves = []
+        each_port['interfaces'][1].collect{ |int| int[1] }.each do | sl |
+          slaves << ovs_vsctl(['get', 'interface', sl, 'name' ]).join().gsub('"', '')
+        end
+        bond_list[bond_name][:slaves] = slaves
+        bond_list[bond_name][:bridge] = ovs_vsctl(['port-to-br', bond_name])[0]
+        bond_list[bond_name][:bond_properties] = bond_properties
+      end
+    end
+    debug("get_ovs_bonds: OVS bond list #{bond_list}")
+    return bond_list
+  end
+
   def self.ovs_bond_allowed_properties
     {
       :downdelay   => {:property => 'bond_downdelay'},
       :updelay     => {:property => 'bond_updelay'},
       :use_carrier => {:property => 'other_config:bond-detect-mode',
-                       :override_integer => ['miimon', 'carrier'] },
+                       :default          => 'carrier',
+                       :override_integer => ['miimon', 'carrier'], },
       :mode        => {:property => 'bond_mode',
-                       :allow    => ['balance-slb', 'active-backup', 'balance-tcp', 'stable'] },
+                       :allow    => ['balance-slb', 'active-backup', 'balance-tcp', 'stable'],
+                       :default  => 'active-backup' },
       :lacp        => {:property => 'lacp',
-                       :allow => ['off', 'active', 'passive'] },
+                       :allow    => ['off', 'active', 'passive'] },
       :lacp_rate   => {:property => 'other_config:lacp_time'},
       :miimon      => {:property => 'other_config:bond-miimon-interval'},
       :slb_rebalance_interval => {:property => 'other_config:bond-rebalance-interval'},
