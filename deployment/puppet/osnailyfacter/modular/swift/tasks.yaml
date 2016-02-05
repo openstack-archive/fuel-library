@@ -4,6 +4,7 @@
   groups: [controller]
   required_for: [deploy_end, controller_remaining_tasks]
   requires: [primary-openstack-controller, openstack-controller]
+  condition: &swift_enabled "( settings:storage.objects_ceph.value == false or settings:storage.images_ceph.value == false ) and settings:storage.images_vcenter.value == false"
   cross-depends:
     - name: primary-swift
   parameters:
@@ -21,6 +22,7 @@
   groups: [primary-controller]
   required_for: [deploy_end, controller_remaining_tasks]
   requires: [openstack-controller]
+  condition: *swift_enabled
   cross-depends:
     - name: /(primary-)?rabbitmq/
     - name: swift-keystone
@@ -40,6 +42,7 @@
   groups: [primary-controller, controller]
   required_for: [deploy_end]
   requires: [primary-swift, swift]
+  condition: *swift_enabled
   cross-depends:
     - name: /(primary-)?swift/
       role: self
@@ -57,6 +60,7 @@
   version: 2.0.0
   groups: [primary-controller]
   required_for: [primary-swift]
+  condition: *swift_enabled
   cross-depends:
     - name: keystone
   requires: [primary-keystone, keystone]
