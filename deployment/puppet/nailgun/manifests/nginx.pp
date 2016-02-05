@@ -58,12 +58,13 @@ class nailgun::nginx(
   }
 
   if $ssl_enabled {
+    $ips = inline_template('<%= @interfaces.split(",").collect!{ |iface| "ipaddress_#{iface}" unless iface =~ /^(lo|docker)/ }.compact.map {|iface| scope.lookupvar(iface)}.compact.join(",") %>')
     openssl::certificate::x509 { 'nginx':
       ensure       => present,
       country      => 'US',
       organization => 'Fuel',
       commonname   => 'fuel.master.local',
-      altnames     => [$nailgun_host],
+      altnames     => split($ips, ','),
       state        => 'California',
       unit         => 'Fuel Deployment Team',
       email        => 'root@fuel.master.local',
