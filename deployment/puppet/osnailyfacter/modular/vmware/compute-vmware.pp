@@ -2,7 +2,7 @@ notice('MODULAR: vmware/compute-vmware.pp')
 
 $debug = hiera('debug', true)
 
-$vcenter_hash = hiera('vcenter', {})
+$vcenter_hash = hiera_hash('vcenter', {})
 $computes_hash = parse_vcenter_settings($vcenter_hash['computes'])
 
 $defaults = {
@@ -10,10 +10,10 @@ $defaults = {
   vlan_interface => $vcenter_hash['esxi_vlan_interface']
 }
 
-create_resources(vmware::compute_vmware, $computes_hash, $defaults)
+create_resources(vmware::compute_vmware, $computes, $defaults)
 
 
-$ceilometer_hash = hiera('ceilometer', {})
+$ceilometer_hash = hiera_hash('ceilometer', {})
 $ceilometer_enabled = $ceilometer_hash['enabled']
 
 if $ceilometer_enabled {
@@ -26,8 +26,8 @@ if $ceilometer_enabled {
   $service_endpoint = hiera('service_endpoint')
   $management_vip   = hiera('management_vip')
   $ssl_hash         = hiera_hash('use_ssl', {})
-  $auth_protocol    = get_ssl_property($ssl_hash, {}, 'keystone', 'internal', 'protocol', 'http')
-  $auth_host        = get_ssl_property($ssl_hash, {}, 'keystone', 'internal', 'hostname', [hiera('keystone_endpoint', ''), $service_endpoint, $management_vip])
+  $auth_protocol    = get_ssl_property($ssl, {}, 'keystone', 'internal', 'protocol', 'http')
+  $auth_host        = get_ssl_property($ssl, {}, 'keystone', 'internal', 'hostname', [hiera('keystone_endpoint', ''), $service_endpoint, $management_vip])
 
   $auth_port     = '5000'
   $identity_uri  = "${auth_protocol}://${auth_host}:${auth_port}"

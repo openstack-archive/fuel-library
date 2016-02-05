@@ -2,11 +2,11 @@ notice('MODULAR: sahara.pp')
 
 prepare_network_config(hiera_hash('network_scheme', {}))
 
-$access_admin               = hiera_hash('access_hash', {})
-$sahara_hash                = hiera_hash('sahara_hash', {})
-$rabbit_hash                = hiera_hash('rabbit_hash', {})
-$public_ssl_hash            = hiera('public_ssl')
-$ceilometer_hash            = hiera_hash('ceilometer_hash', {})
+$access_admin               = hiera_hash('access', {})
+$sahara_hash                = hiera_hash('sahara', {})
+$rabbit_hash                = hiera_hash('rabbit', {})
+$public_ssl_hash            = hiera_hash('public_ssl')
+$ceilometer_hash            = hiera_hash('ceilometer', {})
 $primary_controller         = hiera('primary_controller')
 $public_vip                 = hiera('public_vip')
 $database_vip               = hiera('database_vip', undef)
@@ -25,11 +25,11 @@ $amqp_port                  = hiera('amqp_port')
 $amqp_hosts                 = hiera('amqp_hosts')
 $external_lb                = hiera('external_lb', false)
 $ssl_hash                   = hiera_hash('use_ssl', {})
-$internal_auth_protocol     = get_ssl_property($ssl_hash, {}, 'keystone', 'internal', 'protocol', 'http')
-$internal_auth_address      = get_ssl_property($ssl_hash, {}, 'keystone', 'internal', 'hostname', [$service_endpoint, $management_vip])
+$internal_auth_protocol     = get_ssl_property($ssl, {}, 'keystone', 'internal', 'protocol', 'http')
+$internal_auth_address      = get_ssl_property($ssl, {}, 'keystone', 'internal', 'hostname', [$service_endpoint, $management_vip])
 $internal_auth_url          = "${internal_auth_protocol}://${internal_auth_address}:5000"
-$admin_identity_protocol    = get_ssl_property($ssl_hash, {}, 'keystone', 'admin', 'protocol', 'http')
-$admin_identity_address     = get_ssl_property($ssl_hash, {}, 'keystone', 'admin', 'hostname', [$service_endpoint, $management_vip])
+$admin_identity_protocol    = get_ssl_property($ssl, {}, 'keystone', 'admin', 'protocol', 'http')
+$admin_identity_address     = get_ssl_property($ssl, {}, 'keystone', 'admin', 'hostname', [$service_endpoint, $management_vip])
 $admin_identity_uri         = "${admin_identity_protocol}://${admin_identity_address}:35357"
 
 #################################################################
@@ -142,8 +142,8 @@ if $sahara_hash['enabled'] {
   }
 
   $haproxy_stats_url = "http://${management_vip}:10000/;csv"
-  $sahara_protocol = get_ssl_property($ssl_hash, {}, 'sahara', 'internal', 'protocol', 'http')
-  $sahara_address  = get_ssl_property($ssl_hash, {}, 'sahara', 'internal', 'hostname', [$service_endpoint, $management_vip])
+  $sahara_protocol = get_ssl_property($ssl, {}, 'sahara', 'internal', 'protocol', 'http')
+  $sahara_address  = get_ssl_property($ssl, {}, 'sahara', 'internal', 'hostname', [$service_endpoint, $management_vip])
   $sahara_url      = "${sahara_protocol}://${sahara_address}:${api_bind_port}"
 
   $lb_defaults = { 'provider' => 'haproxy', 'url' => $haproxy_stats_url }

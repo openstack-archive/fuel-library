@@ -2,15 +2,15 @@ notice('MODULAR: murano/cfapi.pp')
 
 prepare_network_config(hiera_hash('network_scheme', {}))
 
-$access_hash                = hiera_hash('access_hash', {})
+$access_hash                = hiera_hash('access', {})
 $murano_cfapi_hash          = hiera_hash('murano-cfapi', {})
 $public_ip                  = hiera('public_vip')
 $management_ip              = hiera('management_vip')
 $public_ssl_hash            = hiera_hash('public_ssl', {})
 $ssl_hash                   = hiera_hash('use_ssl', {})
 
-$public_auth_protocol       = get_ssl_property($ssl_hash, $public_ssl_hash, 'keystone', 'public', 'protocol', 'http')
-$public_auth_address        = get_ssl_property($ssl_hash, $public_ssl_hash, 'keystone', 'public', 'hostname', [$public_ip])
+$public_auth_protocol       = get_ssl_property($ssl, $public_ssl_hash, 'keystone', 'public', 'protocol', 'http')
+$public_auth_address        = get_ssl_property($ssl, $public_ssl_hash, 'keystone', 'public', 'hostname', [$public_ip])
 
 $internal_api_protocol      = 'http'
 $cfapi_bind_host            = get_network_role_property('murano/cfapi', 'ipaddr')
@@ -46,8 +46,8 @@ if $murano_cfapi_hash['enabled'] {
 
   $haproxy_stats_url = "http://${management_ip}:10000/;csv"
 
-  $murano_cfapi_protocol = get_ssl_property($ssl_hash, {}, 'murano', 'internal', 'protocol', 'http')
-  $murano_cfapi_address  = get_ssl_property($ssl_hash, {}, 'murano', 'internal', 'hostname', [$service_endpoint, $management_vip])
+  $murano_cfapi_protocol = get_ssl_property($ssl, {}, 'murano', 'internal', 'protocol', 'http')
+  $murano_cfapi_address  = get_ssl_property($ssl, {}, 'murano', 'internal', 'hostname', [$service_endpoint, $management_vip])
   $murano_cfapi_url      = "${murano_cfapi_protocol}://${murano_cfapi_address}:${cfapi_bind_port}"
 
   $lb_defaults = { 'provider' => 'haproxy', 'url' => $haproxy_stats_url }

@@ -4,17 +4,17 @@ $heat_hash         = hiera_hash('heat', {})
 $public_vip        = hiera('public_vip')
 $region            = pick($heat_hash['region'], hiera('region', 'RegionOne'))
 $management_vip    = hiera('management_vip')
-$public_ssl_hash   = hiera('public_ssl')
+$public_ssl_hash   = hiera_hash('public_ssl')
 $ssl_hash          = hiera_hash('use_ssl', {})
 
-$public_protocol   = get_ssl_property($ssl_hash, $public_ssl_hash, 'heat', 'public', 'protocol', 'http')
-$public_address    = get_ssl_property($ssl_hash, $public_ssl_hash, 'heat', 'public', 'hostname', [$public_vip])
+$public_protocol   = get_ssl_property($ssl, $public_ssl_hash, 'heat', 'public', 'protocol', 'http')
+$public_address    = get_ssl_property($ssl, $public_ssl_hash, 'heat', 'public', 'hostname', [$public_vip])
 
-$internal_protocol = get_ssl_property($ssl_hash, {}, 'heat', 'internal', 'protocol', 'http')
-$internal_address  = get_ssl_property($ssl_hash, {}, 'heat', 'internal', 'hostname', [hiera('heat_endpoint', ''), $management_vip])
+$internal_protocol = get_ssl_property($ssl, {}, 'heat', 'internal', 'protocol', 'http')
+$internal_address  = get_ssl_property($ssl, {}, 'heat', 'internal', 'hostname', [hiera('heat_endpoint', ''), $management_vip])
 
-$admin_protocol    = get_ssl_property($ssl_hash, {}, 'heat', 'admin', 'protocol', 'http')
-$admin_address     = get_ssl_property($ssl_hash, {}, 'heat', 'admin', 'hostname', [hiera('heat_endpoint', ''), $management_vip])
+$admin_protocol    = get_ssl_property($ssl, {}, 'heat', 'admin', 'protocol', 'http')
+$admin_address     = get_ssl_property($ssl, {}, 'heat', 'admin', 'hostname', [hiera('heat_endpoint', ''), $management_vip])
 
 $password            = $heat_hash['user_password']
 $auth_name           = pick($heat_hash['auth_name'], 'heat')

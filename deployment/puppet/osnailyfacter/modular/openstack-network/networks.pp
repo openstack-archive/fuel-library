@@ -1,7 +1,7 @@
 notice('MODULAR: openstack-network/networks.pp')
 
 if hiera('use_neutron', false) {
-  $access_hash           = hiera('access', { })
+  $access_hash           = hiera_hash('access', {})
   $keystone_admin_tenant = $access_hash['tenant']
   $neutron_config        = hiera_hash('neutron_config')
   $floating_net          = try_get_value($neutron_config, 'default_floating_net', 'net04_ext')
@@ -40,7 +40,7 @@ if hiera('use_neutron', false) {
     $floating_net_allocation_pool = format_allocation_pools($floating_net_floating_range, $floating_cidr)
   }
 
-  $tenant_name         = try_get_value($access_hash, 'tenant', 'admin')
+  $tenant_name         = try_get_value($access, 'tenant', 'admin')
 
   neutron_network { $floating_net :
     ensure                    => 'present',

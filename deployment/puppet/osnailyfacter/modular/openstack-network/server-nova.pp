@@ -14,11 +14,11 @@ if $use_neutron {
   $auth_api_version          = 'v2.0'
   $ssl_hash                  = hiera_hash('use_ssl', {})
 
-  $admin_auth_protocol       = get_ssl_property($ssl_hash, {}, 'keystone', 'admin', 'protocol', 'http')
-  $admin_auth_endpoint       = get_ssl_property($ssl_hash, {}, 'keystone', 'admin', 'hostname', [hiera('service_endpoint', ''), $management_vip])
+  $admin_auth_protocol       = get_ssl_property($ssl, {}, 'keystone', 'admin', 'protocol', 'http')
+  $admin_auth_endpoint       = get_ssl_property($ssl, {}, 'keystone', 'admin', 'hostname', [hiera('service_endpoint', ''), $management_vip])
 
-  $neutron_internal_protocol = get_ssl_property($ssl_hash, {}, 'neutron', 'internal', 'protocol', 'http')
-  $neutron_internal_endpoint = get_ssl_property($ssl_hash, {}, 'neutron', 'internal', 'hostname', [$neutron_endpoint])
+  $neutron_internal_protocol = get_ssl_property($ssl, {}, 'neutron', 'internal', 'protocol', 'http')
+  $neutron_internal_endpoint = get_ssl_property($ssl, {}, 'neutron', 'internal', 'hostname', [$neutron_endpoint])
 
   $admin_identity_uri        = "${admin_auth_protocol}://${admin_auth_endpoint}:35357"
   $admin_auth_url            = "${admin_identity_uri}/${auth_api_version}"

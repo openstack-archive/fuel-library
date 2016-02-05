@@ -1,16 +1,16 @@
 notice('MODULAR: openstack-haproxy-ceilometer.pp')
 
-$ceilometer_hash         = hiera_hash('ceilometer',{})
+$ceilometer_hash         = hiera_hash('ceilometer', {})
 # NOT enabled by default
 $use_ceilometer          = pick($ceilometer_hash['enabled'], false)
 $public_ssl_hash         = hiera_hash('public_ssl', {})
 $ssl_hash                = hiera_hash('use_ssl', {})
 
-$public_ssl              = get_ssl_property($ssl_hash, $public_ssl_hash, 'ceilometer', 'public', 'usage', false)
-$public_ssl_path         = get_ssl_property($ssl_hash, $public_ssl_hash, 'ceilometer', 'public', 'path', [''])
+$public_ssl              = get_ssl_property($ssl, $public_ssl_hash, 'ceilometer', 'public', 'usage', false)
+$public_ssl_path         = get_ssl_property($ssl, $public_ssl_hash, 'ceilometer', 'public', 'path', [''])
 
-$internal_ssl            = get_ssl_property($ssl_hash, {}, 'ceilometer', 'internal', 'usage', false)
-$internal_ssl_path       = get_ssl_property($ssl_hash, {}, 'ceilometer', 'internal', 'path', [''])
+$internal_ssl            = get_ssl_property($ssl, {}, 'ceilometer', 'internal', 'usage', false)
+$internal_ssl_path       = get_ssl_property($ssl, {}, 'ceilometer', 'internal', 'path', [''])
 
 $external_lb             = hiera('external_lb', false)
 

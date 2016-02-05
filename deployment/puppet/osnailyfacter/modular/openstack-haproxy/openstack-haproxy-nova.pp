@@ -6,11 +6,11 @@ $use_nova          = pick($nova_hash['enabled'], true)
 $public_ssl_hash   = hiera_hash('public_ssl', {})
 $ssl_hash          = hiera_hash('use_ssl', {})
 
-$public_ssl        = get_ssl_property($ssl_hash, $public_ssl_hash, 'nova', 'public', 'usage', false)
-$public_ssl_path   = get_ssl_property($ssl_hash, $public_ssl_hash, 'nova', 'public', 'path', [''])
+$public_ssl        = get_ssl_property($ssl, $public_ssl_hash, 'nova', 'public', 'usage', false)
+$public_ssl_path   = get_ssl_property($ssl, $public_ssl_hash, 'nova', 'public', 'path', [''])
 
-$internal_ssl      = get_ssl_property($ssl_hash, {}, 'nova', 'internal', 'usage', false)
-$internal_ssl_path = get_ssl_property($ssl_hash, {}, 'nova', 'internal', 'path', [''])
+$internal_ssl      = get_ssl_property($ssl, {}, 'nova', 'internal', 'usage', false)
+$internal_ssl_path = get_ssl_property($ssl, {}, 'nova', 'internal', 'path', [''])
 
 $external_lb       = hiera('external_lb', false)
 

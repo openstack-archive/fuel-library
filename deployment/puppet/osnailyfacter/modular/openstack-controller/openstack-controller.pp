@@ -27,26 +27,26 @@ $storage_hash                 = hiera_hash('storage', {})
 $nova_hash                    = hiera_hash('nova', {})
 $nova_config_hash             = hiera_hash('nova_config', {})
 $api_bind_address             = get_network_role_property('nova/api', 'ipaddr')
-$rabbit_hash                  = hiera_hash('rabbit_hash', {})
-$ceilometer_hash              = hiera_hash('ceilometer_hash',{})
+$rabbit_hash                  = hiera_hash('rabbit', {})
+$ceilometer_hash              = hiera_hash('ceilometer_hash', {})
 $syslog_log_facility_ceph     = hiera('syslog_log_facility_ceph','LOG_LOCAL0')
 $workloads_hash               = hiera_hash('workloads_collector', {})
 $service_endpoint             = hiera('service_endpoint')
 $db_host                      = pick($nova_hash['db_host'], hiera('database_vip'))
 $ssl_hash                     = hiera_hash('use_ssl', {})
 
-$internal_auth_protocol = get_ssl_property($ssl_hash, {}, 'keystone', 'internal', 'protocol', [$nova_hash['auth_protocol'], 'http'])
-$internal_auth_address  = get_ssl_property($ssl_hash, {}, 'keystone', 'internal', 'hostname', [$service_endpoint, $management_vip])
-$admin_auth_protocol    = get_ssl_property($ssl_hash, {}, 'keystone', 'admin', 'protocol', [$nova_hash['auth_protocol'], 'http'])
-$admin_auth_address     = get_ssl_property($ssl_hash, {}, 'keystone', 'admin', 'hostname', [$service_endpoint, $management_vip])
+$internal_auth_protocol = get_ssl_property($ssl, {}, 'keystone', 'internal', 'protocol', [$nova_hash['auth_protocol'], 'http'])
+$internal_auth_address  = get_ssl_property($ssl, {}, 'keystone', 'internal', 'hostname', [$service_endpoint, $management_vip])
+$admin_auth_protocol    = get_ssl_property($ssl, {}, 'keystone', 'admin', 'protocol', [$nova_hash['auth_protocol'], 'http'])
+$admin_auth_address     = get_ssl_property($ssl, {}, 'keystone', 'admin', 'hostname', [$service_endpoint, $management_vip])
 
 $keystone_auth_uri     = "${internal_auth_protocol}://${internal_auth_address}:5000/"
 $keystone_identity_uri = "${admin_auth_protocol}://${admin_auth_address}:35357/"
 $keystone_ec2_url      = "${keystone_auth_uri}v2.0/ec2tokens"
 
-$glance_protocol              = get_ssl_property($ssl_hash, {}, 'glance', 'internal', 'protocol', 'http')
-$glance_endpoint              = get_ssl_property($ssl_hash, {}, 'glance', 'internal', 'hostname', [hiera('glance_endpoint', ''), $management_vip])
-$glance_ssl                   = get_ssl_property($ssl_hash, {}, 'glance', 'internal', 'usage', false)
+$glance_protocol              = get_ssl_property($ssl, {}, 'glance', 'internal', 'protocol', 'http')
+$glance_endpoint              = get_ssl_property($ssl, {}, 'glance', 'internal', 'hostname', [hiera('glance_endpoint', ''), $management_vip])
+$glance_ssl                   = get_ssl_property($ssl, {}, 'glance', 'internal', 'usage', false)
 if $glance_ssl {
   $glance_api_servers = "${glance_protocol}://${glance_endpoint}:9292"
 } else {
@@ -115,10 +115,10 @@ class { '::openstack::controller':
   public_address                 => $public_vip,    # It is feature for HA mode.
   internal_address               => $management_vip,  # All internal traffic goes
   admin_address                  => $management_vip,  # through load balancer.
-  floating_range                 => $use_neutron ? { true =>$floating_hash, default  =>false},
+  floating_range                 => $use_neutron ? { true =>$floating, default  =>false},
   fixed_range                    => $use_neutron ? { true =>false, default =>hiera('fixed_network_range')},
   multi_host                     => $multi_host,
-  network_config                 => hiera('network_config', {}),
+  network_config                 => hiera_hash('network_config', {}),
   num_networks                   => hiera('num_networks', undef),
   network_size                   => hiera('network_size', undef),
   network_manager                => hiera('network_manager', undef),
@@ -175,8 +175,8 @@ if $primary_controller {
   $haproxy_stats_url = "http://${management_vip}:10000/;csv"
 
   $nova_endpoint           = hiera('nova_endpoint', $management_vip)
-  $nova_internal_protocol  = get_ssl_property($ssl_hash, {}, 'nova', 'internal', 'protocol', 'http')
-  $nova_internal_endpoint  = get_ssl_property($ssl_hash, {}, 'nova', 'internal', 'hostname', [$nova_endpoint])
+  $nova_internal_protocol  = get_ssl_property($ssl, {}, 'nova', 'internal', 'protocol', 'http')
+  $nova_internal_endpoint  = get_ssl_property($ssl, {}, 'nova', 'internal', 'hostname', [$nova_endpoint])
   $nova_url                = "${nova_internal_protocol}://${nova_internal_endpoint}:8774"
 
   $lb_defaults = { 'provider' => 'haproxy', 'url' => $haproxy_stats_url }

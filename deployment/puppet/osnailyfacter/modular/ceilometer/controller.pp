@@ -19,7 +19,7 @@ $use_syslog               = hiera('use_syslog', true)
 $use_stderr               = hiera('use_stderr', false)
 $syslog_log_facility      = hiera('syslog_log_facility_ceilometer', 'LOG_LOCAL0')
 $storage_hash             = hiera('storage')
-$rabbit_hash              = hiera_hash('rabbit_hash')
+$rabbit_hash              = hiera_hash('rabbit')
 $management_vip           = hiera('management_vip')
 $region                   = hiera('region', 'RegionOne')
 $ceilometer_region        = pick($ceilometer_hash['region'], $region)
@@ -41,8 +41,8 @@ $workers_max                = hiera('workers_max', 16)
 $service_workers            = pick($ceilometer_hash['workers'],
                                 min(max($::processorcount, 2), $workers_max))
 
-$internal_auth_protocol     = get_ssl_property($ssl_hash, {}, 'keystone', 'internal', 'protocol', 'http')
-$internal_auth_endpoint     = get_ssl_property($ssl_hash, {}, 'keystone', 'internal', 'hostname', [$service_endpoint])
+$internal_auth_protocol     = get_ssl_property($ssl, {}, 'keystone', 'internal', 'protocol', 'http')
+$internal_auth_endpoint     = get_ssl_property($ssl, {}, 'keystone', 'internal', 'hostname', [$service_endpoint])
 $keystone_identity_uri      = "${internal_auth_protocol}://${internal_auth_endpoint}:35357/"
 $keystone_auth_uri          = "${internal_auth_protocol}://${internal_auth_endpoint}:5000/"
 

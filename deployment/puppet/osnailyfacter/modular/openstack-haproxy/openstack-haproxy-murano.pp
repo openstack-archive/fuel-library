@@ -1,18 +1,18 @@
 notice('MODULAR: openstack-haproxy-murano.pp')
 
-$murano_hash        = hiera_hash('murano_hash',{})
-$murano_cfapi_hash  = hiera_hash('murano-cfapi',{})
+$murano_hash        = hiera_hash('murano', {})
+$murano_cfapi_hash  = hiera_hash('murano-cfapi', {})
 # NOT enabled by default
 $use_murano         = pick($murano_hash['enabled'], false)
 $use_murano_cfapi   = pick($murano_cfapi_hash['enabled'], false)
 $public_ssl_hash    = hiera_hash('public_ssl', {})
 $ssl_hash           = hiera_hash('use_ssl', {})
 
-$public_ssl         = get_ssl_property($ssl_hash, $public_ssl_hash, 'murano', 'public', 'usage', false)
-$public_ssl_path    = get_ssl_property($ssl_hash, $public_ssl_hash, 'murano', 'public', 'path', [''])
+$public_ssl         = get_ssl_property($ssl, $public_ssl_hash, 'murano', 'public', 'usage', false)
+$public_ssl_path    = get_ssl_property($ssl, $public_ssl_hash, 'murano', 'public', 'path', [''])
 
-$internal_ssl       = get_ssl_property($ssl_hash, {}, 'murano', 'internal', 'usage', false)
-$internal_ssl_path  = get_ssl_property($ssl_hash, {}, 'murano', 'internal', 'path', [''])
+$internal_ssl       = get_ssl_property($ssl, {}, 'murano', 'internal', 'usage', false)
+$internal_ssl_path  = get_ssl_property($ssl, {}, 'murano', 'internal', 'path', [''])
 
 $external_lb        = hiera('external_lb', false)
 

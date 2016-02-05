@@ -1,18 +1,18 @@
 notice('MODULAR: ceph/radosgw.pp')
 
-$storage_hash     = hiera('storage', {})
+$storage_hash     = hiera_hash('storage', {})
 $use_neutron      = hiera('use_neutron')
 $public_vip       = hiera('public_vip')
-$keystone_hash    = hiera('keystone', {})
+$keystone_hash    = hiera_hash('keystone', {})
 $management_vip   = hiera('management_vip')
 $service_endpoint = hiera('service_endpoint')
-$public_ssl_hash  = hiera('public_ssl')
+$public_ssl_hash  = hiera_hash('public_ssl')
 $radosgw_large_pool_name = ".rgw"
 $mon_address_map  = get_node_to_ipaddr_map_by_network_role(hiera_hash('ceph_monitor_nodes'), 'ceph/public')
 $external_lb      = hiera('external_lb', false)
 $ssl_hash         = hiera_hash('use_ssl', {})
-$admin_identity_protocol = get_ssl_property($ssl_hash, {}, 'keystone', 'admin', 'protocol', 'http')
-$admin_identity_address  = get_ssl_property($ssl_hash, {}, 'keystone', 'admin', 'hostname', [$service_endpoint, $management_vip])
+$admin_identity_protocol = get_ssl_property($ssl, {}, 'keystone', 'admin', 'protocol', 'http')
+$admin_identity_address  = get_ssl_property($ssl, {}, 'keystone', 'admin', 'hostname', [$service_endpoint, $management_vip])
 $admin_identity_url      = "${admin_identity_protocol}://${admin_identity_address}:35357"
 
 if ($storage_hash['volumes_ceph'] or
@@ -50,8 +50,8 @@ if $use_ceph and $storage_hash['objects_ceph'] {
 
   $haproxy_stats_url = "http://${service_endpoint}:10000/;csv"
 
-  $internal_auth_protocol  = get_ssl_property($ssl_hash, {}, 'keystone', 'internal', 'protocol', 'http')
-  $internal_auth_address   = get_ssl_property($ssl_hash, {}, 'keystone', 'internal', 'hostname', [$service_endpoint, $management_vip])
+  $internal_auth_protocol  = get_ssl_property($ssl, {}, 'keystone', 'internal', 'protocol', 'http')
+  $internal_auth_address   = get_ssl_property($ssl, {}, 'keystone', 'internal', 'hostname', [$service_endpoint, $management_vip])
   $internal_auth_url       = "${internal_auth_protocol}://${internal_auth_address}:5000"
 
   class { '::osnailyfacter::wait_for_keystone_backends': }

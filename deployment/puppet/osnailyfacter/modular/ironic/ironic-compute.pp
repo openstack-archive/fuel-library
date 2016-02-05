@@ -20,7 +20,7 @@ $use_syslog                     = hiera('use_syslog', true)
 $syslog_log_facility_ironic     = hiera('syslog_log_facility_ironic', 'LOG_LOCAL0')
 $syslog_log_facility_nova       = hiera('syslog_log_facility_nova', 'LOG_LOCAL6')
 $amqp_hosts                     = hiera('amqp_hosts')
-$rabbit_hash                    = hiera_hash('rabbit_hash')
+$rabbit_hash                    = hiera_hash('rabbit')
 $nova_report_interval           = hiera('nova_report_interval')
 $nova_service_down_time         = hiera('nova_service_down_time')
 $neutron_config                 = hiera_hash('quantum_settings')
@@ -55,8 +55,8 @@ $memcached_addresses            = suffix($memcached_servers, ":${memcached_port}
 $notify_on_state_change         = 'vm_and_task_state'
 
 $ssl_hash                       = hiera_hash('use_ssl', {})
-$admin_identity_protocol        = get_ssl_property($ssl_hash, {}, 'keystone', 'admin', 'protocol', 'http')
-$admin_identity_address         = get_ssl_property($ssl_hash, {}, 'keystone', 'admin', 'hostname', [$service_endpoint, $management_vip])
+$admin_identity_protocol        = get_ssl_property($ssl, {}, 'keystone', 'admin', 'protocol', 'http')
+$admin_identity_address         = get_ssl_property($ssl, {}, 'keystone', 'admin', 'hostname', [$service_endpoint, $management_vip])
 $admin_identity_uri             = "${admin_identity_protocol}://${admin_identity_address}:35357"
 
 

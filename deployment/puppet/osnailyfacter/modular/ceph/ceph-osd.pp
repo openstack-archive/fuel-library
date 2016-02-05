@@ -1,21 +1,21 @@
 notice('MODULAR: ceph-osd.pp')
 
 # Pulling hiera
-$storage_hash              = hiera('storage', {})
+$storage_hash              = hiera_hash('storage', {})
 $public_vip                = hiera('public_vip')
 $management_vip            = hiera('management_vip')
 $service_endpoint          = hiera('service_endpoint')
 $use_neutron               = hiera('use_neutron', false)
-$mp_hash                   = hiera('mp')
+$mp_hash                   = hiera_hash('mp')
 $verbose                   = pick($storage_hash['verbose'], true)
 $debug                     = pick($storage_hash['debug'], hiera('debug', true))
 $use_monit                 = false
 $auto_assign_floating_ip   = hiera('auto_assign_floating_ip', false)
-$keystone_hash             = hiera('keystone', {})
-$access_hash               = hiera('access', {})
+$keystone_hash             = hiera_hash('keystone', {})
+$access_hash               = hiera_hash('access', {})
 $network_scheme            = hiera_hash('network_scheme', {})
 $neutron_mellanox          = hiera('neutron_mellanox', false)
-$syslog_hash               = hiera('syslog', {})
+$syslog_hash               = hiera_hash('syslog', {})
 $use_syslog                = hiera('use_syslog', true)
 $mon_address_map           = get_node_to_ipaddr_map_by_network_role(hiera_hash('ceph_monitor_nodes'), 'ceph/public')
 $ceph_primary_monitor_node = hiera('ceph_primary_monitor_node')
@@ -24,10 +24,10 @@ $primary_mon               = $ceph_primary_monitor_node[$primary_mons[0]]['name'
 prepare_network_config($network_scheme)
 $ceph_cluster_network      = get_network_role_property('ceph/replication', 'network')
 $ceph_public_network       = get_network_role_property('ceph/public', 'network')
-$ceph_tuning_settings      = hiera('ceph_tuning_settings', {})
+$ceph_tuning_settings      = hiera_hash('ceph_tuning_settings', {})
 $ssl_hash                  = hiera_hash('use_ssl', {})
-$admin_auth_protocol       = get_ssl_property($ssl_hash, {}, 'keystone', 'admin', 'protocol', 'http')
-$admin_auth_address        = get_ssl_property($ssl_hash, {}, 'keystone', 'admin', 'hostname', [$service_endpoint, $management_vip])
+$admin_auth_protocol       = get_ssl_property($ssl, {}, 'keystone', 'admin', 'protocol', 'http')
+$admin_auth_address        = get_ssl_property($ssl, {}, 'keystone', 'admin', 'hostname', [$service_endpoint, $management_vip])
 $admin_identity_url        = "${admin_auth_protocol}://${admin_auth_address}:35357"
 
 class {'ceph':

@@ -270,14 +270,14 @@ if roles_include('primary-controller') {
 }
 
 $controller_nodes = get_nodes_hash_by_roles($network_metadata, ['primary-controller', 'controller'])
-$mountpoints      = filter_hash($mp_hash, 'point')
+$mountpoints      = filter_hash($mp, 'point')
 
 # AMQP configuration
 $queue_provider   = hiera('queue_provider','rabbitmq')
 $rabbit_ha_queues = true
 
 if !$rabbit_hash['user'] {
-  $real_rabbit_hash = merge($rabbit_hash, { 'user' => 'nova' })
+  $real_rabbit_hash = merge($rabbit, { 'user' => 'nova' })
 } else {
   $real_rabbit_hash = $rabbit_hash
 }
@@ -449,8 +449,8 @@ $ironic_api_nodes = $controller_nodes
 # TODO(sbog): change this when we will get rid of global hashes
 $ssl_hash = hiera_hash('use_ssl', {})
 $public_ssl_hash = hiera('public_ssl')
-$public_vnc_protocol = get_ssl_property($ssl_hash, $public_ssl_hash, 'nova', 'public', 'protocol', 'http')
-$real_nova_hash = merge($nova_hash, { 'vncproxy_protocol' => $public_vnc_protocol })
+$public_vnc_protocol = get_ssl_property($ssl, $public_ssl_hash, 'nova', 'public', 'protocol', 'http')
+$real_nova_hash = merge($nova, { 'vncproxy_protocol' => $public_vnc_protocol })
 
 # Define how we should get memcache addresses
 if hiera('memcached_addresses', false) {
@@ -466,7 +466,7 @@ $cinder_backends = {
   'volumes_lvm' => $storage_hash['volumes_lvm'] ? { true => 'LVM-backend', default => false },
   'volumes_block_device' => $storage_hash['volumes_block_device'] ? { true => 'BDD-backend', default => false },
 }
-$storage_hash_real = merge($storage_hash, { 'volume_backend_names' => $cinder_backends })
+$storage_hash_real = merge($storage, { 'volume_backend_names' => $cinder_backends })
 
 # save all these global variables into hiera yaml file for later use
 # by other manifests with hiera function

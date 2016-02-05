@@ -5,17 +5,17 @@ $public_vip         = hiera('public_vip')
 # Allow a plugin to override the admin address using swift_hash:
 $management_vip     = pick($swift_hash['management_vip'], hiera('management_vip'))
 $region             = pick($swift_hash['region'], hiera('region', 'RegionOne'))
-$public_ssl_hash    = hiera('public_ssl')
+$public_ssl_hash    = hiera_hash('public_ssl')
 $ssl_hash           = hiera_hash('use_ssl', {})
 
-$public_protocol    = get_ssl_property($ssl_hash, $public_ssl_hash, 'swift', 'public', 'protocol', 'http')
-$public_address     = get_ssl_property($ssl_hash, $public_ssl_hash, 'swift', 'public', 'hostname', [$swift_hash['public_vip'], $public_vip])
+$public_protocol    = get_ssl_property($ssl, $public_ssl_hash, 'swift', 'public', 'protocol', 'http')
+$public_address     = get_ssl_property($ssl, $public_ssl_hash, 'swift', 'public', 'hostname', [$swift_hash['public_vip'], $public_vip])
 
-$internal_protocol  = get_ssl_property($ssl_hash, {}, 'swift', 'internal', 'protocol', 'http')
-$internal_address   = get_ssl_property($ssl_hash, {}, 'swift', 'internal', 'hostname', [$management_vip])
+$internal_protocol  = get_ssl_property($ssl, {}, 'swift', 'internal', 'protocol', 'http')
+$internal_address   = get_ssl_property($ssl, {}, 'swift', 'internal', 'hostname', [$management_vip])
 
-$admin_protocol  = get_ssl_property($ssl_hash, {}, 'swift', 'admin', 'protocol', 'http')
-$admin_address   = get_ssl_property($ssl_hash, {}, 'swift', 'admin', 'hostname', [$management_vip])
+$admin_protocol  = get_ssl_property($ssl, {}, 'swift', 'admin', 'protocol', 'http')
+$admin_address   = get_ssl_property($ssl, {}, 'swift', 'admin', 'hostname', [$management_vip])
 
 $password           = $swift_hash['user_password']
 $auth_name          = pick($swift_hash['auth_name'], 'swift')

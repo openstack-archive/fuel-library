@@ -2,7 +2,7 @@ notice('MODULAR: ssl_keys_saving.pp')
 
 $public_ssl_hash = hiera_hash('public_ssl')
 $ssl_hash = hiera_hash('use_ssl', {})
-$pub_certificate_content = try_get_value($public_ssl_hash, 'cert_data/content', "")
+$pub_certificate_content = try_get_value($public_ssl, 'cert_data/content', "")
 $base_path = "/etc/pki/tls/certs"
 $pki_path = [ "/etc/pki", "/etc/pki/tls" ]
 $astute_base_path = "/var/lib/astute/haproxy"
@@ -25,15 +25,15 @@ define cert_file (
   ){
   $service = $name
 
-  $public_service = try_get_value($ssl_hash, "${service}_public", false)
-  $public_usercert = try_get_value($ssl_hash, "${service}_public_usercert", false)
-  $public_certdata = try_get_value($ssl_hash, "${service}_public_certdata/content", "")
-  $internal_service = try_get_value($ssl_hash, "${service}_internal", false)
-  $internal_usercert = try_get_value($ssl_hash, "${service}_internal_usercert", false)
-  $internal_certdata = try_get_value($ssl_hash, "${service}_internal_certdata/content", "")
-  $admin_service = try_get_value($ssl_hash, "${service}_admin", false)
-  $admin_usercert = try_get_value($ssl_hash, "${service}_admin_usercert", false)
-  $admin_certdata = try_get_value($ssl_hash, "${service}_admin_certdata/content", "")
+  $public_service = try_get_value($ssl, "${service}_public", false)
+  $public_usercert = try_get_value($ssl, "${service}_public_usercert", false)
+  $public_certdata = try_get_value($ssl, "${service}_public_certdata/content", "")
+  $internal_service = try_get_value($ssl, "${service}_internal", false)
+  $internal_usercert = try_get_value($ssl, "${service}_internal_usercert", false)
+  $internal_certdata = try_get_value($ssl, "${service}_internal_certdata/content", "")
+  $admin_service = try_get_value($ssl, "${service}_admin", false)
+  $admin_usercert = try_get_value($ssl, "${service}_admin_usercert", false)
+  $admin_certdata = try_get_value($ssl, "${service}_admin_certdata/content", "")
 
   if $ssl_hash["${service}"] {
     if $public_service and $public_usercert and !empty($public_certdata) {

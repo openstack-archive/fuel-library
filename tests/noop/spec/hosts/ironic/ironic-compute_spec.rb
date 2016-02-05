@@ -33,7 +33,7 @@ describe manifest do
       end
     end
 
-    public_ssl_hash = Noop.hiera('public_ssl')
+    public_ssl_hash = Noop.hiera_hash('public_ssl')
     let(:ssl_hash) { Noop.hiera_hash 'use_ssl', {} }
     let(:admin_auth_protocol) { Noop.puppet_function 'get_ssl_property',ssl_hash,{},'keystone', 'admin','protocol','http' }
     let(:admin_auth_address) { Noop.puppet_function 'get_ssl_property',ssl_hash,{},'keystone','admin', 'hostname', [Noop.hiera('service_endpoint', Noop.hiera('management_vip'))]}
