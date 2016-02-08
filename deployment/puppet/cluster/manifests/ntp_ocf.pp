@@ -34,15 +34,6 @@ class cluster::ntp_ocf inherits ntp::params {
     },
   }
 
-  cs_rsc_colocation { 'ntp-with-vrouter-ns' :
-    ensure     => 'present',
-    score      => 'INFINITY',
-    primitives => [
-      "clone_p_$service_name",
-      "clone_p_vrouter",
-    ],
-  }
-
   pacemaker_wrappers::service { $service_name :
     primitive_type => $primitive_type,
     parameters     => $parameters,
@@ -53,6 +44,25 @@ class cluster::ntp_ocf inherits ntp::params {
     prefix         => true,
   }
 
-  Cs_rsc_colocation['ntp-with-vrouter-ns'] -> Service['ntp']
+  cs_rsc_colocation { 'ntp-with-vrouter-ns' :
+    ensure     => 'present',
+    score      => 'INFINITY',
+    primitives => [
+      "clone_p_$service_name",
+      "clone_p_vrouter",
+    ],
+  }
 
+  Cs_resource["p_${service_name}"] -> Cs_rsc_colocation['ntp-with-vrouter-ns'] -> Service[$service_name]
+
+  if ! defined(Service[$service_name]) {
+    service { $service_name:
+      name       => $service_name,
+      enable     => true,
+      ensure     => 'running',
+      hasstatus  => true,
+      hasrestart => true,
+      provider   => 'pacemaker',
+    }
+  }
 }
