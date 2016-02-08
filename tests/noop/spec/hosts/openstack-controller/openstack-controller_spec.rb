@@ -5,6 +5,10 @@ manifest = 'openstack-controller/openstack-controller.pp'
 describe manifest do
   shared_examples 'catalog' do
 
+    let (:api_bind_address) do
+      Noop.puppet_function 'get_network_role_property', 'nova/api', 'ipaddr'
+    end
+
     let(:configuration_override) do
       Noop.hiera_structure 'configuration'
     end
@@ -48,6 +52,11 @@ describe manifest do
     service_endpoint = Noop.hiera 'service_endpoint'
     management_vip = Noop.hiera 'management_vip'
 
+    database_vip = Noop.hiera('database_vip')
+    nova_db_password = Noop.hiera_structure 'nova/db_password', 'nova'
+    nova_db_user = Noop.hiera_structure 'nova/db_user', 'nova'
+    nova_db_name = Noop.hiera_structure 'nova/db_name', 'nova'
+
     let(:nova_hash) { Noop.hiera_hash 'nova_hash' }
 
     let(:ssl_hash) { Noop.hiera_hash 'use_ssl', {} }
@@ -76,11 +85,23 @@ describe manifest do
       Noop.hiera_hash('use_ssl', {}), {}, 'nova', 'internal', 'hostname',
       [nova_endpoint]
 
+    let (:nova_quota_driver) do
+      if Noop.hiera 'nova_quota'
+        'nova.quota.DbQuotaDriver'
+      else
+        'nova.quota.NoopQuotaDriver'
+      end
+    end
+
     # TODO All this stuff should be moved to shared examples controller* tests.
 
-    it 'should declare openstack::controller class with 4 processess on 4 CPU & 32G system' do
-      should contain_class('openstack::controller').with(
-        'service_workers' => '4',
+    it 'should declare correct workers for systems with 4 processess on 4 CPU & 32G system' do
+      should contain_class('nova::api').with(
+        'osapi_compute_workers' => '4',
+        'metadata_workers' => '4'
+      )
+      should contain_class('nova::conductor').with(
+        'workers' => '4'
       )
     end
 
@@ -131,6 +152,103 @@ describe manifest do
     it 'should configure cinder_catalog_info for nova' do
       cinder_catalog_info = Noop.puppet_function 'pick',nova_hash['cinder_catalog_info'],'volume:cinder:internalURL'
       should contain_nova_config('cinder/catalog_info').with(:value => cinder_catalog_info)
+    end
+
+    it 'should configure nova' do
+      # TODO: more tests
+      should contain_class('nova').with(
+        :install_utilities => false,
+      )
+    end
+
+    it 'should configure the nova database connection string' do
+      if facts[:os_package_type] == 'debian'
+        extra_params = '?charset=utf8&read_timeout=60'
+      else
+        extra_params = '?charset=utf8'
+      end
+      should contain_class('nova').with(
+        :database_connection => "mysql://#{nova_db_user}:#{nova_db_password}@#{database_vip}/#{nova_db_name}#{extra_params}"
+      )
+    end
+
+    it 'should configure nova::quota with correct options' do
+      should contain_class('nova::quota').with(
+        :quota_instances          => Noop.puppet_function('pick', nova_hash['quota_instances'], 100),
+        :quota_cores              => Noop.puppet_function('pick', nova_hash['quota_cores'], 100),
+        :quota_volumes            => Noop.puppet_function('pick', nova_hash['quota_volumes'], 100),
+        :quota_gigabytes          => Noop.puppet_function('pick', nova_hash['quota_gigabytes'], 1000),
+        :quota_floating_ips       => Noop.puppet_function('pick', nova_hash['quota_floating_ips'], 100),
+        :quota_metadata_items     => Noop.puppet_function('pick', nova_hash['quota_metadata_items'], 1024),
+        :quota_max_injected_files => Noop.puppet_function('pick', nova_hash['quota_max_injected_files'], 50),
+        :quota_max_injected_file_content_bytes => Noop.puppet_function('pick', nova_hash['quota_max_injected_file_content_bytes'], 102400),
+        :quota_injected_file_path_length => Noop.puppet_function('pick', nova_hash['quota_injected_file_path_length'], 4096),
+        :quota_security_groups    => Noop.puppet_function('pick', nova_hash['quota_security_groups'], 10),
+        :quota_key_pairs          => Noop.puppet_function('pick', nova_hash['quota_key_pairs'], 10),
+        :quota_driver             => nova_quota_driver
+      )
+    end
+
+    it 'should configure nova::api' do
+      # TODO: check more
+      should contain_class('nova::api').with(
+        :enabled => true
+      )
+    end
+
+    it 'should configure allow resize to same host' do
+      should contain_nova_config('DEFAULT/allow_resize_to_same_host').with(
+        :value => Noop.puppet_function('pick', nova_hash['allow_resize_to_same_host'], true)
+      )
+    end
+
+    it 'should configure keystone authtoken signing' do
+      should contain_nova_config('keystone_authtoken/signing_dir').with(
+        :value => '/tmp/keystone-signing-nova'
+      )
+      should contain_nova_config('keystone_authtoken/signing_dirname').with(
+        :value => '/tmp/keystone-signing-nova'
+      )
+      should contain_nova_paste_api_ini('filter:authtoken/signing_dir').with(
+        :ensure => 'absent'
+      )
+      should contain_nova_paste_api_ini('filter:authtoken/signing_dirname').with(
+        :ensure => 'absent'
+      )
+    end
+
+    it 'should configure use_local for nova::conductor' do
+      should contain_class('nova::conductor').with(
+        :use_local => Noop.puppet_function('pick', nova_hash['use_local'], false)
+      )
+    end
+
+    it 'should configure auto_assign_floating_ip' do
+      # TODO
+    end
+
+    it 'should configure nova services' do
+      should contain_class('nova::scheduler').with_enabled(true)
+      should contain_class('nova::objectstore').with_enabled(true)
+      should contain_class('nova::cert').with_enabled(true)
+      should contain_class('nova::consoleauth').with_enabled(true)
+    end
+
+    it 'should configure vnc' do
+      should contain_class('nova::vncproxy').with(
+        :enabled => true,
+        :host    => api_bind_address
+      )
+      # TODO: service tweak
+    end
+
+    it 'should configure images settings' do
+      should contain_nova_config('DEFAULT/use_cow_images').with(
+        :value => Noop.hiera('use_cow_images')
+      )
+      should contain_nova_config('DEFAULT/force_raw_images').with(
+        :value => nova_hash['force_raw_images']
+      )
     end
 
     it 'should configure nova quota for injected file path length' do
