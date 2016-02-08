@@ -46,15 +46,20 @@ Puppet::Type.type(:l2_bond).provide(:ovs, :parent => Puppet::Provider::Ovs_base)
   def flush
     if ! @property_flush.empty?
       debug("FLUSH properties: #{@property_flush}")
-      if @property_flush.has_key? :slaves
-        warn("Do nothing, OVS don't allow change bond slaves for existing bond ('#{@resource[:bond]}').")
-        # But we can implement this undocumented hack later
-        #   ovs-vsctl add-port br3 ee2
-        #   ovs-vsctl list interface ee2  # get uuid for port
-        #   ovs-vsctl -- set port bond3 'interfaces=[0e6a0107-d0c7-49a6-93c7-41fe23e61c2c, 2c21e847-05ea-4b11-bde2-bb19e2d0ca56]'
-        #   ovs-vsctl show
-        #   ovs-vsctl del-port ee2  # ignore error
-        #   ovs-vsctl show
+      if @property_flush.has_key? :slaves and @old_property_hash.has_key? :slaves
+        slaves_to_add = @property_flush[:slaves] - @old_property_hash[:slaves]
+        debug("slaves to add #{slaves_to_add}") unless slaves_to_add.empty?
+        slaves_to_remove = @old_property_hash[:slaves] - @property_flush[:slaves]
+        debug("slaves to remove #{slaves_to_remove}") unless slaves_to_remove.empty?
+        slaves_to_add.each do |slave|
+         self.class.addr_flush(slave)
+         vsctl("--id=@#{slave}", 'create', 'Interface', "name=#{slave}",
+               '--', 'add', 'Port', @resource[:bond], 'interfaces', "@#{slave}")
+        end
+        slaves_to_remove.each do |slave|
+         vsctl("--id=@#{slave}", 'get', 'Interface', slave,
+               '--', 'remove', 'Port', @resource[:bond], 'interfaces', "@#{slave}")
+        end
       end
       if @property_flush.has_key? :bond_properties
         bond_properties_to_change = @property_flush[:bond_properties]
@@ -96,6 +101,13 @@ Puppet::Type.type(:l2_bond).provide(:ovs, :parent => Puppet::Provider::Ovs_base)
   end
 
   #-----------------------------------------------------------------
+  def slaves
+    @property_hash[:slaves] || :absent
+  end
+  def slaves=(val)
+    @property_flush[:slaves] = val
+  end
+
   def bond_properties
     @property_hash[:bond_properties] || :absent
   end
