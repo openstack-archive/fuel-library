@@ -8,7 +8,7 @@ class fuel::astute(
   $bootstrap_profile = $bootstrap_flavor ? {
     /(?i)centos/                 => 'bootstrap',
     /(?i)ubuntu/                 => 'ubuntu_bootstrap',
-    default                      => 'bootstrap',
+    default                      => 'ubuntu_bootstrap',
   }
 
   $packages = [

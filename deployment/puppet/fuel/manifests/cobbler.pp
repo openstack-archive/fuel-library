@@ -41,7 +41,7 @@ class fuel::cobbler(
   $bootstrap_profile = $bootstrap_flavor ? {
     /(?i)centos/                 => 'bootstrap',
     /(?i)ubuntu/                 => 'ubuntu_bootstrap',
-    default                      => 'bootstrap',
+    default                      => 'ubuntu_bootstrap',
   }
 
   if $::osfamily == 'RedHat' {
@@ -185,7 +185,7 @@ class fuel::cobbler(
 
   cobbler_profile { 'bootstrap':
     distro    => 'bootstrap',
-    menu      => true,
+    menu      => false,
     kickstart => '',
     kopts     => "intel_pstate=disable console=ttyS0,9600 console=tty0 biosdevname=0 url=${nailgun_api_url} mco_user=${mco_user} mco_pass=${mco_pass}",
     ksmeta    => '',
