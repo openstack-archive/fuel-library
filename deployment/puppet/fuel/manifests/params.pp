@@ -24,6 +24,7 @@ class fuel::params {
 
   $keystone_admin_user        = 'admin'
   $keystone_admin_password    = 'admin'
+  $keystone_admin_tenant      = 'admin'
   $keystone_nailgun_user      = 'nailgun'
   $keystone_nailgun_password  = 'nailgun'
   $keystone_monitord_user     = 'monitord'
