@@ -34,6 +34,7 @@ class osnailyfacter::ssh(
   $log_lvl        = 'VERBOSE',
   $password_auth  = 'no',
   $listen_address = [],
+  $root_login     = 'yes',
 ){
 
   case $::osfamily {
@@ -59,6 +60,7 @@ class osnailyfacter::ssh(
       'Subsystem'                       => $subsystem,
       'PasswordAuthentication'          => $password_auth,
       'ListenAddress'                   => $listen_address,
+      'PermitRootLogin'                 => $root_login,
       'AllowTcpForwarding'              => 'yes',
       'X11Forwarding'                   => 'no',
       'UsePAM'                          => 'yes',

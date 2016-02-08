@@ -5,7 +5,9 @@ class { 'osnailyfacter::atop':
   custom_acct_file => $custom_acct_file,
 }
 
-class { 'osnailyfacter::ssh': }
+class { 'osnailyfacter::ssh':
+  root_login => 'no',
+}
 
 if $::virtual != 'physical' {
   class { 'osnailyfacter::acpid': }
