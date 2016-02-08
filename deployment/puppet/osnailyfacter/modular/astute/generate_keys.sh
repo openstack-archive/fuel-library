@@ -20,7 +20,7 @@ declare -x RANDFILE=/root/.rnd
 
 BASE_PATH=$keys_path/$cluster_id/
 
-function generate_open_ssl_keys {
+generate_open_ssl_keys () {
   for i in $open_ssl_keys
     do
       local dir_path=$BASE_PATH$i/
@@ -34,7 +34,7 @@ function generate_open_ssl_keys {
     done
 }
 
-function generate_ssh_keys {
+generate_ssh_keys () {
   for i in $ssh_keys
     do
       local dir_path=$BASE_PATH$i/
@@ -48,7 +48,7 @@ function generate_ssh_keys {
     done
 }
 
-function generate_fernet_keys {
+generate_fernet_keys () {
   for i in $fernet_keys
     do
       local dir_path=${BASE_PATH}fernet-keys/
