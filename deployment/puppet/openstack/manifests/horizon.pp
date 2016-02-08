@@ -52,6 +52,7 @@ class openstack::horizon (
   $overview_days_range     = undef,
   $file_upload_temp_dir    = '/tmp',
   $file_upload_max_size    = '0',
+  $api_versions            = {'identity' => 3},
 ) {
 
   if $debug { #syslog and nondebug case
@@ -102,6 +103,7 @@ class openstack::horizon (
     hypervisor_options    => $hypervisor_options,
     overview_days_range   => $overview_days_range,
     file_upload_temp_dir  => $file_upload_temp_dir,
+    api_versions          => $api_versions,
   }
 
   # Performance optimization for wsgi

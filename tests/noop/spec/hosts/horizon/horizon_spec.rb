@@ -82,11 +82,12 @@ describe manifest do
              )
     end
 
-    it 'should declare openstack::horizon class with keystone_url' do
+    it 'should declare openstack::horizon class with keystone_url with v3 API version' do
       should contain_class('openstack::horizon').with(
-                 'keystone_url' => keystone_url,
-                 'cache_server_ip' => memcache_servers,
-                 'cache_server_port' => memcache_server_port
+                 'keystone_url'      => keystone_url,
+                 'cache_server_ip'   => memcache_servers,
+                 'cache_server_port' => memcache_server_port,
+                 'api_versions'      => {'identity' => 3},
              )
     end
 

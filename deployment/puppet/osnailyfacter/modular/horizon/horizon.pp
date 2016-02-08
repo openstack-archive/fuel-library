@@ -85,6 +85,7 @@ class { 'openstack::horizon':
   file_upload_temp_dir => $file_upload_temp_dir,
   file_upload_max_size => $file_upload_max_size,
   custom_theme_path    => $custom_theme_path,
+  api_versions         => {'identity' => 3},
 }
 
 
