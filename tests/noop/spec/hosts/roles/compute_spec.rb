@@ -100,7 +100,7 @@ describe manifest do
     end
     it 'nova config should have proper catalog_info' do
       should contain_nova_config('cinder/catalog_info').with(
-        'value' => 'volume:cinder:internalURL'
+        'value' => 'volume:cinderv2:internalURL'
       )
     end
     it 'nova config should have proper use_syslog_rfc_format' do

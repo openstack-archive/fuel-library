@@ -228,7 +228,7 @@ class openstack::nova::controller (
     notify_api_faults      => $nova_hash['notify_api_faults'],
     notification_driver    => $notification_driver,
     memcached_servers      => $memcached_addresses,
-    cinder_catalog_info    => pick($nova_hash['cinder_catalog_info'], 'volume:cinder:internalURL'),
+    cinder_catalog_info    => pick($nova_hash['cinder_catalog_info'], 'volume:cinderv2:internalURL'),
   }
 
   #NOTE(bogdando) exec update-kombu is always undef, so delete?
