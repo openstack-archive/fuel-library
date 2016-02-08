@@ -15,7 +15,7 @@ done
 BASE_PATH="$keys_path/$cluster_id"
 CONF_PATH=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )
 
-function generate_open_ssl_keys {
+generate_open_ssl_keys () {
   for i in $open_ssl_keys
     do
       local dir_path="$BASE_PATH/$i"
