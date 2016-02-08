@@ -259,7 +259,8 @@ define l23network::l2::bond (
     }
 
     # this need for creating L2_port resource by ifup, if it allowed by OS
-    L23_stored_config[$bond] -> L2_bond[$bond]
+    #L23_stored_config[$bond] -> L2_bond[$bond]
+    L2_bond[$bond] -> L23_stored_config[$bond]
 
     Anchor['l23network::init'] -> K_mod<||> -> L2_bond<||>
 

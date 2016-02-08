@@ -13,6 +13,7 @@ class { 'l23network' :
                                     default                => true
                                   },
   ovs_datapath_package_name    => $ovs_datapath_package_name,
+  disable_hotplug              => false,
 }
 prepare_network_config($network_scheme)
 $sdn = generate_network_config()

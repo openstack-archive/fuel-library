@@ -64,7 +64,8 @@ define l23network::l2::bridge (
     }
 
     # this need for creating L2_bridge resource by ifup, if it allowed by OS
-    L23_stored_config[$name] -> L2_bridge[$name]
+    #L23_stored_config[$name] -> L2_bridge[$name]
+    L2_bridge[$name] -> L23_stored_config[$name]
 
     Anchor['l23network::init'] -> K_mod<||> -> L2_bridge<||>
   }
