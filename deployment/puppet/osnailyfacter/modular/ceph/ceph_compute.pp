@@ -15,6 +15,8 @@ $glance_pool              = 'images'
 #Nova Compute settings
 $compute_user             = 'compute'
 $compute_pool             = 'compute'
+$svc_user_name    = hiera('svc_user_name', 'fuel')
+$svc_user_homedir = hiera('svc_user_homedir', '/var/lib/fuel')
 
 
 if ($storage_hash['images_ceph']) {
@@ -65,7 +67,9 @@ if $use_ceph {
     syslog_log_level         => hiera('syslog_log_level_ceph', 'info'),
     syslog_log_facility      => $syslog_log_facility_ceph,
     rgw_keystone_admin_token => $keystone_hash['admin_token'],
-    ephemeral_ceph           => $storage_hash['ephemeral_ceph']
+    ephemeral_ceph           => $storage_hash['ephemeral_ceph'],
+    svc_user_name            => $svc_user_name,
+    svc_user_homedir         => $svc_user_homedir,
   }
 
 

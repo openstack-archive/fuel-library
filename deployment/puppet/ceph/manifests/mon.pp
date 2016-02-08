@@ -26,20 +26,28 @@ class ceph::mon (
     # Keys must exist prior to other commands running
     try_sleep   => 5,
     refreshonly => true,
+    user        => "root",
+    group       => "root",
   }
 
   exec {'ceph-deploy gatherkeys':
     command => "ceph-deploy gatherkeys ${node_hostname}",
-    creates => ['/root/ceph.bootstrap-mds.keyring',
-                '/root/ceph.bootstrap-osd.keyring',
-                '/root/ceph.client.admin.keyring',
-               ],
+    creates => ["${::ceph::svc_user_homedir}/ceph.bootstrap-mds.keyring",
+                "${::ceph::svc_user_homedir}/ceph.bootstrap-osd.keyring",
+                "${::ceph::svc_user_homedir}/ceph.mon.keyring",],
+  }
+
+  file {'/etc/ceph/ceph.client.admin.keyring':
+    mode   => '0600',
+    owner  => $::ceph::svc_user::name,
+    group  => $::ceph::svc_user::name,
   }
 
   Firewall['010 ceph-mon allow'] ->
   Exec['ceph-deploy mon create'] ~>
   Exec['Wait for Ceph quorum']   ->
-  Exec['ceph-deploy gatherkeys']
+  Exec['ceph-deploy gatherkeys'] ->
+  File['/etc/ceph/ceph.client.admin.keyring']
 
   if $node_hostname == $::ceph::primary_mon {
 

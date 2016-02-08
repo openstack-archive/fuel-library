@@ -8,6 +8,8 @@ $use_syslog                     = hiera('use_syslog', true)
 $syslog_log_facility_ceph       = hiera('syslog_log_facility_ceph','LOG_LOCAL0')
 $keystone_hash                  = hiera('keystone', {})
 $mon_address_map                = get_node_to_ipaddr_map_by_network_role(hiera_hash('ceph_monitor_nodes'), 'ceph/public')
+$svc_user_name    = hiera('svc_user_name', 'fuel')
+$svc_user_homedir = hiera('svc_user_homedir', '/var/lib/fuel')
 
 if ($storage_hash['images_ceph']) {
   $glance_backend = 'ceph'
@@ -57,7 +59,9 @@ if $use_ceph {
     syslog_log_level         => hiera('syslog_log_level_ceph', 'info'),
     syslog_log_facility      => $syslog_log_facility_ceph,
     rgw_keystone_admin_token => $keystone_hash['admin_token'],
-    ephemeral_ceph           => $storage_hash['ephemeral_ceph']
+    ephemeral_ceph           => $storage_hash['ephemeral_ceph'],
+    svc_user_name            => $svc_user_name,
+    svc_user_homedir         => $svc_user_homedir,
   }
 
   if ($storage_hash['volumes_ceph']) {
