@@ -129,7 +129,7 @@ describe manifest do
     end
 
     it 'should configure cinder_catalog_info for nova' do
-      cinder_catalog_info = Noop.puppet_function 'pick',nova_hash['cinder_catalog_info'],'volume:cinder:internalURL'
+      cinder_catalog_info = Noop.puppet_function 'pick',nova_hash['cinder_catalog_info'],'volumev2:cinderv2:internalURL'
       should contain_nova_config('cinder/catalog_info').with(:value => cinder_catalog_info)
     end
 
