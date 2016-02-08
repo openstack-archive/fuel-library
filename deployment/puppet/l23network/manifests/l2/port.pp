@@ -163,7 +163,8 @@ define l23network::l2::port (
     }
 
     # this need for creating L2_port resource by ifup, if it allowed by OS
-    L23_stored_config[$port_name] -> L2_port[$port_name]
+    #L23_stored_config[$port_name] -> L2_port[$port_name]
+    L2_port[$port_name] -> L23_stored_config[$port_name]
 
     Anchor['l23network::init'] -> K_mod<||> -> L2_port<||>
   }

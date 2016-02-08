@@ -187,7 +187,6 @@ define l23network::l3::ifconfig (
       provider              => $provider  # For L3 features provider independed from OVS
     }
 
-    L23_stored_config <| title == $interface |> ->
-    L3_ifconfig <| title == $interface |>
+    L3_ifconfig <| title == $interface |> -> L23_stored_config <| title == $interface |>
   }
 }
