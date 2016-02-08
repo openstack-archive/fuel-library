@@ -15,12 +15,16 @@ class ceph::osds (
     command     => 'udevadm trigger',
     returns     => 0,
     logoutput   => true,
+    user        => 'root',
+    group       => 'root'
   } ->
 
   exec {'ceph-disk activate-all':
     command     => 'ceph-disk activate-all',
     returns     => [0, 1],
     logoutput   => true,
+    user        => 'root',
+    group       => 'root'
   } ->
 
   firewall { '011 ceph-osd allow':

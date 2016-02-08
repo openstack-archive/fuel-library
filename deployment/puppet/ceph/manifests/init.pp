@@ -12,6 +12,8 @@ class ceph (
   $osd_devices                        = split($::osd_devices_list, ' '),
   $use_ssl                            = false,
   $use_rgw                            = false,
+  $svc_user_name                      = 'fuel',
+  $svc_user_homedir                   = '/var/lib/fuel',
 
 # ceph.conf Global settings
   $auth_supported                     = 'cephx',
@@ -92,8 +94,15 @@ class ceph (
 ) {
 
   Exec {
-    path => [ '/bin/', '/sbin/' , '/usr/bin/', '/usr/sbin/' ],
-    cwd  => '/root',
+    path  => [ '/bin/', '/sbin/' , '/usr/bin/', '/usr/sbin/' ],
+    cwd   => $svc_user_homedir,
+    user  => $svc_user_name,
+    group => $svc_user_name,
+  }
+
+  File {
+    owner => $svc_user_name,
+    group => $svc_user_name,
   }
 
   # the regex includes all roles that require ceph.conf

@@ -1,13 +1,13 @@
 # generate and install SSH keys for Ceph
 class ceph::ssh {
 
-  $ssh_config = '/root/.ssh/config'
+  $ssh_config = "${::ceph::svc_user_homedir}/.ssh/config"
   $private_key = '/var/lib/astute/ceph/ceph'
   $public_key  = '/var/lib/astute/ceph/ceph.pub'
 
-  install_ssh_keys {'root_ssh_keys_for_ceph':
+  install_ssh_keys {'svc_user_ssh_keys_for_ceph':
     ensure           => present,
-    user             => 'root',
+    user             => $::ceph::svc_user_name,
     private_key_path => $private_key,
     public_key_path  => $public_key,
     private_key_name => 'id_rsa',
@@ -22,5 +22,5 @@ class ceph::ssh {
     }
   }
 
-  Install_ssh_keys['root_ssh_keys_for_ceph'] -> File[$ssh_config]
+  Install_ssh_keys['svc_user_ssh_keys_for_ceph'] -> File[$ssh_config]
 }

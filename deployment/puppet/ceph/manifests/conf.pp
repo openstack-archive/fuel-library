@@ -4,6 +4,11 @@ class ceph::conf (
   $node_hostname  = $::ceph::node_hostname,
 
 ) {
+
+  file {'/etc/ceph':
+    ensure => directory,
+  }
+
   if $node_hostname == $::ceph::primary_mon {
 
     exec {'ceph-deploy new':
@@ -14,12 +19,12 @@ class ceph::conf (
     }
 
     # link is necessary to work around http://tracker.ceph.com/issues/6281
-    file {'/root/ceph.conf':
+    file {"${::ceph::svc_user_homedir}/ceph.conf":
       ensure => link,
       target => '/etc/ceph/ceph.conf',
     }
 
-    file {'/root/ceph.mon.keyring':
+    file {"${::ceph::svc_user_homedir}/ceph.mon.keyring":
       ensure => link,
       target => '/etc/ceph/ceph.mon.keyring',
     }
@@ -44,7 +49,7 @@ class ceph::conf (
     }
 
     Exec['ceph-deploy new'] ->
-    File['/root/ceph.conf'] -> File['/root/ceph.mon.keyring'] ->
+    File["${::ceph::svc_user_homedir}/ceph.conf"] -> File["${::ceph::svc_user_homedir}/ceph.mon.keyring"] ->
     Ceph_conf <||>
 
   } else {
@@ -57,27 +62,27 @@ class ceph::conf (
       try_sleep => 2,
     }
 
-    file {'/root/ceph.conf':
+    file {"${::ceph::svc_user_homedir}/ceph.conf":
       ensure => link,
       target => '/etc/ceph/ceph.conf',
     }
 
     exec {'ceph-deploy gatherkeys remote':
       command   => "ceph-deploy gatherkeys ${::ceph::primary_mon}",
-      creates   => ['/root/ceph.bootstrap-mds.keyring',
-                    '/root/ceph.bootstrap-osd.keyring',
-                    '/root/ceph.client.admin.keyring',
-                    '/root/ceph.mon.keyring',],
+      creates   => ["${::ceph::svc_user_homedir}/ceph.bootstrap-mds.keyring",
+                    "${::ceph::svc_user_homedir}/ceph.bootstrap-osd.keyring",
+                    "${::ceph::svc_user_homedir}/ceph.client.admin.keyring",
+                    "${::ceph::svc_user_homedir}/ceph.mon.keyring",],
       tries     => 5,
       try_sleep => 2,
     }
 
     file {'/etc/ceph/ceph.client.admin.keyring':
       ensure => file,
-      source => '/root/ceph.client.admin.keyring',
+      source => "${::ceph::svc_user_homedir}/ceph.client.admin.keyring",
       mode   => '0600',
-      owner  => 'root',
-      group  => 'root',
+      owner  => $::ceph::svc_user::name,
+      group  => $::ceph::svc_user::name,
     }
 
     exec {'ceph-deploy init config':
@@ -91,7 +96,7 @@ class ceph::conf (
     }
 
     Exec['ceph-deploy config pull'] ->
-      File['/root/ceph.conf'] ->
+      File["${::ceph::svc_user_homedir}/ceph.conf"] ->
         Ceph_conf[['global/cluster_network', 'global/public_network']] ->
           Exec['ceph-deploy gatherkeys remote'] ->
             File['/etc/ceph/ceph.client.admin.keyring'] ->

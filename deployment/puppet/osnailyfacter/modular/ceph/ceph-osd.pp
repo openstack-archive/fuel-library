@@ -29,6 +29,8 @@ $ssl_hash                  = hiera_hash('use_ssl', {})
 $admin_auth_protocol       = get_ssl_property($ssl_hash, {}, 'keystone', 'admin', 'protocol', 'http')
 $admin_auth_address        = get_ssl_property($ssl_hash, {}, 'keystone', 'admin', 'hostname', [$service_endpoint, $management_vip])
 $admin_identity_url        = "${admin_auth_protocol}://${admin_auth_address}:35357"
+$svc_user_name    = hiera('svc_user_name', 'fuel')
+$svc_user_homedir = hiera('svc_user_homedir', '/var/lib/fuel')
 
 class {'ceph':
   primary_mon              => $primary_mon,
@@ -51,6 +53,8 @@ class {'ceph':
   syslog_log_facility      => hiera('syslog_log_facility_ceph','LOG_LOCAL0'),
   rgw_keystone_admin_token => $keystone_hash['admin_token'],
   ephemeral_ceph           => $storage_hash['ephemeral_ceph'],
+  svc_user_name            => $svc_user_name,
+  svc_user_homedir         => $svc_user_homedir,
 }
 
 if $ceph_tuning_settings != {} {
@@ -74,7 +78,7 @@ if $ceph_tuning_settings != {} {
     'osd/filestore_max_sync_interval'         : value => $ceph_tuning_settings['filestore_max_sync_interval'];
   }
   # File /root/ceph.conf is symlink which is created after /etc/ceph/ceph.conf in ceph::conf class
-  File<| title == '/root/ceph.conf' |> -> Ceph_conf <||>
+  File<| title == "${svc_user_homedir}/ceph.conf" |> -> Ceph_conf <||>
 }
 
 # TODO(bogdando) add monit ceph-osd services monitoring, if required
