@@ -500,7 +500,11 @@ class Puppet::Provider::L2_base < Puppet::Provider::InterfaceToolset
     # bond_name => { bond options }
     #
     bond = {}
-    bondlist = File.open("/sys/class/net/bonding_masters").read.chomp.split(/\s+/).sort
+    if File.exist?('/sys/class/net/bonding_masters')
+      bondlist = File.open("/sys/class/net/bonding_masters").read.chomp.split(/\s+/).sort
+    else
+      return {}
+    end
     bondlist.each do |bond_name|
       mode = File.open("/sys/class/net/#{bond_name}/bonding/mode").read.split(/\s+/)[0]
       bond[bond_name] = {
