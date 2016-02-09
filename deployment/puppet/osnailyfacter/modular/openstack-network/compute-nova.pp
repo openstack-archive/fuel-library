@@ -118,23 +118,22 @@ if $use_neutron {
   # Neutron L2 agent.
   # The reason is described here https://bugs.launchpad.net/fuel/+bug/1477475
   exec { 'wait-for-int-br':
-    command   => "ovs-vsctl br-exists ${neutron_integration_bridge}",
-    path      => [ '/sbin', '/bin', '/usr/bin', '/usr/sbin' ],
-    try_sleep => 6,
-    tries     => 10,
+    command     => "ovs-vsctl br-exists ${neutron_integration_bridge}",
+    path        => [ '/sbin', '/bin', '/usr/bin', '/usr/sbin' ],
+    try_sleep   => 6,
+    tries       => 10,
+    refreshonly => true,
   }
+
+  Augeas<||> ~> Exec['wait-for-int-br']
   Exec['wait-for-int-br'] -> Service['nova-compute']
+
   service { 'nova-compute':
     ensure => 'running',
     name   => $::nova::params::compute_service_name,
   }
-  Nova_config<| |> ~> Service['nova-compute']
 
-  if($::operatingsystem == 'Ubuntu') {
-    tweaks::ubuntu_service_override { 'nova-network':
-      package_name => 'nova-network',
-    }
-  }
+  Nova_config<| |> ~> Service['nova-compute']
 
 } else {
   $nova_hash               = hiera_hash('nova', { })
