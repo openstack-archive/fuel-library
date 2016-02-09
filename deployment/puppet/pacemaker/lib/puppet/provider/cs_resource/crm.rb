@@ -63,6 +63,11 @@ Puppet::Type.type(:cs_resource).provide(:crm, :parent => Puppet::Provider::Pacem
             next if k == 'id'
             primitive[:operations][op_name].store k.to_s, v.to_s
           end
+          if o.elements['instance_attributes']
+            o.elements['instance_attributes'].each_element do |inst|
+              primitive[:operations][op_name].store inst.attributes['name'].to_s, inst.attributes['value'].to_s
+            end
+          end
         end
       end
 

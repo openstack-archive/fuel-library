@@ -134,19 +134,24 @@ class pacemaker_wrappers::rabbitmq (
       'OCF_CHECK_LEVEL' => '30'
     },
     'start'     => {
-      'timeout' => '360'
+      'interval' => '0',
+      'timeout'  => '360'
     },
     'stop' => {
-      'timeout' => '120'
+      'interval' => '0',
+      'timeout'  => '120'
     },
     'promote' => {
-      'timeout' => '120'
+      'interval' => '0',
+      'timeout'  => '120'
     },
     'demote' => {
-      'timeout' => '120'
+      'interval' => '0',
+      'timeout'  => '120'
     },
     'notify' => {
-      'timeout' => '180'
+      'interval' => '0',
+      'timeout'  => '180'
     },
   }
 
