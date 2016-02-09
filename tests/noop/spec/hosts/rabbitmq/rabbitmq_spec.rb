@@ -55,7 +55,7 @@ describe manifest do
     enabled = rabbit_hash.fetch('enabled', true)
     management_bind_ip_address = Noop.hiera('management_bind_ip_address', '127.0.0.1')
     management_port = Noop.hiera('rabbit_management_port', '15672')
-    enable_rpc_ha = Noop.hiera('enable_rpc_ha', 'true')
+    enable_rpc_ha = Noop.hiera('enable_rpc_ha', 'false')
     enable_notifications_ha = Noop.hiera('enable_notifications_ha', 'true')
     fqdn_prefix = Noop.hiera('node_name_prefix_for_messaging', 'messaging-')
 
