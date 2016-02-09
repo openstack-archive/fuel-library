@@ -616,6 +616,15 @@ function backup {
 finish or cancel them." 1>&2
     exit 1
   fi
+
+  if ! shell_container postgres PGPASSWORD=$postgres_nailgun_password \
+/usr/bin/psql -h $ADMIN_IP -U \"$postgres_nailgun_user\" \
+\"$postgres_nailgun_dbname\" -c '\copyright' 2>&1 1>/dev/null; then
+    echo "There is currently no PostgreSQL running. Please start it in order \
+to make it possible for backup procedure to generate a dump." 1>&2
+    exit 1
+  fi
+
   if [[ "$fullbackup" == "1" ]]; then
     backup_containers "$backup_id"
     backup_system_dirs --full
