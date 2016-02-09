@@ -51,7 +51,7 @@ if $queue_provider == 'rabbitmq' {
   $rabbitmq_bind_ip_address     = pick(get_network_role_property('mgmt/messaging', 'ipaddr'), 'UNSET')
   $management_bind_ip_address   = hiera('management_bind_ip_address', '127.0.0.1')
   $management_port              = hiera('rabbit_management_port', '15672')
-  $enable_rpc_ha                = hiera('enable_rpc_ha', 'true')
+  $enable_rpc_ha                = hiera('enable_rpc_ha', 'false')
   $enable_notifications_ha      = hiera('enable_notifications_ha', 'true')
   $fqdn_prefix                  = hiera('node_name_prefix_for_messaging', 'messaging-')
 
