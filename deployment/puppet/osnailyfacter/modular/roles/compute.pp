@@ -46,9 +46,6 @@ $syslog_log_facility_nova       = hiera('syslog_log_facility_nova','LOG_LOCAL6')
 $syslog_log_facility_keystone   = hiera('syslog_log_facility_keystone', 'LOG_LOCAL7')
 $syslog_log_facility_murano     = hiera('syslog_log_facility_murano', 'LOG_LOCAL0')
 $syslog_log_facility_sahara     = hiera('syslog_log_facility_sahara','LOG_LOCAL0')
-$nova_rate_limits               = hiera('nova_rate_limits')
-$nova_report_interval           = hiera('nova_report_interval')
-$nova_service_down_time         = hiera('nova_service_down_time')
 $config_drive_format            = 'vfat'
 $public_ssl_hash                = hiera('public_ssl')
 $ssl_hash                       = hiera_hash('use_ssl', {})
@@ -263,7 +260,6 @@ class { '::openstack::compute':
   # FIXME(bogdando) remove after fixed upstream https://review.openstack.org/131710
   host_uuid                   => hiera('host_uuid', generate('/bin/sh', '-c', 'uuidgen')),
   fixed_range                 => $oc_fixed_range,
-  network_manager             => hiera('network_manager', undef),
   network_config              => hiera('network_config', {}),
   multi_host                  => $multi_host,
   queue_provider              => $queue_provider,
@@ -303,9 +299,10 @@ class { '::openstack::compute':
   use_syslog                  => $use_syslog,
   syslog_log_facility         => $syslog_log_facility_nova,
   syslog_log_facility_neutron => $syslog_log_facility_neutron,
-  nova_rate_limits            => $nova_rate_limits,
-  nova_report_interval        => $nova_report_interval,
-  nova_service_down_time      => $nova_service_down_time,
+  nova_rate_limits            => $nova_hash['nova_rate_limits'],
+  nova_report_interval        => $nova_hash['nova_report_interval'],
+  nova_service_down_time      => $nova_hash['nova_service_down_time'],
+  network_manager             => $nova_hash['network_manager'],
   state_path                  => $nova_hash[state_path],
   neutron_settings            => $neutron_config,
   storage_hash                => $storage_hash,
