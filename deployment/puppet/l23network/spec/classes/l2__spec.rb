@@ -17,7 +17,11 @@ describe 'l23network::l2' do
 
     context 'with a default params' do
        let :params do
-        { }
+        {
+          :modprobe_bonding  => true,
+          :modprobe_8021q    => true,
+          :modprobe_bridge   => true,
+        }
       end
 
       it { should compile.with_all_deps }
@@ -108,6 +112,36 @@ describe 'l23network::l2' do
 
     end
 
+    context 'with a with params modprobe_bonding, modprobe_8021q and modprobe_bridge to true' do
+       let :params do
+        { :modprobe_bonding  => true,
+          :modprobe_8021q    => true,
+          :modprobe_bridge   => true,
+        }
+      end
+
+      it { should compile.with_all_deps }
+      it { should contain_k_mod('bonding').with_ensure('present') }
+      it { should contain_k_mod('8021q').with_ensure('present') }
+      it { should contain_k_mod('bridge').with_ensure('present') }
+
+    end
+
+    context 'with a with params modprobe_bonding, modprobe_8021q and modprobe_bridge to false' do
+       let :params do
+        { :modprobe_bonding  => false,
+          :modprobe_8021q    => false,
+          :modprobe_bridge   => false,
+        }
+      end
+
+      it { should compile.with_all_deps }
+      it { should_not contain_k_mod('bonding') }
+      it { should_not contain_k_mod('8021q') }
+      it { should_not contain_k_mod('bridge') }
+
+    end
+
   end
 
 
@@ -126,7 +160,11 @@ describe 'l23network::l2' do
 
     context 'with a default params' do
        let :params do
-        { }
+        {
+          :modprobe_bonding  => true,
+          :modprobe_8021q    => true,
+          :modprobe_bridge   => true,
+        }
       end
 
       it { should compile.with_all_deps }
