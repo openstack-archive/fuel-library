@@ -72,10 +72,15 @@ class vmware::ceilometer::compute_vmware(
 
   include ceilometer::params
 
+  package { 'ceilometer-polling':
+    ensure => latest,
+    name   => $::ceilometer::params::agent_polling_package_name,
+  }
   service { 'ceilometer-polling':
     ensure => running,
     name   => $::ceilometer::params::agent_polling_service_name,
   }
 
   Ceilometer_config<| |> ~> Service['ceilometer-polling']
+  Package['ceilometer-polling'] ~> Service['ceilometer-polling']
 }
