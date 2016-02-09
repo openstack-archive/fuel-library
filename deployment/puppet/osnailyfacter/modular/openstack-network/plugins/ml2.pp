@@ -104,17 +104,19 @@ if $use_neutron {
     enabled                    => true,
   }
 
-  # Synchronize database after plugin was configured
-  if $primary_controller {
-    include ::neutron::db::sync
-  }
-
   if $node_name in keys($neutron_nodes) {
     if $neutron_server_enable {
       $service_ensure = 'running'
     } else {
       $service_ensure = 'stopped'
     }
+
+    # Synchronize database after plugin was configured
+    if $primary_controller {
+      class { '::neutron::db::sync': }
+      Class['::neutron::db::sync'] -> Service['neutron-server']
+    }
+
     service { 'neutron-server':
       name       => $::neutron::params::server_service,
       enable     => $neutron_server_enable,
@@ -122,7 +124,8 @@ if $use_neutron {
       hasstatus  => true,
       hasrestart => true,
       tag        => 'neutron-service',
-    } ->
+    }
+
     exec { 'waiting-for-neutron-api':
       environment => [
         "OS_TENANT_NAME=${auth_tenant}",
@@ -136,7 +139,9 @@ if $use_neutron {
       tries       => '30',
       try_sleep   => '4',
       command     => 'neutron net-list --http-timeout=4 2>&1 > /dev/null',
-      provider    => 'shell'
+      provider    => 'shell',
+      subscribe   => Service['neutron-server'],
+      refreshonly => true,
     }
 
     $ha_agent = try_get_value($neutron_advanced_config, 'l2_agent_ha', true)
