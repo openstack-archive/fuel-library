@@ -104,17 +104,19 @@ if $use_neutron {
     enabled                    => true,
   }
 
-  # Synchronize database after plugin was configured
-  if $primary_controller {
-    include ::neutron::db::sync
-  }
-
   if $node_name in keys($neutron_nodes) {
     if $neutron_server_enable {
       $service_ensure = 'running'
     } else {
       $service_ensure = 'stopped'
     }
+
+    # Synchronize database after plugin was configured
+    if $primary_controller {
+      class { '::neutron::db::sync': }
+      Class['::neutron::db::sync'] -> Service['neutron-server']
+    }
+
     service { 'neutron-server':
       name       => $::neutron::params::server_service,
       enable     => $neutron_server_enable,
