@@ -6,15 +6,16 @@ class ceilometer_ha::agent::central inherits ceilometer::agent::central {
     operations      => {
       'monitor' => {
         'interval' => '20',
-        'timeout' => '30',
+        'timeout'  => '30',
       },
       'start' => {
-        'timeout' => '360',
+        'interval' => '0',
+        'timeout'  => '360',
       },
       'stop' => {
-        'timeout' => '360',
+        'interval' => '0',
+        'timeout'  => '360',
       },
     },
-    #        ocf_script_file => 'cluster/ocf/ceilometer-agent-central',
   }
 }
