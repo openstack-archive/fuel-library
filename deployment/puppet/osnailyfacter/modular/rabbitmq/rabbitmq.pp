@@ -25,11 +25,11 @@ if $queue_provider == 'rabbitmq' {
 
   case $::osfamily {
     'RedHat': {
-      $command_timeout  = "'-s KILL'"
+      $command_timeout  = "-s KILL"
       $package_provider = 'yum'
     }
     'Debian': {
-      $command_timeout  = "'--signal=KILL'"
+      $command_timeout  = "--signal=KILL"
       $package_provider = 'apt'
     }
     default: {
