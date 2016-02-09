@@ -31,6 +31,18 @@ describe Puppet::Type.type(:sahara_cluster_template).provider(:ruby) do
     provider
   end
 
+  let (:groups_property) do
+    resource.property(:node_groups)
+  end
+
+  let (:is_groups) do
+    [{"volume_local_to_instance"=>false, "availability_zone"=>nil,"updated_at"=>nil, "node_group_template_id"=>"d79d30d8-fac3-42c4-b8ff-f4c4d2269563",
+      "volumes_per_node"=>0, "id"=>"218b2274-efbf-4c1c-a8cf-58727ec4697a", "security_groups"=>nil, "shares"=>nil, "node_configs"=>{}, "auto_security_group"=>true,
+      "volumes_availability_zone"=>nil, "volume_mount_prefix"=>"/volumes/disk", "floating_ip_pool"=>"4dd3f47d-c85a-4649-b679-35ba2904fd0f", "image_id"=>nil,
+      "volumes_size"=>0, "is_proxy_gateway"=>false, "count"=>1, "name"=>"hdp-2-master", "created_at"=>"2016-02-07T21:47:29", "volume_type"=>nil,
+      "node_processes"=>["namenode", "resourcemanager", "oozie", "historyserver"], "flavor_id"=>"3", "use_autoconfig"=>true}]
+  end
+
   let(:cluster_templates_list) do
     [
     OpenStruct.new(
@@ -121,6 +133,10 @@ describe Puppet::Type.type(:sahara_cluster_template).provider(:ruby) do
   context '#exists?' do
     it 'can get the existing cluster templates' do
       expect(provider.extract).to eq extracted_property_hash
+    end
+
+    it 'node_groups are in sync' do
+      expect(groups_property.insync?(is_groups)).to be_truthy
     end
 
     it 'can check if the cluster_template exists' do
