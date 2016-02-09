@@ -74,7 +74,7 @@ class pacemaker_wrappers::rabbitmq (
   $erlang_cookie           = 'EOKOWXQREETZSHFNTPEY',
   $admin_user              = undef,
   $admin_pass              = undef,
-  $enable_rpc_ha           = true,
+  $enable_rpc_ha           = false,
   $enable_notifications_ha = true,
   $fqdn_prefix             = '',
   $pid_file                = undef,
