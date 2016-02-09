@@ -1,4 +1,4 @@
-#!/usr/bin/bash
+#!/bin/sh
 
 # Constants
 readonly SCOPE=`basename $0`
@@ -12,7 +12,7 @@ ISER_NAME='<%=@iser_interface_name%>'
 FATHER_FIRST_VF="/sys/class/net/$STORAGE_PORT/device/virtfn0"
 
 # This functions print logs to /var/log/messages
-function logger_print () {
+logger_print () {
    priority=$1
    msg=$2
    logger -t $SCOPE "$priority: $msg"
