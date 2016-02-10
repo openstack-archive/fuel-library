@@ -1,8 +1,3 @@
-# Warning! If you restart container, this file will be return
-# to original state by puppet. If you do not want it, please comment
-# `puppet apply -v /etc/puppet/modules/nailgun/examples/astute-only.pp`
-# in /usr/local/bin/start.sh
-
 broker_host: '<%= @rabbitmq_host %>'
 broker_port: 5672
 broker_username: '<%= @rabbitmq_astute_user %>'
