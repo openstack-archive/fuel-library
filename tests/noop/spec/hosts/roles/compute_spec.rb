@@ -63,6 +63,9 @@ describe manifest do
       Noop.puppet_function('get_nic_passthrough_whitelist', 'sriov')
     end
 
+    let(:nova_report_interval) { Noop.puppet_function 'pick', nova_hash['nova_report_interval'], nil }
+    let(:nova_service_down_time) { Noop.puppet_function 'pick', nova_hash['nova_service_down_time'], nil }
+
     # Legacy openstack-compute tests
 
     if ironic_enabled
@@ -348,10 +351,14 @@ describe manifest do
 
     # Check out nova config params
     it 'should properly configure nova' do
+
       node_name = Noop.hiera('node_name')
       network_metadata = Noop.hiera_hash('network_metadata')
       roles = network_metadata['nodes'][node_name]['node_roles']
-      nova_hash.merge!({'vncproxy_protocol' => vncproxy_protocol})
+      nova_hash.merge!({'vncproxy_protocol' => vncproxy_protocol,
+                        'nova_report_interval' => nova_report_interval,
+                        'nova_service_down_time'=> nova_service_down_time,
+      })
 
       if roles.include? 'ceph-osd'
         nova_compute_rhostmem = rhost_mem['reserved_host_memory']

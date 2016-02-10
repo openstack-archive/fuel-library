@@ -117,8 +117,8 @@ describe manifest do
     let(:syslog_log_facility_nova) { Noop.hiera 'syslog_log_facility_nova', 'LOG_LOCAL6' }
     let(:use_syslog) { Noop.hiera 'use_syslog', true }
     let(:use_stderr) { Noop.hiera 'use_stderr', false }
-    let(:nova_report_interval) { Noop.hiera 'nova_report_interval' }
-    let(:nova_service_down_time) { Noop.hiera 'nova_service_down_time' }
+    let(:nova_report_interval) { Noop.puppet_function 'pick', nova_hash['nova_report_interval'], nil }
+    let(:nova_service_down_time) { Noop.puppet_function 'pick', nova_hash['nova_service_down_time'], nil }
     let(:notify_api_faults) { Noop.puppet_function 'pick', nova_hash['notify_api_faults'], false }
     let(:cinder_catalog_info) { Noop.puppet_function 'pick', nova_hash['cinder_catalog_info'], 'volumev2:cinderv2:internalURL' }
     let(:nova_notification_driver) do

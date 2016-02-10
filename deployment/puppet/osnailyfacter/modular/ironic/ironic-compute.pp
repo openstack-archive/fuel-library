@@ -21,8 +21,8 @@ $syslog_log_facility_ironic     = hiera('syslog_log_facility_ironic', 'LOG_LOCAL
 $syslog_log_facility_nova       = hiera('syslog_log_facility_nova', 'LOG_LOCAL6')
 $amqp_hosts                     = hiera('amqp_hosts')
 $rabbit_hash                    = hiera_hash('rabbit')
-$nova_report_interval           = hiera('nova_report_interval')
-$nova_service_down_time         = hiera('nova_service_down_time')
+$nova_report_interval           = $nova_hash['nova_report_interval']
+$nova_service_down_time         = $nova_hash['nova_service_down_time']
 $neutron_config                 = hiera_hash('quantum_settings')
 
 $ironic_tenant                  = pick($ironic_hash['tenant'],'services')

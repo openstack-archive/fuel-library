@@ -16,10 +16,7 @@ $network_scheme = hiera_hash('network_scheme', {})
 $network_metadata = hiera_hash('network_metadata', {})
 prepare_network_config($network_scheme)
 
-$nova_rate_limits             = hiera('nova_rate_limits')
 $primary_controller           = hiera('primary_controller')
-$nova_report_interval         = hiera('nova_report_interval')
-$nova_service_down_time       = hiera('nova_service_down_time')
 $use_syslog                   = hiera('use_syslog', true)
 $use_stderr                   = hiera('use_stderr', false)
 $syslog_log_facility_nova     = hiera('syslog_log_facility_nova','LOG_LOCAL6')
@@ -27,6 +24,7 @@ $management_vip               = hiera('management_vip')
 $sahara_hash                  = hiera_hash('sahara', {})
 $storage_hash                 = hiera_hash('storage', {})
 $nova_hash                    = hiera_hash('nova', {})
+$nova_rate_limits             = $nova_hash['nova_rate_limits']
 $nova_config_hash             = hiera_hash('nova_config', {})
 $api_bind_address             = get_network_role_property('nova/api', 'ipaddr')
 $rabbit_hash                  = hiera_hash('rabbit', {})
@@ -189,8 +187,8 @@ class { 'nova':
   use_syslog              => $use_syslog,
   use_stderr              => $use_stderr,
   database_idle_timeout   => $idle_timeout,
-  report_interval         => $nova_report_interval,
-  service_down_time       => $nova_service_down_time,
+  report_interval         => $nova_hash['nova_report_interval'],
+  service_down_time       => $nova_hash['nova_service_down_time'],
   notify_api_faults       => pick($nova_hash['notify_api_faults'], false),
   notification_driver     => $nova_notification_driver,
   memcached_servers       => $memcached_addresses,
