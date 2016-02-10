@@ -13,6 +13,6 @@ class MemcachedPostTest < Test::Unit::TestCase
 
   def test_memcached_listen
     ip = get_node['network_roles']['mgmt/memcache']
-    assert TestCommon::Network.connection?(ip, 11211), 'Cannot connect to memcached on the internal address!'
+    assert TestCommon::Network.connection?('127.0.0.1', 11211), 'Cannot connect to memcached on the internal address!'
   end
 end

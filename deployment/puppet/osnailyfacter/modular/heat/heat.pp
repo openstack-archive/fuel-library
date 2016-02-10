@@ -39,7 +39,8 @@ $use_syslog               = hiera('use_syslog', true)
 $syslog_log_facility_heat = hiera('syslog_log_facility_heat')
 $deployment_mode          = hiera('deployment_mode')
 $bind_address             = get_network_role_property('heat/api', 'ipaddr')
-$memcache_address         = get_network_role_property('mgmt/memcache', 'ipaddr')
+$memcache_address         = '127.0.0.1'
+$memcache_port            = hiera('memcache_server_port', '22122')
 $keystone_user            = pick($heat_hash['user'], 'heat')
 $keystone_tenant          = pick($heat_hash['tenant'], 'services')
 $region                   = hiera('region', 'RegionOne')
@@ -137,7 +138,7 @@ if $sahara_hash['enabled'] {
 heat_config {
   'cache/enabled':          value => true;
   'cache/backend':          value => 'oslo_cache.memcache_pool';
-  'cache/memcache_servers': value => "${memcache_address}:11211";
+  'cache/memcache_servers': value => "${memcache_address}:${memcache_port}";
 }
 
 #------------------------------

@@ -81,9 +81,9 @@ $admin_port     = '35357'
 
 $local_address_for_bind = get_network_role_property('keystone/api', 'ipaddr')
 
-$memcache_server_port   = hiera('memcache_server_port', '11211')
+$memcache_server_port   = hiera('memcache_server_port', '22122')
 $memcache_pool_maxsize = '100'
-$memcached_server       = hiera('memcached_addresses')
+$memcached_server       = ['127.0.0.1']
 
 
 $token_provider = hiera('token_provider')
