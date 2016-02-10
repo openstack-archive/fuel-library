@@ -63,8 +63,8 @@ $enable_cpu_pinning           = pick($nova_hash['enable_cpu_pinning'], false)
 
 $ironic_hash                  = hiera_hash('ironic', {})
 
-$memcached_server             = hiera('memcached_addresses')
-$memcached_port               = hiera('memcache_server_port', '11211')
+$memcached_server             = ['127.0.0.1']
+$memcached_port               = hiera('memcache_server_port', '22122')
 $openstack_controller_hash    = hiera_hash('openstack_controller', {})
 
 $external_lb                  = hiera('external_lb', false)
