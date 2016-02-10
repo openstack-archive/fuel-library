@@ -75,9 +75,7 @@ if $sahara_hash['enabled'] {
   })
 
   ####### Disable upstart startup on install #######
-  tweaks::ubuntu_service_override { 'sahara-api':
-    package_name => 'sahara',
-  }
+  tweaks::ubuntu_service_override { 'sahara-api': }
 
   firewall { $firewall_rule :
     dport   => $api_bind_port,
