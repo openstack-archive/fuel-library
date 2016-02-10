@@ -67,7 +67,7 @@ class { 'openstack::horizon':
   cache_server_ip      => $memcached_server,
   package_ensure       => hiera('horizon_package_ensure', 'installed'),
   bind_address         => $bind_address,
-  cache_server_port    => hiera('memcache_server_port', '11211'),
+  cache_server_port    => hiera('memcache_server_port', '22122'),
   cache_backend        => $horizon_cache_backend,
   cache_options        => {'SOCKET_TIMEOUT' => 1,'SERVER_RETRIES' => 1,'DEAD_RETRY' => 1},
   neutron              => hiera('use_neutron'),
