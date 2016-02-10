@@ -28,7 +28,7 @@ if [ ! -d "deployment/puppet" ]; then
   exit 1
 fi
 
-puppet doc --verbose --mode "rdoc" --outputdir 'rdoc' --charset "utf-8" --modulepath='deployment/puppet/' --manifestdir='deployment/puppet/nailgun/examples/'
+puppet doc --verbose --mode "rdoc" --outputdir 'rdoc' --charset "utf-8" --modulepath='deployment/puppet/' --manifestdir='deployment/puppet/fuel/examples/'
 
 if [ $? -gt 0 ]; then
   echo "Error building RDOC pages!"
