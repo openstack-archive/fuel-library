@@ -102,7 +102,7 @@ namespace :common do
     $module_directories = []
 
     $git_module_directories = %x[git diff --name-only HEAD~ 2>/dev/null |\
-      grep -o 'deployment/puppet/[^/]*/' | sort -u]
+      grep -o 'deployment/puppet/[^/]*/' | sort -u].split.select {|mod| File.directory? mod}
 
     if $git_module_directories.empty?
       Rake::Task["common:modules"].invoke(args[:skip_file])
@@ -112,12 +112,12 @@ namespace :common do
       $stderr.puts '-'*80
       $stderr.puts "Git changes found! Build modules list..."
       $stderr.puts '-'*80
-      $git_module_directories.each_line do |mod|
-        if $skip_module_list.include?(File.basename(mod.chomp))
+      $git_module_directories.each do |mod|
+        if $skip_module_list.include?(File.basename(mod))
           $stderr.puts "Skipping tests... modules.disable_rspec includes #{mod}"
           next
         end
-        $module_directories << mod.chomp
+        $module_directories << mod
       end
     end
   end
@@ -354,4 +354,3 @@ namespace :syntax do
     fail unless status
   end
 end
-
