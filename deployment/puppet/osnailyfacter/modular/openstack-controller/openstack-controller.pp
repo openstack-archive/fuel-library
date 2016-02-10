@@ -5,17 +5,16 @@ $override_configuration = hiera_hash('configuration', {})
 $network_metadata = hiera_hash('network_metadata', {})
 prepare_network_config($network_scheme)
 
-$nova_rate_limits             = hiera('nova_rate_limits')
+$globals_nova_hash            = hiera('nova_hash', {})
 $primary_controller           = hiera('primary_controller')
 $use_neutron                  = hiera('use_neutron', false)
-$nova_report_interval         = hiera('nova_report_interval')
-$nova_service_down_time       = hiera('nova_service_down_time')
 $use_syslog                   = hiera('use_syslog', true)
 $use_stderr                   = hiera('use_stderr', false)
 $syslog_log_facility_glance   = hiera('syslog_log_facility_glance', 'LOG_LOCAL2')
 $syslog_log_facility_neutron  = hiera('syslog_log_facility_neutron', 'LOG_LOCAL4')
 $syslog_log_facility_nova     = hiera('syslog_log_facility_nova','LOG_LOCAL6')
 $syslog_log_facility_keystone = hiera('syslog_log_facility_keystone', 'LOG_LOCAL7')
+
 $management_vip               = hiera('management_vip')
 $public_vip                   = hiera('public_vip')
 $sahara_hash                  = hiera_hash('sahara', {})
@@ -119,9 +118,9 @@ class { '::openstack::controller':
   fixed_range                    => $use_neutron ? { true =>false, default =>hiera('fixed_network_range')},
   multi_host                     => $multi_host,
   network_config                 => hiera('network_config', {}),
-  num_networks                   => hiera('num_networks', undef),
-  network_size                   => hiera('network_size', undef),
-  network_manager                => hiera('network_manager', undef),
+  num_networks                   => $globals_nova_hash['num_networks'],
+  network_size                   => $globals_nova_hash['network_size'],
+  network_manager                => $globals_nova_hash['network_manager'],
   network_provider               => $network_provider,
   verbose                        => pick($openstack_controller_hash['verbose'], true),
   debug                          => pick($openstack_controller_hash['debug'], hiera('debug', true)),
@@ -153,9 +152,9 @@ class { '::openstack::controller':
   use_syslog                     => $use_syslog,
   use_stderr                     => $use_stderr,
   syslog_log_facility_nova       => $syslog_log_facility_nova,
-  nova_rate_limits               => $nova_rate_limits,
-  nova_report_interval           => $nova_report_interval,
-  nova_service_down_time         => $nova_service_down_time,
+  nova_rate_limits               => $globals_nova_hash['nova_rate_limits'],
+  nova_report_interval           => $globals_nova_hash['nova_report_interval'],
+  nova_service_down_time         => $globals_nova_hash['nova_service_down_time'],
   ha_mode                        => true,
   keystone_auth_uri              => $keystone_auth_uri,
   keystone_identity_uri          => $keystone_identity_uri,
