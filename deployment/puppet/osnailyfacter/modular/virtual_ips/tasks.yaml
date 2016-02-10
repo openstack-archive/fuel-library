@@ -3,7 +3,7 @@
   version: 2.0.0
   groups: [primary-controller, controller]
   required_for: [deploy_end]
-  requires: [primary-cluster,cluster]
+  requires: [cluster-properties,cluster]
   cross-depends:
     - name: /(primary-)?cluster$/
       role: self
@@ -19,7 +19,7 @@
   version: 2.0.0
   groups: [primary-controller, controller]
   required_for: [deploy_end]
-  requires: [virtual_ips,cluster,primary-cluster]
+  requires: [virtual_ips,cluster,cluster-properties]
   cross-depends:
     - name: /(primary-)?cluster/
       role: self
