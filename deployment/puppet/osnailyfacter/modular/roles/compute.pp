@@ -144,8 +144,8 @@ $floating_hash = {}
 
 ##CALCULATED PARAMETERS
 
-$memcached_server = hiera('memcached_addresses')
-$memcached_port   = hiera('memcache_server_port', '11211')
+$memcached_server = ['127.0.0.1']
+$memcached_port   = hiera('memcache_server_port', '22122')
 $mountpoints      = filter_hash($mp_hash,'point')
 
 # SQLAlchemy backend configuration
