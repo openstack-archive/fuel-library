@@ -206,3 +206,8 @@ mod 'mysql',
 mod 'galera',
     :git => 'https://github.com/fuel-infra/puppet-galera.git',
     :ref => '0.0.2'
+
+# Pull in puppet-twemproxy
+mod 'twemproxy',
+    :git => 'https://github.com/sorrowless/puppet-twemproxy.git',
+    :ref => '0.1.1'
