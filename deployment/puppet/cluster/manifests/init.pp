@@ -5,7 +5,6 @@
 class cluster (
     $internal_address         = '127.0.0.1',
     $corosync_nodes           = undef,
-    $cluster_recheck_interval = '190s',
 ) {
 
     #todo: move half of openstack::corosync
@@ -18,7 +17,6 @@ class cluster (
         stage                    => 'corosync_setup',
         corosync_version         => '2',
         packages                 => ['corosync', 'pacemaker', 'crmsh', 'pcs'],
-        cluster_recheck_interval => $cluster_recheck_interval,
       }
     } else {
       class { 'openstack::corosync':
@@ -26,7 +24,6 @@ class cluster (
         corosync_nodes           => $corosync_nodes,
         corosync_version         => '2',
         packages                 => ['corosync', 'pacemaker', 'crmsh', 'pcs'],
-        cluster_recheck_interval => $cluster_recheck_interval,
       }
     }
 
