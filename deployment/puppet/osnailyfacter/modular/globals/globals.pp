@@ -462,7 +462,13 @@ $ironic_api_nodes = $controller_nodes
 $ssl_hash = hiera_hash('use_ssl', {})
 $public_ssl_hash = hiera('public_ssl')
 $public_vnc_protocol = get_ssl_property($ssl_hash, $public_ssl_hash, 'nova', 'public', 'protocol', 'http')
-$real_nova_hash = merge($nova_hash, { 'vncproxy_protocol' => $public_vnc_protocol })
+$real_nova_hash = merge($nova_hash, { 'vncproxy_protocol' => $public_vnc_protocol,
+                                      'nova_rate_limits' => $nova_rate_limits,
+                                      'nova_report_interval' => $nova_report_interval,
+                                      'nova_service_down_time' => $nova_service_down_time,
+                                      'num_networks' => $num_networks,
+                                      'network_size' => $network_size,
+                                      'network_manager' => $network_manager})
 
 # Define how we should get memcache addresses
 if hiera('memcached_addresses', false) {
