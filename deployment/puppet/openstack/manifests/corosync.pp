@@ -2,13 +2,10 @@ class openstack::corosync (
   $bind_address             = '127.0.0.1',
   $multicast_address        = '239.1.1.2',
   $secauth                  = false,
-  $stonith                  = false,
-  $quorum_policy            = 'ignore',
   $expected_quorum_votes    = '2',
   $corosync_nodes           = undef,
   $corosync_version         = '1',
   $packages                 = ['corosync', 'pacemaker'],
-  $cluster_recheck_interval = '190s',
 ) {
 
   file { 'limitsconf':
@@ -29,10 +26,6 @@ class openstack::corosync (
   Class['::corosync']->Cs_shadow<||>
   Class['::corosync']->Cs_property<||>->Cs_resource<||>
   Cs_property<||>->Cs_shadow<||>
-
-  Cs_property['no-quorum-policy']->
-    Cs_property['stonith-enabled']->
-      Cs_property['start-failure-is-fatal']
 
   if $corosync_version == '2' {
     $version_real = '1'
@@ -58,31 +51,6 @@ class openstack::corosync (
     packages          => $packages,
     # NOTE(bogdando) debug is *too* verbose
     debug             => false,
-  } -> Anchor['corosync-done']
-
-  Cs_property {
-    ensure   => present,
-    provider => 'crm',
-  }
-
-  cs_property { 'no-quorum-policy':
-    value   => $quorum_policy,
-  } -> Anchor['corosync-done']
-
-  cs_property { 'stonith-enabled':
-    value  => $stonith,
-  } -> Anchor['corosync-done']
-
-  cs_property { 'start-failure-is-fatal':
-    value  => false,
-  } -> Anchor['corosync-done']
-
-  cs_property { 'symmetric-cluster':
-    value  => false,
-  } -> Anchor['corosync-done']
-
-  cs_property { 'cluster-recheck-interval':
-    value    => $cluster_recheck_interval,
   } -> Anchor['corosync-done']
 
   anchor {'corosync-done':}
