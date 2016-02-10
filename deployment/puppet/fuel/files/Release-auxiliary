@@ -1,0 +1,8 @@
+Origin: Mirantis
+Label: auxiliary
+Suite: auxiliary
+Codename: auxiliary
+Date: Mon, 15 Apr 2015 00:00:01 UTC
+Architectures: amd64
+Components: main restricted
+Description: Auxiliary

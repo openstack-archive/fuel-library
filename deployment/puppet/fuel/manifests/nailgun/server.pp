@@ -156,7 +156,7 @@ class fuel::nailgun::server (
   sysctl::value{'net.core.somaxconn': value => $somaxconn}
 
   file { '/etc/nailgun/uwsgi_nailgun.yaml':
-    content => template('nailgun/uwsgi_nailgun.yaml.erb'),
+    content => template('fuel/nailgun/uwsgi_nailgun.yaml.erb'),
     ensure  => present,
     owner   => 'root',
     group   => 'root',
