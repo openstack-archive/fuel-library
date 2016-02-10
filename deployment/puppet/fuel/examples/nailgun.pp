@@ -18,7 +18,7 @@ if $debug {
 
 if empty($::fuel_settings['NTP1']) and
    empty($::fuel_settings['NTP2']) and
-   empty($::fuel_Settings['NTP3']) {
+   empty($::fuel_settings['NTP3']) {
   $ntp_servers = $::fuel_settings['ADMIN_NETWORK']['ipaddress']
 } else {
   $ntp_server_list = delete(delete_undef_values([$::fuel_settings['NTP1'],
