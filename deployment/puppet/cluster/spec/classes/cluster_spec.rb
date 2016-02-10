@@ -4,7 +4,6 @@ describe 'cluster' do
 
   let(:default_params) { {
     :internal_address         => '127.0.0.1',
-    :cluster_recheck_interval => '190s',
   } }
 
   shared_examples_for 'cluster configuration' do
@@ -27,7 +26,6 @@ describe 'cluster' do
           :corosync_nodes           => params[:corosync_nodes],
           :corosync_version         => 2,
           :packages                 => ['corosync', 'pacemaker', 'crmsh', 'pcs'],
-          :cluster_recheck_interval => params[:cluster_recheck_interval])
         should contain_file('ocf-fuel-path').with(
           :ensure  => 'directory',
           :path    => '/usr/lib/ocf/resource.d/fuel',

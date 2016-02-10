@@ -12,7 +12,6 @@ describe 'openstack::corosync' do
     :corosync_nodes           => ["UNSET"],
     :corosync_version         => '1',
     :packages                 => ['corosync', 'pacemaker'],
-    :cluster_recheck_interval => '190s'
   } }
 
   let(:params) { {} }
@@ -42,20 +41,6 @@ describe 'openstack::corosync' do
         should contain_corosync__service('pacemaker').with(
           :version => '0'
         ).that_notifies('Service[corosync]')
-        {
-          'no-quorum-policy'         => p[:quorum_policy],
-          'stonith-enabled'          => p[:stonith],
-          'start-failure-is-fatal'   => false,
-          'symmetric-cluster'        => false,
-          'cluster-recheck-interval' => p[:cluster_recheck_interval],
-        }.each do |prop, val|
-          should contain_cs_property(prop).with(
-            :ensure   => 'present',
-            :provider => 'crm',
-            :value    => val,
-          ).that_comes_before('Anchor[corosync-done]')
-        end
-      end
     end
   end
 
