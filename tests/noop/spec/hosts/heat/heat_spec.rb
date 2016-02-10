@@ -22,8 +22,11 @@ describe manifest do
     end
 
     let(:memcache_address) do
-      prepare
-      Noop.puppet_function 'get_network_role_property', 'mgmt/memcache', 'ipaddr'
+      '127.0.0.1'
+    end
+
+    let(:memcache_port) do
+      Noop.hiera 'memcache_server_port', '22122'
     end
 
     let(:heat_ha_engine) do
@@ -121,7 +124,7 @@ describe manifest do
     it 'should configure caching for validation process' do
       should contain_heat_config('cache/enabled').with_value('true')
       should contain_heat_config('cache/backend').with_value('oslo_cache.memcache_pool')
-      should contain_heat_config('cache/memcache_servers').with_value("#{memcache_address}:11211")
+      should contain_heat_config('cache/memcache_servers').with_value("#{memcache_address}:#{memcache_port}")
     end
 
     it 'should configure heat rpc response timeout' do
