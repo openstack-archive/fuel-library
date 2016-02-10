@@ -15,10 +15,19 @@ $corosync_nodes = corosync_nodes(
 )
 $cluster_recheck_interval = hiera('cluster_recheck_interval', '190s')
 
+$corosync_nodes_in_cluster = corosync_nodes_in_cluster()
+
+if count($corosync_nodes_in_cluster) > 2 {
+  $quorum_policy = 'stop'
+} else {
+  $quorum_policy = 'ignore'
+}
+
 class { 'cluster':
   internal_address         => get_network_role_property('mgmt/corosync', 'ipaddr'),
   corosync_nodes           => $corosync_nodes,
   cluster_recheck_interval => $cluster_recheck_interval,
+  quorum_policy            => $quorum_policy
 }
 
 pcmk_nodes { 'pacemaker' :
