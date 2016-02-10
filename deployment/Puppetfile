@@ -222,6 +222,11 @@ mod 'galera',
     :git => 'https://github.com/fuel-infra/puppet-galera.git',
     :ref => '0.0.3-rc1'
 
+# Pull in sorrowless-twemproxy
+mod 'twemproxy',
+    :git => 'https://github.com/fuel-infra/puppet-twemproxy',
+    :ref => '0.1.1'
+
 # Pull in puppet-aodh
 mod 'aodh',
     :git => 'https://github.com/fuel-infra/puppet-aodh.git',
