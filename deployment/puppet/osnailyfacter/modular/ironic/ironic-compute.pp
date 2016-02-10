@@ -49,9 +49,8 @@ $db_connection = os_database_connection({
   'extra'    => $extra_params
 })
 
-$memcached_servers              = hiera('memcached_addresses')
-$memcached_port                 = hiera('memcache_server_port', '11211')
-$memcached_addresses            = suffix($memcached_servers, ":${memcached_port}")
+$memcached_port                 = hiera('memcache_server_port', '22122')
+$memcached_addresses            = "127.0.0.1:${memcached_port}"
 $notify_on_state_change         = 'vm_and_task_state'
 
 $ssl_hash                       = hiera_hash('use_ssl', {})
