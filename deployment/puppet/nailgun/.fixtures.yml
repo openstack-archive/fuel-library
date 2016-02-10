@@ -1,9 +1,0 @@
-fixtures:
-  symlinks:
-    nailgun: "#{source_dir}"
-    mcollective: "#{source_dir}/../mcollective"
-    rabbitmq: "#{source_dir}/../rabbitmq"
-    stdlib: "#{source_dir}/../stdlib"
-    apt: "#{source_dir}/../apt"
-    staging: "#{source_dir}/../staging"
-    fuel: "#{source_dir}/../fuel"
