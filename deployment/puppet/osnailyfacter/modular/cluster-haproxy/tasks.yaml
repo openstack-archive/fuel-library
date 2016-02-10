@@ -3,7 +3,7 @@
   version: 2.0.0
   groups: [primary-controller]
   required_for: [deploy_end]
-  requires: [deploy_start, virtual_ips, primary-cluster]
+  requires: [deploy_start, virtual_ips, cluster-properties]
   parameters:
     puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/cluster-haproxy/cluster-haproxy.pp
     puppet_modules: /etc/puppet/modules
