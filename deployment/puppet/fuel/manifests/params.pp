@@ -30,12 +30,12 @@ class fuel::params {
   $keystone_monitord_password = 'monitord'
   $keystone_monitord_tenant   = 'services'
 
-  $keystone_auth_version     = 'v2.0'
-  $keystone_admin_token      = 'admin'
+  $keystone_auth_version      = 'v2.0'
+  $keystone_admin_token       = 'admin'
 
-  $bootstrap_flavor              = 'centos'
   # network interface configuration timeout (in seconds)
   $bootstrap_ethdevice_timeout   = '120'
+  $bootstrap_profile             = 'ubuntu_bootstrap'
 
   $rabbitmq_host                 = '127.0.0.1'
   $rabbitmq_astute_user          = 'naily'

@@ -2,12 +2,11 @@ class fuel::cobbler(
   $repo_root                     = $::fuel::params::repo_root,
   $cobbler_user                  = $::fuel::params::cobbler_user,
   $cobbler_password              = $::fuel::params::cobbler_password,
-  # NOTE(kozhukalov): to be deprecated
-  $bootstrap_flavor              = $::fuel::params::bootstrap_flavor,
   $bootstrap_path,
   $bootstrap_meta,
   # network interface configuration timeout (in seconds)
   $bootstrap_ethdevice_timeout   = $::fuel::params::bootstrap_ethdevice_timeout,
+  $bootstrap_profile             = $::fuel::params::bootstrap_profile,
   $centos_repos                  = $::fuel::params::centos_repos,
   $ks_system_timezone            = $::fuel::params::ks_system_timezone,
   $server                        = $::fuel::params::cobbler_host,
@@ -18,10 +17,6 @@ class fuel::cobbler(
   $dns_search                    = $::fuel::params::dns_search,
   $mco_user                      = $::fuel::params::mco_user,
   $mco_pass                      = $::fuel::params::mco_password,
-  # $dhcp_start_address,
-  # $dhcp_end_address,
-  # $dhcp_netmask,
-  # $dhcp_gateway                  = $::ipaddress,
   $dhcp_interface                = $::fuel::params::dhcp_interface,
   $nailgun_api_url               = "http://${::fuel::params::nailgun_host}:${::fuel::params::nailgun_port}/api",
   # default password is 'r00tme'
@@ -37,12 +32,6 @@ class fuel::cobbler(
 
   #Set real_server so Cobbler identifies its own IP correctly in Docker
   $real_server = $next_server
-
-  $bootstrap_profile = $bootstrap_flavor ? {
-    /(?i)centos/                 => 'bootstrap',
-    /(?i)ubuntu/                 => 'ubuntu_bootstrap',
-    default                      => 'bootstrap',
-  }
 
   if $::osfamily == 'RedHat' {
     case $operatingsystemmajrelease {
@@ -163,16 +152,6 @@ class fuel::cobbler(
     require   => Cobbler_distro['ubuntu_1404_x86_64'],
   }
 
-  cobbler_distro { 'bootstrap':
-    kernel    => "${repo_root}/bootstrap/linux",
-    initrd    => "${repo_root}/bootstrap/initramfs.img",
-    arch      => 'x86_64',
-    breed     => 'redhat',
-    osversion => 'rhel6',
-    ksmeta    => '',
-    require   => Class['::cobbler::server'],
-  }
-
   cobbler_distro { 'ubuntu_bootstrap':
     kernel    => "${bootstrap_path}/vmlinuz",
     initrd    => "${bootstrap_path}/initrd.img",
@@ -181,16 +160,6 @@ class fuel::cobbler(
     osversion => 'trusty',
     ksmeta    => '',
     require   => Class['::cobbler::server'],
-  }
-
-  cobbler_profile { 'bootstrap':
-    distro    => 'bootstrap',
-    menu      => true,
-    kickstart => '',
-    kopts     => "intel_pstate=disable console=ttyS0,9600 console=tty0 biosdevname=0 url=${nailgun_api_url} mco_user=${mco_user} mco_pass=${mco_pass}",
-    ksmeta    => '',
-    server    => $real_server,
-    require   => Cobbler_distro['bootstrap'],
   }
 
   cobbler_profile { 'ubuntu_bootstrap':
@@ -215,7 +184,7 @@ class fuel::cobbler(
   exec { 'cobbler_system_edit_default':
     command => "cobbler system edit --name=default \
     --profile=${bootstrap_profile} --netboot-enabled=True",
-    unless => "cobbler system report --name default 2>/dev/null | grep -q -E '^Profile\\s*:\\s*${bootstrap_profile}'",
+    unless  => "cobbler system report --name default 2>/dev/null | grep -q -E '^Profile\\s*:\\s*${bootstrap_profile}'",
     require => Cobbler_profile[$bootstrap_profile],
   }
 

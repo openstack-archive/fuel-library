@@ -1,5 +1,4 @@
 Host *
-  IdentityFile ~/.ssh/bootstrap.rsa
   IdentityFile ~/.ssh/id_rsa
 
 Host *.<%= @dns_domain %> node-* controller-* compute-* storage-* 10.* 192.168.* 172.30.* 172.31.* 172.2?.* 172.1?.* <%= @admin_network %> <%
