@@ -3,7 +3,8 @@ notice('MODULAR: horizon.pp')
 prepare_network_config(hiera_hash('network_scheme', {}))
 $horizon_hash            = hiera_hash('horizon', {})
 $service_endpoint        = hiera('service_endpoint')
-$memcached_server        = hiera('memcached_addresses')
+#$memcached_server        = hiera('memcached_addresses')
+$memcached_server        = ['127.0.0.1']
 $bind_address            = get_network_role_property('horizon', 'ipaddr')
 $storage_hash            = hiera_hash('storage_hash', {})
 $neutron_advanced_config = hiera_hash('neutron_advanced_configuration', {})
@@ -71,7 +72,7 @@ class { 'openstack::horizon':
   cache_server_ip      => $memcached_server,
   package_ensure       => hiera('horizon_package_ensure', 'installed'),
   bind_address         => $bind_address,
-  cache_server_port    => hiera('memcache_server_port', '11211'),
+  cache_server_port    => hiera('memcache_server_port', '22122'),
   cache_backend        => $horizon_cache_backend,
   cache_options        => {'SOCKET_TIMEOUT' => 1,'SERVER_RETRIES' => 1,'DEAD_RETRY' => 1},
   neutron              => hiera('use_neutron'),
