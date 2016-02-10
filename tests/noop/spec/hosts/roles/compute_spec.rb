@@ -215,7 +215,21 @@ describe manifest do
       node_name = Noop.hiera('node_name')
       network_metadata = Noop.hiera_hash('network_metadata')
       roles = network_metadata['nodes'][node_name]['node_roles']
-      nova_hash.merge!({'vncproxy_protocol' => vncproxy_protocol})
+      nova_rate_limits = {
+        'POST'         => 100000,
+        'POST_SERVERS' => 100000,
+        'PUT'          => 1000,
+        'GET'          => 100000,
+        'DELETE'       => 100000
+      }
+      nova_hash.merge!({'vncproxy_protocol' => vncproxy_protocol,
+                        'nova_rate_limits' => nova_rate_limits,
+                        'nova_report_interval' => "60",
+                        'nova_service_down_time'=> "180",
+                        'num_networks' => nil,
+                        'network_size' => nil,
+                        'network_manager' => nil,
+      })
 
       if roles.include? 'ceph-osd'
         nova_compute_rhostmem = rhost_mem['reserved_host_memory']

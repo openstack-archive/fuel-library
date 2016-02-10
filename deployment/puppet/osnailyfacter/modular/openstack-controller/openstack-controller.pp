@@ -5,11 +5,8 @@ $override_configuration = hiera_hash('configuration', {})
 $network_metadata = hiera_hash('network_metadata', {})
 prepare_network_config($network_scheme)
 
-$nova_rate_limits             = hiera('nova_rate_limits')
 $primary_controller           = hiera('primary_controller')
 $use_neutron                  = hiera('use_neutron', false)
-$nova_report_interval         = hiera('nova_report_interval')
-$nova_service_down_time       = hiera('nova_service_down_time')
 $use_syslog                   = hiera('use_syslog', true)
 $use_stderr                   = hiera('use_stderr', false)
 $syslog_log_facility_glance   = hiera('syslog_log_facility_glance', 'LOG_LOCAL2')
@@ -119,9 +116,9 @@ class { '::openstack::controller':
   fixed_range                    => $use_neutron ? { true =>false, default =>hiera('fixed_network_range')},
   multi_host                     => $multi_host,
   network_config                 => hiera('network_config', {}),
-  num_networks                   => hiera('num_networks', undef),
-  network_size                   => hiera('network_size', undef),
-  network_manager                => hiera('network_manager', undef),
+  num_networks                   => $nova_hash['num_networks'],
+  network_size                   => $nova_hash['network_size'],
+  network_manager                => $nova_hash['network_manager'],
   network_provider               => $network_provider,
   verbose                        => pick($openstack_controller_hash['verbose'], true),
   debug                          => pick($openstack_controller_hash['debug'], hiera('debug', true)),
@@ -153,9 +150,9 @@ class { '::openstack::controller':
   use_syslog                     => $use_syslog,
   use_stderr                     => $use_stderr,
   syslog_log_facility_nova       => $syslog_log_facility_nova,
-  nova_rate_limits               => $nova_rate_limits,
-  nova_report_interval           => $nova_report_interval,
-  nova_service_down_time         => $nova_service_down_time,
+  nova_rate_limits               => $nova_hash['nova_rate_limits'],
+  nova_report_interval           => $nova_hash['nova_report_interval'],
+  nova_service_down_time         => $nova_hash['nova_service_down_time'],
   ha_mode                        => true,
   keystone_auth_uri              => $keystone_auth_uri,
   keystone_identity_uri          => $keystone_identity_uri,
