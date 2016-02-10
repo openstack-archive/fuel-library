@@ -48,23 +48,10 @@ describe manifest do
       }
     end
 
-    memcache_addresses   = Noop.hiera 'memcached_addresses', false
-    memcache_server_port = Noop.hiera 'memcache_server_port', '11211'
-
-    let(:memcache_nodes) do
-      Noop.puppet_function 'get_nodes_hash_by_roles', network_metadata, memcache_roles
-    end
-
-    let(:memcache_address_map) do
-      Noop.puppet_function 'get_node_to_ipaddr_map_by_network_role', memcache_nodes, 'mgmt/memcache'
-    end
+    memcache_server_port = Noop.hiera 'memcache_server_port', '22122'
 
     let (:memcache_servers) do
-      if not memcache_addresses
-        memcache_address_map.values
-      else
-        memcache_addresses
-      end
+      ['127.0.0.1']
     end
 
     storage_hash = Noop.hiera 'storage_hash'

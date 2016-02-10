@@ -1,0 +1,10 @@
+- id: twemproxy
+  type: puppet
+  version: 2.0.0
+  groups: [primary-controller, controller, compute]
+  required_for: [deploy_end, memcached]
+  requires: [openstack-haproxy]
+  parameters:
+    puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/twemproxy/twemproxy.pp
+    puppet_modules: /etc/puppet/modules
+    timeout: 3600
