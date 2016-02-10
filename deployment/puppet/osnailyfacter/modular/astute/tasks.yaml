@@ -1,14 +1,4 @@
 # POST_DEPLOYMENT TASKS
-- id: enable_quorum
-  type: shell
-  version: 2.0.0
-  role: [primary-controller]
-  requires: [post_deployment_start]
-  required_for: [post_deployment_end]
-  parameters:
-    cmd: ruby /etc/puppet/modules/osnailyfacter/modular/astute/enable_quorum.rb
-    timeout: 180
-
 - id: upload_cirros
   type: shell
   version: 2.0.0
