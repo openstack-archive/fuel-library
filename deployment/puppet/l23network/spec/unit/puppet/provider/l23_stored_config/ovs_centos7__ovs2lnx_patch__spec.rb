@@ -109,7 +109,7 @@ describe Puppet::Type.type(:l23_stored_config).provider(:ovs_centos7) do
     context 'three bridges patch error' do
       subject { providers[:ovs2lnx_bad_patch] }
       it { expect{ subject.class.format_file('filepath', [subject])
-      }.to raise_error(Puppet::Error, %r{Patch\s+ovs2lnx-bpatch\s+has\s+more\s+than\s+2\s+bridges:\s+\["ovs-br",\s+"lnx-br",\s+"br-fake"].\s+Patch\s+can\s+connect\s+\*ONLY\*\s+2\s+bridges!}) }
+      }.to raise_error(Puppet::Error, %r{Patch\s+ovs2lnx-bpatch\s+has\s+more\s+than\s+2\s+bridges:\s+\["ovs-br",\s+"lnx-br",\s+"br-fake"\].\s+Patch\s+can\s+connect\s+\*ONLY\*\s+2\s+bridges!}) }
     end
 
     context 'the same provider of bridges error' do

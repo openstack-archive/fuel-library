@@ -15,10 +15,7 @@ describe 'l23network', :type => :class do
       puppet_debug_override()
     end
 
-    it do
-      should compile.with_all_deps
-    end
-
+    it { should compile.with_all_deps }
     it { should contain_package('bridge-utils').with_ensure('present') }
     it { should contain_package('ethtool').with_ensure('present') }
     it { should contain_package('ifenslave').with_ensure('present') }
@@ -28,6 +25,7 @@ describe 'l23network', :type => :class do
     it { should contain_anchor('l23network::l2::init').that_requires('Package[vlan]') }
     it { should contain_anchor('l23network::l2::init').that_requires('Package[ifenslave]') }
     it { should contain_anchor('l23network::l2::init').that_requires('Package[ethtool]') }
+
   end
 
   context 'default init of l23network module(CentOS6)' do
@@ -42,10 +40,7 @@ describe 'l23network', :type => :class do
       puppet_debug_override()
     end
 
-    it do
-      should compile.with_all_deps
-    end
-
+    it { should compile.with_all_deps }
     it { should contain_package('bridge-utils').with_ensure('present') }
     it { should contain_package('ethtool').with_ensure('present') }
     it { should_not contain_package('ifenslave').with_ensure('present') }
@@ -69,10 +64,7 @@ describe 'l23network', :type => :class do
       puppet_debug_override()
     end
 
-    it do
-      should compile.with_all_deps
-    end
-
+    it { should compile.with_all_deps }
     it { should contain_package('bridge-utils').with_ensure('present') }
     it { should contain_package('ethtool').with_ensure('present') }
     it { should_not contain_package('ifenslave').with_ensure('present') }
@@ -80,6 +72,7 @@ describe 'l23network', :type => :class do
     it { should contain_package('NetworkManager').with_ensure('purged') }
     it { should contain_service('NetworkManager').with_ensure('stopped') }
     it { should contain_anchor('l23network::l2::init').that_comes_before('Anchor[l23network::init]') }
+
   end
 
   context 'init l23network module with enabled OVS' do
