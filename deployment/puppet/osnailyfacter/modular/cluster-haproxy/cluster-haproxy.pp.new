@@ -1,0 +1,1 @@
+include ::task::cluster-haproxy::cluster-haproxy

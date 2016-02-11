@@ -1,0 +1,1 @@
+include ::task::ssl::ssl_add_trust_chain

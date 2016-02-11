@@ -1,0 +1,1 @@
+include ::task::astute::dump_rabbitmq_definitions
