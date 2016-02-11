@@ -48,13 +48,11 @@ describe 'openstack::ceilometer' do
       it { is_expected.to contain_class('ceilometer::db') }
       it { is_expected.to contain_class('ceilometer::expirer') }
       it { is_expected.to contain_class('ceilometer::agent::notification') }
-      it { is_expected.to contain_class('ceilometer::alarm::evaluator') }
       it { is_expected.to contain_class('ceilometer::collector') }
-      it { is_expected.to contain_class('ceilometer::alarm::notifier') }
       it { is_expected.to contain_class('ceilometer::client') }
 
       it { is_expected.to contain_class('ceilometer::agent::auth').with(
-        :auth_url         => "#{params[:keystone_protocol]}://#{params[:keystone_host]}:5000/v2.0",
+        :auth_url         => params[:keystone_auth_uri],
         :auth_password    => params[:keystone_password],
         :auth_region      => params[:keystone_region],
         :auth_tenant_name => params[:keystone_tenant],
