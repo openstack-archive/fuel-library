@@ -104,7 +104,7 @@ describe manifest do
       lock_path = '/var/lib/cinder/tmp'
     end
 
-    should contain_cinder_config('DEFAULT/lock_path').with(:value  => lock_path)
+    should contain_cinder_config('oslo_concurrency/lock_path').with(:value  => lock_path)
   end
 
   it 'ensures cinder_config contains use_stderr set to false' do

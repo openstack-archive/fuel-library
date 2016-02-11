@@ -136,9 +136,7 @@ class openstack::glance (
   # these parameters after new sync for glance module
   # (https://review.openstack.org/#/c/238096/)
   glance_cache_config {
-    'DEFAULT/use_syslog':       value => $use_syslog;
     'DEFAULT/image_cache_dir':  value => '/var/lib/glance/image-cache/';
-    'DEFAULT/log_file':         value => '/var/log/glance/image-cache.log';
     'DEFAULT/os_region_name':   value => $region;
   }
 
