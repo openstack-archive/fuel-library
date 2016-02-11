@@ -33,6 +33,8 @@
 #   (optional) Defaults to 'internalURL'.
 # [*neutron_endpoint_type*]
 #   (optional) Defaults to 'internalURL'.
+# [*aodh_endpoint_type*]
+#   (optional) Defaults to 'internalURL'.
 # [*os_endpoint_type*]
 #   (optional) Defaults to 'internalURL'.
 # [*murano_repo_url*]
@@ -58,6 +60,7 @@ class openstack::auth_file(
   $keystone_endpoint_type   = 'internalURL',
   $nova_endpoint_type       = 'internalURL',
   $neutron_endpoint_type    = 'internalURL',
+  $aodh_endpoint_type       = 'internalURL',
   $os_endpoint_type         = 'internalURL',
   $murano_repo_url          = undef,
   $cacert                   = undef,
