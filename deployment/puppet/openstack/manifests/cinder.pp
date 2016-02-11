@@ -122,6 +122,7 @@ class openstack::cinder(
         database_max_retries   => $max_retries,
         database_max_overflow  => $max_overflow,
         control_exchange       => 'cinder',
+        rabbit_ha_queues       => $rabbit_ha_queues,
       }
 
       cinder_config {
