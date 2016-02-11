@@ -92,6 +92,7 @@ describe 'openstack::galera::client' do
       {
         :osfamily        => 'RedHat',
         :operatingsystem => 'RedHat',
+        :operatingsystemmajrelease => '7',
       }
     end
 

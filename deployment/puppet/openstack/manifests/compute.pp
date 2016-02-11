@@ -281,6 +281,11 @@ class openstack::compute (
     cinder_catalog_info    => pick($nova_hash['cinder_catalog_info'], 'volumev2:cinderv2:internalURL'),
   }
 
+  class {'::nova::availability_zone':
+    default_availability_zone => $nova_hash['default_availability_zone'],
+    default_schedule_zone     => $nova_hash['default_schedule_zone'],
+  }
+
   if str2bool($::is_virtual) {
     $libvirt_cpu_mode = 'none'
   } else {
@@ -315,8 +320,6 @@ class openstack::compute (
     instance_usage_audit          => $instance_usage_audit,
     instance_usage_audit_period   => $instance_usage_audit_period,
     reserved_host_memory          => $nova_hash['reserved_host_memory'],
-    default_availability_zone     => $nova_hash['default_availability_zone'],
-    default_schedule_zone         => $nova_hash['default_schedule_zone'],
     config_drive_format           => $config_drive_format,
     allow_resize_to_same_host     => true,
   }

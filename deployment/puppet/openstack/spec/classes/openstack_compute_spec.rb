@@ -127,7 +127,11 @@ describe 'openstack::compute' do
           :report_interval   => p[:nova_report_interval],
           :service_down_time => p[:nova_service_down_time],
           :notify_on_state_change => 'vm_and_task_state',
-          :memcached_servers => ['127.0.0.1:11211']
+          :memcached_servers => ['127.0.0.1:11211'],
+        )
+        should contain_class('nova::availability_zone').with(
+          :default_availability_zone => '<SERVICE DEFAULT>',
+          :default_schedule_zone     => '<SERVICE DEFAULT>',
         )
         should contain_class('nova::compute').with(
           :ensure_package => 'present',
@@ -142,7 +146,6 @@ describe 'openstack::compute' do
           :network_device_mtu => '65000',
           :instance_usage_audit => true,
           :instance_usage_audit_period => 'hour',
-          :default_availability_zone => 'nova',
           :default_schedule_zone => nil,
           :config_drive_format => p[:config_drive_format]
         )
@@ -211,6 +214,7 @@ describe 'openstack::compute' do
         :openstack_version  => { 'nova' => 'present' },
         :os_service_default => '<SERVICE DEFAULT>',
         :os_package_type    => 'rpm',
+        :operatingsystemmajrelease => '7',
       }
     end
 

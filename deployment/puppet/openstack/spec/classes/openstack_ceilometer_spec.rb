@@ -112,6 +112,7 @@ describe 'openstack::ceilometer' do
         :processorcount  => 2,
         :memorysize_mb   => 4096,
         :os_service_default => '<SERVICE DEFAULT>',
+        :operatingsystemmajrelease => '7',
       }
     end
 
