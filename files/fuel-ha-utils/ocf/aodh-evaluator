@@ -1,9 +1,9 @@
 #!/bin/bash
 #
 #
-# OpenStack Ceilometer Alarm Evaluator Service (ceilometer-alarm-evaluator)
+# OpenStack Aodh Evaluator Service (aodh-evaluator)
 #
-# Description: Manages an OpenStack Ceilometer Alarm Evaluator Service (ceilometer-alarm-evaluator) process as an HA resource
+# Description: Manages an OpenStack Aodh Evaluator Service (aodh-evaluator) process as an HA resource
 #
 # Authors: Emilien Macchi
 # Mainly inspired by the Nova Scheduler resource agent written by Sebastien Han
@@ -33,12 +33,12 @@
 
 # Fill in some defaults if no values are specified
 
-OCF_RESKEY_binary_default="ceilometer-alarm-evaluator"
-OCF_RESKEY_config_default="/etc/ceilometer/ceilometer.conf"
-OCF_RESKEY_user_default="ceilometer"
+OCF_RESKEY_binary_default="aodh-evaluator"
+OCF_RESKEY_config_default="/etc/aodh/aodh.conf"
+OCF_RESKEY_user_default="aodh"
 OCF_RESKEY_pid_default="${HA_RSCTMP}/${__SCRIPT_NAME}/${__SCRIPT_NAME}.pid"
 
-: ${HA_LOGTAG="ocf-ceilometer-alarm-evaluator"}
+: ${HA_LOGTAG="ocf-aodh-evaluator"}
 : ${HA_LOGFACILITY="daemon"}
 : ${OCF_RESKEY_binary=${OCF_RESKEY_binary_default}}
 : ${OCF_RESKEY_config=${OCF_RESKEY_config_default}}
@@ -51,7 +51,7 @@ usage() {
     cat <<UEND
         usage: $0 (start|stop|validate-all|meta-data|status|monitor)
 
-        $0 manages an OpenStack Ceilometer Alarm Evaluator Service (ceilometer-alarm-evaluator) process as an HA resource
+        $0 manages an OpenStack Aodh Evaluator Service (aodh-evaluator) process as an HA resource
 
         The 'start' operation starts the service.
         The 'stop' operation stops the service.
@@ -67,54 +67,54 @@ meta_data() {
     cat <<END
 <?xml version="1.0"?>
 <!DOCTYPE resource-agent SYSTEM "ra-api-1.dtd">
-<resource-agent name="ceilometer-alarm-evaluator">
+<resource-agent name="aodh-evaluator">
 <version>1.0</version>
 
 <longdesc lang="en">
-Resource agent for the OpenStack Ceilometer Alarm Evaluator Service (ceilometer-alarm-evaluator)
-May manage a ceilometer-alarm-evaluatorinstance or a clone set that
-creates a distributed ceilometer-alarm-evaluator cluster.
+Resource agent for the OpenStack Aodh Evaluator Service (aodh-evaluator)
+May manage a aodh-evaluator instance or a clone set that
+creates a distributed aodh-evaluator cluster.
 </longdesc>
-<shortdesc lang="en">Manages the OpenStack Ceilometer Alarm Evaluator Service (ceilometer-alarm-evaluator)</shortdesc>
+<shortdesc lang="en">Manages the OpenStack Aodh Evaluator Service (aodh-evaluator)</shortdesc>
 <parameters>
 
 <parameter name="binary" unique="0" required="0">
 <longdesc lang="en">
-Location of the OpenStack Ceilometer Alarm Evaluator server binary (ceilometer-alarm-evaluator)
+Location of the OpenStack Aodh Evaluator server binary (aodh-evaluator)
 </longdesc>
-<shortdesc lang="en">OpenStack Ceilometer Alarm Evaluator server binary (ceilometer-alarm-evaluator)</shortdesc>
+<shortdesc lang="en">OpenStack Aodh Evaluator server binary (aodh-evaluator)</shortdesc>
 <content type="string" default="${OCF_RESKEY_binary_default}" />
 </parameter>
 
 <parameter name="config" unique="0" required="0">
 <longdesc lang="en">
-Location of the OpenStack Ceilometer Alarm Evaluator Service (ceilometer-alarm-evaluator) configuration file
+Location of the OpenStack Aodh Evaluator Service (aodh-evaluator) configuration file
 </longdesc>
-<shortdesc lang="en">OpenStack Ceilometer Alarm Evaluator (ceilometer-alarm-evaluator) config file</shortdesc>
+<shortdesc lang="en">OpenStack Aodh Evaluator (aodh-evaluator) config file</shortdesc>
 <content type="string" default="${OCF_RESKEY_config_default}" />
 </parameter>
 
 <parameter name="user" unique="0" required="0">
 <longdesc lang="en">
-User running OpenStack Ceilometer Alarm Evaluator Service (ceilometer-alarm-evaluator)
+User running OpenStack Aodh Evaluator Service (aodh-evaluator)
 </longdesc>
-<shortdesc lang="en">OpenStack Ceilometer Alarm Evaluator Service (ceilometer-alarm-evaluator) user</shortdesc>
+<shortdesc lang="en">OpenStack Aodh Evaluator Service (aodh-evaluator) user</shortdesc>
 <content type="string" default="${OCF_RESKEY_user_default}" />
 </parameter>
 
 <parameter name="pid" unique="0" required="0">
 <longdesc lang="en">
-The pid file to use for this OpenStack Ceilometer Alarm Evaluator Service (ceilometer-alarm-evaluator) instance
+The pid file to use for this OpenStack Aodh Evaluator Service (aodh-evaluator) instance
 </longdesc>
-<shortdesc lang="en">OpenStack Ceilometer Alarm Evaluator Service (ceilometer-alarm-evaluator) pid file</shortdesc>
+<shortdesc lang="en">OpenStack Aodh Evaluator Service (aodh-evaluator) pid file</shortdesc>
 <content type="string" default="${OCF_RESKEY_pid_default}" />
 </parameter>
 
 <parameter name="additional_parameters" unique="0" required="0">
 <longdesc lang="en">
-Additional parameters to pass on to the OpenStack Ceilometer Alarm Evaluator Service (ceilometer-alarm-evaluator)
+Additional parameters to pass on to the OpenStack Aodh Evaluator Service (aodh-evaluator)
 </longdesc>
-<shortdesc lang="en">Additional parameters for ceilometer-alarm-evaluator</shortdesc>
+<shortdesc lang="en">Additional parameters for aodh-evaluator</shortdesc>
 <content type="string" />
 </parameter>
 
@@ -135,8 +135,7 @@ END
 #######################################################################
 # Functions invoked by resource manager actions
 
-
-ceilometer_alarm_evaluator_validate() {
+aodh_evaluator_validate() {
     local rc
 
     check_binary $OCF_RESKEY_binary
@@ -162,7 +161,7 @@ ceilometer_alarm_evaluator_validate() {
     return ${OCF_SUCCESS}
 }
 
-ceilometer_alarm_evaluator_status() {
+aodh_evaluator_status() {
     local pid
     local rc
 
@@ -176,7 +175,7 @@ ceilometer_alarm_evaluator_status() {
     fi
 
     if [ ! -f $OCF_RESKEY_pid ]; then
-        ocf_log info "OpenStack Ceilometer Alarm Evaluator (ceilometer-alarm-evaluator) is not running"
+        ocf_log info "OpenStack Aodh Evaluator (aodh-evaluator) is not running"
         return $OCF_NOT_RUNNING
     else
         pid=`cat $OCF_RESKEY_pid`
@@ -193,16 +192,16 @@ ceilometer_alarm_evaluator_status() {
     if [ $rc -eq 0 ]; then
         return $OCF_SUCCESS
     else
-        ocf_log info "Old PID file found, but OpenStack Ceilometer Alarm Evaluator (ceilometer-alarm-evaluator) is not running"
+        ocf_log info "Old PID file found, but OpenStack Aodh Evaluator (aodh-evaluator) is not running"
         return $OCF_NOT_RUNNING
     fi
 }
 
-ceilometer_alarm_evaluator_monitor() {
+aodh_evaluator_monitor() {
     local rc
     local pid
 
-    ceilometer_alarm_evaluator_status
+    aodh_evaluator_status
     rc=$?
 
     # If status returned anything but success, return that immediately
@@ -210,21 +209,21 @@ ceilometer_alarm_evaluator_monitor() {
         return $rc
     fi
 
-    ocf_log debug "OpenStack Ceilometer Alarm Evaluator (ceilometer-alarm-evaluator) monitor succeeded"
+    ocf_log debug "OpenStack Aodh Evaluator (aodh-evaluator) monitor succeeded"
     return $OCF_SUCCESS
 }
 
-ceilometer_alarm_evaluator_start() {
+aodh_evaluator_start() {
     local rc
 
-    ceilometer_alarm_evaluator_status
+    aodh_evaluator_status
     rc=$?
     if [ $rc -eq $OCF_SUCCESS ]; then
-        ocf_log info "OpenStack Ceilometer Alarm Evaluator (ceilometer-alarm-evaluator) already running"
+        ocf_log info "OpenStack Aodh Evaluator (aodh-evaluator) already running"
         return $OCF_SUCCESS
     fi
 
-    # run the actual ceilometer-alarm-evaluator daemon. Don't use ocf_run as we're sending the tool's output
+    # run the actual aodh-evaluator daemon. Don't use ocf_run as we're sending the tool's output
     # straight to /dev/null anyway and using ocf_run would break stdout-redirection here.
     su ${OCF_RESKEY_user} -s /bin/sh -c "${OCF_RESKEY_binary} --config-file=$OCF_RESKEY_config \
        $OCF_RESKEY_additional_parameters"' >> /dev/null 2>&1 & echo $!' > $OCF_RESKEY_pid
@@ -232,31 +231,31 @@ ceilometer_alarm_evaluator_start() {
     ocf_log debug "Create pid file: ${OCF_RESKEY_pid} with content $(cat ${OCF_RESKEY_pid})"
     # Spin waiting for the server to come up.
     while true; do
-    ceilometer_alarm_evaluator_monitor
+    aodh_evaluator_monitor
     rc=$?
     [ $rc -eq $OCF_SUCCESS ] && break
     if [ $rc -ne $OCF_NOT_RUNNING ]; then
-        ocf_log err "OpenStack Ceilometer Alarm Evaluator (ceilometer-alarm-evaluator) start failed"
+        ocf_log err "OpenStack Aodh Evaluator (aodh-evaluator) start failed"
         exit $OCF_ERR_GENERIC
     fi
     sleep 1
     done
 
-    ocf_log info "OpenStack Ceilometer Alarm Evaluator (ceilometer-alarm-evaluator) started"
+    ocf_log info "OpenStack Aodh Evaluator (aodh-evaluator) started"
     return $OCF_SUCCESS
 }
 
-ceilometer_alarm_evaluator_stop() {
+aodh_evaluator_stop() {
     local rc
     local shutdown_timeout=15
     if [ -n "$OCF_RESKEY_CRM_meta_timeout" ]; then
         shutdown_timeout=$(( ($OCF_RESKEY_CRM_meta_timeout/1000) ))
     fi
 
-    ceilometer_alarm_evaluator_status
+    aodh_evaluator_status
     rc="${?}"
     if [ "${rc}" -eq "${OCF_NOT_RUNNING}" ]; then
-        ocf_log info "OpenStack Ceilometer Alarm Evaluator (${OCF_RESKEY_binary}) already stopped"
+        ocf_log info "OpenStack Aodh Evaluator (${OCF_RESKEY_binary}) already stopped"
         return "${OCF_SUCCESS}"
     fi
 
@@ -274,14 +273,14 @@ case "$1" in
 esac
 
 # Anything except meta-data and help must pass validation
-ceilometer_alarm_evaluator_validate || exit $?
+aodh_evaluator_validate || exit $?
 
 # What kind of method was invoked?
 case "$1" in
-  start) ceilometer_alarm_evaluator_start;;
-  stop) ceilometer_alarm_evaluator_stop;;
-  status) ceilometer_alarm_evaluator_status;;
-  monitor) ceilometer_alarm_evaluator_monitor;;
+  start) aodh_evaluator_start;;
+  stop) aodh_evaluator_stop;;
+  status) aodh_evaluator_status;;
+  monitor) aodh_evaluator_monitor;;
   validate-all) ;;
   *) usage
                 exit $OCF_ERR_UNIMPLEMENTED;;
