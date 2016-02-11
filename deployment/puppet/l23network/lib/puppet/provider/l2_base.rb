@@ -598,10 +598,14 @@ class Puppet::Provider::L2_base < Puppet::Provider::InterfaceToolset
           bond_properties[p_name] = get_value.to_s.gsub('"', '') unless get_value.to_s.empty?
         end
         slaves = []
-        each_port['interfaces'][1].collect{ |int| int[1] }.each do | sl |
-          slaves << ovs_vsctl(['get', 'interface', sl, 'name' ]).join().gsub('"', '')
+        # if bond has two interfaces it is an array
+        if each_port['interfaces'][1].is_a?(Array)
+          each_port['interfaces'][1].collect{ |int| int[1] }.each { | sl | slaves << sl }
+        else
+          # if bond has one interface it is just string
+          slaves << each_port['interfaces'][1]
         end
-        bond_list[bond_name][:slaves] = slaves
+        bond_list[bond_name][:slaves] = slaves.map { |slave| ovs_vsctl(['get', 'interface', slave, 'name' ]).join().gsub('"', '') }
         bond_list[bond_name][:bridge] = ovs_vsctl(['port-to-br', bond_name])[0]
         bond_list[bond_name][:bond_properties] = bond_properties
       end
