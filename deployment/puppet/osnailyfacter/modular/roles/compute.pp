@@ -333,33 +333,33 @@ class {'::nova::config':
 # Configure monit watchdogs
 # FIXME(bogdando) replace service_path and action to systemd, once supported
 if $use_monit_real {
-  monit::process { $nova_compute_name :
+  monit::check::process { $nova_compute_name :
     ensure        => running,
     matching      => '/usr/bin/python /usr/bin/nova-compute',
-    start_command => "${service_path} ${nova_compute_name} restart",
-    stop_command  => "${service_path} ${nova_compute_name} stop",
+    program_start => "${service_path} ${nova_compute_name} restart",
+    program_stop  => "${service_path} ${nova_compute_name} stop",
     pidfile       => false,
   }
   if $use_neutron {
-    monit::process { $ovs_vswitchd_name :
+    monit::check::process { $ovs_vswitchd_name :
       ensure        => running,
-      start_command => "${service_path} ${ovs_vswitchd_name} restart",
-      stop_command  => "${service_path} ${ovs_vswitchd_name} stop",
+      program_start => "${service_path} ${ovs_vswitchd_name} restart",
+      program_stop  => "${service_path} ${ovs_vswitchd_name} stop",
       pidfile       => '/var/run/openvswitch/ovs-vswitchd.pid',
     }
   } else {
-    monit::process { $nova_network_name :
+    monit::check::process { $nova_network_name :
       ensure        => running,
       matching      => '/usr/bin/python /usr/bin/nova-network',
-      start_command => "${service_path} ${nova_network_name} restart",
-      stop_command  => "${service_path} ${nova_network_name} stop",
+      program_start => "${service_path} ${nova_network_name} restart",
+      program_stop  => "${service_path} ${nova_network_name} stop",
       pidfile       => false,
     }
-    monit::process { $nova_api_name :
+    monit::check::process { $nova_api_name :
       ensure        => running,
       matching      => '/usr/bin/python /usr/bin/nova-api',
-      start_command => "${service_path} ${nova_api_name} restart",
-      stop_command  => "${service_path} ${nova_api_name} stop",
+      program_start => "${service_path} ${nova_api_name} restart",
+      program_stop  => "${service_path} ${nova_api_name} stop",
       pidfile       => false,
     }
   }
