@@ -23,6 +23,7 @@ class openstack::ceilometer (
   $keystone_user              = 'ceilometer',
   $keystone_tenant            = 'services',
   $keystone_region            = 'RegionOne',
+  $keystone_protocol          = 'http',
   $metering_secret            = 'ceilometer',
   $verbose                    =  false,
   $use_syslog                 =  false,
@@ -133,12 +134,6 @@ class openstack::ceilometer (
       collector_workers => $collector_workers,
     }
 
-    class { '::ceilometer::alarm::evaluator':
-      evaluation_interval => 60,
-    }
-
-    class { '::ceilometer::alarm::notifier': }
-
     class { '::ceilometer::agent::notification':
       notification_workers => $notification_workers,
       store_events         => true,
@@ -156,22 +151,6 @@ class openstack::ceilometer (
     }
   }
 
-  if $ha_mode {
-    include ceilometer_ha::alarm::evaluator
-
-    case $::osfamily {
-      'RedHat': {
-        $alarm_package = $::ceilometer::params::alarm_package_name[0]
-      }
-      'Debian': {
-        $alarm_package = $::ceilometer::params::alarm_package_name[1]
-      }
-    }
-
-    Package[$::ceilometer::params::common_package_name] -> Class['ceilometer_ha::alarm::evaluator']
-    Package[$alarm_package] -> Class['ceilometer_ha::alarm::evaluator']
-  }
-
   if ($swift_rados_backend) {
     ceilometer_config {
       'DEFAULT/swift_rados_backend' : value => true;
@@ -182,14 +161,6 @@ class openstack::ceilometer (
     ceilometer_config {
       'DEFAULT/use_syslog_rfc_format': value => true;
     }
-  }
-
-  Package<| title == $::ceilometer::params::alarm_package or
-    title == 'ceilometer-common'|> ~>
-  Service<| title == 'ceilometer-alarm-evaluator'|>
-
-  if !defined(Service['ceilometer-alarm-evaluator']) {
-    notify{ "Module ${module_name} cannot notify service ceilometer-alarm-evaluator on packages update": }
   }
 
   if ($on_compute) {

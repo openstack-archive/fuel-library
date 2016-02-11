@@ -92,6 +92,7 @@ $syslog_log_facility_sahara     = hiera('syslog_log_facility_sahara','LOG_LOCAL0
 $syslog_log_facility_ceilometer = hiera('syslog_log_facility_ceilometer','LOG_LOCAL0')
 $syslog_log_facility_ceph       = hiera('syslog_log_facility_ceph','LOG_LOCAL0')
 $syslog_log_facility_ironic     = hiera('syslog_log_facility_ironic','LOG_LOCAL0')
+$syslog_log_facility_aodh       = hiera('syslog_log_facility_aodh','LOG_LOCAL0')
 
 $nova_report_interval           = hiera('nova_report_interval', 60)
 $nova_service_down_time         = hiera('nova_service_down_time', 180)
@@ -365,6 +366,10 @@ $glance_nodes = $controller_nodes
 # todo: use special node-roles instead controllers in the future
 $ceilometer_nodes = $controller_nodes
 
+# Define aodh-related variables:
+# todo: use special node-roles instead controllers in the future
+$aodh_nodes = $controller_nodes
+
 # Define memcached-related variables:
 $memcache_roles = hiera('memcache_roles', ['primary-controller', 'controller'])
 
@@ -416,6 +421,11 @@ $ceilometer_defaults = {
 }
 
 $real_ceilometer_hash = merge($ceilometer_defaults, $ceilometer)
+
+# Define aodh-related paramteres
+$aodh = hiera('aodh', {})
+# aodh enabled only if ceilometer enabled
+$use_aodh = $use_ceilometer
 
 # Define database-related variables:
 # todo: use special node-roles instead controllers in the future

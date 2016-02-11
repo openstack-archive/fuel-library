@@ -115,6 +115,11 @@ describe manifest do
         should contain_ceilometer_config('collector/workers').with(:value => service_workers)
         should contain_ceilometer_config('notification/workers').with(:value => service_workers)
       end
+
+      it 'should configure OS credentials' do
+        should contain_ceilometer_config('service_credentials/os_auth_url').with(:value => internal_auth_protocol)
+      end
+
     end
 
   end # end of shared_examples
