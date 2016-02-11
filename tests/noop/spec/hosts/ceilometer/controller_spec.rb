@@ -115,6 +115,11 @@ describe manifest do
         should contain_ceilometer_config('collector/workers').with(:value => service_workers)
         should contain_ceilometer_config('notification/workers').with(:value => service_workers)
       end
+
+      it 'should configure auth url' do
+        should contain_ceilometer_config('service_credentials/os_auth_url').with(:value => keystone_auth_uri)
+      end
+
     end
 
   end # end of shared_examples

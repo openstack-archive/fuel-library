@@ -206,6 +206,11 @@ class openstack::logging (
       content => template("${module_name}/51-ceilometer.conf.erb"),
     }
 
+    file { "${::rsyslog::params::rsyslog_d}53-aodh.conf":
+      ensure => present,
+      content => template("${module_name}/53-aodh.conf.erb"),
+    }
+
     file { "${::rsyslog::params::rsyslog_d}54-heat.conf":
       ensure => present,
       content => template("${module_name}/54-heat.conf.erb"),
