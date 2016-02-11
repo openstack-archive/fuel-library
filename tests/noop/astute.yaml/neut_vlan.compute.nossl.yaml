@@ -384,6 +384,7 @@ network_metadata:
         mgmt/database: 10.122.7.3
         sahara/api: 10.122.7.3
         ceilometer/api: 10.122.7.3
+        aodh/api: 10.122.7.3
         ceph/public: 10.122.7.3
         mgmt/messaging: 10.122.7.3
         management: 10.122.7.3
@@ -420,6 +421,7 @@ network_metadata:
         mgmt/database: 10.122.7.2
         sahara/api: 10.122.7.2
         ceilometer/api: 10.122.7.2
+        aodh/api: 10.122.7.2
         ceph/public: 10.122.7.2
         mgmt/messaging: 10.122.7.2
         management: 10.122.7.2
@@ -457,6 +459,7 @@ network_metadata:
         sahara/api: 10.122.7.1
         heat/api: 10.122.7.1
         ceilometer/api: 10.122.7.1
+        aodh/api: 10.122.7.1
         ex: 10.122.6.2
         ceph/public: 10.122.7.1
         mgmt/messaging: 10.122.7.1
@@ -497,6 +500,7 @@ network_metadata:
         sahara/api: 10.122.7.5
         heat/api: 10.122.7.5
         ceilometer/api: 10.122.7.5
+        aodh/api: 10.122.7.5
         ex: 10.122.6.3
         ceph/public: 10.122.7.5
         mgmt/messaging: 10.122.7.5
@@ -537,6 +541,7 @@ network_metadata:
         sahara/api: 10.122.7.4
         heat/api: 10.122.7.4
         ceilometer/api: 10.122.7.4
+        aodh/api: 10.122.7.4
         ex: 10.122.6.4
         ceph/public: 10.122.7.4
         mgmt/messaging: 10.122.7.4
@@ -627,6 +632,7 @@ network_scheme:
     mgmt/database: br-mgmt
     sahara/api: br-mgmt
     ceilometer/api: br-mgmt
+    aodh/api: br-mgmt
     ceph/public: br-mgmt
     mgmt/messaging: br-mgmt
     management: br-mgmt

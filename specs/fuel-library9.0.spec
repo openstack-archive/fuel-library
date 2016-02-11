@@ -108,7 +108,7 @@ install -m 0755 %{files_source}/fuel-ha-utils/ocf/rabbitmq-fuel %{buildroot}/usr
 install -m 0755 %{files_source}/fuel-ha-utils/ocf/set_rabbitmq_policy.sh %{buildroot}/usr/lib/ocf/resource.d/fuel/set_rabbitmq_policy.sh
 install -m 0755 %{files_source}/fuel-ha-utils/ocf/ns_IPaddr2 %{buildroot}/usr/lib/ocf/resource.d/fuel/ns_IPaddr2
 install -m 0755 %{files_source}/fuel-ha-utils/ocf/ceilometer-agent-central %{buildroot}/usr/lib/ocf/resource.d/fuel/ceilometer-agent-central
-install -m 0755 %{files_source}/fuel-ha-utils/ocf/ceilometer-alarm-evaluator %{buildroot}/usr/lib/ocf/resource.d/fuel/ceilometer-alarm-evaluator
+install -m 0755 %{files_source}/fuel-ha-utils/ocf/aodh-evaluator %{buildroot}/usr/lib/ocf/resource.d/fuel/aodh-evaluator
 install -m 0755 %{files_source}/fuel-ha-utils/ocf/nova-compute %{buildroot}/usr/lib/ocf/resource.d/fuel/nova-compute
 install -m 0755 %{files_source}/fuel-ha-utils/ocf/nova-network %{buildroot}/usr/lib/ocf/resource.d/fuel/nova-network
 install -m 0755 %{files_source}/fuel-ha-utils/ocf/ceilometer-agent-compute %{buildroot}/usr/lib/ocf/resource.d/fuel/ceilometer-agent-compute

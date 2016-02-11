@@ -121,6 +121,7 @@ network_metadata:
         sahara/api: 192.168.0.1
         heat/api: 192.168.0.1
         ceilometer/api: 192.168.0.1
+        aodh/api: 192.168.0.1
         ex:
         ceph/public: 192.168.0.1
         ceph/radosgw:
@@ -161,6 +162,7 @@ network_metadata:
         sahara/api: 192.168.0.2
         heat/api: 192.168.0.2
         ceilometer/api: 192.168.0.2
+        aodh/api: 192.168.0.2
         ex:
         ceph/public: 192.168.0.2
         ceph/radosgw:
@@ -201,6 +203,7 @@ network_metadata:
         sahara/api: 192.168.0.3
         heat/api: 192.168.0.3
         ceilometer/api: 192.168.0.3
+        aodh/api: 192.168.0.3
         ex: 172.16.0.2
         ceph/public: 192.168.0.3
         ceph/radosgw: 172.16.0.2
@@ -241,6 +244,7 @@ network_metadata:
         sahara/api: 192.168.0.4
         heat/api: 192.168.0.4
         ceilometer/api: 192.168.0.4
+        aodh/api: 192.168.0.4
         ex:
         ceph/public: 192.168.0.4
         ceph/radosgw:
@@ -281,6 +285,7 @@ network_metadata:
         sahara/api: 192.168.0.5
         heat/api: 192.168.0.5
         ceilometer/api: 192.168.0.5
+        aodh/api: 192.168.0.5
         ex:
         ceph/public: 192.168.0.5
         ceph/radosgw:
@@ -321,6 +326,7 @@ network_metadata:
         sahara/api: 192.168.0.8
         heat/api: 192.168.0.8
         ceilometer/api: 192.168.0.8
+        aodh/api: 192.168.0.8
         ex: 172.16.0.8
         ceph/public: 192.168.0.8
         ceph/radosgw: 172.16.0.8
@@ -454,6 +460,7 @@ network_scheme:
     mgmt/database: br-mgmt
     sahara/api: br-mgmt
     ceilometer/api: br-mgmt
+    aodh/api: br-mgmt
     mgmt/vip: br-mgmt
     ceph/public: br-mgmt
     mgmt/messaging: br-mgmt
@@ -858,6 +865,15 @@ tasks:
     puppet_modules: /etc/puppet/modules
     timeout: 3600
   priority: 1700
+  type: puppet
+  uids:
+  - '125'
+- parameters:
+    cwd: /
+    puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/aodh/aodh.pp
+    puppet_modules: /etc/puppet/modules
+    timeout: 3600
+  priority: 1800
   type: puppet
   uids:
   - '125'

@@ -391,6 +391,7 @@ network_metadata:
         sahara/api: 192.168.0.3
         heat/api: 192.168.0.3
         ceilometer/api: 192.168.0.3
+        aodh/api: 192.168.0.3
         ex: 172.16.51.117
         ceph/public: 192.168.0.3
         mgmt/messaging: 192.168.0.3
@@ -431,6 +432,7 @@ network_metadata:
         mgmt/database: 192.168.0.4
         sahara/api: 192.168.0.4
         ceilometer/api: 192.168.0.4
+        aodh/api: 192.168.0.4
         mgmt/vip: 192.168.0.4
         ceph/public: 192.168.0.4
         mgmt/messaging: 192.168.0.4
@@ -540,6 +542,7 @@ network_scheme:
     mgmt/database: br-mgmt
     sahara/api: br-mgmt
     ceilometer/api: br-mgmt
+    aodh/api: br-mgmt
     ceph/public: br-mgmt
     mgmt/messaging: br-mgmt
     management: br-mgmt
