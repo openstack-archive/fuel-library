@@ -5,6 +5,7 @@ $network_metadata = hiera_hash('network_metadata')
 $ironic_hash      = hiera_hash('ironic', {})
 $roles            = hiera('roles')
 
+$aodh_port                    = 8042
 $ceilometer_port              = 8777
 $corosync_input_port          = 5404
 $corosync_output_port         = 5405
@@ -310,6 +311,12 @@ if member($roles, 'primary-controller') or member($roles, 'controller') {
 
   firewall {'121 ceilometer':
     port   => $ceilometer_port,
+    proto  => 'tcp',
+    action => 'accept',
+  }
+
+  firewall {'122 aodh':
+    port   => $aodh_port,
     proto  => 'tcp',
     action => 'accept',
   }
