@@ -1,5 +1,4 @@
-module Puppet::Parser::Functions
-  newfunction(:get_ssl_property, :type => :rvalue, :doc => <<-EOS
+Puppet::Parser::Functions::newfunction(:get_ssl_property, :type => :rvalue, :doc => <<-EOS
 Get SSL properties for services based on SSL hashes
 Parameters:
  use_ssl_hash - hash with data for all TLS settings of all services
@@ -17,7 +16,6 @@ EOS
 
     fail "You should provide all arguments!" if args.length != 6
 
-    rval = false
     fail "You should provide hash as a first argument!" if not use_ssl_hash.is_a?(Hash)
     fail "You should provide hash as a second argument!" if not public_ssl_hash.is_a?(Hash)
     fail "You should provide 'name' for service as a third argument!" if service_name.empty?
@@ -25,50 +23,118 @@ EOS
     fail "You should provide 'type' for resource as a fifth argument!" if resource_type.empty?
     fail "You should provide some default value as a sixth argument!" if default_value.nil?
 
-    check_ns_public = service_type.to_s == 'public'
+    class GetData
+      def initialize(use_ssl_hash, public_ssl_hash, default_value, service_type, service_name, resource_type)
+        @use_ssl_hash = use_ssl_hash
+        @public_ssl_hash = public_ssl_hash
+        if default_value.is_a?(Array)
+          default_value.each do |x|
+            if !!x == x or (x.is_a?(String) and !x.empty?)
+              @default_value = x
+              break
+            end
+          end
+        else
+          @default_value = default_value
+        end
+        @service_type = service_type
+        @service_name = service_name
+        @resource_type = resource_type
+      end
 
-    check_ssl = false
-    check_ssl = true if use_ssl_hash["#{service_name}_#{service_type}"]
-    check_ssl = true if check_ns_public and public_ssl_hash['services']
-    check_ssl = true if use_ssl_hash.empty? and public_ssl_hash.empty? and default_value == 'https'
-    check_ssl = true if use_ssl_hash.empty? and service_type != 'public' and default_value == 'https'
-    check_ssl = true if use_ssl_hash.empty? and public_ssl_hash.empty? and resource_type == 'usage' and default_value
-    check_ssl = true if use_ssl_hash.empty? and service_type != 'public' and resource_type == 'usage' and default_value
+      def get_protocol(flag)
+        if (@use_ssl_hash.empty? and @public_ssl_hash.empty?) or (@use_ssl_hash.empty? and @service_type != 'public')
+          return @default_value
+        end
+        flag ? 'https' : 'http'
+      end
 
+      def get_path(is_custom)
+        if (@use_ssl_hash.empty? and @public_ssl_hash.empty?) or (@use_ssl_hash.empty? and @service_type != 'public')
+          return @default_value
+        end
+        path = '/var/lib/astute/haproxy/' + @service_type.to_s + '_haproxy.pem'
+        if is_custom
+          path = '/var/lib/astute/haproxy/' + @service_type.to_s + '_' + @service_name.to_s + '.pem'
+        end
+        path
+      end
+
+      def get_usage(flag)
+        if flag.nil?
+          return @default_value
+        end
+        flag
+      end
+
+      def get_hostname(is_custom)
+        if (@use_ssl_hash.empty? and @public_ssl_hash.empty?) or (@use_ssl_hash.empty? and @service_type != 'public')
+          return @default_value
+        end
+        hostname = @public_ssl_hash[@resource_type] or @default_value
+        if is_custom
+          hostname = @use_ssl_hash["#{@service_name}_#{@service_type}_hostname"] or @default_value
+        end
+        hostname
+      end
+    end
+
+    i = GetData.new(use_ssl_hash, public_ssl_hash, default_value, service_type, service_name, resource_type)
     case resource_type.to_s
     when 'protocol'
-      rval = check_ssl ? 'https' : 'http'
+      if not use_ssl_hash.empty?
+        i.get_protocol(use_ssl_hash["#{service_name}_#{service_type}"])
+      else
+        if service_name == 'horizon' and service_type == 'public'
+          i.get_protocol(public_ssl_hash['horizon'])
+        elsif service_type == 'public'
+          i.get_protocol(public_ssl_hash['services'])
+        else
+          default_value
+        end
+      end
 
     when 'hostname'
-      if check_ssl and check_ns_public
-        get_variables = function_try_get_value([use_ssl_hash, "#{service_name}_#{service_type}_#{resource_type}", ''])
-        rval = function_pick([get_variables, public_ssl_hash[resource_type], *default_value])
-      elsif check_ssl
-        get_variables = function_try_get_value([use_ssl_hash, "#{service_name}_#{service_type}_#{resource_type}", ''])
-        rval = function_pick([get_variables, *default_value])
+      if not use_ssl_hash.empty?
+        i.get_hostname(true)
       else
-        rval = function_pick(default_value, false)
+        i.get_hostname(false)
       end
 
     when 'usage'
-      rval = check_ssl ? true : false
+      if not use_ssl_hash.empty?
+        i.get_usage(use_ssl_hash["#{service_name}_#{service_type}"])
+      else
+        if service_name == 'horizon' and service_type == 'public'
+          i.get_usage(public_ssl_hash['horizon'])
+        elsif service_type == 'public'
+          i.get_usage(public_ssl_hash['services'])
+        else
+          if !!default_value == default_value
+            default_value
+          else
+            if default_value.is_a?(Array)
+              default_value.each do |x|
+                if !!x == x or (x.is_a?(String) and !x.empty?)
+                  default_value = x
+                  break
+                end
+              end
+            end
+            default_value
+          end
+        end
+      end
 
     when 'path'
-      bpath = '/var/lib/astute/haproxy/'
-      if check_ns_public
-        if use_ssl_hash["#{service_name}_#{service_type}"]
-          rval = bpath + service_type.to_s + '_' + service_name + '.pem'
-        elsif public_ssl_hash['services']
-          rval = bpath + service_type.to_s + '_haproxy.pem'
-        else
-          rval = ''
-        end
+      if not use_ssl_hash.empty?
+        i.get_path(true)
       else
-        rval = bpath + service_type.to_s + '_' + service_name + '.pem'
+        i.get_path(false)
       end
+
     else
       fail "You should choose 'protocol', 'hostname', 'usage' or 'path' for service!"
     end
-    rval
-  end
 end
+
