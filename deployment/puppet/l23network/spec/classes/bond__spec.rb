@@ -1,4 +1,5 @@
 require 'spec_helper'
+require 'pry'
 
 describe 'l23network::examples::run_network_scheme', :type => :class do
 let(:network_scheme) do
@@ -30,6 +31,7 @@ end
 
   context 'with bond (lnx) two interfaces' do
     let(:title) { 'empty network scheme' }
+    let(:osfamily) { 'Ubuntu' }
     let(:facts) {
       {
         :osfamily => 'Debian',

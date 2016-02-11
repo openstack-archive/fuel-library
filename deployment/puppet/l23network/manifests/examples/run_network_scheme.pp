@@ -3,6 +3,9 @@ class l23network::examples::run_network_scheme (
   $settings_yaml
 ){
 
+    # this need for run spec tests only
+    Package<||> { provider => apt }
+
     class {'::l23network': }
 
     $config = parseyaml($settings_yaml)
