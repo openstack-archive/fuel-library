@@ -48,9 +48,7 @@ describe 'openstack::ceilometer' do
       it { is_expected.to contain_class('ceilometer::db') }
       it { is_expected.to contain_class('ceilometer::expirer') }
       it { is_expected.to contain_class('ceilometer::agent::notification') }
-      it { is_expected.to contain_class('ceilometer::alarm::evaluator') }
       it { is_expected.to contain_class('ceilometer::collector') }
-      it { is_expected.to contain_class('ceilometer::alarm::notifier') }
       it { is_expected.to contain_class('ceilometer::client') }
 
       it { is_expected.to contain_class('ceilometer::agent::auth').with(
