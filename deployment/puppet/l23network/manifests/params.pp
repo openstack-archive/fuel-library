@@ -3,7 +3,7 @@
 class l23network::params {
   $monolith_bond_providers = ['ovs']
 
-  case $::l23_os {
+  case $l23_os {
     /(?i)ubuntu/: {
       $interfaces_dir            = '/etc/network/interfaces.d'
       $interfaces_file           = '/etc/network/interfaces'
@@ -18,6 +18,7 @@ class l23network::params {
       $ovs_kern_module_name      = 'openvswitch'
       $network_manager_name      = 'network-manager'
       $extra_tools               = 'iputils-arping'
+      notice("L23_os ${l23_os}")
     }
     /(?i:redhat|centos)/: {
       $interfaces_dir            = '/etc/sysconfig/network-scripts'
@@ -33,6 +34,7 @@ class l23network::params {
       $ovs_kern_module_name      = 'openvswitch'
       $network_manager_name      = 'NetworkManager'
       $extra_tools               = 'iputils'
+      notice("L23_os ${l23_os}")
     }
     /(?i)darwin/: {
       $interfaces_dir            = '/tmp/1'
@@ -44,10 +46,15 @@ class l23network::params {
       $lnx_bridge_tools          = undef
       $ovs_datapath_package_name = undef
       $ovs_common_package_name   = undef
-      $ovs_kern_module_name      = unedf
+      $ovs_kern_module_name      = undef
+      $network_manager_name      = undef
+      notice("L23_os ${::l23_os}")
     }
     default: {
-      fail("Unsupported OS: ${::l23_os}/${::operatingsystem}")
+      notice("L23_os UNDEF")
+      fail("Unsupported OS: ${l23_os}/${::operatingsystem}")
     }
   }
+  notice("L23_os XXX ${l23_os}")
+
 }

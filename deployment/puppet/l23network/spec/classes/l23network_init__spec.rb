@@ -24,11 +24,14 @@ describe 'l23network', :type => :class do
       should contain_package('ethtool').with_ensure('present')
       should contain_package('ifenslave').with_ensure('present')
       should contain_package('vlan').with_ensure('present')
-      should contain_package('network-manager').with_ensure('purged')
       should contain_anchor('l23network::l2::init').that_comes_before('Anchor[l23network::init]')
       should contain_anchor('l23network::l2::init').that_requires('Package[vlan]')
       should contain_anchor('l23network::l2::init').that_requires('Package[ifenslave]')
       should contain_anchor('l23network::l2::init').that_requires('Package[ethtool]')
+    end
+
+    it do
+      should contain_package('network-manager').with_ensure('purged')
     end
   end
 
@@ -53,10 +56,15 @@ describe 'l23network', :type => :class do
       should contain_package('ethtool').with_ensure('present')
       should_not contain_package('ifenslave').with_ensure('present')
       should_not contain_package('vlan').with_ensure('present')
-      should contain_package('NetworkManager').with_ensure('purged')
-      should_not contain_service('NetworkManager').with_ensure('stopped')
       should contain_anchor('l23network::l2::init').that_comes_before('Anchor[l23network::init]')
       should contain_anchor('l23network::l2::init').that_requires('Package[ethtool]')
+    end
+
+    it do
+      should contain_package('NetworkManager').with_ensure('purged')
+    end
+    it do
+      should_not contain_service('NetworkManager').with_ensure('stopped')
     end
   end
 
@@ -81,10 +89,15 @@ describe 'l23network', :type => :class do
       should contain_package('ethtool').with_ensure('present')
       should_not contain_package('ifenslave').with_ensure('present')
       should_not contain_package('vlan').with_ensure('present')
-      should contain_package('NetworkManager').with_ensure('purged')
-      should contain_service('NetworkManager').with_ensure('stopped')
       should contain_anchor('l23network::l2::init').that_comes_before('Anchor[l23network::init]')
       should contain_anchor('l23network::l2::init').that_requires('Package[ethtool]')
+    end
+
+    it do
+      should contain_package('NetworkManager').with_ensure('purged')
+    end
+    it do
+      should contain_service('NetworkManager').with_ensure('stopped')
     end
   end
 
