@@ -541,6 +541,7 @@ repo_setup:
     local: "/var/www/nailgun/ubuntu/x86_64/images/initrd.gz"
     remote_relative: dists/trusty/main/installer-amd64/current/images/netboot/ubuntu-installer/amd64/initrd.gz
 deployment_mode: ha_compact
+management_vrouter_vip: 172.16.1.2
 novanetwork_parameters:
   vlan_start: 103
   network_manager: VlanManager
