@@ -103,7 +103,7 @@ describe manifest do
     it 'should configure glance cache config' do
       should contain_glance_cache_config('DEFAULT/use_syslog').with_value(use_syslog)
       should contain_glance_cache_config('DEFAULT/image_cache_dir').with_value('/var/lib/glance/image-cache/')
-      should contain_glance_cache_config('DEFAULT/log_file').with_value('/var/log/glance/image-cache.log')
+      should contain_glance_cache_config('DEFAULT/log_file').with_value('/var/log/glance/cache.log')
       should contain_glance_cache_config('DEFAULT/image_cache_stall_time').with_value('86400')
       should contain_glance_cache_config('DEFAULT/os_region_name').with_value(region)
       should contain_glance_cache_config('glance_store/os_region_name').with_value(region)
