@@ -1,6 +1,10 @@
 fixtures:
+  forge_modules:
+    stdlib:
+      repo: "puppetlabs/stdlib"
+      ref:  "4.9.0"
+    filemapper:
+      repo: "adrien/filemapper"
+      ref:  "1.1.3"
   symlinks:
     l23network: "#{source_dir}"
-    stdlib: "#{source_dir}/../stdlib"
-    sysctl: "#{source_dir}/../sysctl"
-    filemapper: "#{source_dir}/../filemapper"

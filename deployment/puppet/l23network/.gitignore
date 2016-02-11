@@ -15,7 +15,6 @@ rdoc
 spec/reports
 spec/fixtures/modules/filemapper
 spec/fixtures/modules/stdlib
-spec/fixtures/modules/sysctl
 test/tmp
 test/version_tmp
 tmp
