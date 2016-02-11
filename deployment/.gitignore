@@ -2,6 +2,7 @@ Puppetfile.lock
 .tmp
 
 # add modules being managed via librarian-puppet under here
+puppet/aodh
 puppet/apache
 puppet/apt
 puppet/ceilometer
