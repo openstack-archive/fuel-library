@@ -30,6 +30,7 @@ describe Puppet::Type.type(:l3_ifconfig).provider(:lnx) do
 
   it "no existing IPs on the given NIC" do
     provider_class.stubs(:get_if_addr_mappings).with().returns({'eth1' => {:ipaddr =>[]}})
+    provider_class.expects(:iproute).with(['route', 'del', 'default', 'dev', 'eth1']).raises("Non-fatal-Error: Can't flush routes for interface 'eth1': XXX")
     provider.create
     provider_class.expects(:addr_flush).with('eth1', true)
     provider.flush
