@@ -14,7 +14,7 @@ describe 'get_ssl_property' do
     }
   end
 
-  let(:public_ssl_hash_disabled) do
+  let(:disabled_public_ssl_hash) do
     {
      'horizon' => false,
      'services' => false,
@@ -22,7 +22,7 @@ describe 'get_ssl_property' do
      'cert_data' => {
         'content' => 'somedataaboutyourkeypair'
      },
-     'hostname' => 'public.fuel.local'
+     'hostname' => 'disabled.public.fuel.local'
     }
   end
 
@@ -83,42 +83,211 @@ describe 'get_ssl_property' do
 
   end
 
+  context 'when both hashes is empty' do
+    context 'for public endpoints' do
+      it 'should get data from default values for horizon' do
+        is_expected.to run.with_params({}, {}, 'horizon', 'public', 'usage', false).and_return(false)
+        is_expected.to run.with_params({}, {}, 'horizon', 'public', 'usage', true).and_return(true)
+        is_expected.to run.with_params({}, {}, 'horizon', 'public', 'usage', 'just a string').and_return('just a string')
+        is_expected.to run.with_params({}, {}, 'horizon', 'public', 'usage', ['an array value']).and_return('an array value')
+        is_expected.to run.with_params({}, {}, 'horizon', 'public', 'usage', ['', 'an array value']).and_return('an array value')
+        is_expected.to run.with_params({}, {}, 'horizon', 'public', 'usage', [true]).and_return(true)
+        is_expected.to run.with_params({}, {}, 'horizon', 'public', 'usage', ['', true]).and_return(true)
+        is_expected.to run.with_params({}, {}, 'horizon', 'public', 'usage', ['', false]).and_return(false)
+        is_expected.to run.with_params({}, {}, 'horizon', 'public', 'usage', [true, false]).and_return(true)
+        is_expected.to run.with_params({}, {}, 'horizon', 'public', 'usage', [false, true]).and_return(false)
+        is_expected.to run.with_params({}, {}, 'horizon', 'public', 'hostname', 'horizon.fuel.local').and_return('horizon.fuel.local')
+        is_expected.to run.with_params({}, {}, 'horizon', 'public', 'hostname', ['horizon.fuel.local']).and_return('horizon.fuel.local')
+        is_expected.to run.with_params({}, {}, 'horizon', 'public', 'hostname', ['', 'horizon.fuel.local']).and_return('horizon.fuel.local')
+        is_expected.to run.with_params({}, {}, 'horizon', 'public', 'hostname', [nil, 'horizon.fuel.local']).and_return('horizon.fuel.local')
+        is_expected.to run.with_params({}, {}, 'horizon', 'public', 'hostname', ['horizon.fuel.local', 'second.fuel.local']).and_return('horizon.fuel.local')
+        is_expected.to run.with_params({}, {}, 'horizon', 'public', 'path', '/var/lib/somewhere').and_return('/var/lib/somewhere')
+        is_expected.to run.with_params({}, {}, 'horizon', 'public', 'protocol', 'http').and_return('http')
+        is_expected.to run.with_params({}, {}, 'horizon', 'public', 'protocol', 'https').and_return('https')
+        is_expected.to run.with_params({}, {}, 'horizon', 'public', 'protocol', ['https']).and_return('https')
+        is_expected.to run.with_params({}, {}, 'horizon', 'public', 'protocol', ['https', 'http']).and_return('https')
+        is_expected.to run.with_params({}, {}, 'horizon', 'public', 'protocol', ['', 'http']).and_return('http')
+        is_expected.to run.with_params({}, {}, 'horizon', 'public', 'protocol', [nil, 'https']).and_return('https')
+      end
+      it 'should get data from default values for other services' do
+        is_expected.to run.with_params({}, {}, 'keystone', 'public', 'usage', false).and_return(false)
+        is_expected.to run.with_params({}, {}, 'keystone', 'public', 'usage', true).and_return(true)
+        is_expected.to run.with_params({}, {}, 'keystone', 'public', 'usage', 'just a string').and_return('just a string')
+        is_expected.to run.with_params({}, {}, 'keystone', 'public', 'usage', ['an array value']).and_return('an array value')
+        is_expected.to run.with_params({}, {}, 'keystone', 'public', 'usage', ['', 'an array value']).and_return('an array value')
+        is_expected.to run.with_params({}, {}, 'keystone', 'public', 'usage', [true]).and_return(true)
+        is_expected.to run.with_params({}, {}, 'keystone', 'public', 'usage', ['', true]).and_return(true)
+        is_expected.to run.with_params({}, {}, 'keystone', 'public', 'usage', ['', false]).and_return(false)
+        is_expected.to run.with_params({}, {}, 'keystone', 'public', 'usage', [true, false]).and_return(true)
+        is_expected.to run.with_params({}, {}, 'keystone', 'public', 'usage', [false, true]).and_return(false)
+        is_expected.to run.with_params({}, {}, 'keystone', 'public', 'hostname', ['keystone.fuel.local']).and_return('keystone.fuel.local')
+        is_expected.to run.with_params({}, {}, 'keystone', 'public', 'hostname', ['', 'keystone.fuel.local']).and_return('keystone.fuel.local')
+        is_expected.to run.with_params({}, {}, 'keystone', 'public', 'hostname', [nil, 'keystone.fuel.local']).and_return('keystone.fuel.local')
+        is_expected.to run.with_params({}, {}, 'keystone', 'public', 'hostname', ['keystone.fuel.local', 'second.fuel.local']).and_return('keystone.fuel.local')
+        is_expected.to run.with_params({}, {}, 'keystone', 'public', 'path', '/var/lib/somewhere').and_return('/var/lib/somewhere')
+        is_expected.to run.with_params({}, {}, 'keystone', 'public', 'protocol', 'http').and_return('http')
+        is_expected.to run.with_params({}, {}, 'keystone', 'public', 'protocol', 'https').and_return('https')
+        is_expected.to run.with_params({}, {}, 'keystone', 'public', 'protocol', ['', 'https']).and_return('https')
+        is_expected.to run.with_params({}, {}, 'keystone', 'public', 'protocol', [nil, 'https']).and_return('https')
+      end
+    end
+    context 'for non-public endpoints' do
+      it 'should get data from default values for non-public endpoints' do
+
+        is_expected.to run.with_params({}, {}, 'keystone', 'internal', 'usage', false).and_return(false)
+        is_expected.to run.with_params({}, {}, 'keystone', 'internal', 'usage', true).and_return(true)
+        is_expected.to run.with_params({}, {}, 'keystone', 'internal', 'usage', 'just a string').and_return('just a string')
+        is_expected.to run.with_params({}, {}, 'keystone', 'internal', 'usage', ['an array value']).and_return('an array value')
+        is_expected.to run.with_params({}, {}, 'keystone', 'internal', 'usage', ['', 'an array value']).and_return('an array value')
+        is_expected.to run.with_params({}, {}, 'keystone', 'internal', 'usage', [true]).and_return(true)
+        is_expected.to run.with_params({}, {}, 'keystone', 'internal', 'usage', ['', true]).and_return(true)
+        is_expected.to run.with_params({}, {}, 'keystone', 'internal', 'usage', ['', false]).and_return(false)
+        is_expected.to run.with_params({}, {}, 'keystone', 'internal', 'usage', [true, false]).and_return(true)
+        is_expected.to run.with_params({}, {}, 'keystone', 'internal', 'usage', [false, true]).and_return(false)
+        is_expected.to run.with_params({}, {}, 'keystone', 'internal', 'hostname', ['keystone.internal.fuel.local']).and_return('keystone.internal.fuel.local')
+        is_expected.to run.with_params({}, {}, 'keystone', 'internal', 'hostname', ['', 'keystone.internal.fuel.local']).and_return('keystone.internal.fuel.local')
+        is_expected.to run.with_params({}, {}, 'keystone', 'internal', 'hostname', [nil, 'keystone.internal.fuel.local']).and_return('keystone.internal.fuel.local')
+        is_expected.to run.with_params({}, {}, 'keystone', 'internal', 'hostname', ['keystone.internal.fuel.local', 'second.fuel.local']).and_return('keystone.internal.fuel.local')
+        is_expected.to run.with_params({}, {}, 'keystone', 'internal', 'path', '/var/lib/astute/haproxy/internal_keystone.pem').and_return('/var/lib/astute/haproxy/internal_keystone.pem')
+        is_expected.to run.with_params({}, {}, 'keystone', 'internal', 'protocol', 'http').and_return('http')
+        is_expected.to run.with_params({}, {}, 'keystone', 'internal', 'protocol', 'https').and_return('https')
+        is_expected.to run.with_params({}, {}, 'keystone', 'internal', 'protocol', ['', 'https']).and_return('https')
+        is_expected.to run.with_params({}, {}, 'keystone', 'internal', 'protocol', [nil, 'https']).and_return('https')
+
+        is_expected.to run.with_params({}, {}, 'keystone', 'admin', 'usage', false).and_return(false)
+        is_expected.to run.with_params({}, {}, 'keystone', 'admin', 'usage', true).and_return(true)
+        is_expected.to run.with_params({}, {}, 'keystone', 'admin', 'usage', 'just a string').and_return('just a string')
+        is_expected.to run.with_params({}, {}, 'keystone', 'admin', 'usage', ['an array value']).and_return('an array value')
+        is_expected.to run.with_params({}, {}, 'keystone', 'admin', 'usage', ['', 'an array value']).and_return('an array value')
+        is_expected.to run.with_params({}, {}, 'keystone', 'admin', 'usage', [true]).and_return(true)
+        is_expected.to run.with_params({}, {}, 'keystone', 'admin', 'usage', ['', true]).and_return(true)
+        is_expected.to run.with_params({}, {}, 'keystone', 'admin', 'usage', ['', false]).and_return(false)
+        is_expected.to run.with_params({}, {}, 'keystone', 'admin', 'usage', [true, false]).and_return(true)
+        is_expected.to run.with_params({}, {}, 'keystone', 'admin', 'usage', [false, true]).and_return(false)
+        is_expected.to run.with_params({}, {}, 'keystone', 'admin', 'hostname', ['keystone.admin.fuel.local']).and_return('keystone.admin.fuel.local')
+        is_expected.to run.with_params({}, {}, 'keystone', 'admin', 'hostname', ['', 'keystone.admin.fuel.local']).and_return('keystone.admin.fuel.local')
+        is_expected.to run.with_params({}, {}, 'keystone', 'admin', 'hostname', [nil, 'keystone.admin.fuel.local']).and_return('keystone.admin.fuel.local')
+        is_expected.to run.with_params({}, {}, 'keystone', 'admin', 'hostname', ['keystone.admin.fuel.local', 'second.fuel.local']).and_return('keystone.admin.fuel.local')
+        is_expected.to run.with_params({}, {}, 'keystone', 'admin', 'path', '/var/lib/astute/haproxy/admin_keystone.pem').and_return('/var/lib/astute/haproxy/admin_keystone.pem')
+        is_expected.to run.with_params({}, {}, 'keystone', 'admin', 'protocol', 'http').and_return('http')
+        is_expected.to run.with_params({}, {}, 'keystone', 'admin', 'protocol', 'https').and_return('https')
+        is_expected.to run.with_params({}, {}, 'keystone', 'admin', 'protocol', ['', 'https']).and_return('https')
+        is_expected.to run.with_params({}, {}, 'keystone', 'admin', 'protocol', [nil, 'https']).and_return('https')
+      end
+    end
+  end
+
   context 'when first hash is empty' do
-    it 'should get data from auxilary hash for public endpoints' do
-      is_expected.to run.with_params({}, public_ssl_hash, 'keystone', 'public', 'usage', false).and_return(true)
-      is_expected.to run.with_params({}, public_ssl_hash, 'keystone', 'public', 'protocol', 'http').and_return('https')
-      is_expected.to run.with_params({}, public_ssl_hash, 'keystone', 'public', 'hostname', 'internal.fuel.local').and_return('public.fuel.local')
-      is_expected.to run.with_params({}, public_ssl_hash, 'keystone', 'public', 'path', '/root').and_return('/var/lib/astute/haproxy/public_haproxy.pem')
+    context 'for public endpoints' do
+      it 'should get data from auxilary hash for horizon' do
+        is_expected.to run.with_params({}, public_ssl_hash, 'horizon', 'public', 'usage', false).and_return(true)
+        is_expected.to run.with_params({}, public_ssl_hash, 'horizon', 'public', 'protocol', 'http').and_return('https')
+        is_expected.to run.with_params({}, public_ssl_hash, 'horizon', 'public', 'hostname', 'internal.fuel.local').and_return('public.fuel.local')
+        is_expected.to run.with_params({}, public_ssl_hash, 'horizon', 'public', 'path', '/root').and_return('/var/lib/astute/haproxy/public_haproxy.pem')
+
+        is_expected.to run.with_params({}, disabled_public_ssl_hash, 'horizon', 'public', 'usage', true).and_return(false)
+        is_expected.to run.with_params({}, disabled_public_ssl_hash, 'horizon', 'public', 'protocol', 'https').and_return('http')
+        is_expected.to run.with_params({}, disabled_public_ssl_hash, 'horizon', 'public', 'hostname', 'internal.fuel.local').and_return('disabled.public.fuel.local')
+        is_expected.to run.with_params({}, disabled_public_ssl_hash, 'horizon', 'public', 'path', '/root').and_return('/var/lib/astute/haproxy/public_haproxy.pem')
+      end
+      it 'should get data from auxilary hash for other services' do
+        is_expected.to run.with_params({}, public_ssl_hash, 'keystone', 'public', 'usage', false).and_return(true)
+        is_expected.to run.with_params({}, public_ssl_hash, 'keystone', 'public', 'protocol', 'http').and_return('https')
+        is_expected.to run.with_params({}, public_ssl_hash, 'keystone', 'public', 'hostname', 'internal.fuel.local').and_return('public.fuel.local')
+        is_expected.to run.with_params({}, public_ssl_hash, 'keystone', 'public', 'path', '/root').and_return('/var/lib/astute/haproxy/public_haproxy.pem')
+
+        is_expected.to run.with_params({}, disabled_public_ssl_hash, 'keystone', 'public', 'usage', true).and_return(false)
+        is_expected.to run.with_params({}, disabled_public_ssl_hash, 'keystone', 'public', 'protocol', 'https').and_return('http')
+        is_expected.to run.with_params({}, disabled_public_ssl_hash, 'keystone', 'public', 'hostname', 'internal.fuel.local').and_return('disabled.public.fuel.local')
+        is_expected.to run.with_params({}, disabled_public_ssl_hash, 'keystone', 'public', 'path', '/root').and_return('/var/lib/astute/haproxy/public_haproxy.pem')
+      end
+    end
+    context 'for non-public endpoints' do
+      it 'should get data from default values for non-public endpoints' do
+        is_expected.to run.with_params({}, public_ssl_hash, 'keystone', 'internal', 'usage', true).and_return(true)
+        is_expected.to run.with_params({}, public_ssl_hash, 'keystone', 'internal', 'protocol', 'https').and_return('https')
+        is_expected.to run.with_params({}, public_ssl_hash, 'keystone', 'internal', 'hostname', ['keystone.internal.fuel.local']).and_return('keystone.internal.fuel.local')
+        is_expected.to run.with_params({}, public_ssl_hash, 'keystone', 'internal', 'path', '/var/lib/astute/haproxy/internal_keystone.pem').and_return('/var/lib/astute/haproxy/internal_keystone.pem')
+        is_expected.to run.with_params({}, public_ssl_hash, 'keystone', 'admin', 'usage', true).and_return(true)
+        is_expected.to run.with_params({}, public_ssl_hash, 'keystone', 'admin', 'protocol', 'https').and_return('https')
+        is_expected.to run.with_params({}, public_ssl_hash, 'keystone', 'admin', 'hostname', ['keystone.admin.fuel.local']).and_return('keystone.admin.fuel.local')
+        is_expected.to run.with_params({}, public_ssl_hash, 'keystone', 'admin', 'path', '/var/lib/astute/haproxy/admin_keystone.pem').and_return('/var/lib/astute/haproxy/admin_keystone.pem')
+
+        is_expected.to run.with_params({}, public_ssl_hash, 'keystone', 'internal', 'usage', false).and_return(false)
+        is_expected.to run.with_params({}, public_ssl_hash, 'keystone', 'internal', 'usage', true).and_return(true)
+        is_expected.to run.with_params({}, public_ssl_hash, 'keystone', 'internal', 'usage', 'just a string').and_return('just a string')
+        is_expected.to run.with_params({}, public_ssl_hash, 'keystone', 'internal', 'usage', ['an array value']).and_return('an array value')
+        is_expected.to run.with_params({}, public_ssl_hash, 'keystone', 'internal', 'usage', ['', 'an array value']).and_return('an array value')
+        is_expected.to run.with_params({}, public_ssl_hash, 'keystone', 'internal', 'usage', [true]).and_return(true)
+        is_expected.to run.with_params({}, public_ssl_hash, 'keystone', 'internal', 'usage', ['', true]).and_return(true)
+        is_expected.to run.with_params({}, public_ssl_hash, 'keystone', 'internal', 'usage', ['', false]).and_return(false)
+        is_expected.to run.with_params({}, public_ssl_hash, 'keystone', 'internal', 'usage', [true, false]).and_return(true)
+        is_expected.to run.with_params({}, public_ssl_hash, 'keystone', 'internal', 'usage', [false, true]).and_return(false)
+        is_expected.to run.with_params({}, public_ssl_hash, 'keystone', 'internal', 'hostname', ['keystone.fuel.local']).and_return('keystone.fuel.local')
+        is_expected.to run.with_params({}, public_ssl_hash, 'keystone', 'internal', 'path', '/var/lib/somewhere').and_return('/var/lib/somewhere')
+        is_expected.to run.with_params({}, public_ssl_hash, 'keystone', 'internal', 'protocol', 'http').and_return('http')
+        is_expected.to run.with_params({}, public_ssl_hash, 'keystone', 'internal', 'protocol', 'https').and_return('https')
+
+        is_expected.to run.with_params({}, public_ssl_hash, 'keystone', 'admin', 'usage', false).and_return(false)
+        is_expected.to run.with_params({}, public_ssl_hash, 'keystone', 'admin', 'usage', true).and_return(true)
+        is_expected.to run.with_params({}, public_ssl_hash, 'keystone', 'admin', 'usage', 'just a string').and_return('just a string')
+        is_expected.to run.with_params({}, public_ssl_hash, 'keystone', 'admin', 'usage', ['an array value']).and_return('an array value')
+        is_expected.to run.with_params({}, public_ssl_hash, 'keystone', 'admin', 'usage', ['', 'an array value']).and_return('an array value')
+        is_expected.to run.with_params({}, public_ssl_hash, 'keystone', 'admin', 'usage', [true]).and_return(true)
+        is_expected.to run.with_params({}, public_ssl_hash, 'keystone', 'admin', 'usage', ['', true]).and_return(true)
+        is_expected.to run.with_params({}, public_ssl_hash, 'keystone', 'admin', 'usage', ['', false]).and_return(false)
+        is_expected.to run.with_params({}, public_ssl_hash, 'keystone', 'admin', 'usage', [true, false]).and_return(true)
+        is_expected.to run.with_params({}, public_ssl_hash, 'keystone', 'admin', 'usage', [false, true]).and_return(false)
+        is_expected.to run.with_params({}, public_ssl_hash, 'keystone', 'admin', 'hostname', ['keystone.fuel.local']).and_return('keystone.fuel.local')
+        is_expected.to run.with_params({}, public_ssl_hash, 'keystone', 'admin', 'path', '/var/lib/somewhere').and_return('/var/lib/somewhere')
+        is_expected.to run.with_params({}, public_ssl_hash, 'keystone', 'admin', 'protocol', 'http').and_return('http')
+        is_expected.to run.with_params({}, public_ssl_hash, 'keystone', 'admin', 'protocol', 'https').and_return('https')
+      end
+    end
+  end
+
+  context 'when second hash is empty' do
+    # there shouldn't be such case, cause first hash ALWAYS override second one
+  end
+
+  context 'when both hashes provided' do
+    context 'for public endpoints' do
+      it 'should get data from first hash for horizon' do
+        is_expected.to run.with_params(use_ssl_hash, disabled_public_ssl_hash, 'horizon', 'public', 'usage', false).and_return(true)
+        is_expected.to run.with_params(use_ssl_hash, disabled_public_ssl_hash, 'horizon', 'public', 'protocol', 'http').and_return('https')
+        is_expected.to run.with_params(use_ssl_hash, disabled_public_ssl_hash, 'horizon', 'public', 'hostname', ['no default']).and_return('horizon.public.fuel.local')
+        is_expected.to run.with_params(use_ssl_hash, disabled_public_ssl_hash, 'horizon', 'public', 'path', ['no default']).and_return('/var/lib/astute/haproxy/public_horizon.pem')
+
+        is_expected.to run.with_params(use_ssl_hash, public_ssl_hash, 'horizon', 'public', 'usage', false).and_return(true)
+        is_expected.to run.with_params(use_ssl_hash, public_ssl_hash, 'horizon', 'public', 'protocol', 'http').and_return('https')
+        is_expected.to run.with_params(use_ssl_hash, public_ssl_hash, 'horizon', 'public', 'hostname', ['no default']).and_return('horizon.public.fuel.local')
+        is_expected.to run.with_params(use_ssl_hash, public_ssl_hash, 'horizon', 'public', 'path', ['no default']).and_return('/var/lib/astute/haproxy/public_horizon.pem')
+      end
+      it 'should get data from first hash for other services' do
+        is_expected.to run.with_params(use_ssl_hash, disabled_public_ssl_hash, 'keystone', 'public', 'usage', false).and_return(true)
+        is_expected.to run.with_params(use_ssl_hash, disabled_public_ssl_hash, 'keystone', 'public', 'protocol', 'http').and_return('https')
+        is_expected.to run.with_params(use_ssl_hash, disabled_public_ssl_hash, 'keystone', 'public', 'hostname', ['no default']).and_return('keystone.public.fuel.local')
+        is_expected.to run.with_params(use_ssl_hash, disabled_public_ssl_hash, 'keystone', 'public', 'path', ['no default']).and_return('/var/lib/astute/haproxy/public_keystone.pem')
+
+        is_expected.to run.with_params(use_ssl_hash, public_ssl_hash, 'keystone', 'public', 'usage', false).and_return(true)
+        is_expected.to run.with_params(use_ssl_hash, public_ssl_hash, 'keystone', 'public', 'protocol', 'http').and_return('https')
+        is_expected.to run.with_params(use_ssl_hash, public_ssl_hash, 'keystone', 'public', 'hostname', ['no default']).and_return('keystone.public.fuel.local')
+        is_expected.to run.with_params(use_ssl_hash, public_ssl_hash, 'keystone', 'public', 'path', ['no default']).and_return('/var/lib/astute/haproxy/public_keystone.pem')
+      end
     end
 
-    it 'should get data from default values for non-public endpoints when empty hashes provided' do
-      is_expected.to run.with_params({}, {}, 'keystone', 'internal', 'usage', true).and_return(true)
-      is_expected.to run.with_params({}, {}, 'keystone', 'internal', 'protocol', 'https').and_return('https')
-      is_expected.to run.with_params({}, {}, 'keystone', 'internal', 'hostname', ['keystone.internal.fuel.local']).and_return('keystone.internal.fuel.local')
-      is_expected.to run.with_params({}, {}, 'keystone', 'internal', 'path', '/var/lib/astute/haproxy/internal_keystone.pem').and_return('/var/lib/astute/haproxy/internal_keystone.pem')
-      is_expected.to run.with_params({}, {}, 'keystone', 'admin', 'usage', true).and_return(true)
-      is_expected.to run.with_params({}, {}, 'keystone', 'admin', 'protocol', 'https').and_return('https')
-      is_expected.to run.with_params({}, {}, 'keystone', 'admin', 'hostname', ['keystone.admin.fuel.local']).and_return('keystone.admin.fuel.local')
-      is_expected.to run.with_params({}, {}, 'keystone', 'admin', 'path', '/var/lib/astute/haproxy/admin_keystone.pem').and_return('/var/lib/astute/haproxy/admin_keystone.pem')
-    end
+    context 'for non-public endpoints' do
+      it 'should get data from first hash for other services' do
+        is_expected.to run.with_params(use_ssl_hash, disabled_public_ssl_hash, 'keystone', 'internal', 'usage', false).and_return(true)
+        is_expected.to run.with_params(use_ssl_hash, disabled_public_ssl_hash, 'keystone', 'internal', 'protocol', 'http').and_return('https')
+        is_expected.to run.with_params(use_ssl_hash, disabled_public_ssl_hash, 'keystone', 'internal', 'hostname', ['no default']).and_return('keystone.internal.fuel.local')
+        is_expected.to run.with_params(use_ssl_hash, disabled_public_ssl_hash, 'keystone', 'internal', 'path', ['no default']).and_return('/var/lib/astute/haproxy/internal_keystone.pem')
 
-    it 'should get data from default values for non-public endpoints when public_ssl hash provided' do
-      is_expected.to run.with_params({}, public_ssl_hash, 'keystone', 'internal', 'usage', true).and_return(true)
-      is_expected.to run.with_params({}, public_ssl_hash, 'keystone', 'internal', 'protocol', 'https').and_return('https')
-      is_expected.to run.with_params({}, public_ssl_hash, 'keystone', 'internal', 'hostname', ['keystone.internal.fuel.local']).and_return('keystone.internal.fuel.local')
-      is_expected.to run.with_params({}, public_ssl_hash, 'keystone', 'internal', 'path', '/var/lib/astute/haproxy/internal_keystone.pem').and_return('/var/lib/astute/haproxy/internal_keystone.pem')
-      is_expected.to run.with_params({}, public_ssl_hash, 'keystone', 'admin', 'usage', true).and_return(true)
-      is_expected.to run.with_params({}, public_ssl_hash, 'keystone', 'admin', 'protocol', 'https').and_return('https')
-      is_expected.to run.with_params({}, public_ssl_hash, 'keystone', 'admin', 'hostname', ['keystone.admin.fuel.local']).and_return('keystone.admin.fuel.local')
-      is_expected.to run.with_params({}, public_ssl_hash, 'keystone', 'admin', 'path', '/var/lib/astute/haproxy/admin_keystone.pem').and_return('/var/lib/astute/haproxy/admin_keystone.pem')
+        is_expected.to run.with_params(use_ssl_hash, public_ssl_hash, 'keystone', 'internal', 'usage', false).and_return(true)
+        is_expected.to run.with_params(use_ssl_hash, public_ssl_hash, 'keystone', 'internal', 'protocol', 'http').and_return('https')
+        is_expected.to run.with_params(use_ssl_hash, public_ssl_hash, 'keystone', 'internal', 'hostname', ['no default']).and_return('keystone.internal.fuel.local')
+        is_expected.to run.with_params(use_ssl_hash, public_ssl_hash, 'keystone', 'internal', 'path', ['no default']).and_return('/var/lib/astute/haproxy/internal_keystone.pem')
+      end
     end
-
-    it 'should get data from first hash when it has data and both hashes provided' do
-      is_expected.to run.with_params(use_ssl_hash, public_ssl_hash_disabled, 'keystone', 'public', 'usage', false).and_return(true)
-      is_expected.to run.with_params(use_ssl_hash, public_ssl_hash_disabled, 'keystone', 'public', 'protocol', 'http').and_return('https')
-      is_expected.to run.with_params(use_ssl_hash, public_ssl_hash_disabled, 'keystone', 'public', 'hostname', ['no default']).and_return('keystone.public.fuel.local')
-      is_expected.to run.with_params(use_ssl_hash, public_ssl_hash_disabled, 'keystone', 'public', 'path', ['no default']).and_return('/var/lib/astute/haproxy/public_keystone.pem')
-    end
-
   end
 end
