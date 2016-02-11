@@ -1,0 +1,32 @@
+- id: aodh
+  type: puppet
+  version: 2.0.0
+  groups: [primary-controller, controller]
+  required_for: [ceilometer-controller, openstack-controller]
+  requires: [primary-keystone, keystone, openstack-haproxy]
+  cross-depends:
+    - name: aodh-db
+    - name: keystone
+  condition: "settings:additional_components.ceilometer.value == true"
+  parameters:
+    puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/aodh/aodh.pp
+    puppet_modules: /etc/puppet/modules
+    timeout: 3600
+  test_pre:
+    cmd: ruby /etc/puppet/modules/osnailyfacter/modular/aodh/aodh_pre.rb
+  test_post:
+    cmd: ruby /etc/puppet/modules/osnailyfacter/modular/aodh/aodh_post.rb
+
+- id: aodh-db
+  type: puppet
+  version: 2.0.0
+  groups: [primary-controller]
+  cross-depends:
+    - name: /(primary-)?database/
+  required_for: [aodh]
+  condition: "settings:additional_components.ceilometer.value == true"
+  requires: [primary-database, database]
+  parameters:
+    puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/aodh/db.pp
+    puppet_modules: /etc/puppet/modules
+    timeout: 1800
