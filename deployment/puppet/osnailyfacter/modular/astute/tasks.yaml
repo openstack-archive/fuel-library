@@ -93,7 +93,7 @@
 
 - id: configure_default_route
   type: puppet
-  role: [primary-mongo, mongo, compute, ceph-osd, cinder, zabbix-server]
+  role: [primary-mongo, mongo, compute, compute-vmware, ceph-osd, cinder, cinder-vmware, zabbix-server]
   requires: [post_deployment_start]
   required_for: [post_deployment_end]
   parameters:
