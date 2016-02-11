@@ -3,6 +3,8 @@
 <% globals.store "access_hash", @access_hash -%>
 <% globals.store "amqp_hosts", @amqp_hosts -%>
 <% globals.store "amqp_port", @amqp_port -%>
+<% globals.store "aodh_hash", @aodh -%>
+<% globals.store "aodh_nodes", @aodh_nodes -%>
 <% globals.store "apache_api_proxy_address", @apache_api_proxy_address -%>
 <% globals.store "apache_ports", @apache_ports -%>
 <% globals.store "base_mac", @base_mac -%>
@@ -79,6 +81,7 @@
 <% globals.store "swift_hash", @swift_hash -%>
 <% globals.store "syslog_hash", @syslog_hash -%>
 <% globals.store "default_log_levels", @default_log_levels -%>
+<% globals.store "aodh::logging::default_log_levels", @default_log_levels -%>
 <% globals.store "ceilometer::logging::default_log_levels", @default_log_levels -%>
 <% globals.store "cinder::logging::default_log_levels", @default_log_levels -%>
 <% globals.store "glance::api::logging::default_log_levels", @default_log_levels -%>
@@ -88,6 +91,7 @@
 <% globals.store "nova::logging::default_log_levels", @default_log_levels -%>
 <% globals.store "sahara::logging::default_log_levels", @default_log_levels -%>
 <% globals.store "ironic::logging::default_log_levels", @default_log_levels -%>
+<% globals.store "syslog_log_facility_aodh", @syslog_log_facility_aodh -%>
 <% globals.store "syslog_log_facility_ceilometer", @syslog_log_facility_ceilometer -%>
 <% globals.store "syslog_log_facility_ceph", @syslog_log_facility_ceph -%>
 <% globals.store "syslog_log_facility_cinder", @syslog_log_facility_cinder -%>
