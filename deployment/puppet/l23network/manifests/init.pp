@@ -117,10 +117,12 @@ class l23network (
   anchor { 'l23network::init': }
 
   unless $network_manager {
-    package{$::l23network::params::network_manager_name:
-      ensure => 'purged',
+    if defined($::l23network::params::network_manager_name) {
+      package{$::l23network::params::network_manager_name:
+        ensure => 'purged',
+      }
+      Package[$::l23network::params::network_manager_name] -> Anchor['l23network::init']
     }
-    Package[$::l23network::params::network_manager_name] -> Anchor['l23network::init']
 
     # It is not enough to just remove package, we have to stop the service as well.
     # Because SystemD continues running the service after package removing,

@@ -13,9 +13,7 @@ lib/bundler/man
 pkg
 rdoc
 spec/reports
-spec/fixtures/modules/filemapper
-spec/fixtures/modules/stdlib
-spec/fixtures/modules/sysctl
+spec/fixtures/modules
 test/tmp
 test/version_tmp
 tmp
