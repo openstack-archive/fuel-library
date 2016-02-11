@@ -66,6 +66,7 @@ class Puppet::Provider::L2_base < Puppet::Provider::InterfaceToolset
         :mtu          => File.open("#{if_dir}/mtu").read.chomp.to_i,
         :provider     => (if_name == 'ovs-system')  ?  'ovs'  :  'lnx' ,
       }
+      port[if_name][:mtu] = :absent if port[if_name][:mtu] == 1500
       # determine port_type for this iface
       peer_ifindex = self.get_iface_peer_index(if_name)
       if !peer_ifindex.nil?
@@ -517,6 +518,7 @@ class Puppet::Provider::L2_base < Puppet::Provider::InterfaceToolset
           :downdelay        => File.open("/sys/class/net/#{bond_name}/bonding/downdelay").read.chomp,
         }
       }
+      bond[bond_name][:mtu] = :absent if port[if_name][:mtu] == 1500
       if ['802.3ad', 'balance-xor', 'balance-tlb', 'balance-alb'].include? mode
         xmit_hash_policy = File.open("/sys/class/net/#{bond_name}/bonding/xmit_hash_policy").read.split(/\s+/)[0]
         bond[bond_name][:bond_properties][:xmit_hash_policy] = xmit_hash_policy
