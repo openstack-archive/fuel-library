@@ -116,20 +116,24 @@ class l23network (
   Anchor['l23network::l2::init'] -> Anchor['l23network::init']
   anchor { 'l23network::init': }
 
-  unless $network_manager {
-    package{$::l23network::params::network_manager_name:
-      ensure => 'purged',
+  if ! $network_manager {
+    if $::l23network::params::network_manager_name != undef {
+      package{$::l23network::params::network_manager_name:
+        ensure => 'purged',
+      }
+      Package[$::l23network::params::network_manager_name] -> Anchor['l23network::init']
     }
-    Package[$::l23network::params::network_manager_name] -> Anchor['l23network::init']
 
     # It is not enough to just remove package, we have to stop the service as well.
     # Because SystemD continues running the service after package removing,
     # with Upstart - all is ok.
-    if $::l23_os =~ /(?i:redhat7|centos7)/ {
+    if $::l23_os =~ /(?i)redhat7|centos7/ {
       service{$::l23network::params::network_manager_name:
         ensure => 'stopped',
       }
-      Package[$::l23network::params::network_manager_name] ~> Service[$::l23network::params::network_manager_name]
+      if $::l23network::params::network_manager_name != undef {
+        Package[$::l23network::params::network_manager_name] ~> Service[$::l23network::params::network_manager_name]
+      }
       Service[$::l23network::params::network_manager_name] -> Anchor['l23network::init']
     }
   }
