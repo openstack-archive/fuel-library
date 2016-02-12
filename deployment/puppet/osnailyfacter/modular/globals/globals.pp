@@ -1,14 +1,13 @@
 notice('MODULAR: globals.pp')
 
+$disable_globals_yaml = '_disabled'
+
 $service_token_off = false
 $globals_yaml_file = '/etc/hiera/globals.yaml'
 
 $base_facter_dir             = '/etc/facter'
 $facter_os_package_type_dir  = "${base_facter_dir}/facts.d"
 $facter_os_package_type_file = "${facter_os_package_type_dir}/os_package_type.txt"
-
-# remove cached globals values before anything else
-remove_file($globals_yaml_file)
 
 $network_scheme = hiera_hash('network_scheme', {})
 if empty($network_scheme) {
@@ -313,7 +312,7 @@ $max_retries              = hiera('max_retries', '-1')
 $idle_timeout             = hiera('idle_timeout','3600')
 $nova_db_password         = $nova_hash['db_password']
 # LP#1526938 - python-mysqldb supports this, python-pymysql does not
-if $::os_package_type == 'debian' {
+if $os_package_type_override == 'debian' {
   $extra_params = { 'charset' => 'utf8', 'read_timeout' => 60 }
 } else {
   $extra_params = { 'charset' => 'utf8' }
