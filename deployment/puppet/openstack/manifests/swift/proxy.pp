@@ -37,6 +37,7 @@ class openstack::swift::proxy (
   $ratelimit_account_ratelimit       = 0,
   $package_ensure                    = 'present',
   $swift_proxies_cache               = ['127.0.0.1'],
+  $cache_server_port                 = '11211',
   $primary_proxy                     = false,
   $swift_devices                     = undef,
   $master_swift_proxy_ip             = undef,
@@ -114,7 +115,7 @@ class openstack::swift::proxy (
   '::swift::proxy::slo',]:
   }
 
-  $cache_addresses = inline_template("<%= @swift_proxies_cache.uniq.sort.collect {|ip| ip + ':11211' }.join ',' %>")
+  $cache_addresses = join(suffix($swift_proxies_cache, ":${cache_server_port}"), ',')
 
   class { '::swift::proxy::cache': memcache_servers => split($cache_addresses, ',') }
 
