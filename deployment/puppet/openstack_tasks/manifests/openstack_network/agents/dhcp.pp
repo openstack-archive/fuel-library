@@ -26,7 +26,6 @@ class openstack_tasks::openstack_network::agents::dhcp {
       resync_interval          => $resync_interval,
       manage_service           => true,
       enable_isolated_metadata => $isolated_metadata,
-      dhcp_delete_namespaces   => true,
       enabled                  => true,
     }
 

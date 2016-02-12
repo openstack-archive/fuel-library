@@ -29,22 +29,10 @@ describe manifest do
       isolated_metadata        = neutron_config.fetch('metadata',{}).fetch('isolated_metadata', true)
       ha_agent                 = na_config.fetch('dhcp_agent_ha', true)
 
-      ks = neutron_config.fetch('keystone',{})
-      ks_user = ks.fetch('admin_user', 'neutron')
-      ks_tenant = ks.fetch('admin_tenant', 'services')
-      ks_password = ks.fetch('admin_password')
-
       secret = neutron_config.fetch('metadata',{}).fetch('metadata_proxy_shared_secret')
 
       management_vip = Noop.hiera('management_vip')
       nova_endpoint  = Noop.hiera('nova_endpoint', management_vip)
-      auth_region        = Noop.hiera('region', 'RegionOne')
-      service_endpoint   = Noop.hiera('service_endpoint')
-      auth_api_version   = 'v2.0'
-      let(:ssl_hash) { Noop.hiera_hash 'use_ssl', {} }
-      let(:admin_auth_protocol) { Noop.puppet_function 'get_ssl_property',ssl_hash,{},'keystone', 'admin','protocol','http' }
-      let(:admin_auth_address) { Noop.puppet_function 'get_ssl_property',ssl_hash,{},'keystone','admin', 'hostname', [Noop.hiera('service_endpoint', Noop.hiera('management_vip'))]}
-      let(:admin_auth_url) { "#{admin_auth_protocol}://#{admin_auth_address}:35357/#{auth_api_version}" }
 
       if neutron_compute_roles.include?(Noop.hiera('role'))
         context 'neutron-metadata-agent on compute' do
@@ -69,21 +57,6 @@ describe manifest do
             )}
             it { should contain_class('neutron::agents::metadata').with(
               'shared_secret' => secret
-            )}
-            it { should contain_class('neutron::agents::metadata').with(
-              'auth_region' => auth_region
-            )}
-            it { should contain_class('neutron::agents::metadata').with(
-              'auth_url' => admin_auth_url
-            )}
-            it { should contain_class('neutron::agents::metadata').with(
-              'auth_user' => ks_user
-            )}
-            it { should contain_class('neutron::agents::metadata').with(
-              'auth_tenant' => ks_tenant
-            )}
-            it { should contain_class('neutron::agents::metadata').with(
-              'auth_password' => ks_password
             )}
             it 'neutron metadata agent config should be modified by override_resources' do
               is_expected.to contain_override_resources('neutron_metadata_agent_config').with(:data => neutron_metadata_agent_config_override_resources)
@@ -133,22 +106,6 @@ describe manifest do
           it { should contain_class('neutron::agents::metadata').with(
             'shared_secret' => secret
           )}
-          it { should contain_class('neutron::agents::metadata').with(
-            'auth_region' => auth_region
-          )}
-          it { should contain_class('neutron::agents::metadata').with(
-            'auth_url' => admin_auth_url
-          )}
-          it { should contain_class('neutron::agents::metadata').with(
-            'auth_user' => ks_user
-          )}
-          it { should contain_class('neutron::agents::metadata').with(
-            'auth_tenant' => ks_tenant
-          )}
-          it { should contain_class('neutron::agents::metadata').with(
-            'auth_password' => ks_password
-          )}
-
           if ha_agent
             it { should contain_class('cluster::neutron::metadata').with(
               'primary' => (node_role == 'primary-controller')
