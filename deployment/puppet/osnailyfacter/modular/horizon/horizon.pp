@@ -18,21 +18,25 @@ if $horizon_hash['secret_key'] {
   $secret_key = 'dummy_secret_key'
 }
 
-#TODO(myatsenko): this section should be updated for MOS 9.0 .
-if $::os_package_type == 'debian' {
-  $custom_theme_path = hiera('custom_theme_path', 'themes/vendor')
-} else {
-  $custom_theme_path = undef
-}
+#if $::os_package_type == 'debian' {
+#  $custom_theme_path = hiera('custom_theme_path', 'themes/vendor')
+#} else {
+#  $custom_theme_path = undef
+#}
+# Don't use custom theme until its code lands to MOS 9.0.
+$custom_theme_path = undef
 
 # TODO(aschultz): the horizon.backends.memcached.HorizonMemcached is only part
 # of the MOS package set. This should be contributed upstream and then we can
 # use this as the default.
-if !$::os_package_type or $::os_package_type == 'debian' {
-  $horizon_cache_backend = try_get_value($horizon_hash, 'cache_backend', 'horizon.backends.memcached.HorizonMemcached')
-} else {
-  $horizon_cache_backend = try_get_value($horizon_hash, 'cache_backend', 'django.core.cache.backends.memcached.MemcachedCache')
-}
+#if !$::os_package_type or $::os_package_type == 'debian' {
+#  $horizon_cache_backend = try_get_value($horizon_hash, 'cache_backend', 'horizon.backends.memcached.HorizonMemcached')
+#} else {
+#  $horizon_cache_backend = try_get_value($horizon_hash, 'cache_backend', 'django.core.cache.backends.memcached.MemcachedCache')
+#}
+# Don't use custom backend until its code lands to MOS 9.0.
+$horizon_cache_backend = try_get_value($horizon_hash, 'cache_backend', 'django.core.cache.backends.memcached.MemcachedCache')
+
 
 $neutron_dvr = pick($neutron_advanced_config['neutron_dvr'], false)
 
