@@ -16,7 +16,7 @@
   requires: [hosts, firewall]
   cross-depends:
     - name: keystone
-    - name: openstack-controller
+    - name: /(primary-)?openstack-controller/
     - name: /(primary-)?rabbitmq/
     - name: memcached
   refresh_on: [nova_config, nova_paste_api_ini]

@@ -3,7 +3,7 @@
   version: 2.0.0
   groups: [controller]
   required_for: [deploy_end, controller_remaining_tasks]
-  requires: [openstack-controller]
+  requires: [primary-openstack-controller, openstack-controller]
   cross-depends:
     - name: primary-swift
   parameters:
