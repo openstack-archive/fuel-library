@@ -37,29 +37,29 @@ class fuel::astute(
     owner   => 'root',
     group   => 'root',
     mode    => '0644'
-  }
+  } ~> Service <| title == 'astute' |>
 
   file { '/usr/bin/astuted':
     content => template('fuel/astute/astuted.erb'),
     owner   => 'root',
     group   => 'root',
-    mode    => 0755,
-  }
+    mode    => '0755',
+  } ~> Service <| title == 'astute' |>
 
   file {"/etc/astute":
     ensure => directory,
     owner  => 'root',
     group  => 'root',
-    mode   => 0755,
+    mode   => '0755',
   }
 
   file {"/etc/astute/astuted.conf":
-    content => template("fuel/astute/astuted.conf.erb"),
+    content => template('fuel/astute/astuted.conf.erb'),
     owner   => 'root',
     group   => 'root',
-    mode    => 0644,
+    mode    => '0644',
     require => File["/etc/astute"],
-  }
+  } ~> Service <| title == 'astute' |>
 
   file {"/var/log/astute":
     ensure => directory,
