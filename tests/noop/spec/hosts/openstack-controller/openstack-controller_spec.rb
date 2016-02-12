@@ -116,7 +116,7 @@ describe manifest do
     end
 
     it 'nova config should contain right memcached servers list' do
-      should contain_nova_config('DEFAULT/memcached_servers').with(
+      should contain_nova_config('keystone_authtoken/memcached_servers').with(
         'value' => memcache_servers,
       )
     end
@@ -237,6 +237,12 @@ describe manifest do
           :provider => provider
         )
       }
+      it 'should declare class nova::api with sync_db and sync_db_api' do
+        should contain_class('nova::api').with(
+          'sync_db'     => true,
+          'sync_db_api' => true,
+        )
+      end
     end
   end # end of shared_examples
 
