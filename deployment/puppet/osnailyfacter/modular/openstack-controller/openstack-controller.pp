@@ -54,6 +54,8 @@ if $glance_ssl {
 }
 
 $nova_db_user                 = pick($nova_hash['db_user'], 'nova')
+$nova_api_db_user             = pick($nova_hash['api_db_user'], 'nova_api')
+$nova_api_db_password         = pick($nova_hash['api_db_password'], $nova_hash['db_password'], $mysql_root_password)
 $keystone_user                = pick($nova_hash['user'], 'nova')
 $keystone_tenant              = pick($nova_hash['tenant'], 'services')
 $region                       = hiera('region', 'RegionOne')
@@ -131,7 +133,9 @@ class { '::openstack::controller':
   primary_controller             => $primary_controller,
   novnc_address                  => $api_bind_address,
   nova_db_user                   => $nova_db_user,
+  nova_api_db_user               => $nova_api_db_user,
   nova_db_password               => $nova_hash[db_password],
+  nova_api_db_password           => $nova_api_db_password,
   nova_user                      => $keystone_user,
   nova_user_password             => $nova_hash[user_password],
   nova_user_tenant               => $keystone_tenant,
