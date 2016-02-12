@@ -12,9 +12,11 @@ $mysql_root_password = $mysql_hash['root_password']
 $db_user     = pick($nova_hash['db_user'], 'nova')
 $db_name     = pick($nova_hash['db_name'], 'nova')
 $db_password = pick($nova_hash['db_password'], $mysql_root_password)
+$api_db_user = pick($nova_hash['db_user'], 'nova_api')
+$api_db_name = pick($nova_hash['db_name'], 'nova_api')
 
-$db_host       = pick($nova_hash['db_host'], $database_vip)
-$db_create     = pick($nova_hash['db_create'], $mysql_db_create)
+$db_host          = pick($nova_hash['db_host'], $database_vip)
+$db_create        = pick($nova_hash['db_create'], $mysql_db_create)
 $db_root_user     = pick($nova_hash['root_user'], $mysql_root_user)
 $db_root_password = pick($nova_hash['root_password'], $mysql_root_password)
 
@@ -32,6 +34,13 @@ if $db_create {
     user          => $db_user,
     password      => $db_password,
     dbname        => $db_name,
+    allowed_hosts => $allowed_hosts,
+  }
+
+  class { 'nova::db::mysql_api':
+    user          => $api_db_user,
+    password      => $db_password,
+    dbname        => $api_db_name,
     allowed_hosts => $allowed_hosts,
   }
 
