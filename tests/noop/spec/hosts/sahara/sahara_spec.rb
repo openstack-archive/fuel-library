@@ -138,6 +138,10 @@ describe manifest do
         should contain_sahara_config('DEFAULT/default_log_levels').with_value(default_log_levels.sort.join(','))
       end
 
+      it 'should contain tweak for service override' do
+        should contain_tweaks__ubuntu_service_override('sahara-api')
+      end
+
       enable = (Noop.hiera_structure('sahara/enabled') and Noop.hiera_structure('public_ssl/services'))
       context 'with public_ssl enabled', :if => enable do
         it { should contain_file('/etc/pki/tls/certs').with(
