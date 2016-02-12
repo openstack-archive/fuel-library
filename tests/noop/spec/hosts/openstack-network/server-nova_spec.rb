@@ -18,7 +18,7 @@ describe manifest do
         management_vip     = Noop.hiera('management_vip')
         service_endpoint   = Noop.hiera('service_endpoint', management_vip)
         neutron_endpoint   = Noop.hiera('neutron_endpoint', management_vip)
-        auth_api_version   = 'v2.0'
+        auth_api_version   = 'v3'
         admin_identity_uri = "http://#{service_endpoint}:35357"
         admin_auth_url     = "#{admin_identity_uri}/#{auth_api_version}"
         neutron_url        = "http://#{neutron_endpoint}:9696"
