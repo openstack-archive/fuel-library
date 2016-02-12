@@ -67,9 +67,6 @@ describe manifest do
             it { should contain_class('neutron::agents::l3').with(
               'external_network_bridge' => ' ' # should be present and empty
             )}
-            it { should contain_class('neutron::agents::l3').with(
-              'router_delete_namespaces' => true
-            )}
             it { should_not contain_cluster__neutron__l3('default-l3') }
           else
             it { should_not contain_class('neutron::agents::l3') }
@@ -123,9 +120,6 @@ describe manifest do
           it { should contain_class('neutron::agents::l3').with(
             'external_network_bridge' => ' ' # should be present and empty
           )}
-          it { should contain_class('neutron::agents::l3').with(
-            'router_delete_namespaces' => true
-          )}
 
           if ha_agent
             it { should contain_cluster__neutron__l3('default-l3').with(
@@ -140,4 +134,3 @@ describe manifest do
   end
   test_ubuntu_and_centos manifest
 end
-

@@ -37,7 +37,6 @@ if $use_neutron and ($controller or ($dvr and $compute)) {
     external_network_bridge  => ' ',
     manage_service           => true,
     enabled                  => true,
-    router_delete_namespaces => true,
     agent_mode               => $agent_mode,
   }
 
