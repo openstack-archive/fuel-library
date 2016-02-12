@@ -36,7 +36,13 @@ prepare_network_config($network_scheme)
 # of `$::os_package_type' fact avilable to use in project manifests,
 # we need to provide a manual override for Fuel Ubuntu images.
 if ($::osfamily == 'Debian'){
-  $os_package_type_override = hiera('os_package_type', 'debian')
+  #FIXME(mattymo): add os_package_type to hiera
+  $repo_hash = hiera_hash('repo_setup')
+  if $repo_hash['repo_type'] == 'uca' {
+    $os_package_type_override = 'ubuntu'
+  } else {
+    $os_package_type_override = hiera('os_package_type', 'debian')
+  }
   if (!empty($os_package_type_override)) {
     File {
       owner => 'root',
