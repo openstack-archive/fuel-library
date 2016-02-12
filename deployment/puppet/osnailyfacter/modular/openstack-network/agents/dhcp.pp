@@ -27,7 +27,6 @@ if $use_neutron {
     resync_interval          => $resync_interval,
     manage_service           => true,
     enable_isolated_metadata => $isolated_metadata,
-    dhcp_delete_namespaces   => true,
     enabled                  => true,
   }
 

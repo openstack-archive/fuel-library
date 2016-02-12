@@ -29,16 +29,16 @@ describe manifest do
           'value' => floating_net
         ).that_notifies('Service[nova-api]')}
         it { should contain_class('nova::network::neutron').with(
-          'neutron_admin_password' => admin_password
+          'neutron_password' => admin_password
         )}
         it { should contain_class('nova::network::neutron').with(
-          'neutron_admin_tenant_name' => admin_tenant_name
+          'neutron_project_name' => admin_tenant_name
         )}
         it { should contain_class('nova::network::neutron').with(
           'neutron_region_name' => region_name
         )}
         it { should contain_class('nova::network::neutron').with(
-          'neutron_admin_username' => admin_username
+          'neutron_username' => admin_username
         )}
         it { should contain_class('nova::network::neutron').with(
           'neutron_ovs_bridge' => 'br-int'
@@ -49,7 +49,7 @@ describe manifest do
             admin_auth_protocol = 'https'
             admin_auth_endpoint = Noop.hiera_structure('use_ssl/keystone_admin_hostname')
             it { should contain_class('nova::network::neutron').with(
-              'neutron_admin_auth_url' => "#{admin_auth_protocol}://#{admin_auth_endpoint}:35357/#{auth_api_version}"
+              'neutron_auth_url' => "#{admin_auth_protocol}://#{admin_auth_endpoint}:35357/#{auth_api_version}"
             )}
 
             neutron_internal_protocol = 'https'
@@ -61,7 +61,7 @@ describe manifest do
         else
           context 'without overridden TLS' do
             it { should contain_class('nova::network::neutron').with(
-              'neutron_admin_auth_url' => admin_auth_url
+              'neutron_auth_url' => admin_auth_url
             )}
             it { should contain_class('nova::network::neutron').with(
               'neutron_url' => neutron_url
@@ -148,4 +148,3 @@ describe manifest do
   end
   test_ubuntu_and_centos manifest
 end
-
