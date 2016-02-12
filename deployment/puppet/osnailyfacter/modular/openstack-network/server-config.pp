@@ -64,10 +64,10 @@ if $use_neutron {
     $ml2_sriov_value = 'rm DAEMON_ARGS'
   }
 
-  $auth_password           = $neutron_config['keystone']['admin_password']
-  $auth_user               = pick($neutron_config['keystone']['admin_user'], 'neutron')
-  $auth_tenant             = pick($neutron_config['keystone']['admin_tenant'], 'services')
-  $auth_region             = hiera('region', 'RegionOne')
+  $password                = $neutron_config['keystone']['admin_password']
+  $username                = pick($neutron_config['keystone']['admin_user'], 'neutron')
+  $project_name            = pick($neutron_config['keystone']['admin_tenant'], 'services')
+  $region_name             = hiera('region', 'RegionOne')
   $auth_endpoint_type      = 'internalURL'
 
   $ssl_hash                = hiera_hash('use_ssl', {})
@@ -82,7 +82,8 @@ if $use_neutron {
   $nova_internal_endpoint  = get_ssl_property($ssl_hash, {}, 'nova', 'internal', 'hostname', [$nova_endpoint])
 
   $auth_api_version        = 'v2.0'
-  $identity_uri            = "${internal_auth_protocol}://${internal_auth_endpoint}:5000/"
+  $auth_uri                = "${internal_auth_protocol}://${internal_auth_endpoint}:5000/"
+  $auth_url                = "${internal_auth_protocol}://${internal_auth_endpoint}:35357/"
   $nova_admin_auth_url     = "${admin_auth_protocol}://${admin_auth_endpoint}:35357/"
   $nova_url                = "${nova_internal_protocol}://${nova_internal_endpoint}:8774/v2"
 
@@ -203,12 +204,12 @@ if $use_neutron {
   class { 'neutron::server':
     sync_db                          => $primary_controller,
 
-    auth_password                    => $auth_password,
-    auth_tenant                      => $auth_tenant,
-    auth_region                      => $auth_region,
-    auth_user                        => $auth_user,
-    identity_uri                     => $identity_uri,
-    auth_uri                         => $identity_uri,
+    username                         => $username,
+    password                         => $password,
+    project_name                     => $project_name,
+    region_name                      => $region_name,
+    auth_url                         => $auth_url,
+    auth_uri                         => $auth_uri,
 
     database_retry_interval          => '2',
     database_connection              => $db_connection,
@@ -241,9 +242,9 @@ if $use_neutron {
     nova_url     => $nova_url,
     auth_url     => $nova_admin_auth_url,
     username     => $nova_auth_user,
-    tenant_name  => $nova_auth_tenant,
+    project_name => $nova_auth_tenant,
     password     => $nova_auth_password,
-    region_name  => $auth_region,
+    region_name  => $region_name,
   }
 
   # Stub for Nuetron package
