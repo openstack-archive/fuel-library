@@ -5,7 +5,7 @@
     - name: ceilometer-keystone
     - name: /(primary-)?mongo/
   groups: [primary-controller, controller]
-  required_for: [openstack-controller, swift]
+  required_for: [primary-openstack-controller, openstack-controller, swift]
   requires: [mongo, primary-mongo, openstack-haproxy]
   condition: "settings:additional_components.ceilometer.value == true"
   parameters:

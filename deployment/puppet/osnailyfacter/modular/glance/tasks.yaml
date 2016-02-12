@@ -2,7 +2,7 @@
   type: puppet
   version: 2.0.0
   groups: [primary-controller, controller]
-  required_for: [openstack-controller]
+  required_for: [primary-openstack-controller, openstack-controller]
   requires: [openstack-haproxy, primary-database, database]
   cross-depends:
     - name: glance-db

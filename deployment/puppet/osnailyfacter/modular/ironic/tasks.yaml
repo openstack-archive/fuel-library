@@ -6,7 +6,7 @@
   cross-depends:
     - name: ironic-db
     - name: ironic-keystone
-  required_for: [openstack-controller]
+  required_for: [primary-openstack-controller, openstack-controller]
   requires: [openstack-haproxy, ironic-db, ironic-keystone]
   parameters:
     puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/ironic/ironic.pp
@@ -47,11 +47,11 @@
   groups: [primary-controller, controller]
   condition: "settings:additional_components.ironic.value == true"
   required_for: [deploy_end]
-  requires: [openstack-controller, ironic-api]
+  requires: [primary-openstack-controller, openstack-controller, ironic-api]
   refresh_on: [nova_config, nova_paste_api_ini]
   cross-depends:
    - name: /(primary-)?rabbitmq/
-   - name: openstack-controller
+   - name: /(primary-)?openstack-controller/
    - name: ironic-api
    - name: memcached
   parameters:

@@ -2,7 +2,7 @@
   type: puppet
   version: 2.0.0
   groups: [controller]
-  required_for: [openstack-controller]
+  required_for: [openstack-controller, primary-openstack-controller]
   requires: [deploy_start, openstack-haproxy]
   cross-depends:
     - name: primary-database
@@ -19,7 +19,7 @@
   type: puppet
   version: 2.0.0
   groups: [primary-controller]
-  required_for: [openstack-controller]
+  required_for: [openstack-controller, primary-openstack-controller]
   requires: [deploy_start, openstack-haproxy]
   parameters:
     puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/database/database.pp
