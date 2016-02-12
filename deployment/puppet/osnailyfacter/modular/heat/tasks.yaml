@@ -1,13 +1,30 @@
-- id: heat
+- id: primary-heat
   type: puppet
   version: 2.0.0
-  groups: [primary-controller, controller]
+  groups: [primary-controller]
   required_for: [deploy_end]
   requires: [openstack-controller]
   cross-depends:
     - name: heat-db
     - name: heat-keystone
     - name: memcached
+  parameters:
+    puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/heat/heat.pp
+    puppet_modules: /etc/puppet/modules
+    timeout: 3600
+  test_pre:
+    cmd: ruby /etc/puppet/modules/osnailyfacter/modular/heat/heat_pre.rb
+  test_post:
+    cmd: ruby /etc/puppet/modules/osnailyfacter/modular/heat/heat_post.rb
+
+- id: heat
+  type: puppet
+  version: 2.0.0
+  groups: [controller]
+  required_for: [deploy_end]
+  requires: [openstack-controller]
+  cross-depends:
+    - name: primary-heat
   parameters:
     puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/heat/heat.pp
     puppet_modules: /etc/puppet/modules

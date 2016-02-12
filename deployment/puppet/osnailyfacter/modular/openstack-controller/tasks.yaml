@@ -1,7 +1,7 @@
-- id: openstack-controller
+- id: primary-openstack-controller
   type: puppet
   version: 2.0.0
-  groups: [primary-controller, controller]
+  groups: [primary-controller]
   required_for: [deploy_end]
   requires: [openstack-haproxy]
   cross-depends:
@@ -9,6 +9,20 @@
     - name: nova-db
     - name: nova-keystone
     - name: memcached
+  refresh_on: [nova_config, nova_paste_api_ini]
+  parameters:
+    puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/openstack-controller/openstack-controller.pp
+    puppet_modules: /etc/puppet/modules
+    timeout: 3600
+
+- id: openstack-controller
+  type: puppet
+  version: 2.0.0
+  groups: [controller]
+  required_for: [deploy_end]
+  requires: [openstack-haproxy]
+  cross-depends:
+    - name: primary-openstack-controller
   refresh_on: [nova_config, nova_paste_api_ini]
   parameters:
     puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/openstack-controller/openstack-controller.pp
