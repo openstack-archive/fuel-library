@@ -131,15 +131,16 @@ describe manifest do
             internal_auth_endpoint = Noop.hiera_structure('use_ssl/keystone_internal_hostname')
 
             it 'should have correct auth options' do
-              identity_uri     = "#{internal_auth_protocol}://#{internal_auth_endpoint}:5000/"
+              auth_url     = "#{internal_auth_protocol}://#{internal_auth_endpoint}:35357/"
+              auth_uri     = "#{internal_auth_protocol}://#{internal_auth_endpoint}:5000/"
               ks = neutron_config['keystone']
               should contain_class('neutron::server').with(
-                'auth_password' => ks.fetch('admin_password'),
-                'auth_tenant'   => ks.fetch('admin_tenant', 'services'),
-                'auth_region'   => Noop.hiera('region', 'RegionOne'),
-                'auth_user'     => ks.fetch('admin_user', 'neutron'),
-                'identity_uri'  => identity_uri,
-                'auth_uri'      => identity_uri,
+                'password'      => ks.fetch('admin_password'),
+                'project_name'  => ks.fetch('admin_tenant', 'services'),
+                'region_name'   => Noop.hiera('region', 'RegionOne'),
+                'username'      => ks.fetch('admin_user', 'neutron'),
+                'auth_url'      => auth_url,
+                'auth_uri'      => auth_uri,
               )
             end
 
@@ -152,27 +153,28 @@ describe manifest do
               nova_url            = "#{nova_auth_protocol}://#{internal_nova_endpoint}:8774/v2"
               nova_hash           = Noop.hiera_hash('nova', {})
               should contain_class('neutron::server::notifications').with(
-                'nova_url'    => nova_url,
-                'auth_url'    => nova_admin_auth_url,
-                'region_name' => Noop.hiera('region', 'RegionOne'),
-                'username'    => nova_hash.fetch('user', 'nova'),
-                'tenant_name' => nova_hash.fetch('tenant', 'services'),
-                'password'    => nova_hash.fetch('user_password'),
+                'nova_url'     => nova_url,
+                'auth_url'     => nova_admin_auth_url,
+                'region_name'  => Noop.hiera('region', 'RegionOne'),
+                'username'     => nova_hash.fetch('user', 'nova'),
+                'project_name' => nova_hash.fetch('tenant', 'services'),
+                'password'     => nova_hash.fetch('user_password'),
               )
             end
           end
         else
           context 'without overridden TLS for internal endpoints' do
             it 'should have correct auth options' do
-              identity_uri     = "http://#{service_endpoint}:5000/"
+              auth_url     = "http://#{service_endpoint}:35357/"
+              auth_uri     = "http://#{service_endpoint}:5000/"
               ks = neutron_config['keystone']
               should contain_class('neutron::server').with(
-                'auth_password' => ks.fetch('admin_password'),
-                'auth_tenant'   => ks.fetch('admin_tenant', 'services'),
-                'auth_region'   => Noop.hiera('region', 'RegionOne'),
-                'auth_user'     => ks.fetch('admin_user', 'neutron'),
-                'identity_uri'  => identity_uri,
-                'auth_uri'      => identity_uri,
+                'password'      => ks.fetch('admin_password'),
+                'project_name'  => ks.fetch('admin_tenant', 'services'),
+                'region_name'   => Noop.hiera('region', 'RegionOne'),
+                'username'      => ks.fetch('admin_user', 'neutron'),
+                'auth_url'      => auth_url,
+                'auth_uri'      => auth_uri,
               )
             end
 
@@ -182,12 +184,12 @@ describe manifest do
               nova_url            = "http://#{nova_endpoint}:8774/v2"
               nova_hash           = Noop.hiera_hash('nova', {})
               should contain_class('neutron::server::notifications').with(
-                'nova_url'    => nova_url,
-                'auth_url'    => nova_admin_auth_url,
-                'region_name' => Noop.hiera('region', 'RegionOne'),
-                'username'    => nova_hash.fetch('user', 'nova'),
-                'tenant_name' => nova_hash.fetch('tenant', 'services'),
-                'password'    => nova_hash.fetch('user_password'),
+                'nova_url'     => nova_url,
+                'auth_url'     => nova_admin_auth_url,
+                'region_name'  => Noop.hiera('region', 'RegionOne'),
+                'username'     => nova_hash.fetch('user', 'nova'),
+                'project_name' => nova_hash.fetch('tenant', 'services'),
+                'password'     => nova_hash.fetch('user_password'),
               )
             end
           end
