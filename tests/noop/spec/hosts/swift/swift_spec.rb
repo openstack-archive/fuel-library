@@ -25,6 +25,8 @@ describe manifest do
     rabbit_password    = Noop.hiera_structure('rabbit/password')
     network_scheme     = Noop.hiera_hash 'network_scheme'
 
+    controller_count    = (Noop.puppet_function 'get_nodes_hash_by_roles', network_metadata, ['controller', 'primary-controller']).size
+
     let (:storage_nets){
         Noop.puppet_function 'get_routable_networks_for_network_role', network_scheme, 'swift/replication', ' '
     }
@@ -214,6 +216,18 @@ describe manifest do
         should contain_class('swift::proxy::authtoken').with(
           'auth_uri'     => auth_uri,
           'identity_uri' => identity_uri,
+        )
+      end
+
+      if controller_count < 2
+        ring_replicas = 2
+      else
+        ring_replicas = 3
+      end
+
+      it 'should set ring_replicas' do
+        should contain_class('swift::ringbuilder').with(
+          'replicas'     => ring_replicas,
         )
       end
 

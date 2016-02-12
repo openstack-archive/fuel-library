@@ -50,6 +50,8 @@ $identity_uri = "${admin_auth_protocol}://${admin_auth_address}:35357/"
 $swift_internal_protocol    = get_ssl_property($ssl_hash, {}, 'swift', 'internal', 'protocol', 'http')
 $swift_internal_address    = get_ssl_property($ssl_hash, {}, 'swift', 'internal', 'hostname', [$swift_api_ipaddr, $management_vip])
 
+$controllers_num          = size(get_nodes_hash_by_roles(hiera_hash('network_metadata'), ['controller', 'primary-controller']))
+
 # Use Swift if it isn't replaced by vCenter, Ceph for BOTH images and objects
 if !($storage_hash['images_ceph'] and $storage_hash['objects_ceph']) and !$storage_hash['images_vcenter'] {
   $master_swift_proxy_nodes      = get_nodes_hash_by_roles($network_metadata, [$swift_master_role])
@@ -97,12 +99,19 @@ if !($storage_hash['images_ceph'] and $storage_hash['objects_ceph']) and !$stora
     }
   }
 
+  if ($controllers_num < 2) {
+    $ring_replicas = 2
+  } else {
+    $ring_replicas = 3
+  }
+
   if $deploy_swift_proxy {
     class { 'openstack::swift::proxy':
       swift_user_password            => $swift_hash['user_password'],
       swift_operator_roles           => $swift_operator_roles,
       swift_proxies_cache            => $memcaches_addr_list,
       ring_part_power                => $ring_part_power,
+      ring_replicas                  => $ring_replicas,
       primary_proxy                  => $is_primary_swift_proxy,
       swift_proxy_local_ipaddr       => $swift_api_ipaddr,
       swift_replication_local_ipaddr => $swift_storage_ipaddr,
