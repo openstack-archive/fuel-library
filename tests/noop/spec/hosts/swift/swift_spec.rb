@@ -12,9 +12,9 @@ describe manifest do
     network_metadata     = Noop.hiera_hash 'network_metadata'
 
     memcached_nodes = Noop.puppet_function('get_nodes_hash_by_roles', network_metadata, ['primary-controller', 'controller'])
-    memcached_addresses = Noop.puppet_function('get_node_to_ipaddr_map_by_network_role', memcached_nodes, 'mgmt/memcache').values
-    memcached_servers = memcached_addresses.sort.map{ |n| n = n + ':11211' }
-
+    memcached_addresses = Noop.hiera 'memcached_addresses'
+    memcached_port = Noop.hiera ('memcache_server_port', '11211')
+    memcached_servers = memcached_addresses.sort.map{ |n| n = n + ':' + memcached_port }
 
     swift_operator_roles = storage_hash.fetch('swift_operator_roles', ['admin', 'SwiftOperator'])
     ring_part_power = swift_hash.fetch('ring_part_power', 10)
