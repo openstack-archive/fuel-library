@@ -608,6 +608,7 @@ class Puppet::Provider::L2_base < Puppet::Provider::InterfaceToolset
         bond_list[bond_name][:slaves] = slaves.map { |slave| ovs_vsctl(['get', 'interface', slave, 'name' ]).join().gsub('"', '') }
         bond_list[bond_name][:bridge] = ovs_vsctl(['port-to-br', bond_name])[0]
         bond_list[bond_name][:bond_properties] = bond_properties
+        bond_list[bond_name][:onboot] = true
       end
     end
     debug("get_ovs_bonds: OVS bond list #{bond_list}")

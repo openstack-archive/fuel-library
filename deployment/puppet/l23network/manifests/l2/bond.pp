@@ -45,7 +45,7 @@ define l23network::l2::bond (
   $delay_while_up          = undef,
   $bond_properties         = {},
   $interface_properties    = undef,
-  $vendor_specific         = undef,
+  $vendor_specific         = undef, # is not used for now
   $monolith_bond_providers = undef,
   $provider                = undef,
 ) {
@@ -252,7 +252,6 @@ define l23network::l2::bond (
       onboot               => $onboot,
       slaves               => $interfaces,
       mtu                  => $mtu,
-      interface_properties => $interface_properties,
       bond_properties      => $real_bond_properties,
       vendor_specific      => $vendor_specific,
       provider             => $provider
