@@ -17,7 +17,7 @@ $data = [
   'class/%{calling_class}',
   'module/%{calling_module}',
   'nodes',
-  'globals',
+  'globals%{disable_globals_yaml}',
   'astute',
 ]
 

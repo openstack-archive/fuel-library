@@ -1,14 +1,13 @@
 notice('MODULAR: globals.pp')
 
+$disable_globals_yaml = '_disabled'
+
 $service_token_off = false
 $globals_yaml_file = '/etc/hiera/globals.yaml'
 
 $base_facter_dir             = '/etc/facter'
 $facter_os_package_type_dir  = "${base_facter_dir}/facts.d"
 $facter_os_package_type_file = "${facter_os_package_type_dir}/os_package_type.txt"
-
-# remove cached globals values before anything else
-remove_file($globals_yaml_file)
 
 $network_scheme = hiera_hash('network_scheme', {})
 if empty($network_scheme) {
