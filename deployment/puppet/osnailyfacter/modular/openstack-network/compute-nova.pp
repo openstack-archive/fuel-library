@@ -14,22 +14,21 @@ if $use_neutron {
 
   $management_vip             = hiera('management_vip')
   $service_endpoint           = hiera('service_endpoint', $management_vip)
-  $admin_password             = try_get_value($neutron_config, 'keystone/admin_password')
-  $admin_tenant_name          = try_get_value($neutron_config, 'keystone/admin_tenant', 'services')
-  $admin_username             = try_get_value($neutron_config, 'keystone/admin_user', 'neutron')
+  $neutron_password           = try_get_value($neutron_config, 'keystone/admin_password')
+  $neutron_project_name       = try_get_value($neutron_config, 'keystone/admin_tenant', 'services')
+  $neutron_username           = try_get_value($neutron_config, 'keystone/admin_user', 'neutron')
   $region_name                = hiera('region', 'RegionOne')
   $auth_api_version           = 'v3'
   $ssl_hash                   = hiera_hash('use_ssl', {})
 
-  $admin_identity_protocol    = get_ssl_property($ssl_hash, {}, 'keystone', 'admin', 'protocol', 'http')
-  $admin_identity_address     = get_ssl_property($ssl_hash, {}, 'keystone', 'admin', 'hostname', [$service_endpoint, $management_vip])
+  $neutron_auth_protocol      = get_ssl_property($ssl_hash, {}, 'keystone', 'admin', 'protocol', 'http')
+  $neutron_auth_address       = get_ssl_property($ssl_hash, {}, 'keystone', 'admin', 'hostname', [$service_endpoint, $management_vip])
 
   $neutron_internal_protocol  = get_ssl_property($ssl_hash, {}, 'neutron', 'internal', 'protocol', 'http')
-  $neutron_endpoint           = get_ssl_property($ssl_hash, {}, 'neutron', 'internal', 'hostname', [hiera('neutron_endpoint', ''), $management_vip])
+  $neutron_interal_endpoint   = get_ssl_property($ssl_hash, {}, 'neutron', 'internal', 'hostname', [hiera('neutron_endpoint', ''), $management_vip])
 
-  $admin_identity_uri         = "${admin_identity_protocol}://${admin_identity_address}:35357"
-  $admin_auth_url             = "${admin_identity_uri}/${auth_api_version}"
-  $neutron_url                = "${neutron_internal_protocol}://${neutron_endpoint}:9696"
+  $neutron_auth_url           = "${neutron_auth_protocol}://${neutron_auth_endpoint}:35357/${auth_api_version}"
+  $neutron_url                = "${neutron_internal_protocol}://${neutron_internal_endpoint}:9696"
 
   $nova_migration_ip          =  get_network_role_property('nova/migration', 'ipaddr')
 
@@ -76,13 +75,13 @@ if $use_neutron {
   }
 
   class { 'nova::network::neutron' :
-    neutron_admin_password    => $admin_password,
-    neutron_admin_tenant_name => $admin_tenant_name,
-    neutron_region_name       => $region_name,
-    neutron_admin_username    => $admin_username,
-    neutron_admin_auth_url    => $admin_auth_url,
-    neutron_url               => $neutron_url,
-    neutron_ovs_bridge        => $neutron_integration_bridge,
+    neutron_password     => $neutron_password,
+    neutron_project_name => $neutron_tenant_name,
+    neutron_region_name  => $region_name,
+    neutron_username     => $neutron_username,
+    neutron_auth_url     => $neutron_auth_url,
+    neutron_url          => $neutron_url,
+    neutron_ovs_bridge   => $neutron_integration_bridge,
   }
 
   augeas { 'sysctl-net.bridge.bridge-nf-call-arptables':
@@ -157,7 +156,7 @@ if $use_neutron {
     class { 'nova::api':
       ensure_package        => 'installed',
       enabled               => true,
-      admin_tenant_name     => $admin_tenant_name,
+      admin_tenant_name     => $neutron_tenant_name,
       admin_user            => 'nova',
       admin_password        => $nova_hash['user_password'],
       enabled_apis          => $enabled_apis,
