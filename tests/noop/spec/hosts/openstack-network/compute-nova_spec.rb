@@ -79,7 +79,7 @@ describe manifest do
         admin_tenant_name  = ks.fetch('admin_tenant', 'services')
         admin_username     = ks.fetch('admin_user', 'neutron')
         region_name        = Noop.hiera('region', 'RegionOne')
-        auth_api_version   = 'v2.0'
+        auth_api_version   = 'v3'
         admin_identity_uri = "http://#{service_endpoint}:35357"
         admin_auth_url     = "#{admin_identity_uri}/#{auth_api_version}"
         neutron_url        = "http://#{neutron_endpoint}:9696"

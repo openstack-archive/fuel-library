@@ -162,6 +162,8 @@ class openstack::controller (
   # Nova
   $nova_db_user                   = 'nova',
   $nova_db_dbname                 = 'nova',
+  $nova_api_db_user               = 'nova_api',
+  $nova_api_db_dbname             = 'nova_api',
   $purge_nova_config              = false,
   $nova_report_interval           = '10',
   $nova_service_down_time         = '60',
@@ -289,6 +291,8 @@ class openstack::controller (
     nova_db_password                     => $nova_db_password,
     nova_db_user                         => $nova_db_user,
     nova_db_dbname                       => $nova_db_dbname,
+    nova_api_db_user                     => $nova_api_db_user,
+    nova_api_db_dbname                   => $nova_api_db_dbname,
     nova_quota_driver                    => $nova_quota_driver,
     nova_hash                            => $nova_hash,
     # RPC
