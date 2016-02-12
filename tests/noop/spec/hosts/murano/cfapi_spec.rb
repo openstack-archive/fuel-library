@@ -70,7 +70,7 @@ describe manifest do
                    'tenant'    => tenant,
                    'bind_port' => bind_port,
                    'bind_host' => bind_address,
-                   'auth_url'  => "#{public_auth_protocol}://#{public_auth_address}:5000/v2.0/",
+                   'auth_url'  => "#{public_auth_protocol}://#{public_auth_address}:5000/v3",
                )
       end
 

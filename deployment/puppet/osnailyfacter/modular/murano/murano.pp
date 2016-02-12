@@ -101,7 +101,7 @@ if $murano_hash['enabled'] {
     log_facility        => $syslog_log_facility_murano,
     database_connection => $db_connection,
     sync_db             => $primary_controller,
-    auth_uri            => "${public_auth_protocol}://${public_auth_address}:5000/v2.0/",
+    auth_uri            => "${public_auth_protocol}://${public_auth_address}:5000/v3",
     admin_user          => $murano_user,
     admin_password      => $murano_hash['user_password'],
     admin_tenant_name   => $tenant,
