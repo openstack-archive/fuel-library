@@ -96,7 +96,7 @@ Puppet::Type.type(:l3_clear_route).provide(:lnx, :parent => Puppet::Provider::L3
       end
       raise if errmsg.nil?
       metricmsg =  ( @property_hash[:metric]  ?  "metric #{@property_hash[:metric]} "  :  '' )
-      warn("The route #{@property_hash[:destination]} #{metricmsg}via #{@property_hash[:interface]} is already removed! \n#{errmsg}")
+      warn("The route #{@property_hash[:destination]} #{metricmsg}via #{@property_hash[:interface]} is already removed!\n#{errmsg}")
     end
   end
 

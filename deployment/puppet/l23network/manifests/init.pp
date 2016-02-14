@@ -118,7 +118,8 @@ class l23network (
 
   unless $network_manager {
     package{$::l23network::params::network_manager_name:
-      ensure => 'purged',
+      ensure   => 'purged',
+      provider => 'apt',
     }
     Package[$::l23network::params::network_manager_name] -> Anchor['l23network::init']
 
