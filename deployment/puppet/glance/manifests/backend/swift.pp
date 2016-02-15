@@ -42,8 +42,11 @@ class glance::backend::swift(
     'glance_store/swift_store_endpoint_type':
       value => $swift_store_endpoint_type;
 
-    'DEFAULT/swift_store_config_file':         value => '/etc/glance/glance-api.conf';
+    'glance_store/swift_store_config_file':    value => '/etc/glance/glance-swift.conf';
     'glance_store/default_swift_reference':    value => $default_swift_reference;
+  }
+
+  glance_swift_config {
     "${default_swift_reference}/user":         value => $swift_store_user;
     "${default_swift_reference}/key":          value => $swift_store_key;
     "${default_swift_reference}/auth_address": value => $swift_store_auth_address;
