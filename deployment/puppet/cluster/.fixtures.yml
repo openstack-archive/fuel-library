@@ -6,3 +6,4 @@ fixtures:
     stdlib: "#{source_dir}/../stdlib"
     pacemaker: "#{source_dir}/../pacemaker"
     pacemaker_wrappers: "#{source_dir}/../pacemaker_wrappers"
+    ntp: "#{source_dir}/../ntp"
