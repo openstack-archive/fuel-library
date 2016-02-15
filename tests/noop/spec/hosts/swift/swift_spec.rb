@@ -20,10 +20,17 @@ describe manifest do
     ring_part_power = swift_hash.fetch('ring_part_power', 10)
     ring_min_part_hours = Noop.hiera 'swift_ring_min_part_hours', 1
     deploy_swift_proxy = Noop.hiera('deploy_swift_proxy')
+    swift_proxies_num  = (Noop.hiera('swift_proxies')).size
     rabbit_hosts       = Noop.hiera('amqp_hosts')
     rabbit_user        = Noop.hiera_structure('rabbit/user', 'nova')
     rabbit_password    = Noop.hiera_structure('rabbit/password')
     network_scheme     = Noop.hiera_hash 'network_scheme'
+
+    if swift_proxies_num < 2
+      ring_replicas = 2
+    else
+      ring_replicas = 3
+    end
 
     let (:storage_nets){
         Noop.puppet_function 'get_routable_networks_for_network_role', network_scheme, 'swift/replication', ' '
@@ -74,7 +81,7 @@ describe manifest do
               'returns' => [0,1],
             )
             should contain_exec("create_#{ring}").with(
-              'command' => "swift-ring-builder /etc/swift/#{ring}.builder create #{ring_part_power} 3 #{ring_min_part_hours}",
+              'command' => "swift-ring-builder /etc/swift/#{ring}.builder create #{ring_part_power} #{ring_replicas} #{ring_min_part_hours}",
               'user'    => 'swift',
             )
           end
