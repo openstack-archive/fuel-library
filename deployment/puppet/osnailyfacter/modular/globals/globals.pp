@@ -96,6 +96,10 @@ $syslog_log_facility_ironic     = hiera('syslog_log_facility_ironic','LOG_LOCAL0
 
 $nova_report_interval           = hiera('nova_report_interval', 60)
 $nova_service_down_time         = hiera('nova_service_down_time', 180)
+$cinder_report_interval         = hiera('cinder_report_interval', 60)
+$cinder_service_down_time       = hiera('cinder_service_down_time', 10)
+$neutron_report_interval        = hiera('neutron_report_interval', 10)
+$neutron_agent_down_time        = hiera('neutron_agent_down_time', 30)
 
 $custom_theme_path              = hiera('custom_theme_path', 'themes/vendor')
 
@@ -442,6 +446,12 @@ $ssl_hash = hiera_hash('use_ssl', {})
 $public_ssl_hash = hiera('public_ssl')
 $public_vnc_protocol = get_ssl_property($ssl_hash, $public_ssl_hash, 'nova', 'public', 'protocol', 'http')
 $real_nova_hash = merge($nova_hash, { 'vncproxy_protocol' => $public_vnc_protocol })
+
+$real_cinder_hash = merge($cinder_hash, { 'cinder_report_interval'   => $cinder_report_interval,
+                                          'cinder_service_down_time' => $cinder_service_down_time,})
+
+$real_neutron_hash = merge($neutron_hash, { 'neutron_report_interval'   => $neutron_report_interval,
+                                            'neutron_agent_down_time'   => $neutron_agent_down_time,})
 
 # Define how we should get memcache addresses
 if hiera('memcached_addresses', false) {

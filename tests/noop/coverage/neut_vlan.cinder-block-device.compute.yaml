@@ -1,0 +1,19 @@
+
+Total resources:   14
+Touched resources: 1
+Resource coverage:  7.14%
+Untouched resources:
+
+  Cinder_config[DEFAULT/auth_strategy]
+  Cinder_config[DEFAULT/available_devices]
+  Cinder_config[DEFAULT/iscsi_helper]
+  Cinder_config[DEFAULT/iscsi_ip_address]
+  Cinder_config[DEFAULT/iscsi_protocol]
+  Cinder_config[DEFAULT/volume_backend_name]
+  Cinder_config[DEFAULT/volume_clear]
+  Cinder_config[DEFAULT/volume_dir]
+  Cinder_config[DEFAULT/volume_driver]
+  Cinder_config[DEFAULT/volume_group]
+  Cinder_config[keymgr/fixed_key]
+  Exec[remove-policy-rc.d]
+  File[create-policy-rc.d]
