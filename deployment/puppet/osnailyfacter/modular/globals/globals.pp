@@ -101,6 +101,10 @@ $syslog_log_facility_ironic     = hiera('syslog_log_facility_ironic','LOG_LOCAL0
 
 $nova_report_interval           = hiera('nova_report_interval', 60)
 $nova_service_down_time         = hiera('nova_service_down_time', 180)
+$cinder_report_interval         = hiera('cinder_report_interval', 60)
+$cinder_service_down_time       = hiera('cinder_service_down_time', 10)
+$neutron_report_interval        = hiera('neutron_report_interval', 10)
+$neutron_agent_down_time        = hiera('neutron_agent_down_time', 30)
 
 $custom_theme_path              = hiera('custom_theme_path', 'themes/vendor')
 
