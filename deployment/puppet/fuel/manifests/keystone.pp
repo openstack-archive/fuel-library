@@ -27,15 +27,20 @@ class fuel::keystone (
   $auth_version      = $::fuel::params::keystone_auth_version,
   ) inherits fuel::params {
 
-  ensure_packages(['crontabs', 'os-client-config', 'python-tablib',
-                   'python-unicodecsv', 'rubygem-thread_safe'])
+  ensure_packages([
+    'crontabs',
+    'os-client-config',
+    'python-tablib',
+    'python-unicodecsv',
+    'rubygem-thread_safe',
+  ])
 
   class { '::keystone':
-    admin_token      => $admin_token,
-    catalog_type     => 'sql',
-    database_connection   => "${db_engine}://${db_user}:${db_password}@${db_host}:${db_port}/${db_name}",
-    token_expiration => 86400,
-    token_provider   => 'keystone.token.providers.uuid.Provider',
+    admin_token         => $admin_token,
+    catalog_type        => 'sql',
+    database_connection => "${db_engine}://${db_user}:${db_password}@${db_host}:${db_port}/${db_name}",
+    token_expiration    => 86400,
+    token_provider      => 'keystone.token.providers.uuid.Provider',
   }
 
   #FIXME(mattymo): We should enable db_sync on every run inside keystone,
@@ -70,16 +75,16 @@ class fuel::keystone (
 
   # Admin user
   keystone_user { $admin_user :
-    ensure          => present,
-    password        => $admin_password,
-    enabled         => 'True',
+    ensure           => present,
+    password         => $admin_password,
+    enabled          => 'True',
     replace_password => false,
   }
 
   # assigning role 'admin' to user 'admin' in tenant 'admin'
   keystone_user_role { "${admin_user}@admin":
-    ensure  => present,
-    roles   => ['admin'],
+    ensure => present,
+    roles  => ['admin'],
   }
 
   # Monitord user
@@ -91,8 +96,8 @@ class fuel::keystone (
   }
 
   keystone_user_role { "${monitord_user}@services":
-    ensure  => present,
-    roles   => ['monitoring'],
+    ensure => present,
+    roles  => ['monitoring'],
   }
 
   # Keystone Endpoint

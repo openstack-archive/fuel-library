@@ -50,8 +50,15 @@ class fuel::nailgun::server (
 
   ) inherits fuel::params {
 
-  ensure_packages(['fuel-nailgun', 'python-psycopg2', 'crontabs', 'cronie-anacron',
-                   'uwsgi', 'uwsgi-plugin-common', 'uwsgi-plugin-python'])
+  ensure_packages([
+    'fuel-nailgun',
+    'python-psycopg2',
+    'crontabs',
+    'cronie-anacron',
+    'uwsgi',
+    'uwsgi-plugin-common',
+    'uwsgi-plugin-python',
+  ])
 
   $services = [ 'assassind',
                 'nailgun',
@@ -66,67 +73,67 @@ class fuel::nailgun::server (
 
   # FIXME(kozhukalov): fuel-nailgun package should provide nailgun group
   group { 'nailgun' :
-    provider => "groupadd",
-    ensure => "present",
+    ensure   => 'present',
+    provider => 'groupadd',
   }
 
   # FIXME(kozhukalov): fuel-nailgun package should provide nailgun user
   user { 'nailgun' :
-    ensure => "present",
-    gid => 'nailgun',
-    home => "/",
-    shell => "/bin/false",
+    ensure  => 'present',
+    gid     => 'nailgun',
+    home    => '/',
+    shell   => '/bin/false',
     require => Group['nailgun'],
   }
 
   # FIXME(kozhukalov): fuel-nailgun package should provide
   # /etc/nailgun directory
-  file { "/etc/nailgun":
+  file { '/etc/nailgun':
     ensure => directory,
-    owner => 'root',
-    group => 'root',
-    mode => 0755,
+    owner  => 'root',
+    group  => 'root',
+    mode   => '0755',
   }
 
-  file { "/etc/logrotate.d/nailgun":
-    content => template("fuel/logrotate.conf.erb"),
+  file { '/etc/logrotate.d/nailgun':
+    content => template('fuel/logrotate.conf.erb'),
   }
 
   # FIXME(kozhukalov): fuel-nailgun package should provide
   # /var/log/nailgun directory
-  file {"/var/log/nailgun":
+  file {'/var/log/nailgun':
     ensure => directory,
-    owner => 'root',
-    group => 'root',
-    mode => 0755,
+    owner  => 'root',
+    group  => 'root',
+    mode   => '0755',
   }
 
-  file { "/etc/nailgun/settings.yaml":
-    content => template("fuel/nailgun/settings.yaml.erb"),
-    owner => 'root',
-    group => 'root',
-    mode => 0644,
-    require => File["/etc/nailgun"],
-    notify => Service[$services],
+  file { '/etc/nailgun/settings.yaml':
+    content => template('fuel/nailgun/settings.yaml.erb'),
+    owner   => 'root',
+    group   => 'root',
+    mode    => '0644',
+    require => File['/etc/nailgun'],
+    notify  => Service[$services],
   }
 
-  exec {"nailgun_syncdb":
-    command => "/usr/bin/nailgun_syncdb",
+  exec {'nailgun_syncdb':
+    command => '/usr/bin/nailgun_syncdb',
     require => [
-      File["/etc/nailgun/settings.yaml"],
+      File['/etc/nailgun/settings.yaml'],
     ],
   }
 
-  exec {"nailgun_upload_fixtures":
-    command => "/usr/bin/nailgun_fixtures",
-    require => Exec["nailgun_syncdb"],
+  exec {'nailgun_upload_fixtures':
+    command => '/usr/bin/nailgun_fixtures',
+    require => Exec['nailgun_syncdb'],
   }
 
-  file {"/etc/cron.daily/capacity":
-    content => template("fuel/nailgun/cron_daily_capacity.erb"),
-    owner => 'root',
-    group => 'root',
-    mode  => '0644',
+  file {'/etc/cron.daily/capacity':
+    content => template('fuel/nailgun/cron_daily_capacity.erb'),
+    owner   => 'root',
+    group   => 'root',
+    mode    => '0644',
     require => Package['cronie-anacron']
   }
 
@@ -152,12 +159,12 @@ class fuel::nailgun::server (
     $physicalprocessorcount = $::physicalprocessorcount * 2
   }
 
-  $somaxconn = "4096"
+  $somaxconn = '4096'
   sysctl::value{'net.core.somaxconn': value => $somaxconn}
 
   file { '/etc/nailgun/uwsgi_nailgun.yaml':
-    content => template('nailgun/uwsgi_nailgun.yaml.erb'),
     ensure  => present,
+    content => template('nailgun/uwsgi_nailgun.yaml.erb'),
     owner   => 'root',
     group   => 'root',
     mode    => '0644',

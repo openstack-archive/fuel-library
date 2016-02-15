@@ -1,8 +1,8 @@
 define fuel::systemd (
-  $start = true,
+  $config_name   = 'fuel.conf',
+  $start         = true,
   $template_path = 'fuel/systemd/service_template.erb',
-  $config_name = 'fuel.conf'
-  ) {
+){
 
   if !defined(File["/etc/systemd/system/${title}.service.d"]) {
     file { "/etc/systemd/system/${title}.service.d":
@@ -27,7 +27,7 @@ define fuel::systemd (
 
   if !defined(Service[$title]) {
     if $start {
-      service { "${title}":
+      service { $title:
         ensure    => running,
         enable    => true,
         require   => Exec['fuel_systemd_reload'],
@@ -35,7 +35,7 @@ define fuel::systemd (
       }
     }
     else {
-      service { "${title}":
+      service { $title:
         enable    => true,
         require   => Exec['fuel_systemd_reload'],
         subscribe => File["/etc/systemd/system/${title}.service.d/${config_name}"]

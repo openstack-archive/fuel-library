@@ -1,6 +1,6 @@
 class fuel::nginx::repo(
   $repo_root       = $::fuel::params::repo_root,
-  $repo_port     = $::fuel::params::repo_port,
+  $repo_port       = $::fuel::params::repo_port,
   $service_enabled = true,
   ) inherits fuel::nginx {
 

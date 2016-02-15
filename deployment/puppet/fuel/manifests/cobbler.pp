@@ -48,21 +48,21 @@ class fuel::cobbler(
   }
 
   class { '::cobbler':
-    server             => $server,
-    domain_name        => $domain_name,
-    dns_upstream       => $dns_upstream,
-    dns_domain         => $dns_domain,
-    dns_search         => $dns_search,
-    name_server        => $name_server,
-    next_server        => $next_server,
+    server           => $server,
+    domain_name      => $domain_name,
+    dns_upstream     => $dns_upstream,
+    dns_domain       => $dns_domain,
+    dns_search       => $dns_search,
+    name_server      => $name_server,
+    next_server      => $next_server,
     # dhcp_start_address => $dhcp_start_address,
     # dhcp_end_address   => $dhcp_end_address,
     # dhcp_netmask       => $dhcp_netmask,
     # dhcp_gateway       => $dhcp_gateway,
-    dhcp_interface     => $dhcp_interface,
-    cobbler_user       => $cobbler_user,
-    cobbler_password   => $cobbler_password,
-    pxetimeout         => '50'
+    dhcp_interface   => $dhcp_interface,
+    cobbler_user     => $cobbler_user,
+    cobbler_password => $cobbler_password,
+    pxetimeout       => '50'
   }
 
   # ADDING send2syslog.py SCRIPT AND CORRESPONDING SNIPPET
@@ -209,10 +209,10 @@ class fuel::cobbler(
     target => '/etc/cobbler.dnsmasq.conf',
   }
 
-  file { ["/var/log/cobbler/anamon",
-          "/var/log/cobbler/kicklog",
-          "/var/log/cobbler/syslog",
-          "/var/log/cobbler/tasks"] :
+  file { ['/var/log/cobbler/anamon',
+          '/var/log/cobbler/kicklog',
+          '/var/log/cobbler/syslog',
+          '/var/log/cobbler/tasks'] :
     ensure => directory
   }
 

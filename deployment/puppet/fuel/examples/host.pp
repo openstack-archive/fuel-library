@@ -24,11 +24,23 @@ $monitord_user = $::fuel_settings['keystone']['monitord_user']
 $monitord_password = $::fuel_settings['keystone']['monitord_password']
 $monitord_tenant = 'services'
 
-ensure_packages(["sudo", "ami-creator", "python-daemon", "httpd",
-                 "iptables", "crontabs", "cronie-anacron",
-                 "rsyslog", "rsync", "screen", "acpid",
-                 "fuel-migrate", "dhcp", "yum-plugin-priorities",
-                 "fuel-notify"])
+ensure_packages([
+  'acpid',
+  'ami-creator',
+  'cronie-anacron',
+  'crontabs',
+  'dhcp',
+  'fuel-migrate',
+  'fuel-notify',
+  'httpd',
+  'iptables',
+  'python-daemon',
+  'rsync',
+  'rsyslog',
+  'screen',
+  'sudo',
+  'yum-plugin-priorities',
+])
 
 Class['openstack::logrotate'] ->
 Class['monit'] ->
@@ -109,7 +121,7 @@ file { '/etc/fuel/free_disk_check.yaml':
 }
 
 # Change link to UI on upgrades from old releases
-exec { "Change protocol and port in in issue":
+exec { 'Change protocol and port in in issue':
   command => 'sed -i -e "s|http://\(.*\):8000\(.*\)|https://\1:8443\2|g" /etc/issue',
   onlyif  => 'grep -q 8000 /etc/issue',
 }
@@ -131,9 +143,9 @@ class { 'osnailyfacter::ssh':
 }
 
 class { 'fuel::iptables':
-  admin_iface => $::fuel_settings['ADMIN_NETWORK']['interface'],
+  admin_iface     => $::fuel_settings['ADMIN_NETWORK']['interface'],
   network_address => ipcalc_network_by_address_netmask($::fuel_settings['ADMIN_NETWORK']['ipaddress'],$::fuel_settings['ADMIN_NETWORK']['netmask']),
-  network_cidr => ipcalc_network_cidr_by_netmask($::fuel_settings['ADMIN_NETWORK']['netmask']),
+  network_cidr    => ipcalc_network_cidr_by_netmask($::fuel_settings['ADMIN_NETWORK']['netmask']),
 }
 
 # FIXME(kozhukalov): this should be a part of repo management tool
@@ -208,7 +220,7 @@ augeas { 'Enable only SSHv2 connections from the master node':
   ],
 }
 
-augeas { "Turn off sudo requiretty":
+augeas { 'Turn off sudo requiretty':
   changes => [
     'set /files/etc/sudoers/Defaults[*]/requiretty/negate ""',
   ],
@@ -218,25 +230,25 @@ file {'/etc/fuel-utils/config':
   content => template('fuel/fuel_utils_config.erb'),
   owner   => 'root',
   group   => 'root',
-  mode    => 0644,
+  mode    => '0644',
 }
 
 # The requirement of former mcollective container.
 # This directory is used for building target OS images.
 file {['/var/lib/fuel', '/var/lib/fuel/ibp']:
   ensure => directory,
-  owner => 'root',
-  group => 'root',
-  mode => 0755,
+  owner  => 'root',
+  group  => 'root',
+  mode   => '0755',
 }
 
 # The requirement of former mcollective container.
 # TODO(kozhukalov): make sure we need this
 file {'/var/lib/hiera':
   ensure => directory,
-  owner => 'root',
-  group => 'root',
-  mode => 0755,
+  owner  => 'root',
+  group  => 'root',
+  mode   => '0755',
 }
 
 # The requirement of former mcollective container.

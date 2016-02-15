@@ -6,17 +6,17 @@ class fuel::astute(
   ) inherits fuel::params {
 
   $packages = [
-    "psmisc",
-    "python-editor",
-    "nailgun-mcagents",
-    "sysstat",
-    "rubygem-amqp",
-    "rubygem-amq-protocol",
-    "rubygem-i18n",
-    "rubygem-tzinfo",
-    "rubygem-minitest",
-    "rubygem-symboltable",
-    "rubygem-thread_safe",
+    'psmisc',
+    'python-editor',
+    'nailgun-mcagents',
+    'sysstat',
+    'rubygem-amqp',
+    'rubygem-amq-protocol',
+    'rubygem-i18n',
+    'rubygem-tzinfo',
+    'rubygem-minitest',
+    'rubygem-symboltable',
+    'rubygem-thread_safe',
   ]
 
   ensure_packages($packages)
@@ -46,26 +46,26 @@ class fuel::astute(
     mode    => '0755',
   } ~> Service <| title == 'astute' |>
 
-  file {"/etc/astute":
+  file {'/etc/astute':
     ensure => directory,
     owner  => 'root',
     group  => 'root',
     mode   => '0755',
   }
 
-  file {"/etc/astute/astuted.conf":
+  file {'/etc/astute/astuted.conf':
     content => template('fuel/astute/astuted.conf.erb'),
     owner   => 'root',
     group   => 'root',
     mode    => '0644',
-    require => File["/etc/astute"],
+    require => File['/etc/astute'],
   } ~> Service <| title == 'astute' |>
 
-  file {"/var/log/astute":
+  file {'/var/log/astute':
     ensure => directory,
     owner  => 'root',
     group  => 'root',
-    mode   => 0755,
+    mode   => '0755',
   }
 
   # This hack came from setup.sh of astute docker container

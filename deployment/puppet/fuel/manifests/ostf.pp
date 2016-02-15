@@ -20,7 +20,7 @@ class fuel::ostf(
   ensure_packages(['libevent-devel', 'openssl-devel', 'fuel-ostf', 'python-psycopg2'])
 
   exec {'ostf-init':
-    command => "/usr/bin/ostf-server \
+    command   => "/usr/bin/ostf-server \
     --after-initialization-environment-hook",
     tries     => 50,
     try_sleep => 5,

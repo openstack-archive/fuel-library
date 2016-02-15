@@ -3,7 +3,7 @@ notice('MODULAR: rsyslog.pp')
 Class['rsyslog::server'] ->
 Class['openstack::logrotate']
 
-class {"::rsyslog::server":
+class {'::rsyslog::server':
   enable_tcp                => true,
   enable_udp                => true,
   server_dir                => '/var/log/',
@@ -17,10 +17,10 @@ $logconf = "${::rsyslog::params::rsyslog_d}30-remote-log.conf"
 file { $logconf :
     content => template('openstack/30-server-remote-log.conf.erb'),
     require => Class['::rsyslog::server'],
-    owner => root,
-    group => $::rsyslog::params::run_group,
-    mode => 0640,
-    notify  => Class["::rsyslog::service"],
+    owner   => root,
+    group   => $::rsyslog::params::run_group,
+    mode    => '0640',
+    notify  => Class['::rsyslog::service'],
 }
 
 class { '::openstack::logrotate':
@@ -35,5 +35,5 @@ fuel::systemd {'rsyslog':
   start         => true,
   template_path => 'fuel/systemd/restart_template.erb',
   config_name   => 'restart.conf',
-  require       => Class["::rsyslog::server"],
+  require       => Class['::rsyslog::server'],
 }

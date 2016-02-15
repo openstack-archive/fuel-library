@@ -59,7 +59,7 @@ class fuel::auth(
     description => 'Nailgun API',
   }
 
-  keystone_endpoint { "$region/nailgun":
+  keystone_endpoint { "${region}/nailgun":
     ensure       => present,
     public_url   => "http://${public_address_real}:${port}/api",
     admin_url    => "http://${admin_address_real}:${port}/api",

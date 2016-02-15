@@ -8,10 +8,10 @@ class fuel::auxiliaryrepos(
   $ubuntu_dir = "${repo_root}/ubuntu/auxiliary/"
 
   file { $centos_dir:
-    ensure  => directory,
-    owner   => 'root',
-    group   => 'root',
-    mode    => '0755',
+    ensure => directory,
+    owner  => 'root',
+    group  => 'root',
+    mode   => '0755',
   }
 
   File[$centos_dir] ->
@@ -30,9 +30,9 @@ class fuel::auxiliaryrepos(
   ensure_packages(['createrepo'])
 
   exec { "createrepo ${centos_dir}":
-    path     => '/bin:/sbin:/usr/bin:/usr/sbin',
-    cwd      => $centos_dir,
-    creates  => "${centos_dir}/repodata/repomd.xml",
+    path    => '/bin:/sbin:/usr/bin:/usr/sbin',
+    cwd     => $centos_dir,
+    creates => "${centos_dir}/repodata/repomd.xml",
   }
 
   $release_files = [
@@ -47,7 +47,7 @@ class fuel::auxiliaryrepos(
   exec { 'create_ubuntu_repo_dirs':
     path    => '/bin:/sbin:/usr/bin:/usr/sbin',
     command => "bash -c \"mkdir -p ${ubuntu_dir}/pool/{main,restricted} ${ubuntu_dir}/dists/auxiliary/{main,restricted}/binary-amd64/\"",
-    unless => "test -d ${ubuntu_dir}/pool && \
+    unless  => "test -d ${ubuntu_dir}/pool && \
       test -d ${ubuntu_dir}/dists/auxiliary/main/binary-amd64 && \
       test -d ${ubuntu_dir}/dists/auxiliary/restricted/binary-amd64",
   }

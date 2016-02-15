@@ -6,18 +6,17 @@ class fuel::nailgun::client (
   $keystone_password         = $::fuel::params::keystone_admin_password,
   ) inherits fuel::params {
 
-  ensure_packages(["python-fuelclient"])
+  ensure_packages(['python-fuelclient'])
 
-  file {['/root/.config',
-         '/root/.config/fuel']:
+  file {['/root/.config', '/root/.config/fuel']:
     ensure => directory
   }
 
-  file { "/root/.config/fuel/fuel_client.yaml":
+  file { '/root/.config/fuel/fuel_client.yaml':
     owner   => 'root',
     group   => 'root',
     mode    => '0600',
-    content => template("fuel/nailgun/client.yaml.erb"),
+    content => template('fuel/nailgun/client.yaml.erb'),
     require => File['/root/.config/fuel'],
   }
 

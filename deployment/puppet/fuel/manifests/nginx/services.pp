@@ -52,6 +52,6 @@ class fuel::nginx::services (
       force        => false,
       require      => File['/var/lib/fuel/keys/master/nginx'],
       cnf_tpl      => 'openssl/cert.cnf.erb',
-    } -> File["/etc/nginx/conf.d/services.conf"]
+    } -> File['/etc/nginx/conf.d/services.conf']
   }
 }

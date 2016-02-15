@@ -14,7 +14,7 @@ else {
   $dhcp_gateway = $cobbler_host
 }
 
-class { "fuel::cobbler":
+class { 'fuel::cobbler':
   cobbler_user                => $::fuel_settings['cobbler']['user'],
   cobbler_password            => $::fuel_settings['cobbler']['password'],
   bootstrap_path              => pick($bootstrap_settings['path'], '/var/www/nailgun/bootstraps/active_bootstrap'),
@@ -36,7 +36,7 @@ fuel::systemd {['httpd', 'cobblerd', 'dnsmasq', 'xinetd']:
   start         => true,
   template_path => 'fuel/systemd/restart_template.erb',
   config_name   => 'restart.conf',
-  require       => Class["fuel::cobbler"],
+  require       => Class['fuel::cobbler'],
 }
 
 fuel::dnsmasq::dhcp_range {'default':

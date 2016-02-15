@@ -10,7 +10,7 @@ class fuel::nginx inherits fuel::params {
           '/etc/nginx/conf.d/ssl.conf']:
     ensure => 'absent',
     notify => Service['nginx'],
-    before => File["/etc/nginx/nginx.conf"],
+    before => File['/etc/nginx/nginx.conf'],
   }
 
   if ( $service_enabled == false ){

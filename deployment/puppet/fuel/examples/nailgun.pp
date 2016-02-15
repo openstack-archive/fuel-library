@@ -11,14 +11,14 @@ else {
 
 $debug = pick($::fuel_settings['DEBUG'],false)
 if $debug {
-    $nailgun_log_level = "DEBUG"
+    $nailgun_log_level = 'DEBUG'
 } else {
-    $nailgun_log_level = "INFO"
+    $nailgun_log_level = 'INFO'
 }
 
 if empty($::fuel_settings['NTP1']) and
-   empty($::fuel_settings['NTP2']) and
-   empty($::fuel_settings['NTP3']) {
+  empty($::fuel_settings['NTP2']) and
+  empty($::fuel_settings['NTP3']) {
   $ntp_servers = $::fuel_settings['ADMIN_NETWORK']['ipaddress']
 } else {
   $ntp_server_list = delete(delete_undef_values([$::fuel_settings['NTP1'],
@@ -28,7 +28,7 @@ if empty($::fuel_settings['NTP1']) and
 
 Exec  {path => '/usr/bin:/bin:/usr/sbin:/sbin'}
 
-class { "fuel::nailgun::server":
+class { 'fuel::nailgun::server':
   keystone_host            => $::fuel_settings['ADMIN_NETWORK']['ipaddress'],
   keystone_user            => $::fuel_settings['keystone']['nailgun_user'],
   keystone_password        => $::fuel_settings['keystone']['nailgun_password'],

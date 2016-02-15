@@ -2,7 +2,7 @@ notice('MODULAR: postgresql.pp')
 
 $fuel_settings = parseyaml($astute_settings_yaml)
 
-class { "fuel::postgresql":
+class { 'fuel::postgresql':
   nailgun_db_name      => $::fuel_settings['postgres']['nailgun_dbname'],
   nailgun_db_user      => $::fuel_settings['postgres']['nailgun_user'],
   nailgun_db_password  => $::fuel_settings['postgres']['nailgun_password'],

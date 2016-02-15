@@ -44,13 +44,17 @@ class fuel::mcollective(
   if $::osfamily == 'RedHat' {
     case $operatingsystemmajrelease {
       '6': {
-        $mco_packages = ['ruby21-rubygem-mcollective-client',
-                         'ruby21-nailgun-mcagents']
+        $mco_packages = [
+          'ruby21-rubygem-mcollective-client',
+          'ruby21-nailgun-mcagents',
+        ]
       }
       '7': {
-        $mco_packages = ['mcollective-client',
-                         'rubygem-mcollective-client',
-                         'nailgun-mcagents']
+        $mco_packages = [
+          'mcollective-client',
+          'rubygem-mcollective-client',
+          'nailgun-mcagents',
+        ]
       }
       default: {
         fail("Unsupported ${::osfamily} release: ${::operatingsystemmajrelease}")

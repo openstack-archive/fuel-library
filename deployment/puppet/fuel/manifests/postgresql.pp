@@ -14,8 +14,8 @@ class fuel::postgresql(
 
   # install and configure postgresql server
   class { 'postgresql::globals':
-    server_package_name => "postgresql-server",
-    client_package_name => "postgresql",
+    server_package_name => 'postgresql-server',
+    client_package_name => 'postgresql',
     encoding            => 'UTF8',
   }
 
@@ -35,14 +35,14 @@ class fuel::postgresql(
     user     => $keystone_db_user,
     password => $keystone_db_password,
     grant    => 'all',
-    require => Class['::postgresql::server'],
+    require  => Class['::postgresql::server'],
   }
 
   postgresql::server::db { $ostf_db_name:
     user     => $ostf_db_user,
     password => $ostf_db_password,
     grant    => 'all',
-    require => Class['::postgresql::server'],
+    require  => Class['::postgresql::server'],
   }
 
   ensure_packages(['python-psycopg2', 'postgresql-libs'])

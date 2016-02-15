@@ -30,19 +30,19 @@ class fuel::iptables (
 
   #Host services
   firewall { '004 forward_admin_net':
-    chain      => 'POSTROUTING',
-    table      => 'nat',
-    proto      => 'all',
-    source     => "${network_address}/${network_cidr}",
-    outiface   => 'e+',
-    jump       => 'MASQUERADE',
+    chain    => 'POSTROUTING',
+    table    => 'nat',
+    proto    => 'all',
+    source   => "${network_address}/${network_cidr}",
+    outiface => 'e+',
+    jump     => 'MASQUERADE',
   }
   sysctl::value{'net.ipv4.ip_forward': value=>'1'}
 
   firewall { '005 ssh':
-    port    => $ssh_port,
-    proto   => 'tcp',
-    action  => 'accept',
+    port   => $ssh_port,
+    proto  => 'tcp',
+    action => 'accept',
   }
 
   firewall { '006 ntp':
@@ -84,38 +84,38 @@ class fuel::iptables (
     chain    => $chain,
     port     => $nailgun_internal_port,
     proto    => 'tcp',
-    src_type => "LOCAL",
+    src_type => 'LOCAL',
     action   => 'accept',
   }
 
   firewall { '012 nailgun_internal_block_ext':
-    chain   => $chain,
-    port    => $nailgun_internal_port,
-    proto   => 'tcp',
-    action  => 'reject',
+    chain  => $chain,
+    port   => $nailgun_internal_port,
+    proto  => 'tcp',
+    action => 'reject',
   }
 
   firewall { '013 postgres_local':
     chain    => $chain,
     port     => $postgres_port,
     proto    => 'tcp',
-    src_type => "LOCAL",
+    src_type => 'LOCAL',
     action   => 'accept',
   }
 
   firewall { '014 postgres':
-    chain    => $chain,
-    port     => $postgres_port,
-    proto    => 'tcp',
-    iniface  => 'docker0',
-    action   => 'accept',
-  }
-
-  firewall { '015 postgres_block_ext':
     chain   => $chain,
     port    => $postgres_port,
     proto   => 'tcp',
-    action  => 'reject',
+    iniface => 'docker0',
+    action  => 'accept',
+  }
+
+  firewall { '015 postgres_block_ext':
+    chain  => $chain,
+    port   => $postgres_port,
+    proto  => 'tcp',
+    action => 'reject',
   }
 
   firewall { '020 ostf_admin':
@@ -130,22 +130,22 @@ class fuel::iptables (
     chain    => $chain,
     port     => $ostf_port,
     proto    => 'tcp',
-    src_type => "LOCAL",
+    src_type => 'LOCAL',
     action   => 'accept',
   }
 
   firewall { '022 ostf_block_ext':
-    chain   => $chain,
-    port    => $ostf_port,
-    proto   => 'tcp',
-    action  => 'reject',
+    chain  => $chain,
+    port   => $ostf_port,
+    proto  => 'tcp',
+    action => 'reject',
   }
 
   firewall { '023 rsync':
-    chain   => $chain,
-    port    => $rsync_port,
-    proto   => 'tcp',
-    action  => 'accept',
+    chain  => $chain,
+    port   => $rsync_port,
+    proto  => 'tcp',
+    action => 'accept',
   }
 
   firewall { '024 rsyslog':
@@ -176,59 +176,59 @@ class fuel::iptables (
     chain    => $chain,
     port     => $rabbitmq_ports,
     proto    => 'tcp',
-    src_type => "LOCAL",
+    src_type => 'LOCAL',
     action   => 'accept',
   }
 
   firewall { '042 rabbitmq_block_ext':
-    chain    => $chain,
-    port     => $rabbitmq_ports,
-    proto    => 'tcp',
-    action   => 'reject',
+    chain  => $chain,
+    port   => $rabbitmq_ports,
+    proto  => 'tcp',
+    action => 'reject',
   }
 
   firewall {'043 fuelweb_port':
-    chain    => $chain,
-    port     => $fuelweb_port,
-    proto    => 'tcp',
-    action   => 'accept',
+    chain  => $chain,
+    port   => $fuelweb_port,
+    proto  => 'tcp',
+    action => 'accept',
   }
 
   firewall { '046 keystone_admin':
-    chain    => $chain,
-    port     => $keystone_port,
-    proto    => 'tcp',
-    action   => 'accept'
+    chain  => $chain,
+    port   => $keystone_port,
+    proto  => 'tcp',
+    action => 'accept'
   }
 
   firewall { '047 keystone_admin_port admin_net':
-    chain    => $chain,
-    port     => $keystone_admin_port,
-    proto    => 'tcp',
-    iniface  => $admin_iface,
-    action   => 'accept',
+    chain   => $chain,
+    port    => $keystone_admin_port,
+    proto   => 'tcp',
+    iniface => $admin_iface,
+    action  => 'accept',
   }
 
   firewall { '049 nailgun_repo_admin':
-    chain    => $chain,
-    port     => $nailgun_repo_port,
-    proto    => 'tcp',
-    action   => 'accept'
+    chain  => $chain,
+    port   => $nailgun_repo_port,
+    proto  => 'tcp',
+    action => 'accept'
   }
 
   firewall { '050 forward admin_net':
-    chain    => 'FORWARD',
-    proto    => 'all',
-    source   => "${network_address}/${network_cidr}",
-    iniface  => $admin_iface,
-    action   => 'accept',
+    chain   => 'FORWARD',
+    proto   => 'all',
+    source  => "${network_address}/${network_cidr}",
+    iniface => $admin_iface,
+    action  => 'accept',
   }
 
   firewall { '051 forward admin_net conntrack':
-    chain    => 'FORWARD',
-    proto    => 'all',
-    ctstate  => ['ESTABLISHED', 'RELATED'],
-    action   => 'accept'
+    chain   => 'FORWARD',
+    proto   => 'all',
+    ctstate => ['ESTABLISHED', 'RELATED'],
+    action  => 'accept'
   }
 
   firewall {'999 iptables denied':

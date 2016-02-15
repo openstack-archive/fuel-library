@@ -59,7 +59,7 @@ class fuel::ostf::auth (
     description => 'OSTF',
   }
 
-  keystone_endpoint { "$region/ostf":
+  keystone_endpoint { "${region}/ostf":
     ensure       => present,
     public_url   => "http://${public_address_real}:${port}/ostf",
     admin_url    => "http://${admin_address_real}:${port}/ostf",
