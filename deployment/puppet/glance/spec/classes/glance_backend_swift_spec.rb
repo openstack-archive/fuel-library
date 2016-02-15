@@ -25,12 +25,12 @@ describe 'glance::backend::swift' do
       should contain_glance_api_config('glance_store/swift_store_large_object_size').with_value('5120')
       should contain_glance_api_config('glance_store/swift_store_container').with_value('glance')
       should contain_glance_api_config('glance_store/swift_store_create_container_on_put').with_value(false)
-      should contain_glance_api_config('DEFAULT/swift_store_config_file').with_value('/etc/glance/glance-api.conf')
+      should contain_glance_api_config('glance_store/swift_store_config_file').with_value('/etc/glance/glance-swift.conf')
       should contain_glance_api_config('glance_store/default_swift_reference').with_value('ref1')
-      should contain_glance_api_config('ref1/key').with_value('key')
-      should contain_glance_api_config('ref1/user').with_value('user')
-      should contain_glance_api_config('ref1/auth_version').with_value('2')
-      should contain_glance_api_config('ref1/auth_address').with_value('127.0.0.1:5000/v2.0/')
+      should contain_glance_swift_config('ref1/key').with_value('key')
+      should contain_glance_swift_config('ref1/user').with_value('user')
+      should contain_glance_swift_config('ref1/auth_version').with_value('2')
+      should contain_glance_swift_config('ref1/auth_address').with_value('127.0.0.1:5000/v2.0/')
     end
 
   end
@@ -54,10 +54,10 @@ describe 'glance::backend::swift' do
       should contain_glance_api_config('glance_store/swift_store_create_container_on_put').with_value(true)
       should contain_glance_api_config('glance_store/swift_store_large_object_size').with_value('100')
       should contain_glance_api_config('glance_store/default_swift_reference').with_value('swift_creds')
-      should contain_glance_api_config('swift_creds/key').with_value('key2')
-      should contain_glance_api_config('swift_creds/user').with_value('user2')
-      should contain_glance_api_config('swift_creds/auth_version').with_value('1')
-      should contain_glance_api_config('swift_creds/auth_address').with_value('127.0.0.2:8080/v1.0/')
+      should contain_glance_swift_config('swift_creds/key').with_value('key2')
+      should contain_glance_swift_config('swift_creds/user').with_value('user2')
+      should contain_glance_swift_config('swift_creds/auth_version').with_value('1')
+      should contain_glance_swift_config('swift_creds/auth_address').with_value('127.0.0.2:8080/v1.0/')
     end
 
   end
