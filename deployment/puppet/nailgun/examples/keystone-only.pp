@@ -7,8 +7,6 @@ else {
     $production = 'docker'
 }
 
-$auth_version = "v2.0"
-
 case $production {
   'prod', 'docker': {
 
@@ -76,9 +74,9 @@ case $production {
 
     # Keystone Endpoint
     class { 'keystone::endpoint':
-      public_url   => "http://${::fuel_settings['ADMIN_NETWORK']['ipaddress']}:5000/${auth_version}",
-      admin_url    => "http://${::fuel_settings['ADMIN_NETWORK']['ipaddress']}:35357/${auth_version}",
-      internal_url => "http://${::fuel_settings['ADMIN_NETWORK']['ipaddress']}:5000/${auth_version}",
+      public_url   => "http://${::fuel_settings['ADMIN_NETWORK']['ipaddress']}:5000",
+      admin_url    => "http://${::fuel_settings['ADMIN_NETWORK']['ipaddress']}:35357",
+      internal_url => "http://${::fuel_settings['ADMIN_NETWORK']['ipaddress']}:5000",
     }
 
     # Nailgun

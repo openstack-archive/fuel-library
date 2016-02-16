@@ -24,7 +24,6 @@ class fuel::keystone (
   $ostf_user         = $::fuel::params::keystone_ostf_user,
   $ostf_password     = $::fuel::params::keystone_ostf_password,
 
-  $auth_version      = $::fuel::params::keystone_auth_version,
   ) inherits fuel::params {
 
   ensure_packages(['crontabs', 'os-client-config', 'python-tablib',
@@ -97,9 +96,9 @@ class fuel::keystone (
 
   # Keystone Endpoint
   class { 'keystone::endpoint':
-    public_url   => "http://${host}:${port}/${auth_version}",
-    admin_url    => "http://${host}:${admin_port}/${auth_version}",
-    internal_url => "http://${host}:${port}/${auth_version}",
+    public_url   => "http://${host}:${port}",
+    admin_url    => "http://${host}:${admin_port}",
+    internal_url => "http://${host}:${port}",
   }
 
   # Nailgun
