@@ -5,6 +5,18 @@ $override_configuration = hiera_hash('configuration', {})
 $network_metadata = hiera_hash('network_metadata', {})
 prepare_network_config($network_scheme)
 
+# override nova options
+override_resources { 'nova_config':
+  data => $override_configuration['nova_config']
+}
+
+# override nova-api options
+override_resources { 'nova_paste_api_ini':
+  data => $override_configuration['nova_paste_api_ini']
+}
+
+Override_resources <||> ~> Service <| tag == 'nova-service' |>
+
 # Pulling hiera
 $compute_hash                   = hiera_hash('compute', {})
 $public_int                     = hiera('public_int', undef)
@@ -365,15 +377,6 @@ if $use_monit_real {
   }
 }
 
-# override nova options
-override_resources { 'nova_config':
-  data => $override_configuration['nova_config']
-}
-
-# override nova-api options
-override_resources { 'nova_paste_api_ini':
-  data => $override_configuration['nova_paste_api_ini']
-}
 ########################################################################
 
 
