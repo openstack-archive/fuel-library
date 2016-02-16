@@ -36,7 +36,9 @@ debug: false
 deployment_id: 38
 deployment_mode: ha_compact
 external_dns:
-  dns_list: 8.8.8.8, 8.8.4.4
+  dns_list:
+    - 8.8.8.8
+    - 8.8.4.4
   metadata:
     label: Upstream DNS
     weight: 90
@@ -56,7 +58,9 @@ external_ntp:
   metadata:
     label: Upstream NTP
     weight: 100
-  ntp_list: 0.pool.ntp.org, 1.pool.ntp.org
+  ntp_list:
+    - 0.pool.ntp.org
+    - 1.pool.ntp.org
 use_ssl:
   horizon: true
   horizon_public: true
