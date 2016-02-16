@@ -9,12 +9,14 @@ class ceilometer_ha::alarm::evaluator inherits ceilometer::alarm::evaluator {
         'timeout' => '30',
       },
       'start' => {
-        'timeout' => '360',
+        'interval' => '0',
+        'timeout'  => '360',
       },
       'stop' => {
-        'timeout' => '360',
+        'interval' => '0',
+        'timeout'  => '360',
       },
     },
-    #        ocf_script_file => 'cluster/ocf/ceilometer-alarm-evaluator',
   }
 }
+
