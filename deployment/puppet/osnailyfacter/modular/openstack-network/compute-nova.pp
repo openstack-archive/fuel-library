@@ -83,7 +83,6 @@ if $use_neutron {
   nova_config {
     'DEFAULT/linuxnet_interface_driver':       value => 'nova.network.linux_net.LinuxOVSInterfaceDriver';
     'DEFAULT/linuxnet_ovs_integration_bridge': value => $neutron_integration_bridge;
-    'DEFAULT/network_device_mtu':              value => '65000';
     'DEFAULT/my_ip':                           value => $nova_migration_ip;
   }
 
@@ -112,28 +111,6 @@ if $use_neutron {
     changes => "set net.bridge.bridge-nf-call-ip6tables '1'",
     before  => Service['libvirt'],
   }
-
-  # We need to restart nova-compute service in orderto apply new settings
-  # nova-compute must not be restarted until integration bridge is created by
-  # Neutron L2 agent.
-  # The reason is described here https://bugs.launchpad.net/fuel/+bug/1477475
-  exec { 'wait-for-int-br':
-    command     => "ovs-vsctl br-exists ${neutron_integration_bridge}",
-    path        => [ '/sbin', '/bin', '/usr/bin', '/usr/sbin' ],
-    try_sleep   => 6,
-    tries       => 10,
-    refreshonly => true,
-  }
-
-  Augeas<||> ~> Exec['wait-for-int-br']
-  Exec['wait-for-int-br'] -> Service['nova-compute']
-
-  service { 'nova-compute':
-    ensure => 'running',
-    name   => $::nova::params::compute_service_name,
-  }
-
-  Nova_config<| |> ~> Service['nova-compute']
 
 } else {
   $nova_hash               = hiera_hash('nova', { })
