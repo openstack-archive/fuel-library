@@ -11,7 +11,7 @@ $vrouter_name           = hiera('vrouter_name', 'pub')
 # under corosync cluster. So we should not configure anything listening it.
 if $network_metadata['vips']["vrouter_${vrouter_name}"]['namespace'] {
   class { 'osnailyfacter::dnsmasq':
-    external_dns           => strip(split($dns_servers['dns_list'], ',')),
+    external_dns           => $dns_servers['dns_list'],
     master_ip              => $master_ip,
     management_vrouter_vip => $management_vrouter_vip,
   } ->
