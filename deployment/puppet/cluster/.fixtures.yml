@@ -10,3 +10,4 @@ fixtures:
     heat: "#{source_dir}/../heat"
     openstacklib: "#{source_dir}/../openstacklib"
     inifile: "#{source_dir}/../inifile"
+    mysql: "#{source_dir}/../mysql"

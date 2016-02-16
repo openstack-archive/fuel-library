@@ -16,6 +16,7 @@ $erlang_rabbitmq_backend_port = 5673
 $erlang_rabbitmq_port         = 5672
 $galera_clustercheck_port     = 49000
 $galera_ist_port              = 4568
+$galera_sst_port              = 4444
 $glance_api_port              = 9292
 $glance_nova_api_ec2_port     = 8773
 $glance_reg_port              = 9191
@@ -186,7 +187,7 @@ if member($roles, 'primary-controller') or member($roles, 'controller') {
   }
 
   openstack::firewall::multi_net {'101 mysql':
-    port        => [$mysql_port, $mysql_backend_port, $mysql_gcomm_port, $galera_ist_port, $galera_clustercheck_port],
+    port        => [$mysql_port, $mysql_backend_port, $mysql_gcomm_port, $galera_ist_port, $galera_sst_port, $galera_clustercheck_port],
     proto       => 'tcp',
     action      => 'accept',
     source_nets => $database_networks,
