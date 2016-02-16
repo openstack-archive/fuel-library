@@ -15,6 +15,7 @@ if $use_neutron {
   $service_endpoint        = hiera('service_endpoint', $management_vip)
   $nova_endpoint           = hiera('nova_endpoint', $management_vip)
   $nova_hash               = hiera_hash('nova', { })
+  $primary_controller      = roles_include(['primary-controller'])
 
   $db_type     = 'mysql'
   $db_password = $neutron_config['database']['passwd']
@@ -152,7 +153,7 @@ if $use_neutron {
   }
 
   class { 'neutron::server':
-    sync_db                          =>  false,
+    sync_db                          => $primary_controller,
 
     auth_password                    => $auth_password,
     auth_tenant                      => $auth_tenant,

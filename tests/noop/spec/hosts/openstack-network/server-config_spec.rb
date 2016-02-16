@@ -82,7 +82,7 @@ describe manifest do
           db_connection = "mysql://#{db_user}:#{db_password}@#{db_host}/#{db_name}#{extra_params}"
 
           should contain_class('neutron::server').with(
-            'sync_db'                 => 'false',
+            'sync_db'                 => Noop.hiera('primary_controller'),
             'database_retry_interval' => '2',
             'database_connection'     => db_connection,
             'database_max_retries'    => '-1',
