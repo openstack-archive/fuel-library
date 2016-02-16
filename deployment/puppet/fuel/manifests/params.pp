@@ -31,7 +31,6 @@ class fuel::params {
   $keystone_monitord_password = 'monitord'
   $keystone_monitord_tenant   = 'services'
 
-  $keystone_auth_version      = 'v2.0'
   $keystone_admin_token       = 'admin'
 
   # network interface configuration timeout (in seconds)
