@@ -2,6 +2,7 @@
 # Inspired by puppet-network module. Adrien, thanks.
 
 require 'puppetx/l23_utils'
+require 'puppetx/l23_dpdk_ports_mapping'
 
 class Puppet::Provider::L23_stored_config_base < Puppet::Provider
 
@@ -70,6 +71,10 @@ class Puppet::Provider::L23_stored_config_base < Puppet::Provider
           "# be overwritten.\n"\
           "# *********************************************************************"
     str
+  end
+
+  def self.get_dpdk_ports_mapping
+    L23network.get_dpdk_ports_mapping
   end
 
 end

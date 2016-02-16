@@ -53,8 +53,8 @@ Puppet::Type.type(:l2_bridge).provide(:ovs, :parent => Puppet::Provider::Ovs_bas
         end
       end
       vs = (@property_flush[:vendor_specific] || {})
-      if vs.has_key? :datapath_type
-        vsctl('set', 'Bridge', @resource[:bridge], "datapath_type=#{vs[:datapath_type]}")
+      if vs.has_key? "datapath_type"
+        vsctl('set', 'Bridge', @resource[:bridge], "datapath_type=#{vs["datapath_type"]}")
       end
       #
       @property_hash = resource.to_hash

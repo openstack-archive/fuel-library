@@ -1,4 +1,6 @@
 require 'puppetx/l23_ethtool_name_commands_mapping'
+require 'puppetx/l23_dpdk_ports_mapping'
+
 require 'json'
 require File.join(File.dirname(__FILE__), 'interface_toolset')
 
@@ -652,6 +654,12 @@ class Puppet::Provider::L2_base < Puppet::Provider::InterfaceToolset
     return {
       'offload' => tmp || empty_return
     }
+  end
+
+  # ---------------------------------------------------------------------------
+
+  def self.get_dpdk_ports_mapping
+    L23network.get_dpdk_ports_mapping
   end
 
   # ---------------------------------------------------------------------------
