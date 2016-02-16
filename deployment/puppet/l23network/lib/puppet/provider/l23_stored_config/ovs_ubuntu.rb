@@ -191,4 +191,5 @@ Puppet::Type.type(:l23_stored_config).provide(:ovs_ubuntu, :parent => Puppet::Pr
   end
 
 end
+
 # vim: set ts=2 sw=2 et :

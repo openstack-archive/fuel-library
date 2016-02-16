@@ -1,4 +1,6 @@
 require 'puppetx/l23_ethtool_name_commands_mapping'
+require 'puppetx/l23_dpdk_ports_mapping'
+
 require 'json'
 require File.join(File.dirname(__FILE__), 'interface_toolset')
 
@@ -255,6 +257,7 @@ class Puppet::Provider::L2_base < Puppet::Provider::InterfaceToolset
     bridges = get_ovs_bridges()
     ports = get_ovs_ports()
     interfaces = get_ovs_interfaces()
+    dpdk_ports_mapping = get_dpdk_ports_mapping()
     ovs_config = {
       :port      => {},
       :interface => {},
@@ -346,7 +349,10 @@ class Puppet::Provider::L2_base < Puppet::Provider::InterfaceToolset
       if !ovs_config[:port][p_name][:vlan_id].nil?
         ovs_config[:port][p_name][:port_type] << 'vlan'
       end
+      dpdk_info = dpdk_ports_mapping[p_name.to_s]
+      ovs_config[:port][p_name].merge!(dpdk_info) if dpdk_info
     end
+    ovs_config[:port] = Hash[ovs_config[:port].map { |k, v| [v[:interface] || k, v] }]
     debug("VSCTL-SHOW: #{ovs_config.to_yaml.gsub('!ruby/sym ',':')}")
     return ovs_config
   end
@@ -652,6 +658,12 @@ class Puppet::Provider::L2_base < Puppet::Provider::InterfaceToolset
     return {
       'offload' => tmp || empty_return
     }
+  end
+
+  # ---------------------------------------------------------------------------
+
+  def self.get_dpdk_ports_mapping
+    L23network.get_dpdk_ports_mapping
   end
 
   # ---------------------------------------------------------------------------
