@@ -140,25 +140,13 @@ class cobbler::server (
 
   #TODO(mattymo): refactor this into cobbler module and use OS-dependent
   #directories
-  file { ['/etc/httpd',
-          '/etc/httpd/conf/',
-          '/etc/httpd/conf.d/',
+  file { [
           '/var/lib/fuel',
           '/var/lib/fuel/keys',
           '/var/lib/fuel/keys/master',
           '/var/lib/fuel/keys/master/cobbler',
           ]:
     ensure => 'directory',
-  }
-  file { '/etc/httpd/conf.d/nailgun.conf':
-    content => template('cobbler/httpd_nailgun.conf.erb'),
-    owner   => 'root',
-    group   => 'root',
-    mode    => '0644',
-    require => [File['/etc/httpd'],
-                File['/etc/httpd/conf/'],
-                File['/etc/httpd/conf.d/']],
-    notify  => Service[$cobbler_web_service],
   }
   openssl::certificate::x509 { 'cobbler':
     ensure       => present,
@@ -178,25 +166,7 @@ class cobbler::server (
     notify       => Service[$cobbler_web_service],
   }
 
-  file { '/etc/httpd/conf.d/ssl.conf':
-    content => template("cobbler/httpd_ssl_${httpd_version}.conf.erb"),
-    owner   => 'root',
-    group   => 'root',
-    mode    => '0644',
-    require => [File['/etc/httpd'],
-                File['/etc/httpd/conf/'],
-                File['/etc/httpd/conf.d/']],
-    notify  => Service[$cobbler_web_service],
-  }
-  file { '/etc/httpd/conf/httpd.conf':
-    content => template("cobbler/httpd_${httpd_version}.conf.erb"),
-    owner   => 'root',
-    group   => 'root',
-    mode    => '0644',
-    require => [File['/etc/httpd'],
-                File['/etc/httpd/conf/'],
-                File['/etc/httpd/conf.d/']],
-    notify  => Service[$cobbler_web_service],
+  class { 'cobbler::apache':
   }
 
   file { '/etc/httpd/conf.d/cobbler-tftp.conf':
@@ -206,13 +176,6 @@ class cobbler::server (
     mode    => '0644',
     require => File['/etc/httpd/conf.d/'],
     notify  => Service[$cobbler_web_service],
-  }
-
-  service { $cobbler_web_service:
-    ensure     => running,
-    enable     => true,
-    hasrestart => true,
-    require    => Package[$cobbler::packages::cobbler_web_package],
   }
 
   exec { 'wait_for_web_service':
