@@ -27,7 +27,7 @@ class docker::dockerctl (
   #  group   => 'root',
   #  mode    => '0755',
   #}
-  #file { "$bin_dir/get_service_credentials.py":
+  #file { "$bin_dir/fuel_get_service_credentials":
   #  mode    => 0755,
   #  content => template("docker/get_service_credentials.py.erb")
   #}
