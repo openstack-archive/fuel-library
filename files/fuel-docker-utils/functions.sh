@@ -124,7 +124,7 @@ function retry_checker {
 
 function get_service_credentials {
   credentialfile=$(mktemp /tmp/servicepws.XXXXX)
-  get_service_credentials.py $ASTUTE_YAML > $credentialfile
+  fuel_get_service_credentials $ASTUTE_YAML > $credentialfile
   . $credentialfile
   rm -f $credentialfile
 }
