@@ -85,7 +85,7 @@
   version: 2.0.0
   groups: [primary-controller]
   required_for: [deploy_end, controller_remaining_tasks]
-  requires: [primary-openstack-controller, openstack-controller]
+  requires: [primary-openstack-controller, openstack-controller, openstack-cinder]
   parameters:
     puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/ceph/mon.pp
     puppet_modules: /etc/puppet/modules
@@ -96,7 +96,7 @@
   version: 2.0.0
   groups: [controller]
   required_for: [deploy_end, controller_remaining_tasks]
-  requires: [primary-openstack-controller, openstack-controller]
+  requires: [primary-openstack-controller, openstack-controller, openstack-cinder]
   cross-depends:
     - name: primary-ceph-mon
   parameters:
