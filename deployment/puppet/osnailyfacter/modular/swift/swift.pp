@@ -9,8 +9,7 @@ $swift_master_role          = hiera('swift_master_role', 'primary-controller')
 $swift_nodes                = hiera_hash('swift_nodes', {})
 $swift_operator_roles       = pick($swift_hash['swift_operator_roles'], ['admin', 'SwiftOperator'])
 $swift_proxies_addr_list    = values(get_node_to_ipaddr_map_by_network_role(hiera_hash('swift_proxies', {}), 'swift/api'))
-# todo(sv) replace 'management' to mgmt/memcache
-$memcaches_addr_list        = values(get_node_to_ipaddr_map_by_network_role(hiera_hash('swift_proxy_caches', {}), 'management'))
+$memcaches_addr_list        = hiera('memcached_addresses')
 $is_primary_swift_proxy     = hiera('is_primary_swift_proxy', false)
 $proxy_port                 = hiera('proxy_port', '8080')
 $storage_hash               = hiera_hash('storage_hash')
@@ -110,6 +109,7 @@ if !($storage_hash['images_ceph'] and $storage_hash['objects_ceph']) and !$stora
       swift_user_password            => $swift_hash['user_password'],
       swift_operator_roles           => $swift_operator_roles,
       swift_proxies_cache            => $memcaches_addr_list,
+      cache_server_port              => hiera('memcache_server_port', '11211'),
       ring_part_power                => $ring_part_power,
       ring_replicas                  => $ring_replicas,
       primary_proxy                  => $is_primary_swift_proxy,

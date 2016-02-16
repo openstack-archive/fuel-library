@@ -398,7 +398,6 @@ $swift_nodes = get_nodes_hash_by_roles($network_metadata, $swift_object_role)
 $swift_proxy_role = hiera('swift_proxy_roles', ['primary-controller', 'controller'])
 $swift_proxies = get_nodes_hash_by_roles($network_metadata, $swift_proxy_role)
 
-$swift_proxy_caches  = $swift_proxies  # memcache for swift
 #is_primary_swift_proxy should be override by plugin
 $is_primary_swift_proxy = $primary_controller
 
