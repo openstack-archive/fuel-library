@@ -5,6 +5,7 @@ module L23network
       @network_scheme_hash[h.to_sym] = v
     end
     def self.get_config(h)
+      @network_scheme_hash ||= {}
       @network_scheme_hash[h.to_sym]
     end
     def self.has_config?

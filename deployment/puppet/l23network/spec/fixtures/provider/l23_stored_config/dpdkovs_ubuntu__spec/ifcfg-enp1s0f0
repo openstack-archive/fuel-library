@@ -1,0 +1,7 @@
+allow-br-prv enp1s0f0
+iface enp1s0f0 inet manual
+pre-up ovs-vsctl --may-exist add-port "${IF_OVS_BRIDGE}" "${IF_DPDK_PORT}" -- ${IF_OVS_EXTRA}
+ovs_extra set Interface dpdk0 type=dpdk
+ovs_type DPDKOVSPort
+dpdk_port dpdk0
+ovs_bridge br-prv
