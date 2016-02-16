@@ -12,6 +12,7 @@ describe 'openstack::nova::controller' do
       :public_address => '192.168.10.0',
       :nova_db_password => 'novapass',
       :nova_user_password => 'novauserpass',
+      :nova_api_db_password => 'novapassapi',
       :private_interface => 'enp0s1',
       :public_interface => 'enp0s2',
       :amqp_hosts => '127.0.0.1:5672',

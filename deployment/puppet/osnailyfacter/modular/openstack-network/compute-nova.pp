@@ -18,7 +18,7 @@ if $use_neutron {
   $admin_tenant_name          = try_get_value($neutron_config, 'keystone/admin_tenant', 'services')
   $admin_username             = try_get_value($neutron_config, 'keystone/admin_user', 'neutron')
   $region_name                = hiera('region', 'RegionOne')
-  $auth_api_version           = 'v2.0'
+  $auth_api_version           = 'v3'
   $ssl_hash                   = hiera_hash('use_ssl', {})
 
   $admin_identity_protocol    = get_ssl_property($ssl_hash, {}, 'keystone', 'admin', 'protocol', 'http')

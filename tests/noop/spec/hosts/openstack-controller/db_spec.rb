@@ -4,10 +4,14 @@ manifest = 'openstack-controller/db.pp'
 
 describe manifest do
   shared_examples 'catalog' do
-    nova_db_user = 'nova'
-    nova_db_password = Noop.hiera_structure 'nova/db_password'
-    nova_db_dbname = 'nova'
-    allowed_hosts = [Noop.hostname,'localhost','127.0.0.1','%']
+    nova_hash            = Noop.hiera_structure 'nova'
+    nova_db_user         = nova_hash.fetch('db_user', 'nova')
+    nova_db_dbname       = nova_hash.fetch('db_name', 'nova')
+    nova_db_password     = nova_hash['db_password']
+    nova_api_db_user     = nova_hash.fetch('api_db_user', 'nova_api')
+    nova_api_db_dbname   = nova_hash.fetch('api_db_name', 'nova_api')
+    nova_api_db_password = Noop.puppet_function 'pick', nova_hash['api_db_password'], nova_hash['db_password']
+    allowed_hosts        = [Noop.hostname,'localhost','127.0.0.1','%']
 
     it 'should install proper mysql-client' do
       if facts[:osfamily] == 'RedHat'
@@ -21,9 +25,17 @@ describe manifest do
     end
     it 'should declare nova::db::mysql class with user,password,dbname' do
       should contain_class('nova::db::mysql').with(
-        'user' => nova_db_user,
-        'password' => nova_db_password,
-        'dbname' => nova_db_dbname,
+        'user'          => nova_db_user,
+        'password'      => nova_db_password,
+        'dbname'        => nova_db_dbname,
+        'allowed_hosts' => allowed_hosts,
+      )
+    end
+    it 'should declare nova::db::mysql_api class with user,password,dbname' do
+      should contain_class('nova::db::mysql_api').with(
+        'user'          => nova_api_db_user,
+        'password'      => nova_api_db_password,
+        'dbname'        => nova_api_db_dbname,
         'allowed_hosts' => allowed_hosts,
       )
     end

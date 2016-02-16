@@ -11,11 +11,12 @@
 # === Examples
 #
 # class { 'openstack::nova::controller':
-#   public_address     => '192.168.1.1',
-#   db_host            => '127.0.0.1',
-#   amqp_password    => 'changeme',
-#   nova_user_password => 'changeme',
-#   nova_db_password   => 'changeme',
+#   public_address       => '192.168.1.1',
+#   db_host              => '127.0.0.1',
+#   amqp_password        => 'changeme',
+#   nova_user_password   => 'changeme',
+#   nova_db_password     => 'changeme',
+#   nova_api_db_password => 'changeme',
 # }
 #
 
@@ -29,6 +30,7 @@ class openstack::nova::controller (
   # Nova Required
   $nova_user_password,
   $nova_db_password,
+  $nova_api_db_password,
   $nova_hash                            = {},
   $primary_controller                   = false,
   $ha_mode                              = false,
@@ -55,6 +57,8 @@ class openstack::nova::controller (
   $nova_user_tenant                     = 'services',
   $nova_db_user                         = 'nova',
   $nova_db_dbname                       = 'nova',
+  $nova_api_db_user                     = 'nova_api',
+  $nova_api_db_dbname                   = 'nova_api',
   # RPC
   # FIXME(bogdando) replace queue_provider for rpc_backend once all modules synced with upstream
   $rpc_backend                          = 'nova.openstack.common.rpc.impl_kombu',
@@ -124,6 +128,14 @@ class openstack::nova::controller (
         'database' => $nova_db_dbname,
         'username' => $nova_db_user,
         'password' => $nova_db_password,
+        'extra'    => $extra_params
+      })
+      $api_db_connection = os_database_connection({
+        'dialect'  => $db_type,
+        'host'     => $db_host,
+        'database' => $nova_api_db_dbname,
+        'username' => $nova_api_db_user,
+        'password' => $nova_api_db_password,
         'extra'    => $extra_params
       })
     }
@@ -205,30 +217,31 @@ class openstack::nova::controller (
   }
 
   class { 'nova':
-    install_utilities      => false,
-    database_connection    => $sql_connection,
-    rpc_backend            => $rpc_backend,
+    install_utilities       => false,
+    database_connection     => $sql_connection,
+    api_database_connection => $api_db_connection,
+    rpc_backend             => $rpc_backend,
     #FIXME(bogdando) we have to split amqp_hosts until all modules synced
-    rabbit_hosts           => split($amqp_hosts, ','),
-    rabbit_userid          => $amqp_user,
-    rabbit_password        => $amqp_password,
-    kombu_reconnect_delay  => '5.0',
-    image_service          => 'nova.image.glance.GlanceImageService',
-    glance_api_servers     => $glance_connection,
-    verbose                => $verbose,
-    debug                  => $debug,
-    ensure_package         => $ensure_package,
-    log_facility           => $syslog_log_facility,
-    use_syslog             => $use_syslog,
-    use_stderr             => $use_stderr,
-    database_idle_timeout  => $idle_timeout,
-    report_interval        => $nova_report_interval,
-    service_down_time      => $nova_service_down_time,
-    notify_on_state_change => $notify_on_state_change,
-    notify_api_faults      => $nova_hash['notify_api_faults'],
-    notification_driver    => $notification_driver,
-    memcached_servers      => $memcached_addresses,
-    cinder_catalog_info    => pick($nova_hash['cinder_catalog_info'], 'volumev2:cinderv2:internalURL'),
+    rabbit_hosts            => split($amqp_hosts, ','),
+    rabbit_userid           => $amqp_user,
+    rabbit_password         => $amqp_password,
+    kombu_reconnect_delay   => '5.0',
+    image_service           => 'nova.image.glance.GlanceImageService',
+    glance_api_servers      => $glance_connection,
+    verbose                 => $verbose,
+    debug                   => $debug,
+    ensure_package          => $ensure_package,
+    log_facility            => $syslog_log_facility,
+    use_syslog              => $use_syslog,
+    use_stderr              => $use_stderr,
+    database_idle_timeout   => $idle_timeout,
+    report_interval         => $nova_report_interval,
+    service_down_time       => $nova_service_down_time,
+    notify_on_state_change  => $notify_on_state_change,
+    notify_api_faults       => $nova_hash['notify_api_faults'],
+    notification_driver     => $notification_driver,
+    memcached_servers       => $memcached_addresses,
+    cinder_catalog_info     => pick($nova_hash['cinder_catalog_info'], 'volumev2:cinderv2:internalURL'),
   }
 
   #NOTE(bogdando) exec update-kombu is always undef, so delete?
@@ -317,6 +330,7 @@ class openstack::nova::controller (
     osapi_compute_workers                => $service_workers,
     metadata_workers                     => $service_workers,
     sync_db                              => $primary_controller,
+    sync_db_api                          => $primary_controller,
     fping_path                           => $fping_path,
     api_paste_config                     => '/etc/nova/api-paste.ini';
   }

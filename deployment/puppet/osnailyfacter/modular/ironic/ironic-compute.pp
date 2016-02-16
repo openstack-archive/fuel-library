@@ -113,7 +113,7 @@ class { 'nova::compute::ironic':
 class { 'nova::network::neutron':
   neutron_admin_password => $neutron_config['keystone']['admin_password'],
   neutron_url            => "http://${neutron_endpoint}:9696",
-  neutron_admin_auth_url => "${admin_identity_uri}/v2.0",
+  neutron_admin_auth_url => "${admin_identity_uri}/v3",
 }
 
 cs_resource { "p_nova_compute_ironic":

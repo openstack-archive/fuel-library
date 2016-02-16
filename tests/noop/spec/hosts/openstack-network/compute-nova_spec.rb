@@ -79,7 +79,7 @@ describe manifest do
         admin_tenant_name  = ks.fetch('admin_tenant', 'services')
         admin_username     = ks.fetch('admin_user', 'neutron')
         region_name        = Noop.hiera('region', 'RegionOne')
-        auth_api_version   = 'v2.0'
+        auth_api_version   = 'v3'
         admin_identity_uri = "http://#{service_endpoint}:35357"
         admin_auth_url     = "#{admin_identity_uri}/#{auth_api_version}"
         neutron_url        = "http://#{neutron_endpoint}:9696"
@@ -140,7 +140,7 @@ describe manifest do
           admin_identity_address = Noop.hiera_structure('use_ssl/keystone_admin_hostname')
           neutron_internal_address = Noop.hiera_structure('use_ssl/neutron_internal_hostname')
           it { expect(subject).to contain_class('nova::network::neutron').with(
-            :neutron_admin_auth_url    => "https://#{admin_identity_address}:35357/v2.0",
+            :neutron_admin_auth_url    => "https://#{admin_identity_address}:35357/v3",
             :neutron_url               => "https://#{neutron_internal_address}:9696",
           )}
         else

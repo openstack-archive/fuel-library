@@ -13,7 +13,12 @@
 # [keystone_admin_token] Admin token for keystone.
 # [glance_db_password] Glance DB password.
 # [glance_user_password] Glance service user password.
+# [nova_db_user] Nova DB user
+# [nova_db_dbname] Nova DB name
+# [nova_api_db_user] Nova API DB user
+# [nova_api_db_dbname] Nova API DB name
 # [nova_db_password] Nova DB password.
+# [nova_api_db_password] Nova API DB password.
 # [nova_user] Nova service user.
 # [nova_user_password] Nova service password.
 # [nova_user_tenant] Nova service tenant.
@@ -70,6 +75,7 @@
 #   glance_user_password => 'changeme',
 #   nova_db_password     => 'changeme',
 #   nova_user_password   => 'changeme',
+#   nova_api_db_password => 'changeme',
 #   secret_key           => 'dummy_secret_key',
 # }
 #
@@ -162,6 +168,9 @@ class openstack::controller (
   # Nova
   $nova_db_user                   = 'nova',
   $nova_db_dbname                 = 'nova',
+  $nova_api_db_user               = 'nova_api',
+  $nova_api_db_dbname             = 'nova_api',
+  $nova_api_db_password           = 'nova_api_pass',
   $purge_nova_config              = false,
   $nova_report_interval           = '10',
   $nova_service_down_time         = '60',
@@ -289,6 +298,9 @@ class openstack::controller (
     nova_db_password                     => $nova_db_password,
     nova_db_user                         => $nova_db_user,
     nova_db_dbname                       => $nova_db_dbname,
+    nova_api_db_user                     => $nova_api_db_user,
+    nova_api_db_dbname                   => $nova_api_db_dbname,
+    nova_api_db_password                 => $nova_api_db_password,
     nova_quota_driver                    => $nova_quota_driver,
     nova_hash                            => $nova_hash,
     # RPC
