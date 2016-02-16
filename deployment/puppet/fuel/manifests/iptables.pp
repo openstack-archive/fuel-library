@@ -12,7 +12,8 @@ class fuel::iptables (
   $rsync_port            = '873',
   $rsyslog_port          = '514',
   $ntp_port              = '123',
-  $rabbitmq_ports        = ['4369','5672','15672','61613'],
+  $rabbitmq_ports        = ['4369','5672','61613'],
+  $rabbitmq_admin_port   = '15672',
   $fuelweb_port          = $::fuel::params::nailgun_ssl_port,
   $keystone_port         = $::fuel::params::keystone_port,
   $keystone_admin_port   = $::fuel::params::keystone_admin_port,
@@ -164,7 +165,7 @@ class fuel::iptables (
     action  => 'accept',
   }
 
-  firewall { '040 rabbitmq_admin':
+  firewall { '040 rabbitmq_admin_net':
     chain   => $chain,
     port    => $rabbitmq_ports,
     proto   => 'tcp',
@@ -172,9 +173,10 @@ class fuel::iptables (
     action  => 'accept',
   }
 
+
   firewall { '041 rabbitmq_local':
     chain    => $chain,
-    port     => $rabbitmq_ports,
+    port     => concat($rabbitmq_ports, $rabbitmq_admin_port),
     proto    => 'tcp',
     src_type => "LOCAL",
     action   => 'accept',
