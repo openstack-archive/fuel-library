@@ -87,7 +87,8 @@ quantum_settings:
 use_vcenter: false
 openstack_version: 2016.1.0-9.0
 external_dns:
-  dns_list: 8.8.8.8
+  dns_list:
+    - 8.8.8.8
   metadata:
     group: general
     weight: 90
@@ -586,7 +587,10 @@ test_vm_image:
   public: 'true'
 management_network_range: 192.168.0.0/24
 external_ntp:
-  ntp_list: 0.fuel.pool.ntp.org, 1.fuel.pool.ntp.org, 2.fuel.pool.ntp.org
+  ntp_list:
+    - 0.fuel.pool.ntp.org
+    - 1.fuel.pool.ntp.org
+    - 2.fuel.pool.ntp.org
   metadata:
     group: general
     weight: 100

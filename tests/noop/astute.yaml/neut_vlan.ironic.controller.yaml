@@ -747,7 +747,8 @@ nova:
 master_ip: 10.109.37.2
 priority: 100
 external_dns:
-  dns_list: 10.109.37.1
+  dns_list:
+    - 10.109.37.1
   metadata:
     weight: 90
     label: Host OS DNS Servers
@@ -1218,7 +1219,8 @@ cinder:
   fixed_key: 1d036355c174967c01ddc542cb65e57a6000cfa43a8588e9ae6e30b2ecbb71a9
 deployment_id: 1
 external_ntp:
-  ntp_list: 10.109.37.1
+  ntp_list:
+    - 10.109.37.1
   metadata:
     weight: 100
     label: Host OS NTP Servers

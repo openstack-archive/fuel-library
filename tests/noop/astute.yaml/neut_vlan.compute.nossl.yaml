@@ -250,7 +250,8 @@ nova:
 master_ip: 10.122.5.2
 priority: 300
 external_dns:
-  dns_list: 8.8.8.8
+  dns_list:
+    - 8.8.8.8
   metadata:
     weight: 90
     label: Host OS DNS Servers
@@ -793,7 +794,10 @@ cinder:
   fixed_key: 264ecf97cf69264f775e549fe5fd1ce3db6a92df94d37745819892803a83b19c
 deployment_id: 1
 external_ntp:
-  ntp_list: 0.fuel.pool.ntp.org, 1.fuel.pool.ntp.org, 2.fuel.pool.ntp.org
+  ntp_list:
+    - 0.fuel.pool.ntp.org
+    - 1.fuel.pool.ntp.org
+    - 2.fuel.pool.ntp.org
   metadata:
     weight: 100
     label: Host OS NTP Servers
