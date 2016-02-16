@@ -656,6 +656,36 @@ class Puppet::Provider::L2_base < Puppet::Provider::InterfaceToolset
 
   # ---------------------------------------------------------------------------
 
+  def self.get_dpdk_ports_mapping
+    cfg = L23network::Scheme.get_config(Facter.value(:l3_fqdn_hostname))
+    interfaces = cfg[:interfaces].map { |i,p| [p[:vendor_specific][:bus_info], i] }
+    bus_info_map = Hash[interfaces.compact]
+
+    dpdk_drivers = %w[ igb_uio vfio-pci uio_pci_generic ]
+    ethernet_class = 0x020000
+    devices = Dir['/sys/bus/pci/devices/*/class'].map do |class_file|
+      next unless File.read(class_file).to_i(16) == ethernet_class
+      dev_dir = File.dirname(class_file)
+      bus_info = File.basename(dev_dir)
+      driver = File.basename(File.readlink("#{dev_dir}/driver"))
+      next unless dpdk_drivers.include? driver
+      next unless bus_info_map.has_key? bus_info
+      {
+        :name         => bus_info_map[bus_info],
+        :port_type    => [],
+        :provider     => 'dpdkovs',
+        :vendor_specific => {
+          'dpdk_driver' => driver
+        }
+      }
+    end
+    dpdk_devices = devices.compact.each_with_index.map { |v,i| ["dpdk#{i}",v]}
+    Hash[dpdk_devices]
+  end
+
+  # ---------------------------------------------------------------------------
+
+
 end
 
 # vim: set ts=2 sw=2 et :
