@@ -356,17 +356,6 @@ class openstack::compute (
     $disk_cachemodes = ['"file=directsync,block=none"']
   }
 
-  # TODO(aschultz): Just use $::nova::params::libvirt_service_name when a
-  # version of puppet-nova has been pulled in that uses os_package_type to
-  # correctly handle the service names for ubuntu vs debian. Upstream bug
-  # LP#1515076
-  # NOTE: for debian packages and centos the name is the same ('libvirtd') so
-  # we are defaulting to that for backwards compatibility. LP#1469308
-  $libvirt_service_name = $::os_package_type ? {
-    'ubuntu' => $::nova::params::libvirt_service_name,
-    default  => 'libvirtd'
-  }
-
   # Configure libvirt for nova-compute
   class { 'nova::compute::libvirt':
     libvirt_virt_type                          => $libvirt_type,
@@ -377,7 +366,7 @@ class openstack::compute (
     migration_support                          => $migration_support,
     remove_unused_original_minimum_age_seconds => pick($nova_hash['remove_unused_original_minimum_age_seconds'], '86400'),
     compute_driver                             => $compute_driver,
-    libvirt_service_name                       => $libvirt_service_name
+    libvirt_service_name                       => $::nova::params::libvirt_service_name,
   }
 
   # From legacy libvirt.pp
