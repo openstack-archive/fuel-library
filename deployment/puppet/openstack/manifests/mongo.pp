@@ -44,15 +44,6 @@ class openstack::mongo (
     $key_content = file('/var/lib/astute/mongodb/mongodb.key')
   }
 
-  file { 'mongorc':
-    ensure  => present,
-    path    => "/root/.mongorc.js",
-    content => template('openstack/mongorc.js.erb'),
-    owner   => 'root',
-    group   => 'root',
-    mode    => '0644',
-  } ->
-
   class {'::mongodb::globals':
     version => $mongo_version,
   } ->
@@ -88,20 +79,10 @@ class openstack::mongo (
     oplog_size     => $oplog_size,
     dbpath         => $dbpath,
     config_content => $config_content,
-  } ->
-
-  mongodb_user { 'admin':
-    ensure        => present,
-    username      => 'admin',
-    password_hash => mongodb_password('admin', $ceilometer_db_password),
-    database      => 'admin',
-    roles         => ['userAdmin', 'readWrite', 'dbAdmin',
-                      'dbAdminAnyDatabase', 'readAnyDatabase',
-                      'readWriteAnyDatabase', 'userAdminAnyDatabase',
-                      'clusterAdmin', 'clusterManager', 'clusterMonitor',
-                      'hostManager', 'root', 'restore'],
-    tries         => 10,
-    tag           => 'admin'
+    create_admin   => true,
+    admin_password => $ceilometer_db_password,
+    store_creds    => true,
+    replset_config => { $replset_name => { ensure => present, members => $ceilometer_replset_members } },
   } ->
 
   notify {"mongodb configuring ceilometer database" :} ->
@@ -113,15 +94,4 @@ class openstack::mongo (
   } ->
 
   notify {"mongodb finished": }
-
-  if $replset_name and is_string($replset_name) {
-    $members = suffix($ceilometer_replset_members, inline_template(":<%= @mongodb_port %>"))
-    $sets = { "${replset_name}" => { auth_enabled => $auth, members => $members } }
-
-    class {'::mongodb::replset':
-      sets => $sets,
-    }
-
-    Class['::mongodb::server'] -> Class['::mongodb::replset'] -> Mongodb_user['admin']
-  }
 }
