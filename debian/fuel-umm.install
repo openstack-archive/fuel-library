@@ -1,11 +1,3 @@
-files/fuel-umm/issue.mm /etc/
-files/fuel-umm/umm.conf /etc/
-files/fuel-umm/umm.sh /etc/profile.d/
-files/fuel-umm/umm /usr/bin/
-files/fuel-umm/umm_svc /usr/lib/umm/
-files/fuel-umm/umm_svc.u1404 /usr/lib/umm/
-files/fuel-umm/umm_vars /usr/lib/umm/
-files/fuel-umm/umm-br.conf /etc/init/
-files/fuel-umm/umm-console.conf /etc/init/
-files/fuel-umm/umm-run.conf /etc/init/
-files/fuel-umm/umm-tr.conf /etc/init/
+files/fuel-umm/root/* /
+files/fuel-umm/ub14/* /usr/lib/umm/
+files/fuel-umm/upstart/* /etc/init/
