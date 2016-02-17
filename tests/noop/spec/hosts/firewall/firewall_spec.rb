@@ -42,6 +42,7 @@ describe manifest do
     node_name = Noop.hiera('node_name')
     network_metadata = Noop.hiera_hash 'network_metadata', {}
     roles = network_metadata['nodes'][node_name]['node_roles']
+    mongodb_port = Noop.hiera('mongodb_port', '27017')
 
     if Noop.puppet_function 'member', roles, 'primary-controller' or Noop.puppet_function 'member', roles, 'controller'
       it 'should properly restrict rabbitmq admin traffic' do
@@ -162,6 +163,10 @@ describe manifest do
             'source'      => source,
           )
         end
+      end
+    elsif Noop.puppet_function 'member', roles, 'primary-mongo' or Noop.puppet_function 'member', roles, 'mongo'
+      it 'should create firewall rules' do
+        should contain_firewall('120 mongodb').with('port' => mongodb_port)
       end
     end
 
