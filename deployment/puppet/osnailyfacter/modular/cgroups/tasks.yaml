@@ -1,0 +1,10 @@
+- id: cgroups 
+  type: puppet
+  version: 2.0.0
+  groups: ['/.*/']
+  requires: [post_deployment_start]
+  required_for: [post_deployment_end]
+  parameters:
+    puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/cgroups/cgroups.pp
+    puppet_modules: /etc/puppet/modules
+    timeout: 3600
