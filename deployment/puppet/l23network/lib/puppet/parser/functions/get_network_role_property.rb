@@ -8,8 +8,12 @@ rescue LoadError => e
   rb_file = File.join(File.dirname(__FILE__),'lib','prepare_cidr.rb')
   load rb_file if File.exists?(rb_file) or raise e
 end
-require 'puppetx/l23_network_scheme'
-
+begin
+  require 'puppetx/l23_network_scheme'
+rescue LoadError => e
+  rb_file = File.join(File.dirname(__FILE__),'..','..','..','puppetx','l23_network_scheme.rb')
+  load rb_file if File.exists?(rb_file) or raise e
+end
 Puppet::Parser::Functions::newfunction(:get_network_role_property, :type => :rvalue, :doc => <<-EOS
     This function get get network the network_role name and mode --
     and return information about network role.

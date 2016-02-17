@@ -5,10 +5,18 @@ require 'puppet/parser'
 require 'puppet/parser/templatewrapper'
 require 'puppet/resource/type_collection_helper'
 require 'puppet/util/methodhelper'
-require 'puppetx/l23_utils'
-require 'puppetx/l23_network_scheme'
-
-
+begin
+  require 'puppetx/l23_utils'
+rescue LoadError => e
+  rb_file = File.join(File.dirname(__FILE__),'..','..','..','puppetx','l23_utils.rb')
+  load rb_file if File.exists?(rb_file) or raise e
+end
+begin
+  require 'puppetx/l23_network_scheme'
+rescue LoadError => e
+  rb_file = File.join(File.dirname(__FILE__),'..','..','..','puppetx','l23_network_scheme.rb')
+  load rb_file if File.exists?(rb_file) or raise e
+end
 
 module L23network
   def self.default_offload_set
