@@ -132,6 +132,8 @@
   requires: [pre_deployment_start]
   required_for: [pre_deployment_end]
   parameters:
+    # NOTE(Xarses): This OPENSTACK_VERSION is directly from
+    # nailgun/orchestrator/task_serializers.py, we can't control it.
     src: rsync://{MASTER_IP}:/puppet/{OPENSTACK_VERSION}/modules/
     dst: /etc/puppet/modules
     timeout: 180

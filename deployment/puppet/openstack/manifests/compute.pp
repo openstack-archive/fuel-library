@@ -355,17 +355,20 @@ class openstack::compute (
     }
     $disk_cachemodes = ['"file=directsync,block=none"']
   }
+  if $::openstack_version != "mitaka-9.0" {
+    # Remove in Mitaka
 
-  # TODO(aschultz): Just use $::nova::params::libvirt_service_name when a
-  # version of puppet-nova has been pulled in that uses os_package_type to
-  # correctly handle the service names for ubuntu vs debian. Upstream bug
-  # LP#1515076
-  # NOTE: for debian packages and centos the name is the same ('libvirtd') so
-  # we are defaulting to that for backwards compatibility. LP#1469308
-  $libvirt_service_name = $::os_package_type ? {
-    'ubuntu' => $::nova::params::libvirt_service_name,
-    default  => 'libvirtd'
-  }
+    # TODO(aschultz): Just use $::nova::params::libvirt_service_name when a
+    # version of puppet-nova has been pulled in that uses os_package_type to
+    # correctly handle the service names for ubuntu vs debian. Upstream bug
+    # LP#1515076
+    # NOTE: for debian packages and centos the name is the same ('libvirtd') so
+    # we are defaulting to that for backwards compatibility. LP#1469308
+    $libvirt_service_name = $::os_package_type ? {
+      'ubuntu' => $::nova::params::libvirt_service_name,
+      default  => 'libvirtd'
+    }
+  } else { $libvirt_service_name = $::nova::params::libvirt_service_name }
 
   # Configure libvirt for nova-compute
   class { 'nova::compute::libvirt':

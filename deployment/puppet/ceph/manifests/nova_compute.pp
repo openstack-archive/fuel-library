@@ -5,7 +5,7 @@ class ceph::nova_compute (
   $compute_pool        = $::ceph::compute_pool,
   $secret_xml          = '/root/.secret_attrs.xml',
 ) {
-
+  # TODO(xarses): This entire class should move to a task
   include ::nova::params
 
   file { $secret_xml:
@@ -13,21 +13,25 @@ class ceph::nova_compute (
     content => template('ceph/secret.erb')
   }
 
-  # TODO(aschultz): Just use $::nova::params::libvirt_service_name when a
-  # version of puppet-nova has been pulled in that uses os_package_type to
-  # correctly handle the service names for ubuntu vs debian. Upstream bug
-  # LP#1515076
-  # NOTE: for debian packages and centos the name is the same ('libvirtd') so
-  # we are defaulting to that for backwards compatibility. LP#1469308
-  $libvirt_service_name = $::os_package_type ? {
-    'ubuntu' => $::nova::params::libvirt_service_name,
-    default  => 'libvirtd'
-  }
+  if $::openstack_version != "mitaka-9.0" {
+    # Remove in Mitaka
+    # TODO(aschultz): Just use $::nova::params::libvirt_service_name when a
+    # version of puppet-nova has been pulled in that uses os_package_type to
+    # correctly handle the service names for ubuntu vs debian. Upstream bug
+    # LP#1515076
+    # NOTE: for debian packages and centos the name is the same ('libvirtd') so
+    # we are defaulting to that for backwards compatibility. LP#1469308
+    $libvirt_service_name = $::os_package_type ? {
+      'ubuntu' => $::nova::params::libvirt_service_name,
+      default  => 'libvirtd'
+    }
+  } else { $libvirt_service_name = $::nova::params::libvirt_service_name }
 
   ensure_resource('service', 'libvirt', {
     ensure => 'running',
     name   => $libvirt_service_name,
   })
+
 
   exec {'Set Ceph RBD secret for Nova':
     # TODO: clean this command up

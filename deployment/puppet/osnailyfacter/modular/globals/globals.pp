@@ -184,7 +184,14 @@ if $debug {
   }
 }
 
-$openstack_version = hiera('openstack_version',
+# Note(Xarses) We will overwrite this with the value of the release we want
+# to case in, its a single string in newer versions of nailgun
+# for example undef, 'mitaka-9.0, liberty-9.0, kilo-9.0'
+$forced_openstack_version = 'mitaka-9.0'
+
+# FIXME(Xarses) Yes, the very old version of this was a hash, nailgun
+# doesn't send that anymore we get a string now. Someone can clean this usage
+$openstack_version = pick($forced_openstack_version, hiera('openstack_version',
   {
   'keystone'   => 'installed',
   'glance'     => 'installed',
@@ -193,7 +200,7 @@ $openstack_version = hiera('openstack_version',
   'novncproxy' => 'installed',
   'cinder'     => 'installed',
   }
-)
+))
 
 $nova_rate_limits = hiera('nova_rate_limits',
   {
