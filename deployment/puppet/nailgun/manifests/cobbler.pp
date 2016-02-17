@@ -153,7 +153,7 @@ class nailgun::cobbler(
 
       cobbler_profile { 'centos-x86_64':
         kickstart => '/var/lib/cobbler/kickstarts/centos-x86_64.ks',
-        kopts     => 'biosdevname=0 sshd=1 dhcptimeout=120',
+        kopts     => 'biosdevname=0 sshd=1 dhcptimeout=120 amd_iommu=on intel_iommu=on',
         distro    => 'centos-x86_64',
         ksmeta    => '',
         menu      => false,
@@ -163,7 +163,7 @@ class nailgun::cobbler(
 
       cobbler_profile { 'ubuntu_1404_x86_64':
         kickstart => '/var/lib/cobbler/kickstarts/ubuntu-amd64.preseed',
-        kopts     => 'net.ifnames=0 biosdevname=0 netcfg/choose_interface=eth0 netcfg/dhcp_timeout=120 netcfg/link_detection_timeout=20',
+        kopts     => 'net.ifnames=0 biosdevname=0 netcfg/choose_interface=eth0 netcfg/dhcp_timeout=120 netcfg/link_detection_timeout=20 amd_iommu=on intel_iommu=on',
         distro    => 'ubuntu_1404_x86_64',
         ksmeta    => '',
         menu      => false,
@@ -195,7 +195,7 @@ class nailgun::cobbler(
         distro    => 'bootstrap',
         menu      => true,
         kickstart => '',
-        kopts     => "intel_pstate=disable console=ttyS0,9600 console=tty0 biosdevname=0 url=${nailgun_api_url} mco_user=${mco_user} mco_pass=${mco_pass}",
+        kopts     => "intel_pstate=disable console=ttyS0,9600 console=tty0 biosdevname=0 url=${nailgun_api_url} mco_user=${mco_user} mco_pass=${mco_pass} amd_iommu=on intel_iommu=on",
         ksmeta    => '',
         server    => $real_server,
         require   => Cobbler_distro['bootstrap'],
@@ -205,7 +205,7 @@ class nailgun::cobbler(
         distro    => 'ubuntu_bootstrap',
         menu      => true,
         kickstart => '',
-        kopts     => extend_kopts($bootstrap_meta['extend_kopts'], "console=ttyS0,9600 console=tty0 panic=60 ethdevice-timeout=${bootstrap_ethdevice_timeout} boot=live toram components fetch=http://${server}:8080/bootstraps/active_bootstrap/root.squashfs biosdevname=0 url=${nailgun_api_url} mco_user=${mco_user} mco_pass=${mco_pass}"),
+        kopts     => extend_kopts($bootstrap_meta['extend_kopts'], "console=ttyS0,9600 console=tty0 panic=60 ethdevice-timeout=${bootstrap_ethdevice_timeout} boot=live toram components fetch=http://${server}:8080/bootstraps/active_bootstrap/root.squashfs biosdevname=0 url=${nailgun_api_url} mco_user=${mco_user} mco_pass=${mco_pass} amd_iommu=on intel_iommu=on"),
         ksmeta    => '',
         server    => $real_server,
         require   => Cobbler_distro['ubuntu_bootstrap'],
