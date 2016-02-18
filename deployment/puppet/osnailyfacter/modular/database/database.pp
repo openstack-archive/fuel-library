@@ -299,6 +299,9 @@ if $enabled {
     db_password => $mysql_database_password,
   }
 
+  Class['::galera'] ->
+    Class['::osnailyfacter::mysql_access']
+
   Class['::openstack::galera::status'] ->
     ::Osnailyfacter::Wait_for_backend['mysql']
 }

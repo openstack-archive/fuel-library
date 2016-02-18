@@ -14,7 +14,8 @@ describe manifest do
   shared_examples 'catalog' do
     let(:facts) {
       Noop.ubuntu_facts.merge({
-        :mounts => '/,/boot,/var/log,/var/lib/glance,/var/lib/mysql'
+        :mounts => '/,/boot,/var/log,/var/lib/glance,/var/lib/mysql',
+        :root_home => '/root'
       })
     }
 
