@@ -141,8 +141,8 @@ describe manifest do
         'value' => 'false',
       )
     end
-    xit 'nova config should contain right memcached servers list' do
-      should contain_nova_config('keystone_authtoken/memcached_servers').with(
+    it 'nova config should contain right memcached servers list' do
+      should contain_nova_config('DEFAULT/memcached_servers').with(
         'value' => memcache_servers,
       )
     end
