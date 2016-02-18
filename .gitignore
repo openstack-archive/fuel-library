@@ -38,3 +38,5 @@ task_graph.png
 *-spec.log.rb
 
 .librarian
+tests/noop/coverage/
+tests/noop/spec/fixtures/
