@@ -39,10 +39,11 @@ class osnailyfacter::mysql_access (
   if $ensure == 'present' {
     # .my.cnf is normally defined in mysql::server::root_password so
     # we need to override it with our version
-    File <| path == $default_file_path |> {
-      ensure => 'symlink',
-      path   => $default_file_path,
-      target => $host_file_path,
+    File <| title == $default_file_path |> {
+      ensure  => 'symlink',
+      content => undef,
+      path    => $default_file_path,
+      target  => $host_file_path,
     }
 
     File["${db_host}-mysql-access"] ->
