@@ -1,0 +1,11 @@
+<% @cgroups_set.each do |service, ctrl_hash| %>
+group <%= service %> {
+    <% ctrl_hash.each do |controller, hash_rules| %>
+    <%= controller %> {
+    <% hash_rules.each do |rule, value| %>
+    <%= rule %> = <%= value %>;
+    <% end %>
+    }
+  <% end %>
+}
+<% end %>
