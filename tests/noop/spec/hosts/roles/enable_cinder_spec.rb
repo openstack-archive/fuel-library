@@ -1,6 +1,6 @@
 require 'spec_helper'
 require 'shared-examples'
-manifest = 'astute/enable_cinder.pp'
+manifest = 'roles/enable_cinder.pp'
 
 describe manifest do
   shared_examples 'catalog' do
