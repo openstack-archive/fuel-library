@@ -14,7 +14,7 @@
   "operatingsystem_support": [
     {
       "operatingsystem": "RedHat",
-      "operatingsystemrelease": ["6.5"]
+      "operatingsystemrelease": ["6.5", "7.0", "7.1"]
     },
     {
       "operatingsystem": "Ubuntu",
@@ -24,7 +24,6 @@
   "description": "Configure network features for 2nd and 3d network level.",
   "dependencies": [
     { "name": "puppetlabs/stdlib", "version_requirement": ">=4.0.0 <5.0.0" },
-    { "name": "duritong/sysctl", "version_requirement": ">=0.0.1 <1.0.0" },
     { "name": "adrien/filemapper", "version_requirement": ">=1.1.3" }
   ]
 }
