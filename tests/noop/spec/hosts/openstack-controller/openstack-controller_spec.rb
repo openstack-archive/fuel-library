@@ -399,10 +399,12 @@ describe manifest do
       sahara_filters                 = [ 'DifferentHostFilter' ]
       sriov_filters                  = [ 'PciPassthroughFilter','AggregateInstanceExtraSpecsFilter' ]
       huge_pages_filters             = [ 'AggregateInstanceExtraSpecsFilter' ]
+      cpu_pinning_filters            = [ 'NUMATopologyFilter', 'AggregateInstanceExtraSpecsFilter' ]
 
       enable_sahara    = Noop.hiera_structure 'sahara/enabled', false
       enable_sriov     = Noop.hiera_structure 'quantum_settings/supported_pci_vendor_devs', false
       enable_hugepages = Noop.hiera_structure 'nova/enable_hugepages', false
+      enable_cpu_pinning = Noop.hiera_structure 'nova/enable_cpu_pinning', false
 
       nova_scheduler_filters = nova_scheduler_filters.concat(nova_scheduler_default_filters)
 
@@ -414,6 +416,9 @@ describe manifest do
       end
       if enable_hugepages
         nova_scheduler_filters = nova_scheduler_filters.concat(huge_pages_filters)
+      end
+      if enable_cpu_pinning
+        nova_scheduler_filters = nova_scheduler_filters.concat(cpu_pinning_filters)
       end
 
       should contain_class('nova::scheduler::filter').with(

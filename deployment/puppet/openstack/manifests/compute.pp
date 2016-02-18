@@ -105,6 +105,7 @@ class openstack::compute (
   # nova compute configuration parameters
   $nova_hash                      = {},
   $use_huge_pages                 = false,
+  $vcpu_pin_set                   = undef,
   $verbose                        = false,
   $debug                          = false,
   $service_endpoint               = '127.0.0.1',
@@ -341,6 +342,7 @@ class openstack::compute (
     reserved_host_memory          => $nova_hash['reserved_host_memory'],
     config_drive_format           => $config_drive_format,
     allow_resize_to_same_host     => true,
+    vcpu_pin_set                  => $vcpu_pin_set,
   }
 
   nova_config {

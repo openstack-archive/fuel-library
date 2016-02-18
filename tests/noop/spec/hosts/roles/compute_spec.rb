@@ -80,6 +80,15 @@ describe manifest do
       should contain_package('qemu-kvm').with('ensure' => 'present')
     end
 
+    vcpu_pin_set = Noop.hiera_structure 'nova/cpu_pinning', false
+    if vcpu_pin_set
+      it 'should configure vcpu_pin_set for nova' do
+        should contain_class('nova::compute').with(
+          'vcpu_pin_set' => vcpu_pin_set
+        )
+      end
+    end
+
     enable_hugepages = Noop.hiera_structure 'nova/enable_hugepages', false
     if enable_hugepages
       qemu_hugepages_value = 'set KVM_HUGEPAGES 1'
