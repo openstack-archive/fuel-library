@@ -105,6 +105,7 @@ class openstack::compute (
   # nova compute configuration parameters
   $nova_hash                      = {},
   $use_huge_pages                 = false,
+  $vcpu_pin_set                   = false,
   $verbose                        = false,
   $debug                          = false,
   $service_endpoint               = '127.0.0.1',
@@ -350,6 +351,16 @@ class openstack::compute (
   if $use_syslog {
     nova_config {
       'DEFAULT/use_syslog_rfc_format':  value => true;
+    }
+  }
+
+  if $vcpu_pin_set {
+    nova_config {
+      'DEFAULT/vcpu_pin_set':  value => $vcpu_pin_set;
+    }
+  } else {
+    nova_config {
+      'DEFAULT/vcpu_pin_set':  ensure => absent;
     }
   }
 
