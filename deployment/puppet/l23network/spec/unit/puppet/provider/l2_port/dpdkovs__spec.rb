@@ -40,9 +40,8 @@ describe Puppet::Type.type(:l2_port).provider(:dpdkovs) do
   describe "ovs port" do
     before(:each) do
       puppet_debug_override()
-      provider_br1.class.stubs(:vsctl).with('add-br', 'br1').returns(true)
+      provider_br1.class.stubs(:vsctl).with(['add-br', 'br1', '--', 'set', 'Bridge', 'br1', 'datapath_type=netdev']).returns(true)
       provider_br1.class.stubs(:vsctl).with('set', 'Bridge', 'br1', 'stp_enable=false').returns(true)
-      provider_br1.class.stubs(:vsctl).with('set', 'Bridge', 'br1', 'datapath_type=netdev').returns(true)
       provider_br1.class.stubs(:interface_up).with('br1').returns(true)
     end
 
