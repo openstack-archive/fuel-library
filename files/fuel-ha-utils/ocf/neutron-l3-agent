@@ -258,7 +258,7 @@ neutron_l3_agent_validate() {
         return $OCF_ERR_INSTALLED
     fi
 
-    true
+    return ${OCF_SUCCESS}
 }
 
 neutron_l3_agent_status() {

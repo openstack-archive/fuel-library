@@ -98,10 +98,10 @@ install -m 0755 %{files_source}/fuel-ha-utils/ocf/ns_dns %{buildroot}/usr/lib/oc
 install -m 0755 %{files_source}/fuel-ha-utils/ocf/heat-engine %{buildroot}/usr/lib/ocf/resource.d/fuel/heat-engine
 install -m 0755 %{files_source}/fuel-ha-utils/ocf/ns_ntp %{buildroot}/usr/lib/ocf/resource.d/fuel/ns_ntp
 install -m 0755 %{files_source}/fuel-ha-utils/ocf/ns_vrouter %{buildroot}/usr/lib/ocf/resource.d/fuel/ns_vrouter
-install -m 0755 %{files_source}/fuel-ha-utils/ocf/ocf-neutron-ovs-agent %{buildroot}/usr/lib/ocf/resource.d/fuel/ocf-neutron-ovs-agent
-install -m 0755 %{files_source}/fuel-ha-utils/ocf/ocf-neutron-metadata-agent %{buildroot}/usr/lib/ocf/resource.d/fuel/ocf-neutron-metadata-agent
-install -m 0755 %{files_source}/fuel-ha-utils/ocf/ocf-neutron-dhcp-agent %{buildroot}/usr/lib/ocf/resource.d/fuel/ocf-neutron-dhcp-agent
-install -m 0755 %{files_source}/fuel-ha-utils/ocf/ocf-neutron-l3-agent %{buildroot}/usr/lib/ocf/resource.d/fuel/ocf-neutron-l3-agent
+install -m 0755 %{files_source}/fuel-ha-utils/ocf/neutron-ovs-agent %{buildroot}/usr/lib/ocf/resource.d/fuel/neutron-ovs-agent
+install -m 0755 %{files_source}/fuel-ha-utils/ocf/neutron-metadata-agent %{buildroot}/usr/lib/ocf/resource.d/fuel/neutron-metadata-agent
+install -m 0755 %{files_source}/fuel-ha-utils/ocf/neutron-dhcp-agent %{buildroot}/usr/lib/ocf/resource.d/fuel/neutron-dhcp-agent
+install -m 0755 %{files_source}/fuel-ha-utils/ocf/neutron-l3-agent %{buildroot}/usr/lib/ocf/resource.d/fuel/neutron-l3-agent
 #TODO(dmitryme): remove rabbitmq-server-upstream once we switch to rabbitmq-3.5.7, as it will be included here
 install -m 0755 %{files_source}/fuel-ha-utils/ocf/rabbitmq %{buildroot}/usr/lib/ocf/resource.d/fuel/rabbitmq-server-upstream
 install -m 0755 %{files_source}/fuel-ha-utils/ocf/rabbitmq-fuel %{buildroot}/usr/lib/ocf/resource.d/fuel/rabbitmq-server

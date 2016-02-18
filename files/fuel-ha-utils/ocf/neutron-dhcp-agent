@@ -249,7 +249,7 @@ neutron_dhcp_agent_validate() {
         return $OCF_ERR_INSTALLED
     fi
 
-    true
+    return ${OCF_SUCCESS}
 }
 
 neutron_dhcp_agent_status() {

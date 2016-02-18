@@ -195,3 +195,43 @@ ocf_run_as_root()
 {
     ocf_run su - root -c "$(printf '%q ' "$@")"
 }
+
+###########################################################
+# Validate a port according to RFC 793
+#
+# Globals:
+#   LL
+# Arguments:
+#   $1 - port for validation
+# Returns:
+#   0 - if port valid
+#   1 - if port invalid
+#   2 - if invalid parameters passed in
+###########################################################
+validate_port()
+{
+    local port=$1
+    local LH="${LL} validate_port():"
+
+    if [ -z "${port}" ]; then
+        ocf_log info "${LH} Port provided is empty"
+        return 2
+    fi
+
+    case ${port} in
+        *[^0-9]*)
+            ocf_log info "${LH}: invalid port specified: $port"
+            return 1
+            ;;
+    esac
+
+    # $port contains only digits, check if it's in the correct range
+    if [ $port -gt 65535 ] || [ $port -lt 1 ]; then
+        ocf_log err "${LH}: invalid port specified: $port"
+        return 1
+    else
+        ocf_log debug "${LH} got a valid port: $port"
+        return 0
+    fi
+}
+# vim: set ts=4 sw=4 tw=0 et :
