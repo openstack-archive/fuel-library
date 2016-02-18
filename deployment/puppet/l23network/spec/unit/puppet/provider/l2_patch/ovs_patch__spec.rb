@@ -43,8 +43,8 @@ describe Puppet::Type.type(:l2_patch).provider(:ovs) do
       puppet_debug_override()
       provider_br1.class.stubs(:iproute)
       provider_br2.class.stubs(:iproute)
-      provider_br1.class.stubs(:vsctl).with('add-br', 'br1').returns(true)
-      provider_br2.class.stubs(:vsctl).with('add-br', 'br2').returns(true)
+      provider_br1.class.stubs(:vsctl).with(['add-br', 'br1']).returns(true)
+      provider_br2.class.stubs(:vsctl).with(['add-br', 'br2']).returns(true)
       provider_patch.class.stubs(:vsctl).with([
         '--may-exist', 'add-port', 'br1', 'p_39a440c1-0', '--', 'set', 'Interface', 'p_39a440c1-0', 'type=patch', 'option:peer=p_39a440c1-1'
       ]).returns(true)
@@ -80,7 +80,7 @@ describe Puppet::Type.type(:l2_patch).provider(:ovs) do
         Puppet::Util::Log.newdestination(:console)
       end
       provider_br1.class.stubs(:iproute)
-      provider_br1.class.stubs(:vsctl).with('add-br', 'br1').returns(true)
+      provider_br1.class.stubs(:vsctl).with(['add-br', 'br1']).returns(true)
       provider_br2.class.stubs(:iproute).with().returns(true)
       provider_br2.class.stubs(:iproute).with('link', 'set', 'up', 'dev', 'br2').returns(true)
       provider_br2.stubs(:brctl).with(['addbr', 'br2']).returns(true)

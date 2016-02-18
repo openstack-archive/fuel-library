@@ -30,7 +30,11 @@ describe 'l23network::l2' do
 
       it { should_not contain_package('openvswitch-common').with_name('openvswitch') }
 
+      it { should_not contain_package('openvswitch-dpdk') }
+
       it { should_not contain_service('openvswitch-service') }
+
+      it { should_not contain_service('dpdk') }
 
       it { should_not contain_k_mod('openvswitch').with_ensure('present') }
 
@@ -173,7 +177,11 @@ describe 'l23network::l2' do
 
       it { should_not contain_package('openvswitch-common') }
 
+      it { should_not contain_package('openvswitch-dpdk').with_name('openvswitch-switch-dpdk') }
+
       it { should_not contain_service('openvswitch-service') }
+
+      it { should_not contain_service('dpdk') }
 
       it { should_not contain_k_mod('openvswitch').with_ensure('present') }
 
@@ -224,6 +232,7 @@ describe 'l23network::l2' do
       it { should contain_package('openvswitch-datapath').that_comes_before('Service[openvswitch-service]') }
 
       it { should contain_package('openvswitch-common').with_name('test_ovs_common_package_name') }
+
       it { should contain_package('openvswitch-common').that_notifies('Service[openvswitch-service]') }
 
       it { should contain_service('openvswitch-service') }
@@ -248,6 +257,43 @@ describe 'l23network::l2' do
 
       it { should contain_package('openvswitch-common').with_name('openvswitch-switch') }
       it { should contain_package('openvswitch-common').that_notifies('Service[openvswitch-service]') }
+
+      it { should contain_service('openvswitch-service') }
+
+      it { should contain_k_mod('openvswitch').with_ensure('present') }
+
+    end
+
+    context 'use_ovs, use_dpdk with default parameters' do
+
+      let :params do
+      { :ensure_package               => 'present',
+        :use_lnx                      => true,
+        :use_ovs                      => true,
+        :use_dpdk                     => true,
+      }
+      end
+
+      it { should compile.with_all_deps }
+
+      it { should contain_package('openvswitch-datapath').with_name('openvswitch-datapath-dkms') }
+      it { should contain_package('openvswitch-datapath').that_comes_before('Service[openvswitch-service]') }
+
+      it { should contain_package('openvswitch-common').with_name('openvswitch-switch') }
+      it { should contain_package('openvswitch-common').that_notifies('Service[openvswitch-service]') }
+
+      it { should contain_package('dpdk-dkms').with_name('dpdk-dkms') }
+      it { should contain_package('dpdk-dkms').that_comes_before('Service[dpdk]') }
+
+      it { should contain_file('/etc/dpdk/interfaces').that_comes_before('File[/etc/default/openvswitch-switch]') }
+      it { should contain_file('/etc/dpdk/interfaces').that_notifies('Service[dpdk]') }
+      it { should contain_file('/etc/dpdk/interfaces').that_notifies('Service[openvswitch-service]') }
+
+      it { should contain_package('openvswitch-dpdk').with_name('openvswitch-switch-dpdk') }
+      it { should contain_package('openvswitch-dpdk').that_notifies('Service[openvswitch-service]') }
+      it { should contain_package('openvswitch-dpdk').that_comes_before('File[/etc/default/openvswitch-switch]') }
+
+      it { should contain_file('/etc/default/openvswitch-switch').that_notifies('Service[openvswitch-service]') }
 
       it { should contain_service('openvswitch-service') }
 

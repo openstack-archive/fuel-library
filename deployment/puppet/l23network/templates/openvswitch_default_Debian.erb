@@ -1,0 +1,13 @@
+/etc/init.d/dpdk start
+
+export DPDK_OPTS="--dpdk <% if @ovs_socket_dir %>-vhost_sock_dir <%= @ovs_socket_dir %> <% end %>-c <%= @ovs_core_mask %> -n <%= @ovs_memory_channels %> --socket-mem <%= @ovs_socket_mem %>"
+
+<% if @ovs_socket_dir -%>
+# LP 1546565
+umask 0002
+mkdir -p "<%= @ovs_socket_dir %>"
+<% if @ovs_socket_dir_group -%>
+chgrp "<%= @ovs_socket_dir_group %>" "<%= @ovs_socket_dir %>" || true
+<% end -%>
+chmod g+s "<%= @ovs_socket_dir %>"
+<% end -%>

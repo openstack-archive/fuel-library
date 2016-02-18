@@ -47,8 +47,10 @@ class l23network (
   $ensure_package               = 'present',
   $use_lnx                      = true,
   $use_ovs                      = false,
+  $use_dpdk                     = false,
   $install_ovs                  = $use_ovs,
   $install_brtool               = $use_lnx,
+  $install_dpdk                 = $use_dpdk,
   $modprobe_bridge              = $use_lnx,
   $install_bondtool             = $use_lnx,
   $modprobe_bonding             = $use_lnx,
@@ -61,6 +63,7 @@ class l23network (
   $ovs_common_package_name      = undef,
   $disable_hotplug              = true,
   $network_manager              = false,
+  $dpdk_options                 = {},
 ){
 
   include ::stdlib
@@ -70,8 +73,10 @@ class l23network (
     ensure_package               => $ensure_package,
     use_ovs                      => $use_ovs,
     use_lnx                      => $use_lnx,
+    use_dpdk                     => $use_dpdk,
     install_ovs                  => $install_ovs,
     install_brtool               => $install_brtool,
+    install_dpdk                 => $install_dpdk,
     modprobe_bridge              => $modprobe_bridge,
     install_bondtool             => $install_bondtool,
     modprobe_bonding             => $modprobe_bonding,
@@ -82,6 +87,7 @@ class l23network (
     use_ovs_dkms_datapath_module => $use_ovs_dkms_datapath_module,
     ovs_datapath_package_name    => $ovs_datapath_package_name,
     ovs_common_package_name      => $ovs_common_package_name,
+    dpdk_options                 => $dpdk_options,
   }
 
   if $::l23network::params::interfaces_file {
