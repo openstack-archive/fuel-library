@@ -11,18 +11,21 @@
 # [*db_password*]
 #  Password to use for db_user
 #
+# [*ensure*]
+#  (optional) Ensures to override .my.cnf
+#  Defaults to 'present'
+#
 # [*db_host*]
 #  (optional) The IP address of the mysql server
 #  Defaults to '127.0.0.1'
-#
 class osnailyfacter::mysql_access (
   $ensure      = 'present',
   $db_user     = 'root',
   $db_password = '',
   $db_host     = 'localhost',
 ) {
-  $default_file_path = '/root/.my.cnf'
-  $host_file_path = "/root/.my.${db_host}.cnf"
+  $default_file_path = "${::root_home}/.my.cnf"
+  $host_file_path = "${::root_home}/.my.${db_host}.cnf"
 
   file { "${db_host}-mysql-access":
     ensure  => $ensure,
@@ -41,5 +44,8 @@ class osnailyfacter::mysql_access (
       path   => $default_file_path,
       target => $host_file_path,
     }
+
+    File["${db_host}-mysql-access"] ->
+      File <| path == $default_file_path |>
   }
 }
