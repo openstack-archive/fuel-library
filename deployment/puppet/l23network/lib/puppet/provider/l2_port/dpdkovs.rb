@@ -41,6 +41,7 @@ Puppet::Type.type(:l2_port).provide(:dpdkovs, :parent => Puppet::Provider::Ovs_b
   end
 
   def destroy
+    debug("DESTROY resource: #{@resource}")
     vsctl("del-port", @resource[:bridge], @resource[:vendor_specific]['dpdk_port'])
   end
 

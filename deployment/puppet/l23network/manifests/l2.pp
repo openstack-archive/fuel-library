@@ -25,8 +25,10 @@ class l23network::l2 (
   $ensure_package               = 'present',
   $use_lnx                      = true,
   $use_ovs                      = false,
+  $use_dpdk                     = false,
   $install_ovs                  = $use_ovs,
   $install_brtool               = $use_lnx,
+  $install_dpdk                 = $use_dpdk,
   $modprobe_bridge              = $use_lnx,
   $install_bondtool             = $use_lnx,
   $modprobe_bonding             = $use_lnx,
@@ -37,6 +39,7 @@ class l23network::l2 (
   $use_ovs_dkms_datapath_module = true,
   $ovs_datapath_package_name    = $::l23network::params::ovs_datapath_package_name,
   $ovs_common_package_name      = $::l23network::params::ovs_common_package_name,
+  $dpdk_options                 = {},
 ){
 
   include ::stdlib
@@ -62,6 +65,16 @@ class l23network::l2 (
 
       Package<| title=='openvswitch-datapath' |> -> Package<| title=='openvswitch-common' |>
     }
+
+    class { '::l23network::l2::dpdk':
+      use_dpdk          => $use_dpdk,
+      install_dpdk      => $install_dpdk,
+      ovs_core_mask     => $dpdk_options['ovs_core_mask'],
+      ovs_pmd_core_mask => $dpdk_options['ovs_pmd_core_mask'],
+      ovs_socket_mem    => $dpdk_options['ovs_socket_mem'],
+      install_ovs       => $install_ovs,
+      ensure_package    => $ensure_package,
+    } -> Anchor['l23network::l2::init']
 
     service {'openvswitch-service':
       ensure    => 'running',

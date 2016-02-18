@@ -1,0 +1,9 @@
+/etc/init.d/dpdk start
+
+export DPDK_OPTS="--dpdk -c <%= @ovs_core_mask %> -n <%= @ovs_memory_channels %> --socket-mem <%= @ovs_socket_mem %>"
+
+# LP 1546565
+umask 0002
+mkdir -p "<%= @ovs_socket_dir %>"
+chgrp "<%= @ovs_socket_dir_group %>" "<%= @ovs_socket_dir %>" || true
+chmod g+s "<%= @ovs_socket_dir %>"

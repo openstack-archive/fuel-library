@@ -68,6 +68,7 @@ Puppet::Type.type(:l2_port).provide(:ovs, :parent => Puppet::Provider::Ovs_base)
   end
 
   def destroy
+    debug("DESTROY resource: #{@resource}")
     vsctl("del-port", @resource[:bridge], @resource[:interface])
   end
 
