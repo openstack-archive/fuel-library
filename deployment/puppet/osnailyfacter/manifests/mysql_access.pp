@@ -48,5 +48,8 @@ class osnailyfacter::mysql_access (
 
     File["${db_host}-mysql-access"] ->
       File <| path == $default_file_path |>
+
+    # we need to ensure this file exists in the catalog for detached-db
+    ensure_resource(file, $default_file_path)
   }
 }

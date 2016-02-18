@@ -11,7 +11,11 @@
 #
 define osnailyfacter::mysql_grant ( $user    = '',
                                     $network = $name ) {
-  exec { "mysql_${user}_${network}":
-    command => "mysql -NBe \"grant all on *.* to \'${user}\'@\'${network}\' with grant option\"",
+  $user_title = "${user}@${network}"
+
+  mysql_grant { "${user_title}/*.*":
+    user       => $user_title,
+    options    => ['GRANT'],
+    privileges => ['ALL']
   }
 }

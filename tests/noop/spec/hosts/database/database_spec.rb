@@ -32,7 +32,7 @@ describe manifest do
     end
 
     let(:access_networks) do
-      access_networks = ['localhost', '127.0.0.1', '240.0.0.0/255.255.0.0'] + other_networks.split(' ')
+      access_networks = ['240.0.0.0/255.255.0.0'] + other_networks.split(' ')
     end
 
     let(:database_nodes) do
@@ -115,6 +115,13 @@ describe manifest do
     it 'should setup the /root/.my.cnf' do
       should contain_class('osnailyfacter::mysql_access').with(
         :db_password => mysql_database_password
+      )
+    end
+
+    it 'should setup additional root grants from other hosts' do
+      should contain_class('osnailyfacter::mysql_user_access').with(
+        :db_user         => 'root',
+        :access_networks => access_networks
       )
     end
 
