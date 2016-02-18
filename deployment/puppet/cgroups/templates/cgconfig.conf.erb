@@ -1,0 +1,9 @@
+<% @cgroups_set.each do |service, controller| %>
+  <% @controller.each do |rule, value| %>
+group <%= service %> {
+        <%= controller %> {
+                <%= rule %> = <%= value %>;
+        }
+  <% end -%>
+}
+<% end -%>
