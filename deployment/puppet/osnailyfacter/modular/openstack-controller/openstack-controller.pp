@@ -58,6 +58,7 @@ $workers_max                  = hiera('workers_max', 16)
 $service_workers              = pick($nova_hash['workers'],
                                       min(max($::processorcount, 2), $workers_max))
 $use_huge_pages               = pick($nova_hash['enable_hugepages'], false)
+$enable_cpu_pinning           = pick($nova_hash['enable_cpu_pinning'], false)
 $sahara_enabled               = pick($sahara_hash['enabled'], false)
 
 $ironic_hash                  = hiera_hash('ironic', {})
@@ -414,8 +415,9 @@ nova_config {
 
 $nova_scheduler_default_filters = [ 'RetryFilter', 'AvailabilityZoneFilter', 'RamFilter', 'CoreFilter', 'DiskFilter', 'ComputeFilter', 'ComputeCapabilitiesFilter', 'ImagePropertiesFilter', 'ServerGroupAntiAffinityFilter', 'ServerGroupAffinityFilter' ]
 $huge_pages_filters             = $use_huge_pages ? { true => [ 'AggregateInstanceExtraSpecsFilter' ], default => []}
+$cpu_pinning_filters            = $enable_cpu_pinning ? { true => [ 'NUMATopologyFilter', 'AggregateInstanceExtraSpecsFilter' ], default => []}
 $sahara_filters                 = $sahara_enabled ? { true => [ 'DifferentHostFilter' ], default => []}
-$nova_scheduler_filters         = unique(concat(pick($nova_config_hash['default_filters'], $nova_scheduler_default_filters), $sahara_filters, $huge_pages_filters))
+$nova_scheduler_filters         = unique(concat(pick($nova_config_hash['default_filters'], $nova_scheduler_default_filters), $sahara_filters, $huge_pages_filters, $cpu_pinning_filters))
 
 if $ironic_hash['enabled'] {
   $scheduler_host_manager = 'nova.scheduler.ironic_host_manager.IronicHostManager'
