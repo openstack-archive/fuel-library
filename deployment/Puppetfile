@@ -164,7 +164,7 @@ mod 'rsync',
 # Pull in puppet-monit
 mod 'monit',
     :git => 'https://github.com/fuel-infra/puppet-monit.git',
-    :ref => 'v0.0.4-mos-rc1'
+    :ref => '1.0.0'
 
 # Pull in puppet-filemapper
 mod 'filemapper',

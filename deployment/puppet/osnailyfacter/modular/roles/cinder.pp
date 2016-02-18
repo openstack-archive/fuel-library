@@ -326,11 +326,11 @@ cinder_config { 'keymgr/fixed_key':
 
 # FIXME(bogdando) replace service_path and action to systemd, once supported
 if $use_monit_real {
-  monit::process { $cinder_volume_name :
+  monit::check::process { $cinder_volume_name :
     ensure        => running,
     matching      => '/usr/bin/python /usr/bin/cinder-volume',
-    start_command => "${service_path} ${cinder_volume_name} restart",
-    stop_command  => "${service_path} ${cinder_volume_name} stop",
+    program_start => "${service_path} ${cinder_volume_name} restart",
+    program_stop  => "${service_path} ${cinder_volume_name} stop",
     pidfile       => false,
   }
 }
