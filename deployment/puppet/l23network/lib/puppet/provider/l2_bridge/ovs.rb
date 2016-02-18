@@ -23,8 +23,11 @@ Puppet::Type.type(:l2_bridge).provide(:ovs, :parent => Puppet::Provider::Ovs_bas
     debug("CREATE resource: #{@resource}")
     @old_property_hash = {}
     @property_flush = {}.merge! @resource
-    #
-    vsctl('add-br', @resource[:bridge])
+    vendor_specific = @resource[:vendor_specific] || {}
+    cmd = ['add-br', @resource[:bridge]]
+    datapath_type = vendor_specific["datapath_type"]
+    cmd += ['--', 'set', 'Bridge', @resource[:bridge], "datapath_type=#{datapath_type}"] if datapath_type
+    vsctl(cmd)
     self.class.interface_up(@resource[:bridge])
     notice("bridge '#{@resource[:bridge]}' created.")
   end
@@ -47,14 +50,10 @@ Puppet::Type.type(:l2_bridge).provide(:ovs, :parent => Puppet::Provider::Ovs_bas
         new_ids = @property_flush[:external_ids]
         #todo(sv): calculate deltas and remove unnided.
         new_ids.each_pair do |k,v|
-          if !  old_ids.has_key?(k)
+          if ! old_ids.has_key?(k)
             vsctl("br-set-external-id", @resource[:bridge], k, v)
           end
         end
-      end
-      vs = (@property_flush[:vendor_specific] || {})
-      if vs.has_key? "datapath_type"
-        vsctl('set', 'Bridge', @resource[:bridge], "datapath_type=#{vs["datapath_type"]}")
       end
       #
       @property_hash = resource.to_hash
