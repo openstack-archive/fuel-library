@@ -47,6 +47,7 @@ class l23network (
   $ensure_package               = 'present',
   $use_lnx                      = true,
   $use_ovs                      = false,
+  $use_dpdk                     = false,
   $install_ovs                  = $use_ovs,
   $install_brtool               = $use_lnx,
   $modprobe_bridge              = $use_lnx,
@@ -61,6 +62,9 @@ class l23network (
   $ovs_common_package_name      = undef,
   $disable_hotplug              = true,
   $network_manager              = false,
+  $ovs_core_mask                = undef,
+  $ovs_pmd_core_mask            = undef,
+  $ovs_socket_mem               = undef,
 ){
 
   include ::stdlib
@@ -70,6 +74,7 @@ class l23network (
     ensure_package               => $ensure_package,
     use_ovs                      => $use_ovs,
     use_lnx                      => $use_lnx,
+    use_dpdk                     => $use_dpdk,
     install_ovs                  => $install_ovs,
     install_brtool               => $install_brtool,
     modprobe_bridge              => $modprobe_bridge,
@@ -82,6 +87,9 @@ class l23network (
     use_ovs_dkms_datapath_module => $use_ovs_dkms_datapath_module,
     ovs_datapath_package_name    => $ovs_datapath_package_name,
     ovs_common_package_name      => $ovs_common_package_name,
+    ovs_core_mask                => $ovs_core_mask,
+    ovs_pmd_core_mask            => $ovs_pmd_core_mask,
+    ovs_socket_mem               => $ovs_socket_mem,
   }
 
   if $::l23network::params::interfaces_file {
