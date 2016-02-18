@@ -68,6 +68,7 @@ describe 'openstack::cinder' do
         :memorysize_mb => 1024,
         :openstack_version => { 'nova' => 'present' },
         :os_service_default => '<SERVICE DEFAULT>',
+        :operatingsystemmajrelease => '7',
       }
     end
 
