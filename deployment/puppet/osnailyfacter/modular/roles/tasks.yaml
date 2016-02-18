@@ -29,7 +29,7 @@
   type: puppet
   version: 2.0.0
   groups: [cinder, cinder-block-device, cinder-vmware]
-  required_for: [deploy_end]
+  required_for: [enable_cinder_volume_service]
   requires: [hosts, firewall]
   cross-depends:
     - name: openstack-cinder
@@ -37,6 +37,18 @@
     puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/roles/cinder.pp
     puppet_modules: /etc/puppet/modules
     timeout: 3600
+
+- id: enable_cinder_volume_service
+  type: puppet
+  version: 2.0.0
+  role: [cinder, cinder-block-device]
+  requires: [top-role-cinder]
+  required_for: [deploy_end]
+  parameters:
+    puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/roles/enable_cinder.pp
+    puppet_modules: /etc/puppet/modules
+    timeout: 3600
+    cwd: /
 
 - id: top-role-primary-mongo
   type: puppet
