@@ -1,4 +1,1 @@
-deprecations.log
-Gemfile.lock
-coverage
-spec/fixtures
+fuel-noop-fixtures

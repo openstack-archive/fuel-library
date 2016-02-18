@@ -2,6 +2,8 @@ require 'spec_helper'
 require 'shared-examples'
 manifest = 'openstack-controller/db.pp'
 
+# DISABLE_SPEC
+
 describe manifest do
   shared_examples 'catalog' do
     nova_hash            = Noop.hiera_structure 'nova'
