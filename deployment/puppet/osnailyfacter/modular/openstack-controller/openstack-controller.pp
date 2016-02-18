@@ -18,32 +18,19 @@ prepare_network_config($network_scheme)
 
 $nova_rate_limits             = hiera('nova_rate_limits')
 $primary_controller           = hiera('primary_controller')
-$use_neutron                  = hiera('use_neutron', false)
 $nova_report_interval         = hiera('nova_report_interval')
 $nova_service_down_time       = hiera('nova_service_down_time')
 $use_syslog                   = hiera('use_syslog', true)
 $use_stderr                   = hiera('use_stderr', false)
-$syslog_log_facility_glance   = hiera('syslog_log_facility_glance', 'LOG_LOCAL2')
-$syslog_log_facility_neutron  = hiera('syslog_log_facility_neutron', 'LOG_LOCAL4')
 $syslog_log_facility_nova     = hiera('syslog_log_facility_nova','LOG_LOCAL6')
-$syslog_log_facility_keystone = hiera('syslog_log_facility_keystone', 'LOG_LOCAL7')
 $management_vip               = hiera('management_vip')
-$public_vip                   = hiera('public_vip')
 $sahara_hash                  = hiera_hash('sahara', {})
-$mysql_hash                   = hiera_hash('mysql', {})
-$access_hash                  = hiera_hash('access', {})
-$keystone_hash                = hiera_hash('keystone', {})
-$glance_hash                  = hiera_hash('glance', {})
 $storage_hash                 = hiera_hash('storage', {})
 $nova_hash                    = hiera_hash('nova', {})
 $nova_config_hash             = hiera_hash('nova_config', {})
 $api_bind_address             = get_network_role_property('nova/api', 'ipaddr')
 $rabbit_hash                  = hiera_hash('rabbit_hash', {})
-$ceilometer_hash              = hiera_hash('ceilometer_hash',{})
-$syslog_log_facility_ceph     = hiera('syslog_log_facility_ceph','LOG_LOCAL0')
-$workloads_hash               = hiera_hash('workloads_collector', {})
 $service_endpoint             = hiera('service_endpoint')
-$db_host                      = pick($nova_hash['db_host'], hiera('database_vip'))
 $ssl_hash                     = hiera_hash('use_ssl', {})
 
 $internal_auth_protocol = get_ssl_property($ssl_hash, {}, 'keystone', 'internal', 'protocol', [$nova_hash['auth_protocol'], 'http'])
@@ -64,9 +51,6 @@ if $glance_ssl {
   $glance_api_servers = hiera('glance_api_servers', "${management_vip}:9292")
 }
 
-$nova_db_user                 = pick($nova_hash['db_user'], 'nova')
-$nova_api_db_user             = pick($nova_hash['api_db_user'], 'nova_api')
-$nova_api_db_password         = pick($nova_hash['api_db_password'], $nova_hash['db_password'], $mysql_root_password)
 $keystone_user                = pick($nova_hash['user'], 'nova')
 $keystone_tenant              = pick($nova_hash['tenant'], 'services')
 $region                       = hiera('region', 'RegionOne')
@@ -81,22 +65,41 @@ $openstack_controller_hash    = hiera_hash('openstack_controller', {})
 
 $external_lb                  = hiera('external_lb', false)
 
-$floating_hash = {}
+$neutron_config                = hiera_hash('quantum_settings')
+$neutron_metadata_proxy_secret = $neutron_config['metadata']['metadata_proxy_shared_secret']
+$default_floating_net          = pick($neutron_config['default_floating_net'], 'net04_ext')
 
-if $use_neutron {
-  $network_provider          = 'neutron'
-  $novanetwork_params        = {}
-  $neutron_config            = hiera_hash('quantum_settings')
-  $neutron_db_password       = $neutron_config['database']['passwd']
-  $neutron_user_password     = $neutron_config['keystone']['admin_password']
-  $neutron_metadata_proxy_secret = $neutron_config['metadata']['metadata_proxy_shared_secret']
-  $base_mac                  = $neutron_config['L2']['base_mac']
+$db_type     = 'mysql'
+$db_host     = pick($nova_hash['db_host'], hiera('database_vip'))
+$db_user     = pick($nova_hash['db_user'], 'nova')
+$db_password = $nova_hash['db_password']
+$db_name     = pick($nova_hash['db_name'], 'nova')
+$api_db_user     = pick($nova_hash['api_db_user'], 'nova_api')
+$api_db_password = pick($nova_hash['api_db_password'], $nova_hash['db_password'])
+$api_db_name     = pick($nova_hash['api_db_name'], 'nova_api')
+# LP#1526938 - python-mysqldb supports this, python-pymysql does not
+if $::os_package_type == 'debian' {
+  $extra_params = { 'charset' => 'utf8', 'read_timeout' => 60 }
 } else {
-  $network_provider   = 'nova'
-  $floating_ips_range = hiera('floating_network_range')
-  $neutron_config     = {}
-  $novanetwork_params = hiera('novanetwork_parameters')
+  $extra_params = { 'charset' => 'utf8' }
 }
+$db_connection = os_database_connection({
+  'dialect'  => $db_type,
+  'host'     => $db_host,
+  'database' => $db_name,
+  'username' => $db_user,
+  'password' => $db_password,
+  'extra'    => $extra_params
+})
+$api_db_connection = os_database_connection({
+  'dialect'  => $db_type,
+  'host'     => $db_host,
+  'database' => $api_db_name,
+  'username' => $api_db_user,
+  'password' => $api_db_password,
+  'extra'    => $extra_params
+})
+
 
 # SQLAlchemy backend configuration
 $max_pool_size = min($::processorcount * 5 + 0, 30 + 0)
@@ -104,86 +107,233 @@ $max_overflow = min($::processorcount * 5 + 0, 60 + 0)
 $max_retries = '-1'
 $idle_timeout = '3600'
 
-# TODO: openstack_version is confusing, there's such string var in hiera and hardcoded hash
-$hiera_openstack_version = hiera('openstack_version')
-$openstack_version = {
-  'keystone'   => 'installed',
-  'glance'     => 'installed',
-  'horizon'    => 'installed',
-  'nova'       => 'installed',
-  'novncproxy' => 'installed',
-  'cinder'     => 'installed',
+
+if hiera('nova_quota') {
+  $nova_quota_driver = 'nova.quota.DbQuotaDriver'
+} else {
+  $nova_quota_driver = 'nova.quota.NoopQuotaDriver'
 }
 
-#################################################################
 if hiera('use_vcenter', false) or hiera('libvirt_type') == 'vcenter' {
   $multi_host = false
 } else {
   $multi_host = true
 }
 
-class { '::openstack::controller':
-  private_interface              => $use_neutron ? { true=>false, default=>hiera('private_int')},
-  public_interface               => hiera('public_int', undef),
-  public_address                 => $public_vip,    # It is feature for HA mode.
-  internal_address               => $management_vip,  # All internal traffic goes
-  admin_address                  => $management_vip,  # through load balancer.
-  floating_range                 => $use_neutron ? { true =>$floating_hash, default  =>false},
-  fixed_range                    => $use_neutron ? { true =>false, default =>hiera('fixed_network_range')},
-  multi_host                     => $multi_host,
-  network_config                 => hiera('network_config', {}),
-  num_networks                   => hiera('num_networks', undef),
-  network_size                   => hiera('network_size', undef),
-  network_manager                => hiera('network_manager', undef),
-  network_provider               => $network_provider,
-  verbose                        => pick($openstack_controller_hash['verbose'], true),
-  debug                          => pick($openstack_controller_hash['debug'], hiera('debug', true)),
-  default_log_levels             => hiera_hash('default_log_levels'),
-  auto_assign_floating_ip        => hiera('auto_assign_floating_ip', false),
-  glance_api_servers             => $glance_api_servers,
-  primary_controller             => $primary_controller,
-  novnc_address                  => $api_bind_address,
-  nova_db_user                   => $nova_db_user,
-  nova_api_db_user               => $nova_api_db_user,
-  nova_db_password               => $nova_hash[db_password],
-  nova_api_db_password           => $nova_api_db_password,
-  nova_user                      => $keystone_user,
-  nova_user_password             => $nova_hash[user_password],
-  nova_user_tenant               => $keystone_tenant,
-  nova_hash                      => $nova_hash,
-  queue_provider                 => 'rabbitmq',
-  amqp_hosts                     => hiera('amqp_hosts',''),
-  amqp_user                      => $rabbit_hash['user'],
-  amqp_password                  => $rabbit_hash['password'],
-  rabbit_ha_queues               => true,
-  cache_server_ip                => $memcached_server,
-  cache_server_port              => $memcached_port,
-  api_bind_address               => $api_bind_address,
-  db_host                        => $db_host,
-  service_endpoint               => $service_endpoint,
-  neutron_metadata_proxy_secret  => $neutron_metadata_proxy_secret,
-  cinder                         => true,
-  ceilometer_notification_driver => $ceilometer_hash['notification_driver'],
-  service_workers                => $service_workers,
-  use_syslog                     => $use_syslog,
-  use_stderr                     => $use_stderr,
-  syslog_log_facility_nova       => $syslog_log_facility_nova,
-  nova_rate_limits               => $nova_rate_limits,
-  nova_report_interval           => $nova_report_interval,
-  nova_service_down_time         => $nova_service_down_time,
-  ha_mode                        => true,
-  keystone_auth_uri              => $keystone_auth_uri,
-  keystone_identity_uri          => $keystone_identity_uri,
-  keystone_ec2_url               => $keystone_ec2_url,
-  # SQLALchemy backend
-  max_retries                    => $max_retries,
-  max_pool_size                  => $max_pool_size,
-  max_overflow                   => $max_overflow,
-  idle_timeout                   => $idle_timeout,
+# From legacy params.pp
+case $::osfamily {
+  'RedHat': {
+    $pymemcache_package_name = 'python-memcached'
+  }
+  'Debian': {
+    $pymemcache_package_name = 'python-memcache'
+  }
+  default: {
+    fail("Unsupported osfamily: ${::osfamily} operatingsystem: ${::operatingsystem},\
+module ${module_name} only support osfamily RedHat and Debian")
+  }
+}
+
+$memcached_addresses =  suffix($memcached_server, inline_template(":<%= @memcached_port %>"))
+
+# we can't use pick for this because pick blows up on []
+if $nova_hash['notification_driver'] {
+  $nova_notification_driver = $nova_hash['notification_driver']
+} else {
+  $nova_notification_driver = []
+}
+
+# FIXME(bogdando) replace queue_provider for rpc_backend once all modules synced with upstream
+$rpc_backend   = 'nova.openstack.common.rpc.impl_kombu'
+$amqp_hosts    = hiera('amqp_hosts','')
+$amqp_user     = $rabbit_hash['user']
+$amqp_password = $rabbit_hash['password']
+$verbose       = pick($openstack_controller_hash['verbose'], true)
+$debug         = pick($openstack_controller_hash['debug'], hiera('debug', true))
+
+$fping_path = $::osfamily ? {
+  'Debian' => '/usr/bin/fping',
+  'RedHat' => '/usr/sbin/fping',
+  default => fail('Unsupported Operating System.'),
+}
+#################################################################
+
+class { 'nova':
+  install_utilities       => false,
+  database_connection     => $db_connection,
+  api_database_connection => $api_db_connection,
+  rpc_backend             => $rpc_backend,
+  #FIXME(bogdando) we have to split amqp_hosts until all modules synced
+  rabbit_hosts            => split($amqp_hosts, ','),
+  rabbit_userid           => $amqp_user,
+  rabbit_password         => $amqp_password,
+  kombu_reconnect_delay   => '5.0',
+  image_service           => 'nova.image.glance.GlanceImageService',
+  glance_api_servers      => $glance_api_servers,
+  verbose                 => $verbose,
+  debug                   => $debug,
+  log_facility            => $syslog_log_facility_nova,
+  use_syslog              => $use_syslog,
+  use_stderr              => $use_stderr,
+  database_idle_timeout   => $idle_timeout,
+  report_interval         => $nova_report_interval,
+  service_down_time       => $nova_service_down_time,
+  notify_api_faults       => pick($nova_hash['notify_api_faults'], false),
+  notification_driver     => $nova_notification_driver,
+  memcached_servers       => $memcached_addresses,
+  cinder_catalog_info     => pick($nova_hash['cinder_catalog_info'], 'volumev2:cinderv2:internalURL'),
+  database_max_pool_size  => $max_pool_size,
+  database_max_retries    => $max_retries,
+  database_max_overflow   => $max_overflow,
+}
+
+# TODO(aschultz): this is being removed in M, do we need it?
+if $use_syslog {
+  nova_config {
+    'DEFAULT/use_syslog_rfc_format':  value => true;
+  }
+}
+
+class { '::nova::quota':
+  quota_instances                       => pick($nova_hash['quota_instances'], 100),
+  quota_cores                           => pick($nova_hash['quota_cores'], 100),
+  quota_volumes                         => pick($nova_hash['quota_volumes'], 100),
+  quota_gigabytes                       => pick($nova_hash['quota_gigabytes'], 1000),
+  quota_floating_ips                    => pick($nova_hash['quota_floating_ips'], 100),
+  quota_metadata_items                  => pick($nova_hash['quota_metadata_items'], 1024),
+  quota_max_injected_files              => pick($nova_hash['quota_max_injected_files'], 50),
+  quota_max_injected_file_content_bytes => pick($nova_hash['quota_max_injected_file_content_bytes'], 102400),
+  quota_injected_file_path_length       => pick($nova_hash['quota_injected_file_path_length'], 4096),
+  quota_security_groups                 => pick($nova_hash['quota_security_groups'], 10),
+  quota_key_pairs                       => pick($nova_hash['quota_key_pairs'], 10),
+  quota_driver                          => $nova_quota_driver
+}
+
+$default_limits = {
+  'POST'         => 10,
+  'POST_SERVERS' => 50,
+  'PUT'          => 10,
+  'GET'          => 3,
+  'DELETE'       => 100,
+}
+
+$merged_limits = merge($default_limits, $nova_rate_limits)
+$post_limit    = $merged_limits['POST']
+$put_limit     = $merged_limits['PUT']
+$get_limit     = $merged_limits['GET']
+$delete_limit  = $merged_limits['DELETE']
+$post_servers_limit = $merged_limits['POST_SERVERS']
+$nova_rate_limits_string = inline_template('<%="(POST, *, .*,  #{@post_limit} , MINUTE);\
+(POST, %(*/servers), ^/servers,  #{@post_servers_limit} , DAY);(PUT, %(*) , .*,  #{@put_limit}\
+, MINUTE);(GET, %(*changes-since*), .*changes-since.*, #{@get_limit}, MINUTE);(DELETE, %(*),\
+.*, #{@delete_limit} , MINUTE)" %>')
+#  notice("will apply following limits: ${nova_rate_limits_string}")
+# Configure nova-api
+class { '::nova::api':
+  enabled                              => true,
+  api_bind_address                     => $api_bind_address,
+  admin_user                           => $keystone_user,
+  admin_password                       => $nova_hash['user_password'],
+  admin_tenant_name                    => pick($nova_hash['admin_tenant_name'], $keystone_tenant),
+  identity_uri                         => $keystone_identity_uri,
+  auth_uri                             => $keystone_auth_uri,
+  auth_version                         => pick($nova_hash['auth_version'], false),
+  ratelimits                           => $nova_rate_limits_string,
+  neutron_metadata_proxy_shared_secret => $neutron_metadata_proxy_secret,
+  osapi_compute_workers                => $service_workers,
+  metadata_workers                     => $service_workers,
+  sync_db                              => $primary_controller,
+  sync_db_api                          => $primary_controller,
+  fping_path                           => $fping_path,
+  api_paste_config                     => '/etc/nova/api-paste.ini',
+  default_floating_pool                => $default_floating_pool,
+  require                              => Package['nova-common'],
+}
+
+# From legacy init.pp
+if !defined(Package[$pymemcache_package_name]) {
+  package { $pymemcache_package_name:
+    ensure => present,
+  } ->
+  Nova::Generic_service <| title == 'api' |>
+}
+
+nova_config {
+  'DEFAULT/allow_resize_to_same_host':  value => pick($nova_hash['allow_resize_to_same_host'], true);
+  'keystone_authtoken/signing_dir':     value => '/tmp/keystone-signing-nova';
+  'keystone_authtoken/signing_dirname': value => '/tmp/keystone-signing-nova';
+}
+
+nova_paste_api_ini {
+  'filter:authtoken/signing_dir':       ensure => absent;
+  'filter:authtoken/signing_dirname':   ensure => absent;
+}
+
+class {'::nova::conductor':
+  enabled   => true,
+  workers   => $service_workers,
+  use_local => pick($nova_hash['use_local'], false),
+}
+
+# a bunch of nova services that require no configuration
+class { [
+  '::nova::scheduler',
+  '::nova::cert',
+  '::nova::consoleauth',
+]:
+  enabled => true,
+}
+
+class { 'nova::vncproxy':
+  enabled => true,
+  host    => $api_bind_address,
+}
+
+# TODO(aschultz): when the openstacklib & nova modules have been updated
+# with a version that supports os_package_type, remove this block
+# See LP#1530912
+if !$::os_package_type or $::os_package_type == 'debian' {
+  $nova_vncproxy_package = 'nova-consoleproxy'
+  Package<| title == 'nova-vncproxy' |> {
+    name => 'nova-consoleproxy'
+  }
+} else {
+  $nova_vncproxy_package = 'nova-vncproxy'
+}
+
+####### Disable upstart startup on install #######
+if($::operatingsystem == 'Ubuntu') {
+  tweaks::ubuntu_service_override { 'nova-cert':
+    package_name => 'nova-cert',
+  }
+  tweaks::ubuntu_service_override { 'nova-conductor':
+    package_name => 'nova-conductor',
+  }
+  tweaks::ubuntu_service_override { 'nova-consoleproxy':
+    package_name => 'nova-consoleproxy',
+  }
+  tweaks::ubuntu_service_override { 'nova-api':
+    package_name => 'nova-api',
+  }
+  tweaks::ubuntu_service_override { 'nova-objectstore':
+    package_name => 'nova-objectstore',
+  }
+  tweaks::ubuntu_service_override { 'nova-scheduler':
+    package_name => 'nova-scheduler',
+  }
+  tweaks::ubuntu_service_override { 'nova-consoleauth':
+    package_name => 'nova-consoleauth',
+  }
+  tweaks::ubuntu_service_override { 'nova-vncproxy':
+    package_name => $nova_vncproxy_package,
+  }
 }
 
 #TODO: PUT this configuration stanza into nova class
-nova_config { 'DEFAULT/use_cow_images':                   value => hiera('use_cow_images')}
+nova_config {
+  'DEFAULT/use_cow_images':   value => hiera('use_cow_images');
+  'DEFAULT/force_raw_images': value => $nova_hash['force_raw_images'];
+}
 
 if $primary_controller {
 
@@ -252,14 +402,6 @@ if $primary_controller {
     tries     => 10,
     try_sleep => 2,
     require   => Class['nova'],
-  }
-
-
-  if ! $use_neutron {
-    nova_floating { $floating_ips_range:
-      ensure          => 'present',
-      pool            => 'nova',
-    }
   }
 }
 
