@@ -4,6 +4,7 @@
   groups: [controller]
   required_for: [openstack-controller, primary-openstack-controller]
   requires: [deploy_start, openstack-haproxy]
+  reexecute_on: [deploy_changes]
   cross-depends:
     - name: primary-database
   parameters:
@@ -21,6 +22,7 @@
   groups: [primary-controller]
   required_for: [openstack-controller, primary-openstack-controller]
   requires: [deploy_start, openstack-haproxy]
+  reexecute_on: [deploy_changes]
   parameters:
     puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/database/database.pp
     puppet_modules: /etc/puppet/modules
