@@ -23,8 +23,11 @@ Puppet::Type.type(:l2_bridge).provide(:ovs, :parent => Puppet::Provider::Ovs_bas
     debug("CREATE resource: #{@resource}")
     @old_property_hash = {}
     @property_flush = {}.merge! @resource
-    #
-    vsctl('add-br', @resource[:bridge])
+    vendor_specific = @resource[:vendor_specific] || {}
+    datapath_type = vendor_specific["datapath_type"]
+    cmd = ['add-br', @resource[:bridge]]
+    cmd += ['--', 'set', 'Bridge', @resource[:bridge], "datapath_type=#{datapath_type}"] if datapath_type
+    vsctl(cmd)
     self.class.interface_up(@resource[:bridge])
     notice("bridge '#{@resource[:bridge]}' created.")
   end
@@ -35,7 +38,7 @@ Puppet::Type.type(:l2_bridge).provide(:ovs, :parent => Puppet::Provider::Ovs_bas
   end
 
   def flush
-    if ! @property_flush.empty?
+    unless @property_flush.empty?
       debug("FLUSH properties: #{@property_flush}")
       #
       # FLUSH changed properties
@@ -43,18 +46,14 @@ Puppet::Type.type(:l2_bridge).provide(:ovs, :parent => Puppet::Provider::Ovs_bas
         vsctl('set', 'Bridge', @resource[:bridge], "stp_enable=#{@property_flush[:stp]}")
       end
       if @property_flush.has_key? :external_ids
-        old_ids = (@old_property_hash[:external_ids] || {})
+        old_ids = @old_property_hash[:external_ids] || {}
         new_ids = @property_flush[:external_ids]
         #todo(sv): calculate deltas and remove unnided.
         new_ids.each_pair do |k,v|
-          if !  old_ids.has_key?(k)
+          unless old_ids.has_key?(k)
             vsctl("br-set-external-id", @resource[:bridge], k, v)
           end
         end
-      end
-      vs = (@property_flush[:vendor_specific] || {})
-      if vs.has_key? "datapath_type"
-        vsctl('set', 'Bridge', @resource[:bridge], "datapath_type=#{vs["datapath_type"]}")
       end
       #
       @property_hash = resource.to_hash
@@ -85,9 +84,7 @@ Puppet::Type.type(:l2_bridge).provide(:ovs, :parent => Puppet::Provider::Ovs_bas
   end
   def vendor_specific=(val)
     old = @property_hash[:vendor_specific] || {}
-    # we're prefetching properties as hashes w/ keys as symbols, and set props as hashes w/ keys as strings
-    # so here is normalization
-    @property_flush[:vendor_specific] = Hash[val.map{|(k,v)| [k,v] if old[k.to_sym] != v }]
+    @property_flush[:vendor_specific] = val.reject{|(k,v)| old[k.to_sym] == v }
   end
 
   def stp

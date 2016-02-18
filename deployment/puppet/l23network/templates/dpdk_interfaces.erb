@@ -1,0 +1,3 @@
+<%- @dpdk_interfaces.each do |bus_info, driver| -%>
+pci <%= bus_info %> <%= driver %>
+<%- end -%>
