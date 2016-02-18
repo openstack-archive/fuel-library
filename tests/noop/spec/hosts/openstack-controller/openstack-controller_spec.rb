@@ -398,8 +398,10 @@ describe manifest do
       nova_scheduler_default_filters = [ 'RetryFilter', 'AvailabilityZoneFilter', 'RamFilter', 'CoreFilter', 'DiskFilter', 'ComputeFilter', 'ComputeCapabilitiesFilter', 'ImagePropertiesFilter', 'ServerGroupAntiAffinityFilter', 'ServerGroupAffinityFilter' ]
       huge_pages_filters             = [ 'AggregateInstanceExtraSpecsFilter' ]
       sahara_filters                 = [ 'DifferentHostFilter' ]
+      cpu_pinning_filters            = [ 'NUMATopologyFilter', 'AggregateInstanceExtraSpecsFilter' ]
       enable_hugepages   = Noop.hiera_structure 'nova/enable_hugepages', false
       enable_sahara      = Noop.hiera_structure 'sahara/enabled', false
+      enable_cpu_pinning = Noop.hiera_structure 'nova/enable_cpu_pinning', false
 
       nova_scheduler_filters = nova_scheduler_filters.concat(nova_scheduler_default_filters)
 
@@ -408,6 +410,9 @@ describe manifest do
       end
       if enable_hugepages
         nova_scheduler_filters = nova_scheduler_filters.concat(huge_pages_filters)
+      end
+      if enable_cpu_pinning
+        nova_scheduler_filters = nova_scheduler_filters.concat(cpu_pinning_filters)
       end
 
       should contain_class('nova::scheduler::filter').with(

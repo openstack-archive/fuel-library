@@ -63,6 +63,11 @@ describe manifest do
       ).that_notifies('Service[libvirt]')
     end
 
+    vcpu_pin_set = Noop.hiera_structure 'nova/cpu_pinning', false
+    it 'should configure vcpu_pin_set for nova', :if => vcpu_pin_set do
+      should contain_nova_config('DEFAULT/vcpu_pin_set').with(:value => vcpu_pin_set)
+    end
+
     enable_hugepages = Noop.hiera_structure 'nova/enable_hugepages', false
     it 'should enable huge pages support for qemu-kvm', :if => enable_hugepages do
       if facts[:osfamily] == 'Debian'
