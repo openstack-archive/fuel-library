@@ -10,6 +10,8 @@ describe manifest do
     default_gateway  = Noop.hiera 'default_gateway'
     set_xps          = Noop.hiera 'set_xps', true
     set_rps          = Noop.hiera 'set_rps', true
+    dpdk_config      = Noop.hiera_hash 'dpdk', {}
+    enable_dpdk      = dpdk_config.fetch 'enabled', false
 
     it { should contain_class('l23network').with('use_ovs' => use_neutron) }
     it { should contain_sysctl__value('net.ipv4.conf.all.arp_accept').with('value' => '1') }
@@ -44,6 +46,15 @@ describe manifest do
         'sysfs'   => '/sys/class/net/*/queues/tx-*/xps_cpus',
         'exclude' => '/sys/class/net/lo/*',
       )}
+    end
+    if enable_dpdk
+      it 'should set dpdk-specific options for OVS' do
+        should contain_class('l23network::l2::dpdk').with('use_dpdk' => true)
+      end
+    else
+      it 'should skip dpdk-specific options for OVS' do
+        should contain_class('l23network::l2::dpdk').with('use_dpdk' => false)
+      end
     end
   end
 
