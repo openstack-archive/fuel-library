@@ -11,7 +11,8 @@ $database_vip             = hiera('database_vip', $management_vip)
 
 $mgmt_iface = get_network_role_property('mgmt/database', 'interface')
 $direct_networks = split(direct_networks($network_scheme['endpoints'], $mgmt_iface, 'netmask'), ' ')
-$access_networks = flatten(['localhost', '127.0.0.1', '240.0.0.0/255.255.0.0', $direct_networks])
+# localhost is covered by mysql::server so we use this for detached db
+$access_networks = flatten(['240.0.0.0/255.255.0.0', $direct_networks])
 
 $haproxy_stats_port   = '10000'
 $haproxy_stats_url    = "http://${database_vip}:${haproxy_stats_port}/;csv"
@@ -301,8 +302,16 @@ if $enabled {
     db_password => $mysql_database_password,
   }
 
+  # this sets up remote grants for use with detached db
+  class { 'osnailyfacter::mysql_user_access':
+    db_user          => 'root',
+    db_password_hash => mysql_password($mysql_database_password),
+    access_networks  => $access_networks,
+  }
+
   Class['::galera'] ->
-    Class['::osnailyfacter::mysql_access']
+    Class['::osnailyfacter::mysql_access'] ->
+      Class['::osnailyfacter::mysql_user_access']
 
   Class['::openstack::galera::status'] ->
     ::Osnailyfacter::Wait_for_backend['mysql']
