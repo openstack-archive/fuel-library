@@ -50,12 +50,13 @@ module L23network
         }
       }
     end
-    dpdk_devices = devices.compact.each_with_index.map do |port_info,i|
+
+    dpdk_devices = devices.compact.each_with_index.reduce({}) do |rv, (port_info,i)|
       dpdk_port = "dpdk#{i}"
       port_info[:vendor_specific]['dpdk_port'] = dpdk_port
-      [dpdk_port, port_info]
+      rv[dpdk_port] = port_info
+      rv
     end
-    Hash[dpdk_devices]
   end
 
 end
