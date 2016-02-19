@@ -74,6 +74,7 @@ describe 'function for formating allocation pools for neutron subnet resource' d
    "fw-admin"=>"br-fw-admin",
    "glance/api"=>"br-mgmt",
    "mgmt/vip"=>"br-mgmt",
+   "murano/api"=>"br-mgmt",
    "nova/api"=>"br-mgmt",
    "horizon"=>"br-mgmt",
    "nova/migration"=>"br-mgmt",
