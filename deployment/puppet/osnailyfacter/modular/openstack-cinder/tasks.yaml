@@ -3,7 +3,7 @@
   version: 2.0.0
   groups: [primary-controller, controller]
   required_for: [deploy_end, openstack-controller]
-  requires: [primary-rabbitmq, rabbitmq, keystone, hosts, firewall]
+  requires: [primary-rabbitmq, rabbitmq, primary-keystone, keystone, hosts, firewall]
   cross-depends:
     - name: cinder-db
     - name: cinder-keystone
