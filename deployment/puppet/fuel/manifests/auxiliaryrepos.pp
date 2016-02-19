@@ -8,16 +8,17 @@ class fuel::auxiliaryrepos(
   $ubuntu_dir = "${repo_root}/ubuntu/auxiliary/"
 
   file { $centos_dir:
-    ensure  => directory,
-    owner   => 'root',
-    group   => 'root',
-    mode    => '0755',
+    ensure => directory,
+    owner  => 'root',
+    group  => 'root',
+    mode   => '0755',
   }
 
-  File[$centos_dir] ->
-  Package['createrepo'] ->
-  Exec["createrepo ${centos_dir}"] ->
-  Yumrepo["${fuel_version}_auxiliary"]
+  Exec['create_centos_repo_dirs'] ->
+    File[$centos_dir] ->
+      Package['createrepo'] ->
+        Exec["createrepo ${centos_dir}"] ->
+          Yumrepo["${fuel_version}_auxiliary"]
 
   yumrepo { "${fuel_version}_auxiliary":
     name     => "${fuel_version}_auxiliary",
@@ -28,6 +29,12 @@ class fuel::auxiliaryrepos(
   }
 
   ensure_packages(['createrepo'])
+
+  exec { 'create_centos_repo_dirs':
+    path    => '/bin:/sbin:/usr/bin:/usr/sbin',
+    command => "mkdir -p ${centos_dir}",
+    unless  => "test -d ${centos_dir}",
+  }
 
   exec { "createrepo ${centos_dir}":
     path     => '/bin:/sbin:/usr/bin:/usr/sbin',
@@ -47,7 +54,7 @@ class fuel::auxiliaryrepos(
   exec { 'create_ubuntu_repo_dirs':
     path    => '/bin:/sbin:/usr/bin:/usr/sbin',
     command => "bash -c \"mkdir -p ${ubuntu_dir}/pool/{main,restricted} ${ubuntu_dir}/dists/auxiliary/{main,restricted}/binary-amd64/\"",
-    unless => "test -d ${ubuntu_dir}/pool && \
+    unless  => "test -d ${ubuntu_dir}/pool && \
       test -d ${ubuntu_dir}/dists/auxiliary/main/binary-amd64 && \
       test -d ${ubuntu_dir}/dists/auxiliary/restricted/binary-amd64",
   }
