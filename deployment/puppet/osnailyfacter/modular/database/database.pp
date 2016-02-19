@@ -301,8 +301,17 @@ if $enabled {
     db_password => $mysql_database_password,
   }
 
-  Class['::galera'] ->
-    Class['::osnailyfacter::mysql_access']
+  if $primary_controller {
+    Class['::galera'] ->
+      Class['::osnailyfacter::mysql_access']
+  } else {
+    # the subsequent mysql servers already have a root password changed so we
+    # need to drop the .my.cnf in place prior to trying to set the root
+    # password or we will fail
+    Class['::cluster::mysql'] ->
+      Class['::osnailyfacter::mysql_access'] ->
+        Class['::mysql::server::root_password']
+  }
 
   Class['::openstack::galera::status'] ->
     ::Osnailyfacter::Wait_for_backend['mysql']
