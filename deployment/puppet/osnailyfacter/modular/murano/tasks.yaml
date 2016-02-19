@@ -1,0 +1,87 @@
+- id: murano
+  type: puppet
+  version: 2.0.0
+  groups: [primary-controller, controller]
+  condition: "settings:additional_components.murano.value == true"
+  required_for: [deploy_end, controller_remaining_tasks]
+  requires: [primary-heat, heat, horizon, primary-rabbitmq, rabbitmq]
+  cross-depends:
+    - name: murano-db
+    - name: murano-keystone
+  parameters:
+    puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/murano/murano.pp
+    puppet_modules: /etc/puppet/modules
+    timeout: 3600
+  test_pre:
+    cmd: ruby /etc/puppet/modules/osnailyfacter/modular/murano/murano_pre.rb
+  test_post:
+    cmd: ruby /etc/puppet/modules/osnailyfacter/modular/murano/murano_post.rb
+
+- id: murano-db
+  type: puppet
+  version: 2.0.0
+  groups: [primary-controller]
+  cross-depends:
+    - name: /(primary-)?database/
+  condition: "settings:additional_components.murano.value == true"
+  required_for: [murano]
+  requires: [primary-database, database]
+  parameters:
+    puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/murano/db.pp
+    puppet_modules: /etc/puppet/modules
+    timeout: 1800
+
+- id: murano-keystone
+  type: puppet
+  version: 2.0.0
+  groups: [primary-controller]
+  condition: "settings:additional_components.murano.value == true"
+  required_for: [murano]
+  requires: [primary-keystone, keystone]
+  cross-depends:
+    - name: keystone
+  parameters:
+    puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/murano/keystone.pp
+    puppet_modules: /etc/puppet/modules
+    timeout: 1800
+
+- id: murano-rabbitmq
+  type: puppet
+  version: 2.0.0
+  groups: [primary-controller, controller]
+  condition: "settings:additional_components.murano.value == true"
+  required_for: [murano]
+  cross-depends:
+    - name: /(primary-)?rabbitmq/
+      role: self
+  requires: [rabbitmq, primary-rabbitmq]
+  parameters:
+    puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/murano/rabbitmq.pp
+    puppet_modules: /etc/puppet/modules
+    timeout: 1800
+
+- id: murano-cfapi
+  type: puppet
+  version: 2.0.0
+  groups: [primary-controller, controller]
+  condition: "settings:additional_components.murano-cfapi.value == true"
+  requires: [murano]
+  parameters:
+    puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/murano/cfapi.pp
+    puppet_modules: /etc/puppet/modules
+    timeout: 1800
+
+- id: murano-cfapi-keystone
+  type: puppet
+  version: 2.0.0
+  groups: [primary-controller]
+  condition: "settings:additional_components.murano-cfapi.value == true"
+  required_for: [murano-cfapi]
+  requires: [primary-keystone, keystone]
+  cross-depends:
+    - name: keystone
+  parameters:
+    puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/murano/keystone_cfapi.pp
+    puppet_modules: /etc/puppet/modules
+    timeout: 1800
+

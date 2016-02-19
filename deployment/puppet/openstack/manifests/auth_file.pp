@@ -35,8 +35,13 @@
 #   (optional) Defaults to 'internalURL'.
 # [*os_endpoint_type*]
 #   (optional) Defaults to 'internalURL'.
+# [*murano_repo_url*]
+#   (optional) Address of Murano packages repository. Defaults to undef.
 # [*cacert*]
 #   (optional) Certificate to verify the TLS server certificate.
+#   Defaults to undef.
+# [*murano_glare_plugin*]
+#   (optional) Murano Glance Artifacts Plugin.
 #   Defaults to undef.
 #
 class openstack::auth_file(
@@ -54,7 +59,9 @@ class openstack::auth_file(
   $nova_endpoint_type       = 'internalURL',
   $neutron_endpoint_type    = 'internalURL',
   $os_endpoint_type         = 'internalURL',
+  $murano_repo_url          = undef,
   $cacert                   = undef,
+  $murano_glare_plugin      = undef,
 ) {
 
   file { '/root/openrc':
