@@ -98,6 +98,7 @@ describe manifest do
         :mysql_port => '3307',
         :root_password => mysql_database_password,
         :create_root_my_cnf => true,
+        :create_root_user => primary_controller,
         :validate_connection => false,
         :status_check => false,
         :wsrep_group_comm_port => '4567',

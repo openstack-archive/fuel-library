@@ -229,6 +229,7 @@ if $enabled {
     galera_master         => false, # NOTE: we don't want the galera module to boostrap
     mysql_port            => $backend_port,
     root_password         => $mysql_database_password,
+    create_root_user      => $primary_controller,
     create_root_my_cnf    => true,
     configure_repo        => false, # NOTE: repos should be managed via fuel
     configure_firewall    => false,
