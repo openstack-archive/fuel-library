@@ -125,10 +125,13 @@ describe manifest do
             'ensure' => 'running',
             'enable' => 'true',
           )}
-          it { should contain_exec('waiting-for-neutron-api') }
-          it { should contain_service('neutron-server').that_comes_before(
-            "Exec[waiting-for-neutron-api]"
+          it { should contain_exec('waiting-for-neutron-api').with(
+            'refreshonly' => 'true'
           )}
+          it { should contain_exec('waiting-for-neutron-api').that_subscribes_to(
+            'Service[neutron-server]'
+          )}
+          it { should contain_service('neutron-server') }
           if adv_neutron_config.fetch('l2_agent_ha', true)
             it { should contain_class('cluster::neutron::ovs').with(
               'primary' => (role == 'primary-controller'),
