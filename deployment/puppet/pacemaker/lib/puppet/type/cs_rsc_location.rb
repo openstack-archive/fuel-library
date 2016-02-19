@@ -47,6 +47,7 @@ module Puppet
     newproperty(:rules, :array_matching=>:all) do
       desc "Specify rules for location"
       munge do |rule|
+        rule['score'].gsub! 'inf', 'INFINITY'
         convert_to_sym(rule)
       end
     end
