@@ -36,6 +36,7 @@ $syslog_log_facility_cinder     = hiera('syslog_log_facility_cinder', 'LOG_LOCAL
 $syslog_log_facility_neutron    = hiera('syslog_log_facility_neutron', 'LOG_LOCAL4')
 $syslog_log_facility_nova       = hiera('syslog_log_facility_nova','LOG_LOCAL6')
 $syslog_log_facility_keystone   = hiera('syslog_log_facility_keystone', 'LOG_LOCAL7')
+$syslog_log_facility_murano     = hiera('syslog_log_facility_murano', 'LOG_LOCAL0')
 $syslog_log_facility_sahara     = hiera('syslog_log_facility_sahara','LOG_LOCAL0')
 $syslog_log_facility_ceph       = hiera('syslog_log_facility_ceph','LOG_LOCAL0')
 $proxy_port                     = hiera('proxy_port', '8080')
