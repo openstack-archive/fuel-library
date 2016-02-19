@@ -4,10 +4,11 @@ class fuel::auxiliaryrepos(
   $priority     = '15',
   ) inherits fuel::params {
 
-  $centos_dir = "${repo_root}/centos/auxiliary/"
-  $ubuntu_dir = "${repo_root}/ubuntu/auxiliary/"
+  $centos_dir_root = "${repo_root}/centos/"
+  $centos_dir      = "${centos_dir_root}/auxiliary/"
+  $ubuntu_dir      = "${repo_root}/ubuntu/auxiliary/"
 
-  file { $centos_dir:
+  file { [$centos_dir_root, $centos_dir]:
     ensure  => directory,
     owner   => 'root',
     group   => 'root',
@@ -47,7 +48,7 @@ class fuel::auxiliaryrepos(
   exec { 'create_ubuntu_repo_dirs':
     path    => '/bin:/sbin:/usr/bin:/usr/sbin',
     command => "bash -c \"mkdir -p ${ubuntu_dir}/pool/{main,restricted} ${ubuntu_dir}/dists/auxiliary/{main,restricted}/binary-amd64/\"",
-    unless => "test -d ${ubuntu_dir}/pool && \
+    unless  => "test -d ${ubuntu_dir}/pool && \
       test -d ${ubuntu_dir}/dists/auxiliary/main/binary-amd64 && \
       test -d ${ubuntu_dir}/dists/auxiliary/restricted/binary-amd64",
   }
