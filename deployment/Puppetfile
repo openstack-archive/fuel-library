@@ -204,5 +204,5 @@ mod 'mysql',
 
 # Pull in michaeltchapman-galera
 mod 'galera',
-    :git => 'https://github.com/fuel-infra/puppet-galera.git',
-    :ref => '0.0.2'
+    :git => 'https://github.com/mwhahaha/puppet-galera.git',
+    :ref => 'manage-root-user'
