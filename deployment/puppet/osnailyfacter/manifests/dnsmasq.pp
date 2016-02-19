@@ -41,6 +41,7 @@ class osnailyfacter::dnsmasq (
   }
 
   ensure_packages($package_name)
+  validate_array($external_dns)
 
   file { '/etc/dnsmasq.d':
     ensure => directory,
