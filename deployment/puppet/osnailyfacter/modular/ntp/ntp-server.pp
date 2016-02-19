@@ -2,8 +2,14 @@ notice('MODULAR: ntp-server.pp')
 
 $ntp_servers = hiera('external_ntp')
 
+if is_array($ntp_servers['ntp_list']) {
+  $external_ntp = $ntp_servers['ntp_list']
+} else {
+  $external_ntp = strip(split($ntp_servers['ntp_list'], ','))
+}
+
 class { 'ntp':
-  servers         => $ntp_servers['ntp_list'],
+  servers         => $external_ntp,
   service_enable  => true,
   service_ensure  => 'running',
   disable_monitor => true,
