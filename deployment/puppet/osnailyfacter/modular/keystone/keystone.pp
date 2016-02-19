@@ -112,6 +112,21 @@ $max_overflow  = hiera('max_overflow')
 $max_retries   = '-1'
 $database_idle_timeout  = '3600'
 
+$murano_settings_hash = hiera('murano_settings', {})
+if has_key($murano_settings_hash, 'murano_repo_url') {
+  $murano_repo_url = $murano_settings_hash['murano_repo_url']
+} else {
+  $murano_repo_url = 'http://storage.apps.openstack.org'
+}
+
+$murano_hash    = hiera_hash('murano_hash', {})
+$murano_plugins = pick($murano_hash['plugins'], {})
+if has_key($murano_plugins, 'glance_artifacts_plugin') {
+  $murano_glare_plugin = $murano_plugins['glance_artifacts_plugin']['enabled']
+} else {
+  $murano_glare_plugin = false
+}
+
 $external_lb = hiera('external_lb', false)
 
 ###############################################################################
@@ -207,6 +222,8 @@ class { 'openstack::auth_file':
   admin_tenant        => $admin_tenant,
   region_name         => $region,
   auth_url            => $auth_url,
+  murano_repo_url     => $murano_repo_url,
+  murano_glare_plugin => $murano_glare_plugin,
 }
 
 # Get paste.ini source

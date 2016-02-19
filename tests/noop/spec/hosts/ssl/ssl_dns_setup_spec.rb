@@ -7,7 +7,7 @@ describe manifest do
 
     if Noop.hiera_structure('use_ssl', false)
       context "when all services have hostnames" do
-        public_services = [ 'horizon', 'keystone', 'nova', 'heat', 'glance', 'cinder', 'neutron', 'swift', 'sahara', 'ceilometer', 'radosgw']
+        public_services = [ 'horizon', 'keystone', 'nova', 'heat', 'glance', 'cinder', 'neutron', 'swift', 'sahara', 'murano', 'ceilometer', 'radosgw']
         public_services.each do |service|
           public_vip = Noop.hiera_structure("use_ssl/#{service}_public_ip", Noop.hiera('public_vip'))
           public_hostname = Noop.hiera_structure "use_ssl/#{service}_public_hostname", Noop.hiera('management_vip')
@@ -20,7 +20,7 @@ describe manifest do
           end
         end
 
-        ia_services = [ 'keystone', 'nova', 'heat', 'glance', 'cinder', 'neutron', 'swift', 'sahara', 'ceilometer' ]
+        ia_services = [ 'keystone', 'nova', 'heat', 'glance', 'cinder', 'neutron', 'swift', 'sahara', 'murano', 'ceilometer' ]
         ia_services.each do |service|
           management_vip = Noop.hiera_structure("use_ssl/#{service}_internal_ip", Noop.hiera('management_vip'))
           admin_vip = Noop.hiera_structure("use_ssl/#{service}_admin_ip", Noop.hiera('management_vip'))

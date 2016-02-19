@@ -6,7 +6,7 @@ $public_vip = hiera('public_vip')
 $management_vip = hiera('management_vip')
 $openstack_service_endpoints = hiera_hash('openstack_service_endpoints', {})
 
-$services = [ 'horizon', 'keystone', 'nova', 'heat', 'glance', 'cinder', 'neutron', 'swift', 'sahara', 'ceilometer', 'radosgw']
+$services = [ 'horizon', 'keystone', 'nova', 'heat', 'glance', 'cinder', 'neutron', 'swift', 'sahara', 'murano', 'ceilometer', 'radosgw']
 
 #TODO(sbog): convert it to '.each' when moving to Puppet 4
 define hosts (
