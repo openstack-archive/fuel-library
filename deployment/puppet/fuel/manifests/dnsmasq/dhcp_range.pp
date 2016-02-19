@@ -1,5 +1,5 @@
 #
-# nailgun::dnsmasq::dhcp_range creates config files in /etc/dnsmasq.d/
+# fuel::dnsmasq::dhcp_range creates config files in /etc/dnsmasq.d/
 #
 # [next_server] IP address that will be used as PXE tftp server
 # [dhcp_start_address] First address of dhcp range

@@ -1,5 +1,5 @@
 #
-# == Class: nailgun::bootstrap_cli
+# == Class: fuel::bootstrap_cli
 #
 # Installs and configures fuel-bootstrap-cli package
 #
@@ -27,7 +27,7 @@
 #
 # === Examples
 #
-# class { 'nailgun::bootstrap_cli':
+# class { 'fuel::bootstrap_cli':
 #   bootstrap_cli_package => 'fuel-bootstrap-cli',
 #   settings              => {},
 #   direct_repo_addresses => [ '192.168.0.1' ],
