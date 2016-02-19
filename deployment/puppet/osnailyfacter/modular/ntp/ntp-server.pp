@@ -3,7 +3,7 @@ notice('MODULAR: ntp-server.pp')
 $ntp_servers = hiera('external_ntp')
 
 class { 'ntp':
-  servers         => strip(split($ntp_servers['ntp_list'], ',')),
+  servers         => $ntp_servers['ntp_list'],
   service_enable  => true,
   service_ensure  => 'running',
   disable_monitor => true,
