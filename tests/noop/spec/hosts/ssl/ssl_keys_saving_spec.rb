@@ -8,7 +8,7 @@ describe manifest do
   shared_examples 'catalog' do
     if Noop.hiera('use_ssl', false)
       context 'for services that have all endpoint types' do
-        services = [ 'keystone', 'nova', 'heat', 'glance', 'cinder', 'neutron', 'swift', 'sahara', 'ceilometer' ]
+        services = [ 'keystone', 'nova', 'heat', 'glance', 'cinder', 'neutron', 'swift', 'sahara', 'murano', 'ceilometer' ]
         types = [ 'public', 'internal', 'admin' ]
         services.each do |service|
           types.each do |type|
