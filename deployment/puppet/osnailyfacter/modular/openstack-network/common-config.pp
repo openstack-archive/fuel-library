@@ -82,7 +82,7 @@ if $use_neutron {
     mac_generation_retries  => '32',
     dhcp_lease_duration     => '600',
     dhcp_agents_per_network => '2',
-    report_interval         => '10',
+    report_interval         => $neutron_hash['neutron_report_interval'],
     rabbit_user             => $amqp_user,
     rabbit_hosts            => $amqp_hosts,
     rabbit_password         => $amqp_password,
