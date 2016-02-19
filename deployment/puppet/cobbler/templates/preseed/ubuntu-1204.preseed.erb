@@ -160,7 +160,7 @@ echo "net.nf_conntrack_max=1048576" >> /target/etc/sysctl.conf && \
 mkdir -p /target/etc/nailgun-agent && \
 #set nailgun_agent_conf = '/target/etc/nailgun-agent/config.yaml'
 echo "---" > $nailgun_agent_conf && \
-echo "url: '<%= scope.lookupvar('nailgun::cobbler::nailgun_api_url') %>'" >> $nailgun_agent_conf && \
+echo "url: '<%= scope.lookupvar('fuel::cobbler::nailgun_api_url') %>'" >> $nailgun_agent_conf && \
 echo target > /target/etc/nailgun_systemtype && \
 $SNIPPET('ubuntu_authorized_keys')
 sed -i -e "/^\s*GSSAPICleanupCredentials yes/d" -e "/^\s*GSSAPIAuthentication yes/d" -e "s/.*PasswordAuthentication\ .*/PasswordAuthentication\ no/g" -e "/UseDNS/d" /target/etc/ssh/sshd_config && \

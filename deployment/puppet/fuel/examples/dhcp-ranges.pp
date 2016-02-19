@@ -16,5 +16,5 @@ file { '/etc/dnsmasq.d':
 }
 
 # Create admin networks dhcp-range files except for 'default' nodegroup
-# by creating Nailgun::Dnsmasq::Dhcp_range puppet resources
+# by creating Fuel::Dnsmasq::Dhcp_range puppet resources
 create_dnsmasq_dhcp_ranges($admin_networks)

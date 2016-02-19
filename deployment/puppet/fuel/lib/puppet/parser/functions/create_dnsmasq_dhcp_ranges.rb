@@ -3,7 +3,7 @@ require 'zlib'
 
 module Puppet::Parser::Functions
   newfunction(:create_dnsmasq_dhcp_ranges, :doc => <<-EOS
-Creates nailgun::dnsmasq::dhcp_range puppet resources from list of admin networks.
+Creates fuel::dnsmasq::dhcp_range puppet resources from list of admin networks.
   EOS
 ) do |args|
     admin_nets = args[0]
@@ -25,8 +25,8 @@ Creates nailgun::dnsmasq::dhcp_range puppet resources from list of admin network
             'dhcp_gateway'       => net['gateway'],
           }
         }
-        debug("Trying to create nailgun::dnsmasq::dhcp_range resource #{dhcp_range_resource}")
-        function_create_resources(['nailgun::dnsmasq::dhcp_range', dhcp_range_resource])
+        debug("Trying to create fuel::dnsmasq::dhcp_range resource #{dhcp_range_resource}")
+        function_create_resources(['fuel::dnsmasq::dhcp_range', dhcp_range_resource])
       end
     end
   end

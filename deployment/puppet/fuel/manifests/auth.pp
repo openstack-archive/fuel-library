@@ -1,4 +1,4 @@
-# == Class: nailgun::auth
+# == Class: fuel::auth
 #
 # This class creates keystone users, services, endpoints, and roles
 # for Nailgun services.

@@ -264,7 +264,7 @@ yum_retry update -y --exclude --exclude=ruby*
 mkdir -p /etc/nailgun-agent/
 cat > /etc/nailgun-agent/config.yaml << EOA
 ---
-url: '<%= scope.lookupvar('nailgun::cobbler::nailgun_api_url') %>'
+url: '<%= scope.lookupvar('fuel::cobbler::nailgun_api_url') %>'
 EOA
 
 # COBBLER EMBEDDED SNIPPET: 'kernel_lt_if_enabled'
