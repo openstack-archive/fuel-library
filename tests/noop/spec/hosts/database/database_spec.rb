@@ -154,7 +154,7 @@ describe manifest do
 
     it "should configure mysql to ignore lost+found directory" do
       should contain_class('galera').with_override_options(
-          /"ignore-db-dir"=>"lost\+found"/
+          /"ignore-db-dir"=>\["lost\+found"\]/
       )
     end
 
