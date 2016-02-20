@@ -14,7 +14,13 @@ $ipaddresses          = hiera_array('ironic_ipaddresses', values($ironic_address
 $public_virtual_ip    = hiera('public_vip')
 $internal_virtual_ip  = hiera('management_vip')
 
-$baremetal_virtual_ip = $network_metadata['vips']['baremetal']['ipaddr']
+$vips = $network_metadata['vips']
+
+if $vips['baremetal']
+{
+  $baremetal_virtual_ip = $vips['baremetal']['ipaddr']
+}
+
 $external_lb          = hiera('external_lb', false)
 
 if !$external_lb {
