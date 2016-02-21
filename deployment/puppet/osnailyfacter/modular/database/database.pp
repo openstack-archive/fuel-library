@@ -294,9 +294,7 @@ if $enabled {
     lb_defaults => $lb_defaults
   }
 
-  # this overrides /root/.my.cnf created by mysql::server::root_password
-  # TODO: (sgolovatiuk): This class should be removed once
-  # https://github.com/puppetlabs/puppetlabs-mysql/pull/801/files is accepted
+  # this creates the /root/.my.cnf
   class { '::osnailyfacter::mysql_access':
     db_password => $mysql_database_password,
   }
