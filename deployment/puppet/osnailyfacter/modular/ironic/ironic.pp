@@ -79,6 +79,7 @@ class { 'ironic::client': }
 class { 'ironic::api':
   host_ip           => get_network_role_property('ironic/api', 'ipaddr'),
   auth_uri          => $internal_auth_url,
+  identity_uri      => $internal_auth_url,
   admin_tenant_name => $ironic_tenant,
   admin_user        => $ironic_user,
   admin_password    => $ironic_user_password,

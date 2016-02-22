@@ -51,6 +51,7 @@ if ironic_enabled
       it 'should declare ironic::api class correctly' do
         should contain_class('ironic::api').with(
           'auth_uri'             => internal_auth_url,
+          'identity_uri'         => internal_auth_url,
           'admin_tenant_name'    => admin_tenant,
           'admin_user'           => admin_user,
           'admin_password'       => admin_password
