@@ -1,6 +1,6 @@
 require 'spec_helper'
 require 'shared-examples'
-manifest = 'astute/enable_compute.pp'
+manifest = 'roles/enable_compute.pp'
 
 describe manifest do
   shared_examples 'catalog' do

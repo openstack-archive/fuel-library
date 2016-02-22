@@ -12,7 +12,7 @@
   type: puppet
   version: 2.0.0
   groups: [compute]
-  required_for: [deploy_end]
+  required_for: [enable_nova_compute_service]
   requires: [hosts, firewall]
   cross-depends:
     - name: keystone
@@ -88,3 +88,16 @@
     puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/roles/ironic-conductor.pp
     puppet_modules: /etc/puppet/modules
     timeout: 3600
+
+- id: enable_nova_compute_service
+  type: puppet
+  version: 2.0.0
+  groups: [compute, compute-vmware]
+  requires: [top-role-compute, top-role-compute-vmware, openstack-network-compute-nova]
+  required_for: [deploy_end]
+  refresh_on: [nova_config, nova_paste_api_ini]
+  parameters:
+    puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/roles/enable_compute.pp
+    puppet_modules: /etc/puppet/modules
+    timeout: 3600
+    cwd: /
