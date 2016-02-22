@@ -62,7 +62,7 @@ class fuel::auxiliaryrepos(
   file { $release_files:
     ensure  => file,
     replace => false,
-    source  => 'puppet:///modules/nailgun/Release-auxiliary',
+    source  => 'puppet:///modules/fuel/Release-auxiliary',
     mode    => '0644',
     owner   => 'root',
     group   => 'root',
