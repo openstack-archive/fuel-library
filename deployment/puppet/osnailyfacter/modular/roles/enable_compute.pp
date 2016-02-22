@@ -1,3 +1,4 @@
+notice('MODULAR: enable_compute.pp')
 include nova::params
 
 $compute_service_name = $::nova::params::compute_service_name
