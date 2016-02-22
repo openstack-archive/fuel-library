@@ -32,6 +32,11 @@ if ironic_enabled
       let(:internal_auth_url) do
           "#{internal_auth_protocol}://#{internal_auth_address}:5000"
       end
+      let(:admin_auth_protocol) { Noop.puppet_function 'get_ssl_property',ssl_hash,{},'keystone','admin','protocol','http' }
+      let(:admin_auth_address) { Noop.puppet_function 'get_ssl_property',ssl_hash,{},'keystone','admin','hostname', [service_endpoint, management_vip] }
+      let(:admin_auth_uri) do
+          "#{admin_auth_protocol}://#{admin_auth_address}:35357"
+      end
 
       it 'should configure default_log_levels' do
         should contain_ironic_config('DEFAULT/default_log_levels').with_value(default_log_levels.sort.join(','))
@@ -51,6 +56,7 @@ if ironic_enabled
       it 'should declare ironic::api class correctly' do
         should contain_class('ironic::api').with(
           'auth_uri'             => internal_auth_url,
+          'identity_uri'         => admin_auth_uri,
           'admin_tenant_name'    => admin_tenant,
           'admin_user'           => admin_user,
           'admin_password'       => admin_password
