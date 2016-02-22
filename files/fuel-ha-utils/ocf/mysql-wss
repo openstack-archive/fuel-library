@@ -349,7 +349,7 @@ choose_master() {
     then
         ocf_log err "${LH} No master picked."
     fi
-    ocf_log info "${LH} Choosed master: ${TMP[$MASTER]}"
+    ocf_log info "${LH} Chose master: ${TMP[$MASTER]}"
     echo ${TMP[$MASTER]}
 }
 
