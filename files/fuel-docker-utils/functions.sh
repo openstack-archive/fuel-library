@@ -270,8 +270,9 @@ function start_container {
     done
     return
   fi
-  image_name="$IMAGE_PREFIX/$1"
-  container_name=${CONTAINER_NAMES[$1]}
+  local container="$1"
+  image_name="$IMAGE_PREFIX/${container}"
+  container_name=${CONTAINER_NAMES[$container]}
   if container_created "$container_name"; then
     pre_start_hooks $1
     if is_running "$container_name"; then
