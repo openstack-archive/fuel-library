@@ -5,7 +5,6 @@ $fuel_settings = parseyaml($astute_settings_yaml)
 class { 'fuel::keystone':
   admin_token       => $::fuel_settings['keystone']['admin_token'],
   host              => $::fuel_settings['ADMIN_NETWORK']['ipaddress'],
-  auth_version      => "v2.0",
   db_host           => $::fuel_settings['ADMIN_NETWORK']['ipaddress'],
   db_name           => $::fuel_settings['postgres']['keystone_dbname'],
   db_user           => $::fuel_settings['postgres']['keystone_user'],
