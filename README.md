@@ -33,7 +33,6 @@ fuel-library
 ├── MAINTAINERS
 ├── debian
 ├── deployment
-├── doc
 ├── files
 ├── specs
 ├── tests
@@ -62,11 +61,6 @@ packages.
 This folder contains the fuel-library Puppet code, the Puppetfile for
 upstream modules, and scripts to manage modules with
 [librarian-puppet-simple](https://github.com/bodepd/librarian-puppet-simple).
-
-### doc/
-
-This folder contains RST docs. Currently there is only docs for Noop testing
-framework.
 
 ### files/
 
@@ -111,8 +105,9 @@ of the [Fuel wiki](https://wiki.openstack.org/wiki/Fuel).
 Testing is important for the fuel-library to ensure changes do what they are
 supposed to do, regressions are not introduced and all code is of the highest
 quality. The fuel-library leverages existing Puppet module rspec tests,
-[bats](https://github.com/sstephenson/bats) tests for bash scripts and noop
-tests for testing the module deployment tasks in fuel-library.
+[bats](https://github.com/sstephenson/bats) tests for bash scripts and [noop
+tests](https://github.com/openstack/fuel-noop-fixtures) for testing the module
+deployment tasks in fuel-library.
 
 ### Module Unit Tests
 ---------------------
@@ -199,32 +194,6 @@ dependencies are skipped by having their name in the deployment/Puppetfile
 file, but also, additional modules could be defined in the
 util/jenkins/modules.disable_rake-lint file.
 
-## Building docs
-----------------
-
-You can use tox to prepare virtual environment and build
-all RST based guides:
-
-    tox -e docs
-
-You can also build a specific guide. For example, to build *Noop Tests
-How-to Guide*, use the following command:
-
-    tox -e build -- noop-guide
-
-You can find the root of the generated HTML documentation at:
-
-    ./doc/noop-guide/build/html/index.html
-
-You can also run docs tests with `tox`.
-If you like to run individual tests, run:
-
-> -   `tox -e checkniceness` - to run the niceness tests
-> -   `tox -e checksyntax` - to run syntax checks
-
-tox will use the openstack-doc-tools package for execution of these
-tests.
-
 ### Puppet module tests
 
 Puppet rspec tests should be provided for an every module's directory included.
@@ -243,7 +212,7 @@ See also the [bats how-to](https://blog.engineyard.com/2014/bats-test-command-li
 ### fuel-library noop
 
 The Noop testing framework is used for testing of the known deploy paths
-with existing modular tasks. For details, see the [README](doc/noop-guide/source/README.rst)
+with existing modular tasks. For details, see the TODO(bogdando) put the readthedocs link.
 
 ## Development
 --------------
