@@ -76,7 +76,7 @@ def main():
     VERSION = 2
     IP = []
     IP.append(get_data_from_hiera('keystone_vip'))
-    IP.append(get_data_from_hiera('senvice_endpoint'))
+    IP.append(get_data_from_hiera('service_endpoint'))
     IP.append(get_data_from_hiera('management_vip'))
     AUTH_URL = "http://" + ifilter(None, IP).next() + ":5000/v2.0/"
 
