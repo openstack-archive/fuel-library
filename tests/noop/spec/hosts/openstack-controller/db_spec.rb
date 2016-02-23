@@ -13,7 +13,7 @@ describe manifest do
     nova_api_db_user     = nova_hash.fetch('api_db_user', 'nova_api')
     nova_api_db_dbname   = nova_hash.fetch('api_db_name', 'nova_api')
     nova_api_db_password = Noop.puppet_function 'pick', nova_hash['api_db_password'], nova_hash['db_password']
-    allowed_hosts        = [Noop.hostname,'localhost','127.0.0.1','%']
+    allowed_hosts        = ['localhost','127.0.0.1','%']
 
     it 'should install proper mysql-client' do
       if facts[:osfamily] == 'RedHat'
