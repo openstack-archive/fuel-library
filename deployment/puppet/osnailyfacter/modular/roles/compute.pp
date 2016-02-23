@@ -64,6 +64,16 @@ $public_ssl_hash                = hiera('public_ssl')
 $ssl_hash                       = hiera_hash('use_ssl', {})
 $use_huge_pages                 = pick($nova_hash['enable_hugepages'], false)
 
+$dpdk_config                    = hiera_hash('dpdk', { })
+$enable_dpdk                    = pick($dpdk_config['enabled'], false)
+if $enable_dpdk {
+  # LP 1533876
+  $network_device_mtu = false
+} else {
+  $network_device_mtu = 65000
+}
+
+
 $glance_protocol                = get_ssl_property($ssl_hash, {}, 'glance', 'internal', 'protocol', 'http')
 $glance_endpoint                = get_ssl_property($ssl_hash, {}, 'glance', 'internal', 'hostname', [hiera('glance_endpoint', $management_vip)])
 $glance_internal_ssl            = get_ssl_property($ssl_hash, {}, 'glance', 'internal', 'usage', false)
@@ -310,6 +320,7 @@ class { '::openstack::compute':
   network_provider            => $network_provider,
   neutron_user_password       => $oc_neutron_user_password,
   base_mac                    => $base_mac,
+  network_device_mtu          => $network_device_mtu,
 
   use_syslog                  => $use_syslog,
   syslog_log_facility         => $syslog_log_facility_nova,
