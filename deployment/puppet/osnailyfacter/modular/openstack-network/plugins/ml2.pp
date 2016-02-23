@@ -24,6 +24,9 @@ if $use_neutron {
   $neutron_server_enable = pick($neutron_config['neutron_server_enable'], true)
   $neutron_nodes = hiera_hash('neutron_nodes')
 
+  $dpdk_config = hiera_hash('dpdk', { })
+  $enable_dpdk = pick($dpdk_config['enabled'], false)
+
   $management_vip         = hiera('management_vip')
   $service_endpoint       = hiera('service_endpoint', $management_vip)
   $ssl_hash               = hiera_hash('use_ssl', {})
@@ -82,6 +85,14 @@ if $use_neutron {
     $tunnel_types = [$network_type]
 
     $enable_tunneling = true
+  }
+
+  if $enable_dpdk and $compute {
+    neutron_plugin_ml2 {
+      'ovs/datapath_type':        value => 'netdev';
+      'ovs/vhostuser_socket_dir': value => '/var/run/openvswitch';
+    }
+    Neutron_plugin_ml2<||> ~> Service['neutron-ovs-agent-service']
   }
 
   class { 'neutron::agents::ml2::ovs':
