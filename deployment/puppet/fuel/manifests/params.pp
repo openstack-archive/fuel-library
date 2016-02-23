@@ -41,6 +41,9 @@ class fuel::params {
   $rabbitmq_astute_user          = 'naily'
   $rabbitmq_astute_password      = 'naily'
 
+  $management_port               = '15672'
+  $management_bind_ip_address    = '127.0.0.1'
+
   $rabbitmq_gid                  = 495
   $rabbitmq_uid                  = 495
 
