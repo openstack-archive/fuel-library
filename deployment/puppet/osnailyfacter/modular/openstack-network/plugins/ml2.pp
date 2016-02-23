@@ -24,6 +24,9 @@ if $use_neutron {
   $neutron_server_enable = pick($neutron_config['neutron_server_enable'], true)
   $neutron_nodes = hiera_hash('neutron_nodes')
 
+  $dpdk_config = hiera_hash('dpdk', { })
+  $enable_dpdk = pick($dpdk_config['enabled'], false)
+
   $management_vip         = hiera('management_vip')
   $service_endpoint       = hiera('service_endpoint', $management_vip)
   $ssl_hash               = hiera_hash('use_ssl', {})
@@ -84,6 +87,24 @@ if $use_neutron {
     $enable_tunneling = true
   }
 
+  if $enable_dpdk and $compute {
+    neutron_plugin_ml2 {
+      'ovs/datapath_type':                   value => 'netdev';
+      'ovs/vhostuser_socket_dir':            value => '/var/run/openvswitch';
+      'securitygroup/enable_security_group': value => false;
+    }
+    $firewall_driver = 'neutron.agent.firewall.NoopFirewallDriver'
+  } else {
+    neutron_plugin_ml2 {
+      'ovs/datapath_type':                   ensure => absent;
+      'ovs/vhostuser_socket_dir':            ensure => absent;
+      'securitygroup/enable_security_group': value  => true;
+    }
+    $firewall_driver = 'neutron.agent.linux.iptables_firewall.OVSHybridIptablesFirewallDriver'
+  }
+
+  Neutron_plugin_ml2<||> ~> Service['neutron-ovs-agent-service']
+
   class { 'neutron::agents::ml2::ovs':
     bridge_mappings            => $bridge_mappings,
     enable_tunneling           => $enable_tunneling,
@@ -92,6 +113,7 @@ if $use_neutron {
     enable_distributed_routing => $dvr,
     l2_population              => $l2_population,
     arp_responder              => $l2_population,
+    firewall_driver            => $firewall_driver,
     manage_vswitch             => false,
     manage_service             => true,
     enabled                    => true,
