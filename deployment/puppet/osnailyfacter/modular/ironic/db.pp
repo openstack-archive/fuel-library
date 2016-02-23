@@ -17,7 +17,7 @@ $db_create        = pick($ironic_hash['db_create'], $mysql_db_create)
 $db_root_user     = pick($ironic_hash['root_user'], $mysql_root_user)
 $db_root_password = pick($ironic_hash['root_password'], $mysql_root_password)
 
-$allowed_hosts = [ hiera('node_name'), 'localhost', '127.0.0.1', '%' ]
+$allowed_hosts = [ 'localhost', '127.0.0.1', '%' ]
 
 validate_string($mysql_root_user)
 validate_string($database_vip)

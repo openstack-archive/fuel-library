@@ -6,7 +6,7 @@ describe manifest do
   #TODO: uncomment in neutron module adaptation patch
   shared_examples 'catalog' do
     use_neutron = Noop.hiera 'use_neutron'
-    allowed_hosts = [Noop.hostname,'localhost','127.0.0.1','%']
+    allowed_hosts = ['localhost','127.0.0.1','%']
 
     if use_neutron
       neutron_db_user = 'neutron'
