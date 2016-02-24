@@ -1,1 +1,1 @@
-[[ $(virt-what) = "virtualbox" ]] && echo "blacklist i2c_piix4" >> /etc/modprobe.d/blacklist-i2c_piix4.conf
+(virt-what | fgrep -q "virtualbox") && echo "blacklist i2c_piix4" >> /etc/modprobe.d/blacklist-i2c_piix4.conf
