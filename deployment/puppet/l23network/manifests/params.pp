@@ -19,7 +19,7 @@ class l23network::params {
       $network_manager_name      = 'network-manager'
       $extra_tools               = 'iputils-arping'
     }
-    /(?i)redhat|centos/: {
+    /(?i)redhat|centos|oraclelinux/: {
       $interfaces_dir            = '/etc/sysconfig/network-scripts'
       $interfaces_file           = undef
       $ovs_service_name          = 'openvswitch'
@@ -28,7 +28,10 @@ class l23network::params {
       $lnx_bond_tools            = undef
       $lnx_ethernet_tools        = 'ethtool'
       $lnx_bridge_tools          = 'bridge-utils'
-      $ovs_datapath_package_name = 'kmod-openvswitch'
+      $ovs_datapath_package_name = $::l23_os ? {
+                                     /(?i)oraclelinux/ => 'kmod-openvswitch-uek',
+                                     default           => 'kmod-openvswitch',
+                                   }
       $ovs_common_package_name   = 'openvswitch'
       $ovs_kern_module_name      = 'openvswitch'
       $network_manager_name      = 'NetworkManager'
