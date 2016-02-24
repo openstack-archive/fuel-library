@@ -142,10 +142,6 @@ ceilometer_alarm_evaluator_validate() {
     check_binary $OCF_RESKEY_binary
     check_binary netstat
 
-    if ! validate_port $OCF_RESKEY_amqp_server_port; then
-      return ${OCF_ERR_CONFIGURED}
-    fi
-
     # A config file on shared storage that is not available
     # during probes is OK.
     if [ ! -f $OCF_RESKEY_config ]; then
