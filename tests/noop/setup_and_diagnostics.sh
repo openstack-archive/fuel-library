@@ -13,12 +13,6 @@ if ! [ -L 'fuel-noop-fixtures/spec/hosts' ]; then
   ln -sf '../../spec/hosts' 'fuel-noop-fixtures/spec/hosts'
 fi
 
-if ! [ -f 'fuel-noop-fixtures/Gemfile.lock' ]; then
-  cd 'fuel-noop-fixtures'
-  bundle install
-  cd '..'
-fi
-
 echo "Preparing the environment..."
 
 ./noop_tests.sh -bB -d -t -l
