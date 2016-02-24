@@ -11,7 +11,7 @@
     - name: memcached
   refresh_on: [nova_config, nova_paste_api_ini]
   parameters:
-    puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/openstack-controller/openstack-controller.pp
+    puppet_manifest: /etc/puppet/modules/openstack_tasks/examples/nova/openstack-controller.pp
     puppet_modules: /etc/puppet/modules
     timeout: 3600
 
@@ -25,7 +25,7 @@
     - name: primary-openstack-controller
   refresh_on: [nova_config, nova_paste_api_ini]
   parameters:
-    puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/openstack-controller/openstack-controller.pp
+    puppet_manifest: /etc/puppet/modules/openstack_tasks/examples/nova/openstack-controller.pp
     puppet_modules: /etc/puppet/modules
     timeout: 3600
 
@@ -38,7 +38,7 @@
   cross-depends:
     - name: /(primary-)?database/
   parameters:
-    puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/openstack-controller/db.pp
+    puppet_manifest: /etc/puppet/modules/openstack_tasks/examples/nova/db.pp
     puppet_modules: /etc/puppet/modules
     timeout: 1800
 
@@ -51,6 +51,6 @@
   cross-depends:
     - name: keystone
   parameters:
-    puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/openstack-controller/keystone.pp
+    puppet_manifest: /etc/puppet/modules/openstack_tasks/examples/nova/keystone.pp
     puppet_modules: /etc/puppet/modules
     timeout: 1800
