@@ -1,0 +1,50 @@
+- id: openstack-cinder
+  type: puppet
+  version: 2.0.0
+  groups: [primary-controller, controller]
+  required_for: [deploy_end, openstack-controller]
+  requires: [primary-rabbitmq, rabbitmq, primary-keystone, keystone, hosts, firewall]
+  cross-depends:
+    - name: cinder-db
+    - name: cinder-keystone
+  parameters:
+    puppet_manifest: /etc/puppet/modules/openstack_tasks/examples/openstack-cinder/openstack-cinder.pp
+    puppet_modules: /etc/puppet/modules
+    timeout: 1200
+
+- id: cinder-db
+  type: puppet
+  version: 2.0.0
+  groups: [primary-controller]
+  required_for: [openstack-cinder]
+  requires: [primary-database, database]
+  cross-depends:
+    - name: /(primary-)?database/
+  parameters:
+    puppet_manifest: /etc/puppet/modules/openstack_tasks/examples/openstack-cinder/db.pp
+    puppet_modules: /etc/puppet/modules
+    timeout: 1800
+
+- id: cinder-keystone
+  type: puppet
+  version: 2.0.0
+  groups: [primary-controller]
+  required_for: [openstack-cinder]
+  cross-depends:
+    - name: keystone
+  requires: [primary-keystone, keystone]
+  parameters:
+    puppet_manifest: /etc/puppet/modules/openstack_tasks/examples/openstack-cinder/keystone.pp
+    puppet_modules: /etc/puppet/modules/
+    timeout: 1800
+
+- id: create-cinder-types
+  type: puppet
+  version: 2.0.0
+  groups: [primary-controller]
+  requires: [openstack-cinder]
+  required_for: [deploy_end]
+  parameters:
+    puppet_manifest: /etc/puppet/modules/openstack_tasks/examples/openstack-cinder/create_cinder_types.pp
+    puppet_modules: /etc/puppet/modules
+    timeout: 1200

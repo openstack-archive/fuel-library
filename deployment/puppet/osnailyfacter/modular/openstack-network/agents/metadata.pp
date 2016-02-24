@@ -1,4 +1,5 @@
 class neutron {}
 class { 'neutron' :}
 
-include ::osnailyfacter::openstack_network::agents::metadata
+include ::openstack_tasks::openstack_network::agents::metadata
+warning('osnailyfacter/modular/./openstack-network/agents/metadata.pp is deprecated in mitaka and will be removed in newton. Please use openstack_tasks/examples/./openstack-network/agents/metadata.pp')
