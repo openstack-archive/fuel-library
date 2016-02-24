@@ -51,6 +51,7 @@ class openstack::cinder(
   $rbd_pool               = 'volumes',
   $rbd_user               = 'volumes',
   $rbd_secret_uuid        = 'a5d0dd94-57c4-ae55-ffe0-7e3732a24455',
+  $swift_url              = false,
 ) {
   include cinder::params
   #  if ($purge_cinder_config) {
@@ -209,6 +210,15 @@ class openstack::cinder(
         class { 'mellanox_openstack::cinder':
           iser            => $iser,
           iser_ip_address => $iscsi_bind_host,
+        }
+
+        class { 'cinder::backup':
+          enabled => true,
+        }
+
+        class { 'cinder::backup::swift':
+          backup_swift_url      => "${swift_url}/v1/AUTH_",
+          backup_swift_auth_url => "${auth_uri}/v2.0",
         }
       }
       'ceph': {
