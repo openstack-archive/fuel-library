@@ -1,0 +1,262 @@
+- id: neutron-db
+  type: puppet
+  version: 2.0.0
+  groups: [primary-controller]
+  required_for: [openstack-network-end]
+  requires: [primary-database, database]
+  cross-depends:
+    - name: /(primary-)?database/
+  parameters:
+    puppet_manifest: /etc/puppet/modules/openstack_tasks/examples/openstack-network/db.pp
+    puppet_modules: /etc/puppet/modules
+    timeout: 1800
+
+- id: neutron-keystone
+  type: puppet
+  version: 2.0.0
+  groups: [primary-controller]
+  required_for: [openstack-network-end]
+  requires: [primary-keystone, keystone]
+  cross-depends:
+    - name: keystone
+  parameters:
+    puppet_manifest: /etc/puppet/modules/openstack_tasks/examples/openstack-network/keystone.pp
+    puppet_modules: /etc/puppet/modules
+    timeout: 1800
+
+# Anchor (empty task) for another tasks, say 'tenant network FW setup starting'
+- id: openstack-network-start
+  type: skipped
+  version: 2.0.0
+  groups: [primary-controller,controller,compute]
+  requires: [neutron-keystone, neutron-db, netconfig, primary-openstack-controller, openstack-controller, top-role-compute]
+  required_for: [openstack-network-common-config]
+  cross-depends:
+    - name: neutron-keystone
+    - name: openstack-haproxy
+    - name: neutron-db
+
+- id: openstack-network-common-config
+  type: puppet
+  version: 2.0.0
+  groups: [primary-controller,controller,compute]
+  required_for: [openstack-network-end]
+  requires: [openstack-network-start]
+  parameters:
+    puppet_manifest: /etc/puppet/modules/openstack_tasks/examples/openstack-network/common-config.pp
+    puppet_modules: /etc/puppet/modules
+    timeout: 1800
+
+- id: openstack-network-server-config
+  type: puppet
+  version: 2.0.0
+  groups: [primary-controller,controller]
+  required_for: [openstack-network-end]
+  requires: [openstack-network-common-config]
+  refresh_on: [neutron_plugin_ml2, neutron_config, neutron_api_config]
+  reexecute_on: [deploy_changes]
+  parameters:
+    puppet_manifest: /etc/puppet/modules/openstack_tasks/examples/openstack-network/server-config.pp
+    puppet_modules: /etc/puppet/modules
+    timeout: 1800
+
+- id: primary-openstack-network-plugins-l2
+  type: puppet
+  version: 2.0.0
+  groups: [primary-controller]
+  required_for: [openstack-network-end]
+  requires: [openstack-network-common-config, openstack-network-server-config]
+  refresh_on: [neutron_agent_ovs]
+  parameters:
+    puppet_manifest: /etc/puppet/modules/openstack_tasks/examples/openstack-network/plugins/ml2.pp
+    puppet_modules: /etc/puppet/modules
+    timeout: 1800
+
+
+- id: openstack-network-plugins-l2
+  type: puppet
+  version: 2.0.0
+  groups: [controller,compute]
+  required_for: [openstack-network-end]
+  requires: [openstack-network-common-config, openstack-network-server-config]
+  refresh_on: [neutron_agent_ovs]
+  cross-depends:
+    - name: primary-openstack-network-plugins-l2
+  parameters:
+    puppet_manifest: /etc/puppet/modules/openstack_tasks/examples/openstack-network/plugins/ml2.pp
+    puppet_modules: /etc/puppet/modules
+    timeout: 1800
+
+- id: openstack-network-networks
+  type: puppet
+  version: 2.0.0
+  groups: [primary-controller]
+  required_for: [openstack-network-end]
+  requires: [primary-openstack-network-plugins-l2]
+  parameters:
+    puppet_manifest: /etc/puppet/modules/openstack_tasks/examples/openstack-network/networks.pp
+    puppet_modules: /etc/puppet/modules
+    timeout: 1800
+
+- id: openstack-network-routers
+  type: puppet
+  version: 2.0.0
+  groups: [primary-controller]
+  condition: "settings:neutron_advanced_configuration.neutron_l3_ha.value == false"
+  required_for: [openstack-network-end]
+  requires: [openstack-network-networks]
+  parameters:
+    puppet_manifest: /etc/puppet/modules/openstack_tasks/examples/openstack-network/routers.pp
+    puppet_modules: /etc/puppet/modules
+    timeout: 1800
+
+# Additional task for routers when L3 HA is enabled
+# HA routers must be created on post-deployment step when all L3 agents are available
+- id: openstack-network-routers-ha
+  type: puppet
+  version: 2.0.0
+  role: [primary-controller]
+  condition: "settings:neutron_advanced_configuration.neutron_l3_ha.value == true"
+  required_for: [post_deployment_end]
+  requires: [post_deployment_start]
+  parameters:
+    puppet_manifest: /etc/puppet/modules/openstack_tasks/examples/openstack-network/routers.pp
+    puppet_modules: /etc/puppet/modules
+    timeout: 1800
+    cwd: /
+
+- id: primary-openstack-network-agents-l3
+  type: puppet
+  version: 2.0.0
+  groups: [primary-controller]
+  required_for: [openstack-network-end]
+  requires: [openstack-network-networks, openstack-network-routers, primary-openstack-network-plugins-l2, openstack-network-plugins-l2]
+  refresh_on: [neutron_l3_agent_config]
+  parameters:
+    puppet_manifest: /etc/puppet/modules/openstack_tasks/examples/openstack-network/agents/l3.pp
+    puppet_modules: /etc/puppet/modules
+    timeout: 1800
+
+
+- id: openstack-network-agents-l3
+  type: puppet
+  version: 2.0.0
+  groups: [controller,compute]
+  required_for: [openstack-network-end]
+  requires: [openstack-network-networks, openstack-network-routers, primary-openstack-network-plugins-l2, openstack-network-plugins-l2]
+  refresh_on: [neutron_l3_agent_config]
+  cross-depends:
+    - name: /(primary-)?openstack-network-plugins-l2/
+    - name: primary-openstack-network-agents-l3
+  parameters:
+    puppet_manifest: /etc/puppet/modules/openstack_tasks/examples/openstack-network/agents/l3.pp
+    puppet_modules: /etc/puppet/modules
+    timeout: 1800
+
+- id: openstack-network-agents-sriov
+  type: puppet
+  version: 2.0.0
+  groups: [compute]
+  required_for: [openstack-network-end]
+  requires: [openstack-network-plugins-l2]
+  refresh_on: [neutron_sriov_agent_config]
+  parameters:
+    puppet_manifest: /etc/puppet/modules/openstack_tasks/examples/openstack-network/agents/sriov.pp
+    puppet_modules: /etc/puppet/modules
+    timeout: 1800
+
+- id: openstack-network-server-nova
+  type: puppet
+  version: 2.0.0
+  groups: [primary-controller,controller]
+  required_for: [openstack-network-end]
+  requires: [openstack-network-agents-l3]
+  cross-depends:
+    - name: /(primary-)?openstack-network-agents-l3/
+    - name: /(primary-)?openstack-network-plugins-l2/
+  parameters:
+    puppet_manifest: /etc/puppet/modules/openstack_tasks/examples/openstack-network/server-nova.pp
+    puppet_modules: /etc/puppet/modules
+    timeout: 1800
+
+- id: primary-openstack-network-agents-dhcp
+  type: puppet
+  version: 2.0.0
+  groups: [primary-controller]
+  required_for: [openstack-network-end]
+  requires: [openstack-network-common-config,openstack-network-server-nova,openstack-network-agents-l3]
+  refresh_on: [neutron_dhcp_agent_config]
+  cross-depends:
+    - name: /(primary-)?openstack-network-plugins-l2/
+  parameters:
+    puppet_manifest: /etc/puppet/modules/openstack_tasks/examples/openstack-network/agents/dhcp.pp
+    puppet_modules: /etc/puppet/modules
+    timeout: 1800
+
+
+- id: openstack-network-agents-dhcp
+  type: puppet
+  version: 2.0.0
+  groups: [controller]
+  required_for: [openstack-network-end]
+  requires: [openstack-network-common-config,openstack-network-server-nova,openstack-network-agents-l3]
+  refresh_on: [neutron_dhcp_agent_config]
+  cross-depends:
+    - name: primary-openstack-network-agents-dhcp
+    - name: /(primary-)?openstack-network-plugins-l2/
+  parameters:
+    puppet_manifest: /etc/puppet/modules/openstack_tasks/examples/openstack-network/agents/dhcp.pp
+    puppet_modules: /etc/puppet/modules
+    timeout: 1800
+
+- id: primary-openstack-network-agents-metadata
+  type: puppet
+  version: 2.0.0
+  groups: [primary-controller]
+  required_for: [openstack-network-end]
+  requires: [openstack-network-common-config,openstack-network-server-nova,openstack-network-agents-l3]
+  refresh_on: [neutron_metadata_agent_config]
+  cross-depends:
+    - name: /(primary-)?openstack-network-plugins-l2/
+    - name: /(primary-)?openstack-network-agents-l3/
+  parameters:
+    puppet_manifest: /etc/puppet/modules/openstack_tasks/examples/openstack-network/agents/metadata.pp
+    puppet_modules: /etc/puppet/modules
+    timeout: 1800
+
+
+- id: openstack-network-agents-metadata
+  type: puppet
+  version: 2.0.0
+  groups: [controller,compute]
+  required_for: [openstack-network-end]
+  requires: [openstack-network-common-config,openstack-network-server-nova,openstack-network-agents-l3]
+  refresh_on: [neutron_metadata_agent_config]
+  cross-depends:
+    - name: primary-openstack-network-agents-metadata
+    - name: /(primary-)?openstack-network-plugins-l2/
+  parameters:
+    puppet_manifest: /etc/puppet/modules/openstack_tasks/examples/openstack-network/agents/metadata.pp
+    puppet_modules: /etc/puppet/modules
+    timeout: 1800
+
+- id: openstack-network-compute-nova
+  type: puppet
+  version: 2.0.0
+  groups: [compute]
+  required_for: [openstack-network-end]
+  requires: [openstack-network-common-config,openstack-network-agents-l3,openstack-network-agents-metadata]
+  cross-depends:
+    - name: /(primary-)?openstack-network-plugins-l2/
+  parameters:
+    puppet_manifest: /etc/puppet/modules/openstack_tasks/examples/openstack-network/compute-nova.pp
+    puppet_modules: /etc/puppet/modules
+    timeout: 1800
+
+# Anchor (empty task) for another tasks, say 'tenant network FW setup done'
+- id: openstack-network-end
+  type: skipped
+  version: 2.0.0
+  groups: [primary-controller,controller,compute]
+  required_for: [deploy_end]
+  requires: []
