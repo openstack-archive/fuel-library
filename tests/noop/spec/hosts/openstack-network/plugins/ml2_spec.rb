@@ -44,6 +44,13 @@ describe manifest do
         pnets = neutron_config.fetch('L2',{}).fetch('phys_nets',{})
         segmentation_type = neutron_config.fetch('L2',{}).fetch('segmentation_type')
         l2_population = adv_neutron_config.fetch('neutron_l2_pop', false)
+        enable_qos = adv_neutron_config.fetch('neutron_qos', true)
+
+        if enable_qos
+          it { should contain_class('neutron::agents::ml2::ovs').with(
+            'extensions' => ['qos']
+          )}
+        end
 
         if segmentation_type == 'vlan'
           network_type   = 'vlan'
