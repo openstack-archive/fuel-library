@@ -9,13 +9,13 @@
   requires: [openstack-haproxy]
   condition: "settings:additional_components.ceilometer.value == true"
   parameters:
-    puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/ceilometer/controller.pp
+    puppet_manifest: /etc/puppet/modules/openstack_tasks/examples/ceilometer/controller.pp
     puppet_modules: /etc/puppet/modules
     timeout: 3600
   test_pre:
-    cmd: ruby /etc/puppet/modules/osnailyfacter/modular/ceilometer/controller_pre.rb
+    cmd: ruby /etc/puppet/modules/openstack_tasks/examples/ceilometer/controller_pre.rb
   test_post:
-    cmd: ruby /etc/puppet/modules/osnailyfacter/modular/ceilometer/controller_post.rb
+    cmd: ruby /etc/puppet/modules/openstack_tasks/examples/ceilometer/controller_post.rb
 
 - id: ceilometer-compute
   type: puppet
@@ -27,13 +27,13 @@
     - name: ceilometer-controller
   condition: "settings:additional_components.ceilometer.value == true"
   parameters:
-    puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/ceilometer/compute.pp
+    puppet_manifest: /etc/puppet/modules/openstack_tasks/examples/ceilometer/compute.pp
     puppet_modules: /etc/puppet/modules
     timeout: 3600
   test_pre:
-    cmd: ruby /etc/puppet/modules/osnailyfacter/modular/ceilometer/compute_pre.rb
+    cmd: ruby /etc/puppet/modules/openstack_tasks/examples/ceilometer/compute_pre.rb
   test_post:
-    cmd: ruby /etc/puppet/modules/osnailyfacter/modular/ceilometer/compute_post.rb
+    cmd: ruby /etc/puppet/modules/openstack_tasks/examples/ceilometer/compute_post.rb
 
 - id: ceilometer-keystone
   type: puppet
@@ -45,7 +45,7 @@
   cross-depends:
     - name: /(primary-)?keystone/
   parameters:
-    puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/ceilometer/keystone.pp
+    puppet_manifest: /etc/puppet/modules/openstack_tasks/examples/ceilometer/keystone.pp
     puppet_modules: /etc/puppet/modules
     timeout: 1800
 
@@ -57,7 +57,7 @@
   required_for: [post_deployment_end]
   condition: "settings:additional_components.ceilometer.value == true and settings:storage.objects_ceph.value == true"
   parameters:
-    puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/ceilometer/radosgw_user.pp
+    puppet_manifest: /etc/puppet/modules/openstack_tasks/examples/ceilometer/radosgw_user.pp
     puppet_modules: /etc/puppet/modules
     timeout: 300
     cwd: /
