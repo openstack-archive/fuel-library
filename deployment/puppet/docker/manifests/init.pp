@@ -91,12 +91,5 @@ class docker (
     containers => $containers,
   }
 
-  # WARNING: please don't remove this! notice used as an anchor in the external
-  #          log parsers, for example in the VirtualBox scripts.
-  anchor { 'docker-build-end': } ->
-  notify { 'build docker containers notice':
-    message  => 'build docker containers finished.',
-    withpath => true,
-  }
-
+  anchor { 'docker-build-end': }
 }
