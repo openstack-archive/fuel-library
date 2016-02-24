@@ -38,12 +38,13 @@ DEPLOYMENT TASK: $task
 ##################################
 EOF
     puppet apply -d -v --color false --detailed-exitcodes \
-        /etc/puppet/modules/fuel/examples/${task}.pp
-    if [[ $? -eq 1 ]] || [[ $? -gt 2 ]]; then
-        echo "The were failures while running task: $task"
+        "/etc/puppet/modules/fuel/examples/${task}.pp"
+    PUPPET_RUN=$?
+    if [[ $PUPPET_RUN -eq 1 ]] || [[ $PUPPET_RUN -gt 2 ]]; then
+        echo "The were failures while running task: ${task} with exit code: ${PUPPET_RUN}"
         exit 1
     else
-        echo "Deployment task has succeeded: $task"
+        echo "Deployment task has succeeded: ${task} with exit code: ${PUPPET_RUN}"
     fi
 done
 
