@@ -9,13 +9,13 @@
     - name: heat-keystone
     - name: memcached
   parameters:
-    puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/heat/heat.pp
+    puppet_manifest: /etc/puppet/modules/openstack_tasks/examples/heat/heat.pp
     puppet_modules: /etc/puppet/modules
     timeout: 3600
   test_pre:
-    cmd: ruby /etc/puppet/modules/osnailyfacter/modular/heat/heat_pre.rb
+    cmd: ruby /etc/puppet/modules/openstack_tasks/examples/heat/heat_pre.rb
   test_post:
-    cmd: ruby /etc/puppet/modules/osnailyfacter/modular/heat/heat_post.rb
+    cmd: ruby /etc/puppet/modules/openstack_tasks/examples/heat/heat_post.rb
 
 - id: heat
   type: puppet
@@ -26,13 +26,13 @@
   cross-depends:
     - name: primary-heat
   parameters:
-    puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/heat/heat.pp
+    puppet_manifest: /etc/puppet/modules/openstack_tasks/examples/heat/heat.pp
     puppet_modules: /etc/puppet/modules
     timeout: 3600
   test_pre:
-    cmd: ruby /etc/puppet/modules/osnailyfacter/modular/heat/heat_pre.rb
+    cmd: ruby /etc/puppet/modules/openstack_tasks/examples/heat/heat_pre.rb
   test_post:
-    cmd: ruby /etc/puppet/modules/osnailyfacter/modular/heat/heat_post.rb
+    cmd: ruby /etc/puppet/modules/openstack_tasks/examples/heat/heat_post.rb
 
 - id: heat-db
   type: puppet
@@ -43,7 +43,7 @@
   cross-depends:
     - name: /(primary-)?database/
   parameters:
-    puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/heat/db.pp
+    puppet_manifest: /etc/puppet/modules/openstack_tasks/examples/heat/db.pp
     puppet_modules: /etc/puppet/modules
     timeout: 1800
 
@@ -56,6 +56,6 @@
   cross-depends:
     - name: keystone
   parameters:
-    puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/heat/keystone.pp
+    puppet_manifest: /etc/puppet/modules/openstack_tasks/examples/heat/keystone.pp
     puppet_modules: /etc/puppet/modules
     timeout: 1800
