@@ -394,12 +394,6 @@ class openstack::compute (
     }
   }
 
-  if $::operatingsystem == 'Centos' {
-    package { 'cpufreq-init':
-      ensure => present;
-    }
-  }
-
   case $libvirt_type {
     'kvm': {
       package { $libvirt_type_kvm:
