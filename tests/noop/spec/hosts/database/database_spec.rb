@@ -101,7 +101,7 @@ describe manifest do
         :validate_connection => false,
         :status_check => false,
         :wsrep_group_comm_port => '4567',
-        :bind_address => '0.0.0.0',
+        :bind_address => galera_node_address,
         :local_ip => galera_node_address,
         :wsrep_sst_method => 'xtrabackup-v2'
       )

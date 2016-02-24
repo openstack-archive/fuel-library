@@ -22,7 +22,6 @@ $enabled                   = pick($mysql_hash['enabled'], true)
 $galera_node_address       = get_network_role_property('mgmt/database', 'ipaddr')
 $galera_nodes              = values(get_node_to_ipaddr_map_by_network_role(hiera_hash('database_nodes'), 'mgmt/database'))
 $galera_primary_controller = hiera('primary_database', $primary_controller)
-$mysql_bind_address        = '0.0.0.0'
 $galera_cluster_name       = 'openstack'
 
 $mysql_skip_name_resolve  = true
@@ -233,7 +232,7 @@ if $enabled {
     validate_connection   => false,
     status_check          => false,
     wsrep_group_comm_port => $wsrep_group_comm_port,
-    bind_address          => $mysql_bind_address,
+    bind_address          => $galera_node_address,
     local_ip              => $galera_node_address,
     wsrep_sst_method      => 'xtrabackup-v2',
     override_options      => $override_options,
