@@ -45,12 +45,19 @@ if $use_neutron {
   $neutron_advanced_config = hiera_hash('neutron_advanced_configuration', { })
   $l2_population     = try_get_value($neutron_advanced_config, 'neutron_l2_pop', false)
   $dvr               = try_get_value($neutron_advanced_config, 'neutron_dvr', false)
+  $enable_qos        = pick($neutron_advanced_config['neutron_qos'], true)
   $segmentation_type = try_get_value($neutron_config, 'L2/segmentation_type')
 
   if $compute and ! $dvr {
     $do_floating = false
   } else {
     $do_floating = true
+  }
+
+  if $enable_qos {
+    $extensions = ['qos']
+  } else {
+    $extensions = undef
   }
 
   $bridge_mappings = generate_bridge_mappings($neutron_config, $network_scheme, {
@@ -92,6 +99,7 @@ if $use_neutron {
     enable_distributed_routing => $dvr,
     l2_population              => $l2_population,
     arp_responder              => $l2_population,
+    extensions                 => $extensions,
     manage_vswitch             => false,
     manage_service             => true,
     enabled                    => true,

@@ -46,6 +46,14 @@ describe manifest do
         role = Noop.hiera('role')
         adv_neutron_config = Noop.hiera_hash('neutron_advanced_configuration')
         dvr = adv_neutron_config.fetch('neutron_dvr', false)
+        enable_qos = adv_neutron_config.fetch('neutron_qos', true)
+
+        if enable_qos
+          extension_drivers = extension_drivers.concat(['qos'])
+          it { should contain_class('neutron::server').with(
+            'qos_notification_drivers' => 'message_queue',
+          )}
+        end
 
         if segmentation_type == 'vlan'
           network_type   = 'vlan'
