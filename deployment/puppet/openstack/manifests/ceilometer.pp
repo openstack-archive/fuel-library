@@ -54,6 +54,8 @@ class openstack::ceilometer (
   $api_workers                = '1',
   $collector_workers          = '1',
   $notification_workers       = '1',
+  $ssl                        = undef,
+  $api_bind_address           = undef,
 ) {
 
   # Add the base ceilometer class & parameters
@@ -118,6 +120,25 @@ class openstack::ceilometer (
       host                  => $host,
       port                  => $port,
       api_workers           => $api_workers,
+    }
+
+####### WSGI #######
+    class { 'osnailyfacter::apache':
+      listen_ports => hiera_array('apache_ports', ['0.0.0.0:80', '0.0.0.0:8888', '0.0.0.0:5000', '0.0.0.0:35357', '0.0.0.0:8777']),
+    }
+
+    class { 'ceilometer::wsgi::apache':
+      ssl       => $ssl,
+      bind_host => $api_bind_address,
+      workers   => $api_worker,
+    }
+
+    ceilometer_config {
+      'keystone_authtoken/admin_tenant_name' : value => $keystone_tenant;
+      'keystone_authtoken/admin_user'        : value => $keystone_user;
+      'keystone_authtoken/admin_password'    : value => $keystone_password, secret => true;
+      'keystone_authtoken/auth_uri'          : value => $keystone_auth_uri;
+      'keystone_authtoken/identity_uri'      : value => $keystone_identity_uri;
     }
 
     # Clean up expired data once a week
