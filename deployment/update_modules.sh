@@ -111,7 +111,6 @@ TIMEOUT=600
 export PUPPET_GEM_VERSION=${PUPPET_GEM_VERSION:-'~>3.8'}
 export BUNDLE_DIR=${BUNDLE_DIR:-'/var/tmp/.bundle_home'}
 export GEM_HOME=${GEM_HOME:-'/var/tmp/.gem_home'}
-MODULE_VERSIONS_FILE="${DEPLOYMENT_DIR}/puppet/module_versions"
 
 # We need to be in the deployment directory to run librarian-puppet-simple
 cd $DEPLOYMENT_DIR
@@ -145,10 +144,18 @@ done
 # exist
 $TIMEOUT_CMD $BUNDLER_EXEC librarian-puppet install $VERBOSE --path=puppet
 
+# run again to fetch openstack_tasks modules
+cd $DEPLOYMENT_DIR/puppet/openstack_tasks
+$TIMEOUT_CMD $BUNDLER_EXEC librarian-puppet install $VERBOSE --path=..
+
 # run librarian-puppet update to ensure the modules are checked out to the
 # correct version
 if [ "$UPDATE" = true ]; then
   $TIMEOUT_CMD $BUNDLER_EXEC librarian-puppet update $VERBOSE --path=puppet
+
+  # run again to fetch openstack_tasks modules
+  cd $DEPLOYMENT_DIR/puppet/openstack_tasks
+  $TIMEOUT_CMD $BUNDLER_EXEC librarian-puppet install $VERBOSE --path=..
 fi
 
 # do a hard reset on the librarian managed modules LP#1489542
@@ -159,14 +166,3 @@ if [ "$RESET_HARD" = true ]; then
   done
   cd $DEPLOYMENT_DIR
 fi
-
-
-echo "MODULE LIST" > $MODULE_VERSIONS_FILE
-for MOD in $(grep "^mod" Puppetfile | tr -d '[:punct:]' | awk '{ print $2 }'); do
-  MOD_DIR="${DEPLOYMENT_DIR}/puppet/${MOD}"
-  if [ -d $MOD_DIR ] && [ -d "${MOD_DIR}/.git" ];
-  then
-    echo "${MOD}: $(git --git-dir ${MOD_DIR}/.git rev-parse HEAD)" >> $MODULE_VERSIONS_FILE
-  fi
-done
-cat $MODULE_VERSIONS_FILE

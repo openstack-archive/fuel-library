@@ -1,5 +1,5 @@
-include ::osnailyfacter::swift::storage
-include ::osnailyfacter::swift::proxy
+include ::openstack_tasks::swift::storage
+include ::openstack_tasks::swift::proxy
 
 
 # 'ceilometer' class is being declared inside openstack::ceilometer class
@@ -14,4 +14,4 @@ include ceilometer
 class memcached {}
 include memcached
 
-warning('osnailyfacter/modular/swift/swift.pp is deprecated in Mitaka and will be removed in Newton. See new storage.pp and proxy.pp tasks')
+warning('osnailyfacter/modular/swift/swift.pp is deprecated in Mitaka and will be removed in Newton. See new storage.pp and proxy.pp tasks')warning('osnailyfacter/modular/./swift/swift.pp is deprecated in mitaka and will be removed in newton. Please use openstack_tasks/examples/./swift/swift.pp')

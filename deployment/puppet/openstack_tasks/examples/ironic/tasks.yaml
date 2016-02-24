@@ -1,0 +1,60 @@
+- id: ironic-api
+  type: puppet
+  version: 2.0.0
+  groups: [primary-controller, controller]
+  condition: "settings:additional_components.ironic.value == true"
+  cross-depends:
+    - name: ironic-db
+    - name: ironic-keystone
+  required_for: [primary-openstack-controller, openstack-controller]
+  requires: [openstack-haproxy, ironic-db, ironic-keystone]
+  parameters:
+    puppet_manifest: /etc/puppet/modules/openstack_tasks/examples/ironic/ironic.pp
+    puppet_modules: /etc/puppet/modules
+    timeout: 3600
+
+- id: ironic-db
+  type: puppet
+  version: 2.0.0
+  groups: [primary-controller]
+  cross-depends:
+    - name: /(primary-)?database/
+  condition: "settings:additional_components.ironic.value == true"
+  required_for: [ironic-api]
+  requires: [primary-database, database]
+  parameters:
+    puppet_manifest: /etc/puppet/modules/openstack_tasks/examples/ironic/db.pp
+    puppet_modules: /etc/puppet/modules
+    timeout: 1800
+
+- id: ironic-keystone
+  type: puppet
+  version: 2.0.0
+  groups: [primary-controller]
+  condition: "settings:additional_components.ironic.value == true"
+  required_for: [ironic-api]
+  requires: [primary-keystone, keystone]
+  cross-depends:
+    - name: keystone
+  parameters:
+    puppet_manifest: /etc/puppet/modules/openstack_tasks/examples/ironic/keystone.pp
+    puppet_modules: /etc/puppet/modules
+    timeout: 1800
+
+- id: ironic-compute
+  type: puppet
+  version: 2.0.0
+  groups: [primary-controller, controller]
+  condition: "settings:additional_components.ironic.value == true"
+  required_for: [deploy_end]
+  requires: [primary-openstack-controller, openstack-controller, ironic-api]
+  refresh_on: [nova_config, nova_paste_api_ini]
+  cross-depends:
+   - name: /(primary-)?rabbitmq/
+   - name: /(primary-)?openstack-controller/
+   - name: ironic-api
+   - name: memcached
+  parameters:
+    puppet_manifest: /etc/puppet/modules/openstack_tasks/examples/ironic/ironic-compute.pp
+    puppet_modules: /etc/puppet/modules
+    timeout: 3600
