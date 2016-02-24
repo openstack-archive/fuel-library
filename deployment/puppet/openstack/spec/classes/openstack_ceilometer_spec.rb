@@ -36,10 +36,8 @@ describe 'openstack::ceilometer' do
           :keystone_tenant       => 'services',
           :keystone_region       => 'Region007',
           :api_workers           => facts[:processorcount],
-          :host                  => '10.254.0.9',
-          :port                  => '8777',
-          :keystone_auth_uri     => 'http://127.0.0.1:5000/',
-          :keystone_identity_uri => 'http://127.0.0.1:35357/'
+          :ssl                   => false,
+          :api_bind_address      => '10.254.0.9',
         }
       end
 
@@ -61,16 +59,17 @@ describe 'openstack::ceilometer' do
         :auth_user        => params[:keystone_user],
       ) }
 
-      it { is_expected.to contain_class('ceilometer::api').with(
-          :keystone_auth_uri     => params[:keystone_auth_uri],
-          :keystone_identity_uri => params[:keystone_identity_uri],
-          :keystone_user         => params[:keystone_user],
-          :keystone_password     => params[:keystone_password],
-          :keystone_tenant       => params[:keystone_tenant],
-          :host                  => params[:host],
-          :port                  => params[:port],
-          :api_workers           => params[:api_workers],
+      it { is_expected.to contain_class('ceilometer::wsgi::apache').with(
+        :ssl       => params[:ssl],
+        :bind_host => params[:api_bind_address],
+        :workers   => params[:api_workers],
       ) }
+
+      it 'should have osnailyfacter::apache class' do
+        should contain_class('osnailyfacter::apache').with(
+          :listen_ports  => Noop.hiera_array('apache_ports', ['0.0.0.0:80', '0.0.0.0:8888', '0.0.0.0:5000', '0.0.0.0:35357', '0.0.0.0:8777']),
+        )
+      end
     end
 
     context "on compute node" do
