@@ -46,9 +46,13 @@ validate_string($status_password)
 if $enabled {
 
   if '/var/lib/mysql' in split($::mounts, ',') {
-    $ignore_db_dirs = ['lost+found']
+    $ignore_db_dir_options = {
+      'mysqld'          => {
+        'ignore-db-dir' => ['lost+found'],
+      }
+    }
   } else {
-    $ignore_db_dirs = []
+    $ignore_db_dir_options = {}
   }
 
   case $custom_setup_class {
@@ -153,7 +157,6 @@ if $enabled {
       'max_binlog_size'                => undef,
       'collation-server'               => 'utf8_general_ci',
       'init-connect'                   => 'SET NAMES utf8',
-      'ignore-db-dir'                  => join($ignore_db_dirs, ','),
       'character-set-server'           => 'utf8',
       'skip-name-resolve'              => $mysql_skip_name_resolve,
       'performance_schema'             => $mysql_performance_schema,
@@ -213,7 +216,7 @@ if $enabled {
   }
 
   # build our mysql options to be configured in my.cnf
-  $mysql_override_options = mysql_deepmerge($fuel_override_options, $binary_logs_options)
+  $mysql_override_options = mysql_deepmerge($fuel_override_options, $ignore_db_dir_options, $binary_logs_options)
   $galera_options = mysql_deepmerge($wsrep_options, $vendor_override_options)
   $override_options = mysql_deepmerge($mysql_override_options, $galera_options)
 
