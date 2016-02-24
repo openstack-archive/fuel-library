@@ -43,6 +43,8 @@ class fuel::params {
 
   $rabbitmq_gid                  = 495
   $rabbitmq_uid                  = 495
+  $rabbitmq_management_port      = 15672
+  $rabbitmq_management_bind_ip   = '127.0.0.1'
 
   $cobbler_host                  = $::ipaddress
   $cobbler_url                   = "http://${::ipaddress}/cobbler_api"
