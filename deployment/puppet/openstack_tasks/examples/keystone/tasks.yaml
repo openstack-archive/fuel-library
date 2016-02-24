@@ -6,7 +6,7 @@
   required_for: [primary-keystone, keystone]
   refresh_on: [keystone_config]
   parameters:
-    puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/keystone/openrc_delete.pp
+    puppet_manifest: /etc/puppet/modules/openstack_tasks/examples/keystone/openrc_delete.pp
     puppet_modules: /etc/puppet/modules
     timeout: 90
 
@@ -22,13 +22,13 @@
     - name: keystone-db
     - name: memcached
   parameters:
-    puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/keystone/keystone.pp
+    puppet_manifest: /etc/puppet/modules/openstack_tasks/examples/keystone/keystone.pp
     puppet_modules: /etc/puppet/modules
     timeout: 3600
   test_pre:
-    cmd: ruby /etc/puppet/modules/osnailyfacter/modular/keystone/keystone_pre.rb
+    cmd: ruby /etc/puppet/modules/openstack_tasks/examples/keystone/keystone_pre.rb
   test_post:
-    cmd: ruby /etc/puppet/modules/osnailyfacter/modular/keystone/keystone_post.rb
+    cmd: ruby /etc/puppet/modules/openstack_tasks/examples/keystone/keystone_post.rb
 
 - id: keystone
   type: puppet
@@ -42,13 +42,13 @@
     - name: keystone-db
     - name: primary-keystone
   parameters:
-    puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/keystone/keystone.pp
+    puppet_manifest: /etc/puppet/modules/openstack_tasks/examples/keystone/keystone.pp
     puppet_modules: /etc/puppet/modules
     timeout: 3600
   test_pre:
-    cmd: ruby /etc/puppet/modules/osnailyfacter/modular/keystone/keystone_pre.rb
+    cmd: ruby /etc/puppet/modules/openstack_tasks/examples/keystone/keystone_pre.rb
   test_post:
-    cmd: ruby /etc/puppet/modules/osnailyfacter/modular/keystone/keystone_post.rb
+    cmd: ruby /etc/puppet/modules/openstack_tasks/examples/keystone/keystone_post.rb
 
 - id: keystone-db
   type: puppet
@@ -60,7 +60,7 @@
     - name: /(primary-)?database/
       role: self
   parameters:
-    puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/keystone/db.pp
+    puppet_manifest: /etc/puppet/modules/openstack_tasks/examples/keystone/db.pp
     puppet_modules: /etc/puppet/modules
     timeout: 1800
 
@@ -71,6 +71,6 @@
   required_for: [deploy_end]
   requires: [keystone, primary-keystone]
   parameters:
-    puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/keystone/workloads_collector_add.pp
+    puppet_manifest: /etc/puppet/modules/openstack_tasks/examples/keystone/workloads_collector_add.pp
     puppet_modules: /etc/puppet/modules
     timeout: 1800
