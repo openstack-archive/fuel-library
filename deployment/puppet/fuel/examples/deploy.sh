@@ -15,6 +15,7 @@
 
 
 TASKS="
+hiera
 host
 cobbler
 postgresql
