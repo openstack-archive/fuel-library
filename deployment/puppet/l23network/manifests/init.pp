@@ -111,7 +111,7 @@ class l23network (
   Anchor['l23network::l2::init'] -> File<| title == $::l23network::params::interfaces_file |>
 
   # Centos interface up-n-down scripts
-  if $::l23_os =~ /(?i:redhat|centos)/ {
+  if $::l23_os =~ /(?i:redhat|centos|oraclelinux)/ {
     class{'::l23network::l2::centos_upndown_scripts': } -> Anchor['l23network::init']
     Anchor <| title == 'l23network::l2::centos_upndown_scripts' |> -> Anchor['l23network::init']
   }
@@ -133,7 +133,7 @@ class l23network (
     # It is not enough to just remove package, we have to stop the service as well.
     # Because SystemD continues running the service after package removing,
     # with Upstart - all is ok.
-    if $::l23_os =~ /(?i)redhat7|centos7/ {
+    if $::l23_os =~ /(?i)redhat7|centos7|oraclelinux7/ {
       service{$::l23network::params::network_manager_name:
         ensure => 'stopped',
       }

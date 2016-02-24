@@ -586,6 +586,15 @@ version, and the specific network provider (native linux, ovs, etc...)
 
 
 
+## Supported operating systems
+
+  * CentOS 6 and 7
+  * RedHat 7
+  * OracleLinux 7
+  * Ubuntu
+
+
+
 ## References
 
   * [Transformations. How they work.](https://docs.google.com/document/d/12RvBjOYO83_yqeiAgxttrRaa90-8un80aEO8OzDlQ9Y)
