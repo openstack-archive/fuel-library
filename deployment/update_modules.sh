@@ -144,10 +144,18 @@ done
 # exist
 $TIMEOUT_CMD $BUNDLER_EXEC librarian-puppet install $VERBOSE --path=puppet
 
+# run again to fetch openstack_tasks modules
+cd $DEPLOYMENT_DIR/puppet/openstack_tasks
+$TIMEOUT_CMD $BUNDLER_EXEC librarian-puppet install $VERBOSE --path=..
+
 # run librarian-puppet update to ensure the modules are checked out to the
 # correct version
 if [ "$UPDATE" = true ]; then
   $TIMEOUT_CMD $BUNDLER_EXEC librarian-puppet update $VERBOSE --path=puppet
+
+  # run again to fetch openstack_tasks modules
+  cd $DEPLOYMENT_DIR/puppet/openstack_tasks
+  $TIMEOUT_CMD $BUNDLER_EXEC librarian-puppet install $VERBOSE --path=..
 fi
 
 # do a hard reset on the librarian managed modules LP#1489542

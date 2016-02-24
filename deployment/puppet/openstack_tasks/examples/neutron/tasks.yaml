@@ -7,7 +7,7 @@
   cross-depends:
     - name: /(primary-)?database/
   parameters:
-    puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/openstack-network/db.pp
+    puppet_manifest: /etc/puppet/modules/openstack_tasks/examples/nova/db.pp
     puppet_modules: /etc/puppet/modules
     timeout: 1800
 
@@ -20,7 +20,7 @@
   cross-depends:
     - name: keystone
   parameters:
-    puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/openstack-network/keystone.pp
+    puppet_manifest: /etc/puppet/modules/openstack_tasks/examples/nova/keystone.pp
     puppet_modules: /etc/puppet/modules
     timeout: 1800
 
@@ -43,7 +43,7 @@
   required_for: [openstack-network-end]
   requires: [openstack-network-start]
   parameters:
-    puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/openstack-network/common-config.pp
+    puppet_manifest: /etc/puppet/modules/openstack_tasks/examples/nova/common-config.pp
     puppet_modules: /etc/puppet/modules
     timeout: 1800
 
@@ -55,7 +55,7 @@
   requires: [openstack-network-common-config]
   refresh_on: [neutron_plugin_ml2, neutron_config, neutron_api_config]
   parameters:
-    puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/openstack-network/server-config.pp
+    puppet_manifest: /etc/puppet/modules/openstack_tasks/examples/nova/server-config.pp
     puppet_modules: /etc/puppet/modules
     timeout: 1800
 
@@ -67,7 +67,7 @@
   requires: [openstack-network-common-config, openstack-network-server-config]
   refresh_on: [neutron_agent_ovs]
   parameters:
-    puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/openstack-network/plugins/ml2.pp
+    puppet_manifest: /etc/puppet/modules/openstack_tasks/examples/nova/plugins/ml2.pp
     puppet_modules: /etc/puppet/modules
     timeout: 1800
 
@@ -82,7 +82,7 @@
   cross-depends:
     - name: primary-openstack-network-plugins-l2
   parameters:
-    puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/openstack-network/plugins/ml2.pp
+    puppet_manifest: /etc/puppet/modules/openstack_tasks/examples/nova/plugins/ml2.pp
     puppet_modules: /etc/puppet/modules
     timeout: 1800
 
@@ -93,7 +93,7 @@
   required_for: [openstack-network-end]
   requires: [primary-openstack-network-plugins-l2]
   parameters:
-    puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/openstack-network/networks.pp
+    puppet_manifest: /etc/puppet/modules/openstack_tasks/examples/nova/networks.pp
     puppet_modules: /etc/puppet/modules
     timeout: 1800
 
@@ -105,7 +105,7 @@
   required_for: [openstack-network-end]
   requires: [openstack-network-networks]
   parameters:
-    puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/openstack-network/routers.pp
+    puppet_manifest: /etc/puppet/modules/openstack_tasks/examples/nova/routers.pp
     puppet_modules: /etc/puppet/modules
     timeout: 1800
 
@@ -119,7 +119,7 @@
   required_for: [post_deployment_end]
   requires: [post_deployment_start]
   parameters:
-    puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/openstack-network/routers.pp
+    puppet_manifest: /etc/puppet/modules/openstack_tasks/examples/nova/routers.pp
     puppet_modules: /etc/puppet/modules
     timeout: 1800
     cwd: /
@@ -132,7 +132,7 @@
   requires: [openstack-network-networks, openstack-network-routers, primary-openstack-network-plugins-l2, openstack-network-plugins-l2]
   refresh_on: [neutron_l3_agent_config]
   parameters:
-    puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/openstack-network/agents/l3.pp
+    puppet_manifest: /etc/puppet/modules/openstack_tasks/examples/nova/agents/l3.pp
     puppet_modules: /etc/puppet/modules
     timeout: 1800
 
@@ -148,7 +148,7 @@
     - name: /(primary-)?openstack-network-plugins-l2/
     - name: primary-openstack-network-agents-l3
   parameters:
-    puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/openstack-network/agents/l3.pp
+    puppet_manifest: /etc/puppet/modules/openstack_tasks/examples/nova/agents/l3.pp
     puppet_modules: /etc/puppet/modules
     timeout: 1800
 
@@ -162,7 +162,7 @@
     - name: /(primary-)?openstack-network-agents-l3/
     - name: /(primary-)?openstack-network-plugins-l2/
   parameters:
-    puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/openstack-network/server-nova.pp
+    puppet_manifest: /etc/puppet/modules/openstack_tasks/examples/nova/server-nova.pp
     puppet_modules: /etc/puppet/modules
     timeout: 1800
 
@@ -176,7 +176,7 @@
   cross-depends:
     - name: /(primary-)?openstack-network-plugins-l2/
   parameters:
-    puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/openstack-network/agents/dhcp.pp
+    puppet_manifest: /etc/puppet/modules/openstack_tasks/examples/nova/agents/dhcp.pp
     puppet_modules: /etc/puppet/modules
     timeout: 1800
 
@@ -192,7 +192,7 @@
     - name: primary-openstack-network-agents-dhcp
     - name: /(primary-)?openstack-network-plugins-l2/
   parameters:
-    puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/openstack-network/agents/dhcp.pp
+    puppet_manifest: /etc/puppet/modules/openstack_tasks/examples/nova/agents/dhcp.pp
     puppet_modules: /etc/puppet/modules
     timeout: 1800
 
@@ -207,7 +207,7 @@
     - name: /(primary-)?openstack-network-plugins-l2/
     - name: /(primary-)?openstack-network-agents-l3/
   parameters:
-    puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/openstack-network/agents/metadata.pp
+    puppet_manifest: /etc/puppet/modules/openstack_tasks/examples/nova/agents/metadata.pp
     puppet_modules: /etc/puppet/modules
     timeout: 1800
 
@@ -223,7 +223,7 @@
     - name: primary-openstack-network-agents-metadata
     - name: /(primary-)?openstack-network-plugins-l2/
   parameters:
-    puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/openstack-network/agents/metadata.pp
+    puppet_manifest: /etc/puppet/modules/openstack_tasks/examples/nova/agents/metadata.pp
     puppet_modules: /etc/puppet/modules
     timeout: 1800
 
@@ -236,7 +236,7 @@
   cross-depends:
     - name: /(primary-)?openstack-network-plugins-l2/
   parameters:
-    puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/openstack-network/compute-nova.pp
+    puppet_manifest: /etc/puppet/modules/openstack_tasks/examples/nova/compute-nova.pp
     puppet_modules: /etc/puppet/modules
     timeout: 1800
 

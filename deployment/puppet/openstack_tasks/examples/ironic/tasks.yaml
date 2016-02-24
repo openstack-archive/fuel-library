@@ -9,7 +9,7 @@
   required_for: [primary-openstack-controller, openstack-controller]
   requires: [openstack-haproxy, ironic-db, ironic-keystone]
   parameters:
-    puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/ironic/ironic.pp
+    puppet_manifest: /etc/puppet/modules/openstack_tasks/examples/ironic/ironic.pp
     puppet_modules: /etc/puppet/modules
     timeout: 3600
 
@@ -23,7 +23,7 @@
   required_for: [ironic-api]
   requires: [primary-database, database]
   parameters:
-    puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/ironic/db.pp
+    puppet_manifest: /etc/puppet/modules/openstack_tasks/examples/ironic/db.pp
     puppet_modules: /etc/puppet/modules
     timeout: 1800
 
@@ -37,7 +37,7 @@
   cross-depends:
     - name: keystone
   parameters:
-    puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/ironic/keystone.pp
+    puppet_manifest: /etc/puppet/modules/openstack_tasks/examples/ironic/keystone.pp
     puppet_modules: /etc/puppet/modules
     timeout: 1800
 
@@ -55,6 +55,6 @@
    - name: ironic-api
    - name: memcached
   parameters:
-    puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/ironic/ironic-compute.pp
+    puppet_manifest: /etc/puppet/modules/openstack_tasks/examples/ironic/ironic-compute.pp
     puppet_modules: /etc/puppet/modules
     timeout: 3600
