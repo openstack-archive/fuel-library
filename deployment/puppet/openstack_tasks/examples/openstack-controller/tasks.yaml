@@ -1,0 +1,56 @@
+- id: primary-openstack-controller
+  type: puppet
+  version: 2.0.0
+  groups: [primary-controller]
+  required_for: [deploy_end]
+  requires: [openstack-haproxy]
+  cross-depends:
+    - name: /(primary-)?rabbitmq/
+    - name: nova-db
+    - name: nova-keystone
+    - name: memcached
+  refresh_on: [nova_config, nova_paste_api_ini]
+  parameters:
+    puppet_manifest: /etc/puppet/modules/openstack_tasks/examples/openstack-controller/openstack-controller.pp
+    puppet_modules: /etc/puppet/modules
+    timeout: 3600
+
+- id: openstack-controller
+  type: puppet
+  version: 2.0.0
+  groups: [controller]
+  required_for: [deploy_end]
+  requires: [openstack-haproxy]
+  cross-depends:
+    - name: primary-openstack-controller
+  refresh_on: [nova_config, nova_paste_api_ini]
+  parameters:
+    puppet_manifest: /etc/puppet/modules/openstack_tasks/examples/openstack-controller/openstack-controller.pp
+    puppet_modules: /etc/puppet/modules
+    timeout: 3600
+
+- id: nova-db
+  type: puppet
+  version: 2.0.0
+  groups: [primary-controller]
+  required_for: [primary-openstack-controller, openstack-controller]
+  requires: [primary-database, database]
+  cross-depends:
+    - name: /(primary-)?database/
+  parameters:
+    puppet_manifest: /etc/puppet/modules/openstack_tasks/examples/openstack-controller/db.pp
+    puppet_modules: /etc/puppet/modules
+    timeout: 1800
+
+- id: nova-keystone
+  type: puppet
+  version: 2.0.0
+  groups: [primary-controller]
+  required_for: [primary-openstack-controller, openstack-controller]
+  requires: [primary-keystone, keystone]
+  cross-depends:
+    - name: keystone
+  parameters:
+    puppet_manifest: /etc/puppet/modules/openstack_tasks/examples/openstack-controller/keystone.pp
+    puppet_modules: /etc/puppet/modules
+    timeout: 1800
