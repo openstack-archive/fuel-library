@@ -20,6 +20,11 @@ Facter.add(:l23_os) do
           when /7/
             'redhat7'
         end
+      when /(?i)oraclelinux/
+        case Facter.value(:operatingsystemmajrelease)
+          when /7/
+            'oraclelinux7'
+        end
       when /(?i)darwin/
         'osx'
     end
