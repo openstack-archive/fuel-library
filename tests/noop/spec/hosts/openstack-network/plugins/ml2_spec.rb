@@ -46,6 +46,13 @@ describe manifest do
         l2_population = adv_neutron_config.fetch('neutron_l2_pop', false)
         dpdk_config = Noop.hiera_hash('dpdk', {})
         enable_dpdk = dpdk_config.fetch('enabled', false)
+        enable_qos = adv_neutron_config.fetch('neutron_qos', false)
+
+        if enable_qos
+          it { should contain_class('neutron::agents::ml2::ovs').with(
+            'extensions' => ['qos']
+          )}
+        end
 
         if segmentation_type == 'vlan'
           network_type   = 'vlan'
