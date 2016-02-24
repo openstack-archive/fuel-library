@@ -29,7 +29,7 @@ mod 'stdlib',
 # Pull in puppet-pacemaker modules
 mod 'pacemaker',
     :git => 'https://github.com/fuel-infra/puppet-pacemaker.git',
-    :ref => '1.0.4'
+    :ref => '1.0.3'
 
 # Pull in puppetlabs-concat
 mod 'concat',
@@ -101,61 +101,6 @@ mod 'rsyslog',
     :git => 'https://github.com/fuel-infra/puppet-rsyslog.git',
     :ref => 'v3.5.1'
 
-# Pull in puppet-openstacklib
-mod 'openstacklib',
-    :git => 'https://github.com/fuel-infra/puppet-openstacklib.git',
-    :ref => 'master'
-
-# Pull in puppet-keystone
-mod 'keystone',
-    :git => 'https://github.com/fuel-infra/puppet-keystone.git',
-    :ref => 'master'
-
-# Pull in puppet-neutron
-mod 'neutron',
-    :git => 'https://github.com/fuel-infra/puppet-neutron.git',
-    :ref => 'master'
-
-# Pull in puppet-nova
-mod 'nova',
-    :git => 'https://github.com/fuel-infra/puppet-nova.git',
-    :ref => 'master'
-
-# Pull in puppet-heat
-mod 'heat',
-    :git => 'https://github.com/fuel-infra/puppet-heat.git',
-    :ref => 'master'
-
-# Pull in puppet-horizon
-mod 'horizon',
-    :git => 'https://github.com/fuel-infra/puppet-horizon.git',
-    :ref => 'master'
-
-# Pull in puppet-glance
-mod 'glance',
-    :git => 'https://github.com/fuel-infra/puppet-glance.git',
-    :ref => 'master'
-
-# Pull in puppet-swift
-mod 'swift',
-    :git => 'https://github.com/fuel-infra/puppet-swift.git',
-    :ref => 'master'
-
-# Pull in puppet-ceilometer
-mod 'ceilometer',
-    :git => 'https://github.com/fuel-infra/puppet-ceilometer.git',
-    :ref => 'master'
-
-# Pull in openstack-cinder
-mod 'cinder',
-    :git => 'https://github.com/fuel-infra/openstack-cinder.git',
-    :ref => 'master'
-
-# Pull in puppet-sahara
-mod 'sahara',
-    :git => 'https://github.com/fuel-infra/puppet-sahara.git',
-    :ref => 'master'
-
 # Pull in puppet-openssl
 mod 'openssl',
     :git => 'https://github.com/fuel-infra/puppet-openssl.git',
@@ -185,16 +130,6 @@ mod 'filemapper',
 mod 'tftp',
     :git => 'https://github.com/fuel-infra/puppetlabs-tftp.git',
     :ref => '0.2.3'
-
-# Pull in puppet-ironic
-mod 'ironic',
-    :git => 'https://github.com/fuel-infra/puppet-ironic.git',
-    :ref => 'master'
-
-# Pull in puppet-murano
-mod 'murano',
-    :git => 'https://github.com/fuel-infra/puppet-murano.git',
-    :ref => 'master'
 
 # Pull in richardc-datacat
 mod 'datacat',
@@ -229,8 +164,3 @@ mod 'mysql',
 mod 'galera',
     :git => 'https://github.com/fuel-infra/puppet-galera.git',
     :ref => '0.0.3-rc1'
-
-# Pull in puppet-aodh
-mod 'aodh',
-    :git => 'https://github.com/fuel-infra/puppet-aodh.git',
-    :ref => 'master'

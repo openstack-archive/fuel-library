@@ -1,0 +1,43 @@
+- id: glance
+  type: puppet
+  version: 2.0.0
+  groups: [primary-controller, controller]
+  required_for: [primary-openstack-controller, openstack-controller]
+  requires: [openstack-haproxy, primary-database, database]
+  cross-depends:
+    - name: glance-db
+    - name: glance-keystone
+  parameters:
+    puppet_manifest: /etc/puppet/modules/openstack_tasks/examples/glance/glance.pp
+    puppet_modules: /etc/puppet/modules
+    timeout: 3600
+  test_pre:
+    cmd: ruby /etc/puppet/modules/openstack_tasks/examples/glance/glance_pre.rb
+  test_post:
+    cmd: ruby /etc/puppet/modules/openstack_tasks/examples/glance/glance_post.rb
+
+- id: glance-db
+  type: puppet
+  version: 2.0.0
+  groups: [primary-controller]
+  required_for: [glance]
+  requires: [primary-database, database]
+  cross-depends:
+    - name: /(primary-)?database/
+  parameters:
+    puppet_manifest: /etc/puppet/modules/openstack_tasks/examples/glance/db.pp
+    puppet_modules: /etc/puppet/modules
+    timeout: 1800
+
+- id: glance-keystone
+  type: puppet
+  version: 2.0.0
+  groups: [primary-controller]
+  required_for: [glance]
+  requires: [primary-keystone, keystone]
+  cross-depends:
+    - name: keystone
+  parameters:
+    puppet_manifest: /etc/puppet/modules/openstack_tasks/examples/glance/keystone.pp
+    puppet_modules: /etc/puppet/modules
+    timeout: 1800
