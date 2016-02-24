@@ -10,7 +10,8 @@ $ostf_port             = '8777',
 $rsync_port            = '873',
 $rsyslog_port          = '514',
 $ntp_port              = '123',
-$rabbitmq_ports        = ['4369','5672','15672','61613'],
+$rabbitmq_ports        = ['4369','5672','61613'],
+$rabbitmq_admin_port   = '15672',
 $fuelweb_port          = '8443',
 $keystone_port         = '5000',
 $keystone_admin_port   = '35357',
@@ -155,7 +156,7 @@ $chain                 = 'INPUT',
     action  => 'accept',
   }
 
-  firewall { '040 rabbitmq_admin':
+  firewall { '040 rabbitmq_admin_net':
     chain   => $chain,
     port    => $rabbitmq_ports,
     proto   => 'tcp',
@@ -165,7 +166,7 @@ $chain                 = 'INPUT',
 
   firewall { '041 rabbitmq_local':
     chain    => $chain,
-    port     => $rabbitmq_ports,
+    port     => concat($rabbitmq_ports, $rabbitmq_admin_port),
     proto    => 'tcp',
     src_type => "LOCAL",
     action   => 'accept',
