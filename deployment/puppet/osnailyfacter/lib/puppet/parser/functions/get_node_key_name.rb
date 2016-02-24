@@ -5,8 +5,11 @@ Key name is a immutable name, that used as key into network_metadata/nodes hash
 EOS
   ) do |args|
     uid = function_hiera ['uid']
-    raise Puppet::ParseError, 'Node UID not found.' if uid.nil?
-    "node-#{uid}"
+    nodes = function_hiera ['nodes']
+
+    node = nodes.detect {|n| n['uid'] == uid}
+    raise Puppet::ParseError, 'Node not found.' if node.nil?
+    node['name']
   end
 end
 
