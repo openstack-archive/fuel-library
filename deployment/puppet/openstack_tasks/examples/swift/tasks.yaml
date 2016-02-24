@@ -7,13 +7,13 @@
   cross-depends:
     - name: primary-swift
   parameters:
-    puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/swift/swift.pp
+    puppet_manifest: /etc/puppet/modules/openstack_tasks/examples/swift/swift.pp
     puppet_modules: /etc/puppet/modules
     timeout: 3600
   test_pre:
-    cmd: ruby /etc/puppet/modules/osnailyfacter/modular/swift/swift_pre.rb
+    cmd: ruby /etc/puppet/modules/openstack_tasks/examples/swift/swift_pre.rb
   test_post:
-    cmd: ruby /etc/puppet/modules/osnailyfacter/modular/swift/swift_post.rb
+    cmd: ruby /etc/puppet/modules/openstack_tasks/examples/swift/swift_post.rb
 
 - id: primary-swift
   type: puppet
@@ -26,13 +26,13 @@
     - name: swift-keystone
     - name: memcached
   parameters:
-    puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/swift/swift.pp
+    puppet_manifest: /etc/puppet/modules/openstack_tasks/examples/swift/swift.pp
     puppet_modules: /etc/puppet/modules
     timeout: 3600
   test_pre:
-    cmd: ruby /etc/puppet/modules/osnailyfacter/modular/swift/swift_pre.rb
+    cmd: ruby /etc/puppet/modules/openstack_tasks/examples/swift/swift_pre.rb
   test_post:
-    cmd: ruby /etc/puppet/modules/osnailyfacter/modular/swift/swift_post.rb
+    cmd: ruby /etc/puppet/modules/openstack_tasks/examples/swift/swift_post.rb
 
 - id: swift-rebalance-cron
   type: puppet
@@ -44,13 +44,13 @@
     - name: /(primary-)?swift/
       role: self
   parameters:
-    puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/swift/rebalance_cronjob.pp
+    puppet_manifest: /etc/puppet/modules/openstack_tasks/examples/swift/rebalance_cronjob.pp
     puppet_modules: /etc/puppet/modules
     timeout: 300
   test_pre:
-    cmd: ruby /etc/puppet/modules/osnailyfacter/modular/swift/swift_post.rb
+    cmd: ruby /etc/puppet/modules/openstack_tasks/examples/swift/swift_post.rb
   test_post:
-    cmd: ruby /etc/puppet/modules/osnailyfacter/modular/swift/rebalance_cronjob_post.rb
+    cmd: ruby /etc/puppet/modules/openstack_tasks/examples/swift/rebalance_cronjob_post.rb
 
 - id: swift-keystone
   type: puppet
@@ -61,6 +61,6 @@
     - name: keystone
   requires: [primary-keystone, keystone]
   parameters:
-    puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/swift/keystone.pp
+    puppet_manifest: /etc/puppet/modules/openstack_tasks/examples/swift/keystone.pp
     puppet_modules: /etc/puppet/modules
     timeout: 1800
