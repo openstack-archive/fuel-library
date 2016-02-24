@@ -19,7 +19,7 @@ class l23network::params {
       $network_manager_name      = 'network-manager'
       $extra_tools               = 'iputils-arping'
     }
-    /(?i)redhat|centos/: {
+    /(?i)redhat|centos|oraclelinux/: {
       $interfaces_dir            = '/etc/sysconfig/network-scripts'
       $interfaces_file           = undef
       $ovs_service_name          = 'openvswitch'
