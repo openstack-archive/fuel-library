@@ -4,7 +4,7 @@
   groups: [primary-controller, controller]
   required_for: [deploy_end]
   parameters:
-    puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/roles/controller.pp
+    puppet_manifest: /etc/puppet/modules/openstack_tasks/examples/roles/controller.pp
     puppet_modules: /etc/puppet/modules
     timeout: 3600
 
@@ -21,7 +21,7 @@
     - name: memcached
   refresh_on: [nova_config, nova_paste_api_ini]
   parameters:
-    puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/roles/compute.pp
+    puppet_manifest: /etc/puppet/modules/openstack_tasks/examples/roles/compute.pp
     puppet_modules: /etc/puppet/modules
     timeout: 3600
 
@@ -34,7 +34,7 @@
   cross-depends:
     - name: openstack-cinder
   parameters:
-    puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/roles/cinder.pp
+    puppet_manifest: /etc/puppet/modules/openstack_tasks/examples/roles/cinder.pp
     puppet_modules: /etc/puppet/modules
     timeout: 3600
 
@@ -45,7 +45,7 @@
   requires: [top-role-cinder]
   required_for: [deploy_end]
   parameters:
-    puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/roles/enable_cinder.pp
+    puppet_manifest: /etc/puppet/modules/openstack_tasks/examples/roles/enable_cinder.pp
     puppet_modules: /etc/puppet/modules
     timeout: 3600
     cwd: /
@@ -57,7 +57,7 @@
   required_for: [deploy_end]
   requires: [hosts, firewall]
   parameters:
-    puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/roles/mongo.pp
+    puppet_manifest: /etc/puppet/modules/openstack_tasks/examples/roles/mongo.pp
     puppet_modules: /etc/puppet/modules
     timeout: 3600
 
@@ -70,7 +70,7 @@
   required_for: [deploy_end]
   requires: [hosts, firewall]
   parameters:
-    puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/roles/mongo.pp
+    puppet_manifest: /etc/puppet/modules/openstack_tasks/examples/roles/mongo.pp
     puppet_modules: /etc/puppet/modules
     timeout: 3600
 
@@ -85,7 +85,7 @@
     - name: /(primary-)?database/
     - name: /(primary-)?rabbitmq/
   parameters:
-    puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/roles/ironic-conductor.pp
+    puppet_manifest: /etc/puppet/modules/openstack_tasks/examples/roles/ironic-conductor.pp
     puppet_modules: /etc/puppet/modules
     timeout: 3600
 
@@ -97,7 +97,7 @@
   required_for: [deploy_end]
   refresh_on: [nova_config, nova_paste_api_ini]
   parameters:
-    puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/roles/enable_compute.pp
+    puppet_manifest: /etc/puppet/modules/openstack_tasks/examples/roles/enable_compute.pp
     puppet_modules: /etc/puppet/modules
     timeout: 3600
     cwd: /
@@ -109,7 +109,7 @@
   requires: [setup_repositories]
   required_for: [globals]
   parameters:
-    puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/roles/allocate_hugepages.pp
+    puppet_manifest: /etc/puppet/modules/openstack_tasks/examples/roles/allocate_hugepages.pp
     puppet_modules: /etc/puppet/modules
     timeout: 300
     cwd: /
