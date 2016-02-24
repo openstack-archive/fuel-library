@@ -2,23 +2,38 @@
 DIR=`dirname $0`
 cd "${DIR}" || exit 1
 
-echo "Cloning the repository..."
+REPO_URL='https://github.com/openstack/fuel-noop-fixtures.git'
 
-if ! [ -d 'fuel-noop-fixtures' ]; then
-  git clone 'https://github.com/openstack/fuel-noop-fixtures.git' 'fuel-noop-fixtures'
-fi
+clone_fixtures_repo() {
+  if ! [ -d 'fuel-noop-fixtures' ]; then
+    echo "Cloning the repository..."
+    git clone "${REPO_URL}" 'fuel-noop-fixtures'
+  fi
+}
 
-if ! [ -L 'fuel-noop-fixtures/spec/hosts' ]; then
-  rm -rf 'fuel-noop-fixtures/spec/hosts'
-  ln -sf '../../spec/hosts' 'fuel-noop-fixtures/spec/hosts'
-fi
-
-if ! [ -f 'fuel-noop-fixtures/Gemfile.lock' ]; then
-  cd 'fuel-noop-fixtures'
-  bundle install
+update_fixtures_repo() {
+  echo "Updating the repository..."
+  cd 'fuel-noop-fixtures' || return 1
+  git fetch --all
+  git clean -fd
+  git reset --hard 'origin/master'
   cd '..'
-fi
+}
 
-echo "Preparing the environment..."
+link_specs_to_fixtures() {
+  if ! [ -L 'fuel-noop-fixtures/spec/hosts' ]; then
+    echo "Linking specs top the repository..."
+    rm -rf 'fuel-noop-fixtures/spec/hosts'
+    ln -sf '../../spec/hosts' 'fuel-noop-fixtures/spec/hosts'
+  fi
+}
 
-./noop_tests.sh -bB -d -t -l
+prepare_environment() {
+  echo "Preparing the environment..."
+  ./noop_tests.sh -bB -d -t -l -L
+}
+
+clone_fixtures_repo
+update_fixtures_repo
+link_specs_to_fixtures
+prepare_environment
