@@ -51,7 +51,9 @@ $ssl_hash                   = hiera_hash('use_ssl', {})
 $internal_auth_protocol     = get_ssl_property($ssl_hash, {}, 'keystone', 'internal', 'protocol', 'http')
 $internal_auth_address      = get_ssl_property($ssl_hash, {}, 'keystone', 'internal', 'hostname', [$service_endpoint, $management_vip])
 $internal_auth_url          = "${internal_auth_protocol}://${internal_auth_address}:5000"
-
+$admin_identity_protocol    = get_ssl_property($ssl_hash, {}, 'keystone', 'admin', 'protocol', 'http')
+$admin_identity_address     = get_ssl_property($ssl_hash, {}, 'keystone', 'admin', 'hostname', [$service_endpoint, $management_vip])
+$admin_identity_uri         = "${admin_identity_protocol}://${admin_identity_address}:35357"
 
 prepare_network_config(hiera_hash('network_scheme', {}))
 
@@ -79,6 +81,7 @@ class { 'ironic::client': }
 class { 'ironic::api':
   host_ip           => get_network_role_property('ironic/api', 'ipaddr'),
   auth_uri          => $internal_auth_url,
+  identity_uri      => $admin_identity_uri,
   admin_tenant_name => $ironic_tenant,
   admin_user        => $ironic_user,
   admin_password    => $ironic_user_password,
