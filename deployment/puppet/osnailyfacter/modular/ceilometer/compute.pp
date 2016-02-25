@@ -22,45 +22,73 @@ $region                     = hiera('region', 'RegionOne')
 $ceilometer_hash            = hiera_hash('ceilometer_hash', $default_ceilometer_hash)
 $ceilometer_region          = pick($ceilometer_hash['region'], $region)
 $ceilometer_enabled         = $ceilometer_hash['enabled']
-$amqp_password              = $rabbit_hash['password']
-$amqp_user                  = $rabbit_hash['user']
-$ceilometer_user_password   = $ceilometer_hash['user_password']
-$ceilometer_metering_secret = $ceilometer_hash['metering_secret']
 $verbose                    = pick($ceilometer_hash['verbose'], hiera('verbose', true))
 $debug                      = pick($ceilometer_hash['debug'], hiera('debug', false))
-$default_log_levels         = hiera_hash('default_log_levels')
 $ssl_hash                   = hiera_hash('use_ssl', {})
 
+
+
 if ($ceilometer_enabled) {
-  class { 'openstack::ceilometer':
-    verbose                    => $verbose,
-    debug                      => $debug,
-    default_log_levels         => $default_log_levels,
-    use_syslog                 => $use_syslog,
-    use_stderr                 => $use_stderr,
-    syslog_log_facility        => $syslog_log_facility,
-    amqp_hosts                 => hiera('amqp_hosts',''),
-    amqp_user                  => $amqp_user,
-    amqp_password              => $amqp_password,
-    keystone_user              => $ceilometer_hash['user'],
-    keystone_tenant            => $ceilometer_hash['tenant'],
-    keystone_region            => $ceilometer_region,
-    keystone_password          => $ceilometer_user_password,
-    on_compute                 => true,
-    metering_secret            => $ceilometer_metering_secret,
-    alarm_history_time_to_live => $ceilometer_hash['alarm_history_time_to_live'],
+
+  # Add the base ceilometer class & parameters
+  # This class is required by ceilometer agents & api classes
+  # The metering_secret parameter is mandatory
+  class { '::ceilometer':
+    http_timeout               => $ceilometer_hash['http_timeout'],
     event_time_to_live         => $ceilometer_hash['event_time_to_live'],
     metering_time_to_live      => $ceilometer_hash['metering_time_to_live'],
-    http_timeout               => $ceilometer_hash['http_timeout'],
+    alarm_history_time_to_live => $ceilometer_hash['alarm_history_time_to_live'],
+    package_ensure             => 'present',
+    rabbit_hosts               => split($hiera('amqp_hosts',''), ','),
+    rabbit_userid              => $rabbit_hash['user'],
+    rabbit_password            => $rabbit_hash['password'],
+    metering_secret            => $ceilometer_hash['metering_secret'],
+    verbose                    => $verbose,
+    debug                      => $debug,
+    use_syslog                 => $use_syslog,
+    use_stderr                 => $use_stderr,
+    log_facility               => $syslog_log_facility,
   }
 
-  # On a compute node we need to restart nova-compute service in orderto apply
-  # new settings. On a compute-vmware the top-role-compute-vmware task do it.
-  if (roles_include('compute')) {
-    include ::nova::params
-    service { 'nova-compute':
-      ensure => 'running',
-      name   => $::nova::params::compute_service_name,
+  # Configure authentication for agents
+  class { '::ceilometer::agent::auth':
+    auth_url         => "${keystone_protocol}://${keystone_host}:5000/v2.0",
+    auth_password    => $ceilometer_hash['user_password'],
+    auth_region      => $ceilometer_region,
+    auth_tenant_name => $ceilometer_hash['tenant'],
+    auth_user        => $ceilometer_hash['user'],
+  }
+
+  class { '::ceilometer::client': }
+
+  if ($use_syslog) {
+    ceilometer_config {
+      'DEFAULT/use_syslog_rfc_format': value => true;
     }
   }
+
+  Package<| title == $::ceilometer::params::alarm_package or
+    title == 'ceilometer-common'|> ~>
+  Service<| title == 'ceilometer-alarm-evaluator'|>
+
+  if !defined(Service['ceilometer-alarm-evaluator']) {
+    notify{ "Module ${module_name} cannot notify service ceilometer-alarm-evaluator on packages update": }
+  }
+
+  if $::operatingsystem == 'Ubuntu' and $::ceilometer::params::libvirt_group {
+    # Our libvirt-bin deb package (1.2.9 version) creates 'libvirt' group on Ubuntu
+    if (versioncmp($::libvirt_package_version, '1.2.9') >= 0) {
+      User<| name == 'ceilometer' |> {
+        groups => ['nova', 'libvirt'],
+      }
+    }
+  }
+  # Install polling agent
+  class { '::ceilometer::agent::polling':
+    central_namespace => false,
+    ipmi_namespace    => false
+  }
+
+  ceilometer_config { 'service_credentials/os_endpoint_type': value => 'internalURL'} ->
+  Service<| title == 'ceilometer-polling'|>
 }
