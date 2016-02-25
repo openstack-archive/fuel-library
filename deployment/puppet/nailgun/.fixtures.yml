@@ -6,3 +6,4 @@ fixtures:
     stdlib: "#{source_dir}/../stdlib"
     apt: "#{source_dir}/../apt"
     staging: "#{source_dir}/../staging"
+    fuel: "#{source_dir}/../fuel"
