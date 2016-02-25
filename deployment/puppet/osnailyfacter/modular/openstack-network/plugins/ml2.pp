@@ -84,6 +84,16 @@ if $use_neutron {
     $enable_tunneling = true
   }
 
+  # TODO(skolekonov) Remove this once Neutron packages are updated
+  if $compute and $::osfamily == 'Debian' {
+    augeas { '/etc/default/neutron-openvswitch-agent:ovs_config':
+      context => '/files/etc/default/neutron-openvswitch-agent',
+      changes => 'set DAEMON_ARGS \'"--config-file /etc/neutron/plugins/ml2/openvswitch_agent.ini"\'',
+      notify  => Service['neutron-ovs-agent-service'],
+    }
+    Class['neutron::agents::ml2::ovs'] -> Augeas['/etc/default/neutron-server:ml2_sriov_config']
+  }
+
   class { 'neutron::agents::ml2::ovs':
     bridge_mappings            => $bridge_mappings,
     enable_tunneling           => $enable_tunneling,
