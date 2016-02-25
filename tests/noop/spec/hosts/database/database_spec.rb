@@ -32,7 +32,7 @@ describe manifest do
     end
 
     let(:access_networks) do
-      access_networks = ['localhost', '127.0.0.1', '240.0.0.0/255.255.0.0'] + other_networks.split(' ')
+      access_networks = ['240.0.0.0/255.255.0.0'] + other_networks.split(' ')
     end
 
     let(:database_nodes) do
@@ -52,7 +52,11 @@ describe manifest do
     end
 
     let(:mysql_database_password) do
-       Noop.hiera_hash('mysql', {}).fetch('root_password', '')
+      Noop.hiera_hash('mysql', {}).fetch('root_password', '')
+    end
+
+    let(:mysql_database_password_hash) do
+      Noop.puppet_function 'mysql_password', mysql_database_password
     end
 
     let(:status_database_password) do
@@ -115,6 +119,14 @@ describe manifest do
     it 'should setup the /root/.my.cnf' do
       should contain_class('osnailyfacter::mysql_access').with(
         :db_password => mysql_database_password
+      )
+    end
+
+    it 'should setup additional root grants from other hosts' do
+      should contain_class('osnailyfacter::mysql_user_access').with(
+        :db_user          => 'root',
+        :db_password_hash => mysql_database_password_hash,
+        :access_networks  => access_networks
       )
     end
 
