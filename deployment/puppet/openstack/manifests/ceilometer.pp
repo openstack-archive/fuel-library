@@ -188,10 +188,6 @@ class openstack::ceilometer (
     title == 'ceilometer-common'|> ~>
   Service<| title == 'ceilometer-alarm-evaluator'|>
 
-  if !defined(Service['ceilometer-alarm-evaluator']) {
-    notify{ "Module ${module_name} cannot notify service ceilometer-alarm-evaluator on packages update": }
-  }
-
   if ($on_compute) {
     if $::operatingsystem == 'Ubuntu' and $::ceilometer::params::libvirt_group {
       # Our libvirt-bin deb package (1.2.9 version) creates 'libvirt' group on Ubuntu
