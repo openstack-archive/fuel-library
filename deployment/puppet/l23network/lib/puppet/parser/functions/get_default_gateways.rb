@@ -31,7 +31,7 @@ Puppet::Parser::Functions::newfunction(:get_default_gateways, :type => :rvalue, 
 
   rv = []
   endpoints.each do |ep_name, ep_props|
-    next if ep_props[:gateway].nil?
+    next if ep_props[:gateway].to_s == ''
     rv << {
       :m  => (ep_props[:gateway_metric] or 0),
       :g => ep_props[:gateway]
