@@ -23,9 +23,9 @@ Puppet::Type.newtype(:sahara_cluster_template) do
     def insync?(is)
       return false unless is.count == should.count
 
-      should.sort_by! { |n| n["name"] }
-      is.sort_by! { |n| n["name"] }
-      should.zip(is).each do |should_node,is_node|
+      should_sort = should.sort_by { |n| n["name"] }
+      is_sort = is.sort_by { |n| n["name"] }
+      should_sort.zip(is_sort).each do |should_node,is_node|
         should_node.keys.each do |field|
           unless (is_node.has_key?(field) && should_node[field].to_s == is_node[field].to_s)
             return false
