@@ -11,6 +11,7 @@ Creates fuel::dnsmasq::dhcp_range puppet resources from list of admin networks.
       raise(Puppet::ParseError, 'Should pass list of hashes as a parameter')
     end
     admin_nets.each do |net|
+      next unless net['ip_ranges'].is_a? Array
       net['ip_ranges'].each do |ip_range|
         netmask = IPAddr.new('255.255.255.255').mask(net['cidr'].split('/')[1]).to_s
         print_range = ip_range.join('_')
@@ -25,7 +26,7 @@ Creates fuel::dnsmasq::dhcp_range puppet resources from list of admin networks.
             'dhcp_gateway'       => net['gateway'],
           }
         }
-        debug("Trying to create fuel::dnsmasq::dhcp_range resource #{dhcp_range_resource}")
+        debug("Trying to create fuel::dnsmasq::dhcp_range resource: #{dhcp_range_resource.inspect}")
         function_create_resources(['fuel::dnsmasq::dhcp_range', dhcp_range_resource])
       end
     end
