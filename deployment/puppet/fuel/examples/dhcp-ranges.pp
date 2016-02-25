@@ -1,6 +1,6 @@
 notice('MODULAR: dhcp-ranges.pp')
 
-$admin_networks = hiera('admin_networks')
+$admin_networks = hiera('admin_networks', [{}])
 $admin_network  = hiera('ADMIN_NETWORK')
 
 Fuel::Dnsmasq::Dhcp_range <||> {
