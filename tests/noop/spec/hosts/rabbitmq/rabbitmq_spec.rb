@@ -23,10 +23,10 @@ describe manifest do
         'rabbitmq', 'config_management_variables'
       case facts[:osfamily]
       when 'RedHat'
-        $command_timeout  = "'-s KILL'"
+        $command_timeout  = "-s KILL"
         $package_provider = 'yum'
       when 'Debian'
-        $command_timeout  = "'--signal=KILL'"
+        $command_timeout  = "--signal=KILL"
         $package_provider = 'apt'
       end
     end
