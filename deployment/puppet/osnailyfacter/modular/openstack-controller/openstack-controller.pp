@@ -315,9 +315,6 @@ if($::operatingsystem == 'Ubuntu') {
   tweaks::ubuntu_service_override { 'nova-api':
     package_name => 'nova-api',
   }
-  tweaks::ubuntu_service_override { 'nova-objectstore':
-    package_name => 'nova-objectstore',
-  }
   tweaks::ubuntu_service_override { 'nova-scheduler':
     package_name => 'nova-scheduler',
   }
