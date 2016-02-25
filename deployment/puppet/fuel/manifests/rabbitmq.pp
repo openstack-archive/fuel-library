@@ -1,19 +1,20 @@
 class fuel::rabbitmq (
-  $rabbitmq_gid    = $::fuel::params::rabbitmq_gid,
-  $rabbitmq_uid    = $::fuel::params::rabbitmq_uid,
+  $rabbitmq_gid       = $::fuel::params::rabbitmq_gid,
+  $rabbitmq_uid       = $::fuel::params::rabbitmq_uid,
 
-  $astute_user     = $::fuel::params::rabbitmq_astute_user,
-  $astute_password = $::fuel::params::rabbitmq_astute_password,
+  $astute_user        = $::fuel::params::rabbitmq_astute_user,
+  $astute_password    = $::fuel::params::rabbitmq_astute_password,
 
-  $mco_user        = $::fuel::params::mco_user,
-  $mco_password    = $::fuel::params::mco_password,
-  $mco_vhost       = $::fuel::params::mco_vhost,
+  $mco_user           = $::fuel::params::mco_user,
+  $mco_password       = $::fuel::params::mco_password,
+  $mco_vhost          = $::fuel::params::mco_vhost,
 
-  $bind_ip         = $::fuel::params::mco_host,
-  $management_port = '15672',
-  $stompport       = $::fuel::params::mco_port,
-  $env_config      = {},
-  $stomp           = false,
+  $bind_ip            = $::fuel::params::mco_host,
+  $management_bind_ip = $::fuel::params::rabbitmq_management_bind_ip,
+  $management_port    = $::fuel::params::rabbitmq_management_port,
+  $stompport          = $::fuel::params::mco_port,
+  $env_config         = {},
+  $stomp              = false,
   ) inherits fuel::params {
 
   include stdlib
@@ -108,7 +109,7 @@ class fuel::rabbitmq (
 
     command   => "curl -L -i -u ${mco_user}:${mco_password} -H   \"content-type:application/json\" -XPUT \
       -d'{\"type\":\"direct\",\"durable\":true}'\
-      http://${bind_ip}:${management_port}/api/exchanges/${actual_mco_vhost}/mcollective_directed",
+      http://${management_bind_ip}:${management_port}/api/exchanges/${actual_mco_vhost}/mcollective_directed",
     logoutput => true,
     require   => [
                  Service['rabbitmq-server'],
@@ -122,7 +123,7 @@ class fuel::rabbitmq (
   exec { 'create-mcollective-broadcast-exchange':
     command   => "curl -L -i -u ${mco_user}:${mco_password} -H \"content-type:application/json\" -XPUT \
       -d'{\"type\":\"topic\",\"durable\":true}' \
-      http://${bind_ip}:${management_port}/api/exchanges/${actual_mco_vhost}/mcollective_broadcast",
+      http://${management_bind_ip}:${management_port}/api/exchanges/${actual_mco_vhost}/mcollective_broadcast",
     logoutput => true,
     require   => [Service['rabbitmq-server'],
   Rabbitmq_user_permissions["${mco_user}@${actual_mco_vhost}"]],
@@ -143,7 +144,12 @@ class fuel::rabbitmq (
       {keepalive, true}
     ]'
 
-  $rabbitmq_management_variables = {'listener' => "[{port, 15672}, {ip, \"${bind_ip}\"}]"}
+  $rabbitmq_management_variables = {
+    'listener' => "[
+      {port, ${management_port}},
+      {ip, \"${management_bind_ip}\"}
+    ]"
+  }
 
   # NOTE(bogdando) requires rabbitmq module >=4.0
   class { '::rabbitmq':
