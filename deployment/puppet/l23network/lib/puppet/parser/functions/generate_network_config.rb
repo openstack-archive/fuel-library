@@ -351,9 +351,9 @@ Puppet::Parser::Functions::newfunction(:generate_network_config, :type => :rvalu
         trans = L23network.sanitize_transformation(t, default_provider)
         #debug("TTT: '#{trans[:name]}' =>  '#{trans.to_yaml.gsub('!ruby/sym ','')}'.")
 
-        if !ports_properties[trans[:name].to_sym()].nil?
-          trans.merge! ports_properties[trans[:name].to_sym()]
-        end
+        # merge interface properties with transformations and vendor_specific
+        port_props = ports_properties[trans[:name].to_sym()] || {}
+        trans = trans.merge(port_props) { |k,a,b| (k == :vendor_specific and a.is_a?(Hash)) ? a.merge(b) : b }
 
         if trans.has_key?(:mtu) && !trans[:name].nil? && trans[:name] != 'unnamed'
           # MTU should be adjusted to phys_dev if it is possible
