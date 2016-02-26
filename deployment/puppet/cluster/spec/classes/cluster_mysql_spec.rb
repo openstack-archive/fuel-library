@@ -59,6 +59,7 @@ describe 'cluster::mysql' do
     let :facts do
       { :osfamily => 'RedHat',
         :operatingsystem => 'RedHat',
+        :operatingsystemmajrelease => '7',
         :hostname => 'hostname.example.com', }
     end
 

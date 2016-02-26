@@ -23,7 +23,7 @@ describe 'cluster::dns_ocf' do
 
       it 'configures with the params params' do
         should contain_class('cluster::dns_ocf')
-        should contain_cs_resource('p_dns').with_before('Cs_rsc_colocation[dns-with-vrouter-ns]')
+        should contain_cs_resource('p_dns').with_before(['Cs_rsc_colocation[dns-with-vrouter-ns]'])
         should contain_cs_rsc_colocation('dns-with-vrouter-ns').with(
           :ensure => 'present',
           :score  => 'INFINITY',
