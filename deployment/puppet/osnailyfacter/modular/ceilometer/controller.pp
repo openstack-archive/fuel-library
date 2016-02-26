@@ -46,6 +46,8 @@ $internal_auth_endpoint     = get_ssl_property($ssl_hash, {}, 'keystone', 'inter
 $keystone_identity_uri      = "${internal_auth_protocol}://${internal_auth_endpoint}:35357/"
 $keystone_auth_uri          = "${internal_auth_protocol}://${internal_auth_endpoint}:5000/"
 
+$ssl = false
+
 prepare_network_config(hiera_hash('network_scheme', {}))
 $api_bind_address           = get_network_role_property('ceilometer/api', 'ipaddr')
 
@@ -135,7 +137,6 @@ if ($ceilometer_enabled) {
     keystone_user              => $ceilometer_hash['user'],
     keystone_tenant            => $ceilometer_hash['tenant'],
     keystone_region            => $ceilometer_region,
-    host                       => $api_bind_address,
     ha_mode                    => $ha_mode,
     primary_controller         => $primary_controller,
     on_controller              => true,
@@ -144,8 +145,29 @@ if ($ceilometer_enabled) {
     event_time_to_live         => $ceilometer_hash['event_time_to_live'],
     metering_time_to_live      => $ceilometer_hash['metering_time_to_live'],
     http_timeout               => $ceilometer_hash['http_timeout'],
-    api_workers                => $service_workers,
     collector_workers          => $service_workers,
     notification_workers       => $service_workers,
   }
+
+  class { 'osnailyfacter::apache':
+    listen_ports => hiera_array('apache_ports', ['0.0.0.0:80', '0.0.0.0:8888', '0.0.0.0:5000', '0.0.0.0:35357', '0.0.0.0:8777']),
+  }
+
+  class { 'ceilometer::wsgi::apache':
+    ssl       => $ssl,
+    bind_host => $api_bind_address,
+    workers   => $service_workers,
+    threads   => 3,
+  }
+
+  class { '::ceilometer::api':
+    keystone_auth_uri     => $keystone_auth_uri,
+    keystone_identity_uri => $keystone_identity_uri,
+    keystone_user         => $ceilometer_hash['user'],
+    keystone_password     => $ceilometer_user_password,
+    keystone_tenant       => $ceilometer_hash['tenant'],
+    host                  => $api_bind_address,
+    service_name          => 'httpd',
+  }
+
 }
