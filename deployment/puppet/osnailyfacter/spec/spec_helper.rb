@@ -7,10 +7,8 @@ PROJECT_ROOT = File.expand_path('..', File.dirname(__FILE__))
 $LOAD_PATH.unshift(File.join(PROJECT_ROOT, "lib"))
 
 # Add fixture lib dirs to LOAD_PATH. Work-around for PUP-3336
-if Puppet.version < '4.0.0'
-  Dir["#{fixture_path}/modules/*/lib"].entries.each do |lib_dir|
-    $LOAD_PATH << lib_dir
-  end
+Dir["#{fixture_path}/modules/*/lib"].entries.each do |lib_dir|
+  $LOAD_PATH << lib_dir
 end
 
 RSpec.configure do |c|
