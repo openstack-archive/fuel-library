@@ -92,6 +92,8 @@ describe manifest do
     if sahara
       it 'should configure ' do
         should contain_heat_config('DEFAULT/reauthentication_auth_method').with_value('trusts')
+      else
+        should contain_heat_config('DEFAULT/reauthentication_auth_method').with_ensure('absent')
       end
     end
 
