@@ -19,28 +19,23 @@ Override_resources <||> ~> Service <| tag == 'nova-service' |>
 
 # Pulling hiera
 $compute_hash                   = hiera_hash('compute', {})
-$public_int                     = hiera('public_int', undef)
 $public_vip                     = hiera('public_vip')
 $management_vip                 = hiera('management_vip')
 $database_vip                   = hiera('database_vip')
-$service_endpoint               = hiera('service_endpoint')
 $primary_controller             = hiera('primary_controller')
 $use_neutron                    = hiera('use_neutron', false)
 $sahara_hash                    = hiera('sahara', {})
-$mp_hash                        = hiera('mp')
 $verbose                        = pick($compute_hash['verbose'], true)
 $debug                          = pick($compute_hash['debug'], hiera('debug', true))
 $use_monit                      = false
-$auto_assign_floating_ip        = hiera('auto_assign_floating_ip', false)
 $storage_hash                   = hiera_hash('storage_hash', {})
 $vcenter_hash                   = hiera('vcenter', {})
-$nova_hash                      = hiera_hash('nova_hash', {})
+$hiera_nova_hash                = hiera_hash('nova_hash', {})
 $nova_custom_hash               = hiera_hash('nova_custom_hash', {})
 $rabbit_hash                    = hiera_hash('rabbit_hash', {})
 $glance_hash                    = hiera_hash('glance_hash', {})
 $keystone_hash                  = hiera_hash('keystone_hash', {})
 $swift_hash                     = hiera_hash('swift_hash', {})
-$cinder_hash                    = hiera_hash('cinder_hash', {})
 $ceilometer_hash                = hiera_hash('ceilometer_hash',{})
 $access_hash                    = hiera('access', {})
 $swift_proxies                  = hiera('swift_proxies')
@@ -50,18 +45,19 @@ $syslog_hash                    = hiera('syslog', {})
 $base_syslog_hash               = hiera('base_syslog', {})
 $use_syslog                     = hiera('use_syslog', true)
 $use_stderr                     = hiera('use_stderr', false)
-$syslog_log_facility_glance     = hiera('syslog_log_facility_glance', 'LOG_LOCAL2')
-$syslog_log_facility_cinder     = hiera('syslog_log_facility_cinder', 'LOG_LOCAL3')
-$syslog_log_facility_neutron    = hiera('syslog_log_facility_neutron', 'LOG_LOCAL4')
-$syslog_log_facility_nova       = hiera('syslog_log_facility_nova','LOG_LOCAL6')
-$syslog_log_facility_keystone   = hiera('syslog_log_facility_keystone', 'LOG_LOCAL7')
-$syslog_log_facility_sahara     = hiera('syslog_log_facility_sahara','LOG_LOCAL0')
-$nova_rate_limits               = hiera('nova_rate_limits')
+$syslog_log_facility            = hiera('syslog_log_facility_nova','LOG_LOCAL6')
 $nova_report_interval           = hiera('nova_report_interval')
 $nova_service_down_time         = hiera('nova_service_down_time')
 $config_drive_format            = 'vfat'
 $public_ssl_hash                = hiera('public_ssl')
 $ssl_hash                       = hiera_hash('use_ssl', {})
+$ssh_private_key                = '/var/lib/astute/nova/nova'
+$ssh_public_key                 = '/var/lib/astute/nova/nova.pub'
+$libvirt_type                   = hiera('libvirt_type', undef)
+
+# FIXME(bogdando) remove after fixed upstream https://review.openstack.org/131710
+$host_uuid                      = hiera('host_uuid', generate('/bin/sh', '-c', 'uuidgen'))
+
 
 $glance_protocol                = get_ssl_property($ssl_hash, {}, 'glance', 'internal', 'protocol', 'http')
 $glance_endpoint                = get_ssl_property($ssl_hash, {}, 'glance', 'internal', 'hostname', [hiera('glance_endpoint', $management_vip)])
@@ -74,8 +70,6 @@ if $glance_internal_ssl {
 
 $vncproxy_protocol                      = get_ssl_property($ssl_hash, $public_ssl_hash, 'nova', 'public', 'protocol', [$nova_hash['vncproxy_protocol'], 'http'])
 $vncproxy_host                          = get_ssl_property($ssl_hash, $public_ssl_hash, 'nova', 'public', 'hostname', [$public_vip])
-
-$db_host                                = pick($nova_hash['db_host'], $database_vip)
 
 $block_device_allocate_retries          = hiera('block_device_allocate_retries', 300)
 $block_device_allocate_retries_interval = hiera('block_device_allocate_retries_interval', 3)
@@ -91,8 +85,6 @@ $openstack_version = {
   'cinder'     => 'installed',
 }
 
-$queue_provider = hiera('queue_provider', 'rabbitmq')
-
 # Do the stuff
 if $neutron_mellanox {
   $mellanox_mode = $neutron_mellanox['plugin']
@@ -104,10 +96,7 @@ if $use_neutron {
   $novanetwork_params        = {}
   $network_provider          = 'neutron'
   $neutron_config            = hiera_hash('quantum_settings')
-  $neutron_db_password       = $neutron_config['database']['passwd']
-  $neutron_user_password     = $neutron_config['keystone']['admin_password']
   $neutron_metadata_proxy_secret = $neutron_config['metadata']['metadata_proxy_shared_secret']
-  $base_mac                  = $neutron_config['L2']['base_mac']
 } else {
   $network_provider   = 'nova'
   $floating_ips_range = hiera('floating_network_range')
@@ -133,7 +122,8 @@ $floating_hash = {}
 
 $memcached_server = hiera('memcached_addresses')
 $memcached_port   = hiera('memcache_server_port', '11211')
-$mountpoints      = filter_hash($mp_hash,'point')
+$memcached_addresses =  suffix($memcached_server, inline_template(":<%= @memcached_port %>"))
+
 
 # SQLAlchemy backend configuration
 $max_pool_size = min($::processorcount * 5 + 0, 30 + 0)
@@ -145,38 +135,6 @@ if ($storage_hash['volumes_lvm']) {
   nova_config { 'keymgr/fixed_key':
     value => $cinder_hash[fixed_key];
   }
-}
-
-# Determine who should get the volume service
-
-if (roles_include(['cinder']) and $storage_hash['volumes_lvm']) {
-  $manage_volumes = 'iscsi'
-} elsif (roles_include(['cinder']) and $storage_hash['volumes_vmdk']) {
-  $manage_volumes = 'vmdk'
-} elsif ($storage_hash['volumes_ceph']) {
-  $manage_volumes = 'ceph'
-} else {
-  $manage_volumes = false
-}
-
-#Determine who should be the default backend
-
-if ($storage_hash['images_ceph']) {
-  $glance_backend = 'ceph'
-  $glance_known_stores = [ 'glance.store.rbd.Store', 'glance.store.http.Store' ]
-} elsif ($storage_hash['images_vcenter']) {
-  $glance_backend = 'vmware'
-  $glance_known_stores = [ 'glance.store.vmware_datastore.Store', 'glance.store.http.Store' ]
-} else {
-  $glance_backend = 'swift'
-  $glance_known_stores = [ 'glance.store.swift.Store', 'glance.store.http.Store' ]
-}
-
-# Use Swift if it isn't replaced by vCenter, Ceph for BOTH images and objects
-if !($storage_hash['images_ceph'] and $storage_hash['objects_ceph']) and !$storage_hash['images_vcenter'] {
-  $use_swift = true
-} else {
-  $use_swift = false
 }
 
 # Get reserved host memory straight value if we've ceph neighbor
@@ -193,37 +151,6 @@ if roles_include(['controller', 'primary-controller']) {
   $use_monit_real = $use_monit
 }
 
-if $use_monit_real {
-  # Configure service names for monit watchdogs and 'service' system path
-  # FIXME(bogdando) replace service_path to systemd, once supported
-  include ::nova::params
-  include ::cinder::params
-  include ::neutron::params
-  $nova_compute_name   = $::nova::params::compute_service_name
-  $nova_api_name       = $::nova::params::api_service_name
-  $nova_network_name   = $::nova::params::network_service_name
-  $cinder_volume_name  = $::cinder::params::volume_service
-  $ovs_vswitchd_name   = $::l23network::params::ovs_service_name
-  case $::osfamily {
-    'RedHat' : {
-      $service_path   = '/sbin/service'
-    }
-    'Debian' : {
-      $service_path    = '/usr/sbin/service'
-    }
-    default  : {
-      fail("Unsupported osfamily: ${osfamily} for os ${operatingsystem}")
-    }
-  }
-}
-
-#HARDCODED PARAMETERS
-if hiera('use_vcenter', false) {
-  $multi_host = false
-} else {
-  $multi_host = true
-}
-
 $mirror_type = 'external'
 Exec { logoutput => true }
 
@@ -238,89 +165,8 @@ if ($::mellanox_mode == 'ethernet') {
   }
 }
 
-$oc_public_interface = $public_int ? {
-  undef   => '',
-  default => $public_int
-}
 
-$oc_private_interface = $use_neutron ? {
-  true    => false,
-  default => hiera('private_int', undef)
-}
-
-$oc_fixed_range = $use_neutron ? {
-  true    => false,
-  default => hiera('fixed_network_range', undef)
-}
-
-$oc_neutron_user_password = $use_neutron ? {
-  true    => $neutron_config['keystone']['admin_password'],
-  default => undef
-}
-
-$oc_nova_hash = merge({ 'reserved_host_memory' => $r_hostmem }, $nova_hash)
-
-# NOTE(bogdando) deploy compute node with disabled nova-compute
-#   service #LP1398817. The orchestration will start and enable it back
-#   after the deployment is done.
-# FIXME(bogdando) This should be changed once the host aggregates implemented, bp disable-new-computes
-class { '::openstack::compute':
-  enabled                     => false,
-  public_interface            => $oc_public_interface,
-  private_interface           => $oc_private_interface,
-  internal_address            => get_network_role_property('nova/api', 'ipaddr'),
-  libvirt_type                => hiera('libvirt_type', undef),
-  # FIXME(bogdando) remove after fixed upstream https://review.openstack.org/131710
-  host_uuid                   => hiera('host_uuid', generate('/bin/sh', '-c', 'uuidgen')),
-  fixed_range                 => $oc_fixed_range,
-  network_manager             => hiera('network_manager', undef),
-  network_config              => hiera('network_config', {}),
-  multi_host                  => $multi_host,
-  queue_provider              => $queue_provider,
-  amqp_hosts                  => hiera('amqp_hosts',''),
-  amqp_user                   => pick($rabbit_hash['user'], 'nova'),
-  amqp_password               => $rabbit_hash['password'],
-  rabbit_ha_queues            => $rabbit_ha_queues,
-  auto_assign_floating_ip     => $auto_assign_floating_ip,
-  glance_api_servers          => $glance_api_servers,
-  vncproxy_protocol           => $vncproxy_protocol,
-  vncproxy_host               => $vncproxy_host,
-  vncserver_listen            => '0.0.0.0',
-  migration_support           => true,
-  debug                       => $debug,
-  verbose                     => $verbose,
-  use_stderr                  => $use_stderr,
-  cinder_volume_group         => 'cinder',
-  vnc_enabled                 => true,
-  manage_volumes              => $manage_volumes,
-  nova_user_password          => $nova_hash[user_password],
-  nova_hash                   => $oc_nova_hash,
-  cache_server_ip             => $memcached_server,
-  cache_server_port           => $memcached_port,
-  service_endpoint            => $service_endpoint,
-  cinder                      => true,
-  cinder_iscsi_bind_addr      => get_network_role_property('cinder/iscsi', 'ipaddr'),
-  cinder_user_password        => $cinder_hash[user_password],
-  cinder_db_password          => $cinder_hash[db_password],
-  notification_driver         => $ceilometer_hash['notification_driver'],
-  ceilometer_metering_secret  => $ceilometer_hash[metering_secret],
-  ceilometer_user_password    => $ceilometer_hash[user_password],
-  db_host                     => $db_host,
-  network_provider            => $network_provider,
-  neutron_user_password       => $oc_neutron_user_password,
-  base_mac                    => $base_mac,
-
-  use_syslog                  => $use_syslog,
-  syslog_log_facility         => $syslog_log_facility_nova,
-  syslog_log_facility_neutron => $syslog_log_facility_neutron,
-  nova_rate_limits            => $nova_rate_limits,
-  nova_report_interval        => $nova_report_interval,
-  nova_service_down_time      => $nova_service_down_time,
-  state_path                  => $nova_hash[state_path],
-  neutron_settings            => $neutron_config,
-  storage_hash                => $storage_hash,
-  config_drive_format         => $config_drive_format,
-}
+$nova_hash = merge({ 'reserved_host_memory' => $r_hostmem }, $hiera_nova_hash)
 
 # Required for fping API extension, see LP#1486404
 ensure_packages('fping')
@@ -343,6 +189,26 @@ class {'::nova::config':
 # Configure monit watchdogs
 # FIXME(bogdando) replace service_path and action to systemd, once supported
 if $use_monit_real {
+
+  # Configure service names for monit watchdogs and 'service' system path
+  # FIXME(bogdando) replace service_path to systemd, once supported
+  include ::nova::params
+  $nova_compute_name   = $::nova::params::compute_service_name
+  $nova_api_name       = $::nova::params::api_service_name
+  $nova_network_name   = $::nova::params::network_service_name
+  $ovs_vswitchd_name   = $::l23network::params::ovs_service_name
+  case $::osfamily {
+    'RedHat' : {
+      $service_path   = '/sbin/service'
+    }
+    'Debian' : {
+      $service_path    = '/usr/sbin/service'
+    }
+    default  : {
+      fail("Unsupported osfamily: ${osfamily} for os ${operatingsystem}")
+    }
+  }
+
   monit::check::process { $nova_compute_name :
     ensure        => running,
     matching      => '/usr/bin/python /usr/bin/nova-compute',
@@ -375,7 +241,357 @@ if $use_monit_real {
   }
 }
 
-########################################################################
+# Below here was imported from ::openstack::compute
+
+include ::nova::params
+
+case $::osfamily {
+  'RedHat': {
+    # TODO(aschultz): this is actually handled by ::nova::migration::libvirt
+    # when you include nova::compute::libvirt so we can probably remove this
+    # after it has been verified
+    augeas { 'sysconfig-libvirt':
+      context => '/files/etc/sysconfig/libvirtd',
+      lens => "shellvars.lns",
+      incl => "/etc/sysconfig/libvirtd",
+      changes => 'set LIBVIRTD_ARGS "--listen"',
+      before  => Augeas['libvirt-conf'],
+    }
+
+    # From legacy libvirt.pp
+    exec { 'symlink-qemu-kvm':
+      command => '/bin/ln -sf /usr/libexec/qemu-kvm /usr/bin/qemu-system-x86_64',
+      creates => '/usr/bin/qemu-system-x86_64',
+    }
+
+    package { 'avahi':
+      ensure => present;
+    }
+
+    service { 'avahi-daemon':
+      ensure  => running,
+      require => Package['avahi'];
+    }
+
+    Package['avahi'] ->
+    Service['messagebus'] ->
+    Service['avahi-daemon'] ->
+    Service['libvirt']
+
+    service { 'libvirt-guests':
+      name       => 'libvirt-guests',
+      enable     => false,
+      ensure     => true,
+      hasstatus  => false,
+      hasrestart => false,
+    }
+
+    # From legacy params.pp
+    $libvirt_type_kvm             = 'qemu-kvm'
+    $guestmount_package_name      = 'libguestfs-tools-c'
+
+    # From legacy utilities.pp
+    package { ['unzip', 'curl', 'euca2ools']:
+      ensure => present
+    }
+    if !(defined(Package['parted'])) {
+      package {'parted': ensure => 'present' }
+    }
+
+    package {$guestmount_package_name: ensure => present}
+  }
+  'Debian': {
+    # TODO(aschultz): this is actually handled by ::nova::migration::libvirt
+    # when you include nova::compute::libvirt so we can probably remove this
+    # after it has been verified
+    augeas { 'default-libvirt':
+      context => '/files/etc/default/libvirt-bin',
+      changes => "set libvirtd_opts '\"-l -d\"'",
+      before  => Augeas['libvirt-conf'],
+    }
+    # From legacy params
+    $libvirt_type_kvm             = 'qemu-kvm'
+    $guestmount_package_name      = 'guestmount'
+  }
+default: { fail("Unsupported osfamily: ${::osfamily}") }
+}
+
+# TODO(aschultz): this is actually handled by ::nova::migration::libvirt
+# when you include nova::compute::libvirt so we can probably remove this
+# after it has been verified
+augeas { 'libvirt-conf':
+  context => '/files/etc/libvirt/libvirtd.conf',
+  changes => [
+    'set listen_tls 0',
+    'set listen_tcp 1',
+    'set auth_tcp none',
+  ],
+  notify  => Service['libvirt'],
+}
+
+# FIXME(bogdando) remove after fixed upstream https://review.openstack.org/131710
+augeas { 'libvirt-conf-uuid':
+  context => '/files/etc/libvirt/libvirtd.conf',
+  changes => [
+    "set host_uuid $host_uuid",
+  ],
+  onlyif  => "match /files/etc/libvirt/libvirtd.conf/host_uuid size == 0",
+  notify  => Service['libvirt'],
+}
+
+$notify_on_state_change = 'vm_and_task_state'
+
+class { 'nova':
+  install_utilities      => false,
+  ensure_package         => $::openstack_version['nova'],
+  rpc_backend            => 'nova.openstack.common.rpc.impl_kombu',
+  #FIXME(bogdando) we have to split amqp_hosts until all modules synced
+  rabbit_hosts           => split(hiera('amqp_hosts',''), ','),
+  rabbit_userid          => pick($rabbit_hash['user'], 'nova'),
+  rabbit_password        => rabbit_hash['password'],
+  kombu_reconnect_delay  => '5.0',
+  image_service          => 'nova.image.glance.GlanceImageService',
+  glance_api_servers     => $glance_api_servers,
+  verbose                => $verbose,
+  debug                  => $debug,
+  use_syslog             => $use_syslog,
+  use_stderr             => $use_stderr,
+  log_facility           => $syslog_log_facility,
+  state_path             => $nova_hash[state_path],
+  report_interval        => $nova_report_interval,
+  service_down_time      => $nova_service_down_time,
+  notify_on_state_change => $notify_on_state_change,
+  notification_driver    => $ceilometer_hash['notification_driver'],
+  memcached_servers      => $memcached_addresses,
+  cinder_catalog_info    => pick($nova_hash['cinder_catalog_info'], 'volumev2:cinderv2:internalURL'),
+}
+
+class {'::nova::availability_zone':
+  default_availability_zone => $nova_hash['default_availability_zone'],
+  default_schedule_zone     => $nova_hash['default_schedule_zone'],
+}
+
+if str2bool($::is_virtual) {
+  $libvirt_cpu_mode = 'none'
+} else {
+  $libvirt_cpu_mode = 'host-model'
+}
+# Install / configure nova-compute
+
+# From legacy ceilometer notifications for nova
+$instance_usage_audit = true
+$instance_usage_audit_period = 'hour'
+
+####### Disable upstart startup on install #######
+if($::operatingsystem == 'Ubuntu') {
+  tweaks::ubuntu_service_override { 'nova-compute':
+    package_name => "nova-compute-${libvirt_type}",
+  }
+}
+
+# NOTE(bogdando) deploy compute node with disabled nova-compute
+#   service #LP1398817. The orchestration will start and enable it back
+#   after the deployment is done.
+# FIXME(bogdando) This should be changed once the host aggregates implemented, bp disable-new-computes
+
+class { '::nova::compute':
+  ensure_package                => $::openstack_version['nova'],
+  enabled                       => false,
+  vnc_enabled                   => true,
+  vncserver_proxyclient_address => get_network_role_property('nova/api', 'ipaddr'),
+  vncproxy_protocol             => $vncproxy_protocol,
+  vncproxy_host                 => $vncproxy_host,
+  vncproxy_port                 => $nova_hash['vncproxy_port'],
+  force_config_drive            => $nova_hash['force_config_drive'],
+  #NOTE(bogdando) default became true in 4.0.0 puppet-nova (was false)
+  neutron_enabled               => ($network_provider == 'neutron'),
+  install_bridge_utils          => false,
+  network_device_mtu            => '65000',
+  instance_usage_audit          => $instance_usage_audit,
+  instance_usage_audit_period   => $instance_usage_audit_period,
+  reserved_host_memory          => $nova_hash['reserved_host_memory'],
+  config_drive_format           => $config_drive_format,
+  allow_resize_to_same_host     => true,
+}
+
+nova_config {
+  'libvirt/live_migration_flag':  value => 'VIR_MIGRATE_UNDEFINE_SOURCE,VIR_MIGRATE_PEER2PEER,VIR_MIGRATE_LIVE,VIR_MIGRATE_PERSIST_DEST';
+  'libvirt/block_migration_flag': value => 'VIR_MIGRATE_UNDEFINE_SOURCE,VIR_MIGRATE_PEER2PEER,VIR_MIGRATE_LIVE,VIR_MIGRATE_NON_SHARED_INC';
+  'DEFAULT/connection_type':      value => 'libvirt';
+}
+
+if $use_syslog {
+  nova_config {
+    'DEFAULT/use_syslog_rfc_format':  value => true;
+  }
+}
+
+# The default value for inject_partition is -2, so it will be disabled
+# when we use Ceph for ephemeral storage or for Cinder. We only need to
+# modify the libvirt_disk_cachemodes in that case.
+if ($storage_hash['ephemeral_ceph'] or $storage_hash['volumes_ceph']) {
+  $disk_cachemodes = ['"network=writeback,block=none"']
+  $libvirt_inject_partition = '-2'
+} else {
+  if $::osfamily == 'RedHat' {
+    $libvirt_inject_partition = '-1'
+  } else {
+    # Enable module by default on each compute node
+    k_mod {'nbd':
+      ensure => 'present'
+    }
+    file_line {'nbd_on_boot':
+      path => '/etc/modules',
+      line => 'nbd',
+    }
+    $libvirt_inject_partition = '1'
+  }
+  $disk_cachemodes = ['"file=directsync,block=none"']
+}
+
+# Configure libvirt for nova-compute
+class { 'nova::compute::libvirt':
+  libvirt_virt_type                          => $libvirt_type,
+  libvirt_cpu_mode                           => $libvirt_cpu_mode,
+  libvirt_disk_cachemodes                    => $disk_cachemodes,
+  libvirt_inject_partition                   => $libvirt_inject_partition,
+  vncserver_listen                           => '0.0.0.0',
+  migration_support                          => true,
+  remove_unused_original_minimum_age_seconds => pick($nova_hash['remove_unused_original_minimum_age_seconds'], '86400'),
+  compute_driver                             => 'libvirt.LibvirtDriver',
+  libvirt_service_name                       => $::nova::params::libvirt_service_name,
+}
+
+# From legacy libvirt.pp
+if $::operatingsystem == 'Ubuntu' {
+  package { 'cpufrequtils':
+    ensure => present;
+  }
+  file { '/etc/default/cpufrequtils':
+    content => "GOVERNOR=\"performance\"\n",
+    require => Package['cpufrequtils'],
+    notify  => Service['cpufrequtils'],
+  }
+  service { 'cpufrequtils':
+    ensure    => 'running',
+    enable    => true,
+    status    => '/bin/true',
+  }
+
+  Package<| title == 'cpufrequtils'|> ~> Service<| title == 'cpufrequtils'|>
+  if !defined(Service['cpufrequtils']) {
+    notify{ "Module ${module_name} cannot notify service cpufrequtils on package update": }
+  }
+}
+
+if $::operatingsystem == 'Centos' {
+  package { 'cpufreq-init':
+    ensure => present;
+  }
+}
+
+case $libvirt_type {
+  'kvm': {
+    package { $libvirt_type_kvm:
+      ensure => present,
+      before => Package[$::nova::params::compute_package_name],
+    }
+    case $::osfamily {
+      'RedHat': {
+        exec { '/etc/sysconfig/modules/kvm.modules':
+          path      => '/sbin:/usr/sbin:/bin:/usr/bin',
+          unless    => 'lsmod | grep -q kvm',
+          require   => Package[$libvirt_type_kvm],
+        }
+      }
+      'Debian': {
+        service { 'qemu-kvm':
+          ensure    => running,
+          require   => Package[$libvirt_type_kvm],
+          subscribe => Package[$libvirt_type_kvm],
+        }
+      }
+      default: { fail("Unsupported osfamily: ${osfamily}") }
+    }
+  }
+}
+
+Service<| title == 'libvirt'|> ~> Service<| title == 'nova-compute'|>
+Package<| title == "nova-compute-${libvirt_type}"|> ~>
+Service<| title == 'nova-compute'|>
+
+case $::osfamily {
+  'RedHat': {
+    file_line { 'qemu_selinux':
+      path    => '/etc/libvirt/qemu.conf',
+      line    => 'security_driver = "selinux"',
+      require => Package[$::nova::params::libvirt_package_name],
+      notify  => Service['libvirt']
+    }
+  }
+  'Debian': {
+    file_line { 'qemu_apparmor':
+      path    => '/etc/libvirt/qemu.conf',
+      line    => 'security_driver = "apparmor"',
+      require => Package[$::nova::params::libvirt_package_name],
+      notify  => Service['libvirt']
+    }
+
+    file_line { 'apparmor_libvirtd':
+      path  => '/etc/apparmor.d/usr.sbin.libvirtd',
+      line  => "#  unix, # shouldn't be used for libvirt/qemu",
+      match => '^[#[:space:]]*unix',
+    }
+
+    exec { 'refresh_apparmor':
+      refreshonly => true,
+      command     => '/sbin/apparmor_parser -r /etc/apparmor.d/usr.sbin.libvirtd',
+      subscribe   => File_line['apparmor_libvirtd'],
+    }
+  }
+}
+
+Package<| title == 'nova-compute'|> ~> Service<| title == 'nova-compute'|>
+if !defined(Service['nova-compute']) {
+  notify{ "Module ${module_name} cannot notify service nova-compute on packages update": }
+}
+
+Package<| title == 'libvirt'|> ~> Service<| title == 'libvirt'|>
+if !defined(Service['libvirt']) {
+  notify{ "Module ${module_name} cannot notify service libvirt on package update": }
+}
+
+include nova::client
+
+# Ensure ssh clients are installed
+case $::osfamily {
+  'Debian': { $scp_package='openssh-client' }
+  'RedHat': { $scp_package='openssh-clients' }
+  default: { fail("Unsupported osfamily: ${osfamily}") }
+}
+if !defined(Package[$scp_package]) {
+  package { $scp_package:
+    ensure => installed
+  }
+}
+
+# Install ssh keys and config file
+install_ssh_keys {'nova_ssh_key_for_migration':
+  ensure           => present,
+  user             => 'nova',
+  private_key_path => $ssh_private_key,
+  public_key_path  => $ssh_public_key,
+  private_key_name => 'id_rsa',
+  public_key_name  => 'id_rsa.pub',
+  authorized_keys  => 'authorized_keys',
+} ->
+file { '/var/lib/nova/.ssh/config':
+  ensure  => present,
+  owner   => 'nova',
+  group   => 'nova',
+  mode    => '0600',
+  content => "Host *\n  StrictHostKeyChecking no\n  UserKnownHostsFile=/dev/null\n",
+}
 
 
 # vim: set ts=2 sw=2 et :
