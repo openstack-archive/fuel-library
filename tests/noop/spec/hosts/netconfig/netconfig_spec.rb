@@ -36,6 +36,11 @@ describe manifest do
         'exclude' => '/sys/class/net/lo/*',
 
       )}
+    else
+      it { should contain_sysfs_config_value('rps_cpus').with(
+        'ensure'  => 'absent',
+        'name'    => '/etc/sysfs.d/rps_cpus.conf',
+      )}
     end
     if set_xps
       it { should contain_sysfs_config_value('xps_cpus').with(
@@ -43,6 +48,11 @@ describe manifest do
         'name'    => '/etc/sysfs.d/xps_cpus.conf',
         'sysfs'   => '/sys/class/net/*/queues/tx-*/xps_cpus',
         'exclude' => '/sys/class/net/lo/*',
+      )}
+    else
+      it { should contain_sysfs_config_value('xps_cpus').with(
+        'ensure'  => 'absent',
+        'name'    => '/etc/sysfs.d/xps_cpus.conf',
       )}
     end
   end
