@@ -36,10 +36,8 @@ describe 'openstack::ceilometer' do
           :keystone_tenant       => 'services',
           :keystone_region       => 'Region007',
           :api_workers           => facts[:processorcount],
-          :host                  => '10.254.0.9',
-          :port                  => '8777',
-          :keystone_auth_uri     => 'http://127.0.0.1:5000/',
-          :keystone_identity_uri => 'http://127.0.0.1:35357/'
+          :ssl                   => false,
+          :api_bind_address      => '10.254.0.9',
         }
       end
 
@@ -61,15 +59,10 @@ describe 'openstack::ceilometer' do
         :auth_user        => params[:keystone_user],
       ) }
 
-      it { is_expected.to contain_class('ceilometer::api').with(
-          :keystone_auth_uri     => params[:keystone_auth_uri],
-          :keystone_identity_uri => params[:keystone_identity_uri],
-          :keystone_user         => params[:keystone_user],
-          :keystone_password     => params[:keystone_password],
-          :keystone_tenant       => params[:keystone_tenant],
-          :host                  => params[:host],
-          :port                  => params[:port],
-          :api_workers           => params[:api_workers],
+      it { is_expected.to contain_class('ceilometer::wsgi::apache').with(
+        :ssl       => params[:ssl],
+        :bind_host => params[:api_bind_address],
+        :workers   => params[:api_workers],
       ) }
     end
 
@@ -98,6 +91,8 @@ describe 'openstack::ceilometer' do
         :processorcount  => 2,
         :memorysize_mb   => 4096,
         :os_service_default => '<SERVICE DEFAULT>',
+        :operatingsystemrelease => '6',
+        :concat_basedir => '/var/lib/puppet/concat',
       }
     end
 
@@ -109,10 +104,14 @@ describe 'openstack::ceilometer' do
       {
         :osfamily        => 'RedHat',
         :operatingsystem => 'RedHat',
-        :processorcount  => 2,
-        :memorysize_mb   => 4096,
-        :os_service_default => '<SERVICE DEFAULT>',
+        :operatingsystemrelease => '7.1',
         :operatingsystemmajrelease => '7',
+        :hostname => 'hostname.example.com',
+        :physicalprocessorcount => 2,
+        :memorysize_mb => 4096,
+        :os_service_default => '<SERVICE DEFAULT>',
+        :concat_basedir => '/var/lib/puppet/concat',
+        :processorcount  => 2,
       }
     end
 

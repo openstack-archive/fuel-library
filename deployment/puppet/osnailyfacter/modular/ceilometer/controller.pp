@@ -46,6 +46,8 @@ $internal_auth_endpoint     = get_ssl_property($ssl_hash, {}, 'keystone', 'inter
 $keystone_identity_uri      = "${internal_auth_protocol}://${internal_auth_endpoint}:35357/"
 $keystone_auth_uri          = "${internal_auth_protocol}://${internal_auth_endpoint}:5000/"
 
+$ssl = false
+
 prepare_network_config(hiera_hash('network_scheme', {}))
 $api_bind_address           = get_network_role_property('ceilometer/api', 'ipaddr')
 
@@ -147,5 +149,11 @@ if ($ceilometer_enabled) {
     api_workers                => $service_workers,
     collector_workers          => $service_workers,
     notification_workers       => $service_workers,
+    ssl                        => $ssl,
+    api_bind_address           => $api_bind_address,
+  }
+
+  class { 'osnailyfacter::apache':
+    listen_ports => hiera_array('apache_ports', ['0.0.0.0:80', '0.0.0.0:8888', '0.0.0.0:5000', '0.0.0.0:35357', '0.0.0.0:8777']),
   }
 }
