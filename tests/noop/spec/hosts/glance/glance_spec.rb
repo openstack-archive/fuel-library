@@ -59,12 +59,6 @@ describe manifest do
       )
     end
 
-    it 'should declare openstack::glance class with 4 processess on 4 CPU & 32G system' do
-      should contain_class('openstack::glance').with(
-        'service_workers' => '4',
-      )
-    end
-
     it 'should configure workers for API, registry services' do
       fallback_workers = [[facts[:processorcount].to_i, 2].max, workers_max.to_i].min
       service_workers = glance_config.fetch('glance_workers', fallback_workers)
@@ -84,9 +78,10 @@ describe manifest do
         else
             extra_params = '?charset=utf8'
         end
-        should contain_class('openstack::glance').with(
-            :db_connection => "mysql://#{glance_db_user}:#{glance_db_password}@#{database_vip}/#{glance_db_name}#{extra_params}"
-        )
+
+        db_connection = "mysql://#{glance_db_user}:#{glance_db_password}@#{database_vip}/#{glance_db_name}#{extra_params}"
+        should contain_class('glace::api').with(:database_connection => db_connection)
+        should contain_class('glance::registry').with(:database_connection => db_connection)
     end
 
     it 'should configure glance api config' do
