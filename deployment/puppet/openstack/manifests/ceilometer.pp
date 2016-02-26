@@ -107,19 +107,6 @@ class openstack::ceilometer (
       sync_db             => $primary_controller,
     }
 
-    # Install the ceilometer-api service
-    # The keystone_password parameter is mandatory
-    class { '::ceilometer::api':
-      auth_uri          => $keystone_auth_uri,
-      identity_uri      => $keystone_identity_uri,
-      keystone_user     => $keystone_user,
-      keystone_password => $keystone_password,
-      keystone_tenant   => $keystone_tenant,
-      host              => $host,
-      port              => $port,
-      api_workers       => $api_workers,
-    }
-
     # Clean up expired data once a week
     class { '::ceilometer::expirer':
       minute       => '0',
