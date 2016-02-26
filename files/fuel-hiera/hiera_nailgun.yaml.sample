@@ -1,0 +1,33 @@
+---
+  !ruby/sym backends:
+    - nailgun
+    - yaml
+  !ruby/sym keystone:
+    :endpoint: "http://10.21.10.2:5000"
+    :api: "v2.0"
+    :credentials:
+       :user: "admin"
+       :pass: "admin"
+       :tenant: "admin"
+  !ruby/sym nailgun:
+    :endpoint: "http://10.21.10.2:8000"
+    :api: "v1"
+  !ruby/sym hierarchy:
+    - "override/node/%{::fqdn}"
+    - "override/class/%{calling_class}"
+    - "override/module/%{calling_module}"
+    - override/plugins
+    - override/common
+    - "override/configuration/%{::fqdn}"
+    - override/configuration/role
+    - override/configuration/cluster
+    - "class/%{calling_class}"
+    - "module/%{calling_module}"
+    - nodes
+    - "globals%{disable_globals_yaml}"
+    - astute
+  !ruby/sym yaml:
+    !ruby/sym datadir: /etc/hiera
+  !ruby/sym logger: noop
+  !ruby/sym merge_behavior: deeper
+
