@@ -24,7 +24,7 @@ describe manifest do
       )
     end
 
-    if Noop.hiera('use_neutron') && Noop.hiera('role') == 'compute'
+    if Noop.hiera('use_ovs') && Noop.hiera('role') == 'compute'
       neutron_integration_bridge = 'br-int'
       bridge_exists_check = "ovs-vsctl br-exists #{neutron_integration_bridge}"
 

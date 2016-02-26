@@ -1,9 +1,9 @@
 include nova::params
 
 $compute_service_name = $::nova::params::compute_service_name
-$use_neutron          = hiera('use_neutron', true)
+$use_ovs              = hiera('use_ovs', true)
 
-if $use_neutron {
+if $use_ovs {
   $neutron_integration_bridge = 'br-int'
   $bridge_exists_check        = "ovs-vsctl br-exists ${neutron_integration_bridge}"
 
