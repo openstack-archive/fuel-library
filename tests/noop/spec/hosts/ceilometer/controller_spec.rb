@@ -107,11 +107,10 @@ describe manifest do
         )
       end
 
-      it 'should configure workers for API, Collector and Agent Notification services' do
+      it 'should configure workers for Collector and Agent Notification services' do
         fallback_workers = [[facts[:processorcount].to_i, 2].max, workers_max.to_i].min
         service_workers = Noop.puppet_function 'pick', ceilometer_hash['workers'], fallback_workers
 
-        should contain_ceilometer_config('api/workers').with(:value => service_workers)
         should contain_ceilometer_config('collector/workers').with(:value => service_workers)
         should contain_ceilometer_config('notification/workers').with(:value => service_workers)
       end

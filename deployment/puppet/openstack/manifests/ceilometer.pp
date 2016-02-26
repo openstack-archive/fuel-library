@@ -107,7 +107,7 @@ class openstack::ceilometer (
       sync_db             => $primary_controller,
     }
 
-    # Install the ceilometer-api service
+    # Install the ceilometer-api as httpd service
     # The keystone_password parameter is mandatory
     class { '::ceilometer::api':
       keystone_auth_uri     => $keystone_auth_uri,
@@ -115,9 +115,7 @@ class openstack::ceilometer (
       keystone_user         => $keystone_user,
       keystone_password     => $keystone_password,
       keystone_tenant       => $keystone_tenant,
-      host                  => $host,
-      port                  => $port,
-      api_workers           => $api_workers,
+      service_name          => 'httpd',
     }
 
     # Clean up expired data once a week
