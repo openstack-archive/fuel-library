@@ -54,7 +54,7 @@
   type: puppet
   version: 2.0.0
   groups: [primary-mongo]
-  required_for: [deploy_end]
+  required_for: [ceilometer-controller, deploy_end]
   requires: [hosts, firewall]
   parameters:
     puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/roles/mongo.pp
@@ -67,7 +67,7 @@
   groups: [mongo]
   cross-depends:
     - name: primary-mongo
-  required_for: [deploy_end]
+  required_for: [ceilometer-controller, deploy_end]
   requires: [hosts, firewall]
   parameters:
     puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/roles/mongo.pp
