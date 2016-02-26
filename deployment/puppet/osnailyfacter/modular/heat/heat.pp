@@ -131,7 +131,12 @@ if $sahara_hash['enabled'] {
   heat_config {
     'DEFAULT/reauthentication_auth_method': value => 'trusts';
   }
+} else {
+  heat_config {
+    'DEFAULT/reauthentication_auth_method': ensure=> absent;
+  }
 }
+
 
 # Turn on Caching for Heat validation process
 heat_config {
