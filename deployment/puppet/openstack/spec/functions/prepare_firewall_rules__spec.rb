@@ -5,11 +5,7 @@ describe 'function to prepare hash of firewall rules for multiple networks' do
 
   def setup_scope
     @compiler = Puppet::Parser::Compiler.new(Puppet::Node.new("floppy", :environment => 'production'))
-    if Puppet.version =~ /^3\./
-      @scope = Puppet::Parser::Scope.new(@compiler)
-    else
-      @scope = Puppet::Parser::Scope.new(:compiler => @compiler)
-    end
+    @scope = Puppet::Parser::Scope.new(@compiler)
     @topscope = @topscope
     @scope.parent = @topscope
     Puppet::Parser::Functions.function(:prepare_firewall_rules)
