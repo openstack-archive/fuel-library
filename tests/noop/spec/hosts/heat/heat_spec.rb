@@ -89,9 +89,11 @@ describe manifest do
       should contain_heat_config('DEFAULT/default_log_levels').with_value(default_log_levels.sort.join(','))
     end
 
-    if sahara
-      it 'should configure ' do
+    it 'should configure ' do
+      if  sahara
         should contain_heat_config('DEFAULT/reauthentication_auth_method').with_value('trusts')
+      else
+        should contain_heat_config('DEFAULT/reauthentication_auth_method').with_ensure('absent')
       end
     end
 
