@@ -1,0 +1,20 @@
+require 'rubygems'
+require 'rubygems/package_task'
+
+spec = Gem::Specification.new do |gem|
+    gem.name = "hiera-fuel"
+    gem.version = "1.0.0"
+    gem.summary = "Nailgun backend for Hiera"
+    gem.email = "sryabin@mirantis.com"
+    gem.author = "Ryabin Sergey"
+    gem.homepage = "http://mirantis.com"
+    gem.description = "Hiera backend for looking up data over Nailgun APIs"
+    gem.require_path = "lib"
+    gem.files = FileList["lib/**/*"].to_a
+    gem.add_dependency('json', '>=1.1.1')
+end
+
+Gem::PackageTask.new(spec) do |pkg|
+    pkg.need_tar = true
+    pkg.gem_spec = spec
+end
