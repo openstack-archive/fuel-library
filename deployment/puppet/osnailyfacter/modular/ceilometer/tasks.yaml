@@ -3,10 +3,10 @@
   version: 2.0.0
   cross-depends:
     - name: ceilometer-keystone
-    - name: /(primary-)?mongo/
+    - name: /top-role-(primary-)?mongo/
   groups: [primary-controller, controller]
   required_for: [primary-openstack-controller, openstack-controller, swift]
-  requires: [mongo, primary-mongo, openstack-haproxy]
+  requires: [openstack-haproxy]
   condition: "settings:additional_components.ceilometer.value == true"
   parameters:
     puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/ceilometer/controller.pp
