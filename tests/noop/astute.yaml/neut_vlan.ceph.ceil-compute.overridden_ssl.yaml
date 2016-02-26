@@ -195,6 +195,22 @@ use_ssl:
   sahara_admin_usercert: true
   sahara_admin_certdata:
     content: 'somethinglikeacertificateforsahara'
+  murano: true
+  murano_public: true
+  murano_public_hostname: 'murano.public.fuel.local'
+  murano_public_usercert: true
+  murano_public_certdata:
+    content: 'somethinglikeacertificateformurano'
+  murano_internal: true
+  murano_internal_hostname: 'murano.internal.fuel.local'
+  murano_internal_usercert: true
+  murano_internal_certdata:
+    content: 'somethinglikeacertificateformurano'
+  murano_admin: true
+  murano_admin_hostname: 'murano.admin.fuel.local'
+  murano_admin_usercert: true
+  murano_admin_certdata:
+    content: 'somethinglikeacertificateformurano'
   ceilometer: true
   ceilometer_public: true
   ceilometer_public_hostname: 'ceilometer.public.fuel.local'
@@ -266,6 +282,19 @@ mp:
   weight: '1'
 - point: '2'
   weight: '2'
+murano:
+  db_password: 7I6NRZcB
+  enabled: false
+  rabbit_password: X4GK4R7f
+  user_password: nuCELy8q
+murano_settings:
+  metadata:
+    label: Murano Settings
+    restrictions:
+    - action: hide
+      condition: settings:additional_components.murano.value == false
+    weight: 20
+  murano_repo_url: http://catalog.openstack.org/
 mysql:
   root_password: 5eqwkxY3
   wsrep_password: sFMiVJ7I
@@ -302,6 +331,7 @@ network_metadata:
         fw-admin: 10.109.0.9
         glance/api: 192.168.0.1
         mgmt/vip: 192.168.0.1
+        murano/api: 192.168.0.1
         nova/api: 192.168.0.1
         horizon: 192.168.0.1
         mgmt/memcache: 192.168.0.1
@@ -342,6 +372,7 @@ network_metadata:
         fw-admin: 10.109.0.9
         glance/api: 192.168.0.2
         mgmt/vip: 192.168.0.2
+        murano/api: 192.168.0.2
         nova/api: 192.168.0.2
         horizon: 192.168.0.2
         mgmt/memcache: 192.168.0.2
@@ -382,6 +413,7 @@ network_metadata:
         fw-admin: 10.109.0.9
         glance/api: 192.168.0.3
         mgmt/vip: 192.168.0.3
+        murano/api: 192.168.0.3
         nova/api: 192.168.0.3
         horizon: 192.168.0.3
         mgmt/memcache: 192.168.0.3
@@ -422,6 +454,7 @@ network_metadata:
         fw-admin: 10.109.0.9
         glance/api: 192.168.0.4
         mgmt/vip: 192.168.0.4
+        murano/api: 192.168.0.4
         nova/api: 192.168.0.4
         horizon: 192.168.0.4
         mgmt/memcache: 192.168.0.4
@@ -462,6 +495,7 @@ network_metadata:
         fw-admin: 10.109.0.9
         glance/api: 192.168.0.5
         mgmt/vip: 192.168.0.5
+        murano/api: 192.168.0.5
         nova/api: 192.168.0.5
         horizon: 192.168.0.5
         mgmt/memcache: 192.168.0.5
@@ -584,6 +618,7 @@ network_scheme:
     fw-admin: br-fw-admin
     glance/api: br-mgmt
     heat/api: br-mgmt
+    murano/api: br-mgmt
     nova/api: br-mgmt
     horizon: br-mgmt
     mgmt/memcache: br-mgmt

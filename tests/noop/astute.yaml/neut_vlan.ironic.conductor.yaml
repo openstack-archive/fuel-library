@@ -265,6 +265,20 @@ external_dns:
   metadata:
     weight: 90
     label: Host OS DNS Servers
+murano:
+  db_password: K8EARFe83CmiuTgiVftdoX0B
+  user_password: mLMZMBvmZyvdv6J1CKA1TuLM
+  enabled: false
+  rabbit_password: 8h3k5Uf3U7uT39Fr2wggpXOH
+murano_settings:
+  murano_repo_url: http://storage.apps.openstack.org/
+  metadata:
+    restrictions:
+    - action: hide
+      message: Murano is not enabled on the Additional Components section
+      condition: settings:additional_components.murano.value == false
+    weight: 20
+    label: Murano Settings
 role: ironic
 external_mongo:
   mongo_db_name: ceilometer
@@ -410,6 +424,7 @@ network_metadata:
         fw-admin: 10.109.37.4
         glance/api: 192.168.0.3
         mgmt/vip: 192.168.0.3
+        murano/api: 192.168.0.3
         ironic/api: 192.168.0.3
         nova/api: 192.168.0.3
         horizon: 192.168.0.3
@@ -448,6 +463,7 @@ network_metadata:
         fw-admin: 10.109.37.3
         glance/api: 192.168.0.4
         heat/api: 192.168.0.4
+        murano/api: 192.168.0.4
         ironic/api: 192.168.0.4
         nova/api: 192.168.0.4
         horizon: 192.168.0.4
@@ -535,6 +551,7 @@ network_scheme:
     - br-baremetal
     provider: ovs
   roles:
+    murano/api: br-mgmt
     keystone/api: br-mgmt
     neutron/api: br-mgmt
     mgmt/database: br-mgmt

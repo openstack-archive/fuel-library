@@ -149,6 +149,21 @@ nova:
 master_ip: 10.20.0.2
 priority: 400
 private_network_range: 192.168.2.0/24
+murano:
+  db_password: 5uCzknw9OPs1xn0yOoCkJz2L
+  user_password: eMmLpzvRBmaK6shCMdqCcvJl
+  enabled: false
+  rabbit_password: t2o8zY995hJDZxBVgNhGs3eN
+murano_settings:
+  murano_repo_url: http://storage.apps.openstack.org/
+  metadata:
+    restrictions:
+    - action: hide
+      message: Murano is not enabled on the Additional Components section
+      condition: settings:additional_components.murano.value == false
+    group: openstack_services
+    weight: 20
+    label: Murano Settings
 role: cinder-block-device
 external_mongo:
   mongo_db_name: ceilometer
@@ -270,6 +285,7 @@ network_metadata:
       uid: '9'
       fqdn: node-9.domain.tld
       network_roles:
+        murano/api: 192.168.0.4
         keystone/api: 192.168.0.4
         neutron/api: 192.168.0.4
         mgmt/database: 192.168.0.4
@@ -308,6 +324,7 @@ network_metadata:
       uid: '1'
       fqdn: node-1.domain.tld
       network_roles:
+        murano/api: 192.168.0.3
         keystone/api: 192.168.0.3
         neutron/api: 192.168.0.3
         mgmt/database: 192.168.0.3
@@ -348,6 +365,7 @@ network_metadata:
       uid: '8'
       fqdn: node-8.domain.tld
       network_roles:
+        murano/api: 192.168.0.5
         keystone/api: 192.168.0.5
         neutron/api: 192.168.0.5
         mgmt/database: 192.168.0.5
@@ -386,6 +404,7 @@ network_metadata:
       uid: '3'
       fqdn: node-3.domain.tld
       network_roles:
+        murano/api: 192.168.0.6
         keystone/api: 192.168.0.6
         neutron/api: 192.168.0.6
         mgmt/database: 192.168.0.6
@@ -426,6 +445,7 @@ network_metadata:
       uid: '2'
       fqdn: node-2.domain.tld
       network_roles:
+        murano/api: 192.168.0.7
         keystone/api: 192.168.0.7
         neutron/api: 192.168.0.7
         mgmt/database: 192.168.0.7
@@ -511,6 +531,7 @@ network_scheme:
     bridge: br-mesh
     name: eth0.103
   roles:
+    murano/api: br-mgmt
     keystone/api: br-mgmt
     neutron/api: br-mgmt
     mgmt/database: br-mgmt

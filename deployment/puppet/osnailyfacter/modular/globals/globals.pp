@@ -61,6 +61,10 @@ $storage_hash                   = hiera('storage', {})
 $syslog_hash                    = hiera('syslog', {})
 $base_syslog_hash               = hiera('base_syslog', {})
 $sahara_hash                    = hiera('sahara', {})
+$murano                         = merge({'rabbit' => {'vhost' => '/', 'port' => '55572'}},
+                                        hiera('murano', {}))
+$murano_glance_artifacts_plugin = hiera('murano_glance_artifacts_plugin', {})
+$murano_hash                    = merge($murano, { 'plugins' => {'glance_artifacts_plugin' => $murano_glance_artifacts_plugin } })
 $heat_hash                      = hiera_hash('heat', {})
 $vcenter_hash                   = hiera('vcenter', {})
 $nova_hash                      = hiera_hash('nova', {})
@@ -88,6 +92,7 @@ $syslog_log_facility_cinder     = hiera('syslog_log_facility_cinder', 'LOG_LOCAL
 $syslog_log_facility_neutron    = hiera('syslog_log_facility_neutron', 'LOG_LOCAL4')
 $syslog_log_facility_nova       = hiera('syslog_log_facility_nova','LOG_LOCAL6')
 $syslog_log_facility_keystone   = hiera('syslog_log_facility_keystone', 'LOG_LOCAL7')
+$syslog_log_facility_murano     = hiera('syslog_log_facility_murano', 'LOG_LOCAL0')
 $syslog_log_facility_heat       = hiera('syslog_log_facility_heat','LOG_LOCAL0')
 $syslog_log_facility_sahara     = hiera('syslog_log_facility_sahara','LOG_LOCAL0')
 $syslog_log_facility_ceilometer = hiera('syslog_log_facility_ceilometer','LOG_LOCAL0')
@@ -396,6 +401,10 @@ $swift_proxies = get_nodes_hash_by_roles($network_metadata, $swift_proxy_role)
 $swift_proxy_caches  = $swift_proxies  # memcache for swift
 #is_primary_swift_proxy should be override by plugin
 $is_primary_swift_proxy = $primary_controller
+
+# Define murano-related variables
+$murano_roles = hiera('murano_roles', ['primary-controller', 'controller'])
+$murano_nodes = get_nodes_hash_by_roles($network_metadata, $murano_roles)
 
 # Define heat-related variables:
 $heat_roles = hiera('heat_roles', ['primary-controller', 'controller'])
