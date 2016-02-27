@@ -1,7 +1,7 @@
 notice('MODULAR: heat.pp')
 
 prepare_network_config(hiera_hash('network_scheme', {}))
-$management_vip           = hiera('management_vip')
+$external_ip              = hiera('management_vip')
 $heat_hash                = hiera_hash('heat', {})
 $sahara_hash              = hiera_hash('sahara_hash', {})
 $rabbit_hash              = hiera_hash('rabbit_hash', {})
@@ -9,7 +9,7 @@ $max_retries              = hiera('max_retries')
 $max_pool_size            = hiera('max_pool_size')
 $max_overflow             = hiera('max_overflow')
 $idle_timeout             = hiera('idle_timeout')
-$service_endpoint         = hiera('service_endpoint')
+$keystone_host            = hiera('service_endpoint')
 $public_ssl_hash          = hiera('public_ssl')
 $ssl_hash                 = hiera_hash('use_ssl', {})
 $public_vip               = hiera('public_vip')
@@ -18,27 +18,35 @@ $primary_controller       = hiera('primary_controller')
 $public_auth_protocol     = get_ssl_property($ssl_hash, $public_ssl_hash, 'keystone', 'public', 'protocol', 'http')
 $public_auth_address      = get_ssl_property($ssl_hash, $public_ssl_hash, 'keystone', 'public', 'hostname', [$public_vip])
 $internal_auth_protocol   = get_ssl_property($ssl_hash, {}, 'keystone', 'internal', 'protocol', 'http')
-$internal_auth_address    = get_ssl_property($ssl_hash, {}, 'keystone', 'internal', 'hostname', [$service_endpoint, $management_vip])
+$internal_auth_address    = get_ssl_property($ssl_hash, {}, 'keystone', 'internal', 'hostname', [$keystone_host, $external_ip])
 $admin_auth_protocol      = get_ssl_property($ssl_hash, {}, 'keystone', 'admin', 'protocol', 'http')
-$admin_auth_address       = get_ssl_property($ssl_hash, {}, 'keystone', 'admin', 'hostname', [$service_endpoint, $management_vip])
+$admin_auth_address       = get_ssl_property($ssl_hash, {}, 'keystone', 'admin', 'hostname', [$keystone_host, $external_ip])
 
 $heat_protocol            = get_ssl_property($ssl_hash, {}, 'heat', 'internal', 'protocol', 'http')
-$heat_endpoint            = get_ssl_property($ssl_hash, {}, 'heat', 'internal', 'hostname', [hiera('heat_endpoint', ''), $management_vip])
+$heat_endpoint            = get_ssl_property($ssl_hash, {}, 'heat', 'internal', 'hostname', [hiera('heat_endpoint', ''), $external_ip])
 $internal_ssl             = get_ssl_property($ssl_hash, {}, 'heat', 'internal', 'usage', false)
 
 $public_ssl               = get_ssl_property($ssl_hash, {}, 'heat', 'public', 'usage', false)
 
-$auth_uri = "${public_auth_protocol}://${public_auth_address}:5000/v2.0/"
-$identity_uri = "${admin_auth_protocol}://${admin_auth_address}:35357/"
+$auth_uri                 = "${public_auth_protocol}://${public_auth_address}:5000/v2.0/"
+$identity_uri             = "${admin_auth_protocol}://${admin_auth_address}:35357/"
+$keystone_ec2_uri         = "${internal_auth_protocol}://${internal_auth_address}:5000/v2.0"
+
+$api_bind_port            = '8004'
+$api_cfn_bind_port        = '8000'
+$api_cloudwatch_bind_port = '8003'
+$metadata_server_url      = "${heat_protocol}://${external_ip}:${api_cfn_bind_port}"
+$waitcondition_server_url = "${metadata_server_url}/v1/waitcondition"
+$watch_server_url         = "${heat_protocol}://${external_ip}:${api_cloudwatch_bind_port}"
+
 
 $debug                    = pick($heat_hash['debug'], hiera('debug', false))
 $verbose                  = pick($heat_hash['verbose'], hiera('verbose', true))
-$default_log_levels       = hiera_hash('default_log_levels')
 $use_stderr               = hiera('use_stderr', false)
 $use_syslog               = hiera('use_syslog', true)
-$syslog_log_facility_heat = hiera('syslog_log_facility_heat')
+$syslog_log_facility      = hiera('syslog_log_facility_heat')
 $deployment_mode          = hiera('deployment_mode')
-$bind_address             = get_network_role_property('heat/api', 'ipaddr')
+$bind_host                = get_network_role_property('heat/api', 'ipaddr')
 $memcache_address         = get_network_role_property('mgmt/memcache', 'ipaddr')
 $keystone_user            = pick($heat_hash['user'], 'heat')
 $keystone_tenant          = pick($heat_hash['tenant'], 'services')
@@ -84,47 +92,6 @@ if $::operatingsystem == 'Ubuntu' {
   Tweaks::Ubuntu_service_override['heat-api-cfn']        -> Service['heat-api-cfn']
   Tweaks::Ubuntu_service_override['heat-api-cloudwatch'] -> Service['heat-api-cloudwatch']
   Tweaks::Ubuntu_service_override['heat-engine']         -> Service['heat-engine']
-}
-
-class { 'openstack::heat' :
-  external_ip              => $management_vip,
-  keystone_auth            => pick($heat_hash['keystone_auth'], true),
-  api_bind_host            => $bind_address,
-  api_cfn_bind_host        => $bind_address,
-  api_cloudwatch_bind_host => $bind_address,
-  auth_uri                 => $auth_uri,
-  identity_uri             => $identity_uri,
-  keystone_protocol        => $keystone_protocol,
-  keystone_host            => $service_endpoint,
-  keystone_user            => $keystone_user,
-  keystone_password        => $heat_hash['user_password'],
-  keystone_tenant          => $keystone_tenant,
-  keystone_ec2_uri         => "${internal_auth_protocol}://${internal_auth_address}:5000/v2.0",
-  region                   => $region,
-  rpc_backend              => 'rabbit',
-  amqp_hosts               => split(hiera('amqp_hosts',''), ','),
-  heat_protocol            => $heat_protocol,
-  amqp_user                => $rabbit_hash['user'],
-  amqp_password            => $rabbit_hash['password'],
-  db_connection            => $db_connection,
-  max_retries              => $max_retries,
-  max_pool_size            => $max_pool_size,
-  max_overflow             => $max_overflow,
-  idle_timeout             => $idle_timeout,
-  primary_controller       => $primary_controller,
-  debug                    => $debug,
-  verbose                  => $verbose,
-  default_log_levels       => $default_log_levels,
-  use_syslog               => $use_syslog,
-  use_stderr               => $use_stderr,
-  syslog_log_facility      => $syslog_log_facility_heat,
-  auth_encryption_key      => $heat_hash['auth_encryption_key'],
-}
-
-if hiera('heat_ha_engine', true){
-  if ($deployment_mode == 'ha') or ($deployment_mode == 'ha_compact') {
-    include ::cluster::heat_engine
-  }
 }
 
 if $sahara_hash['enabled'] {
@@ -205,3 +172,96 @@ class mysql::server {}
 class mysql::config {}
 include mysql::server
 include mysql::config
+
+######################
+
+# No empty passwords allowed
+validate_string($amqp_password)
+
+Package<| title == 'heat-api-cfn' or title == 'heat-api-cloudwatch' |>
+Heat_config <|
+  title == 'DEFAULT/instance_connection_https_validate_certificates' or
+  title == 'DEFAULT/instance_connection_is_secure'
+|> ->
+Service<| title == 'heat-api-cfn' or title == 'heat-api-cloudwatch' |>
+
+# Syslog configuration
+if $use_syslog {
+  heat_config {
+    'DEFAULT/use_syslog_rfc_format': value => true;
+  }
+}
+
+# Common configuration, logging and RPC
+class { '::heat':
+  auth_uri              => $auth_uri,
+  identity_uri          => $identity_uri,
+  keystone_ec2_uri      => $keystone_ec2_uri,
+  keystone_user         => $keystone_user,
+  keystone_tenant       => $keystone_tenant,
+  keystone_password     => $heat_hash['user_password'],
+  region_name           => $region,
+
+  database_connection   => $db_connection,
+  database_idle_timeout => $idle_timeout,
+  sync_db               => $primary_controller,
+
+  rpc_backend           => 'rabbit',
+  rpc_response_timeout  => '600',
+  rabbit_hosts          => split(hiera('amqp_hosts',''), ','),
+  rabbit_userid         => $rabbit_hash['user'],
+  rabbit_password       => $rabbit_hash['password'],
+
+  log_dir               => '/var/log/heat',
+  verbose               => $verbose,
+  debug                 => $debug,
+  use_syslog            => $use_syslog,
+  use_stderr            => $use_stderr,
+  log_facility          => $syslog_log_facility,
+
+  max_template_size     => '5440000',
+  max_json_body_size    => '10880000',
+  notification_driver   => 'heat.openstack.common.notifier.rpc_notifier',
+
+  database_max_pool_size => $max_pool_size,
+  database_max_overflow  => $max_overflow,
+  database_max_retries   => $max_retries,
+}
+
+# Engine
+class { 'heat::engine' :
+  auth_encryption_key           => $heat_hash['auth_encryption_key'],
+  heat_metadata_server_url      => $metadata_server_url,
+  heat_waitcondition_server_url => $waitcondition_server_url,
+  heat_watch_server_url         => $watch_server_url,
+  # TODO(iberezovskiy) Added in 99ad7e2d, but not inline with upstream,
+  # please coment which to use
+  # https://github.com/openstack/puppet-heat/blob/master/manifests/engine.pp#L105
+  trusts_delegated_roles        => [],
+  max_resources_per_stack       => '20000',
+  instance_connection_https_validate_certificates => '1',
+  instance_connection_is_secure => '0',
+}
+
+if hiera('heat_ha_engine', true){
+  if ($deployment_mode == 'ha') or ($deployment_mode == 'ha_compact') {
+    include ::cluster::heat_engine
+  }
+}
+
+# Install the heat APIs
+class { 'heat::api':
+  bind_host => $bind_host,
+  bind_port => $api_bind_port,
+}
+class { 'heat::api_cfn' :
+  bind_host => $bind_host,
+  bind_port => $api_cfn_bind_port,
+}
+class { 'heat::api_cloudwatch' :
+  bind_host => $bind_host,
+  bind_port => $api_cloudwatch_bind_port,
+
+}
+# Client
+class { 'heat::client' :  }
