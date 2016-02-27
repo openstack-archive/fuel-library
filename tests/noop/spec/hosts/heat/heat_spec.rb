@@ -80,8 +80,8 @@ describe manifest do
       else
         extra_params = '?charset=utf8'
       end
-      should contain_class('openstack::heat').with(
-        :db_connection => "mysql://#{heat_db_user}:#{heat_db_password}@#{database_vip}/#{heat_db_name}#{extra_params}"
+      should contain_class('heat').with(
+        :database_connection => "mysql://#{heat_db_user}:#{heat_db_password}@#{database_vip}/#{heat_db_name}#{extra_params}"
       )
     end
 
@@ -96,10 +96,10 @@ describe manifest do
     end
 
     it 'should use auth_uri and identity_uri' do
-      should contain_class('openstack::heat').with(
-        'auth_uri'           => "#{public_auth_protocol}://#{public_auth_address}:5000/v2.0/",
-        'identity_uri'       => "#{admin_auth_protocol}://#{admin_auth_address}:35357/",
-        'primary_controller' => primary_controller,
+      should contain_class('heat').with(
+        'auth_uri'      => "#{public_auth_protocol}://#{public_auth_address}:5000/v2.0/",
+        'identity_uri'  => "#{admin_auth_protocol}://#{admin_auth_address}:35357/",
+        'sync_db'       => primary_controller,
       )
     end
 
