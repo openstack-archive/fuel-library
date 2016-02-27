@@ -11,7 +11,6 @@
 # the inclusion of this class.
 #
 class cluster::heat_engine {
-  include ::heat::engine
   include ::heat::params
 
   $primitive_type  = 'heat-engine'
