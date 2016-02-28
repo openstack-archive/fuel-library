@@ -24,50 +24,47 @@
 #  Defaults to '/var/run/mysqld/mysqld.sock'
 #
 class cluster::mysql (
-  $primary_controller,
   $mysql_user,
   $mysql_password,
   $mysql_config = '/etc/mysql/my.cnf',
   $mysql_socket = '/var/run/mysqld/mysqld.sock',
 ) {
-  $service_name = 'mysqld'
+  $service_name       = 'mysqld'
+  $primitive_class    = 'ocf'
+  $primitive_provider = 'fuel'
+  $primitive_type     = 'mysql-wss'
+  $complex_type       = 'clone'
 
-  if $primary_controller {
-    pcmk_resource { "p_${service_name}":
-      ensure             => 'present',
-      primitive_class    => 'ocf',
-      primitive_provider => 'fuel',
-      primitive_type     => 'mysql-wss',
-      complex_type       => 'clone',
-      parameters      => {
-        'config'      => $mysql_config,
-        'test_user'   => $mysql_user,
-        'test_passwd' => $mysql_password,
-        'socket'      => $mysql_socket,
-      },
-      operations      => {
-        'monitor' => {
-          'interval' => '60',
-          'timeout'  => '55'
-        },
-        'start'   => {
-          'interval' => '0',
-          'timeout'  => '300'
-        },
-        'stop'    => {
-          'interval' => '0',
-          'timeout'  => '120'
-        },
-      },
-    }
-
-    Pcmk_resource["p_${service_name}"] ~>
-      Service[$service_name]
+  $parameters = {
+    'config'      => $mysql_config,
+    'test_user'   => $mysql_user,
+    'test_passwd' => $mysql_password,
+    'socket'      => $mysql_socket,
   }
 
-  Service <| title == 'mysqld' |> {
-    name     => 'p_mysqld',
-    provider => 'pacemaker',
+  $operations = {
+    'monitor' => {
+      'interval' => '60',
+      'timeout'  => '55'
+    },
+    'start'   => {
+      'interval' => '0',
+      'timeout'  => '300'
+    },
+    'stop'    => {
+      'interval' => '0',
+      'timeout'  => '120'
+    },
+  }
+
+  pacemaker::service { $service_name:
+    primitive_class    => $primitive_class,
+    primitive_provider => $primitive_provider,
+    primitive_type     => $primitive_type,
+    complex_type       => $complex_type,
+    parameters         => $parameters,
+    operations         => $operations,
+    prefix             => true,
   }
 
   # NOTE(aschultz): strings must contain single quotes only, see the
@@ -93,7 +90,6 @@ class cluster::mysql (
     command => "echo \"${init_file_contents}\" > /tmp/wsrep-init-file",
     unless  => "mysql ${user_password_string} -Nbe \"select 'OK';\" | grep -q OK",
     require => Package['mysql-server'],
-    before  => Service[$service_name],
   } ~>
 
   exec { 'wait-initial-sync':
@@ -111,7 +107,7 @@ class cluster::mysql (
   }
 
   Exec['create-init-file'] ->
-    Service['mysqld'] ->
+    Service<| title == $service_name |> ->
       Exec['wait-initial-sync'] ->
         Exec['rm-init-file']
 }
