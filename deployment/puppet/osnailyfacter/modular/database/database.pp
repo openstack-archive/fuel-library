@@ -271,7 +271,6 @@ if $enabled {
 
   # include our integration with pacemaker
   class { '::cluster::mysql':
-    primary_controller => $primary_controller,
     mysql_user         => $status_user,
     mysql_password     => $status_password,
     mysql_config       => '/etc/mysql/my.cnf',

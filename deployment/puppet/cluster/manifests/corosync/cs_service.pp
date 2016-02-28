@@ -24,19 +24,20 @@ define cluster::corosync::cs_service (
   }
 
   if $primary {
-    pcmk_resource { "p_${service_name}":
-      ensure               => 'present',
-      primitive_class      => 'ocf',
-      primitive_provider   => 'fuel',
-      primitive_type       => $ocf_script,
-      complex_type         => $csr_complex_type,
-      complex_metadata     => $csr_ms_metadata,
-      parameters           => $csr_parameters,
-      metadata             => $csr_metadata,
-      operations           => {
-        'monitor' => {
-          'interval' => $csr_mon_intr,
-          'timeout'  => $csr_mon_timeout
+    pcmk_resource { "p_${service_true_title}":
+      ensure             => 'present',
+      primitive_class    => 'ocf',
+      primitive_provider => 'fuel',
+      primitive_type     => $ocf_script,
+      complex_type       => $csr_complex_type,
+      complex_metadata   => $csr_ms_metadata,
+      parameters         => $csr_parameters,
+      metadata           => $csr_metadata,
+      name               => $service_name,
+      operations         => {
+        'monitor'        => {
+          'interval'     => $csr_mon_intr,
+          'timeout'      => $csr_mon_timeout
         },
         'start'   => {
           'interval' => '0',
@@ -48,7 +49,7 @@ define cluster::corosync::cs_service (
         }
       }
     }
-    Pcmk_resource["p_${service_name}"] -> Service[$service_true_title]
+    Pcmk_resource["p_${service_true_title}"] -> Service<| title == $service_true_title |>
   }
   if ! $package_name {
     warning('Cluster::corosync::cs_service: Without package definition can\'t protect service for autostart correctly.')
@@ -59,10 +60,7 @@ define cluster::corosync::cs_service (
   }
 
   Service<| title=="${service_true_title}" |> {
-    enable     => true,
-    ensure     => running,
-    hasstatus  => true,
-    hasrestart => $hasrestart,
-    provider   => 'pacemaker',
+    name     => $service_name,
+    provider => 'pacemaker',
   }
 }

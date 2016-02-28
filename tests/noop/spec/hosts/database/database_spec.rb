@@ -151,7 +151,6 @@ describe manifest do
 
     it 'should configure pacemaker with mysql service' do
       should contain_class('cluster::mysql').with(
-        :primary_controller => primary_controller,
         :mysql_user => 'clustercheck',
         :mysql_password => status_database_password,
         :mysql_config => '/etc/mysql/my.cnf',
