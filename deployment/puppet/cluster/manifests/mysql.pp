@@ -62,10 +62,12 @@ class cluster::mysql (
     }
 
     Pcmk_resource["p_${service_name}"] ~>
-      Service[$service_name]
+      Service["${service_name}-cluster"]
   }
 
-  Service <| title == 'mysqld' |> {
+  service { "${service_name}-cluster":
+    ensure   => running,
+    enable   => true,
     name     => 'p_mysqld',
     provider => 'pacemaker',
   }
@@ -93,7 +95,7 @@ class cluster::mysql (
     command => "echo \"${init_file_contents}\" > /tmp/wsrep-init-file",
     unless  => "mysql ${user_password_string} -Nbe \"select 'OK';\" | grep -q OK",
     require => Package['mysql-server'],
-    before  => Service[$service_name],
+    before  => Service["${service_name}-cluster"],
   } ~>
 
   exec { 'wait-initial-sync':
@@ -111,7 +113,8 @@ class cluster::mysql (
   }
 
   Exec['create-init-file'] ->
-    Service['mysqld'] ->
-      Exec['wait-initial-sync'] ->
-        Exec['rm-init-file']
+    Service[$service_name] ->
+      Service["${service_name}-cluster"] ->
+        Exec['wait-initial-sync'] ->
+          Exec['rm-init-file']
 }
