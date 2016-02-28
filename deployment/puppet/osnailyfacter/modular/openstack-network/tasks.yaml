@@ -91,7 +91,7 @@
   version: 2.0.0
   groups: [primary-controller]
   required_for: [openstack-network-end]
-  requires: [primary-openstack-network-plugins-l2]
+  requires: [primary-openstack-network-agents-dhcp]
   parameters:
     puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/openstack-network/networks.pp
     puppet_modules: /etc/puppet/modules
@@ -103,7 +103,7 @@
   groups: [primary-controller]
   condition: "settings:neutron_advanced_configuration.neutron_l3_ha.value == false"
   required_for: [openstack-network-end]
-  requires: [openstack-network-networks]
+  requires: [primary-openstack-network-agents-l3, openstack-network-networks]
   parameters:
     puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/openstack-network/routers.pp
     puppet_modules: /etc/puppet/modules
@@ -129,7 +129,7 @@
   version: 2.0.0
   groups: [primary-controller]
   required_for: [openstack-network-end]
-  requires: [openstack-network-networks, openstack-network-routers, primary-openstack-network-plugins-l2, openstack-network-plugins-l2]
+  requires: [primary-openstack-network-plugins-l2, openstack-network-plugins-l2]
   refresh_on: [neutron_l3_agent_config]
   parameters:
     puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/openstack-network/agents/l3.pp
@@ -142,7 +142,7 @@
   version: 2.0.0
   groups: [controller,compute]
   required_for: [openstack-network-end]
-  requires: [openstack-network-networks, openstack-network-routers, primary-openstack-network-plugins-l2, openstack-network-plugins-l2]
+  requires: [primary-openstack-network-plugins-l2, openstack-network-plugins-l2]
   refresh_on: [neutron_l3_agent_config]
   cross-depends:
     - name: /(primary-)?openstack-network-plugins-l2/
