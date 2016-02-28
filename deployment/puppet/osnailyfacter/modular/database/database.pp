@@ -213,7 +213,8 @@ if $enabled {
   }
 
   tweaks::ubuntu_service_override { 'mysql':
-    package_name => $mysql_package_name,
+    service_name => 'mysqld',
+    package_name => 'mysql-server',
   }
 
   # build our mysql options to be configured in my.cnf
@@ -241,6 +242,7 @@ if $enabled {
     local_ip              => $galera_node_address,
     wsrep_sst_method      => 'xtrabackup-v2',
     override_options      => $override_options,
+    service_enabled       => false,
   }
 
   # Make sure the mysql service is stopped with upstart as we will be starting
