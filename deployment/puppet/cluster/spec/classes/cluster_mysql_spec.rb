@@ -8,7 +8,6 @@ describe 'cluster::mysql' do
     context 'with valid params' do
       let :params do
         {
-          :primary_controller => true,
           :mysql_user => 'username',
           :mysql_password => 'password',
         }
@@ -24,7 +23,7 @@ describe 'cluster::mysql' do
             'socket' =>'/var/run/mysqld/mysqld.sock'
           }
         )
-        should contain_pcmk_resource('p_mysqld').that_notifies('Service[mysqld]')
+        should contain_pcmk_resource('p_mysqld').that_comes_before('Service[mysqld]')
       end
 
       it 'creates init-file with grants' do
@@ -59,6 +58,7 @@ describe 'cluster::mysql' do
     let :facts do
       { :osfamily => 'RedHat',
         :operatingsystem => 'RedHat',
+        :operatingsystemmajrelease => '7',
         :hostname => 'hostname.example.com', }
     end
 
@@ -66,4 +66,3 @@ describe 'cluster::mysql' do
   end
 
 end
-
