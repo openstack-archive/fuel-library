@@ -24,7 +24,7 @@ describe 'cluster::mysql' do
             'socket' =>'/var/run/mysqld/mysqld.sock'
           }
         )
-        should contain_pcmk_resource('p_mysqld').that_notifies('Service[mysqld]')
+        should contain_pcmk_resource('p_mysqld').that_notifies('Service[mysql-cluster]')
       end
 
       it 'creates init-file with grants' do
@@ -34,7 +34,7 @@ describe 'cluster::mysql' do
         should contain_exec('create-init-file').with_command(
           /'username'@'localhost' IDENTIFIED BY 'password'/
         )
-        should contain_exec('create-init-file').that_comes_before('Service[mysqld]')
+        should contain_exec('create-init-file').that_comes_before('Service[mysqld-cluster]')
         should contain_exec('create-init-file').that_notifies('Exec[wait-initial-sync]')
       end
 
