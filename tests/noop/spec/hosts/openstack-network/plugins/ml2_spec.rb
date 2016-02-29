@@ -44,6 +44,8 @@ describe manifest do
         pnets = neutron_config.fetch('L2',{}).fetch('phys_nets',{})
         segmentation_type = neutron_config.fetch('L2',{}).fetch('segmentation_type')
         l2_population = adv_neutron_config.fetch('neutron_l2_pop', false)
+        dpdk_config = Noop.hiera_hash('dpdk', {})
+        enable_dpdk = dpdk_config.fetch('enabled', false)
 
         if segmentation_type == 'vlan'
           network_type   = 'vlan'
@@ -66,6 +68,24 @@ describe manifest do
           network_type   = 'vxlan'
           tunnel_types    = [network_type]
         end
+
+       if role == 'compute' and enable_dpdk
+         it 'should set dpdk-specific options for OVS agent' do
+           should contain_neutron_agent_ovs('securitygroup/enable_security_group').with_value('false')
+           should contain_class('neutron::agents::ml2::ovs').with(
+             'firewall_driver'      => 'neutron.agent.firewall.NoopFirewallDriver',
+             'datapath_type'        => 'netdev',
+             'vhostuser_socket_dir' => '/var/run/openvswitch',
+           )
+         end
+       else
+         it 'should skip dpdk-specific options for OVS agent' do
+           should contain_neutron_agent_ovs('securitygroup/enable_security_group').with_value('true')
+           should contain_class('neutron::agents::ml2::ovs').with(
+             'firewall_driver' => 'neutron.agent.linux.iptables_firewall.OVSHybridIptablesFirewallDriver',
+           )
+         end
+       end
 
         bridge_mappings = physnets_array.compact
         it { should contain_class('neutron::agents::ml2::ovs').with(
