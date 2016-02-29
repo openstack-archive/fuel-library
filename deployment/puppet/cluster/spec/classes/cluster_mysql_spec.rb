@@ -15,7 +15,7 @@ describe 'cluster::mysql' do
       end
 
       it 'configures a cs_resource' do
-        should contain_cs_resource('p_mysqld').with(
+        should contain_pcmk_resource('p_mysqld').with(
           :ensure => 'present',
           :parameters => {
             'config' => '/etc/mysql/my.cnf',
@@ -24,7 +24,7 @@ describe 'cluster::mysql' do
             'socket' =>'/var/run/mysqld/mysqld.sock'
           }
         )
-        should contain_cs_resource('p_mysqld').that_notifies('Service[mysqld]')
+        should contain_pcmk_resource('p_mysqld').that_notifies('Service[mysqld]')
       end
 
       it 'creates init-file with grants' do

@@ -6,10 +6,9 @@ class cluster::vrouter_ocf (
   $other_networks = false,
 ) {
   $service_name = 'p_vrouter'
-
   $primitive_type = 'ns_vrouter'
   $complex_type   = 'clone'
-  $ms_metadata = {
+  $complex_metadata = {
     'interleave' => true,
   }
   $metadata = {
@@ -43,13 +42,13 @@ class cluster::vrouter_ocf (
     provider   => 'pacemaker',
   }
 
-  pacemaker_wrappers::service { $service_name :
-    primitive_type => $primitive_type,
-    parameters     => $parameters,
-    metadata       => $metadata,
-    operations     => $operations,
-    ms_metadata    => $ms_metadata,
-    complex_type   => $complex_type,
-    prefix         => false,
+  pacemaker::service { $service_name :
+    primitive_type      => $primitive_type,
+    parameters          => $parameters,
+    metadata            => $metadata,
+    operations          => $operations,
+    complex_metadata    => $complex_metadata,
+    complex_type        => $complex_type,
+    prefix              => false,
   }
 }
