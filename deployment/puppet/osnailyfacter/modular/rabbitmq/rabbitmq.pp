@@ -165,7 +165,7 @@ if $queue_provider == 'rabbitmq' {
     }
 
     if ($use_pacemaker) {
-      class { 'pacemaker_wrappers::rabbitmq':
+      class { 'cluster::rabbitmq_ocf':
         command_timeout         => $command_timeout,
         debug                   => $debug,
         erlang_cookie           => $erlang_cookie,
