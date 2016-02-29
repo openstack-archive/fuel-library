@@ -390,6 +390,30 @@ describe manifest do
       end
     end
 
+    it 'should declare nova::scheduler::filter with an appropriate filters' do
+      nova_scheduler_filters         = []
+      nova_scheduler_default_filters = [ 'RetryFilter', 'AvailabilityZoneFilter', 'RamFilter', 'CoreFilter', 'DiskFilter', 'ComputeFilter', 'ComputeCapabilitiesFilter', 'ImagePropertiesFilter', 'ServerGroupAntiAffinityFilter', 'ServerGroupAffinityFilter' ]
+      sahara_filters                 = [ 'DifferentHostFilter' ]
+      sriov_filters                  = [ 'PciPassthroughFilter','AggregateInstanceExtraSpecsFilter' ]
+
+      enable_sahara = Noop.hiera_structure 'sahara/enabled', false
+      enable_sriov  = Noop.hiera_structure 'quantum_settings/supported_pci_vendor_devs', false
+
+      nova_scheduler_filters = nova_scheduler_filters.concat(nova_scheduler_default_filters)
+
+      if enable_sahara
+        nova_scheduler_filters = nova_scheduler_filters.concat(sahara_filters)
+      end
+      if enable_sriov
+        nova_scheduler_filters = nova_scheduler_filters.concat(sriov_filters)
+      end
+
+      should contain_class('nova::scheduler::filter').with(
+        'scheduler_default_filters' => nova_scheduler_filters.uniq(),
+      )
+    end
+
+
     if primary_controller
       it 'should have explicit ordering between LB classes and particular actions' do
         expect(graph).to ensure_transitive_dependency("Class[nova::api]","Haproxy_backend_status[nova-api]")
