@@ -21,4 +21,4 @@ fi
 
 echo "Preparing the environment..."
 
-./noop_tests.sh -bB -d -t -l
+./noop_tests.sh -bB -d -t -lL
