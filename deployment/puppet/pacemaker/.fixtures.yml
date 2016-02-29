@@ -1,4 +1,0 @@
-fixtures:
-  symlinks:
-    pacemaker: "#{source_dir}"
-    stdlib: "#{source_dir}/../stdlib"
