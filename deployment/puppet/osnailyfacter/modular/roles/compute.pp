@@ -323,6 +323,7 @@ class { '::openstack::compute':
   storage_hash                => $storage_hash,
   config_drive_format         => $config_drive_format,
   use_huge_pages              => $use_huge_pages,
+  vcpu_pin_set                => $nova_hash['cpu_pinning'],
 }
 
 # Required for fping API extension, see LP#1486404
