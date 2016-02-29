@@ -22,6 +22,16 @@ describe manifest do
       context 'with Neutron' do
         neutron_config = Noop.hiera('neutron_config')
         openstack_network_hash = Noop.hiera('openstack_network', { })
+        adv_neutron_config = Noop.hiera_hash('neutron_advanced_configuration', {})
+        enable_qos = adv_neutron_config.fetch('neutron_qos', false)
+        service_plugins = [
+          'neutron.services.l3_router.l3_router_plugin.L3RouterPlugin',
+          'neutron.services.metering.metering_plugin.MeteringPlugin',
+        ]
+
+        if enable_qos
+          service_plugins.concat(['qos'])
+        end
 
         it {
           verbose = openstack_network_hash['verbose']
@@ -48,10 +58,7 @@ describe manifest do
         it { should contain_class('neutron').with('base_mac' => neutron_config['L2']['base_mac'])}
         it { should contain_class('neutron').with('core_plugin' => 'neutron.plugins.ml2.plugin.Ml2Plugin')}
 
-        it { should contain_class('neutron').with('service_plugins' => [
-              'neutron.services.l3_router.l3_router_plugin.L3RouterPlugin',
-              'neutron.services.metering.metering_plugin.MeteringPlugin',
-        ])}
+        it { should contain_class('neutron').with('service_plugins' => service_plugins)}
 
         it { should contain_class('neutron').with('bind_host' => bind_host)}
 

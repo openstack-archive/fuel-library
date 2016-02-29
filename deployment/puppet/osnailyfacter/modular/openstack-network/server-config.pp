@@ -91,6 +91,15 @@ if $use_neutron {
   $dvr                     = pick($neutron_advanced_config['neutron_dvr'], false)
   $l3_ha                   = pick($neutron_advanced_config['neutron_l3_ha'], false)
   $l3agent_failover        = $l3_ha ? { true => false, default => true}
+  $enable_qos              = pick($neutron_advanced_config['neutron_qos'], false)
+
+  if $enable_qos {
+    $qos_notification_drivers = 'message_queue'
+    $extension_drivers = ['port_security', 'qos']
+  } else {
+    $qos_notification_drivers = undef
+    $extension_drivers = ['port_security']
+  }
 
   $nova_auth_user          = pick($nova_hash['user'], 'nova')
   $nova_auth_password      = $nova_hash['user_password']
@@ -170,7 +179,6 @@ if $use_neutron {
   }
 
   $vxlan_group = '224.0.0.1'
-  $extension_drivers = ['port_security']
   $tenant_network_types  = ['flat', $network_type]
 
   class { 'neutron::plugins::ml2':
@@ -213,6 +221,7 @@ if $use_neutron {
     rpc_workers                      => $service_workers,
 
     router_distributed               => $dvr,
+    qos_notification_drivers         => $qos_notification_drivers,
     enabled                          => true,
     manage_service                   => true,
   }

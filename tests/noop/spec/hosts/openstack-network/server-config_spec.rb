@@ -56,6 +56,15 @@ describe manifest do
           ml2_sriov_value = 'rm DAEMON_ARGS'
         end
 
+        enable_qos = adv_neutron_config.fetch('neutron_qos', false)
+
+        if enable_qos
+          extension_drivers = extension_drivers.concat(['qos'])
+          it { should contain_class('neutron::server').with(
+            'qos_notification_drivers' => 'message_queue',
+          )}
+        end
+
         if segmentation_type == 'vlan'
           network_type   = 'vlan'
           network_vlan_ranges_physnet2 = pnets.fetch('physnet2',{}).fetch('vlan_range')

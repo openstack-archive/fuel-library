@@ -4,14 +4,22 @@ $use_neutron = hiera('use_neutron', false)
 
 if $use_neutron {
 
-  $openstack_network_hash = hiera_hash('openstack_network', { })
-  $neutron_config         = hiera_hash('neutron_config')
+  $openstack_network_hash  = hiera_hash('openstack_network', { })
+  $neutron_config          = hiera_hash('neutron_config')
+  $neutron_advanced_config = hiera_hash('neutron_advanced_configuration', { })
+  $enable_qos              = pick($neutron_advanced_config['neutron_qos'], false)
 
-  $core_plugin            = 'neutron.plugins.ml2.plugin.Ml2Plugin'
-  $service_plugins        = [
+  $core_plugin             = 'neutron.plugins.ml2.plugin.Ml2Plugin'
+  $default_service_plugins = [
     'neutron.services.l3_router.l3_router_plugin.L3RouterPlugin',
     'neutron.services.metering.metering_plugin.MeteringPlugin',
   ]
+
+  if $enable_qos {
+    $service_plugins = concat($default_service_plugins, ['qos'])
+  } else {
+    $service_plugins = $default_service_plugins
+  }
 
   $rabbit_hash      = hiera_hash('rabbit_hash', {})
   $ceilometer_hash  = hiera_hash('ceilometer', {})
