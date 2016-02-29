@@ -4,6 +4,5 @@ docker
 mellanox_openstack
 mysql
 pacemaker
-pacemaker_wrappers
 rsyslog
 vmware

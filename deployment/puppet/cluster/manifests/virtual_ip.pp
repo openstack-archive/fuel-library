@@ -95,12 +95,12 @@ define cluster::virtual_ip (
     enable => true,
   }
 
-  pacemaker_wrappers::service { $vip_name :
-    primitive_type => $primitive_type,
-    parameters     => $parameters,
-    metadata       => $metadata,
-    operations     => $operations,
-    prefix         => false,
+  pacemaker::service { $vip_name :
+    primitive_type   => $primitive_type,
+    parameters       => $parameters,
+    metadata         => $metadata,
+    operations       => $operations,
+    prefix           => false,
   }
 
   # I'am running before this other vip
@@ -109,19 +109,17 @@ define cluster::virtual_ip (
   if $colocation_before {
     $colocation_before_vip_name = "vip__${colocation_before}"
     $colocation_before_constraint_name = "${colocation_before_vip_name}-with-${vip_name}"
-    cs_rsc_colocation { $colocation_before_constraint_name :
+    pcmk_colocation { $colocation_before_constraint_name :
       ensure     => 'present',
       score      => 'INFINITY',
-      primitives => [
-        $colocation_before_vip_name,
-        $vip_name,
-      ],
+      first      => $vip_name,
+      second     => $colocation_before_vip_name,
     }
 
-    Cs_resource <| title == $vip_name |> -> Cs_resource <| title == $colocation_before_vip_name |>
+    Pcmk_resource <| title == $vip_name |> -> Pcmk_resource <| title == $colocation_before_vip_name |>
     Service <| title == $vip_name |> -> Service <| title == $colocation_before_vip_name |>
-    Service <| title == $colocation_before_vip_name |> -> Cs_rsc_colocation[$colocation_before_constraint_name]
-    Service <| title == $vip_name |> -> Cs_rsc_colocation[$colocation_before_constraint_name]
+    Service <| title == $colocation_before_vip_name |> -> Pcmk_colocation[$colocation_before_constraint_name]
+    Service <| title == $vip_name |> -> Pcmk_colocation[$colocation_before_constraint_name]
   }
 
   # I'm running after this other vip
@@ -130,19 +128,17 @@ define cluster::virtual_ip (
   if $colocation_after {
     $colocation_after_vip_name = "vip__${colocation_after}"
     $colocation_after_constraint_name = "${vip_name}-with-${colocation_after_vip_name}"
-    cs_rsc_colocation { $colocation_after_constraint_name :
+    pcmk_colocation { $colocation_after_constraint_name :
       ensure     => 'present',
       score      => 'INFINITY',
-      primitives => [
-        $vip_name,
-        $colocation_after_vip_name,
-      ],
+      first      => $colocation_after_vip_name,
+      second     => $vip_name,
     }
 
-    Cs_resource <| title == $colocation_after_vip_name |> -> Cs_resource <| title == $vip_name |>
+    Pcmk_resource <| title == $colocation_after_vip_name |> -> Pcmk_resource <| title == $vip_name |>
     Service <| title == $colocation_after_vip_name |> -> Service <| title == $vip_name |>
-    Service <| title == $colocation_after_vip_name |> -> Cs_rsc_colocation[$colocation_after_constraint_name]
-    Service <| title == $vip_name |> -> Cs_rsc_colocation[$colocation_after_constraint_name]
+    Service <| title == $colocation_after_vip_name |> -> Pcmk_colocation[$colocation_after_constraint_name]
+    Service <| title == $vip_name |> -> Pcmk_colocation[$colocation_after_constraint_name]
   }
 
 }

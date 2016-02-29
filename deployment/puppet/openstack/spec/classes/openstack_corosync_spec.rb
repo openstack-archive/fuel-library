@@ -49,9 +49,8 @@ describe 'openstack::corosync' do
           'symmetric-cluster'        => false,
           'cluster-recheck-interval' => p[:cluster_recheck_interval],
         }.each do |prop, val|
-          should contain_cs_property(prop).with(
+          should contain_pcmk_property(prop).with(
             :ensure   => 'present',
-            :provider => 'crm',
             :value    => val,
           ).that_comes_before('Anchor[corosync-done]')
         end
