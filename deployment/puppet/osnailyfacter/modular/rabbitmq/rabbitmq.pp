@@ -165,13 +165,12 @@ if $queue_provider == 'rabbitmq' {
     }
 
     if ($use_pacemaker) {
-      class { 'pacemaker_wrappers::rabbitmq':
+      class { 'cluster::rabbitmq_ocf':
         command_timeout         => $command_timeout,
         debug                   => $debug,
         erlang_cookie           => $erlang_cookie,
         admin_user              => $rabbit_hash['user'],
         admin_pass              => $rabbit_hash['password'],
-        host_ip                 => $rabbitmq_bind_ip_address,
         before                  => Class['nova::rabbitmq'],
         enable_rpc_ha           => $enable_rpc_ha,
         enable_notifications_ha => $enable_notifications_ha,

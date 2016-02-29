@@ -20,9 +20,9 @@ describe 'vmware::ceilometer::ha' do
   end
 
   it 'should create service p_ceilometer_agent_compute_vmware_vCenter_prod' do
-    should contain_cs_resource('p_ceilometer_agent_compute_vmware_vCenter_prod').with({
-      'primitive_class' => 'ocf',
-      'provided_by' => 'fuel',
+    should contain_pcmk_resource('p_ceilometer_agent_compute_vmware_vCenter_prod').with({
+      'primitive_class'    => 'ocf',
+      'primitive_provider' => 'fuel',
     })
   end
 
@@ -31,6 +31,6 @@ describe 'vmware::ceilometer::ha' do
   end
 
   it 'should apply configuration file before corosync resource' do
-    should contain_file('/etc/ceilometer/ceilometer-compute.d/vmware-vCenter_prod.conf').that_comes_before('Cs_resource[p_ceilometer_agent_compute_vmware_vCenter_prod]')
+    should contain_file('/etc/ceilometer/ceilometer-compute.d/vmware-vCenter_prod.conf').that_comes_before('Pcmk_resource[p_ceilometer_agent_compute_vmware_vCenter_prod]')
   end
 end
