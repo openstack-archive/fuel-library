@@ -52,7 +52,7 @@ function get_module_deps {
   current_dir=`pwd`
   cd $WORKSPACE/deployment
   bundle update
-  ./update_modules.sh
+  ./update_modules.sh -I
   cd $current_dir
 }
 
