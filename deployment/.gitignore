@@ -1,4 +1,5 @@
 Puppetfile.lock
+puppet_modules.tgz
 .tmp
 
 # add modules being managed via librarian-puppet under here
