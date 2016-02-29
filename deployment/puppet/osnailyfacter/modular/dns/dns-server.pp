@@ -25,6 +25,5 @@ if $network_metadata['vips']["vrouter_${vrouter_name}"]['namespace'] {
   } ->
 
   class { 'cluster::dns_ocf':
-    primary_controller => $primary_controller,
   }
 }
