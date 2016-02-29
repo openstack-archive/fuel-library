@@ -1,4 +1,5 @@
 source 'https://rubygems.org'
+gem 'pry'
 # this is used to bundle install librarian puppet for the deployment folder
 
 group :development, :test do
