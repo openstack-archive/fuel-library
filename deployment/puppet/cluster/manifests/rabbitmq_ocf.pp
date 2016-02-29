@@ -1,4 +1,4 @@
-# == Class: pacemaker_wrappers::rabbitmq
+# == Class: cluster::rabbitmq_ocf
 #
 # Overrides rabbitmq service provider as a pacemaker
 #
@@ -63,7 +63,7 @@
 #   Defaults to empty string
 #
 
-class pacemaker_wrappers::rabbitmq (
+class cluster::rabbitmq_ocf (
   $primitive_type          = 'rabbitmq-server',
   $service_name            = $::rabbitmq::service_name,
   $port                    = $::rabbitmq::port,
@@ -106,7 +106,7 @@ class pacemaker_wrappers::rabbitmq (
     'resource-stickiness' => '100',
   }
 
-  $ms_metadata     = {
+  $complex_metadata     = {
     'notify'      => 'true',
     # We shouldn't enable ordered start for parallel start of RA.
     'ordered'     => 'false',
@@ -155,11 +155,11 @@ class pacemaker_wrappers::rabbitmq (
     },
   }
 
-  pacemaker_wrappers::service { $service_name :
+  pacemaker::service { $service_name :
     primitive_type      => $primitive_type,
     complex_type        => 'master',
+    complex_metadata    => $complex_metadata,
     metadata            => $metadata,
-    ms_metadata         => $ms_metadata,
     operations          => $operations,
     parameters          => $parameters,
     #    ocf_script_file     => $ocf_script_file,
