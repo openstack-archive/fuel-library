@@ -30,34 +30,32 @@ class cluster::sysinfo (
   $min_disk_free    = '100M',
   $disk_unit        = 'M',
   $monitor_interval = '15s',
-  $monitor_ensure   = present,
+  $monitor_ensure   = 'present',
 ) {
 
-  # NOTE: We do not use a clone resource here as disks may be different per host
-  cs_resource { "sysinfo_${::fqdn}":
-    ensure          => $monitor_ensure,
-    primitive_class => 'ocf',
-    provided_by     => 'pacemaker',
-    primitive_type  => 'SysInfo',
-    parameters      => {
+  pcmk_resource { "sysinfo_${::fqdn}" :
+    ensure                 => $monitor_ensure,
+    primitive_class        => 'ocf',
+    primitive_provider     => 'pacemaker',
+    primitive_type         => 'SysInfo',
+    parameters             => {
       'disks'         => join(any2array($disks), ' '),
       'min_disk_free' => $min_disk_free,
       'disk_unit'     => $disk_unit,
     },
-    operations      => { 'monitor' => { 'interval' => $monitor_interval } },
+    operations             => { 'monitor' => { 'interval' => $monitor_interval } },
   }
 
   # Have service migrate if health turns red from the failed disk check
-  cs_property { 'node-health-strategy':
-    ensure   => present,
+  pcmk_property { 'node-health-strategy':
+    ensure   => $monitor_ensure,
     value    => 'migrate-on-red',
-    provider => 'crm',
   }
 
-  cs_rsc_location { "sysinfo-on-${::fqdn}":
-    primitive  => "sysinfo_${::fqdn}",
-    node_name  => $::fqdn,
-    node_score => 'INFINITY',
-    cib        => "sysinfo_${::fqdn}",
+  pcmk_location { "sysinfo-on-${::fqdn}":
+    ensure    => $monitor_ensure,
+    primitive => "sysinfo_${::fqdn}",
+    node      => $::fqdn,
+    score     => 'INFINITY',
   }
 }
