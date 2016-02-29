@@ -2,8 +2,6 @@ require 'spec_helper'
 require 'shared-examples'
 manifest = 'openstack-controller/openstack-controller.pp'
 
-# DISABLE_SPEC
-
 describe manifest do
 
   before(:each) do
