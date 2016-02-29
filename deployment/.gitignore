@@ -1,4 +1,5 @@
 Puppetfile.lock
+puppet_modules.tgz
 .tmp
 
 # add modules being managed via librarian-puppet under here
@@ -41,3 +42,5 @@ puppet/tftp
 puppet/vcsrepo
 puppet/xinetd
 puppet/rabbitmq
+.tmp/
+modules/
