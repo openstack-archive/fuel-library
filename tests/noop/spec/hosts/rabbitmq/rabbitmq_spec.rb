@@ -143,7 +143,7 @@ describe manifest do
 
     it 'should configure pacemaker RA' do
       if use_pacemaker
-        should contain_class('pacemaker_wrappers::rabbitmq').with(
+        should contain_class('cluster::rabbitmq_ocf').with(
           :command_timeout         => $command_timeout,
           :debug                   => debug,
           :erlang_cookie           => erlang_cookie,
