@@ -1,6 +1,7 @@
 Puppetfile.lock
 .tmp
 puppet/module_versions
+puppet_modules.tgz
 
 # add modules being managed via librarian-puppet under here
 puppet/aodh
