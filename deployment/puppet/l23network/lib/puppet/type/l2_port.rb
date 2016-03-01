@@ -32,7 +32,7 @@ Puppet::Type.newtype(:l2_port) do
 
     #todo(sv): move to provider_specific hash
     newproperty(:type) do
-      newvalues(:system, :internal, :tap, :gre, :ipsec_gre, :capwap, :patch, :dpdk, :null, :undef, :nil, :none)
+      newvalues(:system, :internal, :tap, :gre, :ipsec_gre, :capwap, :patch, :null, :undef, :nil, :none)
       aliasvalue(:none,  :internal)
       aliasvalue(:undef, :internal)
       aliasvalue(:nil,   :internal)

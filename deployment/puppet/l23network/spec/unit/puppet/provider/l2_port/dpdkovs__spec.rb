@@ -24,15 +24,7 @@ describe Puppet::Type.type(:l2_port).provider(:dpdkovs) do
 
   let(:dpdk_ports_mapping) {
     {
-      'dpdk0'    => {
-        :interface => "eth0",
-        :port_type => [],
-        :type => "dpdk",
-        :provider => "dpdkovs",
-        :vendor_specific => {
-          "dpdk_port" => "dpdk0"
-        }
-      }
+      'eth0' => 'dpdk0'
     }
   }
 
