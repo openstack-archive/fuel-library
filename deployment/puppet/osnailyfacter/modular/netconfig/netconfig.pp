@@ -1,10 +1,13 @@
 notice('MODULAR: netconfig.pp')
 
 $network_scheme = hiera_hash('network_scheme', {})
+prepare_network_config($network_scheme)
 
 if ( $::l23_os =~ /(?i:centos6)/ and $::kernelmajversion == '3.10' ) {
   $ovs_datapath_package_name = 'kmod-openvswitch-lt'
 }
+
+$dpdk_options = hiera_hash('dpdk', {})
 
 class { 'l23network' :
   use_ovs                      => hiera('use_ovs', false),
@@ -13,8 +16,9 @@ class { 'l23network' :
                                     default                => true
                                   },
   ovs_datapath_package_name    => $ovs_datapath_package_name,
+  use_dpdk                     => pick($dpdk_options['enabled'], false),
+  dpdk_options                 => $dpdk_options,
 }
-prepare_network_config($network_scheme)
 $sdn = generate_network_config()
 notify {'SDN': message => $sdn }
 

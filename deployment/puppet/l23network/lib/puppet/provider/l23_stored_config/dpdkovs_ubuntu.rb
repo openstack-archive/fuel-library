@@ -51,8 +51,6 @@ Puppet::Type.type(:l23_stored_config).provide(:dpdkovs_ubuntu, :parent => Puppet
     header << self.puppet_header
     header << "allow-#{bridge} #{provider.name}"
     header << "iface #{provider.name} inet #{provider.method}"
-    header << "pre-up ovs-vsctl --may-exist add-port ${IF_OVS_BRIDGE} ${IF_DPDK_PORT} -- ${IF_OVS_EXTRA}"
-    header << "ovs_extra set Interface #{dpdk_port} type=dpdk"
     return header, props
   end
 
