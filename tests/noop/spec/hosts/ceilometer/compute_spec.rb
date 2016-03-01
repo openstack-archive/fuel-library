@@ -8,6 +8,14 @@ describe manifest do
     default_log_levels_hash = Noop.hiera_structure 'default_log_levels'
     default_log_levels = Noop.puppet_function 'join_keys_to_values',default_log_levels_hash,'='
 
+    management_vip         = Noop.hiera 'management_vip'
+    service_endpoint       = Noop.hiera 'service_endpoint', management_vip
+    ssl_hash               = Noop.hiera_structure('use_ssl', {})
+    internal_auth_protocol = Noop.puppet_function 'get_ssl_property',ssl_hash,{},'keystone','internal','protocol','http'
+    internal_auth_endpoint = Noop.puppet_function 'get_ssl_property',ssl_hash,{},'keystone','internal','hostname',[service_endpoint]
+    keystone_identity_uri  = "#{internal_auth_protocol}://#{internal_auth_endpoint}:35357/"
+    keystone_auth_uri      = "#{internal_auth_protocol}://#{internal_auth_endpoint}:5000/"
+
     if ceilometer_hash['enabled']
       it 'should configure OS ENDPOINT TYPE for ceilometer' do
         should contain_ceilometer_config('service_credentials/os_endpoint_type').with(:value => 'internalURL')
@@ -30,6 +38,11 @@ describe manifest do
 
       it 'should configure default_log_levels' do
         should contain_ceilometer_config('DEFAULT/default_log_levels').with_value(default_log_levels.sort.join(','))
+      end
+
+      it 'should configure auth and identity uri' do
+        should contain_ceilometer_config('keystone_authtoken/auth_uri').with(:value => keystone_auth_uri)
+        should contain_ceilometer_config('keystone_authtoken/identity_uri').with(:value => keystone_identity_uri)
       end
     end
   end # end of shared_examples
