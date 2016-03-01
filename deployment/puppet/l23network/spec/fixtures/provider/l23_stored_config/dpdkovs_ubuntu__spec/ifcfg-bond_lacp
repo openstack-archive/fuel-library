@@ -1,0 +1,13 @@
+# *********************************************************************
+# This file is being managed by Puppet. Changes to interfaces
+# that are not being managed by Puppet will persist;
+# however changes to interfaces that are being managed by Puppet will
+# be overwritten.
+# *********************************************************************
+allow-br-prv bond_lacp
+iface bond_lacp inet manual
+  mtu 9000
+  ovs_bonds dpdk0 dpdk1
+  ovs_type DPDKOVSBond
+  ovs_bridge br-prv
+  ovs_options bond_mode=balance-tcp bond_updelay=111 bond_downdelay=222 lacp=active other_config:lacp-time=fast other_config:bond-miimon-interval=50
