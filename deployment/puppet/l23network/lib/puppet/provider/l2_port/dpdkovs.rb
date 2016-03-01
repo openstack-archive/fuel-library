@@ -10,13 +10,11 @@ Puppet::Type.type(:l2_port).provide(:dpdkovs, :parent => Puppet::Provider::Ovs_b
   end
 
   def self.get_instances(big_hash)
-    dpdk_ports_mapping = get_dpdk_ports_mapping()
-    ports = big_hash.fetch(:port, {}).map do |p_name, p_info|
-      dpdk_info = dpdk_ports_mapping[p_name.to_s]
-      p_info.merge!(dpdk_info) if dpdk_info
-      [p_info[:interface] || p_name, p_info]
+    dpdk_ports_mapping = self.get_dpdk_ports_mapping
+    ports = big_hash.fetch(:port, {}).map do |port_name, port_info|
+      [dpdk_ports_mapping[port_name], port_info] if dpdk_ports_mapping.include? port_name.to_s
     end
-    Hash[ports].select {|k,v| v[:type].to_s == 'dpdk'}
+    Hash[ports]
   end
 
   def create
@@ -24,17 +22,13 @@ Puppet::Type.type(:l2_port).provide(:dpdkovs, :parent => Puppet::Provider::Ovs_b
     @old_property_hash = {}
     @property_flush = {}.merge! @resource
 
-    ports = self.class.get_dpdk_ports_mapping()
-    dpdk_prop = ports.map { |i,p| p if p[:interface] == @resource[:interface]}.compact[0]
-    raise Puppet::ExecutionFailure, "Can't add port '#{@resource[:interface]}'\n#{error}" unless dpdk_prop
-    @property_flush.merge! dpdk_prop
+    return unless @resource[:bridge]
 
-    cmd = ['--may-exist', 'add-port', @resource[:bridge], @property_flush[:vendor_specific]['dpdk_port']]
-    tt = "type=" + @property_flush[:type].to_s
-    cmd += ['--', "set", "Interface", @property_flush[:vendor_specific]['dpdk_port'], tt] if tt
+    dpdk_port = self.class.get_dpdk_ports_mapping[@resource[:interface]]
+    raise Puppet::ExecutionFailure, "Can't add port '#{@resource[:interface]}'" unless dpdk_port
 
     begin
-      vsctl(cmd)
+      vsctl(['--may-exist', 'add-port', @resource[:bridge], dpdk_port, '--', 'set', 'Interface', dpdk_port, 'type=dpdk'])
     rescue Puppet::ExecutionFailure => error
       raise Puppet::ExecutionFailure, "Can't add port '#{@resource[:interface]}'\n#{error}"
     end
@@ -42,7 +36,9 @@ Puppet::Type.type(:l2_port).provide(:dpdkovs, :parent => Puppet::Provider::Ovs_b
 
   def destroy
     debug("DESTROY resource: #{@resource}")
-    vsctl("del-port", @resource[:bridge], @resource[:vendor_specific]['dpdk_port'])
+    dpdk_port = self.class.get_dpdk_ports_mapping[@resource[:interface]]
+    raise Puppet::ExecutionFailure, "Can't delete port '#{@resource[:interface]}'" unless dpdk_port
+    vsctl("del-port", dpdk_port)
   end
 
   def flush
