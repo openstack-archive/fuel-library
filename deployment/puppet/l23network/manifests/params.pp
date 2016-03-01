@@ -30,7 +30,7 @@ class l23network::params {
       $ovs_socket_mem             = 256
       $ovs_memory_channels        = 2
     }
-    /(?i)redhat|centos/: {
+    /(?i)redhat|centos|oraclelinux/: {
       $interfaces_dir             = '/etc/sysconfig/network-scripts'
       $interfaces_file            = undef
       $ovs_service_name           = 'openvswitch'
@@ -47,7 +47,10 @@ class l23network::params {
       $dpdk_interfaces_file       = undef
       $ovs_socket_dir_group       = undef
       $ovs_socket_dir             = undef
-      $ovs_datapath_package_name  = 'kmod-openvswitch'
+      $ovs_datapath_package_name  = $::l23_os ? {
+                                      /(?i)oraclelinux/ => 'kmod-openvswitch-uek',
+                                      default           => 'kmod-openvswitch',
+                                   }
       $ovs_common_package_name    = 'openvswitch'
       $ovs_kern_module_name       = 'openvswitch'
       $network_manager_name       = 'NetworkManager'
@@ -55,7 +58,6 @@ class l23network::params {
       $ovs_core_mask              = 0x1
       $ovs_socket_mem             = 256
       $ovs_memory_channels        = 2
-
     }
     /(?i)darwin/: {
       $interfaces_dir             = '/tmp/1'

@@ -415,12 +415,6 @@ class openstack::compute (
     }
   }
 
-  if $::operatingsystem == 'Centos' {
-    package { 'cpufreq-init':
-      ensure => present;
-    }
-  }
-
   package { $libvirt_type_kvm:
     ensure => present,
     before => Package[$::nova::params::compute_package_name],
