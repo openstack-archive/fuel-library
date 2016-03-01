@@ -56,6 +56,11 @@ if hiera('set_rps', true) {
     value   => cpu_affinity_hex($::processorcount),
     sysfs   => '/sys/class/net/*/queues/rx-*/rps_cpus',
     exclude => '/sys/class/net/lo/*',
+    }
+} else {
+  sysfs_config_value { 'rps_cpus' :
+    ensure  => 'absent',
+    name    => '/etc/sysfs.d/rps_cpus.conf',
   }
 }
 
@@ -66,6 +71,11 @@ if hiera('set_xps', true) {
     value   => cpu_affinity_hex($::processorcount),
     sysfs   => '/sys/class/net/*/queues/tx-*/xps_cpus',
     exclude => '/sys/class/net/lo/*',
+  }
+} else {
+  sysfs_config_value { 'xps_cpus' :
+    ensure  => 'absent',
+    name    => '/etc/sysfs.d/xps_cpus.conf',
   }
 }
 
