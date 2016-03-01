@@ -58,17 +58,17 @@ function check_ready {
           retry_checker "cobbler profile find --name=centos* | grep -q centos && cobbler profile find --name=ubuntu* | grep -q ubuntu && cobbler profile find --name=*bootstrap* | grep -q bootstrap"
           ;;
       rabbitmq)
-          retry_checker "curl -f -L -i  -u \"$astute_user:$astute_password\" http://$ADMIN_IP:15672/api/nodes  1>/dev/null 2>&1"
-          retry_checker "curl -f -L -u \"$mcollective_user:$mcollective_password\" -s http://$ADMIN_IP:15672/api/exchanges | grep -qw 'mcollective_broadcast'"
-          retry_checker "curl -f -L -u \"$mcollective_user:$mcollective_password\" -s http://$ADMIN_IP:15672/api/exchanges | grep -qw 'mcollective_directed'"
+          retry_checker "curl -f -L -i  -u \"$astute_user:$astute_password\" http://127.0.0.1:15672/api/nodes  1>/dev/null 2>&1"
+          retry_checker "curl -f -L -u \"$mcollective_user:$mcollective_password\" -s http://127.0.0.1:15672/api/exchanges | grep -qw 'mcollective_broadcast'"
+          retry_checker "curl -f -L -u \"$mcollective_user:$mcollective_password\" -s http://127.0.0.1:15672/api/exchanges | grep -qw 'mcollective_directed'"
           ;;
       postgres)
           retry_checker "PGPASSWORD=$postgres_nailgun_password /usr/bin/psql -h $ADMIN_IP -U \"$postgres_nailgun_user\" \"$postgres_nailgun_dbname\" -c '\copyright' 2>&1 1>/dev/null"
           ;;
       astute)
           retry_checker "ps waux | grep -q 'astuted'"
-          retry_checker "curl -f -L -u \"$astute_user:$astute_password\" -s http://$ADMIN_IP:15672/api/exchanges | grep -qw 'nailgun'"
-          retry_checker "curl -f -L -u \"$astute_user:$astute_password\" -s http://$ADMIN_IP:15672/api/exchanges | grep -qw 'naily_service'"
+          retry_checker "curl -f -L -u \"$astute_user:$astute_password\" -s http://127.0.0.1:15672/api/exchanges | grep -qw 'nailgun'"
+          retry_checker "curl -f -L -u \"$astute_user:$astute_password\" -s http://127.0.0.1:15672/api/exchanges | grep -qw 'naily_service'"
           ;;
       rsync)
           retry_checker "netstat -ntl | grep -q 873"
