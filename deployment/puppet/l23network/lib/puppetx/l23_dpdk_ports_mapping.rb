@@ -10,7 +10,6 @@ module L23network
     #         :type => "dpdk",
     #         :provider => "dpdkovs",
     #         :vendor_specific => {
-    #           "dpdk_driver" => "igb_uio"
     #           "dpdk_port" => "dpdk0"
     #         }
     #       }
@@ -45,9 +44,7 @@ module L23network
         :port_type    => [],
         :type         => 'dpdk',
         :provider     => 'dpdkovs',
-        :vendor_specific => {
-          'dpdk_driver' => driver
-        }
+        :vendor_specific => {}
       }
     end
     dpdk_devices = devices.compact.each_with_index.map do |port_info,i|

@@ -17,21 +17,16 @@ let(:network_scheme) do
       vendor_specific:
         driver: ixgbe
         bus_info: "0000:01:00.1"
+        dpdk_driver: igb_uio
     enp1s0f0:
       vendor_specific:
         driver: ixgbe
         bus_info: "0000:01:00.0"
+        dpdk_driver: igb_uio
     eno1:
       vendor_specific:
         driver: tg3
         bus_info: "0000:02:00.1"
-  transformations:
-    - bridge: br-prv
-      name: enp1s0f0
-      action: add-port
-      provider: dpdkovs
-      vendor_specific:
-        dpdk_driver: igb_uio
 eof
 end
 
@@ -56,7 +51,7 @@ end
     end
 
     it 'should return dpdk driver list' do
-      should run.with_params().and_return([["0000:01:00.0", "igb_uio"]])
+      should run.with_params().and_return([["0000:01:00.0", "igb_uio"], ["0000:01:00.1", "igb_uio"]])
     end
   end
 end

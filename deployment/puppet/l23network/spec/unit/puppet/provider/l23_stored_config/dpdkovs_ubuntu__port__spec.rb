@@ -20,7 +20,6 @@ describe Puppet::Type.type(:l23_stored_config).provider(:dpdkovs_ubuntu) do
         :type => "dpdk",
         :provider => "dpdkovs",
         :vendor_specific => {
-          "dpdk_driver" => "igb_uio",
           "dpdk_port" => "dpdk0"
         }
       }
