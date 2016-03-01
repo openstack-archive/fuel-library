@@ -140,6 +140,23 @@ describe manifest do
       end
     end
 
+    let(:keystone_user) { Noop.puppet_function 'pick', nova_hash['user'], 'nova' }
+    let(:keystone_tenant) { Noop.puppet_function 'pick', nova_hash['tenant'], 'services' }
+    let(:neutron_config) { Noop.hiera_hash 'quantum_settings' }
+    let(:neutron_metadata_proxy_secret) { neutron_config['metadata']['metadata_proxy_shared_secret'] }
+    let(:default_floating_net) { Noop.puppet_function 'pick', neutron_config['default_floating_net'], 'net04_ext' }
+
+    let(:fping_path) {
+      if facts[:osfamily] == 'Debian'
+        '/usr/bin/fping'
+      else
+        '/usr/sbin/fping'
+      end
+    }
+
+    let(:fallback_workers) { [[facts[:processorcount].to_i, 2].max, workers_max.to_i].min }
+    let(:service_workers) { nova_hash.fetch('workers', fallback_workers) }
+
     # TODO All this stuff should be moved to shared examples controller* tests.
 
     it 'should declare correct workers for systems with 4 processess on 4 CPU & 32G system' do
@@ -153,8 +170,6 @@ describe manifest do
     end
 
     it 'should configure workers for nova API, conductor services' do
-      fallback_workers = [[facts[:processorcount].to_i, 2].max, workers_max.to_i].min
-      service_workers = nova_hash.fetch('workers', fallback_workers)
       should contain_nova_config('DEFAULT/osapi_compute_workers').with(:value => service_workers)
       should contain_nova_config('DEFAULT/metadata_workers').with(:value => service_workers)
       should contain_nova_config('conductor/workers').with(:value => service_workers)
@@ -186,13 +201,6 @@ describe manifest do
     it 'nova config should contain right memcached servers list' do
       should contain_nova_config('keystone_authtoken/memcached_servers').with(
         'value' => memcache_servers,
-      )
-    end
-
-    it 'should declare class nova::api with identity_uri and auth_uri' do
-      should contain_class('nova::api').with(
-        'identity_uri'        => keystone_identity_uri,
-        'auth_uri'            => keystone_auth_uri,
       )
     end
 
@@ -257,9 +265,24 @@ describe manifest do
     end
 
     it 'should configure nova::api' do
-      # TODO: check more
+      # FIXME(aschultz): check rate limits
       should contain_class('nova::api').with(
-        :enabled => true
+        :enabled => true,
+        :api_bind_address => api_bind_address,
+        :admin_user => keystone_user,
+        :admin_password => nova_hash['user_password'],
+        :admin_tenant_name => Noop.puppet_function('pick', nova_hash['admin_tenant_name'], keystone_tenant),
+        :identity_uri => keystone_identity_uri,
+        :auth_uri => keystone_auth_uri,
+        :auth_version => Noop.puppet_function('pick', nova_hash['auth_version'], false),
+        :neutron_metadata_proxy_shared_secret => neutron_metadata_proxy_secret,
+        :osapi_compute_workers => service_workers,
+        :metadata_workers => service_workers,
+        :sync_db => primary_controller,
+        :sync_db_api => primary_controller,
+        :fping_path => fping_path,
+        :api_paste_config => '/etc/nova/api-paste.ini',
+        :default_floating_pool => default_floating_net
       )
     end
 
