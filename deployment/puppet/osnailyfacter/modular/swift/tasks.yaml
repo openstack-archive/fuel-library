@@ -25,6 +25,7 @@
     - name: /(primary-)?rabbitmq/
     - name: swift-keystone
     - name: memcached
+    - name: ceilometer-controller
   parameters:
     puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/swift/swift.pp
     puppet_modules: /etc/puppet/modules
