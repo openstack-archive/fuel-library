@@ -23,14 +23,27 @@ else
     fi
 fi
 
+DPDK_EXTRA=""
+
 if [ "${MODE}" = "start" ]; then
     eval OVS_EXTRA=\"${IF_OVS_EXTRA}\"
 
     case "${IF_OVS_TYPE}" in
         DPDKOVSPort)
+                DPDK_EXTRA="-- set Interface ${IF_DPDK_PORT} type=dpdk"
                 ovs_vsctl -- --may-exist add-port "${IF_OVS_BRIDGE}"\
                     "${IF_DPDK_PORT}" ${IF_OVS_OPTIONS} \
-                    -- set Interface "${IF_DPDK_PORT}" type=dpdk \
+                    ${DPDK_EXTRA} \
+                    ${OVS_EXTRA+-- $OVS_EXTRA}
+                ;;
+        DPDKOVSBond)
+                for slave in ${IF_OVS_BONDS}
+                do
+                    DPDK_EXTRA="${DPDK_EXTRA} -- set Interface ${slave} type=dpdk"
+                done
+                ovs_vsctl -- --fake-iface add-bond "${IF_OVS_BRIDGE}"\
+                    "${IFACE}" ${IF_OVS_BONDS} ${IF_OVS_OPTIONS} \
+                    ${DPDK_EXTRA} \
                     ${OVS_EXTRA+-- $OVS_EXTRA}
                 ;;
         *)
@@ -41,6 +54,9 @@ elif [ "${MODE}" = "stop" ]; then
     case "${IF_OVS_TYPE}" in
         DPDKOVSPort)
                 ovs_vsctl -- --if-exists del-port "${IF_OVS_BRIDGE}" "${IF_DPDK_PORT}"
+                ;;
+        DPDKOVSBond)
+                ovs_vsctl -- --if-exists del-port "${IF_OVS_BRIDGE}" "${IFACE}"
                 ;;
         *)
                 exit 0
