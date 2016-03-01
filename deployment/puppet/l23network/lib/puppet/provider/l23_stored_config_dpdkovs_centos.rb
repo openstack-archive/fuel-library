@@ -19,6 +19,7 @@ class Puppet::Provider::L23_stored_config_dpdkovs_centos < Puppet::Provider::L23
 
   def self.unmangle__if_type(provider, val)
     val = 'DPDKOVSPort' if val.to_s == 'ethernet'
+    val = 'DPDKOVSBond' if val.to_s == 'bond'
     val
   end
 end

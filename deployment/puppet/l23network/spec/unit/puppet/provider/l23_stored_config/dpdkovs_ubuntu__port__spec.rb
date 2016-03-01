@@ -14,15 +14,7 @@ describe Puppet::Type.type(:l23_stored_config).provider(:dpdkovs_ubuntu) do
 
   let(:dpdk_ports_mapping) {
     {
-      'dpdk0'    => {
-        :interface => 'enp1s0f0',
-        :port_type => [],
-        :type => "dpdk",
-        :provider => "dpdkovs",
-        :vendor_specific => {
-          "dpdk_port" => "dpdk0"
-        }
-      }
+      'enp1s0f0' => 'dpdk0'
     }
   }
 
@@ -84,7 +76,7 @@ describe Puppet::Type.type(:l23_stored_config).provider(:dpdkovs_ubuntu) do
   end
 
   context "parsing config files" do
-    context 'OVS port enp1s0f0' do
+    context 'DPDKOVS port enp1s0f0' do
       let(:res) { subject.class.parse_file('enp1s0f0', fixture_data('ifcfg-enp1s0f0'))[0] }
       it { expect(res[:method]).to eq :manual }
       it { expect(res[:name]).to eq 'enp1s0f0' }
