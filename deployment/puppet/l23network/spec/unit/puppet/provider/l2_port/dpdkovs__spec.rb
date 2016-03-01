@@ -30,7 +30,6 @@ describe Puppet::Type.type(:l2_port).provider(:dpdkovs) do
         :type => "dpdk",
         :provider => "dpdkovs",
         :vendor_specific => {
-          "dpdk_driver" => "igb_uio",
           "dpdk_port" => "dpdk0"
         }
       }
