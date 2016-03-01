@@ -365,6 +365,14 @@ if member($roles, 'compute') {
   }
 }
 
+if member($roles, 'primary-mongo') or member($roles, 'mongo') {
+  firewall {'120 mongodb':
+    port   => $mongodb_port,
+    proto  => 'tcp',
+    action => 'accept',
+  }
+}
+
 if $ironic_hash['enabled'] {
   prepare_network_config($network_scheme)
   $baremetal_int     = get_network_role_property('ironic/baremetal', 'interface')
