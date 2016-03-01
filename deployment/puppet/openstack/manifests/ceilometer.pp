@@ -110,14 +110,14 @@ class openstack::ceilometer (
     # Install the ceilometer-api service
     # The keystone_password parameter is mandatory
     class { '::ceilometer::api':
-      keystone_auth_uri     => $keystone_auth_uri,
-      keystone_identity_uri => $keystone_identity_uri,
-      keystone_user         => $keystone_user,
-      keystone_password     => $keystone_password,
-      keystone_tenant       => $keystone_tenant,
-      host                  => $host,
-      port                  => $port,
-      api_workers           => $api_workers,
+      auth_uri          => $keystone_auth_uri,
+      identity_uri      => $keystone_identity_uri,
+      keystone_user     => $keystone_user,
+      keystone_password => $keystone_password,
+      keystone_tenant   => $keystone_tenant,
+      host              => $host,
+      port              => $port,
+      api_workers       => $api_workers,
     }
 
     # Clean up expired data once a week

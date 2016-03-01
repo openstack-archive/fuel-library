@@ -31,7 +31,17 @@ $debug                      = pick($ceilometer_hash['debug'], hiera('debug', fal
 $default_log_levels         = hiera_hash('default_log_levels')
 $ssl_hash                   = hiera_hash('use_ssl', {})
 
+$internal_auth_protocol     = get_ssl_property($ssl_hash, {}, 'keystone', 'internal', 'protocol', 'http')
+$internal_auth_endpoint     = get_ssl_property($ssl_hash, {}, 'keystone', 'internal', 'hostname', [$service_endpoint])
+$keystone_identity_uri      = "${internal_auth_protocol}://${internal_auth_endpoint}:35357/"
+$keystone_auth_uri          = "${internal_auth_protocol}://${internal_auth_endpoint}:5000/"
+
 if ($ceilometer_enabled) {
+  ceilometer_config {
+    'keystone_authtoken/auth_uri'     : value => $keystone_auth_uri;
+    'keystone_authtoken/identity_uri' : value => $keystone_identity_uri;
+  }
+
   class { 'openstack::ceilometer':
     verbose                    => $verbose,
     debug                      => $debug,
