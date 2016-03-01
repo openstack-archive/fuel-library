@@ -60,14 +60,14 @@ describe 'openstack::ceilometer' do
       ) }
 
       it { is_expected.to contain_class('ceilometer::api').with(
-          :keystone_auth_uri     => params[:keystone_auth_uri],
-          :keystone_identity_uri => params[:keystone_identity_uri],
-          :keystone_user         => params[:keystone_user],
-          :keystone_password     => params[:keystone_password],
-          :keystone_tenant       => params[:keystone_tenant],
-          :host                  => params[:host],
-          :port                  => params[:port],
-          :api_workers           => params[:api_workers],
+          :auth_uri          => params[:keystone_auth_uri],
+          :identity_uri      => params[:keystone_identity_uri],
+          :keystone_user     => params[:keystone_user],
+          :keystone_password => params[:keystone_password],
+          :keystone_tenant   => params[:keystone_tenant],
+          :host              => params[:host],
+          :port              => params[:port],
+          :api_workers       => params[:api_workers],
       ) }
     end
 
