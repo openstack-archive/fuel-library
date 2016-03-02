@@ -1,3 +1,15 @@
+- id: openrc-delete
+  type: puppet
+  version: 2.0.0
+  groups: [primary-controller, controller]
+  requires: [deploy_start, openstack-haproxy]
+  required_for: [primary-keystone, keystone]
+  refresh_on: [keystone_config]
+  parameters:
+    puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/keystone/openrc_delete.pp
+    puppet_modules: /etc/puppet/modules
+    timeout: 90
+
 - id: primary-keystone
   type: puppet
   version: 2.0.0
