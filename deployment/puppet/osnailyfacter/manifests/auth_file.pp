@@ -1,4 +1,4 @@
-# == Class: openstack::auth_file
+# == Class: osnailyfacter::auth_file
 #
 # Creates an auth file that can be used to export
 # environment variables that can be used to authenticate
@@ -44,7 +44,7 @@
 #   (optional) Murano Glance Artifacts Plugin.
 #   Defaults to undef.
 #
-class openstack::auth_file(
+class osnailyfacter::auth_file(
   $admin_password,
   $controller_node          = '127.0.0.1',
   $auth_url                 = 'http://127.0.0.1:5000/v2.0',
