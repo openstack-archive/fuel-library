@@ -55,7 +55,7 @@ function check_ready {
       #NOTICE: Cobbler console tool does not comply unix conversation: 'cobbler profile find' always return 0 as exit code
       cobbler)
           retry_checker "ps waux | grep -q 'cobblerd -F' && pgrep dnsmasq"
-          retry_checker "cobbler profile find --name=centos* | grep -q centos && cobbler profile find --name=ubuntu* | grep -q ubuntu && cobbler profile find --name=*bootstrap* | grep -q bootstrap"
+          retry_checker "cobbler profile find --name=ubuntu* | grep -q ubuntu && cobbler profile find --name=*bootstrap* | grep -q bootstrap"
           ;;
       rabbitmq)
           retry_checker "curl -f -L -i  -u \"$astute_user:$astute_password\" http://127.0.0.1:15672/api/nodes  1>/dev/null 2>&1"
