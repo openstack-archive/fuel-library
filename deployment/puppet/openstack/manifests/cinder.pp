@@ -215,6 +215,9 @@ class openstack::cinder(
         class { 'cinder::backup':
           enabled => true,
         }
+        tweaks::ubuntu_service_override { 'cinder-backup':
+          package_name => 'cinder-backup',
+        }
 
         class { 'cinder::backup::swift':
           backup_swift_url      => "${swift_url}/v1/AUTH_",
@@ -236,6 +239,9 @@ class openstack::cinder(
 
         class { 'cinder::backup':
           enabled => true,
+        }
+        tweaks::ubuntu_service_override { 'cinder-backup':
+          package_name => 'cinder-backup',
         }
 
         class { 'cinder::backup::ceph':

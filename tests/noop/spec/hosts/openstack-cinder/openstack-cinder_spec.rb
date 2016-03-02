@@ -150,7 +150,11 @@ describe manifest do
 
 
   it 'adds tweaks for cinder-backup' do
-    should contain_tweaks__ubuntu_service_override('cinder-backup')
+    if manage_volumes
+      should contain_tweaks__ubuntu_service_override('cinder-backup')
+    else
+      should_not contain_tweaks__ubuntu_service_override('cinder-backup')
+    end
   end
 
   if (sahara and storage['volumes_lvm']) or storage['volumes_block_device']
