@@ -30,7 +30,7 @@
   type: puppet
   version: 2.0.0
   groups: [compute-vmware]
-  required_for: [deploy_end]
+  required_for: [enable_nova_compute_service]
   requires: [top-role-compute, ceilometer-compute, ceilometer-keystone]
   condition: "settings:common.use_vcenter.value == true"
   parameters:
