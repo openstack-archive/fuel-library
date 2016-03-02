@@ -41,7 +41,7 @@ if $murano_cfapi_hash['enabled'] {
     tenant    => $access_hash['tenant'],
     bind_host => $cfapi_bind_host,
     bind_port => $cfapi_bind_port,
-    auth_url  => "${public_auth_protocol}://${public_auth_address}:5000/v2.0/",
+    auth_url  => "${public_auth_protocol}://${public_auth_address}:5000/v3",
   }
 
   $haproxy_stats_url = "http://${management_ip}:10000/;csv"
