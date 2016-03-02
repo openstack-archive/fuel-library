@@ -100,8 +100,8 @@ describe manifest do
         else
             extra_params = '?charset=utf8'
         end
-        should contain_class('openstack::keystone').with(
-          :db_connection => "mysql://#{keystone_db_user}:#{keystone_db_password}@#{database_vip}/#{keystone_db_name}#{extra_params}"
+        should contain_class('keystone').with(
+          :database_connection => "mysql://#{keystone_db_user}:#{keystone_db_password}@#{database_vip}/#{keystone_db_name}#{extra_params}"
 
         )
     end
@@ -117,22 +117,23 @@ describe manifest do
       should contain_class('keystone').with('enable_bootstrap' => false)
     end
 
-    it 'should declare openstack::keystone class with public_url,admin_url,internal_url' do
-      should contain_class('openstack::keystone').with(
+    it 'should declare keystone::endpoint class with public_url,admin_url,internal_url' do
+      should contain_class('keystone::endpoint').with(
         'public_url'   => public_url,
         'admin_url'    => admin_url,
         'internal_url' => internal_url,
+        'region'       => region,
       )
     end
 
-    it 'should declare openstack::auth_file class with proper authentication URL' do
-      should contain_class('openstack::auth_file').with(
+    it 'should declare osnailyfacter::auth_file class with proper authentication URL' do
+      should contain_class('osnailyfacter::auth_file').with(
         'auth_url'        => "#{internal_url}#{auth_suffix}",
       )
     end
 
-    it 'should declare openstack::keystone class with parameter primary controller' do
-        should contain_class('openstack::keystone').with('primary_controller' => primary_controller)
+    it 'should declare keystone class with parameter primary controller' do
+        should contain_class('keystone').with('sync_db' => primary_controller)
     end
 
     it 'should configure keystone with paramters' do
@@ -261,7 +262,7 @@ describe manifest do
 
     if murano_glare_plugin['enabled']
       it 'should configure glance_murano_plugin' do
-        should contain_class('openstack::auth_file').with(
+        should contain_class('osnailyfacter::auth_file').with(
           :murano_glare_plugin => murano_glare_plugin['enabled']
         )
       end
