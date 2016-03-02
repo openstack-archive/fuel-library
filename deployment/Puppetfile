@@ -181,6 +181,11 @@ mod 'ironic',
     :git => 'https://github.com/fuel-infra/puppet-ironic.git',
     :ref => 'master'
 
+# Pull in puppet-murano
+mod 'murano',
+    :git => 'https://github.com/fuel-infra/puppet-murano.git',
+    :ref => 'master'
+
 # Pull in richardc-datacat
 mod 'datacat',
     :git => 'https://github.com/fuel-infra/richardc-datacat.git',

@@ -211,6 +211,11 @@ class openstack::logging (
       content => template("${module_name}/53-aodh.conf.erb"),
     }
 
+    file { "${::rsyslog::params::rsyslog_d}55-murano.conf":
+      ensure => present,
+      content => template("${module_name}/55-murano.conf.erb"),
+    }
+
     file { "${::rsyslog::params::rsyslog_d}54-heat.conf":
       ensure => present,
       content => template("${module_name}/54-heat.conf.erb"),
@@ -350,6 +355,7 @@ class openstack::logging (
   Neutron_config <| title == 'DEFAULT/log_config' |> { ensure => absent }
   Nova_config <| title == 'DEFAULT/log_config' |> { ensure => absent }
   Sahara_config <| title == 'DEFAULT/log_config' |> { ensure => absent }
+  Murano_config <| title == 'DEFAULT/log_config' |> { ensure => absent }
 
   #TODO(bogdando) if 4.1.1 -> 5.0 upgrade will be supported later
   #  remove all existing rsyslog::imfile templates for Openstack

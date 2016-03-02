@@ -3,7 +3,7 @@
   version: 2.0.0
   groups: [primary-controller, controller]
   required_for: [deploy_end]
-  requires: [deploy_start, openstack-haproxy-ceilometer, openstack-haproxy-aodh, openstack-haproxy-cinder, openstack-haproxy-glance, openstack-haproxy-heat, openstack-haproxy-horizon, openstack-haproxy-keystone, openstack-haproxy-mysqld, openstack-haproxy-neutron, openstack-haproxy-nova, openstack-haproxy-radosgw, openstack-haproxy-sahara, openstack-haproxy-swift, openstack-haproxy-stats, openstack-haproxy-ironic]
+  requires: [deploy_start, openstack-haproxy-ceilometer, openstack-haproxy-aodh, openstack-haproxy-cinder, openstack-haproxy-glance, openstack-haproxy-heat, openstack-haproxy-horizon, openstack-haproxy-keystone, openstack-haproxy-murano, openstack-haproxy-mysqld, openstack-haproxy-neutron, openstack-haproxy-nova, openstack-haproxy-radosgw, openstack-haproxy-sahara, openstack-haproxy-swift, openstack-haproxy-stats, openstack-haproxy-ironic]
   parameters:
     puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/openstack-haproxy/openstack-haproxy.pp
     puppet_modules: /etc/puppet/modules
@@ -244,6 +244,24 @@
     cmd: ruby /etc/puppet/modules/osnailyfacter/modular/openstack-haproxy/openstack-haproxy_pre.rb
   test_post:
     cmd: ruby /etc/puppet/modules/osnailyfacter/modular/openstack-haproxy/openstack-haproxy-sahara_post.rb
+
+- id: openstack-haproxy-murano
+  type: puppet
+  version: 2.0.0
+  groups: [primary-controller, controller]
+  required_for: [deploy_end]
+  requires: [deploy_start, primary-cluster-haproxy, cluster-haproxy]
+  cross-depends:
+    - name: /(primary-)?cluster-haproxy/
+      role: self
+  parameters:
+    puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/openstack-haproxy/openstack-haproxy-murano.pp
+    puppet_modules: /etc/puppet/modules
+    timeout: 300
+  test_pre:
+    cmd: ruby /etc/puppet/modules/osnailyfacter/modular/openstack-haproxy/openstack-haproxy_pre.rb
+  test_post:
+    cmd: ruby /etc/puppet/modules/osnailyfacter/modular/openstack-haproxy/openstack-haproxy-murano_post.rb
 
 - id: openstack-haproxy-stats
   type: puppet

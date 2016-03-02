@@ -59,6 +59,7 @@ describe 'openstack::logging' do
          '50-neutron',
          '51-ceilometer',
          '53-aodh',
+         '55-murano',
          '54-heat',
          '52-sahara',
          '02-ha',
