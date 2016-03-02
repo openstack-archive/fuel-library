@@ -19,12 +19,13 @@ if $debug {
 if empty($::fuel_settings['NTP1']) and
    empty($::fuel_settings['NTP2']) and
    empty($::fuel_settings['NTP3']) {
-  $ntp_servers = $::fuel_settings['ADMIN_NETWORK']['ipaddress']
+  $ntp_servers = [$::fuel_settings['ADMIN_NETWORK']['ipaddress']]
 } else {
-  $ntp_server_list = delete(delete_undef_values([$::fuel_settings['NTP1'],
+  $ntp_servers = delete(delete_undef_values([$::fuel_settings['NTP1'],
     $::fuel_settings['NTP2'], $::fuel_settings['NTP3']]), '')
-  $ntp_servers = join($ntp_server_list, ', ')
 }
+
+$dns_servers = strip(split($::fuel_settings['DNS_UPSTREAM'], ','))
 
 Exec  {path => '/usr/bin:/bin:/usr/sbin:/sbin'}
 
@@ -65,6 +66,6 @@ class { "fuel::nailgun::server":
   mco_password             => $::fuel_settings['mcollective']['password'],
 
   ntp_upstream             => $ntp_servers,
-  dns_upstream             => regsubst($::fuel_settings['DNS_UPSTREAM'], ' ', ', ', 'G'),
+  dns_upstream             => $dns_servers,
   dns_domain               => $::fuel_settings['DNS_DOMAIN'],
 }

@@ -95,6 +95,12 @@ MCO_CONNECTOR: "<%= @mco_connector %>"
 DNS_DOMAIN: "<%= @dns_domain %>"
 DNS_SERVERS: "<%= @cobbler_host %>"
 DNS_SEARCH: "<%= @dns_domain.gsub(/,/, ' ') %>"
-DNS_UPSTREAM: "<%= @dns_upstream %>"
+DNS_UPSTREAM:
+  <% @dns_upstream.each do |server| -%>
+  - <%= server %>
+  <% end -%>
 
-NTP_UPSTREAM: "<%= @ntp_upstream %>"
+NTP_UPSTREAM:
+  <% @ntp_upstream.each do |server| -%>
+  - <%= server %>
+  <% end -%>
