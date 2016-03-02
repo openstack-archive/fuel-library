@@ -27,6 +27,16 @@
     timeout: 3600
     cwd: /
 
+- id: sriov_iommu_check
+  type: shell
+  version: 2.0.0
+  groups: [compute]
+  required_for: [netconfig]
+  requires: [tools]
+  parameters:
+    cmd: ruby /etc/puppet/modules/osnailyfacter/modular/netconfig/sriov_iommu_check.rb
+    timeout: 30
+
 - id: reserved_ports
   type: puppet
   version: 2.0.0
