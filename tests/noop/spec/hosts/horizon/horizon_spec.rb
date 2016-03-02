@@ -74,16 +74,16 @@ describe manifest do
 
     ###########################################################################
 
-    it 'should declare openstack::horizon class' do
-      should contain_class('openstack::horizon').with(
+    it 'should declare horizon class' do
+      should contain_class('horizon').with(
                  'cinder_options'     => cinder_options,
                  'hypervisor_options' => {'enable_quotas' => nova_quota},
                  'bind_address'       => bind_address
              )
     end
 
-    it 'should declare openstack::horizon class with keystone_url with v3 API version' do
-      should contain_class('openstack::horizon').with(
+    it 'should declare horizon class with keystone_url with v3 API version' do
+      should contain_class('horizon').with(
                  'keystone_url'      => keystone_url,
                  'cache_server_ip'   => memcache_servers,
                  'cache_server_port' => memcache_server_port,
@@ -126,8 +126,8 @@ describe manifest do
 
 
     it 'should have explicit ordering between LB classes and particular actions' do
-      expect(graph).to ensure_transitive_dependency("Class[openstack::horizon]", "Haproxy_backend_status[keystone-public]")
-      expect(graph).to ensure_transitive_dependency("Class[openstack::horizon]", "Haproxy_backend_status[keystone-admin]")
+      expect(graph).to ensure_transitive_dependency("Class[horizon]", "Haproxy_backend_status[keystone-public]")
+      expect(graph).to ensure_transitive_dependency("Class[horizon]", "Haproxy_backend_status[keystone-admin]")
     end
 
 
