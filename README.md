@@ -209,10 +209,11 @@ Here is an [example](https://review.openstack.org/198355) bats tests
 written for the UMM feature.
 See also the [bats how-to](https://blog.engineyard.com/2014/bats-test-command-line-tools).
 
-### fuel-library noop
+### Fuel-library noop tests
 
-The Noop testing framework is used for testing of the known deploy paths
-with existing modular tasks. For details, see the TODO(bogdando) put the readthedocs link.
+A framework for integration testing of composition layers comprising
+the modular tasks. For details, see the framework's
+[documentation](http://fuel-noop-fixtures.readthedocs.org/en/latest/).
 
 ## Development
 --------------
