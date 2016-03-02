@@ -25,7 +25,6 @@ $glance_hash           = hiera_hash('glance', {})
 $nova_hash             = hiera_hash('nova', {})
 $cinder_hash           = hiera_hash('cinder', {})
 $ceilometer_hash       = hiera_hash('ceilometer_hash', {})
-$syslog_log_facility   = hiera('syslog_log_facility_keystone')
 $rabbit_hash           = hiera_hash('rabbit_hash', {})
 $neutron_user_password = hiera('neutron_user_password', false)
 $workers_max           = hiera('workers_max', 16)
@@ -82,11 +81,13 @@ $admin_port     = '35357'
 $local_address_for_bind = get_network_role_property('keystone/api', 'ipaddr')
 
 $memcache_server_port   = hiera('memcache_server_port', '11211')
-$memcache_pool_maxsize = '100'
-$memcached_server       = hiera('memcached_addresses')
-
-
+$memcache_pool_maxsize  = '100'
+$memcache_servers       = suffix(hiera('memcached_addresses'), inline_template(':<%= @memcache_server_port %>'))
+$cache_backend          = 'keystone.cache.memcache_pool'
+$token_caching          = false
+$token_driver           = 'keystone.token.persistence.backends.memcache_pool.Token'
 $token_provider = hiera('token_provider')
+$revoke_driver = 'keystone.contrib.revoke.backends.sql.Revoke'
 
 $public_url   = "${public_protocol}://${public_address}:${public_port}"
 $admin_url    = "${admin_protocol}://${admin_address}:${admin_port}"
@@ -95,7 +96,6 @@ $internal_url = "${internal_protocol}://${internal_address}:${internal_port}"
 $auth_suffix  = pick($keystone_hash['auth_suffix'], '/')
 $auth_url     = "${internal_url}${auth_suffix}"
 
-$revoke_driver = 'keystone.contrib.revoke.backends.sql.Revoke'
 
 $enabled = true
 $ssl = false
@@ -105,7 +105,6 @@ $vhost_limit_request_field_size = 'LimitRequestFieldSize 81900'
 $rabbit_password     = $rabbit_hash['password']
 $rabbit_user         = $rabbit_hash['user']
 $rabbit_hosts        = split(hiera('amqp_hosts',''), ',')
-$rabbit_virtual_host = '/'
 
 $max_pool_size = hiera('max_pool_size')
 $max_overflow  = hiera('max_overflow')
@@ -128,49 +127,6 @@ if has_key($murano_plugins, 'glance_artifacts_plugin') {
 }
 
 $external_lb = hiera('external_lb', false)
-
-###############################################################################
-
-####### KEYSTONE ###########
-class { '::openstack::keystone':
-  verbose               => $verbose,
-  debug                 => $debug,
-  default_log_levels    => $default_log_levels,
-  db_connection         => $db_connection,
-  admin_token           => $admin_token,
-  public_address        => $public_address,
-  public_ssl            => $public_ssl_hash['services'],
-  public_hostname       => $public_ssl_hash['hostname'],
-  internal_address      => $service_endpoint,
-  admin_address         => $admin_address,
-  public_bind_host      => $local_address_for_bind,
-  admin_bind_host       => $local_address_for_bind,
-  primary_controller    => $primary_controller,
-  enabled               => $enabled,
-  use_syslog            => $use_syslog,
-  use_stderr            => $use_stderr,
-  syslog_log_facility   => $syslog_log_facility,
-  region                => $region,
-  memcache_servers      => $memcached_server,
-  memcache_server_port  => $memcache_server_port,
-  memcache_pool_maxsize => $memcache_pool_maxsize,
-  max_retries           => $max_retries,
-  max_pool_size         => $max_pool_size,
-  max_overflow          => $max_overflow,
-  rabbit_password       => $rabbit_password,
-  rabbit_userid         => $rabbit_user,
-  rabbit_hosts          => $rabbit_hosts,
-  rabbit_virtual_host   => $rabbit_virtual_host,
-  database_idle_timeout => $database_idle_timeout,
-  revoke_driver         => $revoke_driver,
-  public_url            => $public_url,
-  admin_url             => $admin_url,
-  internal_url          => $internal_url,
-  notification_driver   => $ceilometer_hash['notification_driver'],
-  service_workers       => $service_workers,
-  token_provider        => $token_provider,
-  fernet_src_repository => '/var/lib/astute/keystone',
-}
 
 ####### WSGI ###########
 
@@ -216,7 +172,7 @@ class { 'keystone::roles::admin':
   admin_tenant => $admin_tenant,
 }
 
-class { 'openstack::auth_file':
+class { 'osnailyfacter::auth_file':
   admin_user          => $admin_user,
   admin_password      => $admin_password,
   admin_tenant        => $admin_tenant,
@@ -244,7 +200,7 @@ exec { 'add_admin_token_auth_middleware':
 Exec['add_admin_token_auth_middleware'] ->
 Exec <| title == 'keystone-manage db_sync' |> ->
 Class['keystone::roles::admin'] ->
-Class['openstack::auth_file']
+Class['osnailyfacter::auth_file']
 
 $haproxy_stats_url = "http://${service_endpoint}:10000/;csv"
 
@@ -260,4 +216,116 @@ if ($::operatingsystem == 'Ubuntu') {
   tweaks::ubuntu_service_override { 'keystone':
     package_name => 'keystone',
   }
+}
+
+#### Fernet Token ####
+if $token_provider == 'keystone.token.providers.fernet.Provider' {
+  file { "/etc/keystone/fernet-keys":
+    source  => '/var/lib/astute/keystone',
+    mode    => '0600',
+    owner   => 'keystone',
+    group   => 'keystone',
+    recurse => true,
+    require => Class['::keystone'],
+    notify  => Service[httpd],
+  }
+}
+
+if $enabled {
+  class { '::keystone':
+    # (TODO iberezovskiy): Set 'enable_bootstrap' to true when MOS packages will
+    # be updated and 'keystone-manage bootstrap' command will be available
+    enable_bootstrap             => false,
+    verbose                      => $verbose,
+    debug                        => $debug,
+    catalog_type                 => 'sql',
+    admin_token                  => $admin_token,
+    enabled                      => false,
+    database_connection          => $db_connection,
+    database_max_retries         => $max_retries,
+    database_max_pool_size       => $max_pool_size,
+    database_max_overflow        => $max_overflow,
+    public_bind_host             => $local_address_for_bind,
+    admin_bind_host              => $local_address_for_bind,
+    admin_workers                => $service_workers,
+    public_workers               => $service_workers,
+    use_syslog                   => $use_syslog,
+    use_stderr                   => $use_stderr,
+    database_idle_timeout        => $database_idle_timeout,
+    sync_db                      => $primary_controller,
+    rabbit_password              => $rabbit_password,
+    rabbit_userid                => $rabbit_user,
+    rabbit_hosts                 => $rabbit_hosts,
+    memcache_servers             => $memcache_servers,
+    token_driver                 => $token_driver,
+    token_provider               => $token_provider,
+    notification_driver          => $ceilometer_hash['notification_driver'],
+    token_caching                => $token_caching,
+    cache_backend                => $cache_backend,
+    revoke_driver                => $revoke_driver,
+    admin_endpoint               => $admin_url,
+    memcache_dead_retry          => '60',
+    memcache_socket_timeout      => '1',
+    memcache_pool_maxsize        =>'1000',
+    memcache_pool_unused_timeout => '60',
+    cache_memcache_servers       => $memcache_servers,
+    policy_driver                => 'keystone.policy.backends.sql.Policy',
+  }
+
+  Package<| title == 'keystone'|> ~> Service<| title == 'keystone'|>
+  if !defined(Service['keystone']) {
+    notify{ "Module ${module_name} cannot notify service keystone on package update": }
+  }
+
+  if $use_syslog {
+    keystone_config {
+      'DEFAULT/use_syslog_rfc_format':  value  => true;
+    }
+  }
+
+  # FIXME(mattymo): After LP#1528258 is closed, this can be removed. It will
+  # become a default option.
+  keystone_config {
+    'DEFAULT/secure_proxy_ssl_header': value => 'HTTP_X_FORWARDED_PROTO';
+  }
+
+  keystone_config {
+    'identity/driver':                                 value =>'keystone.identity.backends.sql.Identity';
+    'ec2/driver':                                      value =>'keystone.contrib.ec2.backends.sql.Ec2';
+    'filter:debug/paste.filter_factory':               value =>'keystone.common.wsgi:Debug.factory';
+    'filter:token_auth/paste.filter_factory':          value =>'keystone.middleware:TokenAuthMiddleware.factory';
+    'filter:admin_token_auth/paste.filter_factory':    value =>'keystone.middleware:AdminTokenAuthMiddleware.factory';
+    'filter:xml_body/paste.filter_factory':            value =>'keystone.middleware:XmlBodyMiddleware.factory';
+    'filter:json_body/paste.filter_factory':           value =>'keystone.middleware:JsonBodyMiddleware.factory';
+    'filter:user_crud_extension/paste.filter_factory': value =>'keystone.contrib.user_crud:CrudExtension.factory';
+    'filter:crud_extension/paste.filter_factory':      value =>'keystone.contrib.admin_crud:CrudExtension.factory';
+    'filter:ec2_extension/paste.filter_factory':       value =>'keystone.contrib.ec2:Ec2Extension.factory';
+    'filter:s3_extension/paste.filter_factory':        value =>'keystone.contrib.s3:S3Extension.factory';
+    'filter:url_normalize/paste.filter_factory':       value =>'keystone.middleware:NormalizingFilter.factory';
+    'filter:stats_monitoring/paste.filter_factory':    value =>'keystone.contrib.stats:StatsMiddleware.factory';
+    'filter:stats_reporting/paste.filter_factory':     value =>'keystone.contrib.stats:StatsExtension.factory';
+    'app:public_service/paste.app_factory':            value =>'keystone.service:public_app_factory';
+    'app:admin_service/paste.app_factory':             value =>'keystone.service:admin_app_factory';
+    'pipeline:public_api/pipeline':                    value =>'stats_monitoring url_normalize token_auth admin_token_auth xml_body json_body debug ec2_extension user_crud_extension public_service';
+    'pipeline:admin_api/pipeline':                     value =>'stats_monitoring url_normalize token_auth admin_token_auth xml_body json_body debug stats_reporting ec2_extension s3_extension crud_extension admin_service';
+    'app:public_version_service/paste.app_factory':    value =>'keystone.service:public_version_app_factory';
+    'app:admin_version_service/paste.app_factory':     value =>'keystone.service:admin_version_app_factory';
+    'pipeline:public_version_api/pipeline':            value =>'stats_monitoring url_normalize xml_body public_version_service';
+    'pipeline:admin_version_api/pipeline':             value =>'stats_monitoring url_normalize xml_body admin_version_service';
+    'composite:main/use':                              value =>'egg:Paste#urlmap';
+    'composite:main//v2.0':                            value =>'public_api';
+    'composite:main//':                                value =>'public_version_api';
+    'composite:admin/use':                             value =>'egg:Paste#urlmap';
+    'composite:admin//v2.0':                           value =>'admin_api';
+    'composite:admin//':                               value =>'admin_version_api';
+  }
+
+  class { 'keystone::endpoint':
+    public_url   => $public_url,
+    admin_url    => $admin_url,
+    internal_url => $internal_url,
+    region       => $region,
+  }
+
+  Exec <| title == 'keystone-manage db_sync' |> -> Class['keystone::endpoint']
 }
