@@ -8,6 +8,8 @@
 class cluster::aodh_evaluator {
   include ::aodh::params
 
+  $service_name = $::aodh::params::evaluator_service_name
+
   # migration-threshold is number of tries to
   # start resource on each controller node
   $metadata = {
@@ -30,11 +32,16 @@ class cluster::aodh_evaluator {
     },
   }
 
-  pacemaker_wrappers::service { $::aodh::params::evaluator_service_name:
-    primitive_type => 'aodh-evaluator',
-    metadata       => $metadata,
-    parameters     => { 'user' => 'aodh' },
-    operations     => $operations,
+  $primitive_type = 'aodh-evaluator'
+  $parameters = { 'user' => 'aodh' }
+
+  pacemaker::service { $service_name :
+    primitive_type     => $primitive_type,
+    metadata           => $metadata,
+    parameters         => $parameters,
+    operations         => $operations
   }
 
+  Pcmk_resource["p_${service_name}"] ->
+  Service[$service_name]
 }
