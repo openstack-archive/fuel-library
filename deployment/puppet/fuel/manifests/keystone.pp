@@ -30,8 +30,9 @@ class fuel::keystone (
                    'python-unicodecsv', 'rubygem-thread_safe'])
 
   class { '::keystone':
-    # (TODO iberezovskiy): Set 'enable_bootstrap' to true when MOS packages will
-    # be updated and 'keystone-manage bootstrap' command will be available
+    # (TODO iberezovskiy): Set 'enable_bootstrap' to true in case of update
+    # keystone packages for master node to Mitaka version
+    # (in that case 'keystone-manage bootstrap' command will become available)
     enable_bootstrap => false,
     admin_token      => $admin_token,
     catalog_type     => 'sql',
