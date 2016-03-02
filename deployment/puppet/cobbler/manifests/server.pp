@@ -208,6 +208,15 @@ class cobbler::server (
     notify  => Service[$cobbler_web_service],
   }
 
+  file_line { 'Change debug level in cobbler':
+    require => Package[$cobbler::packages::cobbler_web_package],
+    before => Service[$cobbler_web_service],
+    ensure => present,
+    path => '/usr/share/cobbler/web/settings.py',
+    line => 'DEBUG = False',
+    match   => "^DEBUG.*$",
+  }
+
   service { $cobbler_web_service:
     ensure     => running,
     enable     => true,
