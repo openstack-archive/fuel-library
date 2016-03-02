@@ -20,6 +20,8 @@ describe manifest do
     memcache_addresses   = Noop.hiera 'memcached_addresses', false
     memcache_server_port = Noop.hiera 'memcache_server_port', '11211'
 
+    ironic_enabled       = Noop.hiera_structure 'ironic/enabled'
+
     let(:memcache_nodes) do
       Noop.puppet_function 'get_nodes_hash_by_roles', network_metadata, memcache_roles
     end
@@ -40,6 +42,10 @@ describe manifest do
       Noop.hiera_structure 'nova'
     end
 
+    let(:storage_hash) do
+      Noop.hiera_structure 'storage'
+    end
+
     let(:rhost_mem) do
       { 'reserved_host_memory' => [[Float(facts[:memorysize_mb]).floor * 0.2, 512].max, 1536].min }
     end
@@ -55,6 +61,49 @@ describe manifest do
     let(:nic_passthrough_whitelist) do
       prepare
       Noop.puppet_function('get_nic_passthrough_whitelist', 'sriov')
+    end
+
+    # Legacy openstack-compute tests
+
+    if ironic_enabled
+      compute_driver = 'ironic.IronicDriver'
+    else
+      compute_driver = 'libvirt.LibvirtDriver'
+    end
+
+    it 'should configure libvirt_inject_partition for compute node' do
+      if storage_hash && (storage_hash['ephemeral_ceph'] || storage_hash['volumes_ceph'])
+        libvirt_inject_partition = '-2'
+      elsif facts[:operatingsystem] == 'CentOS'
+        libvirt_inject_partition = '-1'
+      else
+        should contain_k_mod('nbd').with('ensure' => 'present')
+
+        should contain_file_line('nbd_on_boot').with(
+          'path' => '/etc/modules',
+          'line' => 'nbd',
+        )
+        libvirt_inject_partition = '1'
+      end
+      should contain_class('nova::compute::libvirt').with(
+        'libvirt_inject_partition' => libvirt_inject_partition,
+      )
+    end
+
+    it 'should enable migration support for libvirt with vncserver listen on 0.0.0.0' do
+      should contain_class('nova::compute::libvirt').with('migration_support' => true)
+      should contain_class('nova::compute::libvirt').with('vncserver_listen' => '0.0.0.0')
+      should contain_class('nova::migration::libvirt')
+    end
+
+    it 'nova config should have proper compute_driver' do
+      should contain_nova_config('DEFAULT/compute_driver').with(:value => 'libvirt.LibvirtDriver')
+    end
+
+    it 'should declare class nova::compute with install_bridge_utils set to false' do
+      should contain_class('nova::compute').with(
+        'install_bridge_utils' => false,
+      )
     end
 
     # Libvirtd.conf
