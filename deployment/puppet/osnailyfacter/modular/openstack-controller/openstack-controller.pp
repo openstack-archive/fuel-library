@@ -32,6 +32,7 @@ $api_bind_address             = get_network_role_property('nova/api', 'ipaddr')
 $rabbit_hash                  = hiera_hash('rabbit_hash', {})
 $service_endpoint             = hiera('service_endpoint')
 $ssl_hash                     = hiera_hash('use_ssl', {})
+$node_hash                    = hiera_hash('node_hash', {})
 $sahara_enabled               = pick($sahara_hash['enabled'], false)
 
 $internal_auth_protocol = get_ssl_property($ssl_hash, {}, 'keystone', 'internal', 'protocol', [$nova_hash['auth_protocol'], 'http'])
@@ -58,8 +59,8 @@ $region                       = hiera('region', 'RegionOne')
 $workers_max                  = hiera('workers_max', 16)
 $service_workers              = pick($nova_hash['workers'],
                                       min(max($::processorcount, 2), $workers_max))
-$use_huge_pages               = pick($nova_hash['enable_hugepages'], false)
-$enable_cpu_pinning           = pick($nova_hash['enable_cpu_pinning'], false)
+$use_huge_pages               = pick($node_hash['nova_hugepages_enabled'], false)
+$enable_cpu_pinning           = pick($node_hash['nova_cpu_pinning_enabled'], false)
 
 $ironic_hash                  = hiera_hash('ironic', {})
 
