@@ -36,6 +36,11 @@ describe manifest do
       it { should_not contain_class('ceph') }
     end
 
+    if !($storage_hash['ephemeral_ceph'])
+      it { should contain_class('ceph::ephemeral').with(
+        'libvirt_images_type' => 'absent',)
+      }
+    end
   end
   test_ubuntu_and_centos manifest
 end
