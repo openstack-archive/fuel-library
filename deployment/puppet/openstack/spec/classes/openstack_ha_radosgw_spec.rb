@@ -29,7 +29,7 @@ require 'spec_helper'
     end
 
     it "should properly configure radosgw haproxy based on ssl" do
-      should contain_openstack__ha__haproxy_service('radosgw').with(
+      should contain_openstack__ha__haproxy_service('object-storage').with(
         'order'                  => '130',
         'listen_port'            => 8080,
         'balancermember_port'    => 6780,
@@ -41,7 +41,7 @@ require 'spec_helper'
     end
 
     it "should properly configure radosgw haproxy on baremetal VIP" do
-      should contain_openstack__ha__haproxy_service('radosgw-baremetal').with(
+      should contain_openstack__ha__haproxy_service('object-storage-baremetal').with(
         'order'                  => '135',
         'listen_port'            => 8080,
         'balancermember_port'    => 6780,
