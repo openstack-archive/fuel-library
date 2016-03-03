@@ -52,7 +52,7 @@ class openstack::ha::radosgw (
     },
   }
 
-  openstack::ha::haproxy_service { 'radosgw':
+  openstack::ha::haproxy_service { 'object-storage':
     order                  => '130',
     public                 => true,
     public_ssl             => $public_ssl,
@@ -60,7 +60,7 @@ class openstack::ha::radosgw (
   }
 
   if $baremetal_virtual_ip {
-    openstack::ha::haproxy_service { 'radosgw-baremetal':
+    openstack::ha::haproxy_service { 'object-storage-baremetal':
       order                  => '135',
       public_virtual_ip      => false,
       internal_virtual_ip    => $baremetal_virtual_ip,
