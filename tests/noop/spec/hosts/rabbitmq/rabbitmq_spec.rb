@@ -149,7 +149,7 @@ describe manifest do
           :erlang_cookie           => erlang_cookie,
           :admin_user              => rabbit_hash['user'],
           :admin_pass              => rabbit_hash['password'],
-          :host_ip                 => rabbitmq_bind_ip_address,
+          :host_ip                 => '127.0.0.1',
           :enable_rpc_ha           => enable_rpc_ha,
           :enable_notifications_ha => enable_notifications_ha,
           :fqdn_prefix             => fqdn_prefix,
