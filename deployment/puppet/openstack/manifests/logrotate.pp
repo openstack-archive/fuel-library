@@ -16,7 +16,7 @@ class openstack::logrotate (
       owner   => 'root',
       group   => 'root',
       mode    => '0644',
-      content => template('openstack/10-fuel-docker.conf.erb'),
+      content => template('openstack/10-fuel-master.conf.erb'),
     }
   } else {
     # Configure log rotation for other nodes
