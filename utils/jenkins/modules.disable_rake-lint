@@ -1,6 +1,3 @@
 # List of modules with disabled 'rake lint' check.
 # Such modules will be checked with 'puppet-lint' command.
 # No need to include here modules defined in the fuel-library Puppetfile.
-# TODO(bkupidura): this is needed to get while it's being removed, should be
-# removed in a follow on commit
-pacemaker_wrappers
