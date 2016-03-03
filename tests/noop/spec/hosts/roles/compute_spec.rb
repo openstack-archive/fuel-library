@@ -92,22 +92,26 @@ describe manifest do
       )
     end
 
-    vcpu_pin_set = Noop.hiera_structure 'nova/cpu_pinning', false
-    if vcpu_pin_set
-      it 'should configure vcpu_pin_set for nova' do
+    let(:node_hash) { Noop.hiera_hash 'node_hash' }
+    let(:enable_hugepages) { node_hash.fetch('nova_hugepages_enabled', false) }
+    let(:enable_cpu_pinning) { node_hash.fetch('nova_cpu_pinning_enabled', false) }
+
+    it 'should configure vcpu_pin_set for nova' do
+      if enable_cpu_pinning
+        vcpu_pin_set = Noop.hiera_structure 'nova/cpu_pinning', false
         should contain_class('nova::compute').with(
           'vcpu_pin_set' => vcpu_pin_set
         )
       end
     end
 
-    enable_hugepages = Noop.hiera_structure 'nova/enable_hugepages', false
-    if enable_hugepages
-      qemu_hugepages_value = 'set KVM_HUGEPAGES 1'
-    else
-      qemu_hugepages_value = 'rm KVM_HUGEPAGES'
-    end
     it 'should set up huge pages support for qemu-kvm' do
+      if enable_hugepages
+        qemu_hugepages_value = 'set KVM_HUGEPAGES 1'
+      else
+        qemu_hugepages_value = 'rm KVM_HUGEPAGES'
+      end
+
       if facts[:osfamily] == 'Debian'
         should contain_augeas('qemu_hugepages').with(
           'context' => '/files/etc/default/qemu-kvm',
