@@ -9,7 +9,7 @@ else {
   $feature_groups = []
 }
 
-$debug = pick($::fuel_settings['DEBUG'],false)
+$debug = pickup($::fuel_settings['DEBUG'],false)
 if $debug {
     $nailgun_log_level = "DEBUG"
 } else {
