@@ -88,8 +88,8 @@ class openstack::ha::swift (
     balancermember_options => $balancermember_options,
   }
 
-  openstack::ha::haproxy_service { 'swift':
-    order                  => '120',
+  openstack::ha::haproxy_service { 'object-storage':
+    order                  => '130',
     public                 => true,
     public_ssl             => $public_ssl,
     public_ssl_path        => $public_ssl_path,
@@ -98,8 +98,8 @@ class openstack::ha::swift (
   }
 
   if $baremetal_virtual_ip {
-    openstack::ha::haproxy_service { 'swift-baremetal':
-      order                  => '125',
+    openstack::ha::haproxy_service { 'object-storage-baremetal':
+      order                  => '135',
       public_virtual_ip      => false,
       internal_virtual_ip    => $baremetal_virtual_ip,
     }

@@ -38,7 +38,7 @@ describe manifest do
 
         it "should properly configure radosgw haproxy based on ssl" do
           public_ssl_radosgw = Noop.hiera_structure('public_ssl/services', false)
-          should contain_openstack__ha__haproxy_service('radosgw').with(
+          should contain_openstack__ha__haproxy_service('object-storage').with(
             'order'                  => '130',
             'ipaddresses'            => ipaddresses,
             'server_names'           => server_names,
@@ -55,7 +55,7 @@ describe manifest do
         end
 
         it 'should declare openstack::ha::haproxy_service with name radosgw-baremetal' do
-          should contain_openstack__ha__haproxy_service('radosgw-baremetal').with(
+          should contain_openstack__ha__haproxy_service('object-storage-baremetal').with(
             'order'                  => '135',
             'ipaddresses'            => ipaddresses,
             'server_names'           => server_names,
