@@ -138,15 +138,27 @@ if $enabled {
   $wsrep_provider_options = "\"gcache.size=${gcache_size}; gmcast.listen_addr=tcp://${galera_node_address}:${wsrep_group_comm_port}\""
   $wsrep_slave_threads = inline_template("<%= [[${::processorcount}*2, 4].max, 12].min %>")
 
+  if $use_syslog {
+    $syslog_options = {
+      'mysqld_safe'                    => {
+        'syslog'                       => true,
+        'log-error'                    => undef
+      },
+      'mysqld'                         => {
+        'log-error'                    => undef
+      },
+    }
+  }
+
   # this is configurable via hiera
   if $galera_binary_logs {
     $binary_logs_options = {
-      'log_bin'                        => 'mysql-bin',
-      'expire_logs_days'               => '1',
-      'max_binlog_size'                => '512M',
+      'mysqld'                         => {
+        'log_bin'                      => 'mysql-bin',
+        'expire_logs_days'             => '1',
+        'max_binlog_size'              => '512M',
+      },
     }
-  } else {
-    $binary_logs_options = { }
   }
 
   $fuel_override_options = {
@@ -217,7 +229,12 @@ if $enabled {
   }
 
   # build our mysql options to be configured in my.cnf
-  $mysql_override_options = mysql_deepmerge($fuel_override_options, $ignore_db_dir_options, $binary_logs_options)
+  $mysql_override_options = mysql_deepmerge(
+    $fuel_override_options,
+    $ignore_db_dir_options,
+    $binary_logs_options,
+    $syslog_options
+  )
   $galera_options = mysql_deepmerge($wsrep_options, $vendor_override_options)
   $override_options = mysql_deepmerge($mysql_override_options, $galera_options)
 

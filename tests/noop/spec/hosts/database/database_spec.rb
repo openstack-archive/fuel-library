@@ -180,16 +180,22 @@ describe manifest do
       provider = Puppet::Type.type(:haproxy_backend_status).defaultprovider.name
     end
 
+    it 'should configure haproxy backend' do
+      should contain_haproxy_backend_status('mysql').with(
+        :url      => url,
+        :provider => provider
+      )
+    end
+
     it 'should exclude mysql binary logging by default' do
       expect(subject).to contain_class('galera').without_override_options(
           /"logbin"=>"mysql-bin"/
       )
     end
 
-    it 'should configure haproxy backend' do
-      should contain_haproxy_backend_status('mysql').with(
-        :url      => url,
-        :provider => provider
+    it 'should configure logging' do
+      expect(subject).to contain_class('galera').with_override_options(
+        Noop.hiera('use_syslog', true) ? /"syslog"=>"true"/ : /"log-error"=>"\/.+"/
       )
     end
   end
