@@ -37,6 +37,7 @@ OCF_RESKEY_test_user_default="root"
 OCF_RESKEY_test_passwd_default=""
 OCF_RESKEY_test_conf_default=""
 OCF_RESKEY_additional_parameters_default=""
+OCF_RESKEY_startup_timeout_default="-1"
 OCF_RESKEY_master_timeout_default="300"
 OCF_RESKEY_streamfmt_default="xbstream"
 OCF_RESKEY_transferfmt_default="socat"
@@ -62,6 +63,7 @@ MYSQL_BINDIR="$(dirname ${OCF_RESKEY_binary})"
 : ${OCF_RESKEY_test_conf=${OCF_RESKEY_test_conf_default}}
 
 : ${OCF_RESKEY_additional_parameters=${OCF_RESKEY_additional_parameters_default}}
+: ${OCF_RESKEY_startup_timeout=${OCF_RESKEY_startup_timeout_default}}
 : ${OCF_RESKEY_master_timeout=${OCF_RESKEY_master_timeout_default}}
 : ${OCF_RESKEY_streamfmt=${OCF_RESKEY_streamfmt_default}}
 : ${OCF_RESKEY_transferfmt=${OCF_RESKEY_transferfmt_default}}
@@ -185,6 +187,16 @@ meta_data() {
       </longdesc>
       <shortdesc lang="en">Additional parameters to pass to mysqld</shortdesc>
       <content type="string" default="${OCF_RESKEY_additional_parameters_default}"/>
+    </parameter>
+    <parameter name="startup_timeout" unique="0" required="0">
+      <longdesc lang="en">
+      How long in seconds to wait for confirmation of server startup.
+      If the server does not start within this time, mysql server exits with an error.
+      A value of 0 means not to wait at all for startup.
+      Negative values mean to wait forever (no timeout).
+      </longdesc>
+      <shortdesc lang="en">Startup timeout parameter to pass to mysqld</shortdesc>
+      <content type="integer" default="${OCF_RESKEY_startup_timeout_default}"/>
     </parameter>
     <parameter name="master_timeout" unique="0" required="0">
       <longdesc lang="en">
@@ -636,6 +648,9 @@ mysql_start() {
     local rc
     local dir
     local mysql_extra_params
+    local loglevel="warn"
+    local check_server_count=30
+    local sleeptime=$(( OCF_RESKEY_master_timeout / 30 ))
 
     if mysql_status info 1; then
         ocf_log info "${LH} MySQL already running"
@@ -696,7 +711,8 @@ mysql_start() {
         --pid-file=$OCF_RESKEY_pid \
         --socket=$OCF_RESKEY_socket \
         --datadir=$OCF_RESKEY_datadir \
-        --user=$OCF_RESKEY_user $OCF_RESKEY_additional_parameters \
+        --user=$OCF_RESKEY_user \
+        --service-startup-timeout=$OCF_RESKEY_startup_timeout $OCF_RESKEY_additional_parameters \
     $mysql_extra_params >/dev/null 2>&1 &
     rc=$?
 
@@ -707,7 +723,7 @@ mysql_start() {
 
     # Spin waiting for the server to come up or exit, if SST's in progress
     # Let the CRM/LRM time us out if required.
-    while :; do
+    while [ $check_server_count -gt 0 ]; do
         check_if_sst
         rc=$?
         [ $rc -eq $OCF_SUCCESS ] && break
@@ -715,8 +731,17 @@ mysql_start() {
         if mysql_status info 1; then
             break
         fi
-        sleep 3
+        check_server_count=$(( check_server_count-1 ))
+        sleep $sleeptime
     done
+
+    if [ $check_server_count -eq 0 ]; then
+        ocf_log $loglevel "${LH} Server neither come up nor started SST after starting MySQL"
+        # this leaves the mysqld process to be expired by the service-startup-timeout
+        # although, if not set to wait (-1/0), it shall be killed to not hang for ever
+        [ $service-startup-timeout -le 0 ] && mysql_stop
+        return $OCF_NOT_RUNNING
+    fi
 
     ocf_log info "${LH} MySQL started"
     [ $rc -ne $OCF_SUCCESS ] && update_node_gtid
@@ -743,8 +768,13 @@ mysql_cleanup() {
 mysql_stop() {
     local LH="${LL} mysql_stop():"
     local shutdown_timeout
+    local rc
 
-    if [ ! -f $OCF_RESKEY_pid ]; then
+    # if there is no pid AND no SST found, consider it not running
+    # otherwise it may be running an SST and shall be stopped
+    check_if_sst
+    rc=$?
+    if [ $rc -ne $OCF_SUCCESS -a ! -f $OCF_RESKEY_pid ]; then
         ocf_log info "${LH} MySQL is not running"
         return $OCF_SUCCESS
     fi
@@ -754,7 +784,7 @@ mysql_stop() {
         shutdown_timeout=$(( ($OCF_RESKEY_CRM_meta_timeout/1000)-5 ))
     fi
 
-    proc_stop "${OCF_RESKEY_pid_file}" "mysqld" SIGTERM ${shutdown_timeout}
+    proc_stop "${OCF_RESKEY_pid_file}" "mysqld.*${OCF_RESKEY_datadir}" SIGTERM 5 $(( $shutdown_timeout/5 ))
     mysql_cleanup
     return $OCF_SUCCESS
 }
