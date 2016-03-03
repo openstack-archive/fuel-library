@@ -36,6 +36,7 @@ OCF_RESKEY_socket_default="/var/lib/mysql/mysql.sock"
 OCF_RESKEY_test_user_default="root"
 OCF_RESKEY_test_passwd_default=""
 OCF_RESKEY_additional_parameters_default=""
+OCF_RESKEY_startup_timeout_default="900"
 OCF_RESKEY_master_timeout_default="300"
 
 : ${HA_LOGTAG="ocf-mysql-wss"}
@@ -58,6 +59,7 @@ MYSQL_BINDIR="$(dirname ${OCF_RESKEY_binary})"
 : ${OCF_RESKEY_test_passwd=${OCF_RESKEY_test_passwd_default}}
 
 : ${OCF_RESKEY_additional_parameters=${OCF_RESKEY_additional_parameters_default}}
+: ${OCF_RESKEY_startup_timeout=${OCF_RESKEY_startup_timeout_default}}
 : ${OCF_RESKEY_master_timeout=${OCF_RESKEY_master_timeout_default}}
 
 #######################################################################
@@ -168,6 +170,16 @@ meta_data() {
       </longdesc>
       <shortdesc lang="en">Additional parameters to pass to mysqld</shortdesc>
       <content type="string" default="${OCF_RESKEY_additional_parameters_default}"/>
+    </parameter>
+    <parameter name="startup_timeout" unique="0" required="0">
+      <longdesc lang="en">
+      How long in seconds to wait for confirmation of server startup.
+      If the server does not start within this time, mysql server exits with an error.
+      A value of 0 means not to wait at all for startup.
+      Negative values mean to wait forever (no timeout).
+      </longdesc>
+      <shortdesc lang="en">Startup timeout parameter to pass to mysqld</shortdesc>
+      <content type="integer" default="${OCF_RESKEY_startup_timeout_default}"/>
     </parameter>
     <parameter name="master_timeout" unique="0" required="0">
       <longdesc lang="en">
@@ -535,6 +547,10 @@ mysql_start() {
     local LH="${LL} mysql_start():"
     local NODES
 
+    local loglevel="warn"
+    local check_server_count=${1:-10}
+    local sleeptime=${2:-3}
+
     if mysql_status info 1; then
         ocf_log info "${LH} MySQL already running"
         return $OCF_SUCCESS
@@ -591,7 +607,8 @@ mysql_start() {
         --pid-file=$OCF_RESKEY_pid \
         --socket=$OCF_RESKEY_socket \
         --datadir=$OCF_RESKEY_datadir \
-        --user=$OCF_RESKEY_user $OCF_RESKEY_additional_parameters \
+        --user=$OCF_RESKEY_user \
+        --service-startup-timeout=$OCF_RESKEY_startup_timeout $OCF_RESKEY_additional_parameters \
     $mysql_extra_params >/dev/null 2>&1 &
     rc=$?
 
@@ -602,12 +619,18 @@ mysql_start() {
 
     # Spin waiting for the server to come up.
     # Let the CRM/LRM time us out if required.
-    while :; do
+    while [ $check_server_count -gt 0 ]; do
         if mysql_status info 1; then
             break
         fi
-        sleep 3
+        check_server_count=$(( check_server_count-1 ))
+        sleep $sleeptime
     done
+
+    if [ $check_server_count -eq 0 ]; then
+        ocf_log $loglevel "${LH} Server didn't come up after starting MySQL"
+        return $OCF_NOT_RUNNING;
+    fi
 
     ocf_log info "${LH} MySQL started"
     update_node_gtid
