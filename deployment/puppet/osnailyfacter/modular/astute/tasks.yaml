@@ -230,6 +230,18 @@
     timeout: 180
     cwd: /
 
+- id: allocate_hugepages
+  type: puppet
+  version: 2.0.0
+  role: '*'
+  requires: [pre_hiera_config]
+  required_for: [pre_deployment_end]
+  parameters:
+    puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/astute/allocate_hugepages.pp
+    puppet_modules: /etc/puppet/modules
+    timeout: 60
+    cwd: /
+
 - id: dump_rabbitmq_definitions
   type: puppet
   version: 2.0.0
