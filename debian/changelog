@@ -1,17 +1,11 @@
-fuel-library9.0 (9.0.0-1) trusty; urgency=low
+fuel-library9.0 (9.0.0-1) mos9.0; urgency=low
 
   * Bump version to 9.0
 
- -- Sergey Kulanov <skulanov@mirantis.com>  Fri, 18 Dec 2015 22:50:58 +0200
+ -- Vitaly Parakhin <vparakhin@mirantis.com>  Fri, 04 Mar 2016 14:08:58 +0200
 
-fuel-library8.0 (8.0.0-1ubuntu1) mos8.0; urgency=medium
+fuel-library (9.0~0+2016.02.04.git.8094062c62+dfsg1-1) unstable; urgency=low
 
-  * Bump version to 8.0
+  * Initial release (Closes: #813971).
 
- -- Vladimir Kuklin <vkuklin@mirantis.com>  Thu, 03 Sep 2015 13:40:12 +0300
-
-fuel-library7.0 (7.0.0-1) trusty; urgency=low
-
-  * Update version to 7.0
-
- -- Igor Shishkin <ishishkin@mirantis.com>  Wed, 22 Apr 2015 14:44:00 +0300
+ -- Thomas Goirand <zigo@debian.org>  Fri, 05 Feb 2016 10:06:27 +0800

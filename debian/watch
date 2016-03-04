@@ -1,0 +1,3 @@
+version=3
+opts="uversionmangle=s/\.(b|rc)/~$1/",dversionmangle=s/\+dfsg\d+$// \
+https://github.com/openstack/fuel-library/tags .*/(\d[\d\.]+)\.tar\.gz
