@@ -14,7 +14,6 @@ $use_neutron                    = hiera('use_neutron', false)
 $mp_hash                        = hiera('mp')
 $verbose                        = pick($cinder_hash['verbose'], true)
 $debug                          = pick($cinder_hash['debug'], hiera('debug', true))
-$use_monit                      = false
 $auto_assign_floating_ip        = hiera('auto_assign_floating_ip', false)
 $node_volumes                   = hiera('node_volumes', [])
 $storage_hash                   = hiera_hash('storage_hash', {})
@@ -191,38 +190,6 @@ if ($storage_hash['images_ceph']) {
   $glance_known_stores = [ 'glance.store.swift.Store', 'glance.store.http.Store' ]
 }
 
-# NOTE(bogdando) for controller nodes running Corosync with Pacemaker
-#   we delegate all of the monitor functions to RA instead of monit.
-if roles_include(['controller', 'primary-controller']) {
-  $use_monit_real = false
-} else {
-  $use_monit_real = $use_monit
-}
-
-if $use_monit_real {
-  # Configure service names for monit watchdogs and 'service' system path
-  # FIXME(bogdando) replace service_path to systemd, once supported
-  include ::nova::params
-  include ::cinder::params
-  include ::neutron::params
-  $nova_compute_name   = $::nova::params::compute_service_name
-  $nova_api_name       = $::nova::params::api_service_name
-  $nova_network_name   = $::nova::params::network_service_name
-  $cinder_volume_name  = $::cinder::params::volume_service
-  $ovs_vswitchd_name   = $::l23network::params::ovs_service_name
-  case $::osfamily {
-    'RedHat' : {
-      $service_path   = '/sbin/service'
-    }
-    'Debian' : {
-      $service_path    = '/usr/sbin/service'
-    }
-    default  : {
-      fail("Unsupported osfamily: ${osfamily} for os ${operatingsystem}")
-    }
-  }
-}
-
 #HARDCODED PARAMETERS
 
 $multi_host = true
@@ -333,16 +300,6 @@ cinder_config { 'keymgr/fixed_key':
   value => $cinder_hash[fixed_key];
 }
 
-# FIXME(bogdando) replace service_path and action to systemd, once supported
-if $use_monit_real {
-  monit::check::process { $cinder_volume_name :
-    ensure        => running,
-    matching      => '/usr/bin/python /usr/bin/cinder-volume',
-    program_start => "${service_path} ${cinder_volume_name} restart",
-    program_stop  => "${service_path} ${cinder_volume_name} stop",
-    pidfile       => false,
-  }
-}
 #################################################################
 
 # vim: set ts=2 sw=2 et :
