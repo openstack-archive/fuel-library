@@ -1,16 +1,123 @@
 #!/usr/bin/make -f
 
+PYTHONS:=$(shell pyversions -vr)
+PYTHON3S:=$(shell py3versions -vr)
+
+UPSTREAM_GIT = git://github.com/openstack/fuel-library.git
+include /usr/share/openstack-pkg-tools/pkgos.make
+
+export OPENSATCK_RELEASE_NAME=mitaka
+export FUEL_RELEASE_NUMBER=9.0
+export FUEL_AND_OS_RELEASE_NAME=$(OPENSATCK_RELEASE_NAME)-$(FUEL_RELEASE_NUMBER)
+# It's looking like we should do this, and not
+# install in /etc/puppet/mitaka-9.0 doesn't work
+export FUEL_LIB_MODS_DEST=/etc/puppet/modules
+export FULL_FUEL_LIB_MODS_DEST=/debian/fuel-library$(FUEL_LIB_MODS_DEST)
+
 %:
-	dh $@ --with python2
+	dh $@ --with python2,systemd
 
 override_dh_fixperms:
 	chmod 755 debian/fuel-ha-utils/usr/lib/ocf/resource.d/fuel/*
 	dh_fixperms
+	chmod -x $(CURDIR)/debian/fuel-ha-utils/usr/lib/ocf/resource.d/fuel/set_rabbitmq_policy.sh
+	chmod -x $(CURDIR)/debian/fuel-dockerctl/etc/dockerctl/config
+	chmod -x $(CURDIR)/debian/fuel-umm/usr/lib/umm/umm_svc.local
+	chmod -x $(CURDIR)/debian/fuel-umm/usr/lib/umm/umm_vars
+	chmod -x $(CURDIR)/debian/fuel-umm/etc/profile.d/umm.sh
+	chmod +x $(CURDIR)/debian/fuel-dockerctl/etc/dockerctl/config
+	chmod +x $(CURDIR)/debian/fuel-dockerctl/usr/share/dockerctl/functions
+	chmod +x $(CURDIR)$(FULL_FUEL_LIB_MODS_DEST)/Puppetfile
+	chmod +x $(CURDIR)$(FULL_FUEL_LIB_MODS_DEST)/cobbler/templates/scripts/late_command.py
+	chmod +x $(CURDIR)$(FULL_FUEL_LIB_MODS_DEST)/cobbler/templates/scripts/pmanager.py
+	chmod +x $(CURDIR)$(FULL_FUEL_LIB_MODS_DEST)/l23network/files/centos_ifdown-local
+	chmod +x $(CURDIR)$(FULL_FUEL_LIB_MODS_DEST)/l23network/files/centos_ifup-local
+	chmod +x $(CURDIR)$(FULL_FUEL_LIB_MODS_DEST)/l23network/files/centos_ifup-pre-local
+	chmod +x $(CURDIR)$(FULL_FUEL_LIB_MODS_DEST)/mysql/files/mysql-single.init
+	chmod +x $(CURDIR)$(FULL_FUEL_LIB_MODS_DEST)/mysql/files/mysqltuner.pl
+	chmod +x $(CURDIR)$(FULL_FUEL_LIB_MODS_DEST)/mysql/spec/unit/mysql_password_spec.rb
+	sed -i '1 s:rspec:/usr/bin/rspec:' $(CURDIR)$(FULL_FUEL_LIB_MODS_DEST)/mysql/spec/unit/mysql_password_spec.rb
+	chmod +x $(CURDIR)$(FULL_FUEL_LIB_MODS_DEST)/Puppetfile
+	chmod +x $(CURDIR)$(FULL_FUEL_LIB_MODS_DEST)/cobbler/templates/scripts/late_command.py
+	chmod +x $(CURDIR)$(FULL_FUEL_LIB_MODS_DEST)/cobbler/templates/scripts/pmanager.py
+	chmod +x $(CURDIR)$(FULL_FUEL_LIB_MODS_DEST)/l23network/files/centos_ifdown-local
+	chmod +x $(CURDIR)$(FULL_FUEL_LIB_MODS_DEST)/l23network/files/centos_ifup-local
+	chmod +x $(CURDIR)$(FULL_FUEL_LIB_MODS_DEST)/l23network/files/centos_ifup-pre-local
+	chmod +x $(CURDIR)$(FULL_FUEL_LIB_MODS_DEST)/mysql/files/mysql-single.init
+	chmod +x $(CURDIR)$(FULL_FUEL_LIB_MODS_DEST)/mysql/files/mysqltuner.pl
+	chmod +x $(CURDIR)$(FULL_FUEL_LIB_MODS_DEST)/mysql/spec/unit/mysql_password_spec.rb
+	chmod +x $(CURDIR)$(FULL_FUEL_LIB_MODS_DEST)/nailgun/files/cobbler/fence_ssh.centos6.py
+	chmod +x $(CURDIR)$(FULL_FUEL_LIB_MODS_DEST)/nailgun/files/cobbler/fence_ssh.centos7.py
+	chmod +x $(CURDIR)$(FULL_FUEL_LIB_MODS_DEST)/nailgun/files/mco_host_only
+	chmod +x $(CURDIR)$(FULL_FUEL_LIB_MODS_DEST)/osnailyfacter/modular/astute/vcenter_hooks.py
+	chmod +x $(CURDIR)$(FULL_FUEL_LIB_MODS_DEST)/osnailyfacter/modular/ironic/upload_images.rb
+	chmod +x $(CURDIR)$(FULL_FUEL_LIB_MODS_DEST)/sysfs/files/centos-sysfsutils.init.sh
+	chmod +x $(CURDIR)$(FULL_FUEL_LIB_MODS_DEST)/vmware/files/ceilometer-compute-init-centos
+	chmod +x $(CURDIR)$(FULL_FUEL_LIB_MODS_DEST)/vmware/files/nova-compute-init-centos
+	chmod +x $(CURDIR)$(FULL_FUEL_LIB_MODS_DEST)/vmware/files/openstack-cinder-volume-vmware
+
+	chmod -x $(CURDIR)$(FULL_FUEL_LIB_MODS_DEST)/l23network/spec/fixtures/provider/l23_stored_config/lnx_centos7__lnx2lnx_patch__spec/pre-up-ifcfg-p_33470efd-1
+	chmod -x $(CURDIR)$(FULL_FUEL_LIB_MODS_DEST)/l23network/spec/fixtures/provider/l23_stored_config/lnx_centos7__lnx2lnx_patch__spec/pre-up-ifcfg-p_33470efd-0
+	chmod -x $(CURDIR)$(FULL_FUEL_LIB_MODS_DEST)/nailgun/spec/unit/puppet/provider/merge_yaml_settings/ruby_spec.rb
+
+override_dh_auto_install:
+	set -e ; set -x ; cd utils/fuel-tasklib ; for pyvers in $(PYTHONS) ; do \
+		python$$pyvers ./setup.py install --install-layout=deb \
+			--root $(CURDIR)/debian/python-fuel-tasklib ; \
+	done
 
 override_dh_install:
 	dh_install
 	#TODO(dmitryme): remove rabbitmq-server-upstream once we switch to rabbitmq-3.5.7, as it will be included here
 	mv debian/fuel-ha-utils/usr/lib/ocf/resource.d/fuel/rabbitmq debian/fuel-ha-utils/usr/lib/ocf/resource.d/fuel/rabbitmq-server-upstream
 	mv debian/fuel-ha-utils/usr/lib/ocf/resource.d/fuel/rabbitmq-fuel debian/fuel-ha-utils/usr/lib/ocf/resource.d/fuel/rabbitmq-server
-	mv debian/fuel-misc/usr/bin/logrotate debian/fuel-misc/usr/bin/fuel-logrotate
 
+	# Install fuel-umm
+	mv debian/fuel-umm/usr/lib/umm/umm_svc.u1404 debian/fuel-umm/usr/lib/umm/umm_svc.local
+	install -D -m 0755 files/fuel-umm/umm_svc debian/fuel-umm/usr/bin/umm-svc
+
+	# Install fuel-library
+	mkdir -p $(CURDIR)$(FULL_FUEL_LIB_MODS_DEST)
+	mkdir -p $(CURDIR)/debian/fuel-library/etc/puppet/$(FUEL_AND_OS_RELEASE_NAME)/manifests
+	cp -r $(CURDIR)/deployment/puppet/* $(CURDIR)$(FULL_FUEL_LIB_MODS_DEST)/
+	cp deployment/Puppetfile $(CURDIR)$(FULL_FUEL_LIB_MODS_DEST)/
+	find $(CURDIR)/debian/fuel-library/etc/puppet -name .gitignore -delete
+	find $(CURDIR)/debian/fuel-library/etc/puppet -name LICENSE -delete
+
+	for i in apache apt ceilometer cinder concat datacat glance heat horizon inifile ironic keystone manila mcollective memcached mongodb monit murano neutron nova ntp openssl openstacklib postgresql rabbitmq rsync sahara ssh staging stdlib swift sysctl tftp vcsrepo xinetd ; do \
+		ln -s /usr/share/puppet/modules/$$i $(CURDIR)$(FULL_FUEL_LIB_MODS_DEST)/$$i ; \
+	done
+
+	# Install rabbit-fence.py as /usr/bin/fuel-rabbit-fence
+	mkdir -p $(CURDIR)/debian/fuel-rabbit-fence/usr/bin
+	cp $(CURDIR)/files/rabbit-fence/rabbit-fence.py $(CURDIR)/debian/fuel-rabbit-fence/usr/bin/fuel-rabbit-fence
+
+	# Install docker-utils / fuel-dockerctl stuff
+	# TODO: find a way to not do this stupid hack:
+	#install -D -m 0644 %{dockerctl_source}/dockerctl-alias.sh %{buildroot}/etc/profile.d/dockerctl.sh
+	install -D -m 0755 $(CURDIR)/files/fuel-docker-utils/dockerctl $(CURDIR)/debian/fuel-dockerctl/usr/bin/dockerctl
+	install -D -m 0755 $(CURDIR)/files/fuel-docker-utils/get_service_credentials.py %{buildroot}/usr/bin/fuel_get_service_credentials
+
+	install -D -m 0644 $(CURDIR)/files/fuel-docker-utils/dockerctl_config $(CURDIR)/debian/fuel-dockerctl/etc/dockerctl/config
+	sed -i 's:_VERSION_:'$(FUEL_RELEASE_NUMBER)':' $(CURDIR)/debian/fuel-dockerctl/etc/dockerctl/config
+
+	install -D -m 0644 $(CURDIR)/files/fuel-docker-utils/functions.sh $(CURDIR)/debian/fuel-dockerctl/usr/share/dockerctl/functions
+
+	# Install fuel-misc
+	install -D -m 0644 $(CURDIR)/files/fuel-misc/haproxy-status.sh					$(CURDIR)/debian/fuel-misc/usr/bin/fuel_haproxy-status
+	install -D -m 0644 $(CURDIR)/files/fuel-misc/generate_vms.sh					$(CURDIR)/debian/fuel-misc/usr/bin/fuel_generate_vms
+	install -D -m 0644 $(CURDIR)/deployment/puppet/nailgun/files/cobbler/fence_ssh.centos7.py	$(CURDIR)/debian/fuel-misc/usr/sbin/fence_ssh
+
+	# Install fuel-ha-utils
+	install -D -m 0644 $(CURDIR)/files/fuel-ha-utils/tools/galeracheck		$(CURDIR)/debian/fuel-ha-utils/usr/bin/fuel_galeracheck
+	install -D -m 0644 $(CURDIR)/files/fuel-ha-utils/tools/rabbitmq-dump-clean.py	$(CURDIR)/debian/fuel-ha-utils/usr/bin/fuel_rabbitmq-dump-clean
+	install -D -m 0644 $(CURDIR)/files/fuel-ha-utils/tools/swiftcheck		$(CURDIR)/debian/fuel-ha-utils/usr/bin/fuel_swiftcheck
+	install -D -m 0644 $(CURDIR)/files/fuel-ha-utils/tools/wsrepclustercheckrc	$(CURDIR)/debian/fuel-ha-utils/etc/wsrepclustercheckrc
+
+override_dh_clean:
+	dh_clean
+	rm -f debian/*.ini debian/*.upstart debian/*.service
+
+override_dh_python2:
+	dh_python2 --shebang=/usr/bin/python
+	dh_python2 /etc/puppet --shebang=/usr/bin/python
