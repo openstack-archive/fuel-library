@@ -11,7 +11,6 @@ class ceph::radosgw (
   $rgw_id      = 'radosgw.gateway',
   $rgw_user    = $::ceph::params::user_httpd,
   $use_ssl     = $::ceph::use_ssl,
-  $public_ssl  = false,
   $primary_mon = $::ceph::primary_mon,
 
   # RadosGW settings
@@ -35,9 +34,6 @@ class ceph::radosgw (
   $rgw_keystone_accepted_roles      = $::ceph::rgw_keystone_accepted_roles,
   $rgw_keystone_revocation_interval = $::ceph::rgw_keystone_revocation_interval,
   $rgw_nss_db_path                  = $::ceph::rgw_nss_db_path,
-  $pub_ip                           = $::ceph::rgw_pub_ip,
-  $adm_ip                           = $::ceph::rgw_adm_ip,
-  $int_ip                           = $::ceph::rgw_int_ip,
 
   #rgw Log settings
   $use_syslog                       = $::ceph::use_syslog,
@@ -135,17 +131,6 @@ class ceph::radosgw (
       Exec['create nss db signing certs']
 
     } #END rgw_use_pki
-
-  class {'ceph::keystone':
-    pub_ip              => $pub_ip,
-    pub_protocol        => $public_ssl ? {
-      true    => 'https',
-      default => 'http',
-    },
-    adm_ip              => $adm_ip,
-    int_ip              => $int_ip,
-    swift_endpoint_port => $swift_endpoint_port,
-  }
 
   } #END rgw_use_keystone
 
