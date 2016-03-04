@@ -5,8 +5,10 @@ manifest = 'astute/dump_rabbitmq_definitions.pp'
 describe manifest do
   shared_examples 'catalog' do
     rabbit_hash = Noop.hiera_structure 'rabbit_hash'
+    management_bind_ip_address = Noop.hiera 'management_bind_ip_address', '127.0.0.1'
+    management_port = Noop.hiera 'management_port', '15672'
     original_definitions_dump_file = '/etc/rabbitmq/definitions.full'
-    rabbit_api_endpoint = 'http://localhost:15672/api/definitions'
+    rabbit_api_endpoint = "http://#{management_bind_ip_address}:#{management_port}/api/definitions"
 
     it "should contain rabbitmq dump definitions exec" do
 
