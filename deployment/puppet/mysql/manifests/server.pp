@@ -227,6 +227,7 @@ class mysql::server (
       skip_name_resolve  => $mysql_skip_name_resolve,
       use_syslog         => $use_syslog,
       wsrep_sst_password => $root_password,
+      ignore_db_dirs     => $ignore_db_dirs,
     }
 
   }
