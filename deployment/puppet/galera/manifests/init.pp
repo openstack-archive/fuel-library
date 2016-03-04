@@ -76,6 +76,11 @@
 # size to exceed the value of this variable, the server rotates the
 # binary logs (closes the current file and opens the next one). The
 # minimum value is 4096 bytes. The maximum and default value is 512MB.
+#
+# [*ignore_db_dirs*]
+#  (optional) array of directories to ignore in datadir.
+#  Defaults to []
+#
 
 class galera (
   $cluster_name         = 'openstack',
@@ -95,6 +100,7 @@ class galera (
   $binary_logs_enabled  = false,
   $binary_logs_period   = 1,
   $binary_logs_maxsize  = '512M',
+  $ignore_db_dirs       = [],
   ) {
 
   include galera::params
