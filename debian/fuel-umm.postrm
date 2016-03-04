@@ -1,0 +1,15 @@
+#!/bin/bash
+
+set -e
+
+if [ "$1" = "purge" ] ; then
+	rm -f /etc/init/rc-sysinit.override
+	rm -f /etc/init/failsafe.override
+	rm -f /etc/init/umm.conf
+	rm -f /etc/grub.d/55_umm 
+	update-grub
+fi
+
+#DEBHELPER#
+
+exit 0

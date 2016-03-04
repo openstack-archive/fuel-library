@@ -1,0 +1,22 @@
+Description: Remove bashism from iser_rename.erb
+Author: Thomas Goirand <zigo@debian.org>
+Forwarded: no
+Last-Update: 2016-02-08
+
+--- fuel-library-9.0~0+2016.02.04.git.8094062c62+dfsg1.orig/deployment/puppet/mellanox_openstack/templates/iser_rename.erb
++++ fuel-library-9.0~0+2016.02.04.git.8094062c62+dfsg1/deployment/puppet/mellanox_openstack/templates/iser_rename.erb
+@@ -1,4 +1,4 @@
+-#!/usr/bin/bash
++#!/bin/sh
+ 
+ # Constants
+ readonly SCOPE=`basename $0`
+@@ -12,7 +12,7 @@ ISER_NAME='<%=@iser_interface_name%>'
+ FATHER_FIRST_VF="/sys/class/net/$STORAGE_PORT/device/virtfn0"
+ 
+ # This functions print logs to /var/log/messages
+-function logger_print () {
++logger_print () {
+    priority=$1
+    msg=$2
+    logger -t $SCOPE "$priority: $msg"
