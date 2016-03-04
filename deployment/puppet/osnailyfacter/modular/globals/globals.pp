@@ -83,7 +83,6 @@ $use_neutron                    = hiera('quantum', false)
 $use_ovs                        = hiera('use_ovs', $use_neutron)
 $verbose                        = true
 $debug                          = hiera('debug', false)
-$use_monit                      = false
 $master_ip                      = hiera('master_ip')
 $use_syslog                     = hiera('use_syslog', true)
 $syslog_log_facility_glance     = hiera('syslog_log_facility_glance', 'LOG_LOCAL2')
