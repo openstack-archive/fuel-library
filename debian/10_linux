@@ -1,0 +1,3 @@
+if [ -f /etc/grub.d/10_linux ] ; then
+	/etc/grub.d/10_linux | sed -n -e '/menuentry.*{/,/}/p' |  sed -e "s/menuentry\s*'[^']*' /menuentry 'Unified maintenance mode (UMM)' /" -e 's/\(^\s*linux\s.*\)/\1 umm/'  -e '/}/,$d'; echo '}'
+fi
