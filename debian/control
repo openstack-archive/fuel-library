@@ -1,32 +1,233 @@
 Source: fuel-library9.0
 Section: admin
-Priority: optional
-Maintainer: Mirantis Product <product@mirantis.com>
-Build-Depends: debhelper (>= 7), python-all
-Standards-Version: 3.9.2
+Priority: extra
+Maintainer: PKG OpenStack <openstack-devel@lists.alioth.debian.org>
+Uploaders: Thomas Goirand <zigo@debian.org>,
+Build-Depends: debhelper (>= 9),
+               dh-python,
+               dh-systemd,
+               openstack-pkg-tools (>= 37~),
+               python-all,
+               python-setuptools,
+Build-Depends-Indep: python-mock,
+                     python-pytest (>= 2.6.4),
+                     python-unittest2,
+Standards-Version: 3.9.6
+Vcs-Browser: https://anonscm.debian.org/gitweb/?p=openstack/fuel-library.git
+Vcs-Git: https://anonscm.debian.org/git/openstack/fuel-library.git
+Homepage: https://github.com/openstack/fuel-library
+
+Package: python-fuel-tasklib
+Architecture: all
+Section: python
+Depends: python-jsonschema (>= 2.3.0),
+         python-networkx (>= 1.8),
+         python-yaml (>= 3.11),
+         ${misc:Depends},
+         ${python:Depends},
+Description: Fuel tasklib Python 2.7 module
+ Fuel is an open source deployment and management tool for OpenStack. Developed
+ as an OpenStack community effort, it provides an intuitive, GUI-driven
+ experience for deployment and management of OpenStack, related community
+ projects and plug-ins.
+ .
+ Fuel brings consumer-grade simplicity to streamline and accelerate the
+ otherwise time-consuming, often complex, and error-prone process of deploying,
+ testing and maintaining various configuration flavors of OpenStack at scale.
+ Unlike other platform-specific deployment or management utilities, Fuel is an
+ upstream OpenStack project that focuses on automating the deployment and
+ testing of OpenStack and a range of third-party options, so it’s not
+ compromised by hard bundling or vendor lock-in.
+ .
+ This package provides the Fuel task-lib Python module for Python 2.7.
+
+Package: fuel-library9.0
+Architecture: all
+Depends: puppet-module-adrienthebo-filemapper,
+         puppet-module-camptocamp-openssl,
+         puppet-module-ceilometer,
+         puppet-module-cinder,
+         puppet-module-duritong-sysctl,
+         puppet-module-glance,
+         puppet-module-heat,
+         puppet-module-horizon,
+         puppet-module-ironic,
+         puppet-module-keystone,
+         puppet-module-manila,
+         puppet-module-murano,
+         puppet-module-nanliu-staging,
+         puppet-module-neutron,
+         puppet-module-nova,
+         puppet-module-openstacklib,
+         puppet-module-puppet-community-mcollective,
+         puppet-module-puppetlabs-apache,
+         puppet-module-puppetlabs-apt,
+         puppet-module-puppetlabs-concat,
+         puppet-module-puppetlabs-firewall,
+         puppet-module-puppetlabs-inifile,
+         puppet-module-puppetlabs-mongodb,
+         puppet-module-puppetlabs-ntp,
+         puppet-module-puppetlabs-postgresql,
+         puppet-module-puppetlabs-rabbitmq,
+         puppet-module-puppetlabs-rsync,
+         puppet-module-puppetlabs-tftp,
+         puppet-module-puppetlabs-vcsrepo,
+         puppet-module-puppetlabs-xinetd,
+         puppet-module-richardc-datacat,
+         puppet-module-sahara,
+         puppet-module-saz-memcached,
+         puppet-module-saz-ssh,
+         puppet-module-sbitio-monit,
+         puppet-module-swift,
+         ruby | ruby-interpreter,
+         ${misc:Depends},
+         ${python:Depends},
+Description: Set of puppet scripts for Fuel
+ Fuel is an open source deployment and management tool for OpenStack. Developed
+ as an OpenStack community effort, it provides an intuitive, GUI-driven
+ experience for deployment and management of OpenStack, related community
+ projects and plug-ins.
+ .
+ Fuel brings consumer-grade simplicity to streamline and accelerate the
+ otherwise time-consuming, often complex, and error-prone process of deploying,
+ testing and maintaining various configuration flavors of OpenStack at scale.
+ Unlike other platform-specific deployment or management utilities, Fuel is an
+ upstream OpenStack project that focuses on automating the deployment and
+ testing of OpenStack and a range of third-party options, so it’s not
+ compromised by hard bundling or vendor lock-in.
+ .
+ This package contains deployment manifests and code to execute provisioning of
+ master and slave nodes.
 
 Package: fuel-ha-utils
 Architecture: all
-Depends: ${misc:Depends}, ${shlibs:Depends}, python-keystoneclient, python-neutronclient
-Description: Fuel Library HA utils
+Depends: python-keystoneclient,
+         python-neutronclient,
+         ${misc:Depends},
+         ${python:Depends},
+Description: HA utils for Fuel
+ Fuel is an open source deployment and management tool for OpenStack. Developed
+ as an OpenStack community effort, it provides an intuitive, GUI-driven
+ experience for deployment and management of OpenStack, related community
+ projects and plug-ins.
  .
+ Fuel brings consumer-grade simplicity to streamline and accelerate the
+ otherwise time-consuming, often complex, and error-prone process of deploying,
+ testing and maintaining various configuration flavors of OpenStack at scale.
+ Unlike other platform-specific deployment or management utilities, Fuel is an
+ upstream OpenStack project that focuses on automating the deployment and
+ testing of OpenStack and a range of third-party options, so it’s not
+ compromised by hard bundling or vendor lock-in.
+ .
+ This package provides High Availability utils for Fuel.
 
 Package: fuel-misc
 Architecture: all
-Depends: ${misc:Depends}, ${shlibs:Depends}, socat
-Description: Misc Fuel library scripts
+Depends: python-keystoneclient,
+         python-neutronclient,
+         socat,
+         ${misc:Depends},
+         ${python:Depends},
+Description: Misc scripts for Fuel library
+ Fuel is an open source deployment and management tool for OpenStack. Developed
+ as an OpenStack community effort, it provides an intuitive, GUI-driven
+ experience for deployment and management of OpenStack, related community
+ projects and plug-ins.
  .
+ Fuel brings consumer-grade simplicity to streamline and accelerate the
+ otherwise time-consuming, often complex, and error-prone process of deploying,
+ testing and maintaining various configuration flavors of OpenStack at scale.
+ Unlike other platform-specific deployment or management utilities, Fuel is an
+ upstream OpenStack project that focuses on automating the deployment and
+ testing of OpenStack and a range of third-party options, so it’s not
+ compromised by hard bundling or vendor lock-in.
+ .
+ This package provides misc scripts.
 
 Package: fuel-rabbit-fence
 Architecture: all
-Depends: ${misc:Depends}, ${shlibs:Depends}, dbus, python-gobject-2, python-gobject, python-dbus, python-daemon, rabbitmq-server
-Description: Fuel RabbitMQ fencing utilitites
+Depends: dbus,
+         python-daemon,
+         python-dbus,
+         python-gobject,
+         python-gobject-2,
+         rabbitmq-server,
+         ${misc:Depends},
+         ${python:Depends},
+Description: RabbitMQ fencing utilitites for Fuel
+ Fuel is an open source deployment and management tool for OpenStack. Developed
+ as an OpenStack community effort, it provides an intuitive, GUI-driven
+ experience for deployment and management of OpenStack, related community
+ projects and plug-ins.
  .
+ Fuel brings consumer-grade simplicity to streamline and accelerate the
+ otherwise time-consuming, often complex, and error-prone process of deploying,
+ testing and maintaining various configuration flavors of OpenStack at scale.
+ Unlike other platform-specific deployment or management utilities, Fuel is an
+ upstream OpenStack project that focuses on automating the deployment and
+ testing of OpenStack and a range of third-party options, so it’s not
+ compromised by hard bundling or vendor lock-in.
+ .
+ This package provides RabbitMQ fencing utilities.
 
 Package: fuel-umm
 Architecture: all
-Depends: ${misc:Depends}, ${shlibs:Depends}, upstart
+Depends: ${misc:Depends},
 Description: Unified maintenance mode
- Packet provide posibility to put operation system in the state when it has only
- critical set of working services which are needed for basic network and disk
- operations. Also node in MM state is reachable with ssh from network.
+ Fuel is an open source deployment and management tool for OpenStack. Developed
+ as an OpenStack community effort, it provides an intuitive, GUI-driven
+ experience for deployment and management of OpenStack, related community
+ projects and plug-ins.
+ .
+ Fuel brings consumer-grade simplicity to streamline and accelerate the
+ otherwise time-consuming, often complex, and error-prone process of deploying,
+ testing and maintaining various configuration flavors of OpenStack at scale.
+ Unlike other platform-specific deployment or management utilities, Fuel is an
+ upstream OpenStack project that focuses on automating the deployment and
+ testing of OpenStack and a range of third-party options, so it’s not
+ compromised by hard bundling or vendor lock-in.
+ .
+ This package provides unified maintenance mode utilities.
+
+Package: fuel-migrate
+Architecture: all
+Depends: libvirt-clients,
+         ${misc:Depends},
+Description: Fuel migrate utility
+ Fuel is an open source deployment and management tool for OpenStack. Developed
+ as an OpenStack community effort, it provides an intuitive, GUI-driven
+ experience for deployment and management of OpenStack, related community
+ projects and plug-ins.
+ .
+ Fuel brings consumer-grade simplicity to streamline and accelerate the
+ otherwise time-consuming, often complex, and error-prone process of deploying,
+ testing and maintaining various configuration flavors of OpenStack at scale.
+ Unlike other platform-specific deployment or management utilities, Fuel is an
+ upstream OpenStack project that focuses on automating the deployment and
+ testing of OpenStack and a range of third-party options, so it’s not
+ compromised by hard bundling or vendor lock-in.
+ .
+ This package contains the migrate utility.
+
+Package: fuel-notify
+Architecture: all
+Depends: monit,
+         python-fuelclient,
+         python-six,
+         python-yaml,
+         ${misc:Depends},
+Description: Fuel disk space monitor
+ Fuel is an open source deployment and management tool for OpenStack. Developed
+ as an OpenStack community effort, it provides an intuitive, GUI-driven
+ experience for deployment and management of OpenStack, related community
+ projects and plug-ins.
+ .
+ Fuel brings consumer-grade simplicity to streamline and accelerate the
+ otherwise time-consuming, often complex, and error-prone process of deploying,
+ testing and maintaining various configuration flavors of OpenStack at scale.
+ Unlike other platform-specific deployment or management utilities, Fuel is an
+ upstream OpenStack project that focuses on automating the deployment and
+ testing of OpenStack and a range of third-party options, so it’s not
+ compromised by hard bundling or vendor lock-in.
+ .
+ This package contains the fuel disk space monitor.

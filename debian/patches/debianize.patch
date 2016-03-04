@@ -1,0 +1,60 @@
+Description: Debianize
+ This patch does a bit of renames of the scripts to make them acceptable and
+ uploadable in Debian.
+Author: Thomas Goirand <zigo@debian.org>
+Forwarded: no
+Last-Update: 2016-02-07
+
+--- fuel-library-9.0~0+2016.02.04.git.8094062c62+dfsg1.orig/deployment/puppet/openstack/manifests/galera/status.pp
++++ fuel-library-9.0~0+2016.02.04.git.8094062c62+dfsg1/deployment/puppet/openstack/manifests/galera/status.pp
+@@ -114,7 +114,7 @@ class openstack::galera::status (
+     only_from  => $only_from,
+     cps        => '512 10',
+     per_source => 'UNLIMITED',
+-    server     => '/usr/bin/galeracheck',
++    server     => '/usr/bin/fuel_galeracheck',
+     user       => 'nobody',
+     group      => $group,
+     flags      => 'IPv4',
+--- fuel-library-9.0~0+2016.02.04.git.8094062c62+dfsg1.orig/deployment/puppet/openstack/manifests/swift/status.pp
++++ fuel-library-9.0~0+2016.02.04.git.8094062c62+dfsg1/deployment/puppet/openstack/manifests/swift/status.pp
+@@ -62,7 +62,7 @@ class openstack::swift::status (
+     only_from   => $only_from,
+     cps         => '512 10',
+     per_source  => 'UNLIMITED',
+-    server      => '/usr/bin/swiftcheck',
++    server      => '/usr/bin/fuel_swiftcheck',
+     server_args => "${endpoint} ${scan_target} ${con_timeout}",
+     user        => 'nobody',
+     group       => $group,
+--- fuel-library-9.0~0+2016.02.04.git.8094062c62+dfsg1.orig/deployment/puppet/openstack/spec/classes/openstack_swift_status_spec.rb
++++ fuel-library-9.0~0+2016.02.04.git.8094062c62+dfsg1/deployment/puppet/openstack/spec/classes/openstack_swift_status_spec.rb
+@@ -36,7 +36,7 @@ describe 'openstack::swift::status' do
+             'only_from'   => default_params[:only_from],
+             'cps'         => '512 10',
+             'per_source'  => 'UNLIMITED',
+-            'server'      => '/usr/bin/swiftcheck',
++            'server'      => '/usr/bin/fuel_swiftcheck',
+             'server_args' => server_args,
+             'user'        => 'nobody',
+             'group'       => group,
+@@ -81,7 +81,7 @@ describe 'openstack::swift::status' do
+             'only_from'   => params[:only_from],
+             'cps'         => '512 10',
+             'per_source'  => 'UNLIMITED',
+-            'server'      => '/usr/bin/swiftcheck',
++            'server'      => '/usr/bin/fuel_swiftcheck',
+             'server_args' => server_args,
+             'user'        => 'nobody',
+             'flags'       => 'IPv4',
+--- fuel-library-9.0~0+2016.02.04.git.8094062c62+dfsg1.orig/deployment/puppet/osnailyfacter/modular/generate_vms/generate_vms.pp
++++ fuel-library-9.0~0+2016.02.04.git.8094062c62+dfsg1/deployment/puppet/osnailyfacter/modular/generate_vms/generate_vms.pp
+@@ -43,7 +43,7 @@ vm_config { $vms:
+ }
+ 
+ exec { 'generate_vms':
+-  command     => "/usr/bin/generate_vms.sh ${libvirt_dir} ${template_dir}",
++  command     => "/usr/bin/fuel_generate_vms ${libvirt_dir} ${template_dir}",
+   path        => ['/usr/sbin', '/usr/bin' , '/sbin', '/bin'],
+   require     => [File["${template_dir}"], File["${libvirt_dir}/autostart"]],
+ }

@@ -1,0 +1,7 @@
+#!/bin/sh
+
+set -e
+
+. /usr/lib/umm/umm_vars
+
+[ -f $UMM_DATA/UMM_DRC.var ] && rm $UMM_DATA/UMM_DRC.var
