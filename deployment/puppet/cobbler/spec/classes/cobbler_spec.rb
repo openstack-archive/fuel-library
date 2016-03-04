@@ -48,6 +48,7 @@ describe 'cobbler' do
           :extra_admins_net => params[:extra_admins_nets])
         should contain_cobbler_digest_user(params[:cobbler_user]).with(
           :password => params[:cobbler_password])
+        should contain_file_line('Change debug level in cobbler')
       end
     end
 
@@ -74,6 +75,7 @@ describe 'cobbler' do
           :extra_admins_net => params[:extra_admins_nets])
         should contain_cobbler_digest_user(params[:cobbler_user]).with(
           :password => params[:cobbler_password])
+        should contain_file_line('Change debug level in cobbler')
       end
     end
 
