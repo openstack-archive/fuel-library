@@ -1,0 +1,6 @@
+#fix-fuel-tasklib-wrong-depends.patch
+#rename-get_service_credentials.py.patch
+#debianize.patch
+#fix-syntax-in-generate_keys.sh.patch
+#generate_haproxy_keys.sh-bashism.patch
+#iser_rename.erb-bashism.patch
