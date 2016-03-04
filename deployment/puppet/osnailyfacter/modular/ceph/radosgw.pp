@@ -22,6 +22,10 @@ if $use_ceph and $storage_hash['objects_ceph'] {
   $ceph_primary_monitor_node = hiera('ceph_primary_monitor_node')
   $primary_mons              = keys($ceph_primary_monitor_node)
   $primary_mon               = $ceph_primary_monitor_node[$primary_mons[0]]['name']
+  $public_ip                 = $public_ssl_hash['services'] ? {
+    true    => $public_ssl_hash['hostname'],
+    default => $public_vip,
+  }
 
   prepare_network_config(hiera_hash('network_scheme'))
   $ceph_cluster_network = get_network_role_property('ceph/replication', 'network')
@@ -38,6 +42,16 @@ if $use_ceph and $storage_hash['objects_ceph'] {
   }
   include ::tweaks::apache_wrappers
   include ceph::params
+
+  if !defined(Service['ceph']) {
+    service { 'ceph':
+      ensure     => 'running',
+      name       => $::ceph::params::service_name,
+      enable     => true,
+      hasrestart => true,
+    }
+  }
+  Ceph_conf <||> ~> Service['ceph']
 
   $haproxy_stats_url = "http://${service_endpoint}:10000/;csv"
 
@@ -65,7 +79,7 @@ if $use_ceph and $storage_hash['objects_ceph'] {
 
     # Ceph
     primary_mon                      => $primary_mon,
-    pub_ip                           => $public_vip,
+    pub_ip                           => $public_ip,
     adm_ip                           => $management_vip,
     int_ip                           => $management_vip,
 

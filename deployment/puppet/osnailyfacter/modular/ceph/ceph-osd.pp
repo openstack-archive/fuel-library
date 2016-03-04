@@ -32,7 +32,7 @@ class {'ceph':
   osd_pool_default_size    => $storage_hash['osd_pool_size'],
   osd_pool_default_pg_num  => $storage_hash['pg_num'],
   osd_pool_default_pgp_num => $storage_hash['pg_num'],
-  use_rgw                  => $storage_hash['objects_ceph'],
+  use_rgw                  => false,
   glance_backend           => $glance_backend,
   rgw_pub_ip               => $public_vip,
   rgw_adm_ip               => $management_vip,
