@@ -1,0 +1,2 @@
+files/fuel-notify/free_disk_space_check.yaml	/etc/fuel
+files/fuel-notify/monit-free-space.conf		/etc/monit.d

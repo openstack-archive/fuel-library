@@ -1,0 +1,16 @@
+Description: Remove bashism from generate_haproxy_keys.sh
+Author: Thomas Goirand <zigo@debian.org>
+Forwarded: no
+Last-Update: 2016-02-08
+
+--- fuel-library-9.0~0+2016.02.04.git.8094062c62+dfsg1.orig/deployment/puppet/osnailyfacter/modular/astute/generate_haproxy_keys.sh
++++ fuel-library-9.0~0+2016.02.04.git.8094062c62+dfsg1/deployment/puppet/osnailyfacter/modular/astute/generate_haproxy_keys.sh
+@@ -15,7 +15,7 @@ done
+ BASE_PATH="$keys_path/$cluster_id"
+ CONF_PATH=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )
+ 
+-function generate_open_ssl_keys {
++generate_open_ssl_keys () {
+   for i in $open_ssl_keys
+     do
+       local dir_path="$BASE_PATH/$i"
