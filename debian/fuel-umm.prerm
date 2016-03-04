@@ -1,6 +1,0 @@
-#!/bin/bash
-rm -f /etc/init/rc-sysinit.override
-rm -f /etc/init/failsafe.override
-rm -f /etc/init/umm.conf
-rm -f /etc/grub.d/55_umm
-update-grub

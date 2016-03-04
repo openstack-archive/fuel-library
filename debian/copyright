@@ -1,0 +1,94 @@
+Format: http://www.debian.org/doc/packaging-manuals/copyright-format/1.0/
+Upstream-Name: fuel-library
+Source: git://github.com/openstack/fuel-library.git
+
+Files: *
+Copyright: (c) 2014, Mirantis Inc. <product@mirantis.com>
+           (c) 2011-2016, OpenStack Foundation <openstack-dev@lists.openstack.org>
+           (c) 2012, Puppet Labs, LLC.
+           (c) 2013, Hewlett-Packard Development Company, L.P.
+           (c) 2000-2014, Willy Tarreau <w@1wt.eu>
+License: Apache-2
+
+Files: deployment/puppet/mysql/files/mysqltuner.pl
+Copyright: (c) 2006-2011, Major Hayden <major@mhtx.net>
+License: GPL-3+
+
+Files: debian/*
+Copyright: (c) 2014-2016, Thomas Goirand <zigo@debian.org>
+           (c) 2014-2016, Mirantis Inc. <product@mirantis.com>
+License: Apache-2
+
+Files: deployment/puppet/mysql/manifests/server/mysqltuner.pp
+Copyright: (c) 2009, Larry Ludwig <larrylud@gmail.com>
+License: Apache-2
+
+Files: deployment/puppet/cobbler/templates/scripts/late_command.py
+Copyright: (c) Vladimir Kozhukalov <vkozhukalov@mirantis.com>
+License: GPL-3
+
+Files: files/fuel-ha-utils/ocf/ns_conntrackd
+Copyright: (c) Dominik Klein
+License: GPL-2
+
+License: Apache-2
+ Licensed under the Apache License, Version 2.0 (the "License"); you may not
+ use this file except in compliance with the License. You may obtain a copy of
+ the License at:
+ .
+  http://www.apache.org/licenses/LICENSE-2.0
+ .
+ Unless required by applicable law or agreed to in writing, software
+ distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+ WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
+ License for the specific language governing permissions and limitations under
+ the License.
+ .
+ On Debian-based systems the full text of the Apache version 2.0 license can be
+ found in /usr/share/common-licenses/Apache-2.0.
+
+License: GPL-2
+ This program is free software; you can redistribute it and/or modify it under
+ the terms of version 2 of the GNU General Public License as published by the
+ Free Software Foundation.
+ .
+ This program is distributed in the hope that it would be useful, but WITHOUT
+ ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ FOR A PARTICULAR PURPOSE.
+ .
+ Further, this software is distributed without any warranty that it is free of
+ the rightful claim of any third person regarding infringement or the like.
+ Any license provided herein, whether implied or otherwise, applies only to
+ this software file. Patent licenses, if any, provided herein do not apply to
+ combinations of this program with other software, or any other product
+ whatsoever.
+ .
+ Under Debian systems, you may find a copy of the GPL2 license under:
+ /usr/share/common-licenses/GPL-2
+
+License: GPL-3
+ This program is free software: you can redistribute it and/or modify
+ it under the terms of the GNU General Public License as published by
+ the Free Software Foundation, version 3 of the License.
+ .
+ This program is distributed in the hope that it will be useful,
+ but WITHOUT ANY WARRANTY; without even the implied warranty of
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ GNU General Public License for more details.
+ .
+ Under Debian systems, you may find a copy of the GPL3 license under:
+ /usr/share/common-licenses/GPL-3
+
+License: GPL-3+
+ This program is free software: you can redistribute it and/or modify
+ it under the terms of the GNU General Public License as published by
+ the Free Software Foundation, either version 3 of the License, or
+ (at your option) any later version.
+ .
+ This program is distributed in the hope that it will be useful,
+ but WITHOUT ANY WARRANTY; without even the implied warranty of
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ GNU General Public License for more details.
+ .
+ Under Debian systems, you may find a copy of the GPL3 license under:
+ /usr/share/common-licenses/GPL-3

@@ -11,4 +11,4 @@ pre-start script
   chown -R rabbitmq /var/run/rabbitmq
 end script
 
-exec /usr/bin/rabbit-fence.py
+exec /usr/bin/rabbit-fence
