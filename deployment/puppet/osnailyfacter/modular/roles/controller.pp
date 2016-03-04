@@ -34,8 +34,6 @@ if ($::mellanox_mode == 'ethernet') {
   }
 }
 
-# NOTE(bogdando) for nodes with pacemaker, we should use OCF instead of monit
-
 # BP https://blueprints.launchpad.net/mos/+spec/include-openstackclient
 package { 'python-openstackclient' :
   ensure => installed,
