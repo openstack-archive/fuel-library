@@ -8,3 +8,4 @@ fixtures:
     mysql: "#{source_dir}/../mysql"
     cinder: "#{source_dir}/../cinder"
     openstacklib: "#{source_dir}/../openstacklib"
+    sysfs: "#{source_dir}/../sysfs"
