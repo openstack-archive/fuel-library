@@ -111,6 +111,7 @@ TIMEOUT=600
 export PUPPET_GEM_VERSION=${PUPPET_GEM_VERSION:-'~>3.8'}
 export BUNDLE_DIR=${BUNDLE_DIR:-'/var/tmp/.bundle_home'}
 export GEM_HOME=${GEM_HOME:-'/var/tmp/.gem_home'}
+MODULE_VERSIONS_FILE="${DEPLOYMENT_DIR}/puppet/module_versions"
 
 # We need to be in the deployment directory to run librarian-puppet-simple
 cd $DEPLOYMENT_DIR
@@ -158,3 +159,16 @@ if [ "$RESET_HARD" = true ]; then
   done
   cd $DEPLOYMENT_DIR
 fi
+
+
+echo "MODULE LIST" > $MODULE_VERSIONS_FILE
+for MOD in $(grep "^mod" Puppetfile | tr -d '[:punct:]' | awk '{ print $2 }'); do
+  MOD_DIR="${DEPLOYMENT_DIR}/puppet/${MOD}"
+  if [ -d $MOD_DIR ] && [ -d "${MOD_DIR}/.git" ];
+  then
+    cd $MOD_DIR
+    echo "${MOD}: $(git rev-parse --verify HEAD)" >> $MODULE_VERSIONS_FILE
+    cd $DEPLOYMENT_DIR
+  fi
+done
+cat $MODULE_VERSIONS_FILE
