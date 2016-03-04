@@ -140,6 +140,10 @@ mkdir -p %{buildroot}/usr/lib/systemd/system/
 cp -r %{files_source}/fuel-umm/root/* %{buildroot}/
 cp -r %{files_source}/fuel-umm/systemd/* %{buildroot}/usr/lib/systemd/system/
 cp -r %{files_source}/fuel-umm/rh7/* %{buildroot}/usr/lib/umm/
+#fuel-hiera
+install -d %{buildroot}/usr/lib/hiera/backend
+install -m 0644 %{files_source}/fuel-hiera/backend/nailgun_backend.rb %{buildroot}/usr/lib/hiera/backend/nailgun_backend.rb
+install -m 0644 %{files_source}/fuel-hiera/hiera_nailgun.yaml.sample %{buildroot}/etc/hiera/hiera.yaml
 
 
 %post -p /bin/bash
@@ -374,3 +378,24 @@ For further information go to http://wiki.openstack.org/Fuel
 
 %clean
 rm -rf ${buildroot}
+
+
+%package -n fuel-hiera
+Summary: Fuel API backend for Hiera
+Version: %{version}
+Release: %{release}
+Group: System Environment/Libraries
+License: Apache 2.0
+Requires: ruby
+Requires: hiera
+URL: http://git.openstack.org/openstack/fuel-library
+BuildArch: noarch
+BuildRoot: %{_tmppath}/fuel-library-%{version}-%{release}
+
+%description -n fuel-hiera
+Backend for Hiera to perform lookups in Fuel API for serialized
+deployment data.
+
+%files -n fuel-hiera
+/usr/lib/hiera/backend/nailgun_backend.rb
+%config(noreplace) /etc/hiera/hiera.yaml
