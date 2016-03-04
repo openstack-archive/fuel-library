@@ -31,7 +31,6 @@ $murano_hash                    = hiera_hash('murano', {})
 $mp_hash                        = hiera('mp')
 $verbose                        = pick($compute_hash['verbose'], true)
 $debug                          = pick($compute_hash['debug'], hiera('debug', true))
-$use_monit                      = false
 $auto_assign_floating_ip        = hiera('auto_assign_floating_ip', false)
 $storage_hash                   = hiera_hash('storage', {})
 $vcenter_hash                   = hiera_hash('vcenter', {})
@@ -199,38 +198,6 @@ $r_hostmem = roles_include(['ceph-osd']) ? {
   false => undef,
 }
 
-# NOTE(bogdando) for controller nodes running Corosync with Pacemaker
-#   we delegate all of the monitor functions to RA instead of monit.
-if roles_include(['controller', 'primary-controller']) {
-  $use_monit_real = false
-} else {
-  $use_monit_real = $use_monit
-}
-
-if $use_monit_real {
-  # Configure service names for monit watchdogs and 'service' system path
-  # FIXME(bogdando) replace service_path to systemd, once supported
-  include ::nova::params
-  include ::cinder::params
-  include ::neutron::params
-  $nova_compute_name   = $::nova::params::compute_service_name
-  $nova_api_name       = $::nova::params::api_service_name
-  $nova_network_name   = $::nova::params::network_service_name
-  $cinder_volume_name  = $::cinder::params::volume_service
-  $ovs_vswitchd_name   = $::l23network::params::ovs_service_name
-  case $::osfamily {
-    'RedHat' : {
-      $service_path   = '/sbin/service'
-    }
-    'Debian' : {
-      $service_path    = '/usr/sbin/service'
-    }
-    default  : {
-      fail("Unsupported osfamily: ${osfamily} for os ${operatingsystem}")
-    }
-  }
-}
-
 #HARDCODED PARAMETERS
 if hiera('use_vcenter', false) {
   $multi_host = false
@@ -356,41 +323,6 @@ $nova_complete_hash = merge($nova_config_hash, $nova_custom_hash)
 
 class {'::nova::config':
   nova_config => $nova_complete_hash,
-}
-
-# Configure monit watchdogs
-# FIXME(bogdando) replace service_path and action to systemd, once supported
-if $use_monit_real {
-  monit::check::process { $nova_compute_name :
-    ensure        => running,
-    matching      => '/usr/bin/python /usr/bin/nova-compute',
-    program_start => "${service_path} ${nova_compute_name} restart",
-    program_stop  => "${service_path} ${nova_compute_name} stop",
-    pidfile       => false,
-  }
-  if $use_neutron {
-    monit::check::process { $ovs_vswitchd_name :
-      ensure        => running,
-      program_start => "${service_path} ${ovs_vswitchd_name} restart",
-      program_stop  => "${service_path} ${ovs_vswitchd_name} stop",
-      pidfile       => '/var/run/openvswitch/ovs-vswitchd.pid',
-    }
-  } else {
-    monit::check::process { $nova_network_name :
-      ensure        => running,
-      matching      => '/usr/bin/python /usr/bin/nova-network',
-      program_start => "${service_path} ${nova_network_name} restart",
-      program_stop  => "${service_path} ${nova_network_name} stop",
-      pidfile       => false,
-    }
-    monit::check::process { $nova_api_name :
-      ensure        => running,
-      matching      => '/usr/bin/python /usr/bin/nova-api',
-      program_start => "${service_path} ${nova_api_name} restart",
-      program_stop  => "${service_path} ${nova_api_name} stop",
-      pidfile       => false,
-    }
-  }
 }
 
 ########################################################################
