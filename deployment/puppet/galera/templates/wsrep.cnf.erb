@@ -1,5 +1,10 @@
 [mysqld]
 datadir=<%= @datadir %>
+<% if @ignore_db_dirs and (@ignore_db_dirs.length > 0) -%>
+  <%- @ignore_db_dirs.each do |directory| -%>
+ignore-db-dir=<%= directory %>
+  <%- end -%>
+<% end -%>
 bind-address=<%= @node_address %>
 port=3307
 max_connections=<%= @max_connections %>
