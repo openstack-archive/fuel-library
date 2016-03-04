@@ -6,6 +6,13 @@ describe manifest do
   shared_examples 'catalog' do
     storage_hash = Noop.hiera 'storage'
     ceph_monitor_nodes = Noop.hiera 'ceph_monitor_nodes'
+    public_ssl         = Noop.hiera_structure('public_ssl/services')
+
+    if public_ssl
+      public_ip = Noop.hiera_structure('public_ssl/hostname')
+    else
+      public_ip = public_vip
+    end
 
     if (storage_hash['images_ceph'] or storage_hash['objects_ceph'] or storage_hash['objects_ceph'])
       it { should contain_class('ceph::radosgw').with(
@@ -22,6 +29,7 @@ describe manifest do
         )
       }
 
+      it { should contain_class('ceph::radosgw').with(:pub_ip => public_ip) }
     end
   end
 
