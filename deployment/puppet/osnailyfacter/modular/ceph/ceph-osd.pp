@@ -9,7 +9,6 @@ $use_neutron               = hiera('use_neutron', false)
 $mp_hash                   = hiera('mp')
 $verbose                   = pick($storage_hash['verbose'], true)
 $debug                     = pick($storage_hash['debug'], hiera('debug', true))
-$use_monit                 = false
 $auto_assign_floating_ip   = hiera('auto_assign_floating_ip', false)
 $keystone_hash             = hiera('keystone', {})
 $access_hash               = hiera('access', {})
