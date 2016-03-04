@@ -1,3 +1,8 @@
-files/fuel-umm/root/* /
-files/fuel-umm/ub14/* /usr/lib/umm/
-files/fuel-umm/upstart/* /etc/init/
+debian/umm-boot-scripts/*	/usr/bin
+files/fuel-umm/issue.mm		/etc
+files/fuel-umm/umm		/usr/bin
+files/fuel-umm/umm.conf		/etc
+files/fuel-umm/umm.sh		/etc/profile.d
+files/fuel-umm/umm_svc		/usr/lib/umm
+files/fuel-umm/umm_svc.u1404	/usr/lib/umm
+files/fuel-umm/umm_vars		/usr/lib/umm
