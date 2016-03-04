@@ -101,3 +101,15 @@
     puppet_modules: /etc/puppet/modules
     timeout: 3600
     cwd: /
+
+- id: allocate_hugepages
+  type: puppet
+  version: 2.0.0
+  role: '*'
+  requires: [setup_repositories]
+  required_for: [globals]
+  parameters:
+    puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/roles/allocate_hugepages.pp
+    puppet_modules: /etc/puppet/modules
+    timeout: 300
+    cwd: /
