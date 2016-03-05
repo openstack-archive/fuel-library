@@ -7,23 +7,15 @@
 #
 # See params.pp
 #
-# [private_interface] Interface used for vm networking connectivity. Required.
 # [internal_address] Internal address used for management. Required.
-# [public_interface] Public interface used to route public traffic. Optional.
 #   Defaults to false.
-# [fixed_range] Range of ipv4 network for vms.
-# [network_manager] Nova network manager to use.
-# [auto_assign_floating_ip] Rather configured to automatically allocate and
 #   assign a floating IP address to virtual instances when they are launched.
 #   Defaults to false.
-# [multi_host] Rather node should support multi-host networking mode for HA.
 #   Optional. Defaults to false.
-# [network_config] Hash that can be used to pass implementation specifc
 #   network settings. Optioal. Defaults to {}
 # [sql_connection] SQL connection information. Optional. Defaults to false
 #   which indicates that exported resources will be used to determine connection
 #   information.
-# [nova_user_password] Nova service password.
 #  [amqp_hosts] RabbitMQ hosts or false. Optional. Defaults to false.
 #  [amqp_user] RabbitMQ user. Optional. Defaults to 'nova',
 #  [amqp_password] RabbitMQ password. Optional. Defaults to  'rabbit_pw',
@@ -36,14 +28,8 @@
 #    Defaults to 'http'.
 #  [vncproxy_host] Host that serves as vnc proxy. Optional.
 #    Defaults to false. False indicates that a vnc proxy should not be configured.
-#  [vnc_enabled] Rather vnc console should be enabled.
-#    Optional. Defaults to 'true',
 # [verbose] Rather to print more verbose (INFO+) output. If non verbose and non debug. Optional. Defaults to false.
 # [debug] Rather to print even more verbose (DEBUG+) output. If true, would ignore verbose option. Optional. Defaults to false.
-#  [manage_volumes] Rather nova-volume should be enabled on this compute node.
-#    Optional. Defaults to false.
-#  [nova_volumes] Name of volume group in which nova-volume will create logical volumes.
-#    Optional. Defaults to nova-volumes.
 # [use_syslog] Rather or not service should log to syslog. Optional.
 # [use_stderr] Rather or not service should log to stderr. Optional.
 # [syslog_log_facility] Facility for syslog, if used. Optional. Note: duplicating conf option
@@ -55,113 +41,53 @@
 # class { 'openstack::nova::compute':
 #   internal_address   => '192.168.2.2',
 #   vncproxy_host      => '192.168.1.1',
-#   nova_user_password => 'changeme',
 # }
 
 class openstack::compute (
   # Required Network
   $internal_address,
   # Required Nova
-  $nova_user_password,
-  # Network
-  # Nova
-  $purge_nova_config              = false,
   # RPC
-  # FIXME(bogdando) replace queue_provider for rpc_backend once all modules synced with upstream
-  $queue_provider                 = 'rabbitmq',
-  $rpc_backend                    = 'nova.openstack.common.rpc.impl_kombu',
+  $rpc_backend                    = 'rabbit',
   $amqp_hosts                     = false,
   $amqp_user                      = 'nova',
   $amqp_password                  = 'rabbit_pw',
-  $rabbit_ha_queues               = false,
-  # Glance
   $glance_api_servers             = undef,
-  # Virtualization
   $libvirt_type                   = 'kvm',
   # FIXME(bogdando) remove after fixed upstream https://review.openstack.org/131710
   $host_uuid                      = undef,
   # VNC
-  $vnc_enabled                    = true,
   $vncproxy_protocol              = 'http',
   $vncproxy_host                  = undef,
   $vncserver_listen               = '0.0.0.0',
   $migration_support              = false,
   # General
   $enabled                        = true,
-  $multi_host                     = false,
-  $auto_assign_floating_ip        = false,
-  $network_config                 = {},
-  $public_interface,
-  $private_interface,
-  $network_manager,
-  $fixed_range                    = undef,
-  # Neutron
-  $network_provider               = 'nova',
-  $neutron_integration_bridge     = 'br-int',
-  $neutron_user_password          = 'asdf1234',
-  $base_mac                       = 'fa:16:3e:00:00:00',
-  # Ceilometer
-  $ceilometer_user_password       = 'ceilometer_pass',
   # nova compute configuration parameters
   $nova_hash                      = {},
   $use_huge_pages                 = false,
   $vcpu_pin_set                   = undef,
   $verbose                        = false,
   $debug                          = false,
-  $service_endpoint               = '127.0.0.1',
   $ssh_private_key                = '/var/lib/astute/nova/nova',
   $ssh_public_key                 = '/var/lib/astute/nova/nova.pub',
   $cache_server_ip                = ['127.0.0.1'],
   $cache_server_port              = '11211',
   $pci_passthrough                = undef,
-  # if the cinder management components should be installed
-  $manage_volumes                 = false,
-  $nv_physical_volume             = undef,
-  $cinder_volume_group            = 'cinder-volumes',
-  $cinder                         = true,
-  $cinder_user_password           = 'cinder_user_pass',
-  $cinder_db_password             = 'cinder_db_pass',
-  $cinder_db_user                 = 'cinder',
-  $cinder_db_dbname               = 'cinder',
-  $cinder_iscsi_bind_addr         = false,
-  $db_host                        = '127.0.0.1',
   $use_syslog                     = false,
   $use_stderr                     = true,
   $syslog_log_facility            = 'LOG_LOCAL6',
-  $syslog_log_facility_neutron    = 'LOG_LOCAL4',
-  $syslog_log_facility_ceilometer = 'LOG_LOCAL0',
-  $nova_rate_limits               = undef,
   $nova_report_interval           = '10',
   $nova_service_down_time         = '60',
-  $cinder_rate_limits             = undef,
-  $create_networks                = false,
   $state_path                     = '/var/lib/nova',
   $notification_driver            = 'noop',
-  $ceilometer_metering_secret     = 'ceilometer',
-  $libvirt_vif_driver             = 'nova.virt.libvirt.vif.LibvirtGenericVIFDriver',
   $storage_hash                   = {},
-  $neutron_settings               = {},
-  $install_bridge_utils           = false,
   $compute_driver                 = 'libvirt.LibvirtDriver',
   $config_drive_format            = undef,
   $network_device_mtu             = '65000',
 ) {
 
   include ::nova::params
-
-  #
-  # indicates that all nova config entries that we did
-  # not specifify in Puppet should be purged from file
-  #
-  if ! defined( Resources[nova_config] ) {
-    if ($purge_nova_config) {
-      resources { 'nova_config':
-        purge => true,
-      }
-    }
-  }
-
-  $glance_connection = $glance_api_servers
 
   case $::osfamily {
     'RedHat': {
@@ -277,7 +203,6 @@ class openstack::compute (
 
   class { 'nova':
     install_utilities      => false,
-    ensure_package         => $::openstack_version['nova'],
     rpc_backend            => $rpc_backend,
     #FIXME(bogdando) we have to split amqp_hosts until all modules synced
     rabbit_hosts           => split($amqp_hosts, ','),
@@ -324,18 +249,13 @@ class openstack::compute (
   }
 
   class { '::nova::compute':
-    ensure_package                => $::openstack_version['nova'],
     enabled                       => $enabled,
-    vnc_enabled                   => $vnc_enabled,
     vncserver_proxyclient_address => $internal_address,
     vncproxy_protocol             => $vncproxy_protocol,
     vncproxy_host                 => $vncproxy_host,
     vncproxy_port                 => $nova_hash['vncproxy_port'],
     force_config_drive            => $nova_hash['force_config_drive'],
-    #NOTE(bogdando) default became true in 4.0.0 puppet-nova (was false)
-    neutron_enabled               => ($network_provider == 'neutron'),
     pci_passthrough               => $pci_passthrough,
-    install_bridge_utils          => $install_bridge_utils,
     network_device_mtu            => $network_device_mtu,
     instance_usage_audit          => $instance_usage_audit,
     instance_usage_audit_period   => $instance_usage_audit_period,
