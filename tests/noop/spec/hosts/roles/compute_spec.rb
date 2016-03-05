@@ -100,9 +100,9 @@ describe manifest do
       should contain_nova_config('DEFAULT/compute_driver').with(:value => 'libvirt.LibvirtDriver')
     end
 
-    it 'should declare class nova::compute with install_bridge_utils set to false' do
+    it 'should declare class nova::compute with neutron_enabled set to true' do
       should contain_class('nova::compute').with(
-        'install_bridge_utils' => false,
+        'neutron_enabled' => true,
       )
     end
 
