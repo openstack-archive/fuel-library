@@ -12,6 +12,16 @@ tools = [
   'man-db',
 ]
 
+cloud_init_services = [
+  'cloud-config',
+  'cloud-final',
+  'cloud-init',
+  'cloud-init-container',
+  'cloud-init-local',
+  'cloud-init-nonet',
+  'cloud-log-shutdown',
+]
+
 puppet = Noop.hiera('puppet')
 
 describe manifest do
@@ -44,6 +54,15 @@ describe manifest do
       it do
         should contain_package(i).with({
           'ensure' => 'present'})
+      end
+    end
+
+    it 'should disable cloud-init services' do
+      if facts[:operatingsystem] == 'Ubuntu'
+        cloud_init_services.each do |i|
+            should contain_service(i).with({
+              'enable' => 'false'})
+        end
       end
     end
 
