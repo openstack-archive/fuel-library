@@ -50,7 +50,7 @@ describe manifest do
 
         if pci_vendor_devs
           use_sriov = true
-          ml2_sriov_value = 'set DAEMON_ARGS \'"--config-file /etc/neutron/plugins/ml2/ml2_conf_sriov.ini"\''
+          ml2_sriov_value = 'set DAEMON_ARGS \'"$DAEMON_ARGS --config-file /etc/neutron/plugins/ml2/ml2_conf_sriov.ini"\''
         else
           use_sriov = false
           ml2_sriov_value = 'rm DAEMON_ARGS'

@@ -98,7 +98,7 @@ if $use_neutron {
   if $compute and $::os_package_type == 'debian' {
     augeas { '/etc/default/neutron-openvswitch-agent:ovs_config':
       context => '/files/etc/default/neutron-openvswitch-agent',
-      changes => 'set DAEMON_ARGS \'"--config-file /etc/neutron/plugins/ml2/openvswitch_agent.ini"\'',
+      changes => 'set DAEMON_ARGS \'""$DAEMON_ARGS --config-file /etc/neutron/plugins/ml2/openvswitch_agent.ini"\'',
       notify  => Service['neutron-ovs-agent-service'],
     }
     Package['neutron-ovs-agent'] -> Augeas['/etc/default/neutron-openvswitch-agent:ovs_config']
