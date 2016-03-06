@@ -21,6 +21,20 @@ $tools = [
   'man-db',
 ]
 
+$cloud_init_services = [
+  'cloud-config',
+  'cloud-final',
+  'cloud-init',
+  'cloud-init-container',
+  'cloud-init-local',
+  'cloud-init-nonet',
+  'cloud-log-shutdown',
+]
+
+service { $cloud_init_services:
+  enable => false,
+}
+
 package { $tools :
   ensure => 'present',
 }
