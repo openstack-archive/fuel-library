@@ -67,7 +67,7 @@ describe manifest do
       end
     end
 
-    storage_hash = Noop.hiera_hash 'storage'
+    storage_hash = Noop.hiera 'storage_hash'
     let(:cinder_options) do
       { 'enable_backup' => storage_hash.fetch('volumes_ceph', false) }
     end

@@ -1,12 +1,12 @@
 notice('MODULAR: ceph/radosgw.pp')
 
-$storage_hash     = hiera_hash('storage', {})
+$storage_hash     = hiera('storage', {})
 $use_neutron      = hiera('use_neutron')
 $public_vip       = hiera('public_vip')
-$keystone_hash    = hiera_hash('keystone', {})
+$keystone_hash    = hiera('keystone', {})
 $management_vip   = hiera('management_vip')
 $service_endpoint = hiera('service_endpoint')
-$public_ssl_hash  = hiera_hash('public_ssl')
+$public_ssl_hash  = hiera('public_ssl')
 $radosgw_large_pool_name = ".rgw"
 $mon_address_map  = get_node_to_ipaddr_map_by_network_role(hiera_hash('ceph_monitor_nodes'), 'ceph/public')
 $external_lb      = hiera('external_lb', false)

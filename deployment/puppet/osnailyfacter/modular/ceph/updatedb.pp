@@ -1,6 +1,6 @@
 notice('MODULAR: ceph/updatedb.pp')
 
-$storage_hash = hiera_hash('storage', {})
+$storage_hash = hiera('storage', {})
 
 if ($storage_hash['volumes_ceph'] or
   $storage_hash['images_ceph'] or

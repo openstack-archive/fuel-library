@@ -4,7 +4,7 @@ manifest = 'ceph/ceph_pools.pp'
 
 describe manifest do
   shared_examples 'catalog' do
-    storage_hash       = Noop.hiera_hash 'storage'
+    storage_hash       = Noop.hiera 'storage'
     glance_pool        = 'images'
     cinder_pool        = 'volumes'
     cinder_backup_pool = 'backups'

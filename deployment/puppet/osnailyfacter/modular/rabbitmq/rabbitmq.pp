@@ -11,7 +11,7 @@ if $queue_provider == 'rabbitmq' {
   $erlang_cookie   = hiera('erlang_cookie', 'EOKOWXQREETZSHFNTPEY')
   $version         = hiera('rabbit_version', '3.3.5')
   $amqp_port       = hiera('amqp_port', '5673')
-  $rabbit_hash     = hiera_hash('rabbit',
+  $rabbit_hash     = hiera_hash('rabbit_hash',
     {
       'user'     => false,
       'password' => false,

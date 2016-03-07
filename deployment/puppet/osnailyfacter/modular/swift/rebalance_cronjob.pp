@@ -2,7 +2,7 @@ notice('MODULAR: swift/rebalance_cronjob.pp')
 
 $network_metadata = hiera_hash('network_metadata')
 
-$storage_hash        = hiera('storage')
+$storage_hash        = hiera('storage_hash')
 $swift_master_role   = hiera('swift_master_role', 'primary-controller')
 $ring_min_part_hours = hiera('swift_ring_min_part_hours', 1)
 

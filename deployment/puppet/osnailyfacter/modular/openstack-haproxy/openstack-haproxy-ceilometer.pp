@@ -1,6 +1,6 @@
 notice('MODULAR: openstack-haproxy-ceilometer.pp')
 
-$ceilometer_hash         = hiera_hash('ceilometer', {})
+$ceilometer_hash         = hiera_hash('ceilometer',{})
 # NOT enabled by default
 $use_ceilometer          = pick($ceilometer_hash['enabled'], false)
 $public_ssl_hash         = hiera_hash('public_ssl', {})

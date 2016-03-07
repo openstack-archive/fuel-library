@@ -2,7 +2,7 @@ notice('MODULAR: dump_rabbitmq_definitions.pp')
 
 $definitions_dump_file = '/etc/rabbitmq/definitions'
 $original_definitions_dump_file = '/etc/rabbitmq/definitions.full'
-$rabbit_hash     = hiera_hash('rabbit',
+$rabbit_hash     = hiera_hash('rabbit_hash',
     {
       'user'     => false,
       'password' => false,

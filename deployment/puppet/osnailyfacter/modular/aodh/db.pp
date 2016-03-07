@@ -13,7 +13,7 @@ $db_charset       = pick($aodh_hash['db_charset'], 'utf8')
 $db_allowed_host  = pick($aodh_hash['db_allowed_host'], '127.0.0.1')
 $db_allowed_hosts = pick($aodh_hash['db_allowed_hosts'], '%')
 
-$mysql_hash          = hiera_hash('mysql', {})
+$mysql_hash          = hiera_hash('mysql_hash', {})
 $mysql_root_user     = pick($mysql_hash['root_user'], 'root')
 $mysql_root_password = $mysql_hash['root_password']
 $db_root_user        = pick($aodh_hash['db_root_user'], $mysql_root_user)

@@ -1,7 +1,7 @@
 notice('MODULAR: sahara/keystone.pp')
 
-$sahara_hash     = hiera_hash('sahara', {})
-$public_ssl_hash = hiera_hash('public_ssl')
+$sahara_hash     = hiera_hash('sahara_hash', {})
+$public_ssl_hash = hiera('public_ssl')
 $public_vip      = hiera('public_vip')
 $admin_address   = hiera('management_vip')
 $api_bind_port   = '8386'

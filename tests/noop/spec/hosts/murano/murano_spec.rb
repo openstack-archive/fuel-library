@@ -119,7 +119,7 @@ describe manifest do
 
     let(:default_dns) { Noop.hiera_structure('external_dns/dns_list') }
 
-    murano_glance_artifacts_plugin = Noop.hiera_hash('murano_glance_artifacts_plugin', {})
+    murano_glance_artifacts_plugin = Noop.hiera('murano_glance_artifacts_plugin', {})
 
     #############################################################################
 

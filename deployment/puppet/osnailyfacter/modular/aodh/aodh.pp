@@ -6,7 +6,7 @@ $rpc_backend = 'rabbit'
 
 $rabbit_ha_queues = hiera('rabbit_ha_queues')
 
-$rabbit_hash     = hiera_hash('rabbit', {})
+$rabbit_hash     = hiera_hash('rabbit_hash', {})
 $rabbit_userid   = pick($rabbit_hash['user'], 'nova')
 $rabbit_password = $rabbit_hash['password']
 
@@ -82,7 +82,7 @@ $internal_auth_address  = get_ssl_property($ssl_hash, {}, 'keystone', 'internal'
 $keystone_auth_uri      = "${internal_auth_protocol}://${internal_auth_address}:5000/"
 $keystone_identity_uri  = "${internal_auth_protocol}://${internal_auth_address}:35357/"
 
-$ceilometer_hash = hiera_hash('ceilometer', {})
+$ceilometer_hash = hiera_hash('ceilometer_hash', {})
 
 $ha_mode = pick($ceilometer_hash['ha_mode'], true)
 

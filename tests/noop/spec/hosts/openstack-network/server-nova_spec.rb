@@ -77,7 +77,7 @@ describe manifest do
         public_interface   = Noop.hiera('public_int')
         fixed_range        = Noop.hiera('fixed_network_range')
         network_manager    = Noop.hiera('network_manager')
-        network_config     = Noop.hiera_hash('network_config', {})
+        network_config     = Noop.hiera('network_config', {})
         num_networks       = Noop.hiera('num_networks')
         network_size       = Noop.hiera('network_size')
         nameservers        = Noop.hiera_array('dns_nameservers', [])

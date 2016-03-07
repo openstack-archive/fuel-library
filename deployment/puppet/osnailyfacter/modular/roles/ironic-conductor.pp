@@ -20,7 +20,7 @@ $debug                      = hiera('debug', false)
 $verbose                    = hiera('verbose', true)
 $use_syslog                 = hiera('use_syslog', true)
 $syslog_log_facility_ironic = hiera('syslog_log_facility_ironic', 'LOG_USER')
-$rabbit_hash                = hiera_hash('rabbit')
+$rabbit_hash                = hiera_hash('rabbit_hash')
 $amqp_durable_queues        = pick($ironic_hash['amqp_durable_queues'], false)
 $storage_hash               = hiera('storage')
 

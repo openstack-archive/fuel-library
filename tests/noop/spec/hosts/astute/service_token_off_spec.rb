@@ -5,7 +5,7 @@ manifest = 'astute/service_token_off.pp'
 describe manifest do
   shared_examples 'catalog' do
 
-    keystone_params  = Noop.hiera_structure 'keystone'
+    keystone_params  = Noop.hiera_structure 'keystone_hash'
 
     if keystone_params['service_token_off']
       it 'should contain apache/mod_wsgi keystone service' do

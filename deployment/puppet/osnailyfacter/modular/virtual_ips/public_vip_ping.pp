@@ -1,6 +1,6 @@
 notice('MODULAR: public_vip_ping.pp')
 
-$network_scheme = hiera_hash('network_scheme', {})
+$network_scheme = hiera_hash('network_scheme',{})
 prepare_network_config($network_scheme)
 $run_ping_checker = hiera('run_ping_checker', true)
 $public_iface = get_network_role_property('public/vip', 'interface')

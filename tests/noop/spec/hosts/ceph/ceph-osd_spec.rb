@@ -4,7 +4,7 @@ manifest = 'ceph/ceph-osd.pp'
 
 describe manifest do
   shared_examples 'catalog' do
-    storage_hash = Noop.hiera_hash 'storage'
+    storage_hash = Noop.hiera 'storage'
     ceph_monitor_nodes = Noop.hiera 'ceph_monitor_nodes'
     service_endpoint   = Noop.hiera 'service_endpoint'
     if storage_hash['debug']
@@ -14,7 +14,7 @@ describe manifest do
     end
     ceph_tuning_settings = Noop.hiera 'ceph_tuning_settings'
 
-    public_ssl_hash = Noop.hiera_hash('public_ssl')
+    public_ssl_hash = Noop.hiera('public_ssl')
     let(:ssl_hash) { Noop.hiera_hash 'use_ssl', {} }
     let(:admin_auth_protocol) { Noop.puppet_function 'get_ssl_property',ssl_hash,{},'keystone', 'admin','protocol','http' }
     let(:admin_auth_address) { Noop.puppet_function 'get_ssl_property',ssl_hash,{},'keystone','admin', 'hostname', [Noop.hiera('service_endpoint', Noop.hiera('management_vip'))]}

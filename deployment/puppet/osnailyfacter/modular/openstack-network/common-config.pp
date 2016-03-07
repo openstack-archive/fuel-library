@@ -21,7 +21,7 @@ if $use_neutron {
     $service_plugins = $default_service_plugins
   }
 
-  $rabbit_hash      = hiera_hash('rabbit', {})
+  $rabbit_hash      = hiera_hash('rabbit_hash', {})
   $ceilometer_hash  = hiera_hash('ceilometer', {})
   $network_scheme   = hiera_hash('network_scheme', {})
 

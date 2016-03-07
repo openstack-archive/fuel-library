@@ -1,7 +1,7 @@
 notice('MODULAR: setup_repositories.pp')
 
-$repo_setup_hash = hiera_hash('repo_setup', {})
-$repos      = $repo_setup_hash['repos']
+$repo_setup = hiera('repo_setup', {})
+$repos      = $repo_setup['repos']
 
 if $::osfamily == 'Debian' {
 

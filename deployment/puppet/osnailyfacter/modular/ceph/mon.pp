@@ -1,12 +1,12 @@
 notice('MODULAR: ceph/mon.pp')
 
-$storage_hash                   = hiera_hash('storage', {})
+$storage_hash                   = hiera('storage', {})
 $use_neutron                    = hiera('use_neutron')
 $public_vip                     = hiera('public_vip')
 $management_vip                 = hiera('management_vip')
 $use_syslog                     = hiera('use_syslog', true)
 $syslog_log_facility_ceph       = hiera('syslog_log_facility_ceph','LOG_LOCAL0')
-$keystone_hash                  = hiera_hash('keystone', {})
+$keystone_hash                  = hiera('keystone', {})
 $mon_address_map                = get_node_to_ipaddr_map_by_network_role(hiera_hash('ceph_monitor_nodes'), 'ceph/public')
 
 if ($storage_hash['images_ceph']) {
@@ -32,7 +32,7 @@ if $use_ceph {
   $primary_mons              = keys($ceph_primary_monitor_node)
   $primary_mon               = $ceph_primary_monitor_node[$primary_mons[0]]['name']
 
-  prepare_network_config(hiera_hash('network_scheme', {}))
+  prepare_network_config(hiera_hash('network_scheme',{}))
   $ceph_cluster_network    = get_network_role_property('ceph/replication', 'network')
   $ceph_public_network     = get_network_role_property('ceph/public', 'network')
   $mon_addr                = get_network_role_property('ceph/public', 'ipaddr')

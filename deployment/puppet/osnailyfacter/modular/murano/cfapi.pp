@@ -2,7 +2,7 @@ notice('MODULAR: murano/cfapi.pp')
 
 prepare_network_config(hiera_hash('network_scheme', {}))
 
-$access_hash                = hiera_hash('access', {})
+$access_hash                = hiera_hash('access_hash', {})
 $murano_cfapi_hash          = hiera_hash('murano-cfapi', {})
 $public_ip                  = hiera('public_vip')
 $management_ip              = hiera('management_vip')

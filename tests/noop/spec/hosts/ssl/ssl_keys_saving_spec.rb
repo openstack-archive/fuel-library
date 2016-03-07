@@ -67,7 +67,7 @@ describe manifest do
         end
       end
 
-    elsif Noop.hiera_hash('public_ssl', false)
+    elsif Noop.hiera('public_ssl', false)
       certdata = Noop.hiera_structure "public_ssl/cert_data/content"
       it "should create certificate file for public endpoints in /var/" do
         should contain_file("/var/lib/astute/haproxy/public_haproxy.pem").with(

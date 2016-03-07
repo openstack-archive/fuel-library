@@ -67,7 +67,7 @@ describe manifest do
     let(:api_db_name) { Noop.hiera_structure 'nova/api_db_name', 'nova_api' }
 
 
-    let(:nova_hash) { Noop.hiera_hash 'nova' }
+    let(:nova_hash) { Noop.hiera_hash 'nova_hash' }
 
     let(:ssl_hash) { Noop.hiera_hash 'use_ssl', {} }
 
@@ -106,7 +106,7 @@ describe manifest do
 
     let(:auto_assign_floating_ip) { Noop.hiera 'auto_assign_floating_ip', false }
     let(:amqp_hosts) { Noop.hiera 'amqp_hosts', '' }
-    let(:rabbit_hash) { Noop.hiera_hash 'rabbit', {} }
+    let(:rabbit_hash) { Noop.hiera_hash 'rabbit_hash', {} }
     let(:rabbit_hosts) { Noop.puppet_function 'split', amqp_hosts, ',' }
     let(:openstack_controller_hash) { Noop.hiera_hash 'openstack_controller', {} }
     let(:verbose) { Noop.puppet_function 'pick', openstack_controller_hash['verbose'], true }

@@ -1,6 +1,6 @@
 notice('MODULAR: openstack-haproxy-sahara.pp')
 
-$sahara_hash       = hiera_hash('sahara', {})
+$sahara_hash       = hiera_hash('sahara_hash',{})
 # NOT enabled by default
 $use_sahara        = pick($sahara_hash['enabled'], false)
 $public_ssl_hash   = hiera_hash('public_ssl', {})
