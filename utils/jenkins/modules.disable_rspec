@@ -3,6 +3,7 @@
 docker
 mellanox_openstack
 mysql
+nailgun
 pacemaker
 rsyslog
 vmware
