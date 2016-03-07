@@ -41,7 +41,7 @@
 - id: enable_cinder_volume_service
   type: puppet
   version: 2.0.0
-  role: [cinder, cinder-block-device]
+  groups: [cinder, cinder-block-device]
   requires: [top-role-cinder]
   required_for: [deploy_end]
   parameters:
