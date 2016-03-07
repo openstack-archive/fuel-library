@@ -414,10 +414,6 @@ describe manifest do
       end
     end
 
-    let(:node_hash) { Noop.hiera_hash 'node_hash' }
-    let(:enable_hugepages) { node_hash.fetch('nova_hugepages_enabled', false) }
-    let(:enable_cpu_pinning) { node_hash.fetch('nova_cpu_pinning_enabled', false) }
-
     it 'should declare nova::scheduler::filter with an appropriate filters' do
       nova_scheduler_filters         = []
       nova_scheduler_default_filters = [ 'RetryFilter', 'AvailabilityZoneFilter', 'RamFilter', 'CoreFilter', 'DiskFilter', 'ComputeFilter', 'ComputeCapabilitiesFilter', 'ImagePropertiesFilter', 'ServerGroupAntiAffinityFilter', 'ServerGroupAffinityFilter' ]
@@ -428,6 +424,8 @@ describe manifest do
 
       enable_sahara    = Noop.hiera_structure 'sahara/enabled', false
       enable_sriov     = Noop.hiera_structure 'quantum_settings/supported_pci_vendor_devs', false
+      enable_hugepages = Noop.hiera_structure 'nova/enable_hugepages', false
+      enable_cpu_pinning = Noop.hiera_structure 'nova/enable_cpu_pinning', false
 
       nova_scheduler_filters = nova_scheduler_filters.concat(nova_scheduler_default_filters)
 
