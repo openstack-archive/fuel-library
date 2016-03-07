@@ -82,24 +82,30 @@ $internal_auth_address  = get_ssl_property($ssl_hash, {}, 'keystone', 'internal'
 $keystone_auth_uri      = "${internal_auth_protocol}://${internal_auth_address}:5000/"
 $keystone_identity_uri  = "${internal_auth_protocol}://${internal_auth_address}:35357/"
 
-$ceilometer_hash = hiera_hash('ceilometer', {})
-
-$ha_mode = pick($ceilometer_hash['ha_mode'], true)
+# backwards compatibility with previous ceilometer configuration around alarm
+# history ttl
+$default_ceilometer_hash = {
+  'alarm_history_time_to_live' => '604800',
+}
+$ceilometer_hash   = hiera_hash('ceilometer', $default_ceilometer_hash)
+$alarm_history_ttl = pick($aodh_hash['alarm_history_time_to_live'], $ceilometer_hash['alarm_history_time_to_live'])
+$ha_mode           = pick($ceilometer_hash['ha_mode'], true)
 
 #################################################################
 
 class { '::aodh':
-  debug               => $debug,
-  verbose             => $verbose,
-  notification_topics => $notification_topics,
-  rpc_backend         => $rpc_backend,
-  rabbit_userid       => $rabbit_userid,
-  rabbit_password     => $rabbit_password,
-  rabbit_hosts        => $rabbit_hosts,
-  rabbit_port         => $rabbit_port,
-  rabbit_virtual_host => $rabbit_virtual_host,
-  rabbit_ha_queues    => $rabbit_ha_queues,
-  database_connection => $database_connection,
+  debug                      => $debug,
+  verbose                    => $verbose,
+  notification_topics        => $notification_topics,
+  rpc_backend                => $rpc_backend,
+  rabbit_userid              => $rabbit_userid,
+  rabbit_password            => $rabbit_password,
+  rabbit_hosts               => $rabbit_hosts,
+  rabbit_port                => $rabbit_port,
+  rabbit_virtual_host        => $rabbit_virtual_host,
+  rabbit_ha_queues           => $rabbit_ha_queues,
+  database_connection        => $database_connection,
+  alarm_history_time_to_live => $alarm_history_ttl,
 }
 
 class { 'aodh::auth':

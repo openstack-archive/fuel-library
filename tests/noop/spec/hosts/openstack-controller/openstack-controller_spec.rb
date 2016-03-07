@@ -414,7 +414,7 @@ describe manifest do
       end
     end
 
-    let(:node_hash) { Noop.hiera_hash 'node_hash' }
+    let(:node_hash) { Noop.hiera_hash 'node' }
     let(:enable_hugepages) { node_hash.fetch('nova_hugepages_enabled', false) }
     let(:enable_cpu_pinning) { node_hash.fetch('nova_cpu_pinning_enabled', false) }
 

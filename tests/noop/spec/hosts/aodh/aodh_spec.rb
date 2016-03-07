@@ -58,6 +58,9 @@ describe manifest do
     rabbit_port = Noop.hiera 'amqp_port'
     rabbit_hosts = Noop.hiera 'amqp_hosts'
 
+    ceilometer_hash = Noop.hiera_structure 'ceilometer', {'alarm_history_time_to_live' => '604800'}
+    alarm_ttl = Noop.puppet_function 'pick', aodh_hash['alarm_history_time_to_live'], ceilometer_hash['alarm_history_time_to_live']
+
     it 'should configure "DEFAULT/" section ' do
       should contain_aodh_config('DEFAULT/debug').with(:value => debug)
       should contain_aodh_config('DEFAULT/verbose').with(:value => verbose)
@@ -112,6 +115,10 @@ describe manifest do
       end
 
       should contain_aodh_config('database/connection').with(:value => "mysql://#{db_user}:#{db_password}@#{db_host}/#{db_name}#{db_params}")
+    end
+
+    it 'should configure alarm ttl' do
+      should contain_aodh_config('database/alarm_history_time_to_live').with(:value => alarm_ttl)
     end
 
   end # end of shared_examples
