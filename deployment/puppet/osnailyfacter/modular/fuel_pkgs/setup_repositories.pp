@@ -4,15 +4,7 @@ $repo_setup_hash = hiera_hash('repo_setup', {})
 $repos      = $repo_setup_hash['repos']
 
 if $::osfamily == 'Debian' {
-
-  class { '::apt':
-    purge  => {
-      'sources.list'   => true,
-      'sources.list.d' => true,
-      'preferences'    => false,
-      'preferences.d'  => false,
-    };
-  }
+  include ::apt
 
   $repositories = generate_apt_sources($repos)
   $pins         = generate_apt_pins($repos)
