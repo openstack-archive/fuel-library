@@ -64,7 +64,8 @@ $nova_service_down_time         = hiera('nova_service_down_time')
 $config_drive_format            = 'vfat'
 $public_ssl_hash                = hiera_hash('public_ssl')
 $ssl_hash                       = hiera_hash('use_ssl', {})
-$use_huge_pages                 = pick($nova_hash['enable_hugepages'], false)
+$node_hash                      = hiera_hash('node_hash', {})
+$use_huge_pages                 = pick($node_hash['nova_hugepages_enabled'], false)
 
 $dpdk_config                    = hiera_hash('dpdk', {})
 $enable_dpdk                    = pick($dpdk_config['enabled'], false)
