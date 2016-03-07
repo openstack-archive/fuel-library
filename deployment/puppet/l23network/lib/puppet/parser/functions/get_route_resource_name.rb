@@ -1,4 +1,9 @@
-require 'puppetx/l23_utils'
+begin
+  require 'puppetx/l23_utils'
+rescue LoadError => e
+  rb_file = File.join(File.dirname(__FILE__),'..','..','..','puppetx','l23_utils.rb')
+  load rb_file if File.exists?(rb_file) or raise e
+end
 #
 module Puppet::Parser::Functions
   newfunction(:get_route_resource_name, :type => :rvalue) do |argv|
