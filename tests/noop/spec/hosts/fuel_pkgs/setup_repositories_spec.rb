@@ -5,17 +5,6 @@ manifest = 'fuel_pkgs/setup_repositories.pp'
 describe manifest do
   shared_examples 'catalog' do
 
-    it 'should have apt class with given parameters' do
-      should contain_class('::apt').with(
-        purge => {
-          'sources.list'   => true,
-          'sources.list.d' => true,
-          'preferences'    => false,
-          'preferences.d'  => false,
-        }
-      )
-    end
-
     before(:each) do
       Noop.puppet_function_load :generate_apt_pins
       MockFunction.new(:generate_apt_pins) do |function|
