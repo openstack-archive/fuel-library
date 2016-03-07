@@ -2,9 +2,9 @@ notice('MODULAR: murano.pp')
 
 prepare_network_config(hiera_hash('network_scheme', {}))
 
-$murano_hash                = hiera_hash('murano_hash', {})
+$murano_hash                = hiera_hash('murano', {})
 $murano_settings_hash       = hiera_hash('murano_settings', {})
-$rabbit_hash                = hiera_hash('rabbit_hash', {})
+$rabbit_hash                = hiera_hash('rabbit', {})
 $neutron_config             = hiera_hash('neutron_config', {})
 $public_ip                  = hiera('public_vip')
 $database_ip                = hiera('database_vip')

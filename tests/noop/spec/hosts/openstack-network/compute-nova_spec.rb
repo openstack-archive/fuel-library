@@ -62,7 +62,7 @@ describe manifest do
     end
 
     let(:network_config) do
-      Noop.hiera('network_config', {})
+      Noop.hiera_hash('network_config', {})
     end
 
     let(:dns_nameservers) do

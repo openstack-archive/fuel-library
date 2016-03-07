@@ -1,6 +1,6 @@
 notice('MODULAR: cinder-vmware.pp')
 
-$cinder_hash      = hiera_hash('cinder_hash', {})
+$cinder_hash      = hiera_hash('cinder', {})
 
 if roles_include(['cinder-vmware']) {
   $debug    = pick($cinder_hash['debug'], hiera('debug', true))

@@ -1,7 +1,7 @@
 notice('MODULAR: openstack-network/networks.pp')
 
 if hiera('use_neutron', false) {
-  $access_hash           = hiera('access', { })
+  $access_hash           = hiera_hash('access', {})
   $keystone_admin_tenant = $access_hash['tenant']
   $neutron_config        = hiera_hash('neutron_config')
   $floating_net          = try_get_value($neutron_config, 'default_floating_net', 'net04_ext')

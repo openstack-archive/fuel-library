@@ -14,10 +14,10 @@ $storage_hash          = hiera('storage')
 $use_syslog            = hiera('use_syslog', true)
 $use_stderr            = hiera('use_stderr', false)
 $syslog_log_facility   = hiera('syslog_log_facility_glance')
-$rabbit_hash           = hiera_hash('rabbit_hash', {})
+$rabbit_hash           = hiera_hash('rabbit', {})
 $max_pool_size         = hiera('max_pool_size')
 $max_overflow          = hiera('max_overflow')
-$ceilometer_hash       = hiera_hash('ceilometer_hash', {})
+$ceilometer_hash       = hiera_hash('ceilometer', {})
 $region                = hiera('region','RegionOne')
 $workers_max           = hiera('workers_max', 16)
 $service_workers       = pick($glance_hash['glance_workers'],
@@ -78,7 +78,7 @@ $admin_auth_protocol    = get_ssl_property($ssl_hash, {}, 'keystone', 'admin', '
 $admin_auth_address     = get_ssl_property($ssl_hash, {}, 'keystone', 'admin', 'hostname', [hiera('service_endpoint', ''), $management_vip])
 $glance_endpoint        = get_ssl_property($ssl_hash, {}, 'glance', 'internal', 'hostname', [$management_vip])
 
-$murano_hash    = hiera_hash('murano_hash', {})
+$murano_hash    = hiera_hash('murano', {})
 $murano_plugins = pick($murano_hash['plugins'], {})
 
 $auth_uri     = "${internal_auth_protocol}://${internal_auth_address}:5000/"

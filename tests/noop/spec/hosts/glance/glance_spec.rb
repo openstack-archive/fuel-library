@@ -32,7 +32,7 @@ describe manifest do
     else
        pipeline = 'keystone'
     end
-    murano_glance_artifacts_plugin = Noop.hiera('murano_glance_artifacts_plugin', {})
+    murano_glance_artifacts_plugin = Noop.hiera_hash('murano_glance_artifacts_plugin', {})
     database_vip = Noop.hiera('database_vip')
     glance_db_password = Noop.hiera_structure 'glance/db_password', 'glance'
     glance_db_user = Noop.hiera_structure 'glance/db_user', 'glance'

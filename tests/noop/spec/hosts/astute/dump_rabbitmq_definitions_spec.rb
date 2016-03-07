@@ -4,7 +4,7 @@ manifest = 'astute/dump_rabbitmq_definitions.pp'
 
 describe manifest do
   shared_examples 'catalog' do
-    rabbit_hash = Noop.hiera_structure 'rabbit_hash'
+    rabbit_hash = Noop.hiera_structure 'rabbit'
     original_definitions_dump_file = '/etc/rabbitmq/definitions.full'
     rabbit_api_endpoint = 'http://localhost:15672/api/definitions'
 
