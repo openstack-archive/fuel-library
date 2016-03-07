@@ -96,11 +96,4 @@ if $use_ceph {
     cwd  => '/root',
   }
 
-} 
-
-if !($storage_hash['ephemeral_ceph']) {
-  class { 'ceph::ephemeral':
-    libvirt_images_type => 'absent',
-  }
 }
-
