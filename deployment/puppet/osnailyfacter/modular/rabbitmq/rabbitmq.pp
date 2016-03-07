@@ -177,6 +177,7 @@ if $queue_provider == 'rabbitmq' {
         enable_notifications_ha => $enable_notifications_ha,
         fqdn_prefix             => $fqdn_prefix,
         pid_file                => $pid_file,
+        require                 => Class['rabbitmq::install'],
       }
     }
 
