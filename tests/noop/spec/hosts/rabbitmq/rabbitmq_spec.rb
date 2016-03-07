@@ -155,6 +155,8 @@ describe manifest do
           :fqdn_prefix             => fqdn_prefix,
           :pid_file                => pid_file,
         ).that_comes_before('Class[nova::rabbitmq]')
+        should contain_class('cluster::rabbitmq_ocf').that_requires(
+          'Class[rabbitmq::install]')
       end
     end
 
