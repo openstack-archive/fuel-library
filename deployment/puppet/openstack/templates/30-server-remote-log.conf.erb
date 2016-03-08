@@ -18,11 +18,19 @@ $ActionFileDefaultTemplate RemoteLog
 $template RemoteLogFile, "/var/log/remote/%fromhost-ip%/%syslogtag:R,ERE,1,DFLT:([A-Za-z][A-Za-z0-9_./-]*)--end%.log"
 # Hardcode destination for puppet logs
 $template PuppetApplyLogFile, "/var/log/remote/%fromhost-ip%/puppet-apply.log"
+# Hardcode destination for keystone logs
+$template KeystoneAdminLogFile, "/var/log/remote/%fromhost-ip%/keystone-admin.log"
+$template KeystoneMainLogFile, "/var/log/remote/%fromhost-ip%/keystone-main.log"
 
 # Parse puppet logs
 :syslogtag, regex, "puppet-user" ?PuppetApplyLogFile;RemoteLog
 &~
 :syslogtag, regex, "puppet-error" ?PuppetApplyLogFile;RemoteLog
+&~
+# Parse keystone logs
+:syslogtag, regex, "admin" ?KeystoneAdminLogFile;RemoteLog
+&~
+:syslogtag, regex, "main" ?KeystoneMainLogFile;RemoteLog
 &~
 
 :fromhost-ip, regex, "^[1-9]" ?RemoteLogFile;RemoteLog
