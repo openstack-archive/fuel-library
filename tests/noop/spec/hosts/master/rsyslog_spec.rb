@@ -20,9 +20,10 @@ describe manifest do
 
     it 'should correctly declare openstack::logging class' do
       parameters = {
-        :role  => 'server',
-        :proto => 'both',
-        :port  => '514'
+        :role          => 'server',
+        :proto         => 'both',
+        :port          => '514',
+        :show_timezone => true,
       }
       is_expected.to contain_class('openstack::logging').with parameters
     end
