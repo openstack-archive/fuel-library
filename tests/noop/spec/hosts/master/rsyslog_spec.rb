@@ -14,6 +14,7 @@ describe manifest do
         :gnutls_package_name => false,
         :mysql_package_name  => false,
         :pgsql_package_name  => false,
+        :show_timezone       => true,
       }
       is_expected.to contain_class('rsyslog').with parameters
     end
