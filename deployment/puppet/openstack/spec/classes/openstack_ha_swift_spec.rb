@@ -43,8 +43,8 @@ require 'spec_helper'
       end
 
       it "should properly configure swift haproxy based on ssl" do
-        should contain_openstack__ha__haproxy_service('object-storage').with(
-          'order'                  => '130',
+        should contain_openstack__ha__haproxy_service('swift').with(
+          'order'                  => '120',
           'listen_port'            => 8080,
           'public'                 => true,
           'public_ssl'             => true,
@@ -55,8 +55,8 @@ require 'spec_helper'
       end
 
       it "should properly configure swift haproxy on baremetal VIP" do
-        should contain_openstack__ha__haproxy_service('object-storage-baremetal').with(
-          'order'                  => '135',
+        should contain_openstack__ha__haproxy_service('swift-baremetal').with(
+          'order'                  => '125',
           'listen_port'            => 8080,
           'public_ssl'             => false,
           'internal_virtual_ip'    => '192.168.0.2',
@@ -76,8 +76,8 @@ require 'spec_helper'
       end
 
       it "should properly configure swift haproxy" do
-        should contain_openstack__ha__haproxy_service('object-storage').with(
-          'order'                  => '130',
+        should contain_openstack__ha__haproxy_service('swift').with(
+          'order'                  => '120',
           'listen_port'            => 8080,
           'public'                 => true,
           'public_ssl'             => false,
