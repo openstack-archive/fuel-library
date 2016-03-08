@@ -73,9 +73,10 @@ describe 'openstack::logging' do
            should contain_file("/etc/rsyslog.d/#{item}.conf")
         end
         should contain_class('rsyslog::client').with(
-          :log_remote     => p[:log_remote],
-          :log_local      => p[:log_local],
-          :log_auth_local => p[:log_auth_local]
+          :log_remote                => p[:log_remote],
+          :log_local                 => p[:log_local],
+          :log_auth_local            => p[:log_auth_local]
+          :high_precision_timestamps => p[:show_timezone],
         )
         should contain_rsyslog__snippet('00-disable-EscapeControlCharactersOnReceive')
       end
