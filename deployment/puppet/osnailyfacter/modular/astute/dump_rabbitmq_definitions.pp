@@ -8,11 +8,13 @@ $rabbit_hash     = hiera_hash('rabbit',
       'password' => false,
     }
   )
-$rabbit_enabled  = pick($rabbit_hash['enabled'], true)
+$rabbit_enabled = pick($rabbit_hash['enabled'], true)
+$management_bind_ip_address = hiera('management_bind_ip_address', '127.0.0.1')
+$management_port = hiera('rabbit_management_port', '15672')
 
 
 if ($rabbit_enabled) {
-  $rabbit_api_endpoint = 'http://localhost:15672/api/definitions'
+  $rabbit_api_endpoint = "http://${management_bind_ip_address}:${management_port}/api/definitions"
 
   dump_rabbitmq_definitions { $original_definitions_dump_file:
     user      => $rabbit_hash['user'],
