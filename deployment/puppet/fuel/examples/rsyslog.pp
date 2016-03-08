@@ -8,7 +8,8 @@ class { '::rsyslog':
 }
 
 class { '::openstack::logging':
-  role  => 'server',
-  proto => 'both',
-  port  => '514'
+  role          => 'server',
+  proto         => 'both',
+  port          => '514',
+  show_timezone => true,
 }
