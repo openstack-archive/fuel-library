@@ -140,8 +140,8 @@ describe manifest do
     it 'should configure libvirt host_uuid' do
       host_uuid = facts[:libvirt_uuid]
       should contain_augeas('libvirt-conf-uuid').with(
-        :context => '/files/etc/libvirt/libvirtd.conf',
-        :changes => "set host_uuid #{host_uuid}"
+        'context' => '/files/etc/libvirt/libvirtd.conf',
+        'changes' => "set host_uuid #{host_uuid}"
       ).that_notifies('Service[libvirt]')
     end
 
@@ -353,16 +353,15 @@ describe manifest do
     end
 
     it 'should properly configure vncproxy with (non-)ssl' do
-      should contain_class('openstack::compute').with(
-        'vncproxy_host' => vncproxy_host
-      )
       should contain_class('nova::compute').with(
         'vncproxy_protocol' => vncproxy_protocol
+        'vncproxy_host'     => vncproxy_host
+        'vncproxy_port'     => vncproxy_port
       )
     end
 
     it 'should properly configure glance api servers with (non-)ssl' do
-      should contain_class('openstack::compute').with(
+      should contain_class('nova').with(
         'glance_api_servers' => glance_api_servers
       )
     end
@@ -391,11 +390,69 @@ describe manifest do
         nova_compute_rhostmem = 512 # default
       end
 
-      should contain_class('openstack::compute').with(
-        'nova_hash' => rhost_mem.merge(nova_hash)
-      )
       should contain_class('nova::compute').with(
         'reserved_host_memory' => nova_compute_rhostmem
+      )
+    end
+  end
+
+  it 'should configure availability zones' do
+    should contain_class('nova::availability_zone').with(
+      'default_availability_zone' => nova_hash['default_availability_zone'],
+      'default_schedule_zone'     => nova_hash['default_schedule_zone'],
+    )
+  end
+
+  it 'configures with the default params' do
+    compute_hash = Noop.hiera_hash 'compute'
+    verbose = Noop.puppet_function 'pick', compute_hash['verbose'], 'true'
+    debug = Noop.puppet_function 'pick', compute_hash['debug'], (Noop.hiera 'debug', 'true')
+    log_facility = Noop.hiera 'syslog_log_facility_nova', 'LOG_LOCAL6'
+
+    should contain_class('nova').with(
+      'kombu_reconnect_delay' => '5.0',
+      'verbose'          => verbose,
+      'debug'            => debug,
+      'log_facility'     => log_facility,
+      'state_path'       => nova_hash['state_path'],
+      'notify_on_state_change' => 'vm_and_task_state',
+    )
+    should contain_class('nova::compute').with(
+      'enabled'                     => 'false',
+      'force_config_drive'          => nova_hash['force_config_drive'],
+      'instance_usage_audit'        => 'true',
+      'instance_usage_audit_period' => 'hour',
+      'config_drive_format'         => 'vfat'
+    )
+
+    libvirt_type = Noop.hiera 'libvirt_type', 'kvm'
+    min_age = Noop.puppet_function 'pick', nova_hash['remove_unused_original_minimum_age_seconds'], '86400'
+    should contain_class('nova::compute::libvirt').with(
+      'libvirt_virt_type'    => libvirt_type,
+      'vncserver_listen'     => '0.0.0.0',
+      'remove_unused_original_minimum_age_seconds' => min_age,
+    )
+
+  it 'should contain migration basics' do
+    should contain_class('nova::client')
+    should contain_install_ssh_keys('nova_ssh_key_for_migration')
+    should contain_file('/var/lib/nova/.ssh/config')
+  end
+
+  it 'should contain cpufrequtils' do
+    if facts[:operatingsystem] == 'Ubuntu'
+      should contain_package('cpufrequtils').with(
+        'ensure' => 'present'
+      )
+      should contain_file('/etc/default/cpufrequtils').with(
+        'content' => "GOVERNOR=\"performance\"\n",
+        'require' => 'Package[cpufrequtils]',
+        'notify'  => 'Service[cpufrequtils]',
+      )
+      should contain_service('cpufrequtils').with(
+        'ensure' => 'running',
+        'enable' => 'true',
+        'status' => '/bin/true',
       )
     end
   end
