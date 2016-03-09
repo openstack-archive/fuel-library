@@ -18,8 +18,15 @@ describe 'cgroups', :type => :class do
       }
     end
 
+    let :params do
+      default_params.merge!({})
+    end
+
     it { is_expected.to compile }
-    it { is_expected.to contain_class('cgroups::service') }
+    it {
+      should contain_class('cgroups::service').with(
+        :cgroups_settings => params[:cgroups_set])
+    }
 
     %w(libcgroup1 cgroup-bin cgroup-upstart).each do |cg_pkg|
       it { is_expected.to contain_package(cg_pkg) }
