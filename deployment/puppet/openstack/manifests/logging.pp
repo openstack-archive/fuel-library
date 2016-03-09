@@ -317,9 +317,10 @@ class openstack::logging (
     }
 
     class { '::rsyslog::client':
-      log_remote     => $log_remote,
-      log_local      => $log_local,
-      log_auth_local => $log_auth_local,
+      log_remote                => $log_remote,
+      log_local                 => $log_local,
+      log_auth_local            => $log_auth_local,
+      high_precision_timestamps => $show_timezone,
     }
 
     unless $escapenewline {
