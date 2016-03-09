@@ -122,8 +122,6 @@ class openstack_tasks::roles::compute {
   $nova_config_hash = {
     'DEFAULT/resume_guests_state_on_host_boot'       => { value => hiera('resume_guests_state_on_host_boot', 'False') },
     'DEFAULT/use_cow_images'                         => { value => hiera('use_cow_images', 'True') },
-    'DEFAULT/block_device_allocate_retries'          => { value => $block_device_allocate_retries },
-    'DEFAULT/block_device_allocate_retries_interval' => { value => $block_device_allocate_retries_interval },
     'libvirt/libvirt_inject_key'                     => { value => true },
     'libvirt/libvirt_inject_password'                => { value => true },
   }
@@ -256,6 +254,8 @@ class openstack_tasks::roles::compute {
     notification_driver    => $ceilometer_hash['notification_driver'],
     memcached_servers      => $memcached_addresses,
     cinder_catalog_info    => pick($nova_hash_real['cinder_catalog_info'], 'volumev2:cinderv2:internalURL'),
+    block_device_allocate_retries          => $block_device_allocate_retries,
+    block_device_allocate_retries_interval => $block_device_allocate_retries_interval,
   }
 
   class { '::nova::availability_zone':
