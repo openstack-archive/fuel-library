@@ -29,6 +29,8 @@ $admin_auth_protocol       = get_ssl_property($ssl_hash, {}, 'keystone', 'admin'
 $admin_auth_address        = get_ssl_property($ssl_hash, {}, 'keystone', 'admin', 'hostname', [$service_endpoint, $management_vip])
 $admin_identity_url        = "${admin_auth_protocol}://${admin_auth_address}:35357"
 
+$public_address            = get_ssl_property($ssl_hash, {}, 'keystone', 'public', 'hostname', [$public_ip])
+
 class {'ceph':
   primary_mon              => $primary_mon,
   mon_hosts                => keys($mon_address_map),
@@ -40,7 +42,7 @@ class {'ceph':
   use_rgw                  => $storage_hash['objects_ceph'],
   rgw_keystone_url         => $admin_identity_url,
   glance_backend           => $glance_backend,
-  rgw_pub_ip               => $public_vip,
+  rgw_pub_ip               => $public_address,
   rgw_adm_ip               => $management_vip,
   rgw_int_ip               => $management_vip,
   cluster_network          => $ceph_cluster_network,
