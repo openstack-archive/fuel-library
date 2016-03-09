@@ -129,38 +129,44 @@ function get_service_credentials {
   rm -f $credentialfile
 }
 
-function check_ready {
+function check_command {
   #Uses a custom command to ensure a container is ready
   get_service_credentials
+  case $1 in
+      nailgun)  if [ "${SYSTEMD:-false}" = "true" ]; then
+                  echo "shell_container nailgun systemctl is-active nailgun"
+                else
+                  echo "shell_container nailgun supervisorctl status nailgun | grep -q RUNNING"
+                fi
+      ;;
+      ostf) echo "egrep -q ^[2-4][0-9]? < <(curl --connect-timeout 1 -s -w '%{http_code}' http://$ADMIN_IP:8777/ostf/not_found -o /dev/null)" ;;
+      #NOTICE: Cobbler console tool does not comply unix conversation: 'cobbler profile find' always return 0 as exit code
+      cobbler) echo "shell_container cobbler ps waux | grep -q 'cobblerd -F' && pgrep dnsmasq"
+               echo "shell_container cobbler cobbler profile find --name=centos* | grep -q centos && shell_container cobbler cobbler profile find --name=ubuntu* | grep -q ubuntu && shell_container cobbler cobbler profile find --name=bootstrap* | grep -q bootstrap" ;;
+      rabbitmq) echo "curl -f -L -i  -u \"$astute_user:$astute_password\" http://$ADMIN_IP:15672/api/nodes  1>/dev/null 2>&1"
+                echo "curl -f -L -u \"$mcollective_user:$mcollective_password\" -s http://$ADMIN_IP:15672/api/exchanges | grep -qw 'mcollective_broadcast'"
+                echo "curl -f -L -u \"$mcollective_user:$mcollective_password\" -s http://$ADMIN_IP:15672/api/exchanges | grep -qw 'mcollective_directed'" ;;
+      postgres) echo "shell_container postgres PGPASSWORD=$postgres_nailgun_password /usr/bin/psql -h $ADMIN_IP -U \"$postgres_nailgun_user\" \"$postgres_nailgun_dbname\" -c '\copyright' 2>&1 1>/dev/null" ;;
+      astute) echo "shell_container astute ps waux | grep -q 'astuted'"
+              echo "curl -f -L -u \"$astute_user:$astute_password\" -s http://$ADMIN_IP:15672/api/exchanges | grep -qw 'nailgun'"
+              echo "curl -f -L -u \"$astute_user:$astute_password\" -s http://$ADMIN_IP:15672/api/exchanges | grep -qw 'naily_service'" ;;
+      rsync) echo "shell_container rsync netstat -ntl | grep -q 873" ;;
+      rsyslog) echo "shell_container rsyslog netstat -nl | grep -q 514" ;;
+      mcollective) echo "shell_container mcollective ps waux | grep -q mcollectived" ;;
+      nginx) echo "shell_container nginx ps waux | grep -q nginx"  ;;
+      keystone) echo "shell_container keystone keystone  --os-auth-url \"http://$ADMIN_IP:35357/v2.0\" --os-username \"$keystone_nailgun_user\" --os-password \"$keystone_nailgun_password\" token-get &>/dev/null" ;;
+      *) echo "No defined test for determining if $1 is ready." >&2
+        return 1
+                ;;
+  esac
+}
+
+function check_ready {
   failure=0
   echo "checking container $1"
 
-  case $1 in
-      nailgun)  if [ "${SYSTEMD:-false}" = "true" ]; then
-                  retry_checker "shell_container nailgun systemctl is-active nailgun"
-                else
-                  retry_checker "shell_container nailgun supervisorctl status nailgun | grep -q RUNNING"
-                fi
-      ;;
-      ostf) retry_checker "egrep -q ^[2-4][0-9]? < <(curl --connect-timeout 1 -s -w '%{http_code}' http://$ADMIN_IP:8777/ostf/not_found -o /dev/null)" ;;
-      #NOTICE: Cobbler console tool does not comply unix conversation: 'cobbler profile find' always return 0 as exit code
-      cobbler) retry_checker "shell_container cobbler ps waux | grep -q 'cobblerd -F' && pgrep dnsmasq"
-               retry_checker "shell_container cobbler cobbler profile find --name=centos* | grep -q centos && shell_container cobbler cobbler profile find --name=ubuntu* | grep -q ubuntu && shell_container cobbler cobbler profile find --name=bootstrap* | grep -q bootstrap" ;;
-      rabbitmq) retry_checker "curl -f -L -i  -u \"$astute_user:$astute_password\" http://$ADMIN_IP:15672/api/nodes  1>/dev/null 2>&1"
-                retry_checker "curl -f -L -u \"$mcollective_user:$mcollective_password\" -s http://$ADMIN_IP:15672/api/exchanges | grep -qw 'mcollective_broadcast'"
-                retry_checker "curl -f -L -u \"$mcollective_user:$mcollective_password\" -s http://$ADMIN_IP:15672/api/exchanges | grep -qw 'mcollective_directed'" ;;
-      postgres) retry_checker "shell_container postgres PGPASSWORD=$postgres_nailgun_password /usr/bin/psql -h $ADMIN_IP -U \"$postgres_nailgun_user\" \"$postgres_nailgun_dbname\" -c '\copyright' 2>&1 1>/dev/null" ;;
-      astute) retry_checker "shell_container astute ps waux | grep -q 'astuted'"
-              retry_checker "curl -f -L -u \"$astute_user:$astute_password\" -s http://$ADMIN_IP:15672/api/exchanges | grep -qw 'nailgun'"
-              retry_checker "curl -f -L -u \"$astute_user:$astute_password\" -s http://$ADMIN_IP:15672/api/exchanges | grep -qw 'naily_service'" ;;
-      rsync) retry_checker "shell_container rsync netstat -ntl | grep -q 873" ;;
-      rsyslog) retry_checker "shell_container rsyslog netstat -nl | grep -q 514" ;;
-      mcollective) retry_checker "shell_container mcollective ps waux | grep -q mcollectived" ;;
-      nginx) retry_checker "shell_container nginx ps waux | grep -q nginx"  ;;
-      keystone) retry_checker "shell_container keystone keystone  --os-auth-url \"http://$ADMIN_IP:35357/v2.0\" --os-username \"$keystone_nailgun_user\" --os-password \"$keystone_nailgun_password\" token-get &>/dev/null" ;;
-      *) echo "No defined test for determining if $1 is ready."
-                ;;
-  esac
+  cmd="$(check_command $1)"
+  [ -n "$cmd" ] && retry_checker "$cmd"
 
   #Catch all to ensure puppet is not running
   retry_checker "! shell_container $1 pgrep puppet"
@@ -617,6 +623,13 @@ function backup {
 finish or cancel them." 1>&2
     exit 1
   fi
+
+  if ! eval $(check_command postgres); then
+    echo "There is currently no PostgreSQL running. Please start it in order \
+to make it possible for backup procedure to generate a dump." 1>&2
+    exit 1
+  fi
+
   if [[ "$fullbackup" == "1" ]]; then
     backup_containers "$backup_id"
     backup_system_dirs --full
