@@ -1,3 +1,1 @@
-notice('MODULAR: umm.pp')
-
-class {'umm': }
+include ::osnailyfacter::umm::umm
