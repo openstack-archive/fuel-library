@@ -59,6 +59,8 @@ if $use_ceph and $storage_hash['objects_ceph'] {
 
   Class[::Osnailyfacter::Wait_for_keystone_backends]  -> Class['ceph::keystone']
 
+  $public_address   = get_ssl_property($ssl_hash, $public_ssl_hash, 'keystone', 'public', 'hostname', [$public_ip])
+
   class { 'ceph::radosgw':
     # SSL
     use_ssl                          => false,
@@ -66,7 +68,7 @@ if $use_ceph and $storage_hash['objects_ceph'] {
 
     # Ceph
     primary_mon                      => $primary_mon,
-    pub_ip                           => $public_vip,
+    pub_ip                           => $public_address,
     adm_ip                           => $management_vip,
     int_ip                           => $management_vip,
 
