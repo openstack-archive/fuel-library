@@ -34,7 +34,9 @@ class cgroups(
     content => template('cgroups/cgrules.conf.erb'),
   }
 
-  class { '::cgroups::service': }
+  class { '::cgroups::service':
+    cgroups_settings => $cgroups_set,
+  }
 
   Package<||> ->
   File<||> ->
