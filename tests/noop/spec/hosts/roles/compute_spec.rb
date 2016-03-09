@@ -46,6 +46,10 @@ describe manifest do
       Noop.hiera_structure 'nova'
     end
 
+    let(:compute_hash) do
+      Noop.hiera_hash 'compute', {}
+    end
+
     let(:storage_hash) do
       Noop.hiera_structure 'storage'
     end
@@ -67,8 +71,15 @@ describe manifest do
       Noop.puppet_function('get_nic_passthrough_whitelist', 'sriov')
     end
 
-    let(:nova_report_interval) { Noop.puppet_function 'pick', nova_hash['nova_report_interval'], nil }
-    let(:nova_service_down_time) { Noop.puppet_function 'pick', nova_hash['nova_service_down_time'], nil }
+   let(:nova_report_interval) { Noop.puppet_function 'pick', nova_hash['nova_report_interval'], '10' }
+   let(:nova_service_down_time) { Noop.puppet_function 'pick', nova_hash['nova_service_down_time'], '60' }
+
+
+    let(:verbose) { Noop.puppet_function 'pick', compute_hash['verbose'], 'true' }
+    let(:global_debug) { Noop.hiera 'debug', 'true' }
+    let(:debug) { Noop.puppet_function 'pick', compute_hash['debug'], global_debug }
+    let(:log_facility) { Noop.hiera 'syslog_log_facility_nova', 'LOG_LOCAL6' }
+
 
     # Legacy openstack-compute tests
 
@@ -140,8 +151,8 @@ describe manifest do
     it 'should configure libvirt host_uuid' do
       host_uuid = facts[:libvirt_uuid]
       should contain_augeas('libvirt-conf-uuid').with(
-        :context => '/files/etc/libvirt/libvirtd.conf',
-        :changes => "set host_uuid #{host_uuid}"
+        'context' => '/files/etc/libvirt/libvirtd.conf',
+        'changes' => "set host_uuid #{host_uuid}"
       ).that_notifies('Service[libvirt]')
     end
 
@@ -275,14 +286,14 @@ describe manifest do
         'value' => 'true',
       )
     end
-    it 'nova config should have report_interval set to 60' do
+    it 'nova config should have report_interval' do
       should contain_nova_config('DEFAULT/report_interval').with(
-        'value' => '60',
+        'value' => nova_report_interval,
       )
     end
-    it 'nova config should have service_down_time set to 180' do
+    it 'nova config should have service_down_time' do
       should contain_nova_config('DEFAULT/service_down_time').with(
-        'value' => '180',
+        'value' => nova_service_down_time,
       )
     end
     it 'nova config should have use_stderr set to false' do
@@ -334,7 +345,6 @@ describe manifest do
       end
     end
 
-
     # SSL support
     management_vip = Noop.hiera('management_vip')
     glance_api_servers = "#{management_vip}:9292"
@@ -352,17 +362,18 @@ describe manifest do
       vncproxy_protocol = 'http'
     end
 
+    let(:vncproxy_port) { Noop.puppet_function 'pick', nova_hash['vncproxy_port'], '6080' }
+
     it 'should properly configure vncproxy with (non-)ssl' do
-      should contain_class('openstack::compute').with(
-        'vncproxy_host' => vncproxy_host
-      )
       should contain_class('nova::compute').with(
-        'vncproxy_protocol' => vncproxy_protocol
+        'vncproxy_protocol' => vncproxy_protocol,
+        'vncproxy_host'     => vncproxy_host,
+        'vncproxy_port'     => vncproxy_port,
       )
     end
 
     it 'should properly configure glance api servers with (non-)ssl' do
-      should contain_class('openstack::compute').with(
+      should contain_class('nova').with(
         'glance_api_servers' => glance_api_servers
       )
     end
@@ -379,10 +390,6 @@ describe manifest do
       node_name = Noop.hiera('node_name')
       network_metadata = Noop.hiera_hash('network_metadata')
       roles = network_metadata['nodes'][node_name]['node_roles']
-      nova_hash.merge!({'vncproxy_protocol' => vncproxy_protocol,
-                        'nova_report_interval' => nova_report_interval,
-                        'nova_service_down_time'=> nova_service_down_time,
-      })
 
       if roles.include? 'ceph-osd'
         nova_compute_rhostmem = rhost_mem['reserved_host_memory']
@@ -391,12 +398,68 @@ describe manifest do
         nova_compute_rhostmem = 512 # default
       end
 
-      should contain_class('openstack::compute').with(
-        'nova_hash' => rhost_mem.merge(nova_hash)
-      )
       should contain_class('nova::compute').with(
         'reserved_host_memory' => nova_compute_rhostmem
       )
+    end
+
+    let(:default_availability_zone) { Noop.puppet_function 'pick', nova_hash['default_availability_zone'], facts[:os_service_default] }
+    let(:default_schedule_zone) { Noop.puppet_function 'pick', nova_hash['default_schedule_zone'], facts[:os_service_default] }
+
+    it 'should configure availability zones' do
+      should contain_class('nova::availability_zone').with(
+        'default_availability_zone' => default_availability_zone,
+        'default_schedule_zone'     => default_schedule_zone,
+      )
+    end
+
+    it 'configures with the default params' do
+
+      should contain_class('nova').with(
+        'kombu_reconnect_delay' => '5.0',
+        'verbose'          => verbose,
+        'debug'            => debug,
+        'log_facility'     => log_facility,
+        'state_path'       => nova_hash['state_path'],
+        'notify_on_state_change' => 'vm_and_task_state',
+      )
+      should contain_class('nova::compute').with(
+        'enabled'                     => 'false',
+        'instance_usage_audit'        => 'true',
+        'instance_usage_audit_period' => 'hour',
+        'config_drive_format'         => 'vfat'
+      )
+
+      min_age = Noop.puppet_function 'pick', nova_hash['remove_unused_original_minimum_age_seconds'], '86400'
+      should contain_class('nova::compute::libvirt').with(
+        'libvirt_virt_type'    => libvirt_type,
+        'vncserver_listen'     => '0.0.0.0',
+        'remove_unused_original_minimum_age_seconds' => min_age,
+      )
+    end
+
+    it 'should contain migration basics' do
+      should contain_class('nova::client')
+      should contain_install_ssh_keys('nova_ssh_key_for_migration')
+      should contain_file('/var/lib/nova/.ssh/config')
+    end
+
+    it 'should contain cpufrequtils' do
+      if facts[:operatingsystem] == 'Ubuntu'
+        should contain_package('cpufrequtils').with(
+          'ensure' => 'present'
+        )
+        should contain_file('/etc/default/cpufrequtils').with(
+          'content' => "GOVERNOR=\"performance\"\n",
+          'require' => 'Package[cpufrequtils]',
+          'notify'  => 'Service[cpufrequtils]',
+        )
+        should contain_service('cpufrequtils').with(
+          'ensure' => 'running',
+          'enable' => 'true',
+          'status' => '/bin/true',
+        )
+      end
     end
   end
 
