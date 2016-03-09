@@ -98,7 +98,7 @@ class cluster::mysql (
 
   exec { 'wait-initial-sync':
     path        => '/bin:/sbin:/usr/bin:/usr/sbin',
-    command     => "mysql ${user_password_string} -Nbe \"show status like 'wsrep_local_state_comment'\" | grep -q -e Synced -e Initialized && sleep 10",
+    command     => "mysql ${user_password_string} -Nbe \"show status like 'wsrep_local_state_comment'\" | grep -q -e Synced && sleep 10",
     try_sleep   => 10,
     tries       => 60,
     refreshonly => true,
