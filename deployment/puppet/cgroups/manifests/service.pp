@@ -1,5 +1,5 @@
 class cgroups::service (
-  $cgroups_set = {},
+  $cgroups_set = '{}',
 )
 {
   service { 'cgroup-lite':
@@ -15,8 +15,9 @@ class cgroups::service (
   service { 'cgrulesengd':
     ensure => running,
   }
-
-  $cgclass_res = map_cgclassify_opts($cgroups_set)
+  
+  $cgroups_set_active = pick($::cgroups::cgroups_set, $cgroups_set)
+  $cgclass_res = map_cgclassify_opts($cgroups_set_active)
   unless empty($cgclass_res) {
     create_resources('cgclassify', $cgclass_res, { 'ensure' => present })
   }
