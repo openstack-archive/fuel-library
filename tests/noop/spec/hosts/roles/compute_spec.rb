@@ -192,6 +192,19 @@ describe manifest do
       end
     end
 
+    libvirt_type = Noop.hiera 'libvirt_type', nil
+
+    it 'should set permissions for /dev/kvm under Ubuntu' do
+      if facts[:operatingsystem] == 'Ubuntu' and libvirt_type == 'kvm'
+        should contain_file('/dev/kvm').with(
+          :ensure => 'present',
+          :group  => 'kvm',
+          :mode   => '0660',
+        )
+        should contain_service('qemu-kvm').that_comes_before('File[/dev/kvm]')
+      end
+    end
+
     let(:configuration_override) do
       Noop.hiera_structure 'configuration'
     end

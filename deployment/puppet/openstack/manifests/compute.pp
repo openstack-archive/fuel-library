@@ -272,6 +272,17 @@ class openstack::compute (
     Service<| title == 'qemu-kvm'|> -> Service<| title == 'libvirt'|>
   }
 
+  if ($::operatingsystem == 'Ubuntu') and ($libvirt_type =='kvm') {
+    # TODO(skolekonov): Remove when LP#1057024 has been resolved.
+    # https://bugs.launchpad.net/ubuntu/+source/qemu-kvm/+bug/1057024
+    file { '/dev/kvm':
+      ensure => present,
+      group  => 'kvm',
+      mode   => '0660',
+    }
+    Service<| title == 'qemu-kvm'|> -> File['/dev/kvm']
+  }
+
   $memcached_addresses =  suffix($cache_server_ip, inline_template(":<%= @cache_server_port %>"))
   $notify_on_state_change = 'vm_and_task_state'
 
