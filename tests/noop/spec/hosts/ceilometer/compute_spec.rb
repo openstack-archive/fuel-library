@@ -42,9 +42,8 @@ describe manifest do
         should contain_ceilometer_config('DEFAULT/default_log_levels').with_value(default_log_levels.sort.join(','))
       end
 
-      it 'should configure auth and identity uri' do
-        should contain_ceilometer_config('keystone_authtoken/auth_uri').with(:value => keystone_auth_uri)
-        should contain_ceilometer_config('keystone_authtoken/identity_uri').with(:value => keystone_identity_uri)
+      it 'should configure os_auth_url' do
+        should contain_ceilometer_config('service_credentials/os_auth_url').with(:value => keystone_auth_uri)
       end
     end
   end # end of shared_examples
