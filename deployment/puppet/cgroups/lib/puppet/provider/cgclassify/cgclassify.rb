@@ -111,7 +111,7 @@ Puppet::Type.type(:cgclassify).provide(:cgclassify) do
 
     cgclassify(cg_opts, pidlist)
   rescue Puppet::ExecutionFailure => e
-    Puppet.warning "[#{__method__}/#{caller[0][/\S+$/]}] #{e}"
+    Puppet.debug "[#{__method__}/#{caller[0][/\S+$/]}] #{e}"
     false
   end
 
