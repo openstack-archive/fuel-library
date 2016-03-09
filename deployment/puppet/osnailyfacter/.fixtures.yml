@@ -6,3 +6,5 @@ fixtures:
     apache: "#{source_dir}/../apache"
     concat: "#{source_dir}/../concat"
     mysql: "#{source_dir}/../mysql"
+    cinder: "#{source_dir}/../cinder"
+    openstacklib: "#{source_dir}/../openstacklib"
