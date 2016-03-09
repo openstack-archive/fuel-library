@@ -8,7 +8,7 @@ PATH=/sbin:/bin:/usr/sbin:/usr/bin
 find <%= @logpath %> -type f -name 'atop_*' -mtime +<%= @rotate %> -delete
 
 # remove atop_current if it is a broken symlink
-test -L <%= @logpath %>/atop_current -a ! -e <%= logpath %>/atop_current && \
+test -L <%= @logpath %>/atop_current -a ! -e <%= @logpath %>/atop_current && \
   rm <%= @logpath %>/atop_current
 
 # link current to most recent file if it exists
