@@ -41,11 +41,6 @@ $keystone_identity_uri      = "${admin_auth_protocol}://${admin_auth_endpoint}:3
 $keystone_auth_uri          = "${internal_auth_protocol}://${internal_auth_endpoint}:5000/"
 
 if ($ceilometer_enabled) {
-  ceilometer_config {
-    'keystone_authtoken/auth_uri'     : value => $keystone_auth_uri;
-    'keystone_authtoken/identity_uri' : value => $keystone_identity_uri;
-  }
-
   class { 'openstack::ceilometer':
     verbose                    => $verbose,
     debug                      => $debug,
@@ -56,6 +51,8 @@ if ($ceilometer_enabled) {
     amqp_hosts                 => hiera('amqp_hosts',''),
     amqp_user                  => $amqp_user,
     amqp_password              => $amqp_password,
+    keystone_auth_uri          => $keystone_auth_uri,
+    keystone_identity_uri      => $keystone_identity_uri
     keystone_user              => $ceilometer_hash['user'],
     keystone_tenant            => $ceilometer_hash['tenant'],
     keystone_region            => $ceilometer_region,
