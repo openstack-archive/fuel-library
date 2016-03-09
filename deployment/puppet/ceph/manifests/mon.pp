@@ -29,11 +29,13 @@ class ceph::mon (
   }
 
   exec {'ceph-deploy gatherkeys':
-    command => "ceph-deploy gatherkeys ${node_hostname}",
-    creates => ['/root/ceph.bootstrap-mds.keyring',
-                '/root/ceph.bootstrap-osd.keyring',
-                '/root/ceph.client.admin.keyring',
-               ],
+    command   => "ceph-deploy gatherkeys ${node_hostname}",
+    unless    => ['test -f /root/ceph.bootstrap-mds.keyring',
+                  'test -f /root/ceph.bootstrap-osd.keyring',
+                  'test -f /root/ceph.client.admin.keyring',
+                 ],
+    try_sleep => 5,
+    tries     => 6,
   }
 
   Firewall['010 ceph-mon allow'] ->
