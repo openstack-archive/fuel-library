@@ -8,6 +8,7 @@ $use_syslog                     = hiera('use_syslog', true)
 $syslog_log_facility_ceph       = hiera('syslog_log_facility_ceph','LOG_LOCAL0')
 $keystone_hash                  = hiera_hash('keystone', {})
 $mon_address_map                = get_node_to_ipaddr_map_by_network_role(hiera_hash('ceph_monitor_nodes'), 'ceph/public')
+$public_address                 = get_ssl_property($ssl_hash, $public_ssl_hash, 'keystone', 'public', 'hostname', [$public_ip])
 
 if ($storage_hash['images_ceph']) {
   $glance_backend = 'ceph'
@@ -48,7 +49,7 @@ if $use_ceph {
     osd_pool_default_pgp_num => $storage_hash['pg_num'],
     use_rgw                  => false,
     glance_backend           => $glance_backend,
-    rgw_pub_ip               => $public_vip,
+    rgw_pub_ip               => $public_address,
     rgw_adm_ip               => $management_vip,
     rgw_int_ip               => $management_vip,
     cluster_network          => $ceph_cluster_network,

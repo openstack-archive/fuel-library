@@ -16,6 +16,7 @@ $glance_pool              = 'images'
 $compute_user             = 'compute'
 $compute_pool             = 'compute'
 
+$public_address           = get_ssl_property($ssl_hash, $public_ssl_hash, 'keystone', 'public', 'hostname', [$public_ip])
 
 if ($storage_hash['images_ceph']) {
   $glance_backend = 'ceph'
@@ -56,7 +57,7 @@ if $use_ceph {
     osd_pool_default_pgp_num => $storage_hash['pg_num'],
     use_rgw                  => false,
     glance_backend           => $glance_backend,
-    rgw_pub_ip               => $public_vip,
+    rgw_pub_ip               => $public_address,
     rgw_adm_ip               => $management_vip,
     rgw_int_ip               => $management_vip,
     cluster_network          => $ceph_cluster_network,
