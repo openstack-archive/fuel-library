@@ -145,6 +145,9 @@ class openstack::compute (
   $compute_driver                 = 'libvirt.LibvirtDriver',
   $config_drive_format            = undef,
   $network_device_mtu             = '65000',
+
+  $block_device_allocate_retries          = '60',
+  $block_device_allocate_retries_interval = '3',
 ) {
 
   include ::nova::params
@@ -298,6 +301,9 @@ class openstack::compute (
     notification_driver    => $notification_driver,
     memcached_servers      => $memcached_addresses,
     cinder_catalog_info    => pick($nova_hash['cinder_catalog_info'], 'volumev2:cinderv2:internalURL'),
+
+    block_device_allocate_retries          => $block_device_allocate_retries,
+    block_device_allocate_retries_interval => $block_device_allocate_retries_interval,
   }
 
   class {'::nova::availability_zone':

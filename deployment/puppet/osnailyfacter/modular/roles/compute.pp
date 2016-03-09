@@ -305,6 +305,9 @@ class { '::openstack::compute':
   config_drive_format         => $config_drive_format,
   use_huge_pages              => $use_huge_pages,
   vcpu_pin_set                => $nova_hash['cpu_pinning'],
+
+  block_device_allocate_retries          => $block_device_allocate_retries,
+  block_device_allocate_retries_interval => $block_device_allocate_retries_interval,
 }
 
 # Required for fping API extension, see LP#1486404
@@ -313,8 +316,6 @@ ensure_packages('fping')
 $nova_config_hash = {
   'DEFAULT/resume_guests_state_on_host_boot'       => { value => hiera('resume_guests_state_on_host_boot', 'False') },
   'DEFAULT/use_cow_images'                         => { value => hiera('use_cow_images', 'True') },
-  'DEFAULT/block_device_allocate_retries'          => { value => $block_device_allocate_retries },
-  'DEFAULT/block_device_allocate_retries_interval' => { value => $block_device_allocate_retries_interval },
   'libvirt/libvirt_inject_key'                     => { value => true },
   'libvirt/libvirt_inject_password'                => { value => true },
 }
