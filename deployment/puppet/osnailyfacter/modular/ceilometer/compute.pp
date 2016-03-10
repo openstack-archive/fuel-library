@@ -24,11 +24,9 @@ $ceilometer_region          = pick($ceilometer_hash['region'], $region)
 $ceilometer_enabled         = $ceilometer_hash['enabled']
 $amqp_password              = $rabbit_hash['password']
 $amqp_user                  = $rabbit_hash['user']
-$ceilometer_user_password   = $ceilometer_hash['user_password']
 $ceilometer_metering_secret = $ceilometer_hash['metering_secret']
 $verbose                    = pick($ceilometer_hash['verbose'], hiera('verbose', true))
 $debug                      = pick($ceilometer_hash['debug'], hiera('debug', false))
-$default_log_levels         = hiera_hash('default_log_levels')
 $ssl_hash                   = hiera_hash('use_ssl', {})
 
 $internal_auth_protocol     = get_ssl_property($ssl_hash, {}, 'keystone', 'internal', 'protocol', 'http')
@@ -41,28 +39,55 @@ $keystone_identity_uri      = "${admin_auth_protocol}://${admin_auth_endpoint}:3
 $keystone_auth_uri          = "${internal_auth_protocol}://${internal_auth_endpoint}:5000/"
 
 if ($ceilometer_enabled) {
-  class { 'openstack::ceilometer':
-    verbose                    => $verbose,
-    debug                      => $debug,
-    default_log_levels         => $default_log_levels,
-    use_syslog                 => $use_syslog,
-    use_stderr                 => $use_stderr,
-    syslog_log_facility        => $syslog_log_facility,
-    amqp_hosts                 => hiera('amqp_hosts',''),
-    amqp_user                  => $amqp_user,
-    amqp_password              => $amqp_password,
-    keystone_auth_uri          => $keystone_auth_uri,
-    keystone_identity_uri      => $keystone_identity_uri,
-    keystone_user              => $ceilometer_hash['user'],
-    keystone_tenant            => $ceilometer_hash['tenant'],
-    keystone_region            => $ceilometer_region,
-    keystone_password          => $ceilometer_user_password,
-    on_compute                 => true,
-    metering_secret            => $ceilometer_metering_secret,
-    alarm_history_time_to_live => $ceilometer_hash['alarm_history_time_to_live'],
+
+  class { '::ceilometer':
+    http_timeout               => $ceilometer_hash['http_timeout'],
     event_time_to_live         => $ceilometer_hash['event_time_to_live'],
     metering_time_to_live      => $ceilometer_hash['metering_time_to_live'],
-    http_timeout               => $ceilometer_hash['http_timeout'],
+    alarm_history_time_to_live => $ceilometer_hash['alarm_history_time_to_live'],
+    rabbit_hosts               => split(hiera('amqp_hosts',''), ','),
+    rabbit_userid              => $amqp_user,
+    rabbit_password            => $amqp_password,
+    metering_secret            => $ceilometer_metering_secret,
+    verbose                    => $verbose,
+    debug                      => $debug,
+    use_syslog                 => $use_syslog,
+    use_stderr                 => $use_stderr,
+    log_facility               => $syslog_log_facility,
   }
 
+  class { '::ceilometer::agent::auth':
+    auth_url         => $keystone_auth_uri,
+    auth_password    => $ceilometer_hash['user_password'],
+    auth_region      => $ceilometer_region,
+    auth_tenant_name => $ceilometer_hash['tenant'],
+    auth_user        => $ceilometer_hash['user'],
+  }
+
+  class { '::ceilometer::client': }
+
+
+
+  if ($use_syslog) {
+    ceilometer_config {
+      'DEFAULT/use_syslog_rfc_format': value => true;
+    }
+  }
+
+  if $::operatingsystem == 'Ubuntu' and $::ceilometer::params::libvirt_group {
+    # Our libvirt-bin deb package (1.2.9 version) creates 'libvirt' group on Ubuntu
+    if (versioncmp($::libvirt_package_version, '1.2.9') >= 0) {
+      User<| name == 'ceilometer' |> {
+        groups => ['nova', 'libvirt'],
+      }
+    }
+  }
+
+  class { '::ceilometer::agent::polling':
+    central_namespace => false,
+    ipmi_namespace    => false
+  }
+
+  ceilometer_config { 'service_credentials/os_endpoint_type': value => 'internalURL'} ->
+  Service<| title == 'ceilometer-polling'|>
 }
