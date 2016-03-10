@@ -30,12 +30,15 @@ describe manifest do
       db_hosts               = Noop.puppet_function 'join',addresses,','
       mongo_replicaset       = 'ceilometer'
     end
-    rabbit_ha_queues = 'true'
     default_log_levels_hash = Noop.hiera_structure 'default_log_levels'
     default_log_levels = Noop.puppet_function 'join_keys_to_values',default_log_levels_hash,'='
     primary_controller = Noop.hiera 'primary_controller'
+    ha_mode            = Noop.puppet_function 'pick', ceilometer_hash['ha_mode'], true
 
+    let(:bind_address) { Noop.puppet_function 'get_network_role_property', 'ceilometer/api', 'ipaddr' }
 
+    region                 = Noop.hiera 'region', 'RegionOne'
+    ceilometer_region      = Noop.puppet_function 'pick',ceilometer_hash['region'], region
     management_vip         = Noop.hiera 'management_vip'
     service_endpoint       = Noop.hiera 'service_endpoint', management_vip
     ssl_hash               = Noop.hiera_structure('use_ssl', {})
@@ -53,19 +56,6 @@ describe manifest do
           db_params = "?readPreference=primaryPreferred"
         end
         should contain_ceilometer_config('database/connection').with(:value => "mongodb://#{ceilometer_db_user}:#{ceilometer_db_password}@#{db_hosts}/#{ceilometer_db_dbname}#{db_params}")
-      end
-
-      it 'should declare openstack::ceilometer class with correct parameters' do
-        should contain_class('openstack::ceilometer').with(
-          'amqp_user'             => rabbit_user,
-          'amqp_password'         => rabbit_password,
-          'rabbit_ha_queues'      => rabbit_ha_queues,
-          'on_controller'         => 'true',
-          'use_stderr'            => 'false',
-          'primary_controller'    => primary_controller,
-          'keystone_auth_uri'     => keystone_auth_uri,
-          'keystone_identity_uri' => keystone_identity_uri,
-        )
       end
 
       it 'should configure auth and identity uri' do
@@ -111,9 +101,54 @@ describe manifest do
       it 'should configure auth url' do
         should contain_ceilometer_config('service_credentials/os_auth_url').with(:value => keystone_auth_uri)
       end
+      ha_mode = Noop.puppet_function 'pick' ceilometer_hash['ha_mode'], 'true'
+      if ha_mode
+        it { is_expected.to contain_class('ceilometer_ha::agent::central') }
+      end
 
-    end
+      it 'contains class ceilometer::agent::polling' do
+        should contain_class('ceilometer::agent::polling').with(
+          'enabled'           =>  !ha_mode,
+          'compute_namespace' => 'false',
+          'ipmi_namespace'    => 'false'
+        )
+      end
 
+      it "configures ceilometer contoller parts" do
+        should contain_class('ceilometer')
+        should contain_class('ceilometer::logging')
+        should contain_class('ceilometer::db')
+        should contain_class('ceilometer::expirer')
+        should contain_class('ceilometer::agent::notification')
+        should contain_class('ceilometer::collector')
+        should contain_class('ceilometer::client')
+      end
+
+      auth_user = Noop.puppet_function, 'pick', ceilometer_hash['user'], 'ceilometer'
+      auth_tenant_name = Noop.puppet_function, 'pick', ceilometer_hash['auth_tenant_name'], 'ceilometer'
+
+      it 'configured ceilometer::agent::auth' do
+        should contain_class('ceilometer::agent::auth').with(
+          'auth_url'         => keystone_auth_uri,
+          'auth_password'    => ceilometer_hash['user_password'],
+          'auth_region'      => ceilometer_region,
+          'auth_tenant_name' => auth_tenant_name,
+          'auth_user'        => auth_user,
+        )
+      end
+
+      it 'configures ceilometer::api' do
+        should contain_class('ceilometer::api').with(
+            'auth_uri'          => keystone_auth_uri,
+            'identity_uri'      => keystone_identity_uri,
+            'keystone_user'     => ceilometer_hash['user'],
+            'keystone_password' => ceilometer_hash['user_password'],
+            'keystone_tenant'   => ceilometer_hash['tenant'],
+            'host'              => bind_address,
+        )
+      end
+
+    end # end of ceilometer enabled
   end # end of shared_examples
 
   test_ubuntu_and_centos manifest
