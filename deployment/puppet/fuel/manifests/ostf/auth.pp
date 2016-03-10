@@ -49,8 +49,10 @@ class fuel::ostf::auth (
   }
 
   keystone_user_role { "${auth_name}@services":
-    ensure => present,
-    roles  => 'admin',
+    ensure         => present,
+    roles          => ['admin'],
+    user_domain    => 'services_domain',
+    project_domain => 'services_domain',
   }
 
   keystone_service { 'ostf':
