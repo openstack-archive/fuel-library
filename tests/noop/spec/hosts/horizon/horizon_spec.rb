@@ -67,6 +67,34 @@ describe manifest do
       end
     end
 
+    let(:horizon_hash) { Noop.hiera_hash 'horizon', {} }
+    let(:file_upload_max_size) do
+      Noop.puppet_function 'pick', horizon_hash['upload_max_size'], '10737418235'
+    end
+
+    it 'contains ::horizon::wsgi::apache' do
+      if facts[:osfamily] == 'Debian' and file_upload_max_size
+        custom_fragment = "\n  <Directory /usr/share/openstack-dashboard/openstack_dashboard/wsgi>\n    Order allow,deny\n    Allow from all\n  </Directory>\n\n  LimitRequestBody #{file_upload_max_size}\n\n"
+      elsif facts[:osfamily] == 'Debian' and not file_upload_max_size
+        custom_fragment = "\n  <Directory /usr/share/openstack-dashboard/openstack_dashboard/wsgi>\n    Order allow,deny\n    Allow from all\n  </Directory>\n\n"
+      elsif facts[:osfamily] == 'RedHat'
+        custom_fragment = "\n  <Directory /usr/share/openstack-dashboard/openstack_dashboard/wsgi>\n    <IfModule mod_deflate.c>\n      SetOutputFilter DEFLATE\n      <IfModule mod_headers.c>\n        # Make sure proxies don't deliver the wrong content\n        Header append Vary User-Agent env=!dont-vary\n      </IfModule>\n    </IfModule>\n\n    Order allow,deny\n    Allow from all\n  </Directory>\n\n  <Directory /usr/share/openstack-dashboard/static>\n    <IfModule mod_expires.c>\n      ExpiresActive On\n      ExpiresDefault \"access 6 month\"\n    </IfModule>\n    <IfModule mod_deflate.c>\n      SetOutputFilter DEFLATE\n    </IfModule>\n\n    Order allow,deny\n    Allow from all\n  </Directory>\n\n  LimitRequestBody 10737418235\n\n"
+      end
+
+      should contain_class('horizon::wsgi::apache').with(
+        'extra_params' => {
+          'add_listen'        => false,
+          'ip_based'          => true,
+          'custom_fragment'   => custom_fragment,
+          'default_vhost'     => true,
+          'headers'           => ["set X-XSS-Protection \"1; mode=block\"", "set X-Content-Type-Options nosniff", "always append X-Frame-Options SAMEORIGIN"],
+          'options'           => '-Indexes',
+          'setenvif'          => 'X-Forwarded-Proto https HTTPS=1',
+          'access_log_format' => '%{X-Forwarded-For}i %l %u %t \"%r\" %>s %b %D \"%{Referer}i\" \"%{User-Agent}i\"'
+        }
+      )
+    end
+
     storage_hash = Noop.hiera_hash 'storage'
     let(:cinder_options) do
       { 'enable_backup' => storage_hash.fetch('volumes_ceph', false) }
@@ -74,16 +102,16 @@ describe manifest do
 
     ###########################################################################
 
-    it 'should declare openstack::horizon class' do
-      should contain_class('openstack::horizon').with(
+    it 'should declare horizon class' do
+      should contain_class('horizon').with(
                  'cinder_options'     => cinder_options,
                  'hypervisor_options' => {'enable_quotas' => nova_quota},
                  'bind_address'       => bind_address
              )
     end
 
-    it 'should declare openstack::horizon class with keystone_url with v3 API version' do
-      should contain_class('openstack::horizon').with(
+    it 'should declare horizon class with keystone_url with v3 API version' do
+      should contain_class('horizon').with(
                  'keystone_url'      => keystone_url,
                  'cache_server_ip'   => memcache_servers,
                  'cache_server_port' => memcache_server_port,
@@ -116,7 +144,7 @@ describe manifest do
 
     context 'with Neutron DVR', :if => Noop.hiera_structure('neutron_advanced_configuration/neutron_dvr') do
       it 'should configure horizon for neutron DVR' do
-        should contain_class('openstack::horizon').with(
+        should contain_class('horizon').with(
                    'neutron_options' => {
                        'enable_distributed_router' => Noop.hiera_structure('neutron_advanced_configuration/neutron_dvr')
                    }
@@ -126,8 +154,8 @@ describe manifest do
 
 
     it 'should have explicit ordering between LB classes and particular actions' do
-      expect(graph).to ensure_transitive_dependency("Class[openstack::horizon]", "Haproxy_backend_status[keystone-public]")
-      expect(graph).to ensure_transitive_dependency("Class[openstack::horizon]", "Haproxy_backend_status[keystone-admin]")
+      expect(graph).to ensure_transitive_dependency("Class[horizon]", "Haproxy_backend_status[keystone-public]")
+      expect(graph).to ensure_transitive_dependency("Class[horizon]", "Haproxy_backend_status[keystone-admin]")
     end
 
 
