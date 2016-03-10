@@ -1,7 +1,6 @@
 notice('MODULAR: openstack-network/server-config.pp')
 
 $use_neutron = hiera('use_neutron', false)
-$compute     = roles_include('compute')
 
 if $use_neutron {
   # override neutron options
@@ -29,8 +28,12 @@ if $use_neutron {
   $service_endpoint        = hiera('service_endpoint', $management_vip)
   $nova_endpoint           = hiera('nova_endpoint', $management_vip)
   $nova_hash               = hiera_hash('nova', { })
-  $primary_controller      = roles_include(['primary-controller'])
   $pci_vendor_devs         = $neutron_config['supported_pci_vendor_devs']
+
+  $neutron_primary_controller_roles = hiera('neutron_primary_controller_roles', ['primary-controller'])
+  $neutron_compute_roles            = hiera('neutron_compute_nodes', ['compute'])
+  $primary_controller               = roles_include($neutron_primary_controller_roles)
+  $compute                          = roles_include($neutron_compute_roles)
 
   $db_type     = 'mysql'
   $db_password = $neutron_config['database']['passwd']

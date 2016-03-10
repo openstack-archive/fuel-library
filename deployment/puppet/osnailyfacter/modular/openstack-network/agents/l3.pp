@@ -3,8 +3,11 @@ notice('MODULAR: openstack-network/agents/l3.pp')
 $use_neutron = hiera('use_neutron', false)
 $neutron_advanced_config = hiera_hash('neutron_advanced_configuration', { })
 $dvr = pick($neutron_advanced_config['neutron_dvr'], false)
-$controller = roles_include(['controller', 'primary-controller'])
-$compute = roles_include('compute')
+
+$neutron_controller_roles = hiera('neutron_controller_roles', ['controller', 'primary-controller'])
+$neutron_compute_roles    = hiera('neutron_compute_nodes', ['compute'])
+$controller               = roles_include($neutron_controller_roles)
+$compute                  = roles_include($neutron_compute_roles)
 
 if $use_neutron and ($controller or ($dvr and $compute)) {
   # override neutron options
