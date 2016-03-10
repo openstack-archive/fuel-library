@@ -49,8 +49,10 @@ class fuel::auth(
   }
 
   keystone_user_role { "${auth_name}@services":
-    ensure => present,
-    roles  => 'admin',
+    ensure         => present,
+    roles          => ['admin'],
+    user_domain    => undef,
+    project_domain => undef,
   }
 
   keystone_service { 'nailgun':
