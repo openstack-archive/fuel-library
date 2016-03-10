@@ -18,6 +18,7 @@ class fuel::ostf::auth (
   $auth_name        = $::fuel::params::keystone_ostf_user,
   $password         = $::fuel::params::keystone_ostf_password,
   $address          = $::fuel::params::keystone_host,
+  $keystone_domain  = $::fuel::params::keystone_domain,
   $internal_address = undef,
   $admin_address    = undef,
   $public_address   = undef,
@@ -46,11 +47,14 @@ class fuel::ostf::auth (
     ensure   => present,
     enabled  => 'True',
     password => $password,
+    domain   => $keystone_domain,
   }
 
   keystone_user_role { "${auth_name}@services":
-    ensure => present,
-    roles  => 'admin',
+    ensure         => present,
+    roles          => ['admin'],
+    user_domain    => $keystone_domain,
+    project_domain => $keystone_domain,
   }
 
   keystone_service { 'ostf':
@@ -64,5 +68,7 @@ class fuel::ostf::auth (
     public_url   => "http://${public_address_real}:${port}/ostf",
     admin_url    => "http://${admin_address_real}:${port}/ostf",
     internal_url => "http://${internal_address_real}:${port}/ostf",
+    type         => 'ostf',
+    require      => Keystone_Service['ostf'],
   }
 }
