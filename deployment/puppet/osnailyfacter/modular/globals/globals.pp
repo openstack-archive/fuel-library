@@ -18,7 +18,11 @@ if empty($network_metadata) {
   fail('Network_metadata not given in the astute.yaml')
 }
 
-$node_key_name = get_node_key_name()
+if ($::osfamily == 'RedHat') {
+  $node_key_name = $::hostname
+} else {
+  $node_key_name = get_node_key_name()
+}
 $node_hash = $network_metadata['nodes'][$node_key_name]
 if empty($node_hash) {
   fail("Node ${node_key_name} is not defined in the network_metadata hash structure")
