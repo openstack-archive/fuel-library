@@ -21,6 +21,7 @@ class fuel::params {
   $keystone_host              = '127.0.0.1'
   $keystone_port              = '5000'
   $keystone_admin_port        = '35357'
+  $keystone_domain            = 'fuel'
 
   $keystone_admin_user        = 'admin'
   $keystone_admin_password    = 'admin'
