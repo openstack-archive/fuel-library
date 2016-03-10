@@ -118,9 +118,7 @@ class openstack::keystone (
 
   if $enabled {
     class { '::keystone':
-      # (TODO iberezovskiy): Set 'enable_bootstrap' to true when MOS packages will
-      # be updated and 'keystone-manage bootstrap' command will be available
-      enable_bootstrap             => false,
+      enable_bootstrap             => true,
       verbose                      => $verbose,
       debug                        => $debug,
       catalog_type                 => 'sql',
