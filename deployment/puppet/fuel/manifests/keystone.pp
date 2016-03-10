@@ -2,6 +2,7 @@ class fuel::keystone (
   $host              = $::fuel::params::keystone_host,
   $port              = $::fuel::params::keystone_port,
   $admin_port        = $::fuel::params::keystone_admin_port,
+  $keystone_domain   = $::fuel::params::keystone_domain,
 
   $db_engine         = $::fuel::params::db_engine,
   $db_host           = $::fuel::params::db_host,
@@ -30,14 +31,13 @@ class fuel::keystone (
                    'python-unicodecsv', 'rubygem-thread_safe'])
 
   class { '::keystone':
-    # (TODO iberezovskiy): Set 'enable_bootstrap' to true when MOS packages will
-    # be updated and 'keystone-manage bootstrap' command will be available
-    enable_bootstrap => false,
-    admin_token      => $admin_token,
-    catalog_type     => 'sql',
-    database_connection   => "${db_engine}://${db_user}:${db_password}@${db_host}:${db_port}/${db_name}",
-    token_expiration => 86400,
-    token_provider   => 'keystone.token.providers.uuid.Provider',
+    enable_bootstrap     => true,
+    admin_token          => $admin_token,
+    catalog_type         => 'sql',
+    database_connection  => "${db_engine}://${db_user}:${db_password}@${db_host}:${db_port}/${db_name}",
+    token_expiration     => 86400,
+    token_provider       => 'keystone.token.providers.uuid.Provider',
+    default_domain       => $keystone_domain,
   }
 
   #FIXME(mattymo): We should enable db_sync on every run inside keystone,
@@ -51,21 +51,27 @@ class fuel::keystone (
   keystone_tenant { 'admin':
     ensure  => present,
     enabled => 'True',
+    domain  => $keystone_domain,
+    require => Keystone_Domain[$keystone_domain]
   }
 
   keystone_tenant { 'services':
     ensure      => present,
     enabled     => 'True',
     description => 'fuel services tenant',
+    domain      => $keystone_domain,
+    require     => Keystone_Domain[$keystone_domain],
   }
 
   # Creating roles
   keystone_role { 'admin':
     ensure => present,
+    require => Class['::keystone'],
   }
 
   keystone_role { 'monitoring':
     ensure => present,
+    require => Class['::keystone'],
   }
 
   # Creating users
@@ -76,12 +82,20 @@ class fuel::keystone (
     password        => $admin_password,
     enabled         => 'True',
     replace_password => false,
+    domain          => $keystone_domain,
+    require         => Keystone_Domain[$keystone_domain],
   }
 
   # assigning role 'admin' to user 'admin' in tenant 'admin'
   keystone_user_role { "${admin_user}@admin":
-    ensure  => present,
-    roles   => ['admin'],
+    ensure         => present,
+    roles          => ['admin'],
+    user_domain    => $keystone_domain,
+    project_domain => $keystone_domain,
+    require        => [Keystone_Domain[$keystone_domain],
+                       Keystone_User[$admin_user],
+                       Keystone_Role['admin'],
+                       Keystone_Tenant['admin']]
   }
 
   # Monitord user
@@ -90,11 +104,19 @@ class fuel::keystone (
     password => $monitord_password,
     enabled  => 'True',
     email    => 'monitord@localhost',
+    domain   => $keystone_domain,
+    require  => Keystone_Domain[$keystone_domain],
   }
 
   keystone_user_role { "${monitord_user}@services":
-    ensure  => present,
-    roles   => ['monitoring'],
+    ensure         => present,
+    roles          => ['monitoring'],
+    user_domain    => $keystone_domain,
+    project_domain => $keystone_domain,
+    require        => [Keystone_Domain[$keystone_domain],
+                       Keystone_User[$monitord_user],
+                       Keystone_Role['monitoring'],
+                       Keystone_Tenant['services']]
   }
 
   # Keystone Endpoint
@@ -102,20 +124,23 @@ class fuel::keystone (
     public_url   => "http://${host}:${port}",
     admin_url    => "http://${host}:${admin_port}",
     internal_url => "http://${host}:${port}",
+    require      => Class['::keystone']
   }
 
   # Nailgun
   class { 'fuel::auth':
-    auth_name => $nailgun_user,
-    password  => $nailgun_password,
-    address   => $host,
+    auth_name       => $nailgun_user,
+    password        => $nailgun_password,
+    address         => $host,
+    keystone_domain => $keystone_domain,
   }
 
   # OSTF
   class { 'fuel::ostf::auth':
-    auth_name => $ostf_user,
-    password  => $ostf_password,
-    address   => $host,
+    auth_name       => $ostf_user,
+    password        => $ostf_password,
+    address         => $host,
+    keystone_domain => $keystone_domain,
   }
 
   service { 'crond':
