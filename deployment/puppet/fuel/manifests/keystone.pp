@@ -30,14 +30,12 @@ class fuel::keystone (
                    'python-unicodecsv', 'rubygem-thread_safe'])
 
   class { '::keystone':
-    # (TODO iberezovskiy): Set 'enable_bootstrap' to true when MOS packages will
-    # be updated and 'keystone-manage bootstrap' command will be available
-    enable_bootstrap => false,
-    admin_token      => $admin_token,
-    catalog_type     => 'sql',
-    database_connection   => "${db_engine}://${db_user}:${db_password}@${db_host}:${db_port}/${db_name}",
-    token_expiration => 86400,
-    token_provider   => 'keystone.token.providers.uuid.Provider',
+    enable_bootstrap     => true,
+    admin_token          => $admin_token,
+    catalog_type         => 'sql',
+    database_connection  => "${db_engine}://${db_user}:${db_password}@${db_host}:${db_port}/${db_name}",
+    token_expiration     => 86400,
+    token_provider       => 'keystone.token.providers.uuid.Provider',
   }
 
   #FIXME(mattymo): We should enable db_sync on every run inside keystone,
@@ -47,25 +45,38 @@ class fuel::keystone (
     refreshonly => false,
   }
 
+  keystone_domain { 'fuel':
+    ensure => present,
+    enabled => true,
+    is_default => true,
+    require => Class['::keystone'],
+  }
+
   # Creating tenants
   keystone_tenant { 'admin':
     ensure  => present,
     enabled => 'True',
+    domain  => 'fuel',
+    require => Keystone_Domain['fuel']
   }
 
   keystone_tenant { 'services':
     ensure      => present,
     enabled     => 'True',
     description => 'fuel services tenant',
+    domain      => 'fuel',
+    require     => Keystone_Domain['fuel'],
   }
 
   # Creating roles
   keystone_role { 'admin':
     ensure => present,
+    require => Class['::keystone'],
   }
 
   keystone_role { 'monitoring':
     ensure => present,
+    require => Class['::keystone'],
   }
 
   # Creating users
@@ -76,12 +87,20 @@ class fuel::keystone (
     password        => $admin_password,
     enabled         => 'True',
     replace_password => false,
+    domain          => 'fuel',
+    require         => Keystone_Domain['fuel'],
   }
 
   # assigning role 'admin' to user 'admin' in tenant 'admin'
   keystone_user_role { "${admin_user}@admin":
-    ensure  => present,
-    roles   => ['admin'],
+    ensure         => present,
+    roles          => ['admin'],
+    user_domain    => 'fuel',
+    project_domain => 'fuel',
+    require        => [Keystone_Domain['fuel'],
+                       Keystone_User[$admin_user],
+                       Keystone_Role['admin'],
+                       Keystone_Tenant['admin']]
   }
 
   # Monitord user
@@ -90,11 +109,19 @@ class fuel::keystone (
     password => $monitord_password,
     enabled  => 'True',
     email    => 'monitord@localhost',
+    domain   => 'fuel',
+    require  => Keystone_Domain['fuel'],
   }
 
   keystone_user_role { "${monitord_user}@services":
-    ensure  => present,
-    roles   => ['monitoring'],
+    ensure         => present,
+    roles          => ['monitoring'],
+    user_domain    => 'fuel',
+    project_domain => 'fuel',
+    require        => [Keystone_Domain['fuel'],
+                       Keystone_User[$monitord_user],
+                       Keystone_Role['monitoring'],
+                       Keystone_Tenant['services']]
   }
 
   # Keystone Endpoint
@@ -102,6 +129,7 @@ class fuel::keystone (
     public_url   => "http://${host}:${port}",
     admin_url    => "http://${host}:${admin_port}",
     internal_url => "http://${host}:${port}",
+    require      => Class['::keystone']
   }
 
   # Nailgun
