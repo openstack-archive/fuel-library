@@ -59,8 +59,9 @@ $region                       = hiera('region', 'RegionOne')
 $workers_max                  = hiera('workers_max', 16)
 $service_workers              = pick($nova_hash['workers'],
                                       min(max($::processorcount, 2), $workers_max))
-$use_huge_pages               = pick($node_hash['nova_hugepages_enabled'], false)
-$enable_cpu_pinning           = pick($node_hash['nova_cpu_pinning_enabled'], false)
+$compute_nodes                = get_nodes_hash_by_roles($network_metadata, ['compute'])
+$huge_pages_nodes             = filter_nodes_with_enabled_option($compute_nodes, 'nova_hugepages_enabled')
+$cpu_pinning_nodes            = filter_nodes_with_enabled_option($compute_nodes, 'nova_cpu_pinning_enabled')
 
 $ironic_hash                  = hiera_hash('ironic', {})
 
@@ -80,6 +81,18 @@ if $pci_vendor_devs {
   $sriov_enabled = true
 } else {
   $sriov_enabled = false
+}
+
+if size($huge_pages_nodes) > 0 {
+  $use_huge_pages = true
+} else {
+  $use_huge_pages = false
+}
+
+if size($cpu_pinning_nodes) > 0 {
+  $enable_cpu_pinning = true
+} else {
+  $enable_cpu_pinning = false
 }
 
 $db_type     = 'mysql'

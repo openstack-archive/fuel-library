@@ -30,11 +30,10 @@ describe manifest do
     end
 
     workers_max          = Noop.hiera 'workers_max'
-    network_metadata     = Noop.hiera 'network_metadata'
+    network_metadata     = Noop.hiera_hash('network_metadata')
     memcache_roles       = Noop.hiera 'memcache_roles'
     memcache_addresses   = Noop.hiera 'memcached_addresses', false
     memcache_server_port = Noop.hiera 'memcache_server_port', '11211'
-
     let(:memcache_nodes) do
       Noop.puppet_function 'get_nodes_hash_by_roles', network_metadata, memcache_roles
     end
@@ -414,9 +413,11 @@ describe manifest do
       end
     end
 
-    let(:node_hash) { Noop.hiera_hash 'node' }
-    let(:enable_hugepages) { node_hash.fetch('nova_hugepages_enabled', false) }
-    let(:enable_cpu_pinning) { node_hash.fetch('nova_cpu_pinning_enabled', false) }
+    let(:compute_nodes) { Noop.puppet_function 'get_nodes_hash_by_roles', network_metadata, ['compute'] }
+    let(:huge_pages_nodes) { Noop.puppet_function 'filter_nodes_with_enabled_option', compute_nodes, 'nova_hugepages_enabled' }
+    let(:cpu_pinning_nodes) { Noop.puppet_function 'filter_nodes_with_enabled_option', compute_nodes, 'nova_cpu_pinning_enabled' }
+    let(:enable_hugepages) { huge_pages_nodes.size() > 0 ? true : false }
+    let(:enable_cpu_pinning) { cpu_pinning_nodes.size() > 0 ? true : false }
 
     it 'should declare nova::scheduler::filter with an appropriate filters' do
       nova_scheduler_filters         = []
