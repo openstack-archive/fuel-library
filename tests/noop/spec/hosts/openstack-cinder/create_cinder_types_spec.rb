@@ -5,39 +5,30 @@ manifest = 'openstack-cinder/create_cinder_types.pp'
 describe manifest do
   shared_examples 'catalog' do
 
-    access_admin         = Noop.hiera_structure('access', {})
-    public_vip           = Noop.hiera('public_vip')
-    region               = Noop.hiera('region', 'RegionOne')
-    volume_backend_names = Noop.hiera_structure 'storage/volume_backend_names'
-    available_backends   = volume_backend_names.delete_if { |key,value| ! value }
-    backend_names        = available_backends.keys
+    volume_backend_names      = Noop.hiera_structure 'storage/volume_backend_names'
+    available_backends        = volume_backend_names.select { |key, value| value }
+    available_backend_names   = available_backends.keys
+    unavailable_backends      = volume_backend_names.select { |key,value| ! value }
+    unavailable_backend_names = unavailable_backends.keys
 
-    if Noop.hiera_structure('use_ssl', false)
-      public_protocol = 'https'
-      public_address = Noop.hiera_structure('use_ssl/keystone_public_hostname')
-      admin_protocol = 'https'
-      admin_address = Noop.hiera_structure('use_ssl/keystone_admin_hostname')
-    elsif Noop.hiera_structure('public_ssl/services')
-      public_protocol = 'https'
-      public_address = Noop.hiera_structure('public_ssl/hostname')
-    else
-      public_protocol = 'http'
-      public_address = Noop.hiera('public_vip')
+    available_backend_names.each do |backend_name|
+      it "should create cinder type #{backend_name}" do
+         should contain_osnailyfacter__openstack__manage_cinder_types(backend_name).with(
+           :ensure               => 'present',
+           :volume_backend_names => available_backends,
+         )
+      end
     end
 
-    backend_names.each do |backend_name|
-      it 'should contain creating cinder types' do
-         should contain_create_cinder_types(backend_name).with(
-           'volume_backend_names' => available_backends,
-           'os_password'          => access_admin['password'],
-           'os_tenant_name'       => access_admin['tenant'],
-           'os_username'          => access_admin['user'],
-           'os_auth_url'          => "#{public_protocol}://#{public_address}:5000/v2.0/",
-           'os_region_name'       => region,
+    unavailable_backend_names.each do |backend_name|
+      it "should remove cinder type #{backend_name}" do
+         should contain_osnailyfacter__openstack__manage_cinder_types(backend_name).with(
+           :ensure => 'absent',
          )
       end
     end
 
   end
+
   test_ubuntu_and_centos manifest
 end
