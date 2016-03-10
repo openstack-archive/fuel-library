@@ -41,6 +41,7 @@ $deployment_mode          = hiera('deployment_mode')
 $bind_address             = get_network_role_property('heat/api', 'ipaddr')
 $memcache_address         = get_network_role_property('mgmt/memcache', 'ipaddr')
 $keystone_user            = pick($heat_hash['user'], 'heat')
+$keystone_password        = $heat_hash['user_password']
 $keystone_tenant          = pick($heat_hash['tenant'], 'services')
 $region                   = hiera('region', 'RegionOne')
 $external_lb              = hiera('external_lb', false)
@@ -97,7 +98,7 @@ class { 'openstack::heat' :
   keystone_protocol        => $keystone_protocol,
   keystone_host            => $service_endpoint,
   keystone_user            => $keystone_user,
-  keystone_password        => $heat_hash['user_password'],
+  keystone_password        => $keystone_password,
   keystone_tenant          => $keystone_tenant,
   keystone_ec2_uri         => "${internal_auth_protocol}://${internal_auth_address}:5000/v2.0",
   region                   => $region,
@@ -209,3 +210,11 @@ class mysql::server {}
 class mysql::config {}
 include mysql::server
 include mysql::config
+
+heat_config {
+  'trustee/user_domain_id': value => 'default';
+  'trustee/password':       value => $keystone_password, secret => true; # secretservice
+  'trustee/username':       value => $keystone_user; # heat
+  'trustee/auth_url':       value => $identity_uri;
+  'trustee/auth_plugin':    value => 'password';
+}

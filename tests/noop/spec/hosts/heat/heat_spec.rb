@@ -30,6 +30,10 @@ describe manifest do
       Noop.hiera 'heat_ha_engine', true
     end
 
+    heat_hash = Noop.hiera_structure 'heat', {}
+    keystone_user = heat_hash.fetch('user', 'heat')
+    keystone_password = heat_hash['user_password']
+
     admin_auth_protocol = 'http'
     admin_auth_address = Noop.hiera('service_endpoint')
     if Noop.hiera_structure('use_ssl', false)
@@ -55,6 +59,8 @@ describe manifest do
     heat_db_password = Noop.hiera_structure 'heat/db_password', 'heat'
     heat_db_user = Noop.hiera_structure 'heat/db_user', 'heat'
     heat_db_name = Noop.hiera('heat_db_name', 'heat')
+
+    identity_uri = "#{admin_auth_protocol}://#{admin_auth_address}:35357/"
 
     it 'should install heat-docker package only after heat-engine' do
       if !facts.has_key?(:os_package_type) or facts[:os_package_type] != 'ubuntu'
@@ -136,6 +142,14 @@ describe manifest do
 
     it 'should disable use_stderr for heat' do
       should contain_heat_config('DEFAULT/use_stderr').with(:value => 'false')
+    end
+
+    it 'should configure "trustee" section' do
+      should contain_heat_config('trustee/user_domain_id').with(:value => 'default')
+      should contain_heat_config('trustee/password').with(:value => keystone_password)
+      should contain_heat_config('trustee/username').with(:value => keystone_user)
+      should contain_heat_config('trustee/auth_url').with(:value => identity_uri)
+      should contain_heat_config('trustee/auth_plugin').with(:value => 'password')
     end
 
     it 'should configure region name for heat' do
