@@ -8,6 +8,8 @@ describe manifest do
     default_log_levels_hash = Noop.hiera_structure 'default_log_levels'
     default_log_levels = Noop.puppet_function 'join_keys_to_values',default_log_levels_hash,'='
 
+    region                 = Noop.hiera 'region', 'RegionOne'
+    ceilometer_region      = Noop.puppet_function 'pick',ceilometer_hash['region'], region
     management_vip         = Noop.hiera 'management_vip'
     service_endpoint       = Noop.hiera 'service_endpoint', management_vip
     ssl_hash               = Noop.hiera_structure('use_ssl', {})
@@ -44,6 +46,23 @@ describe manifest do
 
       it 'should configure os_auth_url' do
         should contain_ceilometer_config('service_credentials/os_auth_url').with(:value => keystone_auth_uri)
+      end
+
+      it 'contains class ceilometer::agent::polling' do
+        should contain_class('ceilometer::agent::polling').with(
+          'central_namespace' => 'false',
+          'ipmi_namespace'    => 'false',
+        )
+      end
+
+      it 'configured ceilometer::agent::auth' do
+        should contain_class('ceilometer::agent::auth').with(
+          'auth_url'         => keystone_auth_uri,
+          'auth_password'    => ceilometer_hash['user_password'],
+          'auth_region'      => ceilometer_region,
+          'auth_tenant_name' => ceilometer_hash['tenant'],
+          'auth_user'        => ceilometer_hash['user'],
+        )
       end
     end
   end # end of shared_examples

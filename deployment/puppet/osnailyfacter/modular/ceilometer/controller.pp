@@ -14,7 +14,6 @@ $default_ceilometer_hash = {
 $ceilometer_hash          = hiera_hash('ceilometer', $default_ceilometer_hash)
 $verbose                  = pick($ceilometer_hash['verbose'], hiera('verbose', true))
 $debug                    = pick($ceilometer_hash['debug'], hiera('debug', false))
-$default_log_levels       = hiera_hash('default_log_levels')
 $use_syslog               = hiera('use_syslog', true)
 $use_stderr               = hiera('use_stderr', false)
 $syslog_log_facility      = hiera('syslog_log_facility_ceilometer', 'LOG_LOCAL0')
@@ -25,15 +24,13 @@ $region                   = hiera('region', 'RegionOne')
 $ceilometer_region        = pick($ceilometer_hash['region'], $region)
 $mongo_nodes              = get_nodes_hash_by_roles(hiera_hash('network_metadata'), hiera('mongo_roles'))
 $mongo_address_map        = get_node_to_ipaddr_map_by_network_role($mongo_nodes, 'mongo/db')
-$primary_controller       = hiera('primary_controller')
+$primary_controller       = hiera('primary_controller', false)
 
 $ceilometer_enabled         = $ceilometer_hash['enabled']
-$ceilometer_user_password   = $ceilometer_hash['user_password']
 $ceilometer_metering_secret = $ceilometer_hash['metering_secret']
 $swift_rados_backend        = $storage_hash['objects_ceph']
 $amqp_password              = $rabbit_hash['password']
 $amqp_user                  = $rabbit_hash['user']
-$rabbit_ha_queues           = true
 $service_endpoint           = hiera('service_endpoint', $management_vip)
 $ha_mode                    = pick($ceilometer_hash['ha_mode'], true)
 $ssl_hash                   = hiera_hash('use_ssl', {})
@@ -115,36 +112,97 @@ if ($dbtype == 'mysql') {
 ###############################################################################
 
 if ($ceilometer_enabled) {
-  class { 'openstack::ceilometer':
+  class { '::ceilometer':
+    http_timeout               => $ceilometer_hash['http_timeout'],
+    event_time_to_live         => $ceilometer_hash['event_time_to_live'],
+    metering_time_to_live      => $ceilometer_hash['metering_time_to_live'],
+    alarm_history_time_to_live => $ceilometer_hash['alarm_history_time_to_live'],
+    rabbit_hosts               => split(hiera('amqp_hosts',''), ','),
+    rabbit_userid              => $amqp_user,
+    rabbit_password            => $amqp_password,
+    metering_secret            => $ceilometer_metering_secret,
     verbose                    => $verbose,
     debug                      => $debug,
     use_syslog                 => $use_syslog,
     use_stderr                 => $use_stderr,
-    syslog_log_facility        => $syslog_log_facility,
-    default_log_levels         => $default_log_levels,
-    db_connection              => $db_connection,
-    swift_rados_backend        => $swift_rados_backend,
-    metering_secret            => $ceilometer_metering_secret,
-    amqp_hosts                 => hiera('amqp_hosts',''),
-    amqp_user                  => $amqp_user,
-    amqp_password              => $amqp_password,
-    rabbit_ha_queues           => $rabbit_ha_queues,
-    keystone_auth_uri          => $keystone_auth_uri,
-    keystone_identity_uri      => $keystone_identity_uri,
-    keystone_password          => $ceilometer_user_password,
-    keystone_user              => $ceilometer_hash['user'],
-    keystone_tenant            => $ceilometer_hash['tenant'],
-    keystone_region            => $ceilometer_region,
-    host                       => $api_bind_address,
-    ha_mode                    => $ha_mode,
-    primary_controller         => $primary_controller,
-    on_controller              => true,
-    alarm_history_time_to_live => $ceilometer_hash['alarm_history_time_to_live'],
-    event_time_to_live         => $ceilometer_hash['event_time_to_live'],
-    metering_time_to_live      => $ceilometer_hash['metering_time_to_live'],
-    http_timeout               => $ceilometer_hash['http_timeout'],
-    api_workers                => $service_workers,
-    collector_workers          => $service_workers,
-    notification_workers       => $service_workers,
+    log_facility               => $syslog_log_facility,
   }
+
+  # Configure authentication for agents
+  class { '::ceilometer::agent::auth':
+    auth_url         => $keystone_auth_uri,
+    auth_password    => $ceilometer_user_password,
+    auth_region      => $ceilometer_region,
+    auth_tenant_name => $ceilometer_hash['tenant'],
+    auth_user        => $ceilometer_hash['user'],
+  }
+
+  class { '::ceilometer::client': }
+
+  ceilometer_config {
+    'database/mongodb_replica_set' : ensure => absent;
+  }
+
+  ceilometer_config { 'service_credentials/os_endpoint_type': value => 'internalURL'} ->
+  Service<| title == 'ceilometer-polling'|>
+
+  class { '::ceilometer::db':
+    database_connection => $db_connection,
+    sync_db             => $primary_controller,
+  }
+
+  # Install the ceilometer-api service
+  # The keystone_password parameter is mandatory
+  class { '::ceilometer::api':
+    auth_uri          => $keystone_auth_uri,
+    identity_uri      => $keystone_identity_uri,
+    keystone_user     => $ceilometer_hash['user'],
+    keystone_password => $ceilometer_hash['user_password'],
+    keystone_tenant   => $ceilometer_hash['tenant'],
+    host              => $api_bind_address,
+    port              => '8777',
+    api_workers       => $service_workers,
+  }
+
+  # Clean up expired data once a week
+  class { '::ceilometer::expirer':
+    minute       => '0',
+    hour         => '0',
+    monthday     => '*',
+    month        => '*',
+    weekday      => '0',
+  }
+
+  class { '::ceilometer::collector':
+    collector_workers => $service_workers,
+  }
+
+  class { '::ceilometer::agent::notification':
+    notification_workers => $service_workers,
+    store_events         => true,
+  }
+
+  if $ha_mode {
+    include ceilometer_ha::agent::central
+    Service['ceilometer-polling'] -> Class['::ceilometer_ha::agent::central']
+  }
+
+  class { '::ceilometer::agent::polling':
+    enabled           => !$ha_mode,
+    compute_namespace => false,
+    ipmi_namespace    => false
+  }
+
+  if ($swift_rados_backend) {
+    ceilometer_config {
+      'DEFAULT/swift_rados_backend' : value => true;
+    }
+  }
+
+  if ($use_syslog) {
+    ceilometer_config {
+      'DEFAULT/use_syslog_rfc_format': value => true;
+    }
+  }
+
 }
