@@ -8,6 +8,10 @@ $management_vip   = hiera('management_vip')
 $service_endpoint = hiera('service_endpoint')
 $public_ssl_hash  = hiera('public_ssl')
 $mon_address_map  = get_node_to_ipaddr_map_by_network_role(hiera_hash('ceph_monitor_nodes'), 'ceph/public')
+$public_address = $public_ssl_hash['services'] ? {
+  true    => $public_ssl_hash['hostname'],
+  default => $public_vip,
+}
 
 if ($storage_hash['volumes_ceph'] or
   $storage_hash['images_ceph'] or
@@ -65,7 +69,7 @@ if $use_ceph and $storage_hash['objects_ceph'] {
 
     # Ceph
     primary_mon                      => $primary_mon,
-    pub_ip                           => $public_vip,
+    pub_ip                           => $public_address,
     adm_ip                           => $management_vip,
     int_ip                           => $management_vip,
 
