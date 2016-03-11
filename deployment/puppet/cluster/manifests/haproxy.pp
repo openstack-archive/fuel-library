@@ -28,6 +28,10 @@
 #   (optional) Flag to indicate if this is the primary controller
 #   Defaults to false
 #
+# [*colocate_haproxy*]
+#   (optional) Flag to enable pacemaker to bind haproxy to controller VIPs
+#   Defaults to false
+#
 # [*debug*]
 #   (optional)
 #   Defaults to false
@@ -49,6 +53,7 @@ class cluster::haproxy (
   $primary_controller           = false,
   $debug                        = false,
   $other_networks               = false,
+  $colocate_haproxy             = false,
   $stats_ipaddresses            = ['127.0.0.1'],
   $spread_checks                = '3',
 ) {
@@ -142,8 +147,9 @@ class cluster::haproxy (
 
   # Pacemaker
   class { 'cluster::haproxy_ocf':
-    debug              => $debug,
-    other_networks     => $other_networks,
+    debug            => $debug,
+    other_networks   => $other_networks,
+    colocate_haproxy => $colocate_haproxy,
   }
 
 }
