@@ -93,6 +93,14 @@ if $murano_hash['enabled'] {
     action => 'accept',
   }
 
+  if $murano_plugins and $murano_plugins['glance_artifacts_plugin'] and $murano_plugins['glance_artifacts_plugin']['enabled'] {
+    $packages_service = 'glance'
+    $enable_glare     = true
+  } else {
+    $packages_service = 'murano'
+    $enable_glare     = false
+  }
+
   class { 'murano' :
     verbose             => $verbose,
     debug               => $debug,
@@ -107,6 +115,7 @@ if $murano_hash['enabled'] {
     admin_tenant_name   => $tenant,
     identity_uri        => "${admin_auth_protocol}://${admin_auth_address}:35357/",
     use_neutron         => $use_neutron,
+    packages_service    => $packages_service,
     rabbit_os_user      => $rabbit_hash['user'],
     rabbit_os_password  => $rabbit_hash['password'],
     rabbit_os_port      => $amqp_port,
@@ -138,21 +147,11 @@ if $murano_hash['enabled'] {
   class { 'murano::client': }
 
   class { 'murano::dashboard':
-    repo_url => $repository_url,
-    sync_db  => false,
+    enable_glare => $enable_glare,
+    repo_url     => $repository_url,
+    sync_db      => false,
   }
 
-  if $murano_plugins and $murano_plugins['glance_artifacts_plugin'] and $murano_plugins['glance_artifacts_plugin']['enabled'] {
-    murano_config {
-      'packages_opts/packages_service': value => 'glance',
-    }
-
-    concat::fragment { 'enable_glare':
-      target  => $::murano::params::local_settings_path,
-      content => 'MURANO_USE_GLARE = True',
-      order   => 3,
-    }
-  }
 
   $haproxy_stats_url = "http://${management_ip}:10000/;csv"
 
