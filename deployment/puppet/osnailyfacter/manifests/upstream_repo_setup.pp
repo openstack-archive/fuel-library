@@ -88,16 +88,10 @@ class osnailyfacter::upstream_repo_setup (
       version  => '2.4.0*',
       priority => $pin_priority,
     }
-    # FIXME(mattymo): wait for uca to bump keystoneclient
-    apt::pin { 'python-oslo.config':
-      packages => 'python-oslo.config',
-      version  => '3.4.0*',
-      priority => $pin_priority,
-    }
-    # FIXME(mattymo): wait for uca to bump keystoneclient
-    apt::pin { 'python-keystoneclient':
-      packages => 'python-keystoneclient',
-      version  => '2.1.1*',
+    # FIXME(mattymo): wait for uca to bump openstackclient
+    apt::pin { 'python-openstackclient':
+      packages => 'python-openstackclient',
+      version  => '2.2.0*',
       priority => $pin_priority,
     }
   }
