@@ -18,7 +18,7 @@ describe manifest do
 
     unless Noop.hiera('external_lb', false)
 
-      it "should delcare cluster::haproxy with correct other_networks" do
+      it "should declare cluster::haproxy with correct other_networks" do
         expect(subject).to contain_class('cluster::haproxy').with(
           'other_networks' => Noop.puppet_function('direct_networks', endpoints),
         )
@@ -26,6 +26,21 @@ describe manifest do
 
       it "should setup rsyslog configuration for haproxy" do
         expect(subject).to contain_file('/etc/rsyslog.d/haproxy.conf')
+      end
+
+      if Noop.hiera('colocate_haproxy', true)
+        it "should contain management vip colocation with haproxy" do
+          expect(subject).to contain_pcmk_colocation('vip_management-with-haproxy').with(
+            'first'  => 'clone_p_haproxy',
+            'second' => 'vip__management',
+          )
+        end
+        it "should contain public vip colocation with haproxy" do
+          expect(subject).to contain_pcmk_colocation('vip_public-with-haproxy').with(
+            'first'  => 'clone_p_haproxy',
+            'second' => 'vip__public',
+          )
+        end
       end
     end
   end
