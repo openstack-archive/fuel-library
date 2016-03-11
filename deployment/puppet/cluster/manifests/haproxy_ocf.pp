@@ -3,8 +3,9 @@
 # Configure OCF service for HAProxy managed by corosync/pacemaker
 #
 class cluster::haproxy_ocf (
-  $debug = false,
-  $other_networks = false,
+  $debug            = false,
+  $other_networks   = false,
+  $colocate_haproxy = false,
 ) inherits cluster::haproxy {
   $primitive_type  = 'ns_haproxy'
   $complex_type    = 'clone'
@@ -43,28 +44,29 @@ class cluster::haproxy_ocf (
     prefix           => false,
   }
 
-  pcmk_colocation { 'vip_public-with-haproxy':
-    ensure     => 'present',
-    score      => 'INFINITY',
-    first      => "clone_${service_name}",
-    second     => "vip__public",
-  }
+  if $colocate_haproxy {
+    pcmk_colocation { 'vip_public-with-haproxy':
+      ensure     => 'present',
+      score      => 'INFINITY',
+      first      => "clone_${service_name}",
+      second     => "vip__public",
+    }
+    Service[$service_name] -> Pcmk_colocation['vip_public-with-haproxy']
 
-  pcmk_colocation { 'vip_management-with-haproxy':
-    ensure     => 'present',
-    score      => 'INFINITY',
-    first      => "clone_${service_name}",
-    second     => 'vip__management',
+    pcmk_colocation { 'vip_management-with-haproxy':
+      ensure     => 'present',
+      score      => 'INFINITY',
+      first      => "clone_${service_name}",
+      second     => 'vip__management',
+    }
+    Service[$service_name] -> Pcmk_colocation['vip_management-with-haproxy']
   }
 
   Pcmk_resource[$service_name] ->
-  Service[$service_name] ->
-  Pcmk_colocation['vip_public-with-haproxy']
+  Service[$service_name]
 
   Pcmk_resource[$service_name] ->
-  Service[$service_name] ->
-  Pcmk_colocation['vip_management-with-haproxy']
-
+  Service[$service_name]
 }
 
 

@@ -27,6 +27,21 @@ describe manifest do
       it "should setup rsyslog configuration for haproxy" do
         expect(subject).to contain_file('/etc/rsyslog.d/haproxy.conf')
       end
+
+      if Noop.hiera('colocate_haproxy', true)
+        it "should contain management vip colocation with haproxy" do
+          expect(subject).to contain__pcmk_colocation('vip_management-with-haproxy').with(
+            'first'  => 'p_haproxy',
+            'second' => 'vip__management',
+          )
+        end
+        it "should contain public vip colocation with haproxy" do
+          expect(subject).to contain__pcmk_colocation('vip_public-with-haproxy').with(
+            'first'  => 'p_haproxy',
+            'second' => 'vip__public',
+          )
+        end
+      end
     end
   end
   test_ubuntu_and_centos manifest
