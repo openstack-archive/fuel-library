@@ -252,9 +252,10 @@ if $enabled {
   $wsrep_config_file = '/etc/mysql/conf.d/wsrep.cnf'
   # Remove the wsrep config that comes from the packages as we put everything
   # in /etc/mysql/my.cnf
+  #TODO(mmalchuk): revert the 'before' attribute when puppetlabs-mysql PR#808 can be used.
   file { $wsrep_config_file:
     ensure => absent,
-    before => Service['mysqld']
+    before => Class['mysql::server::installdb'],
   }
 
   $management_networks = get_routable_networks_for_network_role($network_scheme, 'mgmt/database', ' ')
