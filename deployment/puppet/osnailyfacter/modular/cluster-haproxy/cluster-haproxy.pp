@@ -7,6 +7,8 @@ $service_endpoint   = hiera('service_endpoint', '')
 $primary_controller = hiera('primary_controller')
 $haproxy_hash       = hiera_hash('haproxy', {})
 $external_lb        = hiera('external_lb', false)
+#FIXME(mattymo): Move colocations to a separate task
+$colocate_haproxy   = hiera('colocate_haproxy', true)
 
 if !$external_lb {
   #FIXME(mattymo): Replace with only VIPs for roles assigned to this node
@@ -18,6 +20,7 @@ if !$external_lb {
     primary_controller => $primary_controller,
     debug              => pick($haproxy_hash['debug'], hiera('debug', false)),
     other_networks     => direct_networks($network_scheme['endpoints']),
-    stats_ipaddresses  => $stats_ipaddresses
+    stats_ipaddresses  => $stats_ipaddresses,
+    colocate_haproxy   => $colocate_haproxy,
   }
 }
