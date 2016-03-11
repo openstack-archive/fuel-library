@@ -134,7 +134,7 @@ describe manifest do
     it 'should remove package provided wsrep.cnf' do
       should contain_file('/etc/mysql/conf.d/wsrep.cnf').with(
         :ensure => 'absent',
-      ).that_comes_before('Service[mysqld]')
+      ).that_comes_before('Class[mysql::server::installdb]')
     end
 
     it 'should configure galera check service' do
