@@ -48,6 +48,7 @@ class ceph (
   $rgw_keystone_token_cache_size      = '10',
   $rgw_keystone_accepted_roles        = '_member_, Member, admin, swiftoperator',
   $rgw_keystone_revocation_interval   = $::ceph::rgw_use_pki ? { false => 1000000, default => 60 },
+  $rgw_s3_auth_use_keystone           = true,
   $rgw_data                           = '/var/lib/ceph/radosgw',
   $rgw_dns_name                       = "*.${::domain}",
   $rgw_print_continue                 = true,
