@@ -1,11 +1,11 @@
 
 # deploys Ceph radosgw as an Apache FastCGI application
 class ceph::radosgw (
-  $rgw_id      = 'radosgw.gateway',
-  $rgw_user    = $::ceph::params::user_httpd,
-  $use_ssl     = $::ceph::use_ssl,
-  $public_ssl  = false,
-  $primary_mon = $::ceph::primary_mon,
+  $rgw_id                           = 'radosgw.gateway',
+  $rgw_user                         = $::ceph::params::user_httpd,
+  $use_ssl                          = $::ceph::use_ssl,
+  $public_ssl                       = false,
+  $primary_mon                      = $::ceph::primary_mon,
 
   # RadosGW settings
   $rgw_host                         = $::ceph::rgw_host,
@@ -28,6 +28,7 @@ class ceph::radosgw (
   $rgw_keystone_token_cache_size    = $::ceph::rgw_keystone_token_cache_size,
   $rgw_keystone_accepted_roles      = $::ceph::rgw_keystone_accepted_roles,
   $rgw_keystone_revocation_interval = $::ceph::rgw_keystone_revocation_interval,
+  $rgw_s3_auth_use_keystone         = true,
   $rgw_nss_db_path                  = $::ceph::rgw_nss_db_path,
   $rgw_large_pool_name              = $::ceph::rgw_large_pool_name,
   $rgw_large_pool_pg_nums           = $::ceph::rgw_large_pool_pg_nums,
@@ -46,10 +47,11 @@ class ceph::radosgw (
   $dir_httpd_root   = '/var/www/radosgw'
   $dir_httpd_log    = $::ceph::params::dir_httpd_log
 
-  package { [$::ceph::params::package_radosgw,
-             $::ceph::params::package_fastcgi,
-             $::ceph::params::package_libnss,
-            ]:
+  package { [
+    $::ceph::params::package_radosgw,
+    $::ceph::params::package_fastcgi,
+    $::ceph::params::package_libnss,
+  ]:
     ensure  => 'installed',
   }
 
@@ -70,10 +72,10 @@ class ceph::radosgw (
   }
 
   firewall {'012 RadosGW allow':
-    chain   => 'INPUT',
-    dport   => [ $rgw_port, $swift_endpoint_port ],
-    proto   => 'tcp',
-    action  => accept,
+    chain  => 'INPUT',
+    dport  => [ $rgw_port, $swift_endpoint_port ],
+    proto  => 'tcp',
+    action => accept,
   }
 
   # All files need to be owned by the rgw / http user.
@@ -114,12 +116,13 @@ class ceph::radosgw (
       "client.${rgw_id}/rgw_keystone_accepted_roles":      value => $rgw_keystone_accepted_roles;
       "client.${rgw_id}/rgw_keystone_token_cache_size":    value => $rgw_keystone_token_cache_size;
       "client.${rgw_id}/rgw_keystone_revocation_interval": value => $rgw_keystone_revocation_interval;
+      "client.${rgw_id}/rgw_s3_auth_use_keystone":         value => $rgw_s3_auth_use_keystone;
     }
 
     if ($rgw_use_pki) {
 
       ceph_conf {
-      "client.${rgw_id}/nss db path": value => $rgw_nss_db_path;
+        "client.${rgw_id}/nss db path": value => $rgw_nss_db_path;
       }
 
       # This creates the signing certs used by radosgw to check cert revocation
@@ -137,16 +140,15 @@ class ceph::radosgw (
 
     } #END rgw_use_pki
 
-  class {'ceph::keystone':
-    pub_ip              => $pub_ip,
-    pub_protocol        => $public_ssl ? {
-      true    => 'https',
-      default => 'http',
-    },
-    adm_ip              => $adm_ip,
-    int_ip              => $int_ip,
-    swift_endpoint_port => $swift_endpoint_port,
-  }
+    $pub_protocol = $public_ssl ? { true => 'https', default => 'http' }
+
+    class { '::ceph::keystone':
+      pub_ip              => $pub_ip,
+      pub_protocol        => $pub_protocol,
+      adm_ip              => $adm_ip,
+      int_ip              => $int_ip,
+      swift_endpoint_port => $swift_endpoint_port,
+    }
 
   } #END rgw_use_keystone
 
@@ -171,21 +173,21 @@ class ceph::radosgw (
     }
     file { $rgw_log_file:
       ensure => present,
-      mode   => '0755'
+      mode   => '0755',
     }
   } else {
     file { $rgw_log_file:
-      ensure => absent
+      ensure => absent,
     }
-
   }
 
-  file {[$::ceph::params::dir_httpd_ssl,
-         "${rgw_data}/ceph-${rgw_id}",
-         $rgw_data,
-         $dir_httpd_root,
-         $rgw_nss_db_path,
-        ]:
+  file { [
+    $::ceph::params::dir_httpd_ssl,
+    "${rgw_data}/ceph-${rgw_id}",
+    $rgw_data,
+    $dir_httpd_root,
+    $rgw_nss_db_path,
+  ]:
     ensure  => 'directory',
     mode    => '0755',
     recurse => true,
@@ -229,18 +231,22 @@ class ceph::radosgw (
 
   Ceph_conf <||> ->
   Package<| title == 'httpd' |> ->
-  Package[[$::ceph::params::package_radosgw,
-           $::ceph::params::package_fastcgi,
-           $::ceph::params::package_libnss,]] ->
-  File[["${::ceph::params::dir_httpd_sites}/rgw.conf",
-        "${::ceph::params::dir_httpd_sites}/fastcgi.conf",
-        "${dir_httpd_root}/s3gw.fcgi",
-        $::ceph::params::dir_httpd_ssl,
-        "${rgw_data}/ceph-${rgw_id}",
-        $rgw_data,
-        $dir_httpd_root,
-        $rgw_nss_db_path,
-        $rgw_log_file,]] ->
+  Package[ [
+    $::ceph::params::package_radosgw,
+    $::ceph::params::package_fastcgi,
+    $::ceph::params::package_libnss,
+  ] ] ->
+  File[ [
+    "${::ceph::params::dir_httpd_sites}/rgw.conf",
+    "${::ceph::params::dir_httpd_sites}/fastcgi.conf",
+    "${dir_httpd_root}/s3gw.fcgi",
+    $::ceph::params::dir_httpd_ssl,
+    "${rgw_data}/ceph-${rgw_id}",
+    $rgw_data,
+    $dir_httpd_root,
+    $rgw_nss_db_path,
+    $rgw_log_file,
+  ] ] ->
   Exec["ceph create ${radosgw_auth_key}"] ->
   Exec["Populate ${radosgw_auth_key} keyring"] ->
   File["${rgw_data}/ceph-${rgw_id}/done"] ->
