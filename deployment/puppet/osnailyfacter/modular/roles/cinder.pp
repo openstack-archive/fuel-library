@@ -260,6 +260,7 @@ if roles_include(['controller', 'primary-controller']) {
 #   after the deployment is done.
 class { '::openstack::cinder':
   enable_volumes       => false,
+  enable_profiler      => false,
   sql_connection       => $db_connection,
   glance_api_servers   => $glance_api_servers,
   bind_host            => $bind_host,

@@ -21,6 +21,7 @@ class openstack::cinder(
   $iser                   = false,
   $enabled                = true,
   $enable_volumes         = true,
+  $enable_profiler        = false,
   $purge_cinder_config    = true,
   $bind_host              = '0.0.0.0',
   $iscsi_bind_host        = '0.0.0.0',
@@ -271,6 +272,10 @@ class openstack::cinder(
     cinder_config {
       'DEFAULT/use_syslog_rfc_format': value => true;
     }
+  }
+
+  cinder_config {
+    'DEFAULT/profiler': enabled => $enable_profiler;
   }
 
   if $keystone_enabled {
