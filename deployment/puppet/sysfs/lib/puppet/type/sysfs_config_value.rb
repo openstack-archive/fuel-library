@@ -80,8 +80,13 @@ eos
     !self[:sysfs].nil? and !self[:value].nil?
   end
 
+  def ensure?
+    return false if !self[:ensure] or self[:ensure] == :absent
+    return true
+  end
+
   def validate
-    fail 'You should privide either "sysfs" and "value" to generate content or the "content" itself!' unless self[:content] or generate_content?
+    fail 'You should privide either "sysfs" and "value" to generate content or the "content" itself!' unless self[:content] or (generate_content? or !ensure?)
   end
 
 end
