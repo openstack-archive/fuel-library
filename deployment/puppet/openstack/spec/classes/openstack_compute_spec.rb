@@ -127,6 +127,7 @@ describe 'openstack::compute' do
         should contain_class('nova::client')
         should contain_install_ssh_keys('nova_ssh_key_for_migration')
         should contain_file('/var/lib/nova/.ssh/config')
+        should contain_package('multipath-tools')
 
         if facts[:operatingsystem] == 'Ubuntu'
           should contain_package('cpufrequtils').with(

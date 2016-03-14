@@ -351,6 +351,11 @@ class openstack::compute (
     before => Package[$::nova::params::compute_package_name],
   }
 
+  package { 'multipath-tools':
+    ensure => present,
+    before => Package[$::nova::params::compute_package_name],
+  }
+
   case $::osfamily {
     'RedHat': {
       if $libvirt_type =='kvm' {
