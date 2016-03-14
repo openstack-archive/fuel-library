@@ -54,12 +54,6 @@ $use_rgw = false
 #$rgw_keystone_admin_token = 'CPj09fj'
 
 
-#These are the settings for the keystone endpoint. They should point to your
-# radosgw node, or to a vip for it. These may all be the same value for RadosGW
-#$rgw_pub_ip => 192.168.1.20,
-#$rgw_adm_ip => 192.168.1.20,
-#$rgw_int_ip => 192.168.1.20,
-
 node 'default' {
   class {'ceph':
       # General settings
@@ -99,11 +93,6 @@ node 'default' {
       rgw_dns_name                     => "*.${::domain}",
       rgw_print_continue               => false,
       rgw_nss_db_path                  => '/etc/ceph/nss',
-
-      # Keystone settings
-      rgw_pub_ip => $rgw_pub_ip,
-      rgw_adm_ip => $rgw_adm_ip,
-      rgw_int_ip => $rgw_int_ip,
 
       # Cinder settings
       volume_driver      => 'cinder.volume.drivers.rbd.RBDDriver',

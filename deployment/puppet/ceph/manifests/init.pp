@@ -52,12 +52,6 @@ class ceph (
   $rgw_dns_name                       = "*.${::domain}",
   $rgw_print_continue                 = true,
   $rgw_nss_db_path                    = '/etc/ceph/nss',
-
-# Keystone settings
-  $rgw_pub_ip                         = $cluster_node_address,
-  $rgw_adm_ip                         = $cluster_node_address,
-  $rgw_int_ip                         = $cluster_node_address,
-
   $rgw_init_timeout                   = '360000',
 
 # Cinder settings
