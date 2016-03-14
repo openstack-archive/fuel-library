@@ -20,7 +20,7 @@ describe 'sysfs::service' do
         should contain_service('sysfsutils').with(
           :ensure     => 'running',
           :enable     => true,
-          :hasstatus  => false,
+          :status     => '/bin/true',
           :hasrestart => true)
       end
     end
