@@ -139,7 +139,6 @@ if ($ceilometer_enabled) {
     ha_mode                    => $ha_mode,
     primary_controller         => $primary_controller,
     on_controller              => true,
-    mongo_replicaset           => $mongo_replicaset,
     alarm_history_time_to_live => $ceilometer_hash['alarm_history_time_to_live'],
     event_time_to_live         => $ceilometer_hash['event_time_to_live'],
     metering_time_to_live      => $ceilometer_hash['metering_time_to_live'],
