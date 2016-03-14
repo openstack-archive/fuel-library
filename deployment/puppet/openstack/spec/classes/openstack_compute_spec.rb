@@ -17,7 +17,6 @@ describe 'openstack::compute' do
     :rabbit_ha_queues    => false,
     :glance_api_servers  => 'undef',
     :libvirt_type        => 'kvm',
-    :host_uuid           => nil,
     :vncproxy_host       => false,
     :vncserver_listen    => '0.0.0.0',
     :migration_support   => nil,
@@ -67,6 +66,7 @@ describe 'openstack::compute' do
         else
           libvirt_service_name = 'libvirt-bin'
         end
+        host_uuid = facts[:libvirt_uuid]
         should contain_class('nova').with(
           :install_utilities => false,
           :ensure_package    => 'present',
@@ -116,7 +116,7 @@ describe 'openstack::compute' do
         )
         should contain_augeas('libvirt-conf-uuid').with(
           :context => '/files/etc/libvirt/libvirtd.conf',
-          :changes => ["set host_uuid #{p[:host_uuid]}"],
+          :changes => ["set host_uuid #{host_uuid}"],
         ).that_notifies('Service[libvirt]')
         if facts[:osfamily] == 'RedHat'
           should contain_file_line('qemu_selinux')
@@ -155,7 +155,8 @@ describe 'openstack::compute' do
         :hostname           => 'hostname.example.com',
         :openstack_version  => { 'nova' => 'present' },
         :os_service_default => '<SERVICE DEFAULT>',
-        :os_package_type => 'debian',
+        :os_package_type    => 'debian',
+        :libvirt_uuid       => '370d7c4c19b84f4ab34f213764e4663d',
       }
     end
 
@@ -172,6 +173,7 @@ describe 'openstack::compute' do
         :os_service_default => '<SERVICE DEFAULT>',
         :os_package_type    => 'rpm',
         :operatingsystemmajrelease => '7',
+        :libvirt_uuid       => '370d7c4c19b84f4ab34f213764e4663d',
       }
     end
 
