@@ -80,6 +80,19 @@
   test_post:
     cmd: ruby /etc/puppet/modules/osnailyfacter/modular/ceph/radosgw_post.rb
 
+- id: radosgw-keystone
+  type: puppet
+  version: 2.0.0
+  groups: [primary-controller]
+  required_for: [primary-ceph-radosgw, ceph-radosgw]
+  requires: [primary-keystone, keystone]
+  cross-depends:
+    - name: keystone
+  parameters:
+    puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/ceph/radosgw_keystone.pp
+    puppet_modules: /etc/puppet/modules
+    timeout: 1800
+
 - id: primary-ceph-mon
   type: puppet
   version: 2.0.0
