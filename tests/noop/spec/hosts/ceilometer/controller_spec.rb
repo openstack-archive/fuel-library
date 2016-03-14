@@ -55,10 +55,8 @@ describe manifest do
         should contain_ceilometer_config('database/connection').with(:value => "mongodb://#{ceilometer_db_user}:#{ceilometer_db_password}@#{db_hosts}/#{ceilometer_db_dbname}#{db_params}")
       end
 
-      if mongo_replicaset and mongo_replicaset != ''
-        it 'should configure mongo replica set in ceilometer configuration file' do
-          should contain_ceilometer_config('database/mongodb_replica_set').with(:value => mongo_replicaset)
-        end
+      it 'should not configure mongo replica set in ceilometer configuration file' do
+        should contain_ceilometer_config('database/mongodb_replica_set').with_ensure('absent')
       end
 
       it 'should declare openstack::ceilometer class with correct parameters' do
