@@ -600,16 +600,11 @@ mysql_start() {
         return $rc
     fi
 
-    # Wait for the server to come up, but die if mysql exited.
+    # Spin waiting for the server to come up.
     # Let the CRM/LRM time us out if required.
     while :; do
-        mysql_status info 1
-        rc=$?
-        if [ $rc -eq 0 ]; then
+        if mysql_status info 1; then
             break
-        elif [ $rc -eq $OCF_NOT_RUNNING ]; then
-            ocf_log err "${LH} MySQL started, but died unexpectedly. Exiting."
-            return $OCF_NOT_RUNNING
         fi
         sleep 3
     done
