@@ -32,17 +32,13 @@ maintainers:
       email:  svasilenko@mirantis.com
       IRC:    xenolog
 
-    - name:   Matthew Mosesohn
-      email:  mmosesohn@mirantis.com
-      IRC:    mattymo
+    - name:   Michael Polenchuk
+      email:  mpolenchuk@mirantis.com
+      IRC:    pma
 
     - name:   Dmitry Ilyin
       email:  dilyin@mirantis.com
       IRC:    dilyin
-
-    - name:   Stanislav Makar
-      email:  smakar@mirantis.com
-      IRC:    smakar
 
     - name:   Stanislaw Bogatkin
       email:  sbogatkin@mirantis.com
