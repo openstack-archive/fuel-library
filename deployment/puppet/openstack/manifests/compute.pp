@@ -236,6 +236,14 @@ class openstack::compute (
     cinder_catalog_info    => pick($nova_hash['cinder_catalog_info'], 'volumev2:cinderv2:internalURL'),
   }
 
+  if $debug {
+    class { 'nova::logging':
+      default_log_levels => {
+        'oslo.messaging' => 'DEBUG',
+      }
+    }
+  }
+
   class {'::nova::availability_zone':
     default_availability_zone => $nova_hash['default_availability_zone'],
     default_schedule_zone     => $nova_hash['default_schedule_zone'],
