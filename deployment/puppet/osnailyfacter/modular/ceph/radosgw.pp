@@ -32,7 +32,7 @@ if $use_ceph and $storage_hash['objects_ceph'] {
   prepare_network_config(hiera_hash('network_scheme', {}))
   $ceph_cluster_network = get_network_role_property('ceph/replication', 'network')
   $ceph_public_network  = get_network_role_property('ceph/public', 'network')
-  $rgw_ip_address       = get_network_role_property('ceph/radosgw', 'ipaddr')
+  $rgw_ip_address       = get_ssl_property($ssl_hash, $public_ssl_hash, 'radosgw', 'public', 'hostname', [$public_vip])
 
   # Listen directives with host required for ip_based vhosts
   class { 'osnailyfacter::apache':
@@ -47,6 +47,16 @@ if $use_ceph and $storage_hash['objects_ceph'] {
   include ::tweaks::apache_wrappers
 
   include ceph::params
+
+  if !defined(Service['ceph']) {
+    service { 'ceph':
+      ensure     => 'running',
+      name       => $::ceph::params::service_name,
+      enable     => true,
+      hasrestart => true,
+    }
+  }
+  Ceph_conf <||> ~> Service['ceph']
 
   $haproxy_stats_url = "http://${service_endpoint}:10000/;csv"
 
