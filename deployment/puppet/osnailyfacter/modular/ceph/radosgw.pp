@@ -1,12 +1,9 @@
 notice('MODULAR: ceph/radosgw.pp')
 
 $storage_hash     = hiera('storage', {})
-$use_neutron      = hiera('use_neutron')
-$public_vip       = hiera('public_vip')
 $keystone_hash    = hiera('keystone', {})
 $management_vip   = hiera('management_vip')
 $service_endpoint = hiera('service_endpoint')
-$public_ssl_hash  = hiera('public_ssl')
 $mon_address_map  = get_node_to_ipaddr_map_by_network_role(hiera_hash('ceph_monitor_nodes'), 'ceph/public')
 $external_lb      = hiera('external_lb', false)
 $ssl_hash         = hiera_hash('use_ssl', {})
@@ -14,16 +11,7 @@ $admin_identity_protocol = get_ssl_property($ssl_hash, {}, 'keystone', 'admin', 
 $admin_identity_address  = get_ssl_property($ssl_hash, {}, 'keystone', 'admin', 'hostname', [$service_endpoint, $management_vip])
 $admin_identity_url      = "${admin_identity_protocol}://${admin_identity_address}:35357"
 
-if ($storage_hash['volumes_ceph'] or
-  $storage_hash['images_ceph'] or
-  $storage_hash['objects_ceph']
-) {
-  $use_ceph = true
-} else {
-  $use_ceph = false
-}
-
-if $use_ceph and $storage_hash['objects_ceph'] {
+if $storage_hash['objects_ceph'] {
   $ceph_primary_monitor_node = hiera('ceph_primary_monitor_node')
   $primary_mons              = keys($ceph_primary_monitor_node)
   $primary_mon               = $ceph_primary_monitor_node[$primary_mons[0]]['name']
@@ -47,28 +35,7 @@ if $use_ceph and $storage_hash['objects_ceph'] {
 
   include ceph::params
 
-  $haproxy_stats_url = "http://${service_endpoint}:10000/;csv"
-
-  $internal_auth_protocol  = get_ssl_property($ssl_hash, {}, 'keystone', 'internal', 'protocol', 'http')
-  $internal_auth_address   = get_ssl_property($ssl_hash, {}, 'keystone', 'internal', 'hostname', [$service_endpoint, $management_vip])
-  $internal_auth_url       = "${internal_auth_protocol}://${internal_auth_address}:5000"
-
-  class { '::osnailyfacter::wait_for_keystone_backends': }
-
-
-  Class[::Osnailyfacter::Wait_for_keystone_backends]  -> Class['ceph::keystone']
-
   class { 'ceph::radosgw':
-    # SSL
-    use_ssl                          => false,
-    public_ssl                       => $public_ssl_hash['services'],
-
-    # Ceph
-    primary_mon                      => $primary_mon,
-    pub_ip                           => $public_vip,
-    adm_ip                           => $management_vip,
-    int_ip                           => $management_vip,
-
     # RadosGW settings
     rgw_host                         => $::hostname,
     rgw_ip                           => $rgw_ip_address,
@@ -85,7 +52,7 @@ if $use_ceph and $storage_hash['objects_ceph'] {
     #rgw Keystone settings
     rgw_use_pki                      => false,
     rgw_use_keystone                 => true,
-    rgw_keystone_url                 => "${service_endpoint}:35357",
+    rgw_keystone_url                 => $admin_identity_url,
     rgw_keystone_admin_token         => $keystone_hash['admin_token'],
     rgw_keystone_token_cache_size    => '10',
     rgw_keystone_accepted_roles      => '_member_, Member, admin, swiftoperator',
