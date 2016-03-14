@@ -420,12 +420,25 @@ class openstack::compute (
 
   # Ensure ssh clients are installed
   case $::osfamily {
-    'Debian': { $scp_package='openssh-client' }
-    'RedHat': { $scp_package='openssh-clients' }
+    'Debian': { 
+       $scp_package='openssh-client'
+       $multipath_tools_package='multipath-tools'
+    }
+    'RedHat': { 
+       $scp_package='openssh-clients'
+       $multipath_tools_package='device-mapper-multipath'
+    }
     default: { fail("Unsupported osfamily: ${osfamily}") }
   }
+
   if !defined(Package[$scp_package]) {
     package { $scp_package:
+      ensure => installed
+    }
+  }
+
+  if !defined(Package[$multipath_tools_package]) {
+    package { $multipath_tools_package:
       ensure => installed
     }
   }
