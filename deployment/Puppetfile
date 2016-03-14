@@ -213,9 +213,11 @@ mod 'rabbitmq',
     :ref => '5.3.1-mos-rc1'
 
 # Pull in puppetlabs-mysql
+# FIXME(mmalchuk) 498b085 is a fix for the 3.6.x branch
+#                 61619f6 is the same fix on the master (should be in 3.7.1)
 mod 'mysql',
     :git => 'https://github.com/fuel-infra/puppetlabs-mysql.git',
-    :ref => '3.6.2'
+    :ref => '498b085'
 
 # Pull in michaeltchapman-galera
 mod 'galera',
