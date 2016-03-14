@@ -7,7 +7,7 @@ class sysfs::service inherits sysfs::params {
   service { 'sysfsutils' :
     ensure     => 'running',
     enable     => true,
-    hasstatus  => false,
+    status     => '/bin/true',
     hasrestart => true,
   }
 
