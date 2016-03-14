@@ -6,7 +6,6 @@ class osnailyfacter::ceph::ceph_compute {
   $storage_hash             = hiera_hash('storage', {})
   $use_neutron              = hiera('use_neutron')
   $public_vip               = hiera('public_vip')
-  $management_vip           = hiera('management_vip')
   $use_syslog               = hiera('use_syslog', true)
   $syslog_log_facility_ceph = hiera('syslog_log_facility_ceph','LOG_LOCAL0')
   $keystone_hash            = hiera_hash('keystone', {})
@@ -57,9 +56,6 @@ class osnailyfacter::ceph::ceph_compute {
       osd_pool_default_pgp_num => $storage_hash['pg_num'],
       use_rgw                  => false,
       glance_backend           => $glance_backend,
-      rgw_pub_ip               => $public_vip,
-      rgw_adm_ip               => $management_vip,
-      rgw_int_ip               => $management_vip,
       cluster_network          => $ceph_cluster_network,
       public_network           => $ceph_public_network,
       use_syslog               => $use_syslog,
