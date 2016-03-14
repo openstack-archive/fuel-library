@@ -15,16 +15,17 @@ describe 'cluster::mysql' do
       end
 
       it 'configures a cs_resource' do
-        should contain_pcmk_resource('p_mysqld').with(
+        should contain_class('pacemaker::service').with(
+          :name   => 'mysqld',
           :ensure => 'present',
           :parameters => {
             'config' => '/etc/mysql/my.cnf',
             'test_user' => 'username',
             'test_passwd' => 'password',
             'socket' =>'/var/run/mysqld/mysqld.sock'
-          }
+          },
+          :prefix => true
         )
-        should contain_pcmk_resource('p_mysqld').that_notifies('Service[mysqld]')
       end
 
       it 'creates init-file with grants' do
