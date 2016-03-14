@@ -59,7 +59,6 @@ describe manifest do
       end
 
       it { should contain_class('ceph::radosgw').with(
-           'primary_mon'   => ceph_monitor_nodes.keys[0],
            'rgw_frontends' => 'fastcgi socket_port=9000 socket_host=127.0.0.1',
            )
         }

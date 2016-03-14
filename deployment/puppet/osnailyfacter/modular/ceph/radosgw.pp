@@ -56,20 +56,9 @@ if $use_ceph and $storage_hash['objects_ceph'] {
 
   class { '::osnailyfacter::wait_for_keystone_backends': }
 
-
   Class[::Osnailyfacter::Wait_for_keystone_backends]  -> Class['ceph::keystone']
 
   class { 'ceph::radosgw':
-    # SSL
-    use_ssl                          => false,
-    public_ssl                       => $public_ssl_hash['services'],
-
-    # Ceph
-    primary_mon                      => $primary_mon,
-    pub_ip                           => $public_vip,
-    adm_ip                           => $management_vip,
-    int_ip                           => $management_vip,
-
     # RadosGW settings
     rgw_host                         => $::hostname,
     rgw_ip                           => $rgw_ip_address,
