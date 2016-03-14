@@ -128,6 +128,12 @@ describe 'openstack::compute' do
         should contain_install_ssh_keys('nova_ssh_key_for_migration')
         should contain_file('/var/lib/nova/.ssh/config')
 
+        if facts[:osfamily] == 'RedHat'
+          should contain_package('device-mapper-multipath')
+        elsif facts[:osfamily] == 'Debian'
+          should contain_package('multipath-tools')
+        end
+
         if facts[:operatingsystem] == 'Ubuntu'
           should contain_package('cpufrequtils').with(
             :ensure => 'present'

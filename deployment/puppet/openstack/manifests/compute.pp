@@ -353,6 +353,21 @@ class openstack::compute (
 
   case $::osfamily {
     'RedHat': {
+      package { 'device-mapper-multipath':
+        ensure => present,
+        before => Package[$::nova::params::compute_package_name],
+      }
+    }
+    'Debian': {
+      package { 'multipath-tools':
+        ensure => present,
+        before => Package[$::nova::params::compute_package_name],
+      }
+    }
+  }
+
+  case $::osfamily {
+    'RedHat': {
       if $libvirt_type =='kvm' {
         exec { '/etc/sysconfig/modules/kvm.modules':
           path      => '/sbin:/usr/sbin:/bin:/usr/bin',
