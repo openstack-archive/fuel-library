@@ -212,6 +212,14 @@ class openstack::compute (
   $memcached_addresses =  suffix($cache_server_ip, inline_template(":<%= @cache_server_port %>"))
   $notify_on_state_change = 'vm_and_task_state'
 
+  if $debug {
+    class { 'nova::logging':
+      default_log_levels => {
+        'oslo.messaging' => 'DEBUG',
+      }
+    }
+  }
+
   class { 'nova':
     install_utilities      => false,
     rpc_backend            => $rpc_backend,
@@ -235,6 +243,8 @@ class openstack::compute (
     memcached_servers      => $memcached_addresses,
     cinder_catalog_info    => pick($nova_hash['cinder_catalog_info'], 'volumev2:cinderv2:internalURL'),
   }
+
+  Class['nova::logging'] -> Class['nova']
 
   class {'::nova::availability_zone':
     default_availability_zone => $nova_hash['default_availability_zone'],
