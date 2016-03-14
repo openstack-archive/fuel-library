@@ -4,7 +4,6 @@ class ceph::radosgw (
   $rgw_id                           = 'radosgw.gateway',
   $rgw_user                         = $::ceph::params::user_httpd,
   $use_ssl                          = $::ceph::use_ssl,
-  $public_ssl                       = false,
   $primary_mon                      = $::ceph::primary_mon,
 
   # RadosGW settings
@@ -148,17 +147,6 @@ class ceph::radosgw (
       Exec['create nss db signing certs']
 
     } #END rgw_use_pki
-
-    $pub_protocol = $public_ssl ? { true => 'https', default => 'http' }
-
-    class { '::ceph::keystone':
-      pub_ip              => $pub_ip,
-      pub_protocol        => $pub_protocol,
-      adm_ip              => $adm_ip,
-      int_ip              => $int_ip,
-      swift_endpoint_port => $swift_endpoint_port,
-    }
-
   } #END rgw_use_keystone
 
   if ($::osfamily == 'Debian'){
