@@ -182,7 +182,10 @@ if $enabled {
     },
   }
 
-  $server_list = join($galera_nodes, ',')
+  # FIXME(kgalanov): workaroung for MySQL/WSREP cluster join bug
+  $galera_nodes_without_local_node = delete($galera_nodes, $galera_node_address)
+  $galera_nodes_fixed = concat($galera_node_address, $galera_nodes_without_local_node)
+  $server_list = join($galera_nodes_fixed, ',')
   $wsrep_options = {
     'mysqld'                           => {
       'binlog_format'                  => 'ROW',
