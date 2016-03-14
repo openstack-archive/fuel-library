@@ -54,8 +54,6 @@ class openstack::compute (
   $amqp_password                  = 'rabbit_pw',
   $glance_api_servers             = undef,
   $libvirt_type                   = 'kvm',
-  # FIXME(bogdando) remove after fixed upstream https://review.openstack.org/131710
-  $host_uuid                      = undef,
   # VNC
   $vncproxy_protocol              = 'http',
   $vncproxy_host                  = undef,
@@ -91,16 +89,6 @@ class openstack::compute (
 
   case $::osfamily {
     'RedHat': {
-      # TODO(aschultz): this is actually handled by ::nova::migration::libvirt
-      # when you include nova::compute::libvirt so we can probably remove this
-      # after it has been verified
-      augeas { 'sysconfig-libvirt':
-        context => '/files/etc/sysconfig/libvirtd',
-        lens => "shellvars.lns",
-        incl => "/etc/sysconfig/libvirtd",
-        changes => 'set LIBVIRTD_ARGS "--listen"',
-        before  => Augeas['libvirt-conf'],
-      }
 
       # From legacy libvirt.pp
       exec { 'symlink-qemu-kvm':
@@ -145,41 +133,11 @@ class openstack::compute (
       package {$guestmount_package_name: ensure => present}
     }
     'Debian': {
-      # TODO(aschultz): this is actually handled by ::nova::migration::libvirt
-      # when you include nova::compute::libvirt so we can probably remove this
-      # after it has been verified
-      augeas { 'default-libvirt':
-        context => '/files/etc/default/libvirt-bin',
-        changes => "set libvirtd_opts '\"-l -d\"'",
-        before  => Augeas['libvirt-conf'],
-      }
       # From legacy params
       $libvirt_type_kvm             = 'qemu-kvm'
       $guestmount_package_name      = 'guestmount'
     }
   default: { fail("Unsupported osfamily: ${::osfamily}") }
-  }
-
-  # TODO(aschultz): this is actually handled by ::nova::migration::libvirt
-  # when you include nova::compute::libvirt so we can probably remove this
-  # after it has been verified
-  augeas { 'libvirt-conf':
-    context => '/files/etc/libvirt/libvirtd.conf',
-    changes => [
-      'set listen_tls 0',
-      'set listen_tcp 1',
-      'set auth_tcp none',
-    ],
-    notify  => Service['libvirt'],
-  }
-
-  augeas { 'libvirt-conf-uuid':
-    context => '/files/etc/libvirt/libvirtd.conf',
-    changes => [
-      "set host_uuid $host_uuid",
-    ],
-    onlyif  => "match /files/etc/libvirt/libvirtd.conf/host_uuid size == 0",
-    notify  => Service['libvirt'],
   }
 
   if $::osfamily == 'Debian' {
@@ -322,6 +280,10 @@ class openstack::compute (
     remove_unused_original_minimum_age_seconds => pick($nova_hash['remove_unused_original_minimum_age_seconds'], '86400'),
     compute_driver                             => $compute_driver,
     libvirt_service_name                       => $::nova::params::libvirt_service_name,
+  }
+
+  class { 'nova::migration::libvirt':
+    override_uuid => true,
   }
 
   # From legacy libvirt.pp
