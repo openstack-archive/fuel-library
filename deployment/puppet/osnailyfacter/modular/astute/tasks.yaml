@@ -35,6 +35,7 @@
   role: '*'
   requires: [override_configuration]
   required_for: [pre_deployment_end]
+  refresh_on: ['*']
   parameters:
     timeout: 180
 
