@@ -212,6 +212,14 @@ class openstack::compute (
   $memcached_addresses =  suffix($cache_server_ip, inline_template(":<%= @cache_server_port %>"))
   $notify_on_state_change = 'vm_and_task_state'
 
+  if $debug {
+    class { 'nova::logging':
+      default_log_levels => {
+        'oslo.messaging' => 'DEBUG',
+      }
+    }
+  }
+
   class { 'nova':
     install_utilities      => false,
     rpc_backend            => $rpc_backend,
