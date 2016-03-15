@@ -38,6 +38,7 @@ class { 'nailgun::host':
   dns_search        => $::fuel_settings['DNS_SEARCH'],
   dns_upstream      => split($::fuel_settings['DNS_UPSTREAM'], ','),
   admin_network     => $admin_network,
+  ssh_network       => $::fuel_settings['FUEL_ACCESS']['ssh_network'],
   extra_networks    => $extra_networks,
   repo_root         => "/var/www/nailgun/${::fuel_openstack_version}",
   monitord_user     => $::fuel_settings['keystone']['monitord_user'],

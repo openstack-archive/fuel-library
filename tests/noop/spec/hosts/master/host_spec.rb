@@ -57,8 +57,8 @@ describe manifest do
 
     it 'should declare "osnailyfacter::ssh" class with correct parameters' do
       parameters = {
-          :password_auth => 'yes',
-          :listen_address => [fuel_settings['ADMIN_NETWORK']['ipaddress']],
+          :password_auth  => 'yes',
+          :listen_address => ['0.0.0.0'],
       }
       is_expected.to contain_class('osnailyfacter::ssh').with parameters
     end
@@ -66,6 +66,7 @@ describe manifest do
     it 'should declare "fuel::iptables" class with correct parameters' do
       parameters = {
         :admin_iface => fuel_settings['ADMIN_NETWORK']['interface'],
+        :ssh_network => fuel_settings['FUEL_ACCESS']['ssh_network'],
         :network_address => Noop.puppet_function(
             'ipcalc_network_by_address_netmask',
             fuel_settings['ADMIN_NETWORK']['ipaddress'],
