@@ -11,3 +11,7 @@ chgrp "<%= @ovs_socket_dir_group %>" "<%= @ovs_socket_dir %>" || true
 <% end -%>
 chmod g+s "<%= @ovs_socket_dir %>"
 <% end -%>
+
+# LP 1507921
+max_map_count="$(awk -v padding=65530 '{total+=$1}END{print total*2+padding}' /sys/devices/system/node/node*/hugepages/hugepages-*/nr_hugepages)"
+sysctl -q vm.max_map_count=${max_map_count:-65530}
