@@ -19,6 +19,7 @@ describe manifest do
         'value'  => mapped_sysfs_hugepages,
         'sysfs'  => '/sys/devices/system/node/node*/hugepages/hugepages-*kB/nr_hugepages',
       )
+      should contain_sysctl__value('vm.max_map_count').with_value('66570')
     end
   end
   test_ubuntu_and_centos manifest
