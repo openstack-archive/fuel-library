@@ -30,14 +30,18 @@ class fuel::keystone (
                    'python-unicodecsv', 'rubygem-thread_safe'])
 
   class { '::keystone':
-    # (TODO iberezovskiy): Set 'enable_bootstrap' to true when MOS packages will
-    # be updated and 'keystone-manage bootstrap' command will be available
-    enable_bootstrap => false,
+    enable_bootstrap => true,
     admin_token      => $admin_token,
     catalog_type     => 'sql',
     database_connection   => "${db_engine}://${db_user}:${db_password}@${db_host}:${db_port}/${db_name}",
     token_expiration => 86400,
     token_provider   => 'keystone.token.providers.uuid.Provider',
+  }
+
+  # FIXME(iberezovskiy): Remove this hack once the ISO on Fuel CI will
+  # contain new keystone (from mitaka)
+  Exec <| title == 'keystone-manage bootstrap' |> {
+    command => "keystone-manage bootstrap --bootstrap-password ${admin_token} || true"
   }
 
   #FIXME(mattymo): We should enable db_sync on every run inside keystone,
