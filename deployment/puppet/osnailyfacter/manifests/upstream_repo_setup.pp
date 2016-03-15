@@ -46,10 +46,6 @@
 
 class osnailyfacter::upstream_repo_setup (
   $repo_type       = unset,
-  $uca_repo_url    = unset,
-  $debian_repo_url = unset,
-  $repo_priority   = '1140',
-  $os_release      = 'mitaka',
   $pin_haproxy     = false,
   $pin_rabbitmq    = false,
   $pin_ceph        = false,
@@ -100,52 +96,9 @@ class osnailyfacter::upstream_repo_setup (
       version  => '2.1.1*',
       priority => $pin_priority,
     }
-  }
-
-  case $repo_type {
-    'fuel': {
-      notice('No repo changes needed for Fuel repo type.')
-    }
-    'uca': {
-      $release    = "${::lsbdistcodename}-updates/${os_release}"
-      $provider   = "${::lsbdistcodename}-updates"
-      $repo_name  = 'UCA'
-      $originator = 'Canonical'
-      package { 'ubuntu-cloud-keyring':
-        ensure  => 'present',
-        require => APT::Source[$repo_name],
-      }
-      $repo_url   = $uca_repo_url
-      package { 'python-amqp':
-        ensure => latest,
-        require => APT::Source[$repo_name],
-      }
-    }
-    'debian': {
-      $release    = $os_release
-      $provider   = $os_release
-      $repo_name  = 'debian_trusty'
-      $originator = 'Debian'
-      $repo_url   = $debian_repo_url
-    }
-    default: {
-      fail("Invalid repo type ${repo_type}")
-    }
-  }
-
-  if $repo_type != 'fuel' {
-    apt::source { $repo_name:
-      location => $repo_url,
-      release  => $release,
-      repos    => 'main'
+    package { 'ubuntu-cloud-keyring':
+      ensure  => 'present',
     }
 
-    apt::pin { $repo_name:
-      packages   => '*',
-      release    => $provider,
-      originator => $originator,
-      codename   => $release,
-      priority   => $repo_priority,
-    }
   }
 }

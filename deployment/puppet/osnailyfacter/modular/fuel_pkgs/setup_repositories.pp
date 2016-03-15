@@ -6,8 +6,6 @@ $repo_type  = pick($repo_setup_hash['repo_type'], 'fuel')
 
 class { '::osnailyfacter::upstream_repo_setup':
   repo_type    => $repo_type,
-  uca_repo_url => $repo_setup_hash['uca_repo_url'],
-  os_release   => $repo_setup_hash['uca_openstack_release'],
   pin_haproxy  => $repo_setup_hash['pin_haproxy'],
   pin_rabbitmq => $repo_setup_hash['pin_rabbitmq'],
   pin_ceph     => $repo_setup_hash['pin_ceph'],
@@ -46,4 +44,5 @@ if $::osfamily == 'Debian' {
   }
 
   Apt::Source<||> ~> Exec<| title == 'apt_update' |>
+  Exec<| title == 'apt_update' |> -> Package<||>
 }
