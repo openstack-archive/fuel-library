@@ -10,6 +10,7 @@ describe manifest do
       'node1/hugepages/hugepages-1048576kB' => 8,
       'default' => 0
     }
+    max_map_count = hugepages.empty? ? '65530' : '66570'
 
     it "should allocate defined hugepages" do
       should contain_class('sysfs')
@@ -19,6 +20,7 @@ describe manifest do
         'value'  => mapped_sysfs_hugepages,
         'sysfs'  => '/sys/devices/system/node/node*/hugepages/hugepages-*kB/nr_hugepages',
       )
+      should contain_sysctl__value('vm.max_map_count').with_value(max_map_count)
     end
   end
   test_ubuntu_and_centos manifest
