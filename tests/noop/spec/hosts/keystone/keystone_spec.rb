@@ -112,9 +112,8 @@ describe manifest do
       )
     end
 
-    # (TODO iberezovskiy):Remove this after MOS Packages will be updated
     it 'should disable keystone bootstrap' do
-      should contain_class('keystone').with('enable_bootstrap' => false)
+      should contain_class('keystone').with('enable_bootstrap' => true)
     end
 
     it 'should declare openstack::keystone class with public_url,admin_url,internal_url' do
