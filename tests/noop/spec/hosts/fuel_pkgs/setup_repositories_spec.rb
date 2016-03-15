@@ -36,10 +36,11 @@ describe manifest do
     end
 
     if repo_type != 'fuel'
-      it 'uca repository should be configured' do
-         should contain_apt__source('UCA').with({
-           location => uca_repo_url,
-         })
+      it 'uca package pins should be configured' do
+         should contain_apt__pin('haproxy-mos')
+         should contain_apt__pin('ceph-mos')
+         should contain_apt__pin('rabbitmq-server-mos')
+         should contain_apt__pin('openvswitch-mos')
       end
    end
   end
