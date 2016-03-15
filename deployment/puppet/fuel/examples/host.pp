@@ -127,13 +127,14 @@ class { 'osnailyfacter::atop': }
 
 class { 'osnailyfacter::ssh':
   password_auth  => 'yes',
-  listen_address => [$::fuel_settings['ADMIN_NETWORK']['ipaddress']],
+  listen_address => ['0.0.0.0'],
 }
 
 class { 'fuel::iptables':
-  admin_iface => $::fuel_settings['ADMIN_NETWORK']['interface'],
+  admin_iface     => $::fuel_settings['ADMIN_NETWORK']['interface'],
+  ssh_network     => $::fuel_settings['FUEL_ACCESS']['ssh_network'],
   network_address => ipcalc_network_by_address_netmask($::fuel_settings['ADMIN_NETWORK']['ipaddress'],$::fuel_settings['ADMIN_NETWORK']['netmask']),
-  network_cidr => ipcalc_network_cidr_by_netmask($::fuel_settings['ADMIN_NETWORK']['netmask']),
+  network_cidr    => ipcalc_network_cidr_by_netmask($::fuel_settings['ADMIN_NETWORK']['netmask']),
 }
 
 # FIXME(kozhukalov): this should be a part of repo management tool

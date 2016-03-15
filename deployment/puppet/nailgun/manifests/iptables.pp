@@ -2,6 +2,7 @@ class nailgun::iptables (
 $production            = 'docker',
 $admin_iface           = 'eth0',
 $ssh_port              = '22',
+$ssh_network           = '0.0.0.0',
 $nailgun_web_port      = '8000',
 $nailgun_internal_port = '8001',
 $nailgun_repo_port     = '8080',
@@ -33,6 +34,7 @@ $chain                 = 'INPUT',
   firewall { '005 ssh':
     port    => $ssh_port,
     proto   => 'tcp',
+    source  => $ssh_network,
     action  => 'accept',
   }
 
