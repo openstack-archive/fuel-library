@@ -117,8 +117,8 @@ describe manifest do
     let(:syslog_log_facility_nova) { Noop.hiera 'syslog_log_facility_nova', 'LOG_LOCAL6' }
     let(:use_syslog) { Noop.hiera 'use_syslog', true }
     let(:use_stderr) { Noop.hiera 'use_stderr', false }
-    let(:nova_report_interval) { Noop.hiera 'nova_report_interval' }
-    let(:nova_service_down_time) { Noop.hiera 'nova_service_down_time' }
+    let(:nova_report_interval) { Noop.puppet_function 'pick', nova_hash['nova_report_interval'], nil }
+    let(:nova_service_down_time) { Noop.puppet_function 'pick', nova_hash['nova_service_down_time'], nil }
     let(:notify_api_faults) { Noop.puppet_function 'pick', nova_hash['notify_api_faults'], false }
     let(:cinder_catalog_info) { Noop.puppet_function 'pick', nova_hash['cinder_catalog_info'], 'volumev2:cinderv2:internalURL' }
     let(:nova_notification_driver) do
@@ -284,6 +284,11 @@ describe manifest do
         :api_paste_config => '/etc/nova/api-paste.ini',
         :default_floating_pool => default_floating_net
       )
+      if facts[:operatingsystem] == 'Ubuntu'
+        should contain_tweaks__ubuntu_service_override('nova-api').with(
+          :package_name => 'nova-api'
+        )
+      end
     end
 
     it 'should configure allow resize to same host' do
@@ -333,13 +338,11 @@ describe manifest do
         :host    => api_bind_address
       )
       if facts[:operatingsystem] == 'Ubuntu'
-        if !facts.has_key?(:os_package_type) or facts[:os_package_type] == 'debian'
-          nova_vncproxy_package = 'nova-consoleproxy'
-        else
-          nova_vncproxy_package = 'nova-vncproxy'
-        end
-        should contain_tweaks__ubuntu_service_override('nova-vncproxy').with(
-          :package_name => nova_vncproxy_package
+        should contain_tweaks__ubuntu_service_override('nova-novncproxy').with(
+          :package_name => 'nova-consoleproxy'
+        )
+        should contain_tweaks__ubuntu_service_override('nova-spicehtml5proxy').with(
+          :package_name => 'nova-consoleproxy'
         )
       end
     end
