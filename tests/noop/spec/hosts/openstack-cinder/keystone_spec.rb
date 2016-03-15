@@ -34,6 +34,9 @@ describe manifest do
     public_url_v2 = "#{public_protocol}://#{public_address}:8776/v2/%(tenant_id)s"
     internal_url_v2 = "#{internal_protocol}://#{internal_address}:8776/v2/%(tenant_id)s"
     admin_url_v2  = "#{admin_protocol}://#{admin_address}:8776/v2/%(tenant_id)s"
+    public_url_v3 = "#{public_protocol}://#{public_address}:8776/v3/%(tenant_id)s"
+    internal_url_v3 = "#{internal_protocol}://#{internal_address}:8776/v3/%(tenant_id)s"
+    admin_url_v3  = "#{admin_protocol}://#{admin_address}:8776/v3/%(tenant_id)s"
 
     password = Noop.hiera_structure 'cinder/user_password'
     auth_name = Noop.hiera_structure 'cinder/auth_name', 'cinder'
@@ -63,6 +66,9 @@ describe manifest do
         'public_url_v2'      => public_url_v2,
         'internal_url_v2'    => internal_url_v2,
         'admin_url_v2'       => admin_url_v2,
+        'public_url_v3'      => public_url_v3,
+        'internal_url_v3'    => internal_url_v3,
+        'admin_url_v3'       => admin_url_v3,
         'region'             => region,
         'tenant'             => tenant,
       )
