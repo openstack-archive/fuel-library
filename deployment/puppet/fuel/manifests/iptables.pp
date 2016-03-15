@@ -4,6 +4,7 @@ class fuel::iptables (
 
   $admin_iface           = $::fuel::params::admin_interface,
   $ssh_port              = '22',
+  $ssh_network           = '0.0.0.0/0',
   $nailgun_web_port      = $::fuel::params::nailgun_port,
   $nailgun_internal_port = $::fuel::params::nailgun_internal_port,
   $nailgun_repo_port     = $::fuel::params::repo_port,
@@ -43,6 +44,7 @@ class fuel::iptables (
   firewall { '005 ssh':
     port    => $ssh_port,
     proto   => 'tcp',
+    source  => $ssh_network,
     action  => 'accept',
   }
 
