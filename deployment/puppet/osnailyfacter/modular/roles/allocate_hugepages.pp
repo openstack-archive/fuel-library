@@ -10,3 +10,8 @@ sysfs_config_value { 'hugepages':
   value  => map_sysfs_hugepages($hugepages),
   sysfs  => '/sys/devices/system/node/node*/hugepages/hugepages-*kB/nr_hugepages',
 }
+
+# LP 1507921
+sysctl::value { 'vm.max_map_count':
+  value  => max_map_count_hugepages($hugepages),
+}
