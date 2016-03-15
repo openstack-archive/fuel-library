@@ -93,6 +93,10 @@ $admin_iface = 'eth0',
   sysctl::value{'net.ipv4.neigh.default.gc_thresh2': value => '1024'}
   sysctl::value{'net.ipv4.neigh.default.gc_thresh3': value => '2048'}
 
+  # Specify the ports which are reserved for known third-party applications.
+  $ports = '41055'
+  sysctl::value{'net.ipv4.ip_local_reserved_ports': value => $ports}
+
   #Deprecated dhcrelay config, but keep package installed
   package {'dhcp':
     ensure => installed,
