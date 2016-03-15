@@ -283,6 +283,11 @@ describe manifest do
         :api_paste_config => '/etc/nova/api-paste.ini',
         :default_floating_pool => default_floating_net
       )
+      if facts[:operatingsystem] == 'Ubuntu'
+        should contain_tweaks__ubuntu_service_override('nova-api').with(
+          :package_name => 'nova-api'
+        )
+      end
     end
 
     it 'should configure allow resize to same host' do
@@ -332,13 +337,11 @@ describe manifest do
         :host    => api_bind_address
       )
       if facts[:operatingsystem] == 'Ubuntu'
-        if !facts.has_key?(:os_package_type) or facts[:os_package_type] == 'debian'
-          nova_vncproxy_package = 'nova-consoleproxy'
-        else
-          nova_vncproxy_package = 'nova-vncproxy'
-        end
-        should contain_tweaks__ubuntu_service_override('nova-vncproxy').with(
-          :package_name => nova_vncproxy_package
+        should contain_tweaks__ubuntu_service_override('nova-novncproxy').with(
+          :package_name => 'nova-consoleproxy'
+        )
+        should contain_tweaks__ubuntu_service_override('nova-spicehtml5proxy').with(
+          :package_name => 'nova-consoleproxy'
         )
       end
     end
