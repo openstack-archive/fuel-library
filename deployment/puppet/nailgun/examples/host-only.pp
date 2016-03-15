@@ -52,6 +52,7 @@ class { 'nailgun::host':
   dns_search        => $::fuel_settings['DNS_SEARCH'],
   dns_upstream      => split($::fuel_settings['DNS_UPSTREAM'], ','),
   admin_network     => $admin_network,
+  ssh_network       => $::fuel_settings['ADMIN_NETWORK']['ssh_network'],
   extra_networks    => $extra_networks,
   repo_root         => "/var/www/nailgun/${::fuel_openstack_version}",
   monitord_user     => $::fuel_settings['keystone']['monitord_user'],
@@ -101,7 +102,7 @@ class { 'nailgun::bootstrap_cli':
 
 class { 'osnailyfacter::ssh':
   password_auth  => 'yes',
-  listen_address => [$::fuel_settings['ADMIN_NETWORK']['ipaddress']],
+  listen_address => ['0.0.0.0'],
 }
 
 file { '/usr/local/bin/mco':

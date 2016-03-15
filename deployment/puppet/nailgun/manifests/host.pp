@@ -6,6 +6,7 @@ $dns_search = 'domain.tld',
 $dns_domain = 'domain.tld',
 $dns_upstream = [],
 $admin_network = '10.20.0.*',
+$ssh_network = '0.0.0.0/0',
 $extra_networks = undef,
 $nailgun_group = 'nailgun',
 $nailgun_user = 'nailgun',
@@ -27,6 +28,7 @@ $admin_iface = 'eth0',
   } ->
   class { 'nailgun::iptables':
     admin_iface => $admin_iface,
+    ssh_network => $ssh_network,
   }
 
   class { 'nailgun::auxiliaryrepos':
