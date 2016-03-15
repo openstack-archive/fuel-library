@@ -50,7 +50,7 @@ class l23network::params {
       $ovs_datapath_package_name  = $::l23_os ? {
                                       /(?i)oraclelinux/ => 'kmod-openvswitch-uek',
                                       default           => 'kmod-openvswitch',
-                                   }
+                                    }
       $ovs_common_package_name    = 'openvswitch'
       $ovs_kern_module_name       = 'openvswitch'
       $network_manager_name       = 'NetworkManager'
