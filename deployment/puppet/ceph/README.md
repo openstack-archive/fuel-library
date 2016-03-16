@@ -30,7 +30,7 @@ Known Issues
 
 There are currently issues with glance 2013.1.2 (grizzly) that cause ``glance
 image-create`` with ``--location`` to not function. see
-https://bugs.launchpad.net/glance/+bug/1215682 
+https://bugs.launchpad.net/glance/+bug/1215682
 
 **RadosGW, Keystone and Python 2.6**
 
@@ -121,7 +121,7 @@ Here are some errors that may be reported.
 	[root@controller-13 ~]# ceph -s
 	2013-08-22 00:06:19.513437 7f79eedea760 -1 monclient(hunting): ERROR: missing keyring, cannot use cephx for authentication
 	2013-08-22 00:06:19.513466 7f79eedea760 -1 ceph_tool_common_init failed.
-  
+
 ```
 
 Check the links in ``/root/ceph\*.keyring``. There should be one for each of
@@ -154,7 +154,7 @@ Check the osd tree:
 
 ```
 	#ceph osd tree
-	
+
 	# id    weight  type name       up/down reweight
 	-1      6       root default
 	-2      2               host controller-1
@@ -294,7 +294,7 @@ cinder show 78bf2750-e99c-4c52-b5ca-09764af367b5
 |            status            |              available               |
 |         volume_type          |                 None                 |
 +------------------------------+--------------------------------------+
-``` 
+```
 
 Since the image is ``status`` ``available`` it should have been created in
 ceph. we can check this with ``rbd ls volumes``
@@ -324,7 +324,7 @@ the service script for radosgw might exit 0 and not start the service, the
 easy way to test this is to simply ```service ceph-radosgw restart``` if the
 service script can not stop the service, it wasn't running in the first place.
 
-We can also check to see if the rados service might be running by 
+We can also check to see if the rados service might be running by
 ```ps axu | grep radosgw```, but this might also show the webserver script
 server processes as well.
 
@@ -359,7 +359,7 @@ radosgw-admin user create --uid=test --display-name="bob" --email="bob@mail.ru"
 ```
 
 swift auth works with subusers, in that from openstack this would be
-tennant:user so we need to mimic the same
+tenant:user so we need to mimic the same
 
 ```shell
 radosgw-admin subuser create --uid=test --subuser=test:swift --access=full
@@ -383,7 +383,7 @@ radosgw-admin subuser create --uid=test --subuser=test:swift --access=full
   "caps": []}
 ```
 
-Generate the secret key. 
+Generate the secret key.
 ___Note that ```--gen-secred``` is required in (at least) cuttlefish and newer.___
 
 ```shell
@@ -474,4 +474,3 @@ distributed under the License is distributed on an "AS IS" BASIS,
 WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
-
