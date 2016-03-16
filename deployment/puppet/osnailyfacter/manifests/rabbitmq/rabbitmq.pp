@@ -7,9 +7,9 @@ class osnailyfacter::rabbitmq::rabbitmq {
 
   prepare_network_config($network_scheme)
 
-  $queue_provider = hiera('queue_provider', 'rabbitmq')
+  $queue_provider = hiera('queue_provider', 'rabbit')
 
-  if $queue_provider == 'rabbitmq' {
+  if $queue_provider == in ['rabbit', 'rabbitmq'] {
     $erlang_cookie   = hiera('erlang_cookie', 'EOKOWXQREETZSHFNTPEY')
     $version         = hiera('rabbit_version', '3.3.5')
     $amqp_port       = hiera('amqp_port', '5673')
