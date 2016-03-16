@@ -113,6 +113,12 @@ describe manifest do
       # TODO: check the dynamic override options
     end
 
+    it 'should contain galera with undefined pid-file in override-options' do
+      #OCF controls PID file thus it should be undefined
+      override_options = Noop.resource_parameter_value self, 'class', 'galera', 'override_options'
+      expect(override_options['mysqld']['pid-file']).to eq :undef
+    end
+
     it 'should have explicit ordering galera status and LB status' do
       expect(graph).to ensure_transitive_dependency("Class[openstack::galera::status]", "Haproxy_backend_status[mysql]")
     end

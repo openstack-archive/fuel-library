@@ -165,6 +165,7 @@ if $enabled {
     'mysqld'                           => {
       'port'                           => $backend_port,
       'max_connections'                => $max_connections,
+      'pid-file'                       => undef,
       'log_bin'                        => undef,
       'expire_logs_days'               => undef,
       'max_binlog_size'                => undef,
