@@ -49,7 +49,6 @@ describe manifest do
     it 'should declare murano::keystone::cfapi_auth class correctly' do
       should contain_class('murano::keystone::cfapi_auth').with(
                  'password'     => murano_password,
-                 'service_type' => 'service_broker',
                  'region'       => region,
                  'tenant'       => tenant,
                  'public_url'   => public_url,
