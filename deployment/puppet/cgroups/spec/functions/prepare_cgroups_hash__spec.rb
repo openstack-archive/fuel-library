@@ -53,7 +53,6 @@ describe Puppet::Parser::Functions.function(:prepare_cgroups_hash) do
 
   end
 
-
   context "transform hash with expression" do
 
     let(:sample) {
@@ -79,6 +78,66 @@ describe Puppet::Parser::Functions.function(:prepare_cgroups_hash) do
     }
 
     it 'should transform hash including expression to compute' do
+      should run.with_params(sample).and_return(result)
+    end
+
+  end
+
+  context "transform hash with expression and return integer value" do
+
+    let(:sample) {
+      {
+        'metadata' => {
+          'always_editable' => true,
+          'group' => 'general',
+          'label' => 'Cgroups',
+          'weight' => 50
+        },
+        'neutron' => '{"memory":{"memory.soft_limit_in_bytes":"%51, 300, 700"}}'
+      }
+    }
+
+    let(:result) {
+      {
+        'neutron' => {
+          'memory' => {
+            'memory.soft_limit_in_bytes' => 522 * 1024 * 1024
+          }
+        }
+      }
+    }
+
+    it 'should transform hash including expression to compute and return int' do
+      should run.with_params(sample).and_return(result)
+    end
+
+  end
+
+  context "transform hash with expression including extra whitespaces" do
+
+    let(:sample) {
+      {
+        'metadata' => {
+          'always_editable' => true,
+          'group' => 'general',
+          'label' => 'Cgroups',
+          'weight' => 50
+        },
+        'neutron' => '{"memory":{"memory.soft_limit_in_bytes":"%50,      300,      700"}}'
+      }
+    }
+
+    let(:result) {
+      {
+        'neutron' => {
+          'memory' => {
+            'memory.soft_limit_in_bytes' => 522 * 1024 * 1024
+          }
+        }
+      }
+    }
+
+    it 'should transform hash including expression to compute with whitespaces' do
       should run.with_params(sample).and_return(result)
     end
 
