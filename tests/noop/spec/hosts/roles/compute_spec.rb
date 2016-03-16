@@ -13,14 +13,18 @@ describe manifest do
 
   shared_examples 'catalog' do
 
-    host_uuid = Noop.hiera 'host_uuid'
-
     network_metadata     = Noop.hiera 'network_metadata'
     memcache_roles       = Noop.hiera 'memcache_roles'
     memcache_addresses   = Noop.hiera 'memcached_addresses', false
     memcache_server_port = Noop.hiera 'memcache_server_port', '11211'
 
     ironic_enabled       = Noop.hiera_structure 'ironic/enabled'
+
+    let(:facts) {
+      Noop.ubuntu_facts.merge({
+        :libvirt_uuid => '0251bf3e0a3f48da8cdf8daad5473a7f'
+      })
+    }
 
     let(:memcache_nodes) do
       Noop.puppet_function 'get_nodes_hash_by_roles', network_metadata, memcache_roles
@@ -94,7 +98,6 @@ describe manifest do
     end
 
     it 'should enable migration support for libvirt with vncserver listen on 0.0.0.0' do
-      should contain_class('nova::compute::libvirt').with('migration_support' => true)
       should contain_class('nova::compute::libvirt').with('vncserver_listen' => '0.0.0.0')
       should contain_class('nova::migration::libvirt')
     end
@@ -110,18 +113,32 @@ describe manifest do
     end
 
     # Libvirtd.conf
-    it 'should configure listen_tls, listen_tcp and auth_tcp in libvirtd.conf' do
-      should contain_augeas('libvirt-conf').with(
-        'context' => '/files/etc/libvirt/libvirtd.conf',
-        'changes' => [
-          'set listen_tls 0',
-          'set listen_tcp 1',
-          'set auth_tcp none',
-        ],
+    it 'should configure listen_tls in libvirtd.conf' do
+      should contain_file_line('/etc/libvirt/libvirtd.conf listen_tls').with(
+        'path'  => '/etc/libvirt/libvirtd.conf',
+        'line'  => 'listen_tls = 0',
+        'match' => 'listen_tls =',
+      )
+    end
+
+    it 'should configure listen_tcp in libvirtd.conf' do
+      should contain_file_line('/etc/libvirt/libvirtd.conf listen_tcp').with(
+        'path'  => '/etc/libvirt/libvirtd.conf',
+        'line'  => 'listen_tcp = 1',
+        'match' => 'listen_tcp =',
+      )
+    end
+
+    it 'should configure auth_tcp in libvirtd.conf' do
+      should contain_file_line('/etc/libvirt/libvirtd.conf auth_tcp').with(
+        'path'  => '/etc/libvirt/libvirtd.conf',
+        'line'  => 'auth_tcp = "none"',
+        'match' => 'auth_tcp =',
       )
     end
 
     it 'should configure libvirt host_uuid' do
+      host_uuid = facts[:libvirt_uuid]
       should contain_augeas('libvirt-conf-uuid').with(
         :context => '/files/etc/libvirt/libvirtd.conf',
         :changes => "set host_uuid #{host_uuid}"

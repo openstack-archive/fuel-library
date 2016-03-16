@@ -146,8 +146,6 @@ class { '::openstack::compute':
   enabled                     => false,
   internal_address            => get_network_role_property('nova/api', 'ipaddr'),
   libvirt_type                => hiera('libvirt_type', undef),
-  # FIXME(bogdando) remove after fixed upstream https://review.openstack.org/131710
-  host_uuid                   => hiera('host_uuid', generate('/bin/sh', '-c', 'uuidgen')),
   rpc_backend                 => $rpc_backend_real,
   amqp_hosts                  => hiera('amqp_hosts',''),
   amqp_user                   => pick($rabbit_hash['user'], 'nova'),
@@ -155,7 +153,6 @@ class { '::openstack::compute':
   glance_api_servers          => $glance_api_servers,
   vncproxy_protocol           => $vncproxy_protocol,
   vncproxy_host               => $vncproxy_host,
-  migration_support           => true,
   debug                       => $debug,
   verbose                     => $verbose,
   use_stderr                  => $use_stderr,
