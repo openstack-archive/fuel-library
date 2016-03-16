@@ -13,11 +13,11 @@ module CgroupsSettings
 
   def self.handle_memory(value)
     return mb_to_bytes(value) if value.is_a?(Integer)
-    if value.is_a?(String) and value.match(/%(\d+), (\d+), (\d+)/)
-      percent, min, max = value.scan(/%(\d+), (\d+), (\d+)/).flatten.map { |i| i.to_i }
+    if value.is_a?(String) and matched_v = value.match(/%(\d+), (\d+), (\d+)/)
+      percent, min, max = matched_v[1..-1].map(&:to_i)
       total_memory = Facter.value(:memorysize_mb)
       res = (total_memory.to_f / 100.0) * percent.to_f
-      return mb_to_bytes([min, max, res].sort[1])
+      return mb_to_bytes([min, max, res].sort[1].to_i)
     end
   end
 
