@@ -18,6 +18,12 @@ class osnailyfacter::ceph::ceph_compute {
   $compute_user             = 'compute'
   $compute_pool             = 'compute'
 
+  if !($storage_hash['ephemeral_ceph']) {
+    $libvirt_images_type = 'default'
+  } else {
+    $libvirt_images_type = 'rbd'
+  }
+
   if ($storage_hash['images_ceph']) {
     $glance_backend = 'ceph'
   } elsif ($storage_hash['images_vcenter']) {
@@ -71,7 +77,16 @@ class osnailyfacter::ceph::ceph_compute {
 
     service { $::ceph::params::service_nova_compute :}
 
-    ceph::pool {$compute_pool:
+    class { 'ceph::ephemeral':
+      libvirt_images_type => $libvirt_images_type,
+      pool                => $compute_pool,
+    }
+
+    Class['ceph::conf'] ->
+      Class['ceph::ephemeral'] ~>
+        Service[$::ceph::params::service_nova_compute]
+
+    ceph::pool { $compute_pool:
       user          => $compute_user,
       acl           => "mon 'allow r' osd 'allow class-read object_prefix rbd_children, allow rwx pool=${cinder_pool}, allow rx pool=${glance_pool}, allow rwx pool=${compute_pool}'",
       keyring_owner => 'nova',
@@ -80,12 +95,6 @@ class osnailyfacter::ceph::ceph_compute {
     }
 
     include ::ceph::nova_compute
-
-    if ($storage_hash['ephemeral_ceph']) {
-      include ::ceph::ephemeral
-      Class['::ceph::conf'] -> Class['::ceph::ephemeral'] ~>
-      Service[$::ceph::params::service_nova_compute]
-    }
 
     Class['::ceph::conf'] ->
     Ceph::Pool[$compute_pool] ->
@@ -97,11 +106,4 @@ class osnailyfacter::ceph::ceph_compute {
     }
 
   }
-
-  if !($storage_hash['ephemeral_ceph']) {
-    class { '::ceph::ephemeral':
-      libvirt_images_type => 'default',
-    }
-  }
-
 }
