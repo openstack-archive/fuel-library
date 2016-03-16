@@ -44,12 +44,6 @@ class openstack_tasks::openstack_cinder::openstack_cinder {
   })
 
   $queue_provider = hiera('queue_provider', 'rabbit')
-  if $queue_provider == 'rabbitmq'{
-    $rpc_backend    = 'rabbit'
-  } else {
-    $rpc_backend = $queue_provider
-  }
-
 
   $keystone_auth_protocol = get_ssl_property($ssl_hash, {}, 'keystone', 'internal', 'protocol', 'http')
   $keystone_auth_host     = get_ssl_property($ssl_hash, {}, 'keystone', 'internal', 'hostname', [hiera('keystone_endpoint', ''), $service_endpoint, $management_vip])
@@ -133,7 +127,7 @@ class openstack_tasks::openstack_cinder::openstack_cinder {
   $keymgr_encryption_auth_url = "${identity_uri}/v3"
 
   class { '::cinder':
-    rpc_backend              => $rpc_backend,
+    rpc_backend              => $queue_provider,
     rabbit_hosts             => split(hiera('amqp_hosts',''), ','),
     rabbit_userid            => $rabbit_hash['user'],
     rabbit_password          => $rabbit_hash['password'],

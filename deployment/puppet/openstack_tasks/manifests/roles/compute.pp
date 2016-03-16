@@ -81,14 +81,6 @@ class openstack_tasks::roles::compute {
 
   $rpc_backend = hiera('queue_provider', 'rabbit')
 
-  # FIXME(xarses) Should be removed after
-  # https://bugs.launchpad.net/fuel/+bug/1555284
-  if $rpc_backend == 'rabbitmq' {
-    $rpc_backend_real = 'rabbit'
-  } else {
-    $rpc_backend_real = $rpc_backend
-  }
-
   # Do the stuff
   if $neutron_mellanox {
     $mellanox_mode = $neutron_mellanox['plugin']
@@ -263,7 +255,7 @@ class openstack_tasks::roles::compute {
   }
 
   class { '::nova':
-    rpc_backend            => $rpc_backend_real,
+    rpc_backend            => $rpc_backend,
     #FIXME(bogdando) we have to split amqp_hosts until all modules synced
     rabbit_hosts           => split(hiera('amqp_hosts',''), ','),
     rabbit_userid          => pick($rabbit_hash['user'], 'nova'),
