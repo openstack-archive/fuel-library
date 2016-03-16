@@ -5,12 +5,12 @@ module CgroupsSettings
   # value is valid if value has integer type or
   # matches with pattern: %percent, min_value, max_value
   def self.handle_value(group, value)
-    return value if value.is_a?(Numeric)
+    return value if value.is_a?(Integer)
     if group == 'memory' and value.match(/%(\d+), (\d+), (\d+)/)
        percent, min, max = value.scan(/%(\d+), (\d+), (\d+)/).flatten.map { |i| i.to_i }
        total_memory = Facter.value(:memorysize_mb)
        res = (total_memory.to_f / 100.0) * percent.to_f
-       return [min, max, res].sort[1]
+       return [min, max, res].sort[1].to_i
     end
   end
 end
