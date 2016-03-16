@@ -96,11 +96,15 @@ if $use_ceph {
     cwd  => '/root',
   }
 
-} 
+}
 
 if !($storage_hash['ephemeral_ceph']) {
   class { 'ceph::ephemeral':
     libvirt_images_type => 'default',
   }
+
+  service { $::ceph::params::service_nova_compute :}
+
+  Class['ceph::ephemeral'] ~> Service[$::ceph::params::service_nova_compute]
 }
 
