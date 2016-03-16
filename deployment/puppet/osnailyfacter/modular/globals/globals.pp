@@ -279,7 +279,7 @@ $controller_nodes = get_nodes_hash_by_roles($network_metadata, ['primary-control
 $mountpoints      = filter_hash($mp_hash, 'point')
 
 # AMQP configuration
-$queue_provider   = hiera('queue_provider','rabbitmq')
+$queue_provider   = hiera('queue_provider','rabbit')
 $rabbit_ha_queues = true
 
 if !$rabbit_hash['user'] {
