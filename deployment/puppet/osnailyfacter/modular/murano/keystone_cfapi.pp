@@ -29,7 +29,6 @@ $admin_url         = "${admin_protocol}://${admin_address}:${api_bind_port}"
 class {'::osnailyfacter::wait_for_keystone_backends':}
 class { 'murano::keystone::cfapi_auth':
   password     => $murano_hash['user_password'],
-  service_type => 'service_broker',
   region       => $region,
   tenant       => $tenant,
   public_url   => $public_url,
