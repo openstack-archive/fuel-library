@@ -76,14 +76,6 @@ $block_device_allocate_retries_interval = hiera('block_device_allocate_retries_i
 
 $rpc_backend = hiera('queue_provider', 'rabbit')
 
-# FIXME(xarses) Should be removed after
-# https://bugs.launchpad.net/fuel/+bug/1555284
-if $rpc_backend == 'rabbitmq' {
-  $rpc_backend_real = 'rabbit'
-} else {
-  $rpc_backend_real = $rpc_backend
-}
-
 # Do the stuff
 if $neutron_mellanox {
   $mellanox_mode = $neutron_mellanox['plugin']
@@ -146,7 +138,7 @@ class { '::openstack::compute':
   enabled                     => false,
   internal_address            => get_network_role_property('nova/api', 'ipaddr'),
   libvirt_type                => hiera('libvirt_type', undef),
-  rpc_backend                 => $rpc_backend_real,
+  rpc_backend                 => $rpc_backend,
   amqp_hosts                  => hiera('amqp_hosts',''),
   amqp_user                   => pick($rabbit_hash['user'], 'nova'),
   amqp_password               => $rabbit_hash['password'],
