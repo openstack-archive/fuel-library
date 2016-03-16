@@ -228,3 +228,8 @@ mod 'galera',
 mod 'aodh',
     :git => 'https://github.com/fuel-infra/puppet-aodh.git',
     :ref => 'master'
+
+# Pull in puppet-oslo
+mod 'oslo',
+    :git => 'https://github.com/fuel-infra/puppet-oslo.git',
+    :ref => 'master'
