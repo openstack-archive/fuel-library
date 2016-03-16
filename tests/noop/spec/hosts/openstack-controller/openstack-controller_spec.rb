@@ -246,23 +246,6 @@ describe manifest do
       )
     end
 
-    it 'should configure nova::quota with correct options' do
-      should contain_class('nova::quota').with(
-        :quota_instances          => Noop.puppet_function('pick', nova_hash['quota_instances'], 100),
-        :quota_cores              => Noop.puppet_function('pick', nova_hash['quota_cores'], 100),
-        :quota_volumes            => Noop.puppet_function('pick', nova_hash['quota_volumes'], 100),
-        :quota_gigabytes          => Noop.puppet_function('pick', nova_hash['quota_gigabytes'], 1000),
-        :quota_floating_ips       => Noop.puppet_function('pick', nova_hash['quota_floating_ips'], 100),
-        :quota_metadata_items     => Noop.puppet_function('pick', nova_hash['quota_metadata_items'], 1024),
-        :quota_max_injected_files => Noop.puppet_function('pick', nova_hash['quota_max_injected_files'], 50),
-        :quota_max_injected_file_content_bytes => Noop.puppet_function('pick', nova_hash['quota_max_injected_file_content_bytes'], 102400),
-        :quota_injected_file_path_length => Noop.puppet_function('pick', nova_hash['quota_injected_file_path_length'], 4096),
-        :quota_security_groups    => Noop.puppet_function('pick', nova_hash['quota_security_groups'], 10),
-        :quota_key_pairs          => Noop.puppet_function('pick', nova_hash['quota_key_pairs'], 10),
-        :quota_driver             => nova_quota_driver
-      )
-    end
-
     it 'should configure nova::api' do
       # FIXME(aschultz): check rate limits
       should contain_class('nova::api').with(
@@ -352,11 +335,51 @@ describe manifest do
       )
     end
 
-    it 'should configure nova quota for injected file path length' do
-      should contain_class('nova::quota').with('quota_injected_file_path_length' => '4096')
-      should contain_nova_config('DEFAULT/quota_injected_file_path_length').with(
-        'value' => '4096',
-      )
+    context 'when nova quota is disabled' do
+      let(:nova_quota) do
+        false
+      end
+
+      it 'should configure nova quota with noop driver' do
+        should contain_class('nova::quota').with('quota_driver' => 'nova.quota.NoopQuotaDriver')
+      end
+    end
+
+    context 'when nova quota is enabled' do
+      let(:nova_quota) do
+        true
+      end
+
+      it 'should configure nova quota with db driver' do
+        should contain_class('nova::quota').with('quota_driver' => 'nova.quota.DbQuotaDriver')
+      end
+
+      it 'should configure nova quota with default parameters' do
+        {
+          :quota_instances => 100,
+          :quota_cores => 100,
+          :quota_ram => 51200,
+          :quota_floating_ips => 100,
+          :quota_fixed_ips => -1,
+          :quota_metadata_items => 1024,
+          :quota_injected_files => 50,
+          :quota_injected_file_content_bytes => 102400,
+          :quota_injected_file_path_length => 4096,
+          :quota_security_groups => 10,
+          :quota_security_group_rules => 20,
+          :quota_key_pairs => 10,
+          :quota_server_groups => 10,
+          :quota_server_group_members => 10,
+          :reservation_expire => 86400,
+          :until_refresh => 0,
+          :max_age => 0,
+        }.each_pair do |config, value|
+          should contain_class('nova::quota').with(config => value)
+          should contain_nova_config("DEFAULT/#{config}").with(
+            'value' => value,
+          )
+        end
+      end
     end
 
     it 'nova config should be modified by override_resources' do
