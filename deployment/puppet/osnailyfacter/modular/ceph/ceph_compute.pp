@@ -102,5 +102,7 @@ if !($storage_hash['ephemeral_ceph']) {
   class { 'ceph::ephemeral':
     libvirt_images_type => 'default',
   }
+
+  Class['ceph::ephemeral'] ~> Service[$::ceph::params::service_nova_compute]
 }
 
