@@ -66,6 +66,11 @@ mod 'openstacklib',
     :git => 'https://github.com/fuel-infra/puppet-openstacklib.git',
     :ref => 'stable/mitaka'
 
+# Pull in puppet-oslo
+mod 'oslo',
+    :git => 'https://github.com/fuel-infra/puppet-oslo.git',
+    :ref => 'master'
+
 # Pull in puppet-neutron
 mod 'neutron',
     :git => 'https://github.com/fuel-infra/puppet-neutron.git',
