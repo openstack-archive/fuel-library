@@ -46,7 +46,6 @@ define cluster::virtual_ip_ping (
           {
             'attribute' => "pingd",
             'operation' => 'not_defined',
-            'value' => 'or',
           },
           {
             'attribute' => "pingd",
