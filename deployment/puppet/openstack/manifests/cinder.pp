@@ -9,7 +9,7 @@ class openstack::cinder(
   $sql_connection,
   $cinder_user_password,
   $glance_api_servers,
-  $queue_provider         = 'rabbitmq',
+  $queue_provider         = 'rabbit',
   $amqp_hosts             = '127.0.0.1:5672',
   $amqp_user              = 'nova',
   $amqp_password          = 'rabbit_pw',
@@ -81,14 +81,14 @@ class openstack::cinder(
     $keymgr_encryption_auth_url = $::os_service_default
   }
 
-  if $queue_provider == 'rabbitmq' and $rabbit_ha_queues {
+  if $queue_provider in ['rabbit', 'rabbitmq'] and $rabbit_ha_queues {
     Cinder_config['oslo_messaging_rabbit/rabbit_ha_queues']->Service<| title == 'cinder-api'|>
     Cinder_config['oslo_messaging_rabbit/rabbit_ha_queues']->Service<| title == 'cinder-volume' |>
     Cinder_config['oslo_messaging_rabbit/rabbit_ha_queues']->Service<| title == 'cinder-scheduler' |>
   }
 
   case $queue_provider {
-    'rabbitmq': {
+    'rabbit', 'rabbitmq': {
       if $rabbit_ha_queues {
         if !is_array($amqp_hosts) {
           $rabbit_hosts_real = split($amqp_hosts, ',')
@@ -108,7 +108,7 @@ class openstack::cinder(
       }
       class { '::cinder':
         package_ensure         => $openstack_version['cinder'],
-        rpc_backend            => 'cinder.openstack.common.rpc.impl_kombu',
+        rpc_backend            => 'rabbit',
         rabbit_host            => $rabbit_host_array[0],
         rabbit_port            => $rabbit_host_array[1],
         rabbit_hosts           => $rabbit_hosts_real,
