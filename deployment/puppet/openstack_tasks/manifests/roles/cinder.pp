@@ -73,11 +73,6 @@ class openstack_tasks::roles::cinder {
   $auth_uri     = "${keystone_auth_protocol}://${keystone_auth_host}:${service_port}/"
 
   $queue_provider = hiera('queue_provider', 'rabbit')
-  if $queue_provider == 'rabbitmq'{
-    $rpc_backend    = 'rabbit'
-  } else {
-    $rpc_backend = $queue_provider
-  }
 
   if (!empty(get_nodes_hash_by_roles($network_metadata, ['ceph-osd'])) or
     $storage_hash['volumes_ceph'] or
@@ -179,7 +174,7 @@ class openstack_tasks::roles::cinder {
   }
 
   class { '::cinder':
-    rpc_backend            => $rpc_backend,
+    rpc_backend            => $queue_provider,
     rabbit_hosts           => split(hiera('amqp_hosts',''), ','),
     rabbit_userid          => $rabbit_hash['user'],
     rabbit_password        => $rabbit_hash['password'],
