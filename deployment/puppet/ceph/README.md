@@ -30,13 +30,13 @@ Known Issues
 
 There are currently issues with glance 2013.1.2 (grizzly) that cause ``glance
 image-create`` with ``--location`` to not function. see
-https://bugs.launchpad.net/glance/+bug/1215682 
+https://bugs.launchpad.net/glance/+bug/1215682
 
 **RadosGW, Keystone and Python 2.6**
 
 RadosGW (RGW) will work with Keystone token_formats UUID or PKI. While RGW
-perfers using PKI tokens. Python 2.6 distributions currently may not work
-correctly with the PKI tokens. As such, keystone integration will defalt to
+prefers using PKI tokens. Python 2.6 distributions currently may not work
+correctly with the PKI tokens. As such, keystone integration will default to
 UUID, but you can adjust as desired see ```rgw_use_pki``` option.
 
 Features
@@ -47,7 +47,7 @@ Features
 * Ceph OSDs
 * Ceph MDS (present, but un-supported)
 * Ceph Object Gateway (radosgw)
-* * Openstack Keystone integration
+* * OpenStack Keystone integration
 
 
 Using
@@ -121,13 +121,13 @@ Here are some errors that may be reported.
 	[root@controller-13 ~]# ceph -s
 	2013-08-22 00:06:19.513437 7f79eedea760 -1 monclient(hunting): ERROR: missing keyring, cannot use cephx for authentication
 	2013-08-22 00:06:19.513466 7f79eedea760 -1 ceph_tool_common_init failed.
-  
+
 ```
 
 Check the links in ``/root/ceph\*.keyring``. There should be one for each of
 admin, osd, and mon. If any are missing this could be the cause.
 
-Try to run ``ceph-deploy gatherkeys {mon-server-name}``. If this dosn't work
+Try to run ``ceph-deploy gatherkeys {mon-server-name}``. If this doesn't work
 then there may have been an issue starting the cluster.
 
 Check to see running ceph processes ``ps axu | grep ceph``. If there is a
@@ -135,7 +135,7 @@ python process running for ``ceph-create-keys`` then there is likely a problem
 with the MON processes talking to each other.
 * Check each mon's network and firewall. The monitor defaults to a port 6789
 * If public_network is defined in ceph.conf, mon_host and DNS names **MUST**
-  be inside the public_network or ceph-deploy wont create mon's
+  be inside the public_network or ceph-deploy won't create mon's
 
 Missing OSD instances
 ---------------------
@@ -154,7 +154,7 @@ Check the osd tree:
 
 ```
 	#ceph osd tree
-	
+
 	# id    weight  type name       up/down reweight
 	-1      6       root default
 	-2      2               host controller-1
@@ -178,7 +178,7 @@ the current pools:
 	# ceph osd lspools
 	0 data,1 metadata,2 rbd,3 images,4 volumes,
 
-Testing Openstack
+Testing OpenStack
 -----------------
 
 
@@ -203,7 +203,7 @@ glance image-create --name cirros --container-format bare \
   --disk-format qcow2 --is-public yes < cirros-0.3.0-x86_64-disk.img
 ```
 
-This will return somthing like:
+This will return something like:
 
 ```
    +------------------+--------------------------------------+
@@ -294,7 +294,7 @@ cinder show 78bf2750-e99c-4c52-b5ca-09764af367b5
 |            status            |              available               |
 |         volume_type          |                 None                 |
 +------------------------------+--------------------------------------+
-``` 
+```
 
 Since the image is ``status`` ``available`` it should have been created in
 ceph. we can check this with ``rbd ls volumes``
@@ -324,11 +324,11 @@ the service script for radosgw might exit 0 and not start the service, the
 easy way to test this is to simply ```service ceph-radosgw restart``` if the
 service script can not stop the service, it wasn't running in the first place.
 
-We can also check to see if the rados service might be running by 
+We can also check to see if the rados service might be running by
 ```ps axu | grep radosgw```, but this might also show the webserver script
 server processes as well.
 
-most commands from ```radosgw-admin``` will work wether or not the ```radosgw```
+most commands from ```radosgw-admin``` will work whether or not the ```radosgw```
 service is running.
 
 #### swift testing
@@ -358,8 +358,8 @@ radosgw-admin user create --uid=test --display-name="bob" --email="bob@mail.ru"
   "caps": []}
 ```
 
-swift auth works with subusers, in that from openstack this would be
-tennant:user so we need to mimic the same
+swift auth works with subusers, in that from OpenStack this would be
+tenant:user so we need to mimic the same
 
 ```shell
 radosgw-admin subuser create --uid=test --subuser=test:swift --access=full
@@ -383,7 +383,7 @@ radosgw-admin subuser create --uid=test --subuser=test:swift --access=full
   "caps": []}
 ```
 
-Generate the secret key. 
+Generate the secret key.
 ___Note that ```--gen-secred``` is required in (at least) cuttlefish and newer.___
 
 ```shell
@@ -418,10 +418,10 @@ swift -A http://localhost:6780/auth/1.0 -U test:swift -K "eRYvzUr6vubg93dMRMk60R
 swift -A http://localhost:6780/auth/1.0 -U test:swift -K "eRYvzUr6vubg93dMRMk60RWYiGdJGvDk3lnwi4cl" list test
 ```
 
-##### Keystone intergration
+##### Keystone integration
 
 We will start with a simple test, we should be able to use the keystone openrc
-credentials and start using the swift client as if we where actually using
+credentials and start using the swift client as if we were actually using
 swift.
 
 ```shell
@@ -439,9 +439,9 @@ Clean up ceph to re-run
 =======================
 
 some times it is necessary to re-set the ceph-cluster rather than rebuilding
-everything from cratch
+everything from scratch
 
-set ``all`` to contain all monitors, osds, and computes want to re-initalize.
+set ``all`` to contain all monitors, osds, and computes want to re-initialize.
 
 ```shell
 export all="compute-4 controller-1 controller-2 controller-3"
@@ -474,4 +474,3 @@ distributed under the License is distributed on an "AS IS" BASIS,
 WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
-
