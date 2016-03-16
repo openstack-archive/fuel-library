@@ -184,13 +184,20 @@ class openstack::compute (
 
   if $::osfamily == 'Debian' {
     if $use_huge_pages {
-      $qemu_hugepages_value = 'set KVM_HUGEPAGES 1'
+      $qemu_hugepages_value    = 'set KVM_HUGEPAGES 1'
+      $libvirt_hugetlbfs_mount = 'set hugetlbfs_mount /run/hugepages/kvm'
     } else {
-      $qemu_hugepages_value = 'rm KVM_HUGEPAGES'
+      $qemu_hugepages_value    = 'rm KVM_HUGEPAGES'
+      $libvirt_hugetlbfs_mount = 'rm hugetlbfs_mount'
     }
     augeas { 'qemu_hugepages':
       context => '/files/etc/default/qemu-kvm',
       changes => $qemu_hugepages_value,
+      notify  => Service['libvirt'],
+    }
+    augeas { 'libvirt_hugetlbfs_mount':
+      context => '/files/etc/libvirt/qemu.conf',
+      changes => $libvirt_hugetlbfs_mount,
       notify  => Service['libvirt'],
     }
 
