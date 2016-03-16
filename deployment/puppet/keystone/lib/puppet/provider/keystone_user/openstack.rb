@@ -211,25 +211,27 @@ Puppet::Type.type(:keystone_user).provide(
 
   def self.instances
     instance_hash = {}
-    request('user', 'list', ['--long']).each do |user|
-      # The field says "domain" but it is really the domain_id
-      domname = domain_name_from_id(user[:domain])
-      if instance_hash.include?(user[:name]) # not unique
-        curdomid = instance_hash[user[:name]][:domain]
-        if curdomid != default_domain_id
-          # Move the user from the short name slot to the long name slot
-          # because it is not in the default domain.
-          curdomname = domain_name_from_id(curdomid)
-          instance_hash["#{user[:name]}::#{curdomname}"] = instance_hash[user[:name]]
-          # Use the short name slot for the new user
-          instance_hash[user[:name]] = user
+    request('domain', 'list').each do |domain|
+      request('user', 'list', ['--long', '--domain', domain[:id]]).each do |user|
+        domname = domain[:name]
+        if instance_hash.include?(user[:name]) # not unique
+          # user[:domain] is really the domain_id
+          curdomid = instance_hash[user[:name]][:domain]
+          if curdomid != default_domain_id
+            # Move the user from the short name slot to the long name slot
+            # because it is not in the default domain.
+            curdomname = domain_name_from_id(curdomid)
+            instance_hash["#{user[:name]}::#{curdomname}"] = instance_hash[user[:name]]
+            # Use the short name slot for the new user
+            instance_hash[user[:name]] = user
+          else
+            # Use the long name for the new user
+            instance_hash["#{user[:name]}::#{domname}"] = user
+          end
         else
-          # Use the long name for the new user
-          instance_hash["#{user[:name]}::#{domname}"] = user
+          # Unique (for now) - store in short name slot
+          instance_hash[user[:name]] = user
         end
-      else
-        # Unique (for now) - store in short name slot
-        instance_hash[user[:name]] = user
       end
     end
     instance_hash.keys.collect do |user_name|
