@@ -250,18 +250,11 @@ class openstack::cinder(
         }
       }
       'fake': {
-        class { 'cinder::config':
-          cinder_config => {
-            'DEFAULT/iscsi_ip_address'    => { value => $iscsi_bind_host },
-            'DEFAULT/iscsi_helper'        => { value => 'fake' },
-            'DEFAULT/iscsi_protocol'      => { value => 'iscsi' },
-            'DEFAULT/volume_backend_name' => { value => $volume_backend_name },
-            'DEFAULT/volume_driver'       => { value => 'cinder.volume.drivers.block_device.BlockDeviceDriver' },
-            'DEFAULT/volume_group'        => { value => 'cinder' },
-            'DEFAULT/volume_dir'          => { value => '/var/lib/cinder/volumes' },
-            'DEFAULT/volume_clear'        => { value => 'zero' },
-            'DEFAULT/available_devices'   => { value => $physical_volume },
-          }
+        cinder::backend::bdd { 'DEFAULT':
+            iscsi_ip_address    => $iscsi_bind_host,
+            volume_backend_name => $volume_backend_name,
+            volume_group        => 'cinder',
+            available_devices   => $physical_volume,
         }
       }
     }
