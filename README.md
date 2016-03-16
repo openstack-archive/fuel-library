@@ -47,7 +47,7 @@ information.
 ### MAINTAINERS
 
 This is repository level MAINTAINERS file. One submitting a patch should
-contact the apropriate maintainer or invite her or him for the code review.
+contact the appropriate maintainer or invite her or him for the code review.
 Note, core reviewers are not the maintainers. Normally, cores do reviews
 after maintainers.
 
@@ -84,7 +84,7 @@ fuel-library
 ----------------------
 
 The [top-scope puppet manifests](deployment/puppet/osnailyfacter/modular)
-(sometimes also refered as the composition layer) represent the known
+(sometimes also referred as the composition layer) represent the known
 deploy paths (aka supported deployment scenarios) for the
 [task-based deployment](https://docs.mirantis.com/openstack/fuel/fuel-6.1/reference-architecture.html#task-based-deployment).
 
