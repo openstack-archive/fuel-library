@@ -98,7 +98,7 @@ $openstack_version = {
   'cinder'     => 'installed',
 }
 
-$queue_provider = hiera('queue_provider', 'rabbitmq')
+$queue_provider = hiera('queue_provider', 'rabbit')
 $custom_mysql_setup_class='galera'
 
 # Do the stuff
