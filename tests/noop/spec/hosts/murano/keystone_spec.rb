@@ -50,7 +50,6 @@ describe manifest do
     it 'should declare murano::keystone::auth class correctly' do
       should contain_class('murano::keystone::auth').with(
                  'password'     => murano_password,
-                 'service_type' => 'application_catalog',
                  'region'       => region,
                  'tenant'       => tenant,
                  'public_url'   => public_url,
