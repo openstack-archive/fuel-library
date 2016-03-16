@@ -20,7 +20,7 @@
 - id: aodh-keystone
   type: puppet
   version: 2.0.0
-  groups: [primary-controller, controller]
+  groups: [primary-controller]
   required_for: [aodh]
   requires: [primary-keystone, keystone]
   cross-depends:
