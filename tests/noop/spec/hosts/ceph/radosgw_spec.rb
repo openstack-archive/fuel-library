@@ -33,11 +33,11 @@ describe manifest do
     }
 
     let(:internal_url) {
-      "#{internal_auth_protocol}://#{internal_auth_address}:5000"
+      "#{internal_auth_protocol}://#{internal_auth_address}:5000/v3"
     }
 
     let(:admin_url) {
-      "#{admin_auth_protocol}://#{admin_auth_address}:35357"
+      "#{admin_auth_protocol}://#{admin_auth_address}:35357/v3"
     }
 
     if (storage_hash['images_ceph'] or storage_hash['objects_ceph'])

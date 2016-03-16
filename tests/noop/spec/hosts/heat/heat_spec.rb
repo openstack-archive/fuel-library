@@ -155,7 +155,7 @@ describe manifest do
                                                       "Class[heat::keystone::domain]")
     end
     if Noop.hiera('external_lb', false)
-      url = "#{admin_auth_protocol}://#{admin_auth_address}:35357/"
+      url = "#{admin_auth_protocol}://#{admin_auth_address}:35357/v3"
       provider = 'http'
     else
       url = 'http://' + Noop.hiera('service_endpoint').to_s + ':10000/;csv'
