@@ -6,6 +6,12 @@ describe manifest do
   shared_examples 'catalog' do
     storage_hash = Noop.hiera_hash 'storage'
 
+    if (storage_hash['ephemeral_ceph'])
+      libvirt_images_type = 'rbd'
+    else
+      libvirt_images_type = 'default'
+    end
+
     if (storage_hash['volumes_ceph'] or
         storage_hash['images_ceph'] or
         storage_hash['objects_ceph'] or
@@ -22,24 +28,15 @@ describe manifest do
           'pg_num'        => storage_hash['per_pool_pg_nums']['compute'],
           'pgp_num'       => storage_hash['per_pool_pg_nums']['compute'],)
         }
-
+      it { should contain_class('ceph::ephemeral').with(
+        'libvirt_images_type' => libvirt_images_type,)
+      }
       it { should contain_ceph__pool('compute').that_requires('Class[ceph::conf]') }
       it { should contain_ceph__pool('compute').that_comes_before('Class[ceph::nova_compute]') }
       it { should contain_class('ceph::nova_compute').that_requires('Ceph::Pool[compute]') }
       it { should contain_exec('Set Ceph RBD secret for Nova').that_requires('Service[libvirt]')}
-
-      if storage_hash['ephemeral_ceph']
-        it { should contain_class('ceph::ephemeral') }
-        it { should contain_class('ceph::conf').that_comes_before('Class[ceph::ephemeral]') }
-      end
     else
       it { should_not contain_class('ceph') }
-    end
-
-    if !(storage_hash['ephemeral_ceph'])
-      it { should contain_class('ceph::ephemeral').with(
-        'libvirt_images_type' => 'default',)
-      }
     end
   end
   test_ubuntu_and_centos manifest
