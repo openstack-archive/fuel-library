@@ -105,7 +105,7 @@ class openstack_tasks::swift::storage {
     $rabbit_host                = false,
     $rabbit_user                = 'nova',
     $rabbit_ha_virtual_ip       = false,
-    $queue_provider             = 'rabbitmq',
+    $queue_provider             = 'rabbit',
     $qpid_password              = 'qpid_pw',
     $qpid_user                  = 'nova',
     $qpid_nodes                 = ['127.0.0.1'],
