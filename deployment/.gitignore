@@ -30,6 +30,7 @@ puppet/nova
 puppet/ntp
 puppet/openssl
 puppet/openstacklib
+puppet/oslo
 puppet/postgresql
 puppet/rsync
 puppet/rsyslog
