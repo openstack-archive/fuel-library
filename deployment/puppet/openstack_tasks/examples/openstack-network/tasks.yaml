@@ -147,6 +147,7 @@
   refresh_on: [neutron_l3_agent_config]
   cross-depends:
     - name: /(primary-)?openstack-network-plugins-l2/
+      role: ["/(primary-)?controller/"]
     - name: primary-openstack-network-agents-l3
   parameters:
     puppet_manifest: /etc/puppet/modules/openstack_tasks/examples/openstack-network/agents/l3.pp
@@ -174,6 +175,7 @@
   cross-depends:
     - name: /(primary-)?openstack-network-agents-l3/
     - name: /(primary-)?openstack-network-plugins-l2/
+      role: ["/(primary-)?controller/"]
   parameters:
     puppet_manifest: /etc/puppet/modules/openstack_tasks/examples/openstack-network/server-nova.pp
     puppet_modules: /etc/puppet/modules
@@ -188,6 +190,7 @@
   refresh_on: [neutron_dhcp_agent_config]
   cross-depends:
     - name: /(primary-)?openstack-network-plugins-l2/
+      role: ["/(primary-)?controller/"]
   parameters:
     puppet_manifest: /etc/puppet/modules/openstack_tasks/examples/openstack-network/agents/dhcp.pp
     puppet_modules: /etc/puppet/modules
@@ -204,6 +207,7 @@
   cross-depends:
     - name: primary-openstack-network-agents-dhcp
     - name: /(primary-)?openstack-network-plugins-l2/
+      role: ["/(primary-)?controller/"]
   parameters:
     puppet_manifest: /etc/puppet/modules/openstack_tasks/examples/openstack-network/agents/dhcp.pp
     puppet_modules: /etc/puppet/modules
@@ -218,6 +222,7 @@
   refresh_on: [neutron_metadata_agent_config]
   cross-depends:
     - name: /(primary-)?openstack-network-plugins-l2/
+      role: ["/(primary-)?controller/"]
     - name: /(primary-)?openstack-network-agents-l3/
   parameters:
     puppet_manifest: /etc/puppet/modules/openstack_tasks/examples/openstack-network/agents/metadata.pp
@@ -235,6 +240,7 @@
   cross-depends:
     - name: primary-openstack-network-agents-metadata
     - name: /(primary-)?openstack-network-plugins-l2/
+      role: ["/(primary-)?controller/"]
   parameters:
     puppet_manifest: /etc/puppet/modules/openstack_tasks/examples/openstack-network/agents/metadata.pp
     puppet_modules: /etc/puppet/modules
