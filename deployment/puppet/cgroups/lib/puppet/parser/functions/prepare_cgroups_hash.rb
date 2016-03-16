@@ -10,7 +10,8 @@ module CgroupsSettings
        percent, min, max = value.scan(/%(\d+), (\d+), (\d+)/).flatten.map { |i| i.to_i }
        total_memory = Facter.value(:memorysize_mb)
        res = (total_memory.to_f / 100.0) * percent.to_f
-       return [min, max, res].sort[1]
+       # transform value in megabytes to bytes
+       return [min, max, res].sort[1] * 1024 * 1024
     end
   end
 end
