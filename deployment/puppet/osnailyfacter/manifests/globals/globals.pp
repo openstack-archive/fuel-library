@@ -283,7 +283,7 @@ class osnailyfacter::globals::globals {
   $mountpoints      = filter_hash($mp_hash, 'point')
 
   # AMQP configuration
-  $queue_provider   = hiera('queue_provider','rabbitmq')
+  $queue_provider   = hiera('queue_provider','rabbit')
   $rabbit_ha_queues = true
 
   if !$rabbit_hash['user'] {
