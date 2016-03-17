@@ -34,6 +34,7 @@ describe 'cgroups', :type => :class do
       it { is_expected.to contain_file(cg_file).with(
         file_defaults
       ) }
+      it { is_expected.to contain_service('cgrulesengd').that_subscribes_to("File[#{cg_file}]") }
     end
   end
 end
