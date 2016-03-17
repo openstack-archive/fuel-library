@@ -1,5 +1,5 @@
 fixtures:
   repositories:
-    stdlib: "#{source_dir}/../stdlib"
+    stdlib: "git://github.com/puppetlabs/puppetlabs-stdlib.git"
   symlinks:
     cgroups: "#{source_dir}"
