@@ -30,7 +30,7 @@ $custom_setup_class       = hiera('mysql_custom_setup_class', 'galera')
 
 # Get galera gcache factor based on cluster node's count
 $galera_gcache_factor     = count(keys($network_metadata['nodes']))
-$galera_binary_logs       = hiera('galera_binary_logs', false)
+$galera_binary_logs       = hiera('galera_binary_logs', true)
 
 $status_user              = 'clustercheck'
 $status_password          = $mysql_hash['wsrep_password']
@@ -156,7 +156,7 @@ if $enabled {
       'mysqld'                         => {
         'log_bin'                      => 'mysql-bin',
         'expire_logs_days'             => '1',
-        'max_binlog_size'              => '512M',
+        'max_binlog_size'              => '64M',
       },
     }
   }
@@ -166,9 +166,8 @@ if $enabled {
       'port'                           => $backend_port,
       'max_connections'                => $max_connections,
       'pid-file'                       => undef,
-      'log_bin'                        => undef,
       'expire_logs_days'               => undef,
-      'max_binlog_size'                => undef,
+      'log_bin'                        => undef,
       'collation-server'               => 'utf8_general_ci',
       'init-connect'                   => 'SET NAMES utf8',
       'character-set-server'           => 'utf8',

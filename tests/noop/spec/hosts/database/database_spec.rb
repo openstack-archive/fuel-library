@@ -192,9 +192,9 @@ describe manifest do
       )
     end
 
-    it 'should exclude mysql binary logging by default' do
-      expect(subject).to contain_class('galera').without_override_options(
-          /"logbin"=>"mysql-bin"/
+    it 'should configure mysql binary logging by default' do
+      expect(subject).to contain_class('galera').with_override_options(
+          /"log_bin"=>"mysql-bin"/
       )
     end
 
