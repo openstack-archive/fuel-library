@@ -15,6 +15,7 @@ describe 'cgroups', :type => :class do
         :owner   => 'root',
         :group   => 'root',
         :mode    => '0644',
+        :tag     => 'cgroups',
       }
     end
 
@@ -31,9 +32,7 @@ describe 'cgroups', :type => :class do
     end
 
     %w(/etc/cgconfig.conf /etc/cgrules.conf).each do |cg_file|
-      it { is_expected.to contain_file(cg_file).with(
-        file_defaults
-      ) }
+      it { is_expected.to contain_file(cg_file).that_notifies('Service[cgrulesengd]').with(file_defaults) }
     end
   end
 end
