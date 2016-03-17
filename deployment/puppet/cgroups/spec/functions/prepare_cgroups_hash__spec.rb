@@ -36,7 +36,7 @@ describe Puppet::Parser::Functions.function(:prepare_cgroups_hash) do
             'blkio.test' => 800
           },
           'memory' => {
-            'memory.soft_limit_in_bytes' => 700
+            'memory.soft_limit_in_bytes' => 700 * 1024 * 1024
           },
         },
         'keystone' => {
@@ -72,7 +72,7 @@ describe Puppet::Parser::Functions.function(:prepare_cgroups_hash) do
       {
         'neutron' => {
           'memory' => {
-            'memory.soft_limit_in_bytes' => 512
+            'memory.soft_limit_in_bytes' => 512 * 1024 * 1024
           }
         }
       }
