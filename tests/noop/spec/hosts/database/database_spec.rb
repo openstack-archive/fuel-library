@@ -35,6 +35,10 @@ describe manifest do
       access_networks = ['240.0.0.0/255.255.0.0'] + other_networks.split(' ')
     end
 
+    let(:mysql_hash) do
+      Noop.hiera 'mysql', {}
+    end
+
     let(:database_nodes) do
       Noop.hiera('database_nodes')
     end
@@ -45,6 +49,22 @@ describe manifest do
 
     let(:galera_nodes) do
       (Noop.puppet_function 'get_node_to_ipaddr_map_by_network_role', database_nodes, 'mgmt/database').values
+    end
+
+    let(:mysql_binary_logs) do
+      Noop.hiera 'mysql_binary_logs', true
+    end
+
+    let(:log_bin) do
+      Noop.puppet_function 'pick', mysql_hash['log_bin'], 'mysql-bin'
+    end
+
+    let(:expire_logs_days) do
+      Noop.puppet_function 'pick', mysql_hash['expire_logs_days'], '1'
+    end
+
+    let(:max_binlog_size) do
+      Noop.puppet_function 'pick', mysql_hash['max_binlog_size'], '64M'
     end
 
     let(:primary_controller) do
@@ -192,9 +212,15 @@ describe manifest do
       )
     end
 
-    it 'should exclude mysql binary logging by default' do
-      expect(subject).to contain_class('galera').without_override_options(
-          /"logbin"=>"mysql-bin"/
+    it 'should configure mysql binary logging by default' do
+      expect(subject).to contain_class('galera').with_override_options(
+          /"log_bin"=>"mysql-bin"/
+      )
+      expect(subject).to contain_class('galera').with_override_options(
+          /"expire_logs_days"=>"#{expire_logs_days}"/
+      )
+      expect(subject).to contain_class('galera').with_override_options(
+          /"max_binlog_size"=>"#{max_binlog_size}"/
       )
     end
 
