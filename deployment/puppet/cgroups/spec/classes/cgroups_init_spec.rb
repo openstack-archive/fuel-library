@@ -15,6 +15,7 @@ describe 'cgroups', :type => :class do
         :owner   => 'root',
         :group   => 'root',
         :mode    => '0644',
+        :tag     => 'cgroups',
       }
     end
 
@@ -25,6 +26,7 @@ describe 'cgroups', :type => :class do
       should contain_class('cgroups::service').with(
         :cgroups_settings => params[:cgroups_set])
     }
+    it { is_expected.to contain_file('/etc/cgconfig.conf').that_notifies('Service[cgrulesengd]') }
 
     %w(libcgroup1 cgroup-bin cgroup-upstart).each do |cg_pkg|
       it { is_expected.to contain_package(cg_pkg) }
