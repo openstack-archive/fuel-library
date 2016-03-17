@@ -38,6 +38,8 @@ class cgroups(
     cgroups_settings => $cgroups_set,
   }
 
+  File['/etc/cgconfig.conf'] ~> Service['cgrulesengd']
+
   Package<||> ->
   File<||> ->
   Service['cgroup-lite'] ->
