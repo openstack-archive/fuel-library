@@ -30,7 +30,12 @@ $custom_setup_class       = hiera('mysql_custom_setup_class', 'galera')
 
 # Get galera gcache factor based on cluster node's count
 $galera_gcache_factor     = count(keys($network_metadata['nodes']))
-$galera_binary_logs       = hiera('galera_binary_logs', false)
+# NOTE(aschultz): disabling this may cause issues with cluster joining
+$galera_binary_logs       = hiera('galera_binary_logs', true)
+$log_bin                  = pick($mysql_hash['log_bin'], 'mysql-bin')
+$expire_logs_days         = pick($mysql_hash['expire_logs_days'], '1')
+$max_binlog_size          = pick($mysql_hash['max_binlog_size'], '512M')
+
 
 $status_user              = 'clustercheck'
 $status_password          = $mysql_hash['wsrep_password']
@@ -154,9 +159,9 @@ if $enabled {
   if $galera_binary_logs {
     $binary_logs_options = {
       'mysqld'                         => {
-        'log_bin'                      => 'mysql-bin',
-        'expire_logs_days'             => '1',
-        'max_binlog_size'              => '512M',
+        'log_bin'                      => $log_bin,
+        'expire_logs_days'             => $expire_logs_days,
+        'max_binlog_size'              => $max_binlog_size,
       },
     }
   }
