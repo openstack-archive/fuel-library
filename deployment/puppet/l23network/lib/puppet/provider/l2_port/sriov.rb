@@ -21,7 +21,7 @@ Puppet::Type.type(:l2_port).provide(:sriov, :parent => Puppet::Provider::Lnx_bas
       sriov_numvfs = self.get_sriov_numvfs(if_name)
       if sriov_numvfs and sriov_numvfs > 0
         props[:provider] = 'sriov'
-        props[:vendor_specific] = {'sriov_numvfs' => sriov_numvfs}
+        props[:vendor_specific] = {'sriov_numvfs' => sriov_numvfs.to_s}
       end
 
       props[:port_type] = props[:port_type].insert(0, props[:provider]).join(':')
@@ -68,14 +68,14 @@ Puppet::Type.type(:l2_port).provide(:sriov, :parent => Puppet::Provider::Lnx_bas
 
   def flush
     unless @property_flush.empty?
+    debug("FLUSH properties: #{@property_flush}")
       unless ['', 'absent'].include? @property_flush[:mtu].to_s
         self.class.set_mtu(@resource[:interface], @property_flush[:mtu])
       end
       vendor_specific = (@property_flush[:vendor_specific] || {})
-      sriov_numvfs = vendor_specific["sriov_numvfs"].to_i
-      if self.sriov_numvfs != sriov_numvfs
+      unless vendor_specific["sriov_numvfs"].nil?
         self.sriov_numvfs = 0
-        self.sriov_numvfs = sriov_numvfs
+        self.sriov_numvfs = vendor_specific["sriov_numvfs"].to_i
       end
       @property_hash = resource.to_hash
     end
@@ -86,7 +86,8 @@ Puppet::Type.type(:l2_port).provide(:sriov, :parent => Puppet::Provider::Lnx_bas
   end
   def vendor_specific=(val)
     old = @property_hash[:vendor_specific] || {}
-    @property_flush[:vendor_specific] = val.reject{|(k,v)| old[k.to_sym] == v }
+    changes = val.to_a - old.to_a
+    @property_flush[:vendor_specific] = Hash[changes]
   end
 
   def vlan_dev

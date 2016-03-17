@@ -84,7 +84,8 @@ Puppet::Type.type(:l2_bridge).provide(:ovs, :parent => Puppet::Provider::Ovs_bas
   end
   def vendor_specific=(val)
     old = @property_hash[:vendor_specific] || {}
-    @property_flush[:vendor_specific] = val.reject{|(k,v)| old[k.to_sym] == v }
+    changes = val.to_a - old.to_a
+    @property_flush[:vendor_specific] = Hash[changes]
   end
 
   def stp
