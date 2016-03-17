@@ -38,6 +38,8 @@ class cgroups(
     cgroups_settings => $cgroups_set,
   }
 
+  File<||> ~> Service['cgrulesengd']
+
   Package<||> ->
   File<||> ->
   Service['cgroup-lite'] ->

@@ -25,6 +25,7 @@ describe 'cgroups', :type => :class do
       should contain_class('cgroups::service').with(
         :cgroups_settings => params[:cgroups_set])
     }
+    it { should contain_service('cgrulesengd').that_subscribes_to('File[/etc/cgrules.conf]')
 
     %w(libcgroup1 cgroup-bin cgroup-upstart).each do |cg_pkg|
       it { is_expected.to contain_package(cg_pkg) }
