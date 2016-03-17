@@ -17,13 +17,15 @@ class cgroups(
   inherits cgroups::params
 {
   validate_hash($cgroups_set)
-  ensure_packages($packages)
+  ensure_packages($packages, { tag => 'cgroups' })
+
 
   File {
     ensure => file,
     owner  => 'root',
     group  => 'root',
     mode   => '0644',
+    tag    => 'cgroups',
   }
 
   file { '/etc/cgconfig.conf':
@@ -38,10 +40,24 @@ class cgroups(
     cgroups_settings => $cgroups_set,
   }
 
-  Package<||> ->
-  File<||> ->
+  File <| tag == 'cgroups' |> ~>
+  Service['cgrulesengd']
+
+  Package <| tag == 'cgroups' |> ~>
+  Service['cgrulesengd']
+
+  Package <| tag == 'cgroups' |> ->
+  File <| tag == 'cgroups' |>
+
+  File <| tag == 'cgroups' |> ->
+  Service['cgroup-lite']
+
   Service['cgroup-lite'] ->
+  Service['cgconfigparser']
+
   Service['cgconfigparser'] ->
-  Cgclassify<||> ->
+  Cgclassify <||>
+
+  Cgclassify <||> ->
   Service['cgrulesengd']
 }
