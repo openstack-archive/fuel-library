@@ -102,7 +102,7 @@
   type: puppet
   version: 2.0.0
   groups: [primary-controller]
-  condition: "settings:neutron_advanced_configuration.neutron_l3_ha.value == false"
+  condition: "settings:neutron_advanced_configuration.neutron_l3_ha == false"
   required_for: [openstack-network-end]
   requires: [openstack-network-networks]
   parameters:
@@ -116,7 +116,7 @@
   type: puppet
   version: 2.0.0
   role: [primary-controller]
-  condition: "settings:neutron_advanced_configuration.neutron_l3_ha.value == true"
+  condition: "settings:neutron_advanced_configuration.neutron_l3_ha == true"
   required_for: [post_deployment_end]
   requires: [post_deployment_start]
   parameters:

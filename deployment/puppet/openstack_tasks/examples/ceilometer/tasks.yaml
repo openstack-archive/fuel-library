@@ -7,7 +7,7 @@
   groups: [primary-controller, controller]
   required_for: [primary-openstack-controller, openstack-controller]
   requires: [openstack-haproxy]
-  condition: "settings:additional_components.ceilometer.value == true"
+  condition: "settings:ceilometer.enabled == true"
   parameters:
     puppet_manifest: /etc/puppet/modules/openstack_tasks/examples/ceilometer/controller.pp
     puppet_modules: /etc/puppet/modules
@@ -25,7 +25,7 @@
   requires: [ceilometer-controller, top-role-compute]
   cross-depends:
     - name: ceilometer-controller
-  condition: "settings:additional_components.ceilometer.value == true"
+  condition: "settings:ceilometer.enabled == true"
   parameters:
     puppet_manifest: /etc/puppet/modules/openstack_tasks/examples/ceilometer/compute.pp
     puppet_modules: /etc/puppet/modules
@@ -40,7 +40,7 @@
   version: 2.0.0
   groups: [primary-controller]
   required_for: [ceilometer-controller]
-  condition: "settings:additional_components.ceilometer.value == true"
+  condition: "settings:ceilometer.enabled == true"
   requires: [primary-keystone, keystone]
   cross-depends:
     - name: /(primary-)?keystone/
@@ -55,7 +55,7 @@
   role: [primary-controller, controller]
   requires: [post_deployment_start, enable_rados]
   required_for: [post_deployment_end]
-  condition: "settings:additional_components.ceilometer.value == true and settings:storage.objects_ceph.value == true"
+  condition: "settings:ceilometer.enabled == true and settings:storage.objects_ceph == true"
   parameters:
     puppet_manifest: /etc/puppet/modules/openstack_tasks/examples/ceilometer/radosgw_user.pp
     puppet_modules: /etc/puppet/modules

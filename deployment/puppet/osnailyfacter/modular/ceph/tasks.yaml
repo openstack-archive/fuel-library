@@ -4,7 +4,7 @@
 - id: copy_keys_ceph
   type: copy_files
   version: 2.0.0
-  role: '*'
+  role: ['/.*/']
   required_for: [pre_deployment_end]
   requires: [generate_keys_ceph]
   cross-depends:
@@ -129,7 +129,7 @@
     - name: ceph_create_pools
   requires: [ceph_create_pools]
   required_for: [post_deployment_end]
-  condition: "settings:storage.objects_ceph.value == true or settings:storage.images_ceph.value == true or settings:storage.volumes_ceph.value == true or settings:storage.ephemeral_ceph.value == true"
+  condition: "settings:storage.objects_ceph == true or settings:storage.images_ceph == true or settings:storage.volumes_ceph == true or settings:storage.ephemeral_ceph == true"
   parameters:
     puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/ceph/ceph_compute.pp
     puppet_modules: /etc/puppet/modules
@@ -146,7 +146,7 @@
   required_for: [ceph_ready_check]
   cross-depended-by:
     - name: ceph_ready_check
-  condition: "settings:storage.objects_ceph.value == true or settings:storage.images_ceph.value == true or settings:storage.volumes_ceph.value == true or settings:storage.ephemeral_ceph.value == true"
+  condition: "settings:storage.objects_ceph == true or settings:storage.images_ceph == true or settings:storage.volumes_ceph == true or settings:storage.ephemeral_ceph == true"
   parameters:
     puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/ceph/ceph_pools.pp
     puppet_modules: /etc/puppet/modules
@@ -157,7 +157,7 @@
   type: shell
   version: 2.0.0
   role: [primary-controller]
-  condition: "settings:storage.objects_ceph.value == true or settings:storage.images_ceph.value == true or settings:storage.volumes_ceph.value == true or settings:storage.ephemeral_ceph.value == true"
+  condition: "settings:storage.objects_ceph == true or settings:storage.images_ceph == true or settings:storage.volumes_ceph == true or settings:storage.ephemeral_ceph == true"
   requires: [post_deployment_start]
   required_for: [enable_rados, upload_cirros]
   parameters:
@@ -168,7 +168,7 @@
   type: puppet
   version: 2.0.0
   role: [primary-controller, controller]
-  condition: "settings:storage.objects_ceph.value == true"
+  condition: "settings:storage.objects_ceph == true"
   requires: [post_deployment_start]
   required_for: [upload_cirros, post_deployment_end]
   cross-depended-by:
@@ -183,7 +183,7 @@
   type: puppet
   version: 2.0.0
   role: [primary-controller, controller, ceph-osd]
-  condition: "settings:storage.objects_ceph.value == true or settings:storage.images_ceph.value == true or settings:storage.volumes_ceph.value == true or settings:storage.ephemeral_ceph.value == true"
+  condition: "settings:storage.objects_ceph == true or settings:storage.images_ceph == true or settings:storage.volumes_ceph == true or settings:storage.ephemeral_ceph == true"
   requires: [post_deployment_start]
   required_for: [post_deployment_end]
   parameters:
