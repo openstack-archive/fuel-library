@@ -3,6 +3,10 @@
 %:
 	dh $@ --with python2
 
+override_dh_auto_build:
+	bash -x $(CURDIR)/deployment/update_modules.sh -v
+	dh_auto_build
+
 override_dh_fixperms:
 	chmod 755 debian/fuel-ha-utils/usr/lib/ocf/resource.d/fuel/*
 	dh_fixperms

@@ -2,7 +2,7 @@ Source: fuel-library9.0
 Section: admin
 Priority: optional
 Maintainer: Mirantis Product <product@mirantis.com>
-Build-Depends: debhelper (>= 7), python-all
+Build-Depends: debhelper (>= 7), python-all, librarian-puppet-simple, git
 Standards-Version: 3.9.2
 
 Package: fuel-ha-utils
