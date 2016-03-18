@@ -120,9 +120,11 @@ describe 'openstack::compute' do
         ).that_notifies('Service[libvirt]')
         if facts[:osfamily] == 'RedHat'
           should contain_file_line('qemu_selinux')
+          should contain_package('device-mapper-multipath')
         elsif facts[:osfamily] == 'Debian'
           should contain_file_line('qemu_apparmor')
           should contain_file_line('apparmor_libvirtd')
+          should contain_package('multipath-tools')
         end
         should contain_class('nova::client')
         should contain_install_ssh_keys('nova_ssh_key_for_migration')
