@@ -96,16 +96,11 @@ describe manifest do
   identity_uri        = "#{internal_auth_protocol}://#{keystone_auth_host}:5000/"
   privileged_auth_uri = "#{internal_auth_protocol}://#{keystone_auth_host}:5000/v2.0/"
 
-  it 'should declare cinder::api class with 4 processess on 4 CPU & 32G system' do
-    should contain_class('cinder::api').with(
-      'service_workers' => '4',
-    )
-  end
-
   it 'should configure workers for API service' do
     fallback_workers = [[facts[:processorcount].to_i, 2].max, workers_max.to_i].min
     service_workers = cinder_hash.fetch('workers', fallback_workers)
     should contain_cinder_config('DEFAULT/osapi_volume_workers').with(:value => service_workers)
+    should contain_class('cinder::api').with('service_workers' => service_workers,)
   end
 
   it 'ensures cinder_config contains auth_uri and identity_uri ' do
@@ -187,6 +182,29 @@ describe manifest do
       end
     end
   end
+
+  if ceilometer_hash['enabled']
+    it 'should contain notification_driver option' do
+      should contain_cinder_config('DEFAULT/notification_driver').with(:value => ceilometer_hash['notification_driver'])
+    end
+  end
+
+    let (:bind_host) do
+      bind_host = Noop.puppet_function('get_network_role_property', 'cinder/api', 'ipaddr')
+    end
+
+
+  it { is_expected.to contain_class('cinder::api').with(
+    'bind_host'                  => bind_host,
+    'identity_uri'               => identity_uri,
+    'keymgr_encryption_auth_url' => "#{identity_uri}/v3",
+  ) }
+
+  it { is_expected.to contain_class('cinder') }
+  it { is_expected.to contain_class('cinder::glance') }
+  it { is_expected.to contain_class('cinder::logging') }
+  it { is_expected.to contain_class('cinder::scheduler') }
+  it { is_expected.to contain_class('cinder::volume') }
 
   end # end of shared_examples
 
