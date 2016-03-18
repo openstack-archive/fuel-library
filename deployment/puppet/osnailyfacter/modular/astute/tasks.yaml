@@ -68,20 +68,6 @@
     cmd: /usr/bin/python /etc/puppet/modules/osnailyfacter/modular/astute/vcenter_hooks.py --create_zones
     timeout: 180
 
-- id: disable_keystone_service_token
-  type: puppet
-  version: 2.0.0
-  role: [primary-controller, controller]
-  requires: [upload_cirros]
-  required_for: [post_deployment_end]
-  cross-depends:
-    - name: upload_cirros
-  parameters:
-    puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/astute/service_token_off.pp
-    puppet_modules: /etc/puppet/modules
-    timeout: 180
-    cwd: /
-
 - id: public_vip_ping
   type: puppet
   version: 2.0.0

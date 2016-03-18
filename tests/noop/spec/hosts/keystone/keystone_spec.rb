@@ -333,6 +333,16 @@ describe manifest do
       end
     end
 
+    if keystone_hash['service_token_off']
+      it 'should remove admin_token option' do
+        is_expected.to contain_keystone_config('DEFAULT/admin_token').with_ensure('absent')
+      end
+
+      it 'should contain class to remove AdminTokenAuthMiddleware from pipelines' do
+        is_expected.to contain_class('keystone::disable_admin_token_auth')
+      end
+    end
+
   end # end of shared_examples
 
   test_ubuntu_and_centos manifest

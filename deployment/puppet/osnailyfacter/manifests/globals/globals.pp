@@ -4,7 +4,7 @@ class osnailyfacter::globals::globals {
 
   $disable_globals_yaml = '_disabled'
 
-  $service_token_off = false
+  $service_token_off = true
   $globals_yaml_file = '/etc/hiera/globals.yaml'
 
   $base_facter_dir             = '/etc/facter'

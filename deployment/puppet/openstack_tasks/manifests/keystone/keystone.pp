@@ -340,4 +340,12 @@ class openstack_tasks::keystone::keystone {
     Exec <| title == 'keystone-manage db_sync' |> -> Class['::keystone::endpoint']
   }
 
+  if $keystone_hash['service_token_off'] {
+    keystone_config {
+      'DEFAULT/admin_token': ensure => absent;
+    }
+    # Disable admin_token_auth middleware in public/admin/v3 pipelines
+    include ::keystone::disable_admin_token_auth
+  }
+
 }
