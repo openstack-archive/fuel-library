@@ -2,7 +2,7 @@
   type: puppet
   version: 2.0.0
   groups: [primary-controller, controller]
-  condition: "settings:additional_components.murano.value == true"
+  condition: "settings:murano.enabled == true"
   required_for: [deploy_end, controller_remaining_tasks]
   requires: [primary-heat, heat, horizon, primary-rabbitmq, rabbitmq]
   cross-depends:
@@ -23,7 +23,7 @@
   groups: [primary-controller]
   cross-depends:
     - name: /(primary-)?database/
-  condition: "settings:additional_components.murano.value == true"
+  condition: "settings:murano.enabled == true"
   required_for: [murano]
   requires: [primary-database, database]
   parameters:
@@ -35,7 +35,7 @@
   type: puppet
   version: 2.0.0
   groups: [primary-controller]
-  condition: "settings:additional_components.murano.value == true"
+  condition: "settings:murano.enabled == true"
   required_for: [murano]
   requires: [primary-keystone, keystone]
   cross-depends:
@@ -49,7 +49,7 @@
   type: puppet
   version: 2.0.0
   groups: [primary-controller, controller]
-  condition: "settings:additional_components.murano.value == true"
+  condition: "settings:murano.enabled == true"
   required_for: [murano]
   cross-depends:
     - name: /(primary-)?rabbitmq/
@@ -64,7 +64,7 @@
   type: puppet
   version: 2.0.0
   groups: [primary-controller, controller]
-  condition: "settings:additional_components.murano-cfapi.value == true"
+  condition: "settings:murano-cfapi.enabled == true"
   requires: [murano]
   parameters:
     puppet_manifest: /etc/puppet/modules/openstack_tasks/examples/murano/cfapi.pp
@@ -75,7 +75,7 @@
   type: puppet
   version: 2.0.0
   groups: [primary-controller]
-  condition: "settings:additional_components.murano-cfapi.value == true"
+  condition: "settings:murano-cfapi.enabled == true"
   required_for: [murano-cfapi]
   requires: [primary-keystone, keystone]
   cross-depends:

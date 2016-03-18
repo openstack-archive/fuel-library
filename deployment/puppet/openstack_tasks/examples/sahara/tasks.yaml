@@ -2,7 +2,7 @@
   type: puppet
   version: 2.0.0
   groups: [primary-controller, controller]
-  condition: "settings:additional_components.sahara.value == true"
+  condition: "settings:sahara.enabled == true"
   required_for: [deploy_end, controller_remaining_tasks]
   requires: [openstack-network-end, horizon]
   cross-depends:
@@ -24,7 +24,7 @@
   cross-depends:
     - name: /(primary-)?database/
   required_for: [sahara]
-  condition: "settings:additional_components.sahara.value == true"
+  condition: "settings:sahara.enabled == true"
   requires: [primary-database, database]
   parameters:
     puppet_manifest: /etc/puppet/modules/openstack_tasks/examples/sahara/db.pp
@@ -39,7 +39,7 @@
   requires: [primary-keystone, keystone]
   cross-depends:
     - name: keystone
-  condition: "settings:additional_components.sahara.value == true"
+  condition: "settings:sahara.enabled == true"
   parameters:
     puppet_manifest: /etc/puppet/modules/openstack_tasks/examples/sahara/keystone.pp
     puppet_modules: /etc/puppet/modules
