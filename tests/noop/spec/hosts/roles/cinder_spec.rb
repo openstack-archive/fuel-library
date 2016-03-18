@@ -122,7 +122,12 @@ describe manifest do
     end
   end
 
+  it 'should check stuff that openstack cinder did' do
+    it { is_expected.to contain_class('cinder') }
+    it { is_expected.to contain_class('cinder::volume') }
   end
+
+  end # end of shared_examples
   test_ubuntu_and_centos manifest
 end
 
