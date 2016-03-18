@@ -31,8 +31,8 @@ describe manifest do
     else
       extra_params = '?charset=utf8'
     end
-    should contain_class('openstack::cinder').with(
-      :sql_connection => "mysql://#{cinder_db_user}:#{cinder_db_password}@#{database_vip}/#{cinder_db_name}#{extra_params}"
+    should contain_class('cinder').with(
+      :database_connection => "mysql://#{cinder_db_user}:#{cinder_db_password}@#{database_vip}/#{cinder_db_name}#{extra_params}"
     )
   end
 
@@ -52,7 +52,7 @@ describe manifest do
   glance_api_servers = "#{glance_protocol}://#{glance_internal_address}:9292"
 
   it 'should contain correct glance api servers addresses' do
-    should contain_class('openstack::cinder').with(
+    should contain_class('cinder').with(
       'glance_api_servers' => glance_api_servers
     )
   end
@@ -72,17 +72,10 @@ describe manifest do
       iscsi_bind_host = Noop.puppet_function('get_network_role_property', 'cinder/iscsi', 'ipaddr')
     end
 
-    it 'should contain disks list for cinder block device role' do
-      should contain_class('openstack::cinder').with(
-        :physical_volume => disks_list,
-        :manage_volumes  => 'fake',
-      )
-    end
-
     it 'should contain proper config file for cinder' do
       should contain_cinder_config('DEFAULT/iscsi_helper').with(:value => 'fake')
       should contain_cinder_config('DEFAULT/iscsi_protocol').with(:value => 'iscsi')
-      should contain_cinder_config('DEFAULT/volume_backend_name').with(:value => 'DEFAULT')
+      should contain_cinder_config('DEFAULT/volume_backend_name').with(:value => volume_backend_name['volumes_block_device'])
       should contain_cinder_config('DEFAULT/volume_driver').with(:value => 'cinder.volume.drivers.block_device.BlockDeviceDriver')
       should contain_cinder_config('DEFAULT/iscsi_ip_address').with(:value => iscsi_bind_host)
       should contain_cinder_config('DEFAULT/volume_group').with(:value => 'cinder')
@@ -94,20 +87,14 @@ describe manifest do
 
   it 'ensures that cinder have proper volume_backend_name' do
     if use_ceph
-      should contain_class('openstack::cinder').with(
+      should contain_class('cinder::backend::rbd').with(
         'volume_backend_name' => volume_backend_name['volumes_ceph']
       )
     end
 
     if storage_hash['volumes_lvm']
-      should contain_class('openstack::cinder').with(
+      should contain_class('cinder::backend::iscsi').with(
         'volume_backend_name' => volume_backend_name['volumes_lvm']
-      )
-    end
-
-    if storage_hash['volumes_block_device']
-      should contain_class('openstack::cinder').with(
-        'volume_backend_name' => volume_backend_name['volumes_block_device']
       )
     end
   end
@@ -122,7 +109,12 @@ describe manifest do
     end
   end
 
+  it 'should check stuff that openstack cinder did' do
+    it { is_expected.to contain_class('cinder') }
+    it { is_expected.to contain_class('cinder::volume') }
   end
+
+  end # end of shared_examples
   test_ubuntu_and_centos manifest
 end
 

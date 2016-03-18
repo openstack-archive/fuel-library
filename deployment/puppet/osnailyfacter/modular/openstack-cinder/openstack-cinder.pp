@@ -4,8 +4,7 @@ notice('MODULAR: openstack-cinder.pp')
 prepare_network_config(hiera_hash('network_scheme', {}))
 $cinder_hash            = hiera_hash('cinder', {})
 $management_vip         = hiera('management_vip')
-$queue_provider         = hiera('queue_provider', 'rabbitmq')
-$cinder_volume_group    = hiera('cinder_volume_group', 'cinder')
+$volume_group           = hiera('cinder_volume_group', 'cinder')
 $storage_hash           = hiera_hash('storage', {})
 $ceilometer_hash        = hiera_hash('ceilometer', {})
 $sahara_hash            = hiera_hash('sahara', {})
@@ -40,6 +39,14 @@ $db_connection = os_database_connection({
   'password' => $db_password,
   'extra'    => $extra_params
 })
+
+$queue_provider = hiera('queue_provider', 'rabbit')
+if $queue_provider == 'rabbitmq'{
+  $rpc_backend    = 'rabbit'
+} else {
+  $rpc_backend = $queue_provider
+}
+
 
 $keystone_auth_protocol = get_ssl_property($ssl_hash, {}, 'keystone', 'internal', 'protocol', 'http')
 $keystone_auth_host     = get_ssl_property($ssl_hash, {}, 'keystone', 'internal', 'hostname', [hiera('keystone_endpoint', ''), $service_endpoint, $management_vip])
@@ -82,55 +89,15 @@ $max_pool_size = min($::processorcount * 5 + 0, 30 + 0)
 $max_overflow = min($::processorcount * 5 + 0, 60 + 0)
 $max_retries = '-1'
 $idle_timeout = '3600'
-$openstack_version = {
-  'keystone'   => 'installed',
-  'glance'     => 'installed',
-  'horizon'    => 'installed',
-  'nova'       => 'installed',
-  'novncproxy' => 'installed',
-  'cinder'     => 'installed',
-}
+
+$bind_host       = get_network_role_property('cinder/api', 'ipaddr')
+$iscsi_bind_host = get_network_role_property('cinder/iscsi', 'ipaddr')
+$use_syslog      = hiera('use_syslog', true)
+$use_stderr      = hiera('use_stderr', false)
+$verbose         = pick($cinder_hash['verbose'], hiera('verbose', true))
+$debug           = pick($cinder_hash['debug'], hiera('debug', true))
 
 ######### Cinder Controller Services ########
-class {'openstack::cinder':
-  sql_connection       => $db_connection,
-  queue_provider       => $queue_provider,
-  amqp_hosts           => hiera('amqp_hosts',''),
-  amqp_user            => $rabbit_hash['user'],
-  amqp_password        => $rabbit_hash['password'],
-  rabbit_ha_queues     => true,
-  volume_group         => $cinder_volume_group,
-  volume_backend_name  => $volume_backend_name,
-  physical_volume      => undef,
-  manage_volumes       => $manage_volumes,
-  enabled              => true,
-  glance_api_servers   => $glance_api_servers,
-  bind_host            => get_network_role_property('cinder/api', 'ipaddr'),
-  iscsi_bind_host      => get_network_role_property('cinder/iscsi', 'ipaddr'),
-  keystone_user        => $keystone_user,
-  keystone_tenant      => $keystone_tenant,
-  auth_uri             => $auth_uri,
-  privileged_auth_uri  => $privileged_auth_uri,
-  region               => $region,
-  identity_uri         => $identity_uri,
-  cinder_user_password => $cinder_user_password,
-  use_syslog           => hiera('use_syslog', true),
-  use_stderr           => hiera('use_stderr', false),
-  primary_controller   => $primary_controller,
-  verbose              => pick($cinder_hash['verbose'], hiera('verbose', true)),
-  debug                => pick($cinder_hash['debug'], hiera('debug', true)),
-  default_log_levels   => hiera_hash('default_log_levels'),
-  syslog_log_facility  => hiera('syslog_log_facility_cinder', 'LOG_LOCAL3'),
-  cinder_rate_limits   => hiera('cinder_rate_limits'),
-  max_retries          => $max_retries,
-  max_pool_size        => $max_pool_size,
-  max_overflow         => $max_overflow,
-  idle_timeout         => $idle_timeout,
-  notification_driver  => $ceilometer_hash['notification_driver'],
-  service_workers      => $service_workers,
-  swift_url            => $swift_url,
-} # end class
-
 if $storage_hash['volumes_block_device'] or ($sahara_hash['enabled'] and $storage_hash['volumes_lvm']) {
     $cinder_scheduler_filters = [ 'InstanceLocalityFilter' ]
 } else {
@@ -150,3 +117,177 @@ if($::operatingsystem == 'Ubuntu') {
     package_name => 'cinder-scheduler',
   }
 }
+
+include cinder::params
+
+class {'cinder::glance':
+  glance_api_servers => $glance_api_servers,
+  # Glance API v2 is required for Ceph RBD backend
+  glance_api_version => '2',
+}
+
+#NOTE(mattymo): Remove keymgr_encryption_auth_url after LP#1516085 is fixed
+$keymgr_encryption_auth_url = "${identity_uri}/v3"
+
+class { '::cinder':
+  rpc_backend            => $rpc_backend,
+  rabbit_hosts           => split(hiera('amqp_hosts',''), ':'),
+  rabbit_userid          => $rabbit_hash['user'],
+  rabbit_password        => $rabbit_hash['password'],
+  database_connection    => $db_connection,
+  verbose                => $verbose,
+  use_syslog             => $use_syslog,
+  use_stderr             => $use_stderr,
+  log_facility           => hiera('syslog_log_facility_cinder', 'LOG_LOCAL3'),
+  debug                  => $debug,
+  database_idle_timeout  => $idle_timeout,
+  database_max_pool_size => $max_pool_size,
+  database_max_retries   => $max_retries,
+  database_max_overflow  => $max_overflow,
+  control_exchange       => 'cinder',
+  rabbit_ha_queues       => true,
+}
+
+cinder_config {
+  'DEFAULT/kombu_reconnect_delay': value => '5.0';
+}
+
+if ($bind_host) {
+  class { 'cinder::api':
+    auth_uri                     => $auth_uri,
+    identity_uri                 => $identity_uri,
+    keystone_user                => $keystone_user,
+    keystone_tenant              => $keystone_tenant,
+    keystone_password            => $cinder_user_password,
+    os_region_name               => $region,
+    bind_host                    => $bind_host,
+    ratelimits                   => hiera('cinder_rate_limits'),
+    service_workers              => $service_workers,
+    privileged_user              => true,
+    os_privileged_user_password  => $cinder_user_password,
+    os_privileged_user_tenant    => $keystone_tenant,
+    os_privileged_user_auth_url  => $privileged_auth_uri,
+    os_privileged_user_name      => $keystone_user,
+    keymgr_encryption_auth_url   => $keymgr_encryption_auth_url,
+    nova_catalog_admin_info      => 'compute:nova:adminURL',
+    nova_catalog_info            => 'compute:nova:internalURL',
+    sync_db                      => $primary_controller,
+  }
+
+  class { 'cinder::scheduler': }
+
+  # Note, because keystone is enabled
+  cinder_config {
+    'keystone_authtoken/signing_dir':     value => '/tmp/keystone-signing-cinder';
+    'keystone_authtoken/signing_dirname': value => '/tmp/keystone-signing-cinder';
+  }
+}
+
+if $manage_volumes {
+  ####### Disable upstart startup on install #######
+  #NOTE(bogdando) ceph::backends::rbd creates override file as well
+  if($::operatingsystem == 'Ubuntu' and $manage_volumes != 'ceph') {
+    tweaks::ubuntu_service_override { 'cinder-volume':
+      package_name => 'cinder-volume',
+    }
+  }
+
+  if($::operatingsystem == 'Ubuntu' and $manage_volumes == 'ceph') {
+    tweaks::ubuntu_service_override { 'tgtd-service':
+      package_name => $::cinder::params::tgt_package_name,
+      service_name => $::cinder::params::tgt_service_name,
+    }
+    package { $::cinder::params::tgt_package_name:
+      ensure => installed,
+      name   => $::cinder::params::tgt_package_name,
+      before => Class['cinder::volume'],
+    }
+    service { "$::cinder::params::tgt_service_name":
+      ensure => stopped,
+      enable => false,
+    }
+  }
+
+  class { 'cinder::volume': }
+
+  # TODO(xarses): figure out if this is used anymore, it was a param, but
+  # we don't set it, and it's only used my mlnx
+  $iser = false
+
+  # TODO(xarses) figure out if these are still used too
+  $rbd_pool               = 'volumes'
+  $rbd_user               = 'volumes'
+  $rbd_secret_uuid        = 'a5d0dd94-57c4-ae55-ffe0-7e3732a24455'
+
+
+  case $manage_volumes {
+    true, 'iscsi': {
+      cinder::backend::iscsi { 'DEFAULT':
+        iscsi_ip_address    => $iscsi_bind_host,
+        volume_group        => $volume_group,
+        volume_backend_name => $volume_backend_name,
+      }
+
+      class { 'cinder::backup': }
+
+      tweaks::ubuntu_service_override { 'cinder-backup':
+        package_name => 'cinder-backup',
+      }
+
+      class { 'cinder::backup::swift':
+        backup_swift_url      => "${swift_url}/v1/AUTH_",
+        backup_swift_auth_url => "${auth_uri}/v2.0",
+      }
+    }
+    'ceph': {
+      if defined(Class['::ceph']) {
+        Ceph::Pool<| title == $::ceph::cinder_pool |> ->
+        Cinder::Backend::Rbd['DEFAULT']
+      }
+
+      cinder::backend::rbd { 'DEFAULT':
+        rbd_pool            => $rbd_pool,
+        rbd_user            => $rbd_user,
+        rbd_secret_uuid     => $rbd_secret_uuid,
+        volume_backend_name => $volume_backend_name,
+      }
+
+      class { 'cinder::backup': }
+
+      tweaks::ubuntu_service_override { 'cinder-backup':
+        package_name => 'cinder-backup',
+      }
+
+      class { 'cinder::backup::ceph':
+        backup_ceph_user => 'backups',
+        backup_ceph_pool => 'backups',
+      }
+    }
+    'fake': {
+      class { 'cinder::config':
+        cinder_config => {
+          'DEFAULT/iscsi_ip_address'    => { value => $iscsi_bind_host },
+          'DEFAULT/iscsi_helper'        => { value => 'fake' },
+          'DEFAULT/iscsi_protocol'      => { value => 'iscsi' },
+          'DEFAULT/volume_backend_name' => { value => $volume_backend_name },
+          'DEFAULT/volume_driver'       => { value => 'cinder.volume.drivers.block_device.BlockDeviceDriver' },
+          'DEFAULT/volume_group'        => { value => 'cinder' },
+          'DEFAULT/volume_dir'          => { value => '/var/lib/cinder/volumes' },
+        }
+      }
+    }
+  }
+}
+
+if $use_syslog {
+  cinder_config {
+    'DEFAULT/use_syslog_rfc_format': value => true;
+  }
+}
+
+if $ceilometer_hash['notification_driver'] {
+  class { 'cinder::ceilometer':
+    notification_driver => $ceilometer_hash['notification_driver']
+  }
+}
+
