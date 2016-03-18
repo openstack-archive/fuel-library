@@ -1,4 +1,4 @@
-if [ "z`umm status`" == "zumm" ] ; then
+if [ "z`umm status`" = "zumm" ] ; then
     cat /etc/issue.mm
     [ "$#" != "0" ] && echo "$@"
 fi
