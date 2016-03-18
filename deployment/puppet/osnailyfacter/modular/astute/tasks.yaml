@@ -23,25 +23,42 @@
 
 - id: upload_nodes_info
   type: upload_file
-  version: 2.0.0
-  role: '*'
+  version: 2.1.0
+  role: ['/.*/']
   requires: [post_deployment_start]
   parameters:
     path: /etc/hiera/nodes.yaml
+    data:
+      generator: from_deployment_info_as_yaml
+      generator_args: nodes
 
 - id: upload_configuration
   type: upload_file
-  version: 2.0.0
-  role: '*'
+  version: 2.1.0
+  role: ['/.*/']
   requires: [override_configuration]
   required_for: [pre_deployment_end]
   parameters:
+    path: /etc/fuel/cluster/{CLUSTER_ID}/astute.yaml
+    timeout: 180
+    data:
+      generator: from_deployment_info_as_yaml
+      generator_args: configs
+
+- id: configuration_symlink
+  type: shell
+  version: 2.1.0
+  role: ['/.*/']
+  requires: [upload_configuration]
+  required_for: [pre_deployment_end]
+  parameters:
+    cmd: ln -sf /etc/fuel/cluster/{CLUSTER_ID}/astute.yaml /etc/astute.yaml
     timeout: 180
 
 - id: update_hosts
   type: puppet
   version: 2.0.0
-  role: '*'
+  role: ['/.*/']
   required_for: [post_deployment_end]
   requires: [upload_nodes_info]
   parameters:
@@ -56,7 +73,7 @@
   role: [primary-controller, compute-vmware]
   requires: [post_deployment_start, enable_nova_compute_service]
   required_for: [post_deployment_end]
-  condition: "settings:common.use_vcenter.value == true"
+  condition: "settings:use_vcenter == true"
   parameters:
     cmd: /usr/bin/python /etc/puppet/modules/osnailyfacter/modular/astute/vcenter_hooks.py --create_zones
     timeout: 180
@@ -103,7 +120,7 @@
 - id: rsync_core_puppet
   type: sync
   version: 2.0.0
-  role: '*'
+  role: ['/.*/']
   requires: [pre_deployment_start]
   required_for: [pre_deployment_end]
   parameters:
@@ -115,7 +132,7 @@
 - id: clear_nodes_info
   type: shell
   version: 2.0.0
-  role: '*'
+  role: ['/.*/']
   requires: [pre_deployment_start]
   required_for: [pre_deployment_end]
   parameters:
@@ -125,7 +142,7 @@
 - id: copy_keys
   type: copy_files
   version: 2.0.0
-  role: '*'
+  role: ['/.*/']
   required_for: [pre_deployment_end]
   requires: [generate_keys]
   cross-depends:
@@ -169,7 +186,7 @@
   version: 2.0.0
   role: master
   requires: [pre_deployment_start]
-  condition: "(settings:public_ssl.horizon.value == true or settings:public_ssl.services.value == true) and settings:public_ssl.cert_source.value == 'self_signed'"
+  condition: "(settings:public_ssl.horizon == true or settings:public_ssl.services == true) and settings:public_ssl.cert_source == 'self_signed'"
   required_for: [copy_haproxy_keys]
   parameters:
     cmd: sh /etc/puppet/modules/osnailyfacter/modular/astute/generate_haproxy_keys.sh -i {CLUSTER_ID} -h {CN_HOSTNAME} -o 'haproxy' -p /var/lib/fuel/keys/
@@ -178,13 +195,13 @@
 - id: copy_haproxy_keys
   type: copy_files
   version: 2.0.0
-  role: '*'
+  role: ['/.*/']
   required_for: [pre_deployment_end]
   requires: [generate_haproxy_keys]
   cross-depends:
       - name: generate_haproxy_keys
         role: master
-  condition: "(settings:public_ssl.horizon.value == true or settings:public_ssl.services.value == true) and settings:public_ssl.cert_source.value == 'self_signed'"
+  condition: "(settings:public_ssl.horizon == true or settings:public_ssl.services == true) and settings:public_ssl.cert_source == 'self_signed'"
   parameters:
     files:
       - src: /var/lib/fuel/keys/{CLUSTER_ID}/haproxy/public_haproxy.pem
@@ -197,7 +214,7 @@
 - id: sync_time
   type: shell
   version: 2.0.0
-  role: '*'
+  role: ['/.*/']
   requires: [pre_deployment_start]
   required_for: [pre_deployment_end]
   parameters:
@@ -209,7 +226,7 @@
 - id: pre_hiera_config
   type: puppet
   version: 2.0.0
-  role: '*'
+  role: ['/.*/']
   requires: [pre_deployment_start, rsync_core_puppet]
   required_for: [pre_deployment_end]
   parameters:
@@ -221,7 +238,7 @@
 - id: override_configuration
   type: puppet
   version: 2.0.0
-  role: '*'
+  role: ['/.*/']
   requires: [pre_hiera_config]
   required_for: [pre_deployment_end]
   parameters:
@@ -246,7 +263,7 @@
   type: shell
   version: 2.0.0
   role: [primary-controller]
-  condition: "settings:additional_components.ironic.value == true"
+  condition: "settings:ironic.enabled == true"
   requires: [enable_quorum, enable_rados]
   required_for: [post_deployment_end]
   parameters:
@@ -259,7 +276,7 @@
   type: shell
   version: 2.0.0
   role: [primary-controller]
-  condition: "settings:additional_components.ironic.value == true"
+  condition: "settings:ironic.enabled == true"
   required_for: [post_deployment_end]
   requires: [enable_quorum, enable_rados]
   parameters:
@@ -272,7 +289,7 @@
   type: copy_files
   version: 2.0.0
   role: [ironic]
-  condition: "settings:additional_components.ironic.value == true"
+  condition: "settings:ironic.enabled == true"
   required_for: [pre_deployment_end]
   requires: [pre_deployment_start]
   parameters:
