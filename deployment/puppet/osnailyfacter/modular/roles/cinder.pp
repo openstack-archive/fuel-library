@@ -5,43 +5,25 @@ $network_scheme   = hiera_hash('network_scheme', {})
 $network_metadata = hiera_hash('network_metadata', {})
 prepare_network_config($network_scheme)
 
-$cinder_hash                    = hiera_hash('cinder', {})
-$storage_address                = get_network_role_property('cinder/iscsi', 'ipaddr')
-$public_vip                     = hiera('public_vip')
-$management_vip                 = hiera('management_vip')
-$primary_controller             = hiera('primary_controller')
-$use_neutron                    = hiera('use_neutron', false)
-$mp_hash                        = hiera('mp')
-$verbose                        = pick($cinder_hash['verbose'], true)
-$debug                          = pick($cinder_hash['debug'], hiera('debug', true))
-$auto_assign_floating_ip        = hiera('auto_assign_floating_ip', false)
-$node_volumes                   = hiera('node_volumes', [])
-$storage_hash                   = hiera_hash('storage', {})
-$vcenter_hash                   = hiera_hash('vcenter', {})
-$nova_hash                      = hiera_hash('nova', {})
-$mysql_hash                     = hiera_hash('mysql', {})
-$rabbit_hash                    = hiera_hash('rabbit', {})
-$glance_hash                    = hiera_hash('glance', {})
-$keystone_hash                  = hiera_hash('keystone', {})
-$ceilometer_hash                = hiera_hash('ceilometer', {})
-$access_hash                    = hiera_hash('access', {})
-$neutron_mellanox               = hiera('neutron_mellanox', false)
-$syslog_hash                    = hiera_hash('syslog', {})
-$base_syslog_hash               = hiera_hash('base_syslog', {})
-$use_stderr                     = hiera('use_stderr', false)
-$use_syslog                     = hiera('use_syslog', true)
-$syslog_log_facility_glance     = hiera('syslog_log_facility_glance', 'LOG_LOCAL2')
-$syslog_log_facility_cinder     = hiera('syslog_log_facility_cinder', 'LOG_LOCAL3')
-$syslog_log_facility_neutron    = hiera('syslog_log_facility_neutron', 'LOG_LOCAL4')
-$syslog_log_facility_nova       = hiera('syslog_log_facility_nova','LOG_LOCAL6')
-$syslog_log_facility_keystone   = hiera('syslog_log_facility_keystone', 'LOG_LOCAL7')
-$syslog_log_facility_murano     = hiera('syslog_log_facility_murano', 'LOG_LOCAL0')
-$syslog_log_facility_sahara     = hiera('syslog_log_facility_sahara','LOG_LOCAL0')
-$syslog_log_facility_ceph       = hiera('syslog_log_facility_ceph','LOG_LOCAL0')
-$proxy_port                     = hiera('proxy_port', '8080')
+$cinder_hash                = hiera_hash('cinder', {})
+$volume_group               = hiera('cinder_volume_group', 'cinder')
+$iscsi_bind_host            = get_network_role_property('cinder/iscsi', 'ipaddr')
+$public_vip                 = hiera('public_vip')
+$management_vip             = hiera('management_vip')
+$verbose                    = pick($cinder_hash['verbose'], true)
+$debug                      = pick($cinder_hash['debug'], hiera('debug', true))
+$node_volumes               = hiera('node_volumes', [])
+$storage_hash               = hiera_hash('storage', {})
+$rabbit_hash                = hiera_hash('rabbit', {})
+$ceilometer_hash            = hiera_hash('ceilometer', {})
+$use_stderr                 = hiera('use_stderr', false)
+$use_syslog                 = hiera('use_syslog', true)
+$syslog_log_facility_cinder = hiera('syslog_log_facility_cinder', 'LOG_LOCAL3')
+$syslog_log_facility_ceph   = hiera('syslog_log_facility_ceph','LOG_LOCAL0')
+$proxy_port                 = hiera('proxy_port', '8080')
 
-$keystone_user                  = pick($cinder_hash['user'], 'cinder')
-$keystone_tenant                = pick($cinder_hash['tenant'], 'services')
+$keystone_user              = pick($cinder_hash['user'], 'cinder')
+$keystone_tenant            = pick($cinder_hash['tenant'], 'services')
 
 $db_type      = 'mysql'
 $db_host      = pick($cinder_hash['db_host'], hiera('database_vip'))
@@ -63,15 +45,15 @@ $db_connection = os_database_connection({
   'extra'    => $extra_params
 })
 
-$ssl_hash                       = hiera_hash('use_ssl', {})
-$service_endpoint               = hiera('service_endpoint')
+$ssl_hash                = hiera_hash('use_ssl', {})
+$service_endpoint        = hiera('service_endpoint')
 
-$keystone_auth_protocol         = get_ssl_property($ssl_hash, {}, 'keystone', 'internal', 'protocol', 'http')
-$keystone_auth_host             = get_ssl_property($ssl_hash, {}, 'keystone', 'internal', 'hostname', [$service_endpoint, $management_vip])
+$keystone_auth_protocol  = get_ssl_property($ssl_hash, {}, 'keystone', 'internal', 'protocol', 'http')
+$keystone_auth_host      = get_ssl_property($ssl_hash, {}, 'keystone', 'internal', 'hostname', [$service_endpoint, $management_vip])
 
-$glance_protocol                = get_ssl_property($ssl_hash, {}, 'glance', 'internal', 'protocol', 'http')
-$glance_endpoint                = get_ssl_property($ssl_hash, {}, 'glance', 'internal', 'hostname', [$management_vip])
-$glance_internal_ssl            = get_ssl_property($ssl_hash, {}, 'glance', 'internal', 'usage', false)
+$glance_protocol         = get_ssl_property($ssl_hash, {}, 'glance', 'internal', 'protocol', 'http')
+$glance_endpoint         = get_ssl_property($ssl_hash, {}, 'glance', 'internal', 'hostname', [$management_vip])
+$glance_internal_ssl     = get_ssl_property($ssl_hash, {}, 'glance', 'internal', 'usage', false)
 
 $swift_internal_protocol = get_ssl_property($ssl_hash, {}, 'swift', 'internal', 'protocol', 'http')
 $swift_internal_address  = get_ssl_property($ssl_hash, {}, 'swift', 'internal', 'hostname', [$management_vip])
@@ -87,25 +69,11 @@ if $glance_internal_ssl {
 $service_port = '5000'
 $auth_uri     = "${keystone_auth_protocol}://${keystone_auth_host}:${service_port}/"
 
-# TODO: openstack_version is confusing, there's such string var in hiera and hardcoded hash
-$hiera_openstack_version = hiera('openstack_version')
-$openstack_version = {
-  'keystone'   => 'installed',
-  'glance'     => 'installed',
-  'horizon'    => 'installed',
-  'nova'       => 'installed',
-  'novncproxy' => 'installed',
-  'cinder'     => 'installed',
-}
-
-$queue_provider = hiera('queue_provider', 'rabbitmq')
-$custom_mysql_setup_class='galera'
-
-# Do the stuff
-if $neutron_mellanox {
-  $mellanox_mode = $neutron_mellanox['plugin']
+$queue_provider = hiera('queue_provider', 'rabbit')
+if $queue_provider == 'rabbitmq'{
+  $rpc_backend    = 'rabbit'
 } else {
-  $mellanox_mode = 'disabled'
+  $rpc_backend = $queue_provider
 }
 
 if (!empty(get_nodes_hash_by_roles($network_metadata, ['ceph-osd'])) or
@@ -117,36 +85,6 @@ if (!empty(get_nodes_hash_by_roles($network_metadata, ['ceph-osd'])) or
 } else {
   $use_ceph = false
 }
-
-if $use_neutron {
-  $neutron_config = hiera('quantum_settings')
-} else {
-  $neutron_config = {}
-}
-
-if $primary_controller {
-  if ($mellanox_mode == 'ethernet') {
-    $test_vm_pkg = 'cirros-testvm-mellanox'
-  } else {
-    $test_vm_pkg = 'cirros-testvm'
-  }
-  package { 'cirros-testvm' :
-    ensure => 'installed',
-    name   => $test_vm_pkg,
-  }
-}
-
-if ! $use_neutron {
-  $floating_ips_range = hiera('floating_network_range')
-}
-$floating_hash = {}
-
-##CALCULATED PARAMETERS
-
-
-##NO NEED TO CHANGE
-
-$mountpoints = filter_hash($mp_hash,'point')
 
 # SQLAlchemy backend configuration
 $max_pool_size = min($::processorcount * 5 + 0, 30 + 0)
@@ -177,60 +115,33 @@ if (roles_include(['cinder']) and $storage_hash['volumes_lvm']) {
   $volume_backend_name = false
 }
 
-#Determine who should be the default backend
-
-if ($storage_hash['images_ceph']) {
-  $glance_backend = 'ceph'
-  $glance_known_stores = [ 'glance.store.rbd.Store', 'glance.store.http.Store' ]
-} elsif ($storage_hash['images_vcenter']) {
-  $glance_backend = 'vmware'
-  $glance_known_stores = [ 'glance.store.vmware_datastore.Store', 'glance.store.http.Store' ]
-} else {
-  $glance_backend = 'swift'
-  $glance_known_stores = [ 'glance.store.swift.Store', 'glance.store.http.Store' ]
-}
-
-#HARDCODED PARAMETERS
-
-$multi_host = true
-$mirror_type = 'external'
 Exec { logoutput => true }
 
 
 #################################################################
 # we need to evaluate ceph here, because ceph notifies/requires
 # other services that are declared in openstack manifests
+# TODO(xarses): somone needs to refactor this out
+# https://bugs.launchpad.net/fuel/+bug/1558831
 if ($use_ceph and !$storage_hash['volumes_lvm'] and !roles_include(['cinder-vmware'])) {
-  $primary_mons   = $controllers
-  $primary_mon    = $controllers[0]['name']
 
-  if ($use_neutron) {
-    prepare_network_config(hiera_hash('network_scheme', {}))
-    $ceph_cluster_network = get_network_role_property('ceph/replication', 'network')
-    $ceph_public_network  = get_network_role_property('ceph/public', 'network')
-  } else {
-    $ceph_cluster_network = hiera('storage_network_range')
-    $ceph_public_network = hiera('management_network_range')
-  }
+  prepare_network_config(hiera_hash('network_scheme', {}))
+  $ceph_cluster_network = get_network_role_property('ceph/replication', 'network')
+  $ceph_public_network  = get_network_role_property('ceph/public', 'network')
+
 
   class {'::ceph':
-    primary_mon              => $primary_mon,
+    primary_mon              => hiera('ceph_primary_monitor_node'),
     mon_hosts                => nodes_with_roles(['primary-controller', 'controller', 'ceph-mon'], 'name'),
     mon_ip_addresses         => get_node_to_ipaddr_map_by_network_role(get_nodes_hash_by_roles($network_metadata, ['primary-controller', 'controller', 'ceph-mon']), 'mgmt/vip'),
     cluster_node_address     => $public_vip,
     osd_pool_default_size    => $storage_hash['osd_pool_size'],
     osd_pool_default_pg_num  => $storage_hash['pg_num'],
     osd_pool_default_pgp_num => $storage_hash['pg_num'],
-    use_rgw                  => $storage_hash['objects_ceph'],
-    glance_backend           => $glance_backend,
-    rgw_pub_ip               => $public_vip,
-    rgw_adm_ip               => $management_vip,
-    rgw_int_ip               => $management_vip,
     cluster_network          => $ceph_cluster_network,
     public_network           => $ceph_public_network,
     use_syslog               => $use_syslog,
     syslog_log_facility      => $syslog_log_facility_ceph,
-    rgw_keystone_admin_token => $keystone_hash['admin_token'],
     ephemeral_ceph           => $storage_hash['ephemeral_ceph']
   }
 }
@@ -244,10 +155,7 @@ package { 'python-amqp':
   ensure => present
 }
 
-if roles_include(['controller', 'primary-controller']) {
-  $bind_host = get_network_role_property('cinder/api', 'ipaddr')
-} else {
-  $bind_host = false
+if !roles_include(['controller', 'primary-controller']) {
   # Configure auth_strategy on cinder node, if cinder and controller are
   # on the same node this parameter is configured by ::cinder::api
   cinder_config {
@@ -255,50 +163,150 @@ if roles_include(['controller', 'primary-controller']) {
   }
 }
 
-# NOTE(bogdando) deploy cinder volume node with disabled cinder-volume
-#   service #LP1398817. The orchestration will start and enable it back
-#   after the deployment is done.
-class { '::openstack::cinder':
-  enable_volumes       => false,
-  sql_connection       => $db_connection,
-  glance_api_servers   => $glance_api_servers,
-  bind_host            => $bind_host,
-  queue_provider       => $queue_provider,
-  amqp_hosts           => hiera('amqp_hosts',''),
-  amqp_user            => pick($rabbit_hash['user'], 'nova'),
-  amqp_password        => $rabbit_hash['password'],
-  rabbit_ha_queues     => hiera('rabbit_ha_queues', false),
-  volume_group         => 'cinder',
-  manage_volumes       => $manage_volumes,
-  iser                 => $storage_hash['iser'],
-  enabled              => true,
-  iscsi_bind_host      => $storage_address,
-  keystone_user        => $keystone_user,
-  keystone_tenant      => $keystone_tenant,
-  cinder_user_password => $cinder_hash[user_password],
-  syslog_log_facility  => $syslog_log_facility_cinder,
-  physical_volume      => $physical_volumes,
-  volume_backend_name  => $volume_backend_name,
-  debug                => $debug,
-  verbose              => $verbose,
-  use_stderr           => $use_stderr,
-  use_syslog           => $use_syslog,
-  max_retries          => $max_retries,
-  max_pool_size        => $max_pool_size,
-  max_overflow         => $max_overflow,
-  idle_timeout         => $idle_timeout,
-  notification_driver  => $ceilometer_hash['notification_driver'],
-  vmware_host_ip       => $vcenter_hash['host_ip'],
-  vmware_host_username => $vcenter_hash['vc_user'],
-  vmware_host_password => $vcenter_hash['vc_password'],
-  auth_uri             => $auth_uri,
-  identity_uri         => $auth_uri,
-  swift_url            => $swift_url,
-}
-
 cinder_config { 'keymgr/fixed_key':
   value => $cinder_hash[fixed_key];
 }
+
+include cinder::params
+
+class {'cinder::glance':
+  glance_api_servers => $glance_api_servers,
+  # Glance API v2 is required for Ceph RBD backend
+  glance_api_version => '2',
+}
+
+class { '::cinder':
+  rpc_backend            => $rpc_backend,
+  rabbit_hosts           => split(hiera('amqp_hosts',''), ','),
+  rabbit_userid          => $rabbit_hash['user'],
+  rabbit_password        => $rabbit_hash['password'],
+  rabbit_ha_queues       => hiera('rabbit_ha_queues', false),
+  database_connection    => $db_connection,
+  verbose                => $verbose,
+  use_syslog             => $use_syslog,
+  use_stderr             => $use_stderr,
+  log_facility           => hiera('syslog_log_facility_cinder', 'LOG_LOCAL3'),
+  debug                  => $debug,
+  database_idle_timeout  => $idle_timeout,
+  database_max_pool_size => $max_pool_size,
+  database_max_retries   => $max_retries,
+  database_max_overflow  => $max_overflow,
+  control_exchange       => 'cinder',
+}
+
+if $manage_volumes {
+  ####### Disable upstart startup on install #######
+  #NOTE(bogdando) ceph::backends::rbd creates override file as well
+  if($::operatingsystem == 'Ubuntu' and $manage_volumes != 'ceph') {
+    tweaks::ubuntu_service_override { 'cinder-volume':
+      package_name => 'cinder-volume',
+    }
+  }
+
+  if($::operatingsystem == 'Ubuntu' and $manage_volumes == 'ceph') {
+    tweaks::ubuntu_service_override { 'tgtd-service':
+      package_name => $::cinder::params::tgt_package_name,
+      service_name => $::cinder::params::tgt_service_name,
+    }
+    package { $::cinder::params::tgt_package_name:
+      ensure => installed,
+      name   => $::cinder::params::tgt_package_name,
+      before => Class['cinder::volume'],
+    }
+    service { $::cinder::params::tgt_service_name:
+      ensure => stopped,
+      enable => false,
+    }
+  }
+
+  # NOTE(bogdando) deploy cinder volume node with disabled cinder-volume
+  #   service #LP1398817. The orchestration will start and enable it back
+  #   after the deployment is done.
+  class { 'cinder::volume':
+    enabled    => false,
+  }
+
+  # TODO(xarses): clean up static vars
+  $rbd_pool         = 'volumes'
+  $rbd_user         = 'volumes'
+  $rbd_secret_uuid  = 'a5d0dd94-57c4-ae55-ffe0-7e3732a24455'
+
+  case $manage_volumes {
+    true, 'iscsi': {
+      cinder::backend::iscsi { 'DEFAULT':
+        iscsi_ip_address    => $iscsi_bind_host,
+        volume_group        => $volume_group,
+        volume_backend_name => $volume_backend_name,
+      }
+      class { 'mellanox_openstack::cinder':
+        iser            => $storage_hash['iser'],
+        iser_ip_address => $iscsi_bind_host,
+      }
+
+      class { 'cinder::backup': }
+
+      tweaks::ubuntu_service_override { 'cinder-backup':
+        package_name => 'cinder-backup',
+      }
+
+      class { 'cinder::backup::swift':
+        backup_swift_url      => "${swift_url}/v1/AUTH_",
+        backup_swift_auth_url => "${auth_uri}/v2.0",
+      }
+    }
+    'ceph': {
+      if defined(Class['::ceph']) {
+        Ceph::Pool<| title == $::ceph::cinder_pool |> ->
+        Cinder::Backend::Rbd['DEFAULT']
+      }
+
+      cinder::backend::rbd { 'DEFAULT':
+        rbd_pool            => $rbd_pool,
+        rbd_user            => $rbd_user,
+        rbd_secret_uuid     => $rbd_secret_uuid,
+        volume_backend_name => $volume_backend_name,
+      }
+
+      class { 'cinder::backup': }
+
+      tweaks::ubuntu_service_override { 'cinder-backup':
+        package_name => 'cinder-backup',
+      }
+
+      class { 'cinder::backup::ceph':
+        backup_ceph_user => 'backups',
+        backup_ceph_pool => 'backups',
+      }
+    }
+    'fake': {
+      class { 'cinder::config':
+        cinder_config => {
+          'DEFAULT/iscsi_ip_address'    => { value => $iscsi_bind_host },
+          'DEFAULT/iscsi_helper'        => { value => 'fake' },
+          'DEFAULT/iscsi_protocol'      => { value => 'iscsi' },
+          'DEFAULT/volume_backend_name' => { value => $volume_backend_name },
+          'DEFAULT/volume_driver'       => { value => 'cinder.volume.drivers.block_device.BlockDeviceDriver' },
+          'DEFAULT/volume_group'        => { value => 'cinder' },
+          'DEFAULT/volume_dir'          => { value => '/var/lib/cinder/volumes' },
+          'DEFAULT/available_devices'   => { value => $physical_volume },
+        }
+      }
+    }
+  }
+}
+
+if $use_syslog {
+  cinder_config {
+    'DEFAULT/use_syslog_rfc_format': value => true;
+  }
+}
+
+if $notification_driver {
+  class { 'cinder::ceilometer':
+    notification_driver => $ceilometer_hash['notification_driver'],
+  }
+}
+
 
 #################################################################
 
