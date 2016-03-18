@@ -28,7 +28,7 @@ describe manifest do
         is_expected.to contain_keystone_config('DEFAULT/admin_token').with_ensure('absent')
       end
 
-      it 'should contain exec of remove AdminTokenAuthMiddleware from pipelines' do
+      it 'should contain class to remove AdminTokenAuthMiddleware from pipelines' do
         case facts[:osfamily]
           when 'Debian'
             paste_ini = '/etc/keystone/keystone-paste.ini'
@@ -36,11 +36,14 @@ describe manifest do
             paste_ini = '/usr/share/keystone/keystone-dist-paste.ini'
         end
 
-        is_expected.to contain_exec('remove_admin_token_auth_middleware').with(
-          :path    => ['/bin', '/usr/bin'],
-          :command => "sed -i.dist 's/ admin_token_auth//' #{paste_ini}",
-          :onlyif  => "fgrep -q ' admin_token_auth' #{paste_ini}",
-        )
+        is_expected.to contain_class('keystone::disable_admin_token_auth')
+
+        is_expected.to contain_ini_subsetting('public_api/admin_token_auth')
+          .with_path(paste_ini)
+        is_expected.to contain_ini_subsetting('admin_api/admin_token_auth')
+          .with_path(paste_ini)
+        is_expected.to contain_ini_subsetting('api_v3/admin_token_auth')
+          .with_path(paste_ini)
       end
     end
 

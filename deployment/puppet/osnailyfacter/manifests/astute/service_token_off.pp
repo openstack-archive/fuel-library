@@ -17,19 +17,6 @@ class osnailyfacter::astute::service_token_off {
       'DEFAULT/admin_token': ensure => absent;
     }
 
-    # Get paste.ini source
-    $keystone_paste_ini = $::keystone::params::paste_config ? {
-      undef   => '/etc/keystone/keystone-paste.ini',
-      default => $::keystone::params::paste_config,
-    }
-
-    # Remove admin_token_auth middleware from public/admin/v3 pipelines
-    exec { 'remove_admin_token_auth_middleware':
-      path    => ['/bin', '/usr/bin'],
-      command => "sed -i.dist 's/ admin_token_auth//' ${keystone_paste_ini}",
-      onlyif  => "fgrep -q ' admin_token_auth' ${keystone_paste_ini}",
-    }
-
     service { 'httpd':
       ensure => 'running',
       name   => $::tweaks::apache_wrappers::service_name,
@@ -38,7 +25,24 @@ class osnailyfacter::astute::service_token_off {
 
     # Restart service that changes to take effect
     Keystone_config<||> ~> Service['httpd']
-    Exec['remove_admin_token_auth_middleware'] ~> Service['httpd']
+
+    # Get paste.ini source
+    $keystone_paste_ini = $::keystone::params::paste_config ? {
+      undef   => '/etc/keystone/keystone-paste.ini',
+      default => $::keystone::params::paste_config,
+    }
+
+    # Disable admin_token_auth middleware in public/admin/v3 pipelines
+    include ::keystone::disable_admin_token_auth
+    Ini_subsetting <| title == 'public_api/admin_token_auth' |> {
+      path => $keystone_paste_ini
+    }
+    Ini_subsetting <| title == 'admin_api/admin_token_auth' |> {
+      path => $keystone_paste_ini
+    }
+    Ini_subsetting <| title == 'api_v3/admin_token_auth' |> {
+      path => $keystone_paste_ini
+    }
 
   }
 
