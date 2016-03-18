@@ -17,6 +17,7 @@ describe manifest do
   max_retries = '-1'
   max_overflow = 20
   cinder_hash = Noop.hiera_structure 'cinder'
+  ceilometer_hash = Noop.hiera_structure 'ceilometer'
   workers_max = Noop.hiera 'workers_max'
   rabbit_ha_queues = Noop.hiera('rabbit_ha_queues')
   cinder_user = Noop.hiera_structure('cinder/user', "cinder")
@@ -96,16 +97,11 @@ describe manifest do
   identity_uri        = "#{internal_auth_protocol}://#{keystone_auth_host}:5000/"
   privileged_auth_uri = "#{internal_auth_protocol}://#{keystone_auth_host}:5000/v2.0/"
 
-  it 'should declare cinder::api class with 4 processess on 4 CPU & 32G system' do
-    should contain_class('cinder::api').with(
-      'service_workers' => '4',
-    )
-  end
-
   it 'should configure workers for API service' do
     fallback_workers = [[facts[:processorcount].to_i, 2].max, workers_max.to_i].min
     service_workers = cinder_hash.fetch('workers', fallback_workers)
     should contain_cinder_config('DEFAULT/osapi_volume_workers').with(:value => service_workers)
+    should contain_class('cinder::api').with('service_workers' => service_workers,)
   end
 
   it 'ensures cinder_config contains auth_uri and identity_uri ' do
@@ -168,25 +164,49 @@ describe manifest do
   end
 
   it 'ensures that cinder have proper volume_backend_name' do
-    if use_ceph
-      should contain_class('openstack::cinder').with(
-        'manage_volumes'      => manage_volumes,
-        'volume_backend_name' => volume_backend_name['volumes_ceph']
+    if cinder and storage['volumes_lvm']
+      should contain_cinder__backend__iscsi('DEFAULT').with(
+        'volume_backend_name' => volume_backend_name['volumes_lvm']
       )
-    elsif storage['volumes_lvm']
-      if cinder
-        should contain_class('openstack::cinder').with(
-          'manage_volumes'      => manage_volumes,
-          'volume_backend_name' => volume_backend_name['volumes_lvm']
-        )
-      else
-        should contain_class('openstack::cinder').with(
-          'manage_volumes'      => manage_volumes,
-          'volume_backend_name' => 'false'
-        )
-      end
+    elsif storage['volumes_ceph']
+      should contain_cinder__backend__rbd('DEFAULT').with(
+       'volume_backend_name' => volume_backend_name['volumes_ceph']
+      )
+    else
+      should_not contain_cinder_config('DEFAULT/volume_backend_name')
     end
   end
+
+  it 'should contain notification_driver option' do
+    if ceilometer_hash['enabled']
+      should contain_cinder_config('DEFAULT/notification_driver').with(:value => ceilometer_hash['notification_driver'])
+    else
+      should_not contain_cinder_config('DEFAULT/notification_driver')
+    end
+  end
+
+    let (:bind_host) do
+      Noop.puppet_function('get_network_role_property', 'cinder/api', 'ipaddr')
+    end
+
+
+  it { is_expected.to contain_class('cinder::api').with(
+    'bind_host'                  => bind_host,
+    'identity_uri'               => identity_uri,
+    'keymgr_encryption_auth_url' => "#{identity_uri}/v3",
+  ) }
+
+  it { is_expected.to contain_class('cinder') }
+  it { is_expected.to contain_class('cinder::glance') }
+  it { is_expected.to contain_class('cinder::logging') }
+  it { is_expected.to contain_class('cinder::scheduler') }
+  it {
+    if manage_volumes
+      is_expected.to contain_class('cinder::volume')
+    else
+      is_expected.to_not contain_class('cinder::volume')
+    end
+  }
 
   end # end of shared_examples
 
