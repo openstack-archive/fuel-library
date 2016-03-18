@@ -4,7 +4,7 @@
   groups: [primary-controller, controller]
   required_for: [deploy_end]
   requires: [controller_remaining_tasks]
-  condition: "settings:common.use_vcenter.value == true"
+  condition: "settings:use_vcenter == true"
   parameters:
     puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/vmware/vcenter.pp
     puppet_modules: /etc/puppet/modules
@@ -16,7 +16,7 @@
   groups: [cinder-vmware]
   required_for: [deploy_end]
   requires: [top-role-cinder]
-  condition: "settings:common.use_vcenter.value == true"
+  condition: "settings:use_vcenter == true"
   parameters:
     puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/vmware/cinder-vmware.pp
     puppet_modules: /etc/puppet/modules
@@ -32,7 +32,7 @@
   groups: [compute-vmware]
   required_for: [enable_nova_compute_service]
   requires: [top-role-compute, ceilometer-compute, ceilometer-keystone]
-  condition: "settings:common.use_vcenter.value == true"
+  condition: "settings:use_vcenter == true"
   parameters:
     puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/vmware/compute-vmware.pp
     puppet_modules: /etc/puppet/modules

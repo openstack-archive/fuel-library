@@ -283,7 +283,7 @@
   type: puppet
   version: 2.0.0
   groups: [primary-controller, controller]
-  condition: "settings:additional_components.ironic.value == true"
+  condition: "settings:ironic.enabled == true"
   required_for: [deploy_end]
   requires: [deploy_start, primary-cluster-haproxy, cluster-haproxy]
   cross-depends:
