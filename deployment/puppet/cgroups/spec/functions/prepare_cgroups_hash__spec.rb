@@ -143,6 +143,37 @@ describe Puppet::Parser::Functions.function(:prepare_cgroups_hash) do
 
   end
 
+  context "transform hash with empty service's settings" do
+
+    let(:sample) {
+      {
+        'metadata' => {
+          'always_editable' => true,
+          'group' => 'general',
+          'label' => 'Cgroups',
+          'weight' => 50
+        },
+        'nova' => '{"memory":{"memory.soft_limit_in_bytes":700}}',
+        'cinder-api'  => '{}'
+      }
+    }
+
+    let(:result) {
+      {
+        'nova' => {
+          'memory' => {
+            'memory.soft_limit_in_bytes' => 700 * 1024 * 1024
+          }
+        }
+      }
+    }
+
+    it 'should transform hash with empty service settings' do
+      should run.with_params(sample).and_return(result)
+    end
+
+  end
+
   context "wrong JSON format" do
 
     let(:sample) {

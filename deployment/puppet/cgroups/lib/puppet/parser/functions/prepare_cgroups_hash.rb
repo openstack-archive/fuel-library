@@ -75,7 +75,7 @@ Puppet::Parser::Functions::newfunction(:prepare_cgroups_hash, :type => :rvalue, 
         raise("'#{service}': group '#{group}': option '#{option}' has wrong value") if options[option].nil?
       end
     end
-    serialized_data[service] = hash_settings
+    serialized_data[service] = hash_settings unless hash_settings.empty?
   end
   serialized_data
 end
