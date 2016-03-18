@@ -2,8 +2,29 @@ Source: fuel-library9.0
 Section: admin
 Priority: optional
 Maintainer: Mirantis Product <product@mirantis.com>
-Build-Depends: debhelper (>= 7), python-all
+Build-Depends: debhelper (>= 7), python-all, librarian-puppet-simple
 Standards-Version: 3.9.2
+
+Package: fuel-library9.0
+Provides: fuel-library
+Architecture: all
+Depends: ruby | ruby-interpreter, puppet, ${misc:Depends}, ${python:Depends}
+Description: Set of puppet scripts for Fuel
+ Fuel is an open source deployment and management tool for OpenStack. Developed
+ as an OpenStack community effort, it provides an intuitive, GUI-driven
+ experience for deployment and management of OpenStack, related community
+ projects and plug-ins.
+ .
+ Fuel brings consumer-grade simplicity to streamline and accelerate the
+ otherwise time-consuming, often complex, and error-prone process of deploying,
+ testing and maintaining various configuration flavors of OpenStack at scale.
+ Unlike other platform-specific deployment or management utilities, Fuel is an
+ upstream OpenStack project that focuses on automating the deployment and
+ testing of OpenStack and a range of third-party options, so it’s not
+ compromised by hard bundling or vendor lock-in.
+ .
+ This package contains deployment manifests and code to execute provisioning of
+ master and slave nodes.
 
 Package: fuel-ha-utils
 Architecture: all

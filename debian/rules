@@ -1,7 +1,19 @@
 #!/usr/bin/make -f
 
+export FUEL_RELEASE=9.0
+export FUEL_LIB_DEST=/etc/puppet
+export FULL_FUEL_LIB_DEST=/debian/fuel-library$(FUEL_RELEASE)$(FUEL_LIB_DEST)
+
 %:
 	dh $@ --with python2
+
+override_dh_auto_build:
+	if test -s $(CURDIR)/upstream_modules.tar.gz ; then \
+	    tar xzvf  $(CURDIR)/upstream_modules.tar.gz -C $(CURDIR)/deployment/puppet/ ; \
+	else \
+	    bash -x $(CURDIR)/deployment/update_modules.sh ; \
+	fi
+	dh_auto_build
 
 override_dh_fixperms:
 	chmod 755 debian/fuel-ha-utils/usr/lib/ocf/resource.d/fuel/*
@@ -14,3 +26,14 @@ override_dh_install:
 	mv debian/fuel-ha-utils/usr/lib/ocf/resource.d/fuel/rabbitmq-fuel debian/fuel-ha-utils/usr/lib/ocf/resource.d/fuel/rabbitmq-server
 	mv debian/fuel-misc/usr/bin/logrotate debian/fuel-misc/usr/bin/fuel-logrotate
 
+	# Install fuel-library
+	mkdir -p $(CURDIR)$(FULL_FUEL_LIB_DEST)/modules
+	mkdir -p $(CURDIR)$(FULL_FUEL_LIB_DEST)/manifests
+	cp -r $(CURDIR)/deployment/puppet/* $(CURDIR)$(FULL_FUEL_LIB_DEST)/modules
+	cp deployment/Puppetfile $(CURDIR)$(FULL_FUEL_LIB_DEST)/modules
+	#LP1515988
+	find $(CURDIR)$(FULL_FUEL_LIB_DEST)/modules -maxdepth 2 -type d \( -name .git -or -name spec \) -exec rm -rf '{}' +
+
+# FIXME (vparakhin): fix for dh_md5sums "Argument list too long"
+# Remove this as soon as upstream modules are packaged separately
+override_dh_md5sums:
