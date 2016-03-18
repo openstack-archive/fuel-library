@@ -7,7 +7,7 @@
   cross-depends:
     - name: aodh-db
     - name: aodh-keystone
-  condition: "settings:additional_components.ceilometer.value == true"
+  condition: "settings:ceilometer.enabled == true"
   parameters:
     puppet_manifest: /etc/puppet/modules/openstack_tasks/examples/aodh/aodh.pp
     puppet_modules: /etc/puppet/modules
@@ -25,7 +25,7 @@
   requires: [primary-keystone, keystone]
   cross-depends:
     - name: keystone
-  condition: "settings:additional_components.ceilometer.value == true"
+  condition: "settings:ceilometer.enabled == true"
   parameters:
     puppet_manifest: /etc/puppet/modules/openstack_tasks/examples/aodh/keystone.pp
     puppet_modules: /etc/puppet/modules
@@ -38,7 +38,7 @@
   cross-depends:
     - name: /(primary-)?database/
   required_for: [aodh]
-  condition: "settings:additional_components.ceilometer.value == true"
+  condition: "settings:ceilometer.enabled == true"
   requires: [primary-database, database]
   parameters:
     puppet_manifest: /etc/puppet/modules/openstack_tasks/examples/aodh/db.pp
