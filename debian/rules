@@ -1,7 +1,16 @@
 #!/usr/bin/make -f
 
+export FUEL_RELEASE_NUMBER=9.0
+export FUEL_LIB_MODS_DEST=/etc/puppet/modules
+export FULL_FUEL_LIB_MODS_DEST=/debian/fuel-library$(FUEL_RELEASE_NUMBER)$(FUEL_LIB_MODS_DEST)
+
 %:
 	dh $@ --with python2
+
+override_dh_auto_build:
+	git --version
+	bash -x $(CURDIR)/deployment/update_modules.sh
+	dh_auto_build
 
 override_dh_fixperms:
 	chmod 755 debian/fuel-ha-utils/usr/lib/ocf/resource.d/fuel/*
@@ -14,3 +23,12 @@ override_dh_install:
 	mv debian/fuel-ha-utils/usr/lib/ocf/resource.d/fuel/rabbitmq-fuel debian/fuel-ha-utils/usr/lib/ocf/resource.d/fuel/rabbitmq-server
 	mv debian/fuel-misc/usr/bin/logrotate debian/fuel-misc/usr/bin/fuel-logrotate
 
+	# Install fuel-library
+	mkdir -p $(CURDIR)$(FULL_FUEL_LIB_MODS_DEST)
+	mkdir -p $(CURDIR)/debian/fuel-library$(FUEL_RELEASE_NUMBER)/etc/puppet/manifests
+	cp -r $(CURDIR)/deployment/puppet/* $(CURDIR)$(FULL_FUEL_LIB_MODS_DEST)/
+	cp deployment/Puppetfile $(CURDIR)$(FULL_FUEL_LIB_MODS_DEST)/
+	#LP1515988
+	find $(CURDIR)/debian/fuel-library$(FUEL_RELEASE_NUMBER)/etc/puppet/modules -maxdepth 2 -type d \( -name .git -or -name spec \) -exec rm -rf '{}' +
+
+override_dh_md5sums:
