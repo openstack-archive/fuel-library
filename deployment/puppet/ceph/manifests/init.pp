@@ -143,6 +143,9 @@ class ceph (
   if roles_include('ceph-osd') {
     if ! empty($osd_devices) {
       include ceph::osds
+      if roles_include(['ceph-mon']) {
+        Class['ceph::mon'] -> Class['ceph::osds']
+      }
       Class['ceph::conf'] -> Class['ceph::osds']
       Ceph_conf <||> ~> Service['ceph']
 
