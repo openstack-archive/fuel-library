@@ -100,7 +100,7 @@ if $enabled {
       }
       $vendor_override_options = {
         'mysqld'           => {
-          'wsrep_provider' => "${libgalera_prefix}/libgalera_ssm.so"
+          'wsrep_provider' => "${libgalera_prefix}/libgalera_smm.so"
         }
       }
     }
