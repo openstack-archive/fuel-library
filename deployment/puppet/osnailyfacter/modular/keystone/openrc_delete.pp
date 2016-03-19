@@ -1,5 +1,1 @@
-notice('MODULAR: openrc_delete.pp')
-
-file { '/root/openrc':
-  ensure => absent,
-}
+include ::osnailyfacter::keystone::openrc_delete
