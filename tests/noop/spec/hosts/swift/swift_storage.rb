@@ -1,6 +1,6 @@
 require 'spec_helper'
 require 'shared-examples'
-manifest = 'swift/swift.pp'
+manifest = 'swift/storage.pp'
 
 describe manifest do
   shared_examples 'catalog' do

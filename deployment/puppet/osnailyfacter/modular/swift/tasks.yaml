@@ -1,14 +1,14 @@
-- id: swift
+- id: swift-storage
   type: puppet
   version: 2.0.0
-  groups: [controller]
+  groups: [primary-controller, controller]
   required_for: [deploy_end, controller_remaining_tasks]
-  requires: [primary-openstack-controller, openstack-controller]
+  requires: [primary-swift-proxy, primary-openstack-controller, openstack-controller]
   condition: &swift_enabled "( settings:storage.objects_ceph.value == false or settings:storage.images_ceph.value == false ) and settings:storage.images_vcenter.value == false"
   cross-depends:
-    - name: primary-swift
+    - name: primary-swift-proxy
   parameters:
-    puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/swift/swift.pp
+    puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/swift/storage.pp
     puppet_modules: /etc/puppet/modules
     timeout: 3600
   test_pre:
@@ -16,7 +16,26 @@
   test_post:
     cmd: ruby /etc/puppet/modules/osnailyfacter/modular/swift/swift_post.rb
 
-- id: primary-swift
+
+- id: swift-proxy
+  type: puppet
+  version: 2.0.0
+  groups: [controller]
+  required_for: [deploy_end, controller_remaining_tasks]
+  requires: [primary-swift-proxy]
+  condition: *swift_enabled
+  cross-depends:
+    - name: primary-swift-proxy
+  parameters:
+    puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/swift/proxy.pp
+    puppet_modules: /etc/puppet/modules
+    timeout: 3600
+  test_pre:
+    cmd: ruby /etc/puppet/modules/osnailyfacter/modular/swift/swift_pre.rb
+  test_post:
+    cmd: ruby /etc/puppet/modules/osnailyfacter/modular/swift/swift_post.rb
+
+- id: primary-swift-proxy
   type: puppet
   version: 2.0.0
   groups: [primary-controller]
@@ -29,7 +48,7 @@
     - name: memcached
     - name: ceilometer-controller
   parameters:
-    puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/swift/swift.pp
+    puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/swift/proxy.pp
     puppet_modules: /etc/puppet/modules
     timeout: 3600
   test_pre:
@@ -42,10 +61,10 @@
   version: 2.0.0
   groups: [primary-controller, controller]
   required_for: [deploy_end]
-  requires: [primary-swift, swift]
+  requires: [primary-swift-proxy, swift-proxy]
   condition: *swift_enabled
   cross-depends:
-    - name: /(primary-)?swift/
+    - name: /(primary-)?swift-proxy/
       role: self
   parameters:
     puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/swift/rebalance_cronjob.pp
@@ -60,7 +79,7 @@
   type: puppet
   version: 2.0.0
   groups: [primary-controller]
-  required_for: [primary-swift]
+  required_for: [primary-swift-proxy]
   condition: *swift_enabled
   cross-depends:
     - name: keystone
