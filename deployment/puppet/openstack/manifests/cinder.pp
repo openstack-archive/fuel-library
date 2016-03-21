@@ -259,7 +259,6 @@ class openstack::cinder(
             'DEFAULT/volume_driver'       => { value => 'cinder.volume.drivers.block_device.BlockDeviceDriver' },
             'DEFAULT/volume_group'        => { value => 'cinder' },
             'DEFAULT/volume_dir'          => { value => '/var/lib/cinder/volumes' },
-            'DEFAULT/volume_clear'        => { value => 'zero' },
             'DEFAULT/available_devices'   => { value => $physical_volume },
           }
         }
