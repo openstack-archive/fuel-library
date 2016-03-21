@@ -461,11 +461,6 @@ EOF
         sleep 20
     done
 
-    # Fix nailgun MAC updating bug https://bugs.launchpad.net/fuel/+bug/1528523
-    ssh "${admin_net_ip}" dockerctl stop nailgun
-    ssh "${admin_net_ip}" dockerctl start nailgun
-    until ssh -tt ${admin_net_ip} fuel node ; do sleep 10; done
-
     # refresh log on destination node
     rsync ${migrate_log} ${admin_net_ip}:${migrate_log}
     ssh "${admin_net_ip}" rm -f /notready
