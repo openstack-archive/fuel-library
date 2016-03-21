@@ -66,12 +66,13 @@ Puppet::Type.type(:l3_ifconfig).provide(:lnx, :parent => Puppet::Provider::L3_ba
     if ! @property_flush.empty?
       debug("FLUSH properties: #{@property_flush}")
       # FLUSH changed properties
+      is_dhcp = @property_flush[:ipaddr].to_s.downcase == 'dhcp'
       if ! @property_flush[:ipaddr].nil?
         if @property_flush[:ipaddr].include?(:absent)
           # flush all ip addresses from interface
           self.class.addr_flush(@resource[:interface], true)
           #todo(sv): check for existing dhclient for this interface and kill it
-        elsif (@property_flush[:ipaddr] & [:dhcp, 'dhcp', 'DHCP']).any?
+        elsif is_dhcp
           # start dhclient on interface the same way as at boot time
           ifdown(@resource[:interface])
           sleep(5)
@@ -160,7 +161,7 @@ Puppet::Type.type(:l3_ifconfig).provide(:lnx, :parent => Puppet::Provider::L3_ba
         end
       end
 
-      if !@property_flush[:gateway].nil? or !@property_flush[:gateway_metric].nil?
+      if !is_dhcp and (!@property_flush[:gateway].nil? or !@property_flush[:gateway_metric].nil?)
         # clean all default gateways for *THIS* interface (with any metrics)
         cmdline = ['route', 'del', 'default', 'dev', @resource[:interface]]
 
