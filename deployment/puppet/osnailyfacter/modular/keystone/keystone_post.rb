@@ -25,8 +25,16 @@ class KeystonePostTest < Test::Unit::TestCase
     assert TestCommon::Process.run_successful?(cmd), "Could not run '#{cmd}'!"
   end
 
-  def test_openrc_file_present
+  def test_root_openrc_file_present
     assert File.exist?('/root/openrc'), '/root/openrc is missing!'
+  end
+
+  def test_os_user_openrc_file_present
+    assert File.exist?("#{TestCommon::Settings.operator_user_homedir}/openrc"), "#{TestCommon::Settings.operator_user_homedir}/openrc is missing!"
+  end
+
+  def test_svc_openrc_file_present
+    assert File.exist?("#{TestCommon::Settings.service_user_homedir}/openrc"), "#{TestCommon::Settings.service_user_homedir}/openrc is missing!"
   end
 
 end
