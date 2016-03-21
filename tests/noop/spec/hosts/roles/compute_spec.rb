@@ -42,6 +42,10 @@ describe manifest do
       end
     end
 
+    let(:compute_hash) do
+      Noop.hiera_hash 'compute', {}
+    end
+
     let(:nova_hash) do
       Noop.hiera_structure 'nova'
     end
@@ -69,6 +73,7 @@ describe manifest do
 
     let(:nova_report_interval) { Noop.puppet_function 'pick', nova_hash['nova_report_interval'], nil }
     let(:nova_service_down_time) { Noop.puppet_function 'pick', nova_hash['nova_service_down_time'], nil }
+    let(:config_drive_format) { Noop.puppet_function 'pick', compute_hash['config_drive_format'], 'vfat' }
 
     # Legacy openstack-compute tests
 
@@ -302,7 +307,7 @@ describe manifest do
 
     it 'nova config should have config_drive_format set to vfat' do
       should contain_nova_config('DEFAULT/config_drive_format').with(
-        'value' => 'vfat'
+        'value' => config_drive_format
       )
     end
 
