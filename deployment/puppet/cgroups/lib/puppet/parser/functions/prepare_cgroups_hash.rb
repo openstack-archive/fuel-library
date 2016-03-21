@@ -17,7 +17,7 @@ module CgroupsSettings
       percent, min, max = matched_v[1..-1].map(&:to_i)
       total_memory = Facter.value(:memorysize_mb)
       res = (total_memory.to_f / 100.0) * percent.to_f
-      return mb_to_bytes([min, max, res].sort[1].to_i)
+      return mb_to_bytes([min, max, res].sort[1]).to_i
     end
   end
 
