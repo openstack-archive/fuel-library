@@ -88,6 +88,13 @@ describe 'openstack::compute' do
           :notify_on_state_change => 'vm_and_task_state',
           :memcached_servers => ['127.0.0.1:11211'],
         )
+        if p[:debug]
+          should contain_class('nova::logging').with(
+            'default_log_levels' => {
+              'oslo.messaging' => 'DEBUG',
+            }
+          )
+        end
         should contain_class('nova::availability_zone').with(
           :default_availability_zone => '<SERVICE DEFAULT>',
           :default_schedule_zone     => '<SERVICE DEFAULT>',
