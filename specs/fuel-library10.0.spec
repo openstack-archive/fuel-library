@@ -1,6 +1,6 @@
-%define name fuel-library9.0
-%{!?version: %define version 9.0.0}
-%{!?fuel_release: %define fuel_release 9.0}
+%define name fuel-library10.0
+%{!?version: %define version 10.0.0}
+%{!?fuel_release: %define fuel_release 10.0}
 %{!?release: %define release 1}
 %{!?rhel: %define rhel 7}
 
