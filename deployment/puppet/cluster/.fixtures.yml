@@ -10,3 +10,6 @@ fixtures:
     inifile: "#{source_dir}/../inifile"
     mysql: "#{source_dir}/../mysql"
     pacemaker: "#{source_dir}/../pacemaker"
+    rabbitmq: "#{source_dir}/../rabbitmq"
+    apt: "#{source_dir}/../apt"
+    staging: "#{source_dir}/../staging"

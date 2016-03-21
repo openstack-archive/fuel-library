@@ -179,6 +179,9 @@ class osnailyfacter::rabbitmq::rabbitmq {
           enable_notifications_ha => $enable_notifications_ha,
           fqdn_prefix             => $fqdn_prefix,
           pid_file                => $pid_file,
+          # NOTE(bogdando) The fuel-libraryX package installs the custom
+          # policy file by the given path. So not a hardcode.
+          policy_file             => '/usr/sbin/set_rabbitmq_policy',
           require                 => Class['::rabbitmq::install'],
         }
       }
