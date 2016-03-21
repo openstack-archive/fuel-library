@@ -389,11 +389,11 @@ describe manifest do
         should contain_exec('create-m1.micro-flavor').with(
            'command' => 'bash -c "nova flavor-create --is-public true m1.micro auto 64 0 1"',
            'unless'  => 'bash -c \'for tries in {1..10}; do
-                    nova flavor-list | grep m1.micro;
-                    status=("${PIPESTATUS[@]}");
-                    (( ! status[0] )) && exit "${status[1]}";
-                    sleep 2;
-                  done; exit 1\'',
+                      nova flavor-list | grep m1.micro;
+                      status=("${PIPESTATUS[@]}");
+                      (( ! status[0] )) && exit "${status[1]}";
+                      sleep 2;
+                    done; exit 1\'',
         )
       end
     end
