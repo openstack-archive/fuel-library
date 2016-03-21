@@ -1,3 +1,9 @@
+fuel-library10.0 (10.0.0-1) trusty; urgency=low
+
+  * Bump version to 10.0
+
+ -- Sergey Kulanov <skulanov@mirantis.com>  Mon, 21 Mar 2016 12:48:56 +0200
+
 fuel-library9.0 (9.0.0-2) trusty; urgency=low
 
   * Add librarian-puppet-simple support

@@ -1,6 +1,6 @@
 #!/usr/bin/make -f
 
-export FUEL_RELEASE=9.0
+export FUEL_RELEASE=10.0
 export FUEL_LIB_DEST=/etc/puppet
 export FULL_FUEL_LIB_DEST=/debian/fuel-library$(FUEL_RELEASE)$(FUEL_LIB_DEST)
 
