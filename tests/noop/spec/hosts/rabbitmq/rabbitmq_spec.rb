@@ -154,6 +154,7 @@ describe manifest do
           :enable_notifications_ha => enable_notifications_ha,
           :fqdn_prefix             => fqdn_prefix,
           :pid_file                => pid_file,
+          :policy_file             => '/usr/sbin/set_rabbitmq_policy.sh',
         ).that_comes_before('Class[nova::rabbitmq]')
         should contain_class('cluster::rabbitmq_ocf').that_requires(
           'Class[rabbitmq::install]')
