@@ -7,7 +7,7 @@ config_bundle="fvm_disk_size fvm_name fvm_ram fvm_cpu migrate_log fuel_astute  d
     admin_net_br admin_net_b_type other_net_bridges os_swap os_root  os_var os_varlibdocker \
     os_varlog fm_reboot del_vm max_worktime help"
 work_bundle="dkvm_ip admin_net_ip_bs dkvm_uri admin_net_ip admin_net_if   admin_net_nm \
-    src_disk dst_disk s_base start_time fvm_admin_mac admin_net_mac"
+    src_disk dst_disk s_base start_time fvm_admin_mac admin_net_mac nailgun_setting"
 
 
 
@@ -47,6 +47,7 @@ banner_file="c-msg.sh"
 prog_name="fuel-migrate"
 fuel_migrate_vars=/root/fuel-migrate.var
 udev_rule=/etc/udev/rules.d/70-persistent-net.rules
+
 
 file_lock() {
     # create lock file
@@ -313,6 +314,7 @@ fix_config(){
     ssh "${admin_net_ip_bs}" "ln -fs /proc/self/mounts ${s_base}/etc/mtab"
     ssh "${admin_net_ip_bs}" "sed -i '/HWADDR=/d' ${s_base}/etc/sysconfig/network-scripts/ifcfg-*"
     ssh "${admin_net_ip_bs}" "sed -i 's/${admin_net_mac}/${fvm_admin_mac}/' ${s_base}${fuel_astute}"
+    ssh "${admin_net_ip_bs}" "sed -i 's/${admin_net_mac}/${fvm_admin_mac}/' ${s_base}${nailgun_setting}"
     ssh "${admin_net_ip_bs}" "cat /root/.ssh/authorized_keys >>${s_base}/root/.ssh/authorized_keys"
     ssh "${admin_net_ip_bs}" "umount ${s_base}/var/log ${s_base}/var ${s_base}/boot ${s_base}/dev ${s_base}/proc ${s_base}" || true
 }
@@ -461,11 +463,6 @@ EOF
         sleep 20
     done
 
-    # Fix nailgun MAC updating bug https://bugs.launchpad.net/fuel/+bug/1528523
-    ssh "${admin_net_ip}" dockerctl stop nailgun
-    ssh "${admin_net_ip}" dockerctl start nailgun
-    until ssh -tt ${admin_net_ip} fuel node ; do sleep 10; done
-
     # refresh log on destination node
     rsync ${migrate_log} ${admin_net_ip}:${migrate_log}
     ssh "${admin_net_ip}" rm -f /notready
@@ -502,6 +499,7 @@ else
 
     max_worktime="${max_worktime:-7200}"
     fuel_astute="${fuel_astute:-/etc/fuel/astute.yaml}"
+    nailgun_setting="${nailgun_setting:-/etc/nailgun/settings.yaml}"
     dkvm_ip="${dkvm_ip:?Destination compute not set}"
     dkvm_folder="${dkvm_folder:-/var/lib/nova/}"
 
