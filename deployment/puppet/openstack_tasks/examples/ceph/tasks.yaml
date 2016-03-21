@@ -26,7 +26,7 @@
   requires: [pre_deployment_start]
   required_for: [copy_keys_ceph]
   parameters:
-    cmd: sh /etc/puppet/modules/osnailyfacter/modular/astute/generate_keys.sh -i {CLUSTER_ID} -s 'ceph' -p /var/lib/fuel/keys/
+    cmd: sh /etc/puppet/modules/openstack_tasks/examples/astute/generate_keys.sh -i {CLUSTER_ID} -s 'ceph' -p /var/lib/fuel/keys/
     timeout: 180
 
 
@@ -44,7 +44,7 @@
     - name: ceph-mon
     - name: /(primary-)?ceph-radosgw/
   parameters:
-    puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/ceph/ceph-osd.pp
+    puppet_manifest: /etc/puppet/modules/openstack_tasks/examples/ceph/ceph-osd.pp
     puppet_modules: /etc/puppet/modules
     timeout: 3600
 
@@ -55,13 +55,13 @@
   required_for: [deploy_end, controller_remaining_tasks]
   requires: [apache, ceph-mon, primary-ceph-mon]
   parameters:
-    puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/ceph/radosgw.pp
+    puppet_manifest: /etc/puppet/modules/openstack_tasks/examples/ceph/radosgw.pp
     puppet_modules: /etc/puppet/modules
     timeout: 3600
   test_pre:
-    cmd: ruby /etc/puppet/modules/osnailyfacter/modular/ceph/radosgw_pre.rb
+    cmd: ruby /etc/puppet/modules/openstack_tasks/examples/ceph/radosgw_pre.rb
   test_post:
-    cmd: ruby /etc/puppet/modules/osnailyfacter/modular/ceph/radosgw_post.rb
+    cmd: ruby /etc/puppet/modules/openstack_tasks/examples/ceph/radosgw_post.rb
 
 - id: ceph-radosgw
   type: puppet
@@ -72,13 +72,13 @@
   required_for: [deploy_end, controller_remaining_tasks]
   requires: [apache, ceph-mon, primary-ceph-mon]
   parameters:
-    puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/ceph/radosgw.pp
+    puppet_manifest: /etc/puppet/modules/openstack_tasks/examples/ceph/radosgw.pp
     puppet_modules: /etc/puppet/modules
     timeout: 3600
   test_pre:
-    cmd: ruby /etc/puppet/modules/osnailyfacter/modular/ceph/radosgw_pre.rb
+    cmd: ruby /etc/puppet/modules/openstack_tasks/examples/ceph/radosgw_pre.rb
   test_post:
-    cmd: ruby /etc/puppet/modules/osnailyfacter/modular/ceph/radosgw_post.rb
+    cmd: ruby /etc/puppet/modules/openstack_tasks/examples/ceph/radosgw_post.rb
 
 - id: primary-ceph-mon
   type: puppet
@@ -87,7 +87,7 @@
   required_for: [deploy_end, controller_remaining_tasks]
   requires: [primary-openstack-controller, openstack-controller, openstack-cinder]
   parameters:
-    puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/ceph/mon.pp
+    puppet_manifest: /etc/puppet/modules/openstack_tasks/examples/ceph/mon.pp
     puppet_modules: /etc/puppet/modules
     timeout: 3600
 
@@ -100,7 +100,7 @@
   cross-depends:
     - name: primary-ceph-mon
   parameters:
-    puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/ceph/mon.pp
+    puppet_manifest: /etc/puppet/modules/openstack_tasks/examples/ceph/mon.pp
     puppet_modules: /etc/puppet/modules
     timeout: 3600
 
@@ -118,12 +118,12 @@
   required_for: [post_deployment_end]
   condition: "settings:storage.objects_ceph.value == true or settings:storage.images_ceph.value == true or settings:storage.volumes_ceph.value == true or settings:storage.ephemeral_ceph.value == true"
   parameters:
-    puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/ceph/ceph_compute.pp
+    puppet_manifest: /etc/puppet/modules/openstack_tasks/examples/ceph/ceph_compute.pp
     puppet_modules: /etc/puppet/modules
     timeout: 3600
     cwd: /
   test_post:
-    cmd: ruby /etc/puppet/modules/osnailyfacter/modular/ceph/ceph_compute_post.rb
+    cmd: ruby /etc/puppet/modules/openstack_tasks/examples/ceph/ceph_compute_post.rb
 
 - id: ceph_create_pools
   type: puppet
@@ -135,7 +135,7 @@
     - name: ceph_ready_check
   condition: "settings:storage.objects_ceph.value == true or settings:storage.images_ceph.value == true or settings:storage.volumes_ceph.value == true or settings:storage.ephemeral_ceph.value == true"
   parameters:
-    puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/ceph/ceph_pools.pp
+    puppet_manifest: /etc/puppet/modules/openstack_tasks/examples/ceph/ceph_pools.pp
     puppet_modules: /etc/puppet/modules
     timeout: 3600
     cwd: /
@@ -148,7 +148,7 @@
   requires: [post_deployment_start]
   required_for: [enable_rados, upload_cirros]
   parameters:
-    cmd: ruby /etc/puppet/modules/osnailyfacter/modular/ceph/ceph_ready_check.rb
+    cmd: ruby /etc/puppet/modules/openstack_tasks/examples/ceph/ceph_ready_check.rb
     timeout: 1800
 
 - id: enable_rados
@@ -161,7 +161,7 @@
   cross-depended-by:
     - name: upload_cirros
   parameters:
-    puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/ceph/enable_rados.pp
+    puppet_manifest: /etc/puppet/modules/openstack_tasks/examples/ceph/enable_rados.pp
     puppet_modules: /etc/puppet/modules
     timeout: 180
     cwd: /
@@ -174,7 +174,7 @@
   requires: [post_deployment_start]
   required_for: [post_deployment_end]
   parameters:
-    puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/ceph/updatedb.pp
+    puppet_manifest: /etc/puppet/modules/openstack_tasks/examples/ceph/updatedb.pp
     puppet_modules: /etc/puppet/modules
     timeout: 60
     cwd: /

@@ -1,0 +1,30 @@
+#!/bin/bash
+
+
+DEST="../../openstack_tasks/examples/"
+
+git review -d 283332
+git checkout master
+git branch -D bp/fuel-openstack-tasks
+git checkout -b bp/fuel-openstack-tasks || exit
+git checkout review/andrew_woodward/bp/fuel-openstack-tasks -- ../../../Puppetfile ../../openstack_tasks/Puppetfile ../../../update_modules.sh
+
+LAST_CM=$(git log review/andrew_woodward/bp/fuel-openstack-tasks | head -1 | awk '//{print $2}')
+
+mkdir -p $DEST
+
+git mv ceilometer glance heat horizon ironic keystone sahara swift roles ${DEST}
+
+git mv openstack-cinder ${DEST}cinder
+git mv openstack-controller ${DEST}nova
+git mv openstack-network  ${DEST}neutron
+
+cd $DEST
+
+find . -name tasks.yaml | xargs -i sed -i -e 's/modules\/osnailyfacter\/modular/modules\/openstack_tasks\/examples/g' {}
+find . -name tasks.yaml | xargs -i sed -i -e 's/examples\/openstack-cinder/examples\/cinder/g' {}
+find . -name tasks.yaml | xargs -i sed -i -e 's/examples\/openstack-controller/examples\/nova/g' {}
+find . -name tasks.yaml | xargs -i sed -i -e 's/examples\/openstack-network/examples\/neutron/g' {}
+
+git add ${DEST}
+git commit --reuse-message=${LAST_CM}

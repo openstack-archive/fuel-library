@@ -1,4 +1,4 @@
-class osnailyfacter::ceph::ceph_pools {
+class openstack_tasks::ceph::ceph_pools {
 
   notice('MODULAR: ceph/ceph_pools.pp')
 

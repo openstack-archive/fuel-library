@@ -1,4 +1,4 @@
-class osnailyfacter::ceph::updatedb {
+class openstack_tasks::ceph::updatedb {
 
   notice('MODULAR: ceph/updatedb.pp')
 

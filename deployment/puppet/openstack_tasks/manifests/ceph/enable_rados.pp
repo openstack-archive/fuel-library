@@ -1,4 +1,4 @@
-class osnailyfacter::ceph::enable_rados {
+class openstack_tasks::ceph::enable_rados {
 
   notice('MODULAR: ceph/enable_rados.pp')
 

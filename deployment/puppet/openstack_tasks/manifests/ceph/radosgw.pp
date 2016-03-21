@@ -1,4 +1,4 @@
-class osnailyfacter::ceph::radosgw {
+class openstack_tasks::ceph::radosgw {
 
   notice('MODULAR: ceph/radosgw.pp')
 
@@ -37,7 +37,7 @@ class osnailyfacter::ceph::radosgw {
     $rgw_ip_address       = get_network_role_property('ceph/radosgw', 'ipaddr')
 
     # Listen directives with host required for ip_based vhosts
-    class { '::osnailyfacter::apache':
+    class { '::openstack_tasks::apache':
       listen_ports => hiera_array('apache_ports', ['0.0.0.0:80', '0.0.0.0:8888']),
     }
 
@@ -56,9 +56,9 @@ class osnailyfacter::ceph::radosgw {
     $internal_auth_address   = get_ssl_property($ssl_hash, {}, 'keystone', 'internal', 'hostname', [$service_endpoint, $management_vip])
     $internal_auth_url       = "${internal_auth_protocol}://${internal_auth_address}:5000"
 
-    class { '::osnailyfacter::wait_for_keystone_backends': }
+    class { '::openstack_tasks::wait_for_keystone_backends': }
 
-    Class['::osnailyfacter::wait_for_keystone_backends'] -> Class['::ceph::keystone']
+    Class['::openstack_tasks::wait_for_keystone_backends'] -> Class['::ceph::keystone']
 
     class { '::ceph::radosgw':
       # SSL

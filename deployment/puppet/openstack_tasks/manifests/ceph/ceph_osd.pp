@@ -1,4 +1,4 @@
-class osnailyfacter::ceph::ceph_osd {
+class openstack_tasks::ceph::ceph_osd {
 
   notice('MODULAR: ceph/ceph_osd.pp')
 
