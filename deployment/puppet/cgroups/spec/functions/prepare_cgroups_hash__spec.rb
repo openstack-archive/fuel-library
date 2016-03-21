@@ -101,7 +101,7 @@ describe Puppet::Parser::Functions.function(:prepare_cgroups_hash) do
       {
         'neutron' => {
           'memory' => {
-            'memory.soft_limit_in_bytes' => 522 * 1024 * 1024
+            'memory.soft_limit_in_bytes' => (522.24 * 1024 * 1024).to_i
           }
         }
       }
@@ -131,7 +131,7 @@ describe Puppet::Parser::Functions.function(:prepare_cgroups_hash) do
       {
         'neutron' => {
           'memory' => {
-            'memory.soft_limit_in_bytes' => 522 * 1024 * 1024
+            'memory.soft_limit_in_bytes' => (522.24 * 1024 * 1024).to_i
           }
         }
       }
