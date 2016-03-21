@@ -45,7 +45,7 @@ class openstack_tasks::roles::compute {
   $use_syslog                     = hiera('use_syslog', true)
   $use_stderr                     = hiera('use_stderr', false)
   $syslog_log_facility            = hiera('syslog_log_facility_nova','LOG_LOCAL6')
-  $config_drive_format            = 'vfat'
+  $config_drive_format            = pick($compute_hash['config_drive_format'], 'vfat')
   $public_ssl_hash                = hiera_hash('public_ssl')
   $ssl_hash                       = hiera_hash('use_ssl', {})
   $node_hash                      = hiera_hash('node', {})
