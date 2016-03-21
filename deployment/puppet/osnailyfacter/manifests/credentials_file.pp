@@ -1,4 +1,4 @@
-# == Class: osnailyfacter::auth_file
+# == Type: osnailyfacter::credentials_file
 #
 # Creates an auth file that can be used to export
 # environment variables that can be used to authenticate
@@ -44,8 +44,9 @@
 #   (optional) Murano Glance Artifacts Plugin.
 #   Defaults to undef.
 #
-class osnailyfacter::auth_file(
+define osnailyfacter::credentials_file(
   $admin_password,
+  $path                     = $title,
   $controller_node          = '127.0.0.1',
   $auth_url                 = 'http://127.0.0.1:5000/v2.0',
   $keystone_admin_token     = undef,
@@ -62,13 +63,13 @@ class osnailyfacter::auth_file(
   $murano_repo_url          = undef,
   $cacert                   = undef,
   $murano_glare_plugin      = undef,
+  $owner                    = 'root',
+  $group                    = 'root',
 ) {
 
-  warning('Class osnailyfacter::auth_file is deprecated, please consider using osnailyfacter::credentials_file instead')
-
-  file { '/root/openrc':
-    owner   => 'root',
-    group   => 'root',
+  file { "${path}":
+    owner   => $owner,
+    group   => $group,
     mode    => '0700',
     content => template("${module_name}/openrc.erb")
   }
