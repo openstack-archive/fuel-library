@@ -326,6 +326,7 @@ class osnailyfacter::database::database {
     # TODO: (sgolovatiuk): This class should be removed once
     # https://github.com/puppetlabs/puppetlabs-mysql/pull/801/files is accepted
     class { '::osnailyfacter::mysql_access':
+      db_host     => $database_vip,
       db_password => $mysql_database_password,
     }
 
