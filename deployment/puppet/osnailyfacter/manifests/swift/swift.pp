@@ -19,6 +19,7 @@ class osnailyfacter::swift::swift {
   $management_vip             = hiera('management_vip')
   $public_vip                 = hiera('public_vip')
   $swift_api_ipaddr           = get_network_role_property('swift/api', 'ipaddr')
+  $swift_api_network          = get_network_role_property('swift/api', 'network')
   $swift_storage_ipaddr       = get_network_role_property('swift/replication', 'ipaddr')
   $debug                      = pick($swift_hash['debug'], hiera('debug', false))
   $verbose                    = pick($swift_hash['verbose'], hiera('verbose', false))
@@ -138,13 +139,13 @@ class osnailyfacter::swift::swift {
         rabbit_hosts                   => split($rabbit_hosts, ', '),
       }
 
-      if $swift_api_ipaddr == $swift_storage_ipaddr {
+      unless check_ip_in_net($management_vip, $swift_api_network) {
         $storage_nets = get_routable_networks_for_network_role($network_scheme, 'swift/replication', ' ')
         $mgmt_nets = get_routable_networks_for_network_role($network_scheme, 'swift/api', ' ')
 
         class { '::openstack::swift::status':
           endpoint    => "${swift_internal_protocol}://${swift_internal_address}:${proxy_port}",
-          scan_target => "${internal_auth_protocol}://${internal_auth_address}:5000",
+          scan_target => "${internal_auth_address}:5000",
           only_from   => "127.0.0.1 240.0.0.2 ${storage_nets} ${mgmt_nets}",
           con_timeout => 5
         }

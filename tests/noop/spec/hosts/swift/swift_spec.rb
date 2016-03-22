@@ -41,9 +41,9 @@ describe manifest do
     }
 
     let (:bind_to_one) {
-      api_ip = Noop.puppet_function 'get_network_role_property', 'swift/api', 'ipaddr'
-      storage_ip = Noop.puppet_function 'get_network_role_property', 'swift/replication', 'ipaddr'
-      api_ip == storage_ip
+      internal_virtual_ip = Noop.hiera_structure 'network_metadata/vips/management/ipaddr'
+      api_net = Noop.puppet_function 'get_network_role_property', 'swift/api', 'network'
+      Noop.puppet_function 'check_ip_in_net', internal_virtual_ip, api_net
     }
 
     let(:ssl_hash) { Noop.hiera_hash 'use_ssl' }
@@ -120,7 +120,7 @@ describe manifest do
         context 'with enabled internal TLS for keystone' do
           keystone_endpoint = Noop.hiera_structure 'use_ssl/keystone_internal_hostname'
           it 'should declare swift::dispersion' do
-            if bind_to_one
+            if not bind_to_one
               should contain_class('swift::dispersion').with(
                 'auth_url' => "https://#{keystone_endpoint}:5000/v2.0/"
               ).that_requires('Class[openstack::swift::status]')
@@ -135,7 +135,7 @@ describe manifest do
         context 'with enabled internal TLS for swift' do
           swift_endpoint = Noop.hiera_structure 'use_ssl/swift_internal_hostname'
             it {
-              if bind_to_one
+              if not bind_to_one
                 should contain_class('openstack::swift::status').with(
                   'endpoint'  => "https://#{swift_endpoint}:8080",
                   'only_from' => "127.0.0.1 240.0.0.2 #{storage_nets} #{mgmt_nets}",
@@ -149,7 +149,7 @@ describe manifest do
         keystone_endpoint = Noop.hiera 'service_endpoint'
         context 'with disabled internal TLS for keystone' do
           it 'should declare swift::dispersion' do
-            if bind_to_one
+            if not bind_to_one
             should contain_class('swift::dispersion').with(
               'auth_url' => "http://#{keystone_endpoint}:5000/v2.0/"
             ).that_requires('Class[openstack::swift::status]')
@@ -163,7 +163,7 @@ describe manifest do
 
         context 'with disabled internal TLS for swift' do
           it {
-            if bind_to_one
+            if not bind_to_one
             should contain_class('openstack::swift::status').with(
               'only_from' => "127.0.0.1 240.0.0.2 #{storage_nets} #{mgmt_nets}",
             ).that_comes_before('Class[swift::dispersion]')

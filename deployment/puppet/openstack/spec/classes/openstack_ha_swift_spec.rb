@@ -20,11 +20,11 @@ require 'spec_helper'
 
     before :each do
       if params[:bind_to_one]
-        @http_check = 'httpchk'
-        @balancermember_options = "check port 49001 #{bm_opt_tail}"
-      else
         @http_check = 'httpchk HEAD /healthcheck HTTP/1.0'
         @balancermember_options = "check #{bm_opt_tail}"
+      else
+        @http_check = 'httpchk'
+        @balancermember_options = "check port 49001 #{bm_opt_tail}"
       end
     end
 
