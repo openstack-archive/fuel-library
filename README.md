@@ -47,7 +47,7 @@ information.
 ### MAINTAINERS
 
 This is repository level MAINTAINERS file. One submitting a patch should
-contact the apropriate maintainer or invite her or him for the code review.
+contact the appropriate maintainer or invite her or him for the code review.
 Note, core reviewers are not the maintainers. Normally, cores do reviews
 after maintainers.
 
@@ -84,7 +84,7 @@ fuel-library
 ----------------------
 
 The [top-scope puppet manifests](deployment/puppet/osnailyfacter/modular)
-(sometimes also refered as the composition layer) represent the known
+(sometimes also referred as the composition layer) represent the known
 deploy paths (aka supported deployment scenarios) for the
 [task-based deployment](https://docs.mirantis.com/openstack/fuel/fuel-6.1/reference-architecture.html#task-based-deployment).
 
@@ -169,7 +169,7 @@ bundle exec rake syntax
 ```
 
 This will run syntax checks against all puppet, python, shell and hiera files
-within fuel-libray.
+within fuel-library.
 
 ### Module Lint Checks
 
@@ -196,7 +196,7 @@ util/jenkins/modules.disable_rake-lint file.
 
 ### Puppet module tests
 
-Puppet rspec tests should be provided for an every module's directory included.
+Puppet rspec tests should be provided for every module's directory included.
 All of the discovered tests will be automatically executed by the
 `rake spec` command issued from the repository root path.
 
