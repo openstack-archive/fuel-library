@@ -114,7 +114,7 @@ class sahara_templates::create_templates (
     hadoop_version => '5.4.0',
   }
 
-  sahara_node_group_template { 'hdp-2-2-master' :
+  sahara_node_group_template { 'hdp-2-3-master' :
     description => 'The master node contains all management Hadoop components like Ambari, NameNode, HistoryServer and ResourceManager. It also includes Oozie server required to run Hadoop jobs.',
     plugin_name => 'ambari',
     flavor_id => 'm1.large',
@@ -128,11 +128,11 @@ class sahara_templates::create_templates (
         "ResourceManager",
         "Oozie"
     ],
-    hadoop_version => '2.2',
+    hadoop_version => '2.3',
     auto_security_group => true,
   }
 
-  sahara_node_group_template { 'hdp-2-2-worker' :
+  sahara_node_group_template { 'hdp-2-3-worker' :
     description => 'The worker node contains components that can be scaled by running more nodes. Each node includes everything required for data storage and processing.',
     plugin_name => 'ambari',
     flavor_id => 'm1.medium',
@@ -140,18 +140,18 @@ class sahara_templates::create_templates (
         "DataNode",
         "NodeManager",
     ],
-    hadoop_version => '2.2',
+    hadoop_version => '2.3',
     auto_security_group => true,
   }
 
-  sahara_cluster_template { 'hdp-2-2' :
-    description => 'Hortonworks Data Platform (HDP) 2.2 cluster with manager, master and 4 worker nodes. The master node contains all management Hadoop processes. Workers contain Hadoop processes for data storage and processing.',
+  sahara_cluster_template { 'hdp-2-3' :
+    description => 'Hortonworks Data Platform (HDP) 2.3 cluster with manager, master and 4 worker nodes. The master node contains all management Hadoop processes. Workers contain Hadoop processes for data storage and processing.',
     plugin_name => 'ambari',
     node_groups => [
-      {'name' => 'hdp-2-2-master', 'count' => 1},
-      {'name' => 'hdp-2-2-worker', 'count' => 4}
+      {'name' => 'hdp-2-3-master', 'count' => 1},
+      {'name' => 'hdp-2-3-worker', 'count' => 4}
     ],
-    hadoop_version => '2.2',
+    hadoop_version => '2.3',
   }
 
 }
