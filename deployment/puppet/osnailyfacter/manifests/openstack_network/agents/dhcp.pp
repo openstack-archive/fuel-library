@@ -1,47 +1,48 @@
-notice('MODULAR: openstack-network/agents/dhcp.pp')
+class osnailyfacter::openstack_network::agents::dhcp {
 
-$use_neutron = hiera('use_neutron', false)
+  notice('MODULAR: openstack_network/agents/dhcp.pp')
 
-if $use_neutron {
-  # override neutron options
-  $override_configuration = hiera_hash('configuration', {})
-  override_resources { 'neutron_dhcp_agent_config':
-    data => $override_configuration['neutron_dhcp_agent_config']
-  } ~> Service['neutron-dhcp-service']
-}
+  $use_neutron = hiera('use_neutron', false)
 
-class neutron {}
-class { 'neutron' :}
-
-if $use_neutron {
-
-  $debug                   = hiera('debug', true)
-  $resync_interval         = '30'
-  $isolated_metadata       = try_get_value($neutron_config, 'metadata/isolated_metadata', true)
-
-  $neutron_advanced_config = hiera_hash('neutron_advanced_configuration', { })
-  $ha_agent                = try_get_value($neutron_advanced_config, 'dhcp_agent_ha', true)
-
-  class { 'neutron::agents::dhcp':
-    debug                    => $debug,
-    resync_interval          => $resync_interval,
-    manage_service           => true,
-    enable_isolated_metadata => $isolated_metadata,
-    dhcp_delete_namespaces   => true,
-    enabled                  => true,
+  if $use_neutron {
+    # override neutron options
+    $override_configuration = hiera_hash('configuration', {})
+    override_resources { 'neutron_dhcp_agent_config':
+      data => $override_configuration['neutron_dhcp_agent_config']
+    } ~> Service['neutron-dhcp-service']
   }
 
-  if $ha_agent {
-    $primary_controller = hiera('primary_controller')
-    class { 'cluster::neutron::dhcp' :
-      primary => $primary_controller,
+  if $use_neutron {
+
+    $debug                   = hiera('debug', true)
+    $resync_interval         = '30'
+    $isolated_metadata       = try_get_value($neutron_config, 'metadata/isolated_metadata', true)
+
+    $neutron_advanced_config = hiera_hash('neutron_advanced_configuration', { })
+    $ha_agent                = try_get_value($neutron_advanced_config, 'dhcp_agent_ha', true)
+
+    class { '::neutron::agents::dhcp':
+      debug                    => $debug,
+      resync_interval          => $resync_interval,
+      manage_service           => true,
+      enable_isolated_metadata => $isolated_metadata,
+      dhcp_delete_namespaces   => true,
+      enabled                  => true,
     }
-  }
 
-  # stub package for 'neutron::agents::dhcp' class
-  package { 'neutron':
-    name   => 'binutils',
-    ensure => 'installed',
+    if $ha_agent {
+      $primary_controller = hiera('primary_controller')
+      class { '::cluster::neutron::dhcp' :
+        primary => $primary_controller,
+      }
+    }
+
+    # stub package for 'neutron::agents::dhcp' class
+    package { 'neutron':
+      name   => 'binutils',
+      ensure => 'installed',
+    }
+
   }
 
 }
