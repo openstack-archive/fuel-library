@@ -52,6 +52,7 @@ class openstack::cinder(
   $rbd_user               = 'volumes',
   $rbd_secret_uuid        = 'a5d0dd94-57c4-ae55-ffe0-7e3732a24455',
   $swift_url              = false,
+  $openstack_version      = {},
 ) {
   include cinder::params
   #  if ($purge_cinder_config) {
@@ -104,7 +105,7 @@ class openstack::cinder(
         $rabbit_host_array = split($amqp_hosts, ':')
       }
       class { '::cinder':
-        package_ensure         => $::openstack_version['cinder'],
+        package_ensure         => $openstack_version['cinder'],
         rpc_backend            => 'cinder.openstack.common.rpc.impl_kombu',
         rabbit_host            => $rabbit_host_array[0],
         rabbit_port            => $rabbit_host_array[1],
@@ -143,7 +144,7 @@ class openstack::cinder(
   if ($bind_host) {
     class { 'cinder::api':
       keystone_enabled             => $keystone_enabled,
-      package_ensure               => $::openstack_version['cinder'],
+      package_ensure               => $openstack_version['cinder'],
       auth_uri                     => $auth_uri,
       identity_uri                 => $identity_uri,
       keystone_user                => $keystone_user,
@@ -165,7 +166,7 @@ class openstack::cinder(
     }
 
     class { 'cinder::scheduler':
-      package_ensure => $::openstack_version['cinder'],
+      package_ensure => $openstack_version['cinder'],
       enabled        => true,
     }
   }
@@ -196,7 +197,7 @@ class openstack::cinder(
     }
 
     class { 'cinder::volume':
-      package_ensure => $::openstack_version['cinder'],
+      package_ensure => $openstack_version['cinder'],
       enabled        => $enable_volumes,
     }
 
