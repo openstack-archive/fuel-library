@@ -6,14 +6,17 @@ module Puppet::Parser::Functions
 Returns if given package is installed
   ENDOFDOC
   ) do |args|
-    pkgname = args[0]
-
-    parameters = { :name => pkgname }
-    res = Puppet::Type.type(:package).new(parameters)
-
-    query = res.provider.query
-
-    return false if query.nil?
-    query[:ensure].match(/[-.]|\d+|[^-.\d]+/) != 0
+    begin
+      pkg_name = args[0]
+      parameters = { :name => pkg_name }
+      res = Puppet::Type.type(:package).new(parameters)
+      query = res.provider.query
+      break false unless query.is_a? Hash
+      break false unless query[:ensure]
+      break false if [ :absent, :purged ].include? query[:ensure]
+      true
+    rescue
+      false
+    end
   end
 end
