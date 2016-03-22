@@ -14,7 +14,16 @@ class osnailyfacter::generate_vms::generate_vms {
     ensure => 'installed',
   }
 
-  service { $::nova::params::libvirt_service_name:
+  # TODO(skolekonov): $::nova::params::libvirt_service_name can't be used
+  # directly as ubuntu naming scheme for some versions of libvirt packages
+  # is used by Fuel even though os_package_type is always set to 'debian'
+  if ($::operatingsystem == 'Ubuntu') and (versioncmp($::libvirt_package_version, '1.2.9.3') > 0) {
+    $libvirt_service_name = 'libvirt-bin'
+  } else {
+    $libvirt_service_name = $::nova::params::libvirt_service_name
+  }
+
+  service { $libvirt_service_name:
     ensure  => 'running',
     require => Package[$packages],
     before  => Exec['generate_vms'],
