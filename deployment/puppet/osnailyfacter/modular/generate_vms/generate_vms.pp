@@ -23,7 +23,15 @@ package { $packages:
   ensure => 'installed',
 }
 
-service { $::nova::params::libvirt_service_name:
+# TODO(skolekonov): $::nova::params::libvirt_service_name can't be used
+# as ubuntu naming scheme for libvirt packages is used by Fuel even though
+# os_package_type is set to 'debian'
+$libvirt_service_name = $::operatingsystem ? {
+  'Ubuntu' => 'libvirt-bin',
+  default  => $::nova::params::libvirt_service_name
+}
+
+service { $libvirt_service_name:
   ensure  => 'running',
   require => Package[$packages],
   before  => Exec['generate_vms'],

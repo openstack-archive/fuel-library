@@ -362,6 +362,15 @@ if ($storage_hash['ephemeral_ceph'] or $storage_hash['volumes_ceph']) {
 }
 
 # Configure libvirt for nova-compute
+
+# TODO(skolekonov): $::nova::params::libvirt_service_name can't be used
+# as ubuntu naming scheme for libvirt packages is used by Fuel even though
+# os_package_type is set to 'debian'
+$libvirt_service_name = $::operatingsystem ? {
+  'Ubuntu' => 'libvirt-bin',
+  default  => $::nova::params::libvirt_service_name
+}
+
 class { 'nova::compute::libvirt':
   libvirt_virt_type                          => $libvirt_type,
   libvirt_cpu_mode                           => $libvirt_cpu_mode,
@@ -369,7 +378,7 @@ class { 'nova::compute::libvirt':
   libvirt_inject_partition                   => $libvirt_inject_partition,
   vncserver_listen                           => '0.0.0.0',
   remove_unused_original_minimum_age_seconds => pick($nova_hash_real['remove_unused_original_minimum_age_seconds'], '86400'),
-  libvirt_service_name                       => $::nova::params::libvirt_service_name,
+  libvirt_service_name                       => $libvirt_service_name,
 }
 
 class { 'nova::migration::libvirt':

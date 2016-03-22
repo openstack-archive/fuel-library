@@ -33,10 +33,18 @@ if $use_neutron {
 
   $nova_migration_ip          =  get_network_role_property('nova/migration', 'ipaddr')
 
+  # TODO(skolekonov): $::nova::params::libvirt_service_name can't be used
+  # as ubuntu naming scheme for libvirt packages is used by Fuel even though
+  # os_package_type is set to 'debian'
+  $libvirt_service_name = $::operatingsystem ? {
+    'Ubuntu' => 'libvirt-bin',
+    default  => $::nova::params::libvirt_service_name
+  }
+
   service { 'libvirt' :
     ensure   => 'running',
     enable   => true,
-    name     => $::nova::params::libvirt_service_name,
+    name     => $::libvirt_service_name,
     provider => $::nova::params::special_service_provider,
   }
 

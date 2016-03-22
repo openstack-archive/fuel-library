@@ -13,9 +13,17 @@ class ceph::nova_compute (
     content => template('ceph/secret.erb')
   }
 
+  # TODO(skolekonov): $::nova::params::libvirt_service_name can't be used
+  # as ubuntu naming scheme for libvirt packages is used by Fuel even though
+  # os_package_type is set to 'debian'
+  $libvirt_service_name = $::operatingsystem ? {
+    'Ubuntu' => 'libvirt-bin',
+    default  => $::nova::params::libvirt_service_name
+  }
+
   ensure_resource('service', 'libvirt', {
     ensure => 'running',
-    name   => $::nova::params::libvirt_service_name,
+    name   => $libvirt_service_name,
   })
 
   exec {'Set Ceph RBD secret for Nova':
