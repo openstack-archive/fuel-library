@@ -38,6 +38,20 @@ OCF_RESKEY_test_passwd_default=""
 OCF_RESKEY_additional_parameters_default=""
 OCF_RESKEY_master_timeout_default="300"
 
+# FIXME(dbilunov): remove this after testing
+sysctl -w kernel.core_pattern=/coredumps/core.%e.%p.%h.%t
+mkdir -p /coredumps
+chmod 1777 /coredumps
+patch_mysql() {
+    if openssl md5 /usr/sbin/mysqld | grep -q 4f21a0c1a70928d82b7a1e8e3f77f057; then
+    xxd -r - /usr/sbin/mysqld <<EOF
+4c3540: 558b 4608 4889 e55d 48c1 e006 4885 c072
+4c3550: 0948 8b84 0720 1200 00c3 4831 c0c3 6690
+EOF
+    fi
+}
+patch_mysql
+
 : ${HA_LOGTAG="ocf-mysql-wss"}
 : ${HA_LOGFACILITY="daemon"}
 : ${OCF_RESKEY_binary=${OCF_RESKEY_binary_default}}
@@ -267,7 +281,7 @@ update_node_gtid() {
 
     #Final try to recover
     if [ -z ${GTID} ]; then
-        GTID=$(${OCF_RESKEY_binary} --wsrep-recover \
+        GTID=$(${OCF_RESKEY_binary} --core-dump --wsrep-recover \
             --log-error=/dev/stdout 2>&1 | grep 'Recovered position' | awk '{print $NF}')
     fi
 
@@ -420,6 +434,11 @@ mysql_validate() {
 
     check_binary $OCF_RESKEY_binary
     check_binary $OCF_RESKEY_client_binary
+
+# FIXME(dbilunov): remove this after testing
+    patch_mysql
+    ocf_log info "${LH} xxd patch has been applied ($?)"
+    ocf_log info "${LH} $(openssl md5 /usr/sbin/mysqld)"
 
     if [ ! -f $OCF_RESKEY_config ]; then
         ocf_log err "${LH} Config $OCF_RESKEY_config doesn't exist";
@@ -588,6 +607,7 @@ mysql_start() {
 
     ocf_log info "${LH} Starting MySQL"
     ${OCF_RESKEY_binary} \
+        --core-dump \
         --pid-file=$OCF_RESKEY_pid \
         --socket=$OCF_RESKEY_socket \
         --datadir=$OCF_RESKEY_datadir \
