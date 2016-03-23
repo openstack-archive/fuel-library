@@ -57,6 +57,7 @@ describe manifest do
 
     rabbit_port = Noop.hiera 'amqp_port'
     rabbit_hosts = Noop.hiera 'amqp_hosts'
+    kombu_compression = Noop.hiera 'kombu_compression', ''
 
     ceilometer_hash = Noop.hiera_structure 'ceilometer', {'alarm_history_time_to_live' => '604800'}
     alarm_ttl = Noop.puppet_function 'pick', aodh_hash['alarm_history_time_to_live'], ceilometer_hash['alarm_history_time_to_live']
@@ -119,6 +120,12 @@ describe manifest do
 
     it 'should configure alarm ttl' do
       should contain_aodh_config('database/alarm_history_time_to_live').with(:value => alarm_ttl)
+    end
+
+    if ['gzip', 'bz2'].include?(kombu_compression)
+      it 'should configure kombu compression' do
+        should contain_aodh_config('oslo_messaging_rabbit/kombu_compression').with(:value => kombu_compression)
+      end
     end
 
   end # end of shared_examples

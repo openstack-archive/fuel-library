@@ -19,6 +19,7 @@ describe manifest do
   ceilometer_hash = Noop.hiera_hash 'ceilometer', { 'enabled' => false }
   use_ceph = Noop.hiera 'use_ceph'
   volume_backend_name = storage_hash['volume_backend_names']
+  kombu_compression = Noop.hiera 'kombu_compression', ''
 
   database_vip = Noop.hiera('database_vip')
   cinder_db_password = Noop.hiera_structure 'cinder/db_password', 'cinder'
@@ -119,6 +120,12 @@ describe manifest do
   if ceilometer_hash['enabled']
     it 'should contain notification_driver option' do
       should contain_cinder_config('DEFAULT/notification_driver').with(:value => ceilometer_hash['notification_driver'])
+    end
+  end
+
+  if ['gzip', 'bz2'].include?(kombu_compression)
+    it 'should configure kombu compression' do
+      should contain_cinder_config('oslo_messaging_rabbit/kombu_compression').with(:value => kombu_compression)
     end
   end
 

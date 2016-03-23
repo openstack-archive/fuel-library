@@ -26,6 +26,7 @@ describe manifest do
   default_log_levels = Noop.puppet_function 'join_keys_to_values',default_log_levels_hash,'='
   primary_controller = Noop.hiera 'primary_controller'
   volume_backend_name = Noop.hiera_structure 'storage/volume_backend_names'
+  kombu_compression = Noop.hiera 'kombu_compression', ''
 
   database_vip = Noop.hiera('database_vip')
   cinder = Noop.puppet_function 'roles_include', 'cinder'
@@ -185,6 +186,12 @@ describe manifest do
           'volume_backend_name' => 'false'
         )
       end
+    end
+  end
+
+  if ['gzip', 'bz2'].include?(kombu_compression)
+    it 'should configure kombu compression' do
+      should contain_cinder_config('oslo_messaging_rabbit/kombu_compression').with(:value => kombu_compression)
     end
   end
 

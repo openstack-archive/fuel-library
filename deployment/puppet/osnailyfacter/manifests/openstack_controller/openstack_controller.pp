@@ -34,6 +34,7 @@ class osnailyfacter::openstack_controller::openstack_controller {
   $ssl_hash                     = hiera_hash('use_ssl', {})
   $node_hash                    = hiera_hash('node_hash', {})
   $sahara_enabled               = pick($sahara_hash['enabled'], false)
+  $kombu_compression            = hiera('kombu_compression', '')
 
   $internal_auth_protocol = get_ssl_property($ssl_hash, {}, 'keystone', 'internal', 'protocol', [$nova_hash['auth_protocol'], 'http'])
   $internal_auth_address  = get_ssl_property($ssl_hash, {}, 'keystone', 'internal', 'hostname', [$service_endpoint, $management_vip])
@@ -427,6 +428,16 @@ class osnailyfacter::openstack_controller::openstack_controller {
 
   nova_config {
     'DEFAULT/teardown_unused_network_gateway': value => 'True'
+  }
+
+  # TODO (iberezovskiy): remove this workaround in N when nova module
+  # will be switched to puppet-oslo usage for rabbit configuration
+  if $kombu_compression in ['gzip','bz2'] {
+    if !defined(Oslo::Messaging_rabbit['nova_config']) and !defined(Nova_config['oslo_messaging_rabbit/kombu_compression']) {
+      nova_config { 'oslo_messaging_rabbit/kombu_compression': value => $kombu_compression; }
+    } else {
+      Nova_config<| title == 'oslo_messaging_rabbit/kombu_compression' |> { value => $kombu_compression }
+    }
   }
 
   $nova_scheduler_default_filters = [ 'RetryFilter', 'AvailabilityZoneFilter', 'RamFilter', 'CoreFilter', 'DiskFilter', 'ComputeFilter', 'ComputeCapabilitiesFilter', 'ImagePropertiesFilter', 'ServerGroupAntiAffinityFilter', 'ServerGroupAffinityFilter' ]

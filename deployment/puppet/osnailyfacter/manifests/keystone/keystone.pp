@@ -35,6 +35,7 @@ class osnailyfacter::keystone::keystone {
                                 min(max($::processorcount, 2), $workers_max))
   $default_log_levels    = hiera_hash('default_log_levels')
   $primary_controller    = hiera('primary_controller')
+  $kombu_compression     = hiera('kombu_compression', '')
 
   $db_type     = 'mysql'
   $db_host     = pick($keystone_hash['db_host'], $database_vip)
@@ -317,6 +318,16 @@ class osnailyfacter::keystone::keystone {
       'composite:admin/use':                             value =>'egg:Paste#urlmap';
       'composite:admin//v2.0':                           value =>'admin_api';
       'composite:admin//':                               value =>'admin_version_api';
+    }
+
+    # TODO (iberezovskiy): remove this workaround in N when keystone module
+    # will be switched to puppet-oslo usage for rabbit configuration
+    if $kombu_compression in ['gzip','bz2'] {
+      if !defined(Oslo::Messaging_rabbit['keystone_config']) and !defined(Keystone_config['oslo_messaging_rabbit/kombu_compression']) {
+        keystone_config { 'oslo_messaging_rabbit/kombu_compression': value => $kombu_compression; }
+      } else {
+        Keystone_config<| title == 'oslo_messaging_rabbit/kombu_compression' |> { value => $kombu_compression }
+      }
     }
 
     class { '::keystone::endpoint':

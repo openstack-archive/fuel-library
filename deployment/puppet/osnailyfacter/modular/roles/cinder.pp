@@ -39,6 +39,7 @@ $syslog_log_facility_murano     = hiera('syslog_log_facility_murano', 'LOG_LOCAL
 $syslog_log_facility_sahara     = hiera('syslog_log_facility_sahara','LOG_LOCAL0')
 $syslog_log_facility_ceph       = hiera('syslog_log_facility_ceph','LOG_LOCAL0')
 $proxy_port                     = hiera('proxy_port', '8080')
+$kombu_compression              = hiera('kombu_compression', '')
 
 $keystone_user                  = pick($cinder_hash['user'], 'cinder')
 $keystone_tenant                = pick($cinder_hash['tenant'], 'services')
@@ -298,6 +299,16 @@ class { '::openstack::cinder':
 
 cinder_config { 'keymgr/fixed_key':
   value => $cinder_hash[fixed_key];
+}
+
+# TODO (iberezovskiy): remove this workaround in N when cinder module
+# will be switched to puppet-oslo usage for rabbit configuration
+if $kombu_compression in ['gzip','bz2'] {
+  if !defined(Oslo::Messaging_rabbit['cinder_config']) and !defined(Cinder_config['oslo_messaging_rabbit/kombu_compression']) {
+    cinder_config { 'oslo_messaging_rabbit/kombu_compression': value => $kombu_compression; }
+  } else {
+    Cinder_config<| title == 'oslo_messaging_rabbit/kombu_compression' |> { value => $kombu_compression }
+  }
 }
 
 #################################################################
