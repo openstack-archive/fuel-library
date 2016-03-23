@@ -12,7 +12,7 @@ class osnailyfacter::vmware::compute_vmware {
     vlan_interface => $vcenter_hash['esxi_vlan_interface']
   }
 
-  create_resources(vmware::compute_vmware, $computes, $defaults)
+  create_resources(vmware::compute_vmware, $computes_hash, $defaults)
 
   $ceilometer_hash = hiera_hash('ceilometer', {})
   $ceilometer_enabled = $ceilometer_hash['enabled']
