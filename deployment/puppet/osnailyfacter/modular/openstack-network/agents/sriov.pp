@@ -3,15 +3,15 @@ notice('MODULAR: openstack-network/agents/sriov.pp')
 $use_neutron     = hiera('use_neutron', false)
 $network_scheme  = hiera_hash('network_scheme', {})
 $neutron_config  = hiera_hash('neutron_config')
-$pci_vendor_devs = pick($neutron_config['supported_pci_vendor_devs'], false)
+
+prepare_network_config($network_scheme)
+$pci_passthrough_whitelist = get_nic_passthrough_whitelist('sriov')
 
 class neutron {}
 class { 'neutron' :}
 
-if $use_neutron and $pci_vendor_devs {
+if $use_neutron and $pci_passthrough_whitelist {
 
-  prepare_network_config($network_scheme)
-  $pci_passthrough_whitelist = get_nic_passthrough_whitelist('sriov')
   $physical_device_mappings = nic_whitelist_to_mappings($pci_passthrough_whitelist)
 
   class { 'neutron::agents::ml2::sriov':
