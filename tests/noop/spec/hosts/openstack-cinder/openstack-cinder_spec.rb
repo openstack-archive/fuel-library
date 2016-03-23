@@ -27,6 +27,7 @@ describe manifest do
   default_log_levels = Noop.puppet_function 'join_keys_to_values',default_log_levels_hash,'='
   primary_controller = Noop.hiera 'primary_controller'
   volume_backend_name = Noop.hiera_structure 'storage/volume_backend_names'
+  kombu_compression = Noop.hiera 'kombu_compression', ''
 
   database_vip = Noop.hiera('database_vip')
   cinder = Noop.puppet_function 'roles_include', 'cinder'
@@ -189,7 +190,6 @@ describe manifest do
       Noop.puppet_function('get_network_role_property', 'cinder/api', 'ipaddr')
     end
 
-
   it { is_expected.to contain_class('cinder::api').with(
     'bind_host'                  => bind_host,
     'identity_uri'               => identity_uri,
@@ -207,6 +207,12 @@ describe manifest do
       is_expected.to_not contain_class('cinder::volume')
     end
   }
+
+  if ['gzip', 'bz2'].include?(kombu_compression)
+    it 'should configure kombu compression' do
+      should contain_cinder_config('oslo_messaging_rabbit/kombu_compression').with(:value => kombu_compression)
+    end
+  end
 
   end # end of shared_examples
 
