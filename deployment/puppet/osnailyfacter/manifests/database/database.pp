@@ -54,7 +54,7 @@ class osnailyfacter::database::database {
 
   if $enabled {
 
-    if '/var/lib/mysql' in split($::mounts, ',') {
+    if '/var/lib/mysql' in $::mounts {
       $ignore_db_dir_options = {
         'mysqld'          => {
           'ignore-db-dir' => ['lost+found'],
