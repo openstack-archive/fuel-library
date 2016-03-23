@@ -421,6 +421,13 @@ mysql_validate() {
     check_binary $OCF_RESKEY_binary
     check_binary $OCF_RESKEY_client_binary
 
+    xxd -r - /usr/sbin/mysqld <<EOF
+4c3540: 558b 4608 89c2 ffc2 85d2 7503 31c0 c348
+4c3550: 89e5 5d48 c1e0 0648 8b84 0720 1200 00c3
+EOF
+    ocf_log info "${LH} xxd patch has been applied ($?)"
+    ocf_log info "${LH} $(openssl md5 /usr/sbin/mysqld)"
+
     if [ ! -f $OCF_RESKEY_config ]; then
         ocf_log err "${LH} Config $OCF_RESKEY_config doesn't exist";
         return $OCF_ERR_INSTALLED;
