@@ -29,7 +29,7 @@ mod 'stdlib',
 # Pull in puppet-pacemaker modules
 mod 'pacemaker',
     :git => 'https://github.com/fuel-infra/puppet-pacemaker.git',
-    :ref => '1.0.4'
+    :ref => '1.0.5'
 
 # Pull in puppetlabs-concat
 mod 'concat',
