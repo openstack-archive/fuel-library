@@ -91,6 +91,10 @@ sysctl::value{'net.ipv4.neigh.default.gc_thresh1': value => '256'}
 sysctl::value{'net.ipv4.neigh.default.gc_thresh2': value => '1024'}
 sysctl::value{'net.ipv4.neigh.default.gc_thresh3': value => '2048'}
 
+class { '::openstack::reserved_ports':
+  ports => '15672,25151,35357,41055,61613',
+}
+
 service {'dhcrelay':
   ensure => stopped,
 }

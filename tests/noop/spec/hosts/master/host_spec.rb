@@ -43,6 +43,12 @@ describe manifest do
       it { is_expected.to contain_sysctl__value(key).with(:value => value) }
     end
 
+    it 'should reserve unprivleged ports for services' do
+      is_expected.to contain_class '::openstack::reserved_ports' with {
+          :ports => '15672,25151,35357,41055,61613',
+      }
+    end
+
     it { is_expected.to contain_class 'monit' }
 
     it { is_expected.to contain_exec 'Change protocol and port in in issue' }
