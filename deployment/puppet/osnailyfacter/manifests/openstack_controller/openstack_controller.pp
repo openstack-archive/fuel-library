@@ -256,6 +256,7 @@ class osnailyfacter::openstack_controller::openstack_controller {
   class { '::nova::api':
     enabled                              => true,
     api_bind_address                     => $api_bind_address,
+    metadata_listen                      => $api_bind_address,
     admin_user                           => $keystone_user,
     admin_password                       => $nova_hash['user_password'],
     admin_tenant_name                    => pick($nova_hash['admin_tenant_name'], $keystone_tenant),

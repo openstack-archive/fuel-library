@@ -164,6 +164,7 @@ class osnailyfacter::openstack_network::compute_nova {
         admin_password        => $nova_hash['user_password'],
         enabled_apis          => $enabled_apis,
         api_bind_address      => $bind_address,
+        metadata_listen       => $bind_address,
         ratelimits            => $nova_rate_limits,
       # NOTE(bogdando) 1 api worker for compute node is enough
         osapi_compute_workers => '1',
@@ -177,7 +178,6 @@ class osnailyfacter::openstack_network::compute_nova {
 
       nova_config {
         'DEFAULT/send_arp_for_ha' : value => 'True';
-        'DEFAULT/metadata_host'   : value => $bind_address;
       }
 
       if ! $public_interface {
