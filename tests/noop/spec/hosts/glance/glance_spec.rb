@@ -179,6 +179,9 @@ describe manifest do
       it 'should configure show_image_direct_url' do
         should contain_glance_api_config('DEFAULT/show_image_direct_url').with_value(show_image_direct_url)
       end
+      it 'should disable vCenter server TLS/SSL certificate verifcation' do
+        should contain_glance_api_config('glance_store/vmware_api_insecure').with_value('true')
+      end
     else
       if glance_config && glance_config.has_key?('show_image_direct_url')
         show_image_direct_url = glance_config['show_image_direct_url']
