@@ -3,7 +3,10 @@
 usage = """Help: this daemon fences dead rabbitmq nodes"""
 
 import daemon
-import daemon.pidlockfile
+try:
+    import daemon.pidfile as daemon_pidfile
+except ImportError:
+    import daemon.pidlockfile as daemon_pidfile
 import dbus
 import dbus.decorators
 import dbus.mainloop.glib
@@ -151,7 +154,7 @@ if __name__ == '__main__':
     env['LOGNAME'] = LOGNAME
 
     pidfilename = '/var/run/rabbitmq/rabbit-fence.pid'
-    pidfile = daemon.pidlockfile.TimeoutPIDLockFile(pidfilename, 10)
+    pidfile = daemon_pidfile.TimeoutPIDLockFile(pidfilename, 10)
     try:
         with daemon.DaemonContext(files_preserve=[lh.socket.fileno()],
                                   pidfile=pidfile, uid=uid,
