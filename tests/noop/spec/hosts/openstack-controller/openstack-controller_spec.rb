@@ -397,6 +397,54 @@ describe manifest do
                     done; exit 1\'',
         )
       end
+
+      it 'should create default security groups' do
+        if Noop.puppet_function('pick', nova_hash['create_default_security_groups'], true)
+          should contain_nova_security_group('global_http')
+
+          should contain_nova_security_rule('http_01').with(
+            'ip_protocol' => 'tcp',
+            'from_port' => '80',
+            'to_port' => '80',
+            'ip_range' => '0.0.0.0/0',
+            'security_group' => 'global_http'
+          )
+          should contain_nova_security_rule('http_02').with(
+            'ip_protocol' => 'tcp',
+            'from_port' => '443',
+            'to_port' => '443',
+            'ip_range' => '0.0.0.0/0',
+            'security_group' => 'global_http'
+          )
+
+          should contain_nova_security_group('global_ssh')
+
+          should contain_nova_security_rule('ssh_01').with(
+            'ip_protocol' => 'tcp',
+            'from_port' => '22',
+            'to_port' => '22',
+            'ip_range' => '0.0.0.0/0',
+            'security_group' => 'global_ssh'
+          )
+
+          should contain_nova_security_group('allow_all')
+
+          should contain_nova_security_rule('all_01').with(
+            'ip_protocol' => 'tcp',
+            'from_port' => '1',
+            'to_port' => '65535',
+            'ip_range' => '0.0.0.0/0',
+            'security_group' => 'allow_all'
+          )
+          should contain_nova_security_rule('all_02').with(
+            'ip_protocol' => 'udp',
+            'from_port' => '1',
+            'to_port' => '65535',
+            'ip_range' => '0.0.0.0/0',
+            'security_group' => 'allow_all'
+          )
+        end
+      end
     end
 
     ironic_enabled = Noop.hiera_structure 'ironic/enabled'
