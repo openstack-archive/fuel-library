@@ -49,19 +49,20 @@ test_vm_images.each do |image|
 end
 
 def image_list
-  stdout = `glance image-list`
+  stdout = `glance --verbose image-list`
   return_code = $?.exitstatus
   images = []
   stdout.split("\n").each do |line|
     fields = line.split('|').map { |f| f.chomp.strip }
     next if fields[1] == 'ID'
     next unless fields[2]
-    images << fields[2]
+    images << {fields[2] => fields[6]}
   end
   {:images => images, :exit_code => return_code}
 end
 
 # TODO degorenko: remove --os-image-api-version after liberty (fuel-8.0) release
+# Change is-public to visibility and pass 'public' value to it
 def image_create(image_hash)
   command = <<-EOF
 /usr/bin/glance --os-image-api-version 1 image-create \
@@ -93,10 +94,21 @@ end
 # upload image to Glance
 # if it have not been already uploaded
 def upload_image(image)
-  list_of_images = image_list
-  if list_of_images[:images].include?(image['img_name']) && list_of_images[:exit_code] == 0
-    puts "Image '#{image['img_name']}' is already present!"
-    return 0
+  10.times do
+    list_of_images = image_list
+    if list_of_images[:images].include?(image['img_name'] => "active") && list_of_images[:exit_code] == 0
+      puts "Image '#{image['img_name']}' is already present!"
+      return 0
+      break
+    end
+
+
+    if ['saving', 'queued'].any? {|state| list_of_images[:images].include?(image['img_name'] => state)} && list_of_images[:exit_code] == 0
+      puts "Image '#{image['img_name']}' saving is being processed!"
+      sleep 20
+      next
+    end
+    break
   end
 
   stdout, return_code = image_create(image)
