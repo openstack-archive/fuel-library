@@ -7,6 +7,7 @@ class openstack_tasks::glance::glance {
   prepare_network_config($network_scheme)
 
   $glance_hash           = hiera_hash('glance', {})
+  $glance_glare_hash     = hiera_hash('glance_glare', {})
   $verbose               = pick($glance_hash['verbose'], hiera('verbose', true))
   $debug                 = pick($glance_hash['debug'], hiera('debug', false))
   $management_vip        = hiera('management_vip')
@@ -48,7 +49,8 @@ class openstack_tasks::glance::glance {
     'extra'    => $extra_params
   })
 
-  $bind_host                      = get_network_role_property('glance/api', 'ipaddr')
+  $api_bind_host                  = get_network_role_property('glance/api', 'ipaddr')
+  $glare_bind_host                = get_network_role_property('glance/glare', 'ipaddr')
   $enabled                        = true
   $max_retries                    = '-1'
   $idle_timeout                   = '3600'
@@ -60,6 +62,9 @@ class openstack_tasks::glance::glance {
   $glance_user                    = pick($glance_hash['user'],'glance')
   $glance_user_password           = $glance_hash['user_password']
   $glance_tenant                  = pick($glance_hash['tenant'],'services')
+  $glance_glare_user              = pick($glance_glare_hash['user'],'glare')
+  $glance_glare_user_password     = $glance_glare_hash['user_password']
+  $glance_glare_tenant            = pick($glance_glare_hash['tenant'],'services')
   $glance_vcenter_host            = $glance_hash['vc_host']
   $glance_vcenter_user            = $glance_hash['vc_user']
   $glance_vcenter_password        = $glance_hash['vc_password']
@@ -105,15 +110,15 @@ class openstack_tasks::glance::glance {
     package {'murano-glance-artifacts-plugin':
       ensure  => installed,
     }
-    glance_api_config {
-      'DEFAULT/enable_v3_api': value => true,
-    }
   }
 
   ####### Disable upstart startup on install #######
   if($::operatingsystem == 'Ubuntu') {
     tweaks::ubuntu_service_override { 'glance-api':
       package_name => 'glance-api',
+    }
+    tweaks::ubuntu_service_override { 'glance-glare':
+      package_name => 'glance-glare',
     }
     tweaks::ubuntu_service_override { 'glance-registry':
       package_name => 'glance-registry',
@@ -124,7 +129,7 @@ class openstack_tasks::glance::glance {
   class { '::glance::api':
     verbose                => $verbose,
     debug                  => $debug,
-    bind_host              => $bind_host,
+    bind_host              => $api_bind_host,
     auth_type              => 'keystone',
     auth_uri               => $auth_uri,
     identity_uri           => $identity_uri,
@@ -155,6 +160,41 @@ class openstack_tasks::glance::glance {
     image_cache_max_size   => $glance_image_cache_max_size,
   }
 
+  class { '::glance::glare::logging':
+    use_syslog             => $use_syslog,
+    use_stderr             => $use_stderr,
+    log_facility           => $syslog_log_facility,
+    verbose                => $verbose,
+    debug                  => $debug,
+    default_log_levels     => hiera('default_log_levels'),
+  }
+
+  class { '::glance::glare::db':
+    database_connection    => $db_connection,
+    database_idle_timeout  => $idle_timeout,
+    database_max_pool_size => $max_pool_size,
+    database_max_retries   => $max_retries,
+    database_max_overflow  => $max_overflow,
+  }
+
+  class { '::glance::glare':
+    bind_host              => $glare_bind_host,
+    auth_type              => 'keystone',
+    auth_uri               => $auth_uri,
+    identity_uri           => $identity_uri,
+    keystone_user          => $glance_glare_user,
+    keystone_password      => $glance_glare_user_password,
+    keystone_tenant        => $glance_glare_tenant,
+    enabled                => $enabled,
+    stores                 => $known_stores,
+    workers                => $service_workers,
+    pipeline               => $pipeline,
+    os_region_name         => $region,
+    auth_region            => $region,
+    signing_dir            => '/tmp/keystone-signing-glance',
+    token_cache_time       => '-1',
+  }
+
   glance_api_config {
     'DEFAULT/scrubber_datadir': value => '/var/lib/glance/scrubber';
   }
@@ -171,7 +211,7 @@ class openstack_tasks::glance::glance {
   class { '::glance::registry':
     verbose                => $verbose,
     debug                  => $debug,
-    bind_host              => $bind_host,
+    bind_host              => $api_bind_host,
     auth_uri               => $auth_uri,
     identity_uri           => $identity_uri,
     auth_type              => 'keystone',
@@ -206,6 +246,9 @@ class openstack_tasks::glance::glance {
     glance_api_config {
       'DEFAULT/use_syslog_rfc_format': value => true;
     }
+    glance_glare_config {
+      'DEFAULT/use_syslog_rfc_format': value => true;
+    }
     glance_cache_config {
       'DEFAULT/use_syslog_rfc_format': value => true;
     }
@@ -237,6 +280,7 @@ class openstack_tasks::glance::glance {
         swift_store_large_object_size       => $swift_store_large_object_size,
         swift_store_auth_address            => "${auth_uri}/v2.0/",
         swift_store_region                  => $region,
+        glare_enabled                       => true,
       }
     }
     'rbd', 'ceph': {
@@ -245,6 +289,7 @@ class openstack_tasks::glance::glance {
         rbd_store_user        => 'images',
         rbd_store_pool        => 'images',
         rados_connect_timeout => $rados_connect_timeout,
+        glare_enabled         => true,
       }
     }
     'vmware': {
@@ -255,11 +300,14 @@ class openstack_tasks::glance::glance {
           vcenter_datacenter      => $glance_vcenter_datacenter,
           vcenter_datastore       => $glance_vcenter_datastore,
           vcenter_image_dir       => $glance_vcenter_image_dir,
-          vcenter_api_retry_count => $glance_vcenter_api_retry_count
+          vcenter_api_retry_count => $glance_vcenter_api_retry_count,
+          glare_enabled           => true,
       }
     }
     default: {
-      class { "glance::backend::${glance_backend}": }
+      class { "glance::backend::${glance_backend}":
+        glare_enabled => true,
+      }
     }
   }
 
@@ -281,6 +329,12 @@ class openstack_tasks::glance::glance {
       glance_registry_config { 'oslo_messaging_rabbit/kombu_compression': value => $kombu_compression; }
     } else {
       Glance_registry_config<| title == 'oslo_messaging_rabbit/kombu_compression' |> { value => $kombu_compression }
+    }
+
+    if !defined(Oslo::Messaging_rabbit['glance_registry_config']) and !defined(Glance_registry_config['oslo_messaging_rabbit/kombu_compression']) {
+      glance_glare_config { 'oslo_messaging_rabbit/kombu_compression': value => $kombu_compression; }
+    } else {
+      Glance_glare_config<| title == 'oslo_messaging_rabbit/kombu_compression' |> { value => $kombu_compression }
     }
   }
 }
