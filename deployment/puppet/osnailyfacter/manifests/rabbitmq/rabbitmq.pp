@@ -73,17 +73,18 @@ class osnailyfacter::rabbitmq::rabbitmq {
         'net_ticktime'                 => '10',
       }
     )
-    $config_variables = hiera('rabbit_config_variables',
-      {
-        'log_levels'                   => $rabbit_levels,
-        'default_vhost'                => "<<\"/\">>",
-        'default_permissions'          => '[<<".*">>, <<".*">>, <<".*">>]',
-        'cluster_partition_handling'   => $cluster_partition_handling,
-        'mnesia_table_loading_timeout' => $mnesia_table_loading_timeout,
-        'collect_statistics_interval'  => '30000',
-        'disk_free_limit'              => '5000000', # Corosync checks for disk space, reduce rabbitmq check to 5M see LP#1493520 comment #15
-      }
-    )
+
+    $config_variables_default = {
+      'log_levels'                   => $rabbit_levels,
+      'default_vhost'                => "<<\"/\">>",
+      'default_permissions'          => '[<<".*">>, <<".*">>, <<".*">>]',
+      'cluster_partition_handling'   => $cluster_partition_handling,
+      'mnesia_table_loading_timeout' => $mnesia_table_loading_timeout,
+      'collect_statistics_interval'  => '30000',
+      'disk_free_limit'              => '5000000', # Corosync checks for disk space, reduce rabbitmq check to 5M see LP#1493520 comment #15
+    }
+    $config_variables = merge($config_variables_default, hiera_hash('rabbit_config_variables', {}))
+
     $config_management_variables = hiera('rabbit_config_management_variables',
       {
         'rates_mode' => 'none',
