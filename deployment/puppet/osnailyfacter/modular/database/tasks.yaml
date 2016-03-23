@@ -7,8 +7,6 @@
   reexecute_on: [deploy_changes]
   cross-depends:
     - name: primary-database
-  strategy:
-    type: one_by_one
   parameters:
     puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/database/database.pp
     puppet_modules: /etc/puppet/modules
