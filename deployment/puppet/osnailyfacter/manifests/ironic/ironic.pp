@@ -25,6 +25,7 @@ class osnailyfacter::ironic::ironic {
   $neutron_config             = hiera_hash('quantum_settings')
   $primary_controller         = hiera('primary_controller')
   $amqp_durable_queues        = pick($ironic_hash['amqp_durable_queues'], false)
+  $kombu_compression          = hiera('kombu_compression', '')
 
   $db_type                    = 'mysql'
   $db_host                    = pick($ironic_hash['db_host'], $database_vip)
@@ -90,4 +91,13 @@ class osnailyfacter::ironic::ironic {
     neutron_url       => "http://${neutron_endpoint}:9696",
   }
 
+  # TODO (iberezovskiy): remove this workaround in N when ironic module
+  # will be switched to puppet-oslo usage for rabbit configuration
+  if $kombu_compression in ['gzip','bz2'] {
+    if !defined(Oslo::Messaging_rabbit['ironic_config']) and !defined(Ironic_config['oslo_messaging_rabbit/kombu_compression']) {
+      ironic_config { 'oslo_messaging_rabbit/kombu_compression': value => $kombu_compression; }
+    } else {
+      Ironic_config<| title == 'oslo_messaging_rabbit/kombu_compression' |> { value => $kombu_compression }
+    }
+  }
 }

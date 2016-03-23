@@ -93,6 +93,14 @@ describe manifest do
       should contain_sysctl__value('net.ipv4.ip_forward').with_value('1')
     end
 
+    kombu_compression = Noop.hiera 'kombu_compression', ''
+
+    if ['gzip', 'bz2'].include?(kombu_compression)
+      it 'should configure kombu compression' do
+        should contain_neutron_config('oslo_messaging_rabbit/kombu_compression').with(:value => kombu_compression)
+      end
+    end
+
   end
   test_ubuntu_and_centos manifest
 end

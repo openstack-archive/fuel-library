@@ -46,6 +46,8 @@ class osnailyfacter::openstack_network::common_config {
     $amqp_user      = $rabbit_hash['user']
     $amqp_password  = $rabbit_hash['password']
 
+    $kombu_compression = hiera('kombu_compression', '')
+
     $segmentation_type = try_get_value($neutron_config, 'L2/segmentation_type')
 
     $nets = $neutron_config['predefined_networks']
@@ -99,6 +101,16 @@ class osnailyfacter::openstack_network::common_config {
       kombu_reconnect_delay   => '5.0',
       network_device_mtu      => $overlay_net_mtu,
       advertise_mtu           => true,
+    }
+
+    # TODO (iberezovskiy): remove this workaround in N when neutron module
+    # will be switched to puppet-oslo usage for rabbit configuration
+    if $kombu_compression in ['gzip','bz2'] {
+      if !defined(Oslo::Messaging_rabbit['neutron_config']) and !defined(Neutron_config['oslo_messaging_rabbit/kombu_compression']) {
+        neutron_config { 'oslo_messaging_rabbit/kombu_compression': value => $kombu_compression; }
+      } else {
+        Neutron_config<| title == 'oslo_messaging_rabbit/kombu_compression' |> { value => $kombu_compression }
+      }
     }
 
     if $default_log_levels {

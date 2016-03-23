@@ -21,6 +21,7 @@ describe manifest do
 
     keystone_identity_uri  = "#{admin_auth_protocol}://#{admin_auth_endpoint}:35357/"
     keystone_auth_uri      = "#{internal_auth_protocol}://#{internal_auth_endpoint}:5000/"
+    kombu_compression      = Noop.hiera 'kombu_compression', ''
 
     if ceilometer_hash['enabled']
       it 'should configure OS ENDPOINT TYPE for ceilometer' do
@@ -66,6 +67,12 @@ describe manifest do
           'auth_tenant_name' => auth_tenant_name,
           'auth_user'        => auth_user,
         )
+      end
+
+    if ['gzip', 'bz2'].include?(kombu_compression)
+        it 'should configure kombu compression' do
+          should contain_ceilometer_config('oslo_messaging_rabbit/kombu_compression').with(:value => kombu_compression)
+        end
       end
     end
   end # end of shared_examples

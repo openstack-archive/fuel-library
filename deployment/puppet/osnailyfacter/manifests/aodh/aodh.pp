@@ -16,6 +16,7 @@ class osnailyfacter::aodh::aodh {
   $rabbit_port         = hiera('amqp_port')
   $rabbit_hosts        = split($amqp_hosts, ',')
   $rabbit_virtual_host = '/'
+  $kombu_compression   = hiera('kombu_compression', '')
 
   prepare_network_config(hiera_hash('network_scheme', {}))
 
@@ -190,5 +191,15 @@ class osnailyfacter::aodh::aodh {
   }
 
   Service['aodh-api'] -> ::Osnailyfacter::Wait_for_backend['aodh']
+
+  # TODO (iberezovskiy): remove this workaround in N when aodh module
+  # will be switched to puppet-oslo usage for rabbit configuration
+  if $kombu_compression in ['gzip','bz2'] {
+    if !defined(Oslo::Messaging_rabbit['aodh_config']) and !defined(Aodh_config['oslo_messaging_rabbit/kombu_compression']) {
+      aodh_config { 'oslo_messaging_rabbit/kombu_compression': value => $kombu_compression; }
+    } else {
+      Aodh_config<| title == 'oslo_messaging_rabbit/kombu_compression' |> { value => $kombu_compression }
+    }
+  }
 
 }

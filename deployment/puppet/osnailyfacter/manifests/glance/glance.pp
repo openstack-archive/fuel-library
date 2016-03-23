@@ -26,6 +26,7 @@ class osnailyfacter::glance::glance {
                                 min(max($::processorcount, 2), $workers_max))
   $ironic_hash           = hiera_hash('ironic', {})
   $primary_controller    = hiera('primary_controller')
+  $kombu_compression     = hiera('kombu_compression', '')
 
   $db_type      = 'mysql'
   $db_host      = pick($glance_hash['db_host'], $database_vip)
@@ -267,4 +268,19 @@ class osnailyfacter::glance::glance {
   class { '::glance::cache::pruner': } ->
   class { '::glance::cache::cleaner': }
 
+  # TODO (iberezovskiy): remove this workaround in N when glance module
+  # will be switched to puppet-oslo usage for rabbit configuration
+  if $kombu_compression in ['gzip','bz2'] {
+    if !defined(Oslo::Messaging_rabbit['glance_api_config']) and !defined(Glance_api_config['oslo_messaging_rabbit/kombu_compression']) {
+      glance_api_config { 'oslo_messaging_rabbit/kombu_compression': value => $kombu_compression; }
+    } else {
+      Glance_api_config<| title == 'oslo_messaging_rabbit/kombu_compression' |> { value => $kombu_compression }
+    }
+
+    if !defined(Oslo::Messaging_rabbit['glance_registry_config']) and !defined(Glance_registry_config['oslo_messaging_rabbit/kombu_compression']) {
+      glance_registry_config { 'oslo_messaging_rabbit/kombu_compression': value => $kombu_compression; }
+    } else {
+      Glance_registry_config<| title == 'oslo_messaging_rabbit/kombu_compression' |> { value => $kombu_compression }
+    }
+  }
 }
