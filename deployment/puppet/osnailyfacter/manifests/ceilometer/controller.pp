@@ -27,6 +27,7 @@ class osnailyfacter::ceilometer::controller {
   $mongo_nodes              = get_nodes_hash_by_roles(hiera_hash('network_metadata'), hiera('mongo_roles'))
   $mongo_address_map        = get_node_to_ipaddr_map_by_network_role($mongo_nodes, 'mongo/db')
   $primary_controller       = hiera('primary_controller', false)
+  $kombu_compression        = hiera('kombu_compression', '')
 
   $ceilometer_enabled         = $ceilometer_hash['enabled']
   $ceilometer_metering_secret = $ceilometer_hash['metering_secret']
@@ -209,6 +210,14 @@ class osnailyfacter::ceilometer::controller {
       }
     }
 
+    # TODO (iberezovskiy): remove this workaround in N when ceilometer module
+    # will be switched to puppet-oslo usage for rabbit configuration
+    if $kombu_compression in ['gzip','bz2'] {
+      if !defined(Oslo::Messaging_rabbit['ceilometer_config']) and !defined(Ceilometer_config['oslo_messaging_rabbit/kombu_compression']) {
+        ceilometer_config { 'oslo_messaging_rabbit/kombu_compression': value => $kombu_compression; }
+      } else {
+        Ceilometer_config<| title == 'oslo_messaging_rabbit/kombu_compression' |> { value => $kombu_compression }
+      }
+    }
   }
-
 }

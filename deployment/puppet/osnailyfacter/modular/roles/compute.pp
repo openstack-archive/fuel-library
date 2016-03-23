@@ -49,6 +49,7 @@ $ssl_hash                       = hiera_hash('use_ssl', {})
 $node_hash                      = hiera_hash('node', {})
 $use_huge_pages                 = pick($node_hash['nova_hugepages_enabled'], false)
 $libvirt_type                   = hiera('libvirt_type', undef)
+$kombu_compression              = hiera('kombu_compression', '')
 
 $dpdk_config                    = hiera_hash('dpdk', {})
 $enable_dpdk                    = pick($dpdk_config['enabled'], false)
@@ -504,6 +505,16 @@ file { '/var/lib/nova/.ssh/config':
   group   => 'nova',
   mode    => '0600',
   content => "Host *\n  StrictHostKeyChecking no\n  UserKnownHostsFile=/dev/null\n",
+}
+
+# TODO (iberezovskiy): remove this workaround in N when nova module
+# will be switched to puppet-oslo usage for rabbit configuration
+if $kombu_compression in ['gzip','bz2'] {
+  if !defined(Oslo::Messaging_rabbit['nova_config']) and !defined(Nova_config['oslo_messaging_rabbit/kombu_compression']) {
+    nova_config { 'oslo_messaging_rabbit/kombu_compression': value => $kombu_compression; }
+  } else {
+    Nova_config<| title == 'oslo_messaging_rabbit/kombu_compression' |> { value => $kombu_compression }
+  }
 }
 
 # vim: set ts=2 sw=2 et :

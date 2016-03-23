@@ -53,6 +53,7 @@ describe manifest do
     primary_controller = Noop.hiera 'primary_controller'
     service_endpoint = Noop.hiera 'service_endpoint'
     management_vip = Noop.hiera 'management_vip'
+    kombu_compression = Noop.hiera 'kombu_compression', ''
 
     let(:database_vip) { Noop.hiera('database_vip') }
     let(:nova_db_password) { Noop.hiera_structure 'nova/db_password', 'nova' }
@@ -285,10 +286,16 @@ describe manifest do
       )
     end
 
-    it 'should configure allow resize to same host' do
+    it 'should allow resize to same host' do
       should contain_nova_config('DEFAULT/allow_resize_to_same_host').with(
         :value => Noop.puppet_function('pick', nova_hash['allow_resize_to_same_host'], true)
       )
+    end
+
+    if ['gzip', 'bz2'].include?(kombu_compression)
+      it 'should configure kombu compression' do
+        should contain_nova_config('oslo_messaging_rabbit/kombu_compression').with(:value => kombu_compression)
+      end
     end
 
     it 'should configure keystone authtoken signing' do

@@ -90,6 +90,7 @@ describe manifest do
 
     default_log_levels_hash = Noop.hiera_hash 'default_log_levels'
     default_log_levels = Noop.puppet_function 'join_keys_to_values',default_log_levels_hash,'='
+    kombu_compression = Noop.hiera 'kombu_compression', ''
 
     it 'should configure default_log_levels' do
       should contain_keystone_config('DEFAULT/default_log_levels').with_value(default_log_levels.sort.join(','))
@@ -316,6 +317,12 @@ describe manifest do
         :provider => provider
       )
     }
+
+    if ['gzip', 'bz2'].include?(kombu_compression)
+      it 'should configure kombu compression' do
+        should contain_keystone_config('oslo_messaging_rabbit/kombu_compression').with(:value => kombu_compression)
+      end
+    end
 
   end # end of shared_examples
 

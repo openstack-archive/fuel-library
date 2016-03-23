@@ -46,6 +46,7 @@ describe manifest do
     internal_auth_endpoint = Noop.puppet_function 'get_ssl_property',ssl_hash,{},'keystone','internal','hostname',[service_endpoint]
     keystone_identity_uri  = "#{internal_auth_protocol}://#{internal_auth_endpoint}:35357/"
     keystone_auth_uri      = "#{internal_auth_protocol}://#{internal_auth_endpoint}:5000/"
+    kombu_compression      = Noop.hiera 'kombu_compression', ''
 
     # Ceilometer
     if ceilometer_hash['enabled']
@@ -152,6 +153,11 @@ describe manifest do
         )
       end
 
+      if ['gzip', 'bz2'].include?(kombu_compression)
+        it 'should configure kombu compression' do
+          should contain_ceilometer_config('oslo_messaging_rabbit/kombu_compression').with(:value => kombu_compression)
+        end
+      end
     end # end of ceilometer enabled
   end # end of shared_examples
 
