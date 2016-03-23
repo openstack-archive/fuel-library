@@ -4,7 +4,7 @@ include nova::params
 $compute_service_name = $::nova::params::compute_service_name
 $use_ovs              = hiera('use_ovs', true)
 
-if $use_ovs {
+if $use_ovs and ! roles_include(['compute-vmware']) {
   $neutron_integration_bridge = 'br-int'
   $bridge_exists_check        = "ovs-vsctl br-exists ${neutron_integration_bridge}"
 
