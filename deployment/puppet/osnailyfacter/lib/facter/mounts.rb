@@ -1,6 +1,6 @@
 #
-# This fact returns the currently mounted ext{2,3,4}, xfs or btrfs disks as a
-# comma seperate list.
+# This fact returns the currently mounted ext{2,3,4}, xfs or btrfs disks as an
+# array
 #
 
 mounts = []
@@ -19,7 +19,7 @@ end
 
 Facter.add(:mounts) do
   setcode do
-     mounts.join(",")
+     mounts
   end
 end
 
