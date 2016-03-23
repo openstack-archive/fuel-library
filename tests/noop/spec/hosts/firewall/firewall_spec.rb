@@ -154,6 +154,14 @@ describe manifest do
         )
       end
 
+      it 'should create rules for glance' do
+        should contain_firewall('104 glance').with(
+          'port'    => [ 9292, 9494, 9191, 8773 ],
+          'proto'   => 'tcp',
+          'action'  => 'accept',
+        )
+      end
+
       it 'should accept connections from 240.0.0.2' do
         should contain_firewall('030 allow connections from haproxy namespace').with(
           'source'      => '240.0.0.2',

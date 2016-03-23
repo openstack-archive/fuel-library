@@ -55,6 +55,27 @@ describe manifest do
           'balancermember_options' => 'check inter 10s fastinter 2s downinter 3s rise 3 fall 3'
         )
 
+        should contain_openstack__ha__haproxy_service('glance-glare').with(
+          'order'                  => '081',
+          'listen_port'            => 9494,
+          'require_service'        => 'glance-glare',
+
+          # common parameters
+          'internal_virtual_ip'    => internal_virtual_ip,
+          'ipaddresses'            => ipaddresses,
+          'public_virtual_ip'      => public_virtual_ip,
+          'server_names'           => server_names,
+          'public'                 => 'true',
+          'public_ssl'             => public_ssl,
+          'require_service'        => 'glance-glare',
+          'haproxy_config_options' => {
+            'option'         => ['httpchk /versions', 'httplog', 'httpclose'],
+            'http-request'   => 'set-header X-Forwarded-Proto https if { ssl_fc }',
+            'timeout server' => '11m',
+           },
+          'balancermember_options' => 'check inter 10s fastinter 2s downinter 3s rise 3 fall 3'
+        )
+
         should contain_openstack__ha__haproxy_service('glance-registry').with(
           'order'           => '090',
           'listen_port'     => 9191,

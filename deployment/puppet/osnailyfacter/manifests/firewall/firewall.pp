@@ -21,6 +21,7 @@ class osnailyfacter::firewall::firewall {
   $galera_ist_port              = 4568
   $galera_sst_port              = 4444
   $glance_api_port              = 9292
+  $glance_glare_port            = 9494
   $glance_nova_api_ec2_port     = 8773
   $glance_reg_port              = 9191
   $heat_api_cfn_port            = 8000
@@ -210,7 +211,7 @@ class osnailyfacter::firewall::firewall {
     }
 
     firewall {'104 glance':
-      port   => [$glance_api_port, $glance_reg_port, $glance_nova_api_ec2_port,],
+      port   => [$glance_api_port, $glance_glare_port, $glance_reg_port, $glance_nova_api_ec2_port,],
       proto  => 'tcp',
       action => 'accept',
     }
