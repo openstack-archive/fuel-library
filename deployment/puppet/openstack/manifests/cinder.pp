@@ -54,6 +54,8 @@ class openstack::cinder(
   $swift_url              = false,
   $openstack_version      = {},
 ) {
+
+  warning('openstack::cinder is deprecated in mitaka and will be removed in Newton')
   include cinder::params
   #  if ($purge_cinder_config) {
   # resources { 'cinder_config':
