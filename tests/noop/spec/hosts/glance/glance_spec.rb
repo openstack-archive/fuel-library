@@ -81,6 +81,7 @@ describe manifest do
     it 'should declare glance classes' do
       should contain_class('glance::api').with('pipeline' => pipeline)
       should contain_class('glance::registry').with('sync_db' => primary_controller)
+      should contain_class('glance::glare').with('pipeline' => pipeline)
       should contain_class('glance::notify::rabbitmq')
     end
 
@@ -94,6 +95,7 @@ describe manifest do
         db_connection = "mysql://#{glance_db_user}:#{glance_db_password}@#{database_vip}/#{glance_db_name}#{extra_params}"
         should contain_class('glance::api').with(:database_connection => db_connection)
         should contain_class('glance::registry').with(:database_connection => db_connection)
+        should contain_class('glance::glare::db').with(:database_connection => db_connection)
     end
 
     it 'should configure glance api config' do
@@ -108,6 +110,17 @@ describe manifest do
       should contain_glance_api_config('glance_store/os_region_name').with_value(region)
       should contain_glance_api_config('keystone_authtoken/signing_dir').with_value('/tmp/keystone-signing-glance')
       should contain_glance_api_config('keystone_authtoken/token_cache_time').with_value('-1')
+    end
+
+    it 'should configure glance glare config' do
+      should contain_glance_glare_config('database/max_pool_size').with_value(max_pool_size)
+      should contain_glance_glare_config('DEFAULT/use_stderr').with_value(use_stderr)
+      should contain_glance_glare_config('database/max_overflow').with_value(max_overflow)
+      should contain_glance_glare_config('database/max_retries').with_value(max_retries)
+      should contain_glance_glare_config('DEFAULT/auth_region').with_value(region)
+      should contain_glance_glare_config('glance_store/os_region_name').with_value(region)
+      should contain_glance_glare_config('keystone_authtoken/signing_dir').with_value('/tmp/keystone-signing-glance')
+      should contain_glance_glare_config('keystone_authtoken/token_cache_time').with_value('-1')
     end
 
     if $glance_backend == 'rbd'
@@ -143,20 +156,19 @@ describe manifest do
         should contain_glance_api_config('DEFAULT/use_syslog_rfc_format').with_value('true')
         should contain_glance_cache_config('DEFAULT/use_syslog_rfc_format').with_value('true')
         should contain_glance_registry_config('DEFAULT/use_syslog_rfc_format').with_value('true')
+        should contain_glance_glare_config('DEFAULT/use_syslog_rfc_format').with_value('true')
       end
     end
 
     it 'should configure default_log_levels' do
       should contain_glance_api_config('DEFAULT/default_log_levels').with_value(default_log_levels.sort.join(','))
       should contain_glance_registry_config('DEFAULT/default_log_levels').with_value(default_log_levels.sort.join(','))
+      should contain_glance_glare_config('DEFAULT/default_log_levels').with_value(default_log_levels.sort.join(','))
     end
 
     if murano_glance_artifacts_plugin and murano_glance_artifacts_plugin['enabled']
       it 'should install murano-glance-artifacts-plugin package' do
         should contain_package('murano-glance-artifacts-plugin').with(:ensure  => 'installed')
-      end
-      it 'should configure glance-api to use v3' do
-        should contain_glance_api_config('DEFAULT/enable_v3_api').with_value(true)
       end
     end
 
@@ -210,6 +222,7 @@ describe manifest do
       it 'should configure kombu compression' do
         should contain_glance_api_config('oslo_messaging_rabbit/kombu_compression').with(:value => kombu_compression)
         should contain_glance_registry_config('oslo_messaging_rabbit/kombu_compression').with(:value => kombu_compression)
+        should contain_glance_glare_config('oslo_messaging_rabbit/kombu_compression').with(:value => kombu_compression)
       end
     end
   end
