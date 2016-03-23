@@ -196,6 +196,7 @@ describe manifest do
                                  :admin_password => nova_user_password,
                                  :enabled_apis => "metadata",
                                  :api_bind_address => bind_address,
+                                 :metadata_listen => bind_address,
                                  :ratelimits => nova_rate_limits,
         )}
 

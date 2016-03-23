@@ -162,6 +162,7 @@ if $use_neutron {
       admin_password        => $nova_hash['user_password'],
       enabled_apis          => $enabled_apis,
       api_bind_address      => $bind_address,
+      metadata_listen       => $bind_address,
       ratelimits            => $nova_rate_limits,
     # NOTE(bogdando) 1 api worker for compute node is enough
       osapi_compute_workers => '1',
