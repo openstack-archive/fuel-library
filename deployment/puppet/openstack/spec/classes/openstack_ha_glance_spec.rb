@@ -29,6 +29,22 @@ require 'spec_helper'
         'balancermember_options' => 'check inter 10s fastinter 2s downinter 3s rise 3 fall 3',
       )
     end
+    it "should properly configure glance haproxy based on ssl" do
+      should contain_openstack__ha__haproxy_service('glance-glare').with(
+        'order'                  => '081',
+        'listen_port'            => 9494,
+        'public'                 => true,
+        'public_ssl'             => true,
+        'public_ssl_path'        => '/var/lib/fuel/haproxy/public_glance.pem',
+        'require_service'        => 'glance-glare',
+        'haproxy_config_options' => {
+          'option'       => ['httpchk /versions', 'httplog','httpclose'],
+          'http-request' => 'set-header X-Forwarded-Proto https if { ssl_fc }',
+          'timeout server' => '11m',
+        },
+        'balancermember_options' => 'check inter 10s fastinter 2s downinter 3s rise 3 fall 3',
+      )
+    end
     it "should properly configure glance-registry" do
       should contain_openstack__ha__haproxy_service('glance-registry').with(
         'order'                  => '090',
