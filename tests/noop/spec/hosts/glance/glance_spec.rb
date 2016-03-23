@@ -2,6 +2,8 @@ require 'spec_helper'
 require 'shared-examples'
 manifest = 'glance/glance.pp'
 
+# HIERA: neut_vlan.ceph.controller-glance-vmware
+
 describe manifest do
 
   before(:each) do
@@ -178,6 +180,14 @@ describe manifest do
       end
       it 'should configure show_image_direct_url' do
         should contain_glance_api_config('DEFAULT/show_image_direct_url').with_value(show_image_direct_url)
+      end
+      it 'should disable vCenter server TLS/SSL certificate verifcation' do
+      if glance_config && glance_config.has_key?('vmware_api_insecure')
+        vmware_api_insecure = glance_config['vmware_api_insecure']
+      else
+        vmware_api_insecure = true
+      end
+        should contain_glance_api_config('glance_store/vmware_api_insecure').with_value(vmware_api_insecure)
       end
     else
       if glance_config && glance_config.has_key?('show_image_direct_url')
