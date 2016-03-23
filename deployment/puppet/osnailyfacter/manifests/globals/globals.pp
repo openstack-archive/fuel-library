@@ -78,6 +78,7 @@ class osnailyfacter::globals::globals {
   $mysql_hash                     = hiera('mysql', {})
   $rabbit_hash                    = hiera_hash('rabbit', {})
   $glance_hash                    = hiera_hash('glance', {})
+  $glance_glare_hash              = hiera_hash('glance_glare', {})
   $swift_hash                     = hiera('swift', {})
   $cinder_hash                    = hiera_hash('cinder', {})
   $access_hash                    = hiera_hash('access', {})

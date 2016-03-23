@@ -74,6 +74,24 @@ class openstack::ha::glance (
     balancermember_options => 'check inter 10s fastinter 2s downinter 3s rise 3 fall 3',
   }
 
+  openstack::ha::haproxy_service { 'glance-glare':
+    # before neutron
+    order                  => '081',
+    listen_port            => 9494,
+    public                 => true,
+    public_ssl             => $public_ssl,
+    public_ssl_path        => $public_ssl_path,
+    internal_ssl           => $internal_ssl,
+    internal_ssl_path      => $internal_ssl_path,
+    require_service        => 'glance-glare',
+    haproxy_config_options => {
+        'option'         => ['httpchk /versions', 'httplog', 'httpclose'],
+        'http-request'   => 'set-header X-Forwarded-Proto https if { ssl_fc }',
+        'timeout server' => '11m',
+    },
+    balancermember_options => 'check inter 10s fastinter 2s downinter 3s rise 3 fall 3',
+  }
+
   openstack::ha::haproxy_service { 'glance-registry':
     # after neutron
     order                  => '090',
