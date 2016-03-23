@@ -5,7 +5,7 @@
   cross-depends:
     - name: primary-rabbitmq
   required_for: [deploy_end, openstack-controller, primary-openstack-controller, glance]
-  requires: [openstack-haproxy]
+  requires: [netconfig, cluster]
   parameters:
     puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/rabbitmq/rabbitmq.pp
     puppet_modules: /etc/puppet/modules
@@ -17,7 +17,7 @@
   version: 2.0.0
   groups: [primary-controller]
   required_for: [deploy_end, openstack-controller, primary-openstack-controller, glance]
-  requires: [openstack-haproxy]
+  requires: [netconfig, primary-cluster]
   parameters:
     puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/rabbitmq/rabbitmq.pp
     puppet_modules: /etc/puppet/modules
