@@ -7,6 +7,7 @@
   cross-depends:
     - name: glance-db
     - name: glance-keystone
+    - name: /(primary-)?rabbitmq/
   parameters:
     puppet_manifest: /etc/puppet/modules/openstack_tasks/examples/glance/glance.pp
     puppet_modules: /etc/puppet/modules

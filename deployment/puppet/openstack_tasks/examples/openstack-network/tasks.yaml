@@ -35,6 +35,7 @@
     - name: neutron-keystone
     - name: openstack-haproxy
     - name: neutron-db
+    - name: (primary-)?rabbitmq
 
 - id: openstack-network-common-config
   type: puppet
