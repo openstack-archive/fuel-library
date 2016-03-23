@@ -3,7 +3,7 @@
   version: 2.0.0
   groups: [primary-controller, controller]
   required_for: [deploy_end, keystone, primary-keystone]
-  requires: [openstack-haproxy]
+  requires: [netconfig]
   parameters:
     puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/memcached/memcached.pp
     puppet_modules: /etc/puppet/modules
