@@ -66,7 +66,11 @@ Puppet::Type.type(:l3_ifconfig).provide(:lnx, :parent => Puppet::Provider::L3_ba
     if ! @property_flush.empty?
       debug("FLUSH properties: #{@property_flush}")
       # FLUSH changed properties
+<<<<<<< HEAD
       is_dhcp = @property_flush[:ipaddr].to_s.downcase == 'dhcp'
+=======
+      is_dhcp = (@property_flush[:ipaddr] & [:dhcp, 'dhcp', 'DHCP']).any?
+>>>>>>> 767f23a... Do not try change default route obtained via DHCP.
       if ! @property_flush[:ipaddr].nil?
         if @property_flush[:ipaddr].include?(:absent)
           # flush all ip addresses from interface
