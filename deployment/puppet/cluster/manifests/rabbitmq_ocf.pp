@@ -62,6 +62,10 @@
 #   String. Optional FQDN prefix for node names.
 #   Defaults to empty string
 #
+# [*policy_file*]
+#   String. Optional path to the policy file for HA queues.
+#   Defaults to undef
+#
 
 class cluster::rabbitmq_ocf (
   $primitive_type          = 'rabbitmq-server',
@@ -78,6 +82,7 @@ class cluster::rabbitmq_ocf (
   $enable_notifications_ha = true,
   $fqdn_prefix             = '',
   $pid_file                = undef,
+  $policy_file             = undef,
 ) inherits ::rabbitmq::service {
 
   if $host_ip == 'UNSET' or $host_ip == '0.0.0.0' {
@@ -98,6 +103,7 @@ class cluster::rabbitmq_ocf (
     'enable_notifications_ha' => $enable_notifications_ha,
     'fqdn_prefix'             => $fqdn_prefix,
     'pid_file'                => $pid_file,
+    'policy_file'             => $policy_file,
   }
 
   $metadata        = {
