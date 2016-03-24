@@ -12,7 +12,9 @@ class openstack_tasks::swift::storage {
   $storage_hash               = hiera_hash('storage')
   $mp_hash                    = hiera('mp')
   $swift_storage_ipaddr       = get_network_role_property('swift/replication', 'ipaddr')
-  $debug                      = pick($swift_hash['debug'], hiera('debug', false))
+# TODO omolchanov: revert after debug gathered for https://bugs.launchpad.net/fuel/+bug/1561626
+#  $debug                      = pick($swift_hash['debug'], hiera('debug', false))
+  $debug                      = pick($swift_hash['debug'], true)
   $verbose                    = pick($swift_hash['verbose'], hiera('verbose', false))
   $deploy_swift_storage       = hiera('deploy_swift_storage', true)
 

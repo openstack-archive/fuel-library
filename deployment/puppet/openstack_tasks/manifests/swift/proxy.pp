@@ -18,7 +18,9 @@ class openstack_tasks::swift::proxy {
   $management_vip             = hiera('management_vip')
   $swift_api_ipaddr           = get_network_role_property('swift/api', 'ipaddr')
   $swift_storage_ipaddr       = get_network_role_property('swift/replication', 'ipaddr')
-  $debug                      = pick($swift_hash['debug'], hiera('debug', false))
+# TODO omolchanov: revert after debug gathered for https://bugs.launchpad.net/fuel/+bug/1561626
+#  $debug                      = pick($swift_hash['debug'], hiera('debug', false))
+  $debug                      = pick($swift_hash['debug'], true)
   $verbose                    = pick($swift_hash['verbose'], hiera('verbose', false))
 # NOTE(mattymo): Changing ring_part_power or part_hours on redeploy leads to data loss
   $ring_part_power            = pick($swift_hash['ring_part_power'], 10)
