@@ -52,7 +52,7 @@
   version: 2.0.0
   groups: [primary-controller,controller]
   required_for: [openstack-network-end]
-  requires: [openstack-network-common-config]
+  requires: [openstack-network-start, openstack-network-common-config]
   refresh_on: [neutron_plugin_ml2, neutron_config, neutron_api_config]
   reexecute_on: [deploy_changes]
   parameters:
@@ -65,7 +65,7 @@
   version: 2.0.0
   groups: [primary-controller]
   required_for: [openstack-network-end]
-  requires: [openstack-network-common-config, openstack-network-server-config]
+  requires: [openstack-network-start, openstack-network-common-config, openstack-network-server-config]
   refresh_on: [neutron_agent_ovs]
   parameters:
     puppet_manifest: /etc/puppet/modules/openstack_tasks/examples/openstack-network/plugins/ml2.pp
@@ -78,7 +78,7 @@
   version: 2.0.0
   groups: [controller,compute]
   required_for: [openstack-network-end]
-  requires: [openstack-network-common-config, openstack-network-server-config]
+  requires: [openstack-network-start, openstack-network-common-config, openstack-network-server-config]
   refresh_on: [neutron_agent_ovs]
   cross-depends:
     - name: primary-openstack-network-plugins-l2
@@ -92,7 +92,7 @@
   version: 2.0.0
   groups: [primary-controller]
   required_for: [openstack-network-end]
-  requires: [primary-openstack-network-plugins-l2]
+  requires: [openstack-network-start, openstack-network-common-config, openstack-network-server-config, primary-openstack-network-plugins-l2]
   parameters:
     puppet_manifest: /etc/puppet/modules/openstack_tasks/examples/openstack-network/networks.pp
     puppet_modules: /etc/puppet/modules
@@ -104,7 +104,7 @@
   groups: [primary-controller]
   condition: "settings:neutron_advanced_configuration.neutron_l3_ha.value == false"
   required_for: [openstack-network-end]
-  requires: [openstack-network-networks]
+  requires: [openstack-network-start, openstack-network-networks]
   parameters:
     puppet_manifest: /etc/puppet/modules/openstack_tasks/examples/openstack-network/routers.pp
     puppet_modules: /etc/puppet/modules
@@ -130,7 +130,7 @@
   version: 2.0.0
   groups: [primary-controller]
   required_for: [openstack-network-end]
-  requires: [openstack-network-networks, openstack-network-routers, primary-openstack-network-plugins-l2, openstack-network-plugins-l2]
+  requires: [openstack-network-start, openstack-network-networks, openstack-network-routers, primary-openstack-network-plugins-l2, openstack-network-plugins-l2]
   refresh_on: [neutron_l3_agent_config]
   parameters:
     puppet_manifest: /etc/puppet/modules/openstack_tasks/examples/openstack-network/agents/l3.pp
@@ -143,7 +143,7 @@
   version: 2.0.0
   groups: [controller,compute]
   required_for: [openstack-network-end]
-  requires: [openstack-network-networks, openstack-network-routers, primary-openstack-network-plugins-l2, openstack-network-plugins-l2]
+  requires: [openstack-network-start, openstack-network-networks, openstack-network-routers, primary-openstack-network-plugins-l2, openstack-network-plugins-l2]
   refresh_on: [neutron_l3_agent_config]
   cross-depends:
     - name: /(primary-)?openstack-network-plugins-l2/
@@ -158,7 +158,7 @@
   version: 2.0.0
   groups: [compute]
   required_for: [openstack-network-end]
-  requires: [openstack-network-plugins-l2]
+  requires: [openstack-network-start, openstack-network-common-config, openstack-network-plugins-l2]
   refresh_on: [neutron_sriov_agent_config]
   parameters:
     puppet_manifest: /etc/puppet/modules/openstack_tasks/examples/openstack-network/agents/sriov.pp
@@ -170,7 +170,7 @@
   version: 2.0.0
   groups: [primary-controller,controller]
   required_for: [openstack-network-end]
-  requires: [openstack-network-agents-l3]
+  requires: [openstack-network-start, openstack-network-common-config, openstack-network-server-config, openstack-network-agents-l3]
   cross-depends:
     - name: /(primary-)?openstack-network-agents-l3/
     - name: /(primary-)?openstack-network-plugins-l2/
@@ -184,7 +184,7 @@
   version: 2.0.0
   groups: [primary-controller]
   required_for: [openstack-network-end]
-  requires: [openstack-network-common-config,openstack-network-server-nova,openstack-network-agents-l3]
+  requires: [openstack-network-start, openstack-network-common-config, openstack-network-server-config, openstack-network-server-nova, openstack-network-agents-l3]
   refresh_on: [neutron_dhcp_agent_config]
   cross-depends:
     - name: /(primary-)?openstack-network-plugins-l2/
@@ -199,7 +199,7 @@
   version: 2.0.0
   groups: [controller]
   required_for: [openstack-network-end]
-  requires: [openstack-network-common-config,openstack-network-server-nova,openstack-network-agents-l3]
+  requires: [openstack-network-start, openstack-network-common-config, openstack-network-server-config, openstack-network-server-nova, openstack-network-agents-l3]
   refresh_on: [neutron_dhcp_agent_config]
   cross-depends:
     - name: primary-openstack-network-agents-dhcp
@@ -214,7 +214,7 @@
   version: 2.0.0
   groups: [primary-controller]
   required_for: [openstack-network-end]
-  requires: [openstack-network-common-config,openstack-network-server-nova,openstack-network-agents-l3]
+  requires: [openstack-network-start, openstack-network-common-config, openstack-network-server-config, openstack-network-server-nova, openstack-network-agents-l3]
   refresh_on: [neutron_metadata_agent_config]
   cross-depends:
     - name: /(primary-)?openstack-network-plugins-l2/
@@ -230,7 +230,7 @@
   version: 2.0.0
   groups: [controller,compute]
   required_for: [openstack-network-end]
-  requires: [openstack-network-common-config,openstack-network-server-nova,openstack-network-agents-l3]
+  requires: [openstack-network-start, openstack-network-common-config, openstack-network-server-config, openstack-network-server-nova, openstack-network-agents-l3]
   refresh_on: [neutron_metadata_agent_config]
   cross-depends:
     - name: primary-openstack-network-agents-metadata
@@ -245,7 +245,7 @@
   version: 2.0.0
   groups: [compute]
   required_for: [openstack-network-end]
-  requires: [openstack-network-common-config,openstack-network-agents-l3,openstack-network-agents-metadata]
+  requires: [openstack-network-start, openstack-network-common-config, openstack-network-agents-l3, openstack-network-agents-metadata]
   cross-depends:
     - name: /(primary-)?openstack-network-plugins-l2/
   parameters:
