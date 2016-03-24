@@ -136,6 +136,10 @@ class openstack_tasks::roles::ironic_conductor {
     before => Class['::ironic::conductor'],
   }
 
+  package { 'qemu-utils':
+    ensure => 'present',
+  }
+
   file { '/etc/ironic/fuel_key':
     ensure  => present,
     source  => '/var/lib/astute/ironic/ironic',
