@@ -20,6 +20,7 @@ class openstack_tasks::heat::keystone {
 
   $password            = $heat_hash['user_password']
   $auth_name           = pick($heat_hash['auth_name'], 'heat')
+  $cfn_auth_name       = pick($heat_hash['cfn_auth_name'], 'heat-cfn')
   $configure_endpoint  = pick($heat_hash['configure_endpoint'], true)
   $configure_user      = pick($heat_hash['configure_user'], true)
   $configure_user_role = pick($heat_hash['configure_user_role'], true)
@@ -58,11 +59,11 @@ class openstack_tasks::heat::keystone {
 
   class { '::heat::keystone::auth_cfn' :
     password            => $password,
-    auth_name           => "${auth_name}-cfn",
+    auth_name           => $cfn_auth_name,
     service_type        => 'cloudformation',
     region              => $region,
     tenant              => $keystone_tenant,
-    email               => "${auth_name}-cfn@localhost",
+    email               => "${cfn_auth_name}@localhost",
     configure_endpoint  => true,
     configure_user      => $configure_user,
     configure_user_role => $configure_user_role,
