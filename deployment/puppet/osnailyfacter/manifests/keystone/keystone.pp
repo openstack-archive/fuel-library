@@ -36,6 +36,8 @@ class osnailyfacter::keystone::keystone {
   $default_log_levels    = hiera_hash('default_log_levels')
   $primary_controller    = hiera('primary_controller')
 
+  $default_role = '_member_'
+
   $db_type     = 'mysql'
   $db_host     = pick($keystone_hash['db_host'], $database_vip)
   $db_password = $keystone_hash['db_password']
@@ -165,6 +167,10 @@ class osnailyfacter::keystone::keystone {
   include ::tweaks::apache_wrappers
 
   ###############################################################################
+
+  keystone_role { "$default_role":
+    ensure => present,
+  }
 
   class { '::keystone::roles::admin':
     admin        => $admin_user,

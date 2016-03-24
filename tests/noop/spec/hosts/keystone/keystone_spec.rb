@@ -296,6 +296,10 @@ describe manifest do
       should contain_keystone_config('DEFAULT/secure_proxy_ssl_header').with(:value => 'HTTP_X_FORWARDED_PROTO')
     end
 
+    it 'should create default _member_ role' do
+      should contain_keystone_role('_member_').with('ensure' => 'present')
+    end
+
     it 'should have explicit ordering between LB classes and particular actions' do
       expect(graph).to ensure_transitive_dependency("Haproxy_backend_status[keystone-public]",
                                                       "Class[keystone::roles::admin]")
