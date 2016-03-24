@@ -284,6 +284,11 @@ describe manifest do
         :api_paste_config => '/etc/nova/api-paste.ini',
         :default_floating_pool => default_floating_net
       )
+      if facts[:operatingsystem] == 'Ubuntu'
+        should contain_tweaks__ubuntu_service_override('nova-api').with(
+          :package_name => 'nova-api'
+        )
+      end
     end
 
     it 'should configure allow resize to same host' do
