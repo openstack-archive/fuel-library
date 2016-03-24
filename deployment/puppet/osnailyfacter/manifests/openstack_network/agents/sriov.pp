@@ -5,12 +5,11 @@ class osnailyfacter::openstack_network::agents::sriov {
   $use_neutron     = hiera('use_neutron', false)
   $network_scheme  = hiera_hash('network_scheme', {})
   $neutron_config  = hiera_hash('neutron_config')
-  $pci_vendor_devs = pick($neutron_config['supported_pci_vendor_devs'], false)
 
-  if $use_neutron and $pci_vendor_devs {
+  prepare_network_config($network_scheme)
+  $pci_passthrough_whitelist = get_nic_passthrough_whitelist('sriov')
 
-    prepare_network_config($network_scheme)
-    $pci_passthrough_whitelist = get_nic_passthrough_whitelist('sriov')
+  if $use_neutron and $pci_passthrough_whitelist {
     $physical_device_mappings = nic_whitelist_to_mappings($pci_passthrough_whitelist)
 
     class { '::neutron::agents::ml2::sriov':

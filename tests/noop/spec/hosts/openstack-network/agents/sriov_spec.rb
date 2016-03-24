@@ -11,10 +11,8 @@ describe manifest do
     end
   end
 
-  enable_sriov = Noop.hiera_structure 'quantum_settings/supported_pci_vendor_devs', false
-
   shared_examples 'catalog' do
-    if Noop.hiera('use_neutron') and enable_sriov
+    if Noop.hiera('use_neutron')
 
       let(:network_scheme) do
         Noop.hiera_hash('network_scheme', {})
@@ -30,11 +28,15 @@ describe manifest do
       end
 
       context 'with Neutron SRIOV agent' do
-        it { should contain_class('neutron::agents::ml2::sriov').with(
-          'manage_service'           => true,
-          'enabled'                  => true,
-          'physical_device_mappings' => Noop.puppet_function('nic_whitelist_to_mappings', pci_passthrough)
-        )}
+        it 'configures SRIOV agent' do
+          if pci_passthrough
+            should contain_class('neutron::agents::ml2::sriov').with(
+              'manage_service'           => true,
+              'enabled'                  => true,
+              'physical_device_mappings' => Noop.puppet_function('nic_whitelist_to_mappings', pci_passthrough)
+            )
+          end
+        end
       end
 
     end
