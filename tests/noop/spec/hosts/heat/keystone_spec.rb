@@ -18,6 +18,8 @@ describe manifest do
     configure_user = heat.fetch('configure_user', true)
     configure_user_role = heat.fetch('configure_user_role', true)
 
+    auth_name_cfn = heat.fetch('cfn_auth_name', 'heat-cfn')
+
     if Noop.hiera_structure('use_ssl', false)
       public_protocol = 'https'
       public_address  = Noop.hiera_structure('use_ssl/heat_public_hostname')
@@ -76,6 +78,10 @@ describe manifest do
     it 'class heat::keystone::auth should contain configure_user parameters' do
       should contain_class('heat::keystone::auth').with('configure_user' => configure_user)
       should contain_class('heat::keystone::auth').with('configure_user_role' => configure_user_role)
+    end
+
+    it 'class heat::keystone::auth_cfn should contain correct auth_name' do
+      should contain_class('heat::keystone::auth_cfn').with('auth_name' => auth_name_cfn)
     end
 
   end
