@@ -58,7 +58,6 @@
   requires: [primary-database, database]
   cross-depends:
     - name: /(primary-)?database/
-      role: self
   parameters:
     puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/keystone/db.pp
     puppet_modules: /etc/puppet/modules
