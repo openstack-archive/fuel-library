@@ -30,13 +30,7 @@ $custom_setup_class       = hiera('mysql_custom_setup_class', 'galera')
 
 # Get galera gcache factor based on cluster node's count
 $galera_gcache_factor     = count(keys($network_metadata['nodes']))
-# FIXME(dbilunov): enable binary logs to avoid mysqld crashes (LP#1541338).
-# Revert this option to false after the upstream bug is resolved.
-# https://github.com/codership/mysql-wsrep/issues/112
-$mysql_binary_logs        = hiera('mysql_binary_logs', true)
-$log_bin                  = pick($mysql_hash['log_bin'], 'mysql-bin')
-$expire_logs_days         = pick($mysql_hash['expire_logs_days'], '1')
-$max_binlog_size          = pick($mysql_hash['max_binlog_size'], '64M')
+$galera_binary_logs       = hiera('galera_binary_logs', false)
 
 $status_user              = 'clustercheck'
 $status_password          = $mysql_hash['wsrep_password']
@@ -157,12 +151,12 @@ if $enabled {
   }
 
   # this is configurable via hiera
-  if $mysql_binary_logs {
+  if $galera_binary_logs {
     $binary_logs_options = {
       'mysqld'                         => {
-        'log_bin'                      => $log_bin,
-        'expire_logs_days'             => $expire_logs_days,
-        'max_binlog_size'              => $max_binlog_size,
+        'log_bin'                      => 'mysql-bin',
+        'expire_logs_days'             => '1',
+        'max_binlog_size'              => '512M',
       },
     }
   }
@@ -172,8 +166,9 @@ if $enabled {
       'port'                           => $backend_port,
       'max_connections'                => $max_connections,
       'pid-file'                       => undef,
-      'expire_logs_days'               => undef,
       'log_bin'                        => undef,
+      'expire_logs_days'               => undef,
+      'max_binlog_size'                => undef,
       'collation-server'               => 'utf8_general_ci',
       'init-connect'                   => 'SET NAMES utf8',
       'character-set-server'           => 'utf8',
