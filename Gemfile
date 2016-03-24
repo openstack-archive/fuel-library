@@ -16,6 +16,7 @@ group :development, :test do
   gem 'puppet-lint-numericvariable',          :require => 'false'
   gem 'puppet_facts',                         :require => 'false'
   gem 'json',                                 :require => 'false'
+  gem 'jwt', '1.5.2',                         :require => 'false' # 1.5.3 was unpublished
   gem 'pry',                                  :require => 'false'
   gem 'simplecov',                            :require => 'false'
   gem 'webmock',                              :require => 'false'
