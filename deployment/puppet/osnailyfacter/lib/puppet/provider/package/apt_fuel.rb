@@ -45,8 +45,17 @@ Puppet::Type.type(:package).provide :apt_fuel, :parent => :apt, :source => :apt 
   end
 
   def install
-    self.wait_for_lock()
-    super
+    tries = 3
+    tries.times do |try|
+      begin
+        self.wait_for_lock()
+        super
+        break
+      rescue Puppet::ExecutionFailure => e
+        err("Try #{try+1} of #{tries} failed: #{e.message}")
+        sleep 5
+      end
+    end
   end
 
   def uninstall
