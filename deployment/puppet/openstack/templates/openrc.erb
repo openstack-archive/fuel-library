@@ -1,5 +1,4 @@
 #!/bin/sh
-export LC_ALL=C
 <% if @keystone_admin_token -%>
 export OS_SERVICE_TOKEN='<%= @keystone_admin_token.gsub(/'/){ %q(\') } %>'
 export OS_SERVICE_ENDPOINT='<%= @admin_url %>/v2.0/'
