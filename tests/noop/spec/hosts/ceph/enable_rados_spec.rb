@@ -13,7 +13,7 @@ manifest = 'ceph/enable_rados.pp'
 
 describe manifest do
   shared_examples 'catalog' do
-    it "should contain radowgw service" do
+    it "should contain radosgw service" do
 
       if facts[:operatingsystem] == 'Ubuntu'
         should contain_service('radosgw').with(
@@ -45,6 +45,20 @@ describe manifest do
 
           )
         end
+    end
+
+    it "should wait until radosgw get ready" do
+        ssl_hash = Noop.hiera_hash('use_ssl', {})
+        service_endpoint = Noop.hiera('service_endpoint', '')
+        management_vip = Noop.hiera('management_vip', '')
+        rgw_protocol = Noop.puppet_function 'get_ssl_property', ssl_hash, {}, 'radosgw', 'internal', 'protocol', 'http'
+        rgw_address = Noop.puppet_function 'get_ssl_property', ssl_hash, {}, 'radosgw', 'internal', 'hostname', [service_endpoint, management_vip]
+        rgw_url = "#{rgw_protocol}://#{rgw_address}:8080"
+
+        should contain_haproxy_backend_status('object-storage').with(
+          :url      => rgw_url,
+          :provider => 'http'
+        )
     end
   end
 
