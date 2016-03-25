@@ -39,4 +39,23 @@ class osnailyfacter::ceph::enable_rados {
     }
   }
 
+  $haproxy_stats_url = "http://${management_ip}:10000/;csv"
+  $radosgw_url      = "http://${management_vip}:8080"
+  $lb_defaults = { 'provider' => 'haproxy', 'url' => $haproxy_stats_url }
+
+  $lb_backend_provider = 'http'
+  $lb_url = $radosgw_url
+
+  $lb_hash = {
+    'object-storage' => {
+      name     => 'object-storage',
+      provider => $lb_backend_provider,
+      url      => $lb_url
+    }
+  }
+
+  ::osnailyfacter::wait_for_backend {'object-storage':
+    lb_hash     => $lb_hash,
+    lb_defaults => $lb_defaults
+  }
 }
