@@ -92,6 +92,8 @@ describe manifest do
     default_log_levels = Noop.puppet_function 'join_keys_to_values',default_log_levels_hash,'='
     kombu_compression = Noop.hiera 'kombu_compression', ''
 
+    primary_controller = Noop.hiera('primary_controller')
+
     it 'should configure default_log_levels' do
       should contain_keystone_config('DEFAULT/default_log_levels').with_value(default_log_levels.sort.join(','))
     end
@@ -297,9 +299,16 @@ describe manifest do
       should contain_keystone_config('DEFAULT/secure_proxy_ssl_header').with(:value => 'HTTP_X_FORWARDED_PROTO')
     end
 
+    if primary_controller
+      it 'should create default _member_ role' do
+        should contain_keystone_role('_member_').with('ensure' => 'present')
+      end
+      it 'should create admin role' do
+        should contain_class('keystone::roles::admin').with('admin' => 'admin', 'password' => 'admin', 'email' => 'admin@localhost', 'admin_tenant' => 'admin')
+      end
+    end
+
     it 'should have explicit ordering between LB classes and particular actions' do
-      expect(graph).to ensure_transitive_dependency("Haproxy_backend_status[keystone-public]",
-                                                      "Class[keystone::roles::admin]")
       expect(graph).to ensure_transitive_dependency("Haproxy_backend_status[keystone-admin]",
                                                       "Class[keystone::endpoint]")
     end

@@ -37,6 +37,8 @@ class openstack_tasks::keystone::keystone {
   $primary_controller    = hiera('primary_controller')
   $kombu_compression     = hiera('kombu_compression', '')
 
+  $default_role = '_member_'
+
   $db_type     = 'mysql'
   $db_host     = pick($keystone_hash['db_host'], $database_vip)
   $db_password = $keystone_hash['db_password']
@@ -167,11 +169,17 @@ class openstack_tasks::keystone::keystone {
 
   ###############################################################################
 
-  class { '::keystone::roles::admin':
-    admin        => $admin_user,
-    password     => $admin_password,
-    email        => $admin_email,
-    admin_tenant => $admin_tenant,
+  if $primary_controller {
+    keystone_role { "$default_role":
+    ensure => present,
+  }
+
+    class { '::keystone::roles::admin':
+      admin        => $admin_user,
+      password     => $admin_password,
+      email        => $admin_email,
+      admin_tenant => $admin_tenant,
+    }
   }
 
   class { '::osnailyfacter::auth_file':
@@ -201,7 +209,6 @@ class openstack_tasks::keystone::keystone {
 
   Exec['add_admin_token_auth_middleware'] ->
   Exec <| title == 'keystone-manage db_sync' |> ->
-  Class['::keystone::roles::admin'] ->
   Class['::osnailyfacter::auth_file']
 
   $haproxy_stats_url = "http://${service_endpoint}:10000/;csv"
@@ -210,7 +217,6 @@ class openstack_tasks::keystone::keystone {
 
   Service['keystone'] -> Class['::osnailyfacter::wait_for_keystone_backends']
   Service<| title == 'httpd' |> -> Class['::osnailyfacter::wait_for_keystone_backends']
-  Class['::osnailyfacter::wait_for_keystone_backends'] -> Class['::keystone::roles::admin']
   Class['::osnailyfacter::wait_for_keystone_backends'] -> Class['::keystone::endpoint']
 
   ####### Disable upstart startup on install #######
