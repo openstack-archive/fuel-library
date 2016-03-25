@@ -61,13 +61,11 @@ def image_list
   {:images => images, :exit_code => return_code}
 end
 
-# TODO degorenko: remove --os-image-api-version after liberty (fuel-8.0) release
-# Change is-public to visibility and pass 'public' value to it
 def image_create(image_hash)
   command = <<-EOF
-/usr/bin/glance --os-image-api-version 1 image-create \
+/usr/bin/glance image-create \
 --name '#{image_hash['img_name']}' \
---is-public '#{image_hash['public']}' \
+--visibility '#{image_hash['visibility']}' \
 --container-format='#{image_hash['container_format']}' \
 --disk-format='#{image_hash['disk_format']}' \
 --min-ram='#{image_hash['min_ram']}' \
@@ -93,6 +91,7 @@ end
 
 # upload image to Glance
 # if it have not been already uploaded
+# TODO omolchanov: remove tries for uploading images when https://launchpad.net/bugs/1556068 will be fixed
 def upload_image(image)
   10.times do
     list_of_images = image_list
@@ -111,6 +110,12 @@ def upload_image(image)
     break
   end
 
+  # convert old API v1 'public' property to API v2 'visibility' property
+  if image['public'] == 'true'
+    image['visibility'] = 'public'
+  else
+    image['visibility'] = 'private'
+  end
   stdout, return_code = image_create(image)
   if return_code == 0
     puts "Image '#{image['img_name']}' was uploaded from '#{image['img_path']}'"
