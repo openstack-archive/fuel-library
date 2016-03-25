@@ -21,6 +21,7 @@ class openstack_tasks::openstack_cinder::openstack_cinder {
   $ssl_hash               = hiera_hash('use_ssl', {})
   $primary_controller     = hiera('primary_controller')
   $proxy_port             = hiera('proxy_port', '8080')
+  $kombu_compression      = hiera('kombu_compression', '')
 
   $db_type                = 'mysql'
   $db_host                = pick($cinder_hash['db_host'], hiera('database_vip'))
@@ -293,4 +294,13 @@ class openstack_tasks::openstack_cinder::openstack_cinder {
     }
   }
 
+  # TODO (iberezovskiy): remove this workaround in N when cinder module
+  # will be switched to puppet-oslo usage for rabbit configuration
+  if $kombu_compression in ['gzip','bz2'] {
+    if !defined(Oslo::Messaging_rabbit['cinder_config']) and !defined(Cinder_config['oslo_messaging_rabbit/kombu_compression']) {
+      cinder_config { 'oslo_messaging_rabbit/kombu_compression': value => $kombu_compression; }
+    } else {
+      Cinder_config<| title == 'oslo_messaging_rabbit/kombu_compression' |> { value => $kombu_compression }
+    }
+  }
 }
