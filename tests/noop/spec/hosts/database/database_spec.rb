@@ -52,19 +52,7 @@ describe manifest do
     end
 
     let(:mysql_binary_logs) do
-      Noop.hiera 'mysql_binary_logs', true
-    end
-
-    let(:log_bin) do
-      Noop.puppet_function 'pick', mysql_hash['log_bin'], 'mysql-bin'
-    end
-
-    let(:expire_logs_days) do
-      Noop.puppet_function 'pick', mysql_hash['expire_logs_days'], '1'
-    end
-
-    let(:max_binlog_size) do
-      Noop.puppet_function 'pick', mysql_hash['max_binlog_size'], '64M'
+      Noop.hiera 'mysql_binary_logs', false
     end
 
     let(:primary_controller) do
@@ -212,15 +200,9 @@ describe manifest do
       )
     end
 
-    it 'should configure mysql binary logging by default' do
-      expect(subject).to contain_class('galera').with_override_options(
+    it 'should exclude mysql binary logging by default' do
+      expect(subject).to contain_class('galera').without_override_options(
           /"log_bin"=>"mysql-bin"/
-      )
-      expect(subject).to contain_class('galera').with_override_options(
-          /"expire_logs_days"=>"#{expire_logs_days}"/
-      )
-      expect(subject).to contain_class('galera').with_override_options(
-          /"max_binlog_size"=>"#{max_binlog_size}"/
       )
     end
 

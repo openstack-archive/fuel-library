@@ -32,10 +32,7 @@ class osnailyfacter::database::database {
 
   # Get galera gcache factor based on cluster node's count
   $galera_gcache_factor     = count(keys($network_metadata['nodes']))
-  # FIXME(dbilunov): enable binary logs to avoid mysqld crashes (LP#1541338).
-  # Revert this option to false after the upstream bug is resolved.
-  # https://github.com/codership/mysql-wsrep/issues/112
-  $mysql_binary_logs        = hiera('mysql_binary_logs', true)
+  $mysql_binary_logs        = hiera('mysql_binary_logs', false)
   $log_bin                  = pick($mysql_hash['log_bin'], 'mysql-bin')
   $expire_logs_days         = pick($mysql_hash['expire_logs_days'], '1')
   $max_binlog_size          = pick($mysql_hash['max_binlog_size'], '64M')
