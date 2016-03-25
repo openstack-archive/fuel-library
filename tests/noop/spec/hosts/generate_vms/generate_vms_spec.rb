@@ -1,3 +1,5 @@
+# RUN: neut_gre.generate_vms.yaml ubuntu
+
 require 'spec_helper'
 require 'shared-examples'
 manifest = 'generate_vms/generate_vms.pp'

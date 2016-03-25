@@ -1,3 +1,5 @@
+# RUN: neut_vlan.ironic.conductor ubuntu
+
 require 'spec_helper'
 require 'shared-examples'
 manifest = 'roles/ironic-conductor.pp'

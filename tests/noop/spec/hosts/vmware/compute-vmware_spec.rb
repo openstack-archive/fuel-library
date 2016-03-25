@@ -1,3 +1,12 @@
+# RUN: neut_vlan.ceph.ceil-compute.overridden_ssl ubuntu
+# RUN: neut_vlan.ceph.compute-ephemeral-ceph ubuntu
+# RUN: neut_vlan.cinder-block-device.compute ubuntu
+# RUN: neut_vlan.compute.nossl ubuntu
+# RUN: neut_vlan.compute.ssl ubuntu
+# RUN: neut_vlan.compute.ssl.overridden ubuntu
+# RUN: neut_vlan_l3ha.ceph.ceil-compute ubuntu
+# RUN: neut_vxlan_dvr.murano.sahara-compute ubuntu
+
 require 'spec_helper'
 require 'shared-examples'
 manifest = 'vmware/compute-vmware.pp'
