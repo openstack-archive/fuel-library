@@ -69,7 +69,7 @@ mod 'apt',
 # Pull in puppetlabs-firewall
 mod 'firewall',
     :git => 'https://github.com/fuel-infra/puppetlabs-firewall.git',
-    :ref => '1.2.0'
+    :ref => '1.8.0'
 
 # Pull in saz-memcached
 mod 'memcached',
