@@ -2,6 +2,8 @@ require 'spec_helper'
 require 'shared-examples'
 manifest = 'roles/ironic-compute.pp'
 
+# FIXME: neut_vlan.ironic.conductor.yaml ubuntu
+# FIXME: neut_vlan.ironic.controller.yaml ubuntu
 # SKIP_HIERA: neut_vlan.ironic.controller
 
 describe manifest do

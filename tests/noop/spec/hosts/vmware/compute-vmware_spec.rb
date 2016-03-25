@@ -1,3 +1,12 @@
+# FIXME: neut_vlan.ceph.ceil-compute.overridden_ssl ubuntu
+# FIXME: neut_vlan.ceph.compute-ephemeral-ceph ubuntu
+# FIXME: neut_vlan.cinder-block-device.compute ubuntu
+# FIXME: neut_vlan.compute.nossl ubuntu
+# FIXME: neut_vlan.compute.ssl ubuntu
+# FIXME: neut_vlan.compute.ssl.overridden ubuntu
+# FIXME: neut_vlan_l3ha.ceph.ceil-compute ubuntu
+# FIXME: neut_vxlan_dvr.murano.sahara-compute ubuntu
+
 require 'spec_helper'
 require 'shared-examples'
 manifest = 'vmware/compute-vmware.pp'
