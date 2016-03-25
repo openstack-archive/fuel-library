@@ -1,3 +1,6 @@
+# RUN: neut_vlan.cinder-block-device.compute ubuntu
+# RUN: neut_vxlan_dvr.murano.sahara-cinder ubuntu
+
 require 'spec_helper'
 require 'shared-examples'
 manifest = 'roles/enable_cinder.pp'

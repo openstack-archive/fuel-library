@@ -1,3 +1,5 @@
+# RUN: neut_vlan_l3ha.ceph.ceil-primary-mongo ubuntu
+
 require 'spec_helper'
 require 'shared-examples'
 manifest = 'roles/mongo.pp'
