@@ -7,6 +7,7 @@
   condition: &swift_enabled "( settings:storage.objects_ceph.value == false or settings:storage.images_ceph.value == false ) and settings:storage.images_vcenter.value == false"
   cross-depends:
     - name: /(primary-)?rabbitmq/
+    - name: /glance/
   parameters:
     puppet_manifest: /etc/puppet/modules/openstack_tasks/examples/swift/storage.pp
     puppet_modules: /etc/puppet/modules
