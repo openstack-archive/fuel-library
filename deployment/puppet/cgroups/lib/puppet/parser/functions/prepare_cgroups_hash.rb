@@ -4,9 +4,9 @@ module CgroupsSettings
   require 'facter'
   # value is valid if value has integer type or
   # matches with pattern: %percent, min_value, max_value
-  def self.handle_value(group, value)
-    # transform value in megabytes to bytes for memory limits
-    return handle_memory(value) if group == 'memory'
+  def self.handle_value(option, value)
+    # transform value in megabytes to bytes for limits of memory
+    return handle_memory(value) if option.to_s.include? "_in_bytes"
     # keep it as it is for others
     return value if value.is_a?(Integer)
   end
@@ -71,7 +71,7 @@ Puppet::Parser::Functions::newfunction(:prepare_cgroups_hash, :type => :rvalue, 
     hash_settings.each do |group, options|
       raise("'#{service}': group '#{group}' options is not a HASH instance") unless options.is_a?(Hash)
       options.each do |option, value|
-        options[option] = CgroupsSettings.handle_value(group, value)
+        options[option] = CgroupsSettings.handle_value(option, value)
         raise("'#{service}': group '#{group}': option '#{option}' has wrong value") if options[option].nil?
       end
     end
