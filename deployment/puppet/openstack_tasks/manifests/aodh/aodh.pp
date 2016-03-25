@@ -82,7 +82,7 @@ class openstack_tasks::aodh::aodh {
 
   $internal_auth_protocol = get_ssl_property($ssl_hash, {}, 'keystone', 'internal', 'protocol', 'http')
   $internal_auth_address  = get_ssl_property($ssl_hash, {}, 'keystone', 'internal', 'hostname', [$management_vip])
-  $keystone_auth_uri      = "${internal_auth_protocol}://${internal_auth_address}:5000/"
+  $keystone_auth_uri      = "${internal_auth_protocol}://${internal_auth_address}:5000/v2.0"
   $keystone_identity_uri  = "${internal_auth_protocol}://${internal_auth_address}:35357/"
 
   # backwards compatibility with previous ceilometer configuration around alarm

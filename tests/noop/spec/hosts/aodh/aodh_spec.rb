@@ -28,7 +28,7 @@ describe manifest do
 
     internal_auth_protocol = Noop.puppet_function 'get_ssl_property', ssl_hash, {}, 'keystone', 'internal', 'protocol', 'http'
     internal_auth_address = Noop.puppet_function 'get_ssl_property', ssl_hash, {}, 'keystone', 'internal', 'hostname', [management_vip]
-    keystone_auth_uri = "#{internal_auth_protocol}://#{internal_auth_address}:5000/"
+    keystone_auth_uri = "#{internal_auth_protocol}://#{internal_auth_address}:5000/v2.0"
     keystone_identity_uri = "#{internal_auth_protocol}://#{internal_auth_address}:35357/"
 
     oslo_policy_file = '/etc/aodh/policy.json'
