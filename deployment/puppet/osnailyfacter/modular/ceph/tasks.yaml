@@ -170,7 +170,7 @@
   role: [primary-controller, controller]
   condition: "settings:storage.objects_ceph == true"
   requires: [post_deployment_start]
-  required_for: [upload_cirros, post_deployment_end]
+  required_for: [radosgw_ready_check]
   cross-depended-by:
     - name: upload_cirros
   parameters:
@@ -178,6 +178,17 @@
     puppet_modules: /etc/puppet/modules
     timeout: 180
     cwd: /
+
+- id: radosgw_ready_check
+  type: shell
+  version: 2.0.0
+  role: [primary-controller]
+  condition: "settings:storage.objects_ceph.value == true"
+  requires: [post_deployment_start]
+  required_for: [upload_cirros]
+  parameters:
+    cmd: ruby /etc/puppet/modules/osnailyfacter/modular/ceph/radosgw_ready_check.rb
+    timeout: 1800
 
 - id: updatedb
   type: puppet
