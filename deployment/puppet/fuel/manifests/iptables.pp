@@ -24,6 +24,12 @@ class fuel::iptables (
   #Enable cobbler's iptables rules even if Cobbler not called
   include cobbler::iptables
 
+  firewallchain { 'INPUT:filter:IPv4':
+    ensure => present,
+    policy => drop,
+    before => undef,
+  }
+
   firewall { '002 accept related established rules':
     proto  => 'all',
     state  => ['RELATED', 'ESTABLISHED'],
