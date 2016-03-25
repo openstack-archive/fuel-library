@@ -111,6 +111,8 @@ TIMEOUT=600
 export PUPPET_GEM_VERSION=${PUPPET_GEM_VERSION:-'~>3.8'}
 export BUNDLE_DIR=${BUNDLE_DIR:-'/var/tmp/.bundle_home'}
 export GEM_HOME=${GEM_HOME:-'/var/tmp/.gem_home'}
+PUPPET_FILES=$(find $DEPLOYMENT_DIR -name Puppetfile)
+MODULE_VERSIONS_FILE="${DEPLOYMENT_DIR}/puppet/module_versions"
 
 # We need to be in the deployment directory to run librarian-puppet-simple
 cd $DEPLOYMENT_DIR
@@ -126,43 +128,56 @@ fi
 # if no timeout command, return true so we don't fail this script (LP#1510665)
 TIMEOUT_CMD=`type -P timeout || true`
 if [ -n "$TIMEOUT_CMD" ]; then
-    TIMEOUT_CMD="$TIMEOUT_CMD $TIMEOUT"
+  TIMEOUT_CMD="$TIMEOUT_CMD $TIMEOUT"
 fi
 
 # Check to make sure if the folder already exists, it has a .git so we can
 # use git on it. If the mod folder exists, but .git doesn't then remove the mod
 # folder so it can be properly installed via librarian.
-for MOD in $(grep "^mod" Puppetfile | tr -d '[:punct:]' | awk '{ print $2 }'); do
-  MOD_DIR="${DEPLOYMENT_DIR}/puppet/${MOD}"
-  if [ -d $MOD_DIR ] && [ ! -d "${MOD_DIR}/.git" ];
-  then
-    rm -rf "${MOD_DIR}"
-  fi
+for f in $PUPPET_FILES; do
+  for MOD in $(grep "^mod" $f | tr -d '[:punct:]' | awk '{ print $2 }'); do
+    MOD_DIR="${DEPLOYMENT_DIR}/puppet/${MOD}"
+    if [ -d $MOD_DIR ] && [ ! -d "${MOD_DIR}/.git" ];
+    then
+      rm -rf "${MOD_DIR}"
+    fi
+  done
 done
 
 # run librarian-puppet install to populate the modules if they do not already
 # exist
-$TIMEOUT_CMD $BUNDLER_EXEC librarian-puppet install $VERBOSE --path=puppet
-
-# run again to fetch openstack_tasks modules
-cd $DEPLOYMENT_DIR/puppet/openstack_tasks
-$TIMEOUT_CMD $BUNDLER_EXEC librarian-puppet install $VERBOSE --path=..
+for f in $PUPPET_FILES; do
+  $TIMEOUT_CMD $BUNDLER_EXEC librarian-puppet install $VERBOSE --path=puppet --puppetfile=$f
+done
 
 # run librarian-puppet update to ensure the modules are checked out to the
 # correct version
 if [ "$UPDATE" = true ]; then
-  $TIMEOUT_CMD $BUNDLER_EXEC librarian-puppet update $VERBOSE --path=puppet
-
-  # run again to fetch openstack_tasks modules
-  cd $DEPLOYMENT_DIR/puppet/openstack_tasks
-  $TIMEOUT_CMD $BUNDLER_EXEC librarian-puppet install $VERBOSE --path=..
+  for f in $PUPPET_FILES; do
+    $TIMEOUT_CMD $BUNDLER_EXEC librarian-puppet update $VERBOSE --path=puppet --puppetfile=$f
+  done
 fi
 
 # do a hard reset on the librarian managed modules LP#1489542
 if [ "$RESET_HARD" = true ]; then
-  for MOD in $(grep "^mod " Puppetfile | tr -d '[:punct:]' | awk '{ print $2 }'); do
-    cd "${DEPLOYMENT_DIR}/puppet/${MOD}"
-    git reset --hard
+  for f in $PUPPET_FILES; do
+    for MOD in $(grep "^mod " $f | tr -d '[:punct:]' | awk '{ print $2 }'); do
+      cd "${DEPLOYMENT_DIR}/puppet/${MOD}"
+      git reset --hard
+    done
+    cd $DEPLOYMENT_DIR
   done
-  cd $DEPLOYMENT_DIR
 fi
+
+
+echo "MODULE LIST" > $MODULE_VERSIONS_FILE
+for f in $PUPPET_FILES; do
+  for MOD in $(grep "^mod" $f | tr -d '[:punct:]' | awk '{ print $2 }'); do
+    MOD_DIR="${DEPLOYMENT_DIR}/puppet/${MOD}"
+    if [ -d $MOD_DIR ] && [ -d "${MOD_DIR}/.git" ];
+    then
+      echo "${MOD}: $(git --git-dir ${MOD_DIR}/.git rev-parse HEAD)" >> $MODULE_VERSIONS_FILE
+    fi
+  done
+done
+cat $MODULE_VERSIONS_FILE

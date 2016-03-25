@@ -74,13 +74,13 @@ namespace :common do
     module_list = []
 
     library_dir = Dir.pwd
-    puppetfile = "#{library_dir}/deployment/Puppetfile"
-
-    if File.exists?(puppetfile)
-      eval(File.read(puppetfile))
-      @modules.each { |module_name|
-        module_list << module_name[0]
-      }
+    Dir["#{library_dir}/deployment/**/Puppetfile"].each do |puppetfile|
+      if File.exists?(puppetfile)
+        eval(File.read(puppetfile))
+        @modules.each { |module_name|
+          module_list << module_name[0]
+        }
+      end
     end
 
     # TODO(aschultz): Fix all modules so they have tests and we no longer need
