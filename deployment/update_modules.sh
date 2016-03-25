@@ -124,20 +124,20 @@ if [ "$USE_BUNDLER" = true ]; then
 fi
 
 # if no timeout command, return true so we don't fail this script (LP#1510665)
-TIMEOUT_CMD=`type -P timeout || true`
-if [ -n "$TIMEOUT_CMD" ]; then
-    TIMEOUT_CMD="$TIMEOUT_CMD $TIMEOUT"
-fi
+TIMEOUT_CMD="$(command -v timeout) $TIMEOUT"
+[ $? -eq 0 ] || TIMEOUT_CMD=true
 
 # Check to make sure if the folder already exists, it has a .git so we can
 # use git on it. If the mod folder exists, but .git doesn't then remove the mod
 # folder so it can be properly installed via librarian.
-for MOD in $(grep "^mod" Puppetfile | tr -d '[:punct:]' | awk '{ print $2 }'); do
-  MOD_DIR="${DEPLOYMENT_DIR}/puppet/${MOD}"
-  if [ -d $MOD_DIR ] && [ ! -d "${MOD_DIR}/.git" ];
-  then
-    rm -rf "${MOD_DIR}"
-  fi
+for f in Puppetfile puppet/openstack_tasks/Puppetfile; do
+  for MOD in $(grep "^mod" $f | tr -d '[:punct:]' | awk '{ print $2 }'); do
+    MOD_DIR="${DEPLOYMENT_DIR}/puppet/${MOD}"
+    if [ -d $MOD_DIR ] && [ ! -d "${MOD_DIR}/.git" ];
+    then
+      rm -rf "${MOD_DIR}"
+    fi
+  done
 done
 
 # run librarian-puppet install to populate the modules if they do not already
@@ -160,9 +160,11 @@ fi
 
 # do a hard reset on the librarian managed modules LP#1489542
 if [ "$RESET_HARD" = true ]; then
-  for MOD in $(grep "^mod " Puppetfile | tr -d '[:punct:]' | awk '{ print $2 }'); do
-    cd "${DEPLOYMENT_DIR}/puppet/${MOD}"
-    git reset --hard
+  for f in Puppetfile puppet/openstack_tasks/Puppetfile; do
+    for MOD in $(grep "^mod " $f | tr -d '[:punct:]' | awk '{ print $2 }'); do
+      cd "${DEPLOYMENT_DIR}/puppet/${MOD}"
+      git reset --hard
+    done
+    cd $DEPLOYMENT_DIR
   done
-  cd $DEPLOYMENT_DIR
 fi
