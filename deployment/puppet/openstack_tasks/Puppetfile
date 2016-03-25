@@ -24,69 +24,69 @@
 # Pull in puppet-aodh
 mod 'aodh',
     :git => 'https://github.com/fuel-infra/puppet-aodh.git',
-    :ref => 'master'
+    :ref => 'stable/mitaka'
 
 # Pull in puppet-ceilometer
 mod 'ceilometer',
     :git => 'https://github.com/fuel-infra/puppet-ceilometer.git',
-    :ref => 'master'
+    :ref => 'stable/mitaka'
 
 # Pull in openstack-cinder
 mod 'cinder',
     :git => 'https://github.com/fuel-infra/openstack-cinder.git',
-    :ref => 'master'
+    :ref => 'stable/mitaka'
 
 # Pull in puppet-glance
 mod 'glance',
     :git => 'https://github.com/fuel-infra/puppet-glance.git',
-    :ref => 'master'
+    :ref => 'stable/mitaka'
 
 # Pull in puppet-heat
 mod 'heat',
     :git => 'https://github.com/fuel-infra/puppet-heat.git',
-    :ref => 'master'
+    :ref => 'stable/mitaka'
 
 # Pull in puppet-horizon
 mod 'horizon',
     :git => 'https://github.com/fuel-infra/puppet-horizon.git',
-    :ref => 'master'
+    :ref => 'stable/mitaka'
 
 # Pull in puppet-ironic
 mod 'ironic',
     :git => 'https://github.com/fuel-infra/puppet-ironic.git',
-    :ref => 'master'
+    :ref => 'stable/mitaka'
 
 # Pull in puppet-keystone
 mod 'keystone',
     :git => 'https://github.com/fuel-infra/puppet-keystone.git',
-    :ref => 'master'
+    :ref => 'stable/mitaka'
 
 # Pull in puppet-openstacklib
 mod 'openstacklib',
     :git => 'https://github.com/fuel-infra/puppet-openstacklib.git',
-    :ref => 'master'
+    :ref => 'stable/mitaka'
 
 # Pull in puppet-neutron
 mod 'neutron',
     :git => 'https://github.com/fuel-infra/puppet-neutron.git',
-    :ref => 'master'
+    :ref => 'stable/mitaka'
 
 # Pull in puppet-nova
 mod 'nova',
     :git => 'https://github.com/fuel-infra/puppet-nova.git',
-    :ref => 'master'
+    :ref => 'stable/mitaka'
 
 # Pull in puppet-murano
 mod 'murano',
     :git => 'https://github.com/fuel-infra/puppet-murano.git',
-    :ref => 'master'
+    :ref => 'stable/mitaka'
 
 # Pull in puppet-sahara
 mod 'sahara',
     :git => 'https://github.com/fuel-infra/puppet-sahara.git',
-    :ref => 'master'
+    :ref => 'stable/mitaka'
 
 # Pull in puppet-swift
 mod 'swift',
     :git => 'https://github.com/fuel-infra/puppet-swift.git',
-    :ref => 'master'
+    :ref => 'stable/mitaka'
