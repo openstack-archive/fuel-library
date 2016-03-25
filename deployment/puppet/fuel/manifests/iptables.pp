@@ -24,224 +24,409 @@ class fuel::iptables (
   #Enable cobbler's iptables rules even if Cobbler not called
   include cobbler::iptables
 
-  firewall { '002 accept related established rules':
-    proto  => 'all',
-    state  => ['RELATED', 'ESTABLISHED'],
+  firewallchain { 'INPUT:filter:IPv4':
+    ensure => present,
+    policy => drop,
+    before => undef,
+    purge  => true,
+  }
+
+  firewallchain { 'FORWARD:filter:IPv4':
+    ensure => present,
+    policy => drop,
+    before => undef,
+    purge  => true,
+  }
+
+  firewallchain { 'POSTROUTING:nat:IPv4':
+    ensure => present,
+    policy => accept,
+    before => undef,
+    purge  => true,
+  }
+
+  firewallchain { 'POSTROUTING:mangle:IPv4':
+    ensure => present,
+    policy => accept,
+    before => undef,
+    purge  => true,
+  }
+
+  # Chains for externally defined rules (not managed by Puppet)
+
+  firewallchain { 'ext-filter-input:filter:IPv4':
+    ensure => present,
+    before => undef,
+    purge  => false,
+  }
+
+  firewallchain { 'ext-filter-forward:filter:IPv4':
+    ensure => present,
+    before => undef,
+    purge  => false,
+  }
+
+  firewallchain { 'ext-nat-postrouting:nat:IPv4':
+    ensure => present,
+    before => undef,
+    purge  => false,
+  }
+
+  firewallchain { 'ext-mangle-postrouting:mangle:IPv4':
+    ensure => present,
+    before => undef,
+    purge  => false,
+  }
+
+  ## INPUT:filter:IPv4
+
+  firewall { '001 ssh':
+    chain  => $chain,
+    table  => 'filter',
+    port   => $ssh_port,
+    proto  => 'tcp',
+    source => $ssh_network,
     action => 'accept',
-  } ->
-
-  #Host services
-  firewall { '004 forward_admin_net':
-    chain      => 'POSTROUTING',
-    table      => 'nat',
-    proto      => 'all',
-    source     => "${network_address}/${network_cidr}",
-    outiface   => 'e+',
-    jump       => 'MASQUERADE',
-  }
-  sysctl::value{'net.ipv4.ip_forward': value=>'1'}
-
-  firewall { '005 ssh':
-    port    => $ssh_port,
-    proto   => 'tcp',
-    source  => $ssh_network,
-    action  => 'accept',
+    state  => ['NEW'],
   }
 
-  firewall { '006 ntp':
+  firewall { '002 ntp':
+    chain   => $chain,
+    table   => 'filter',
     port    => $ntp_port,
     proto   => 'tcp',
     iniface => $admin_iface,
     action  => 'accept',
+    state   => ['NEW'],
   }
 
-  firewall { '007 ntp_udp':
+  firewall { '003 ntp_udp':
+    chain   => $chain,
+    table   => 'filter',
     port    => $ntp_port,
     proto   => 'udp',
     iniface => $admin_iface,
     action  => 'accept',
+    state   => ['NEW'],
   }
 
-  firewall { '008 snmp':
+  firewall { '004 snmp':
+    chain  => $chain,
+    table  => 'filter',
     port   => '162',
     proto  => 'udp',
     action => 'accept',
+    state  => ['NEW'],
   }
 
   #Containerized services
-  firewall { '009 nailgun_web':
+  firewall { '005 nailgun_web':
     chain  => $chain,
+    table  => 'filter',
     port   => $nailgun_web_port,
     proto  => 'tcp',
     action => 'accept',
+    state  => ['NEW'],
   }
 
-  firewall { '010 nailgun_internal':
+  firewall { '006 nailgun_internal':
     chain   => $chain,
+    table   => 'filter',
     port    => $nailgun_internal_port,
     proto   => 'tcp',
-    iniface => 'docker0',
+    iniface => $admin_iface,
     action  => 'accept',
-  }
-  firewall { '011 nailgun_internal_local':
-    chain    => $chain,
-    port     => $nailgun_internal_port,
-    proto    => 'tcp',
-    src_type => "LOCAL",
-    action   => 'accept',
+    state   => ['NEW'],
   }
 
-  firewall { '012 nailgun_internal_block_ext':
-    chain   => $chain,
-    port    => $nailgun_internal_port,
-    proto   => 'tcp',
-    action  => 'reject',
+  firewall { '007 nailgun_internal_block_ext':
+    chain  => $chain,
+    table  => 'filter',
+    port   => $nailgun_internal_port,
+    proto  => 'tcp',
+    action => 'reject',
+    state  => ['NEW'],
   }
 
-  firewall { '013 postgres_local':
+  firewall { '008 postgres_local':
     chain    => $chain,
+    table    => 'filter',
     port     => $postgres_port,
     proto    => 'tcp',
-    src_type => "LOCAL",
+    src_type => 'LOCAL',
     action   => 'accept',
+    state    => ['NEW'],
   }
 
-  firewall { '014 postgres':
-    chain    => $chain,
-    port     => $postgres_port,
-    proto    => 'tcp',
-    iniface  => 'docker0',
-    action   => 'accept',
-  }
-
-  firewall { '015 postgres_block_ext':
+  firewall { '009 postgres':
     chain   => $chain,
+    table   => 'filter',
     port    => $postgres_port,
     proto   => 'tcp',
-    action  => 'reject',
+    iniface => $admin_iface,
+    action  => 'accept',
+    state   => ['NEW'],
   }
 
-  firewall { '020 ostf_admin':
+  firewall { '010 postgres_block_ext':
+    chain  => $chain,
+    table  => 'filter',
+    port   => $postgres_port,
+    proto  => 'tcp',
+    action => 'reject',
+    state  => ['NEW'],
+  }
+
+  firewall { '011 ostf_admin':
     chain   => $chain,
+    table   => 'filter',
     port    => $ostf_port,
     proto   => 'tcp',
     iniface => $admin_iface,
     action  => 'accept',
+    state   => ['NEW'],
   }
 
-  firewall { '021 ostf_local':
+  firewall { '012 ostf_local':
     chain    => $chain,
+    table    => 'filter',
     port     => $ostf_port,
     proto    => 'tcp',
-    src_type => "LOCAL",
+    src_type => 'LOCAL',
     action   => 'accept',
+    state    => ['NEW'],
   }
 
-  firewall { '022 ostf_block_ext':
-    chain   => $chain,
-    port    => $ostf_port,
-    proto   => 'tcp',
-    action  => 'reject',
+  firewall { '013 ostf_block_ext':
+    chain  => $chain,
+    table  => 'filter',
+    port   => $ostf_port,
+    proto  => 'tcp',
+    action => 'reject',
+    state  => ['NEW'],
   }
 
-  firewall { '023 rsync':
-    chain   => $chain,
-    port    => $rsync_port,
-    proto   => 'tcp',
-    action  => 'accept',
+  firewall { '014 rsync':
+    chain  => $chain,
+    table  => 'filter',
+    port   => $rsync_port,
+    proto  => 'tcp',
+    action => 'accept',
+    state  => ['NEW'],
   }
 
-  firewall { '024 rsyslog':
+  firewall { '015 rsyslog':
     chain   => $chain,
+    table   => 'filter',
     port    => $rsyslog_port,
     proto   => 'tcp',
     iniface => $admin_iface,
     action  => 'accept',
+    state   => ['NEW'],
   }
 
-  firewall { '025 rsyslog':
+  firewall { '016 rsyslog':
     chain   => $chain,
+    table   => 'filter',
     port    => $rsyslog_port,
     proto   => 'udp',
     iniface => $admin_iface,
     action  => 'accept',
+    state   => ['NEW'],
   }
 
-  firewall { '040 rabbitmq_admin_net':
+  firewall { '017 rabbitmq_admin_net':
     chain   => $chain,
+    table   => 'filter',
     port    => $rabbitmq_ports,
     proto   => 'tcp',
     iniface => $admin_iface,
     action  => 'accept',
+    state   => ['NEW'],
   }
 
-
-  firewall { '041 rabbitmq_local':
+  firewall { '018 rabbitmq_local':
     chain    => $chain,
+    table    => 'filter',
     port     => concat($rabbitmq_ports, $rabbitmq_admin_port),
     proto    => 'tcp',
-    src_type => "LOCAL",
+    src_type => 'LOCAL',
     action   => 'accept',
+    state    => ['NEW'],
   }
 
-  firewall { '042 rabbitmq_block_ext':
-    chain    => $chain,
-    port     => $rabbitmq_ports,
-    proto    => 'tcp',
-    action   => 'reject',
+  firewall { '019 rabbitmq_block_ext':
+    chain  => $chain,
+    table  => 'filter',
+    port   => $rabbitmq_ports,
+    proto  => 'tcp',
+    action => 'reject',
+    state  => ['NEW'],
   }
 
-  firewall {'043 fuelweb_port':
-    chain    => $chain,
-    port     => $fuelweb_port,
-    proto    => 'tcp',
-    action   => 'accept',
+  firewall {'020 fuelweb_port':
+    chain  => $chain,
+    table  => 'filter',
+    port   => $fuelweb_port,
+    proto  => 'tcp',
+    action => 'accept',
+    state  => ['NEW'],
   }
 
-  firewall { '046 keystone_admin':
-    chain    => $chain,
-    port     => $keystone_port,
-    proto    => 'tcp',
-    action   => 'accept'
+  firewall { '021 keystone_admin':
+    chain  => $chain,
+    table  => 'filter',
+    port   => $keystone_port,
+    proto  => 'tcp',
+    action => 'accept'
+    state  => ['NEW'],
   }
 
-  firewall { '047 keystone_admin_port admin_net':
-    chain    => $chain,
-    port     => $keystone_admin_port,
-    proto    => 'tcp',
-    iniface  => $admin_iface,
-    action   => 'accept',
+  firewall { '022 keystone_admin_port admin_net':
+    chain   => $chain,
+    table   => 'filter',
+    port    => $keystone_admin_port,
+    proto   => 'tcp',
+    iniface => $admin_iface,
+    action  => 'accept',
+    state   => ['NEW'],
   }
 
-  firewall { '049 nailgun_repo_admin':
-    chain    => $chain,
-    port     => $nailgun_repo_port,
-    proto    => 'tcp',
-    action   => 'accept'
+  firewall { '023 nailgun_repo_admin':
+    chain  => $chain,
+    table  => 'filter',
+    port   => $nailgun_repo_port,
+    proto  => 'tcp',
+    action => 'accept'
+    state  => ['NEW'],
   }
 
-  firewall { '050 forward admin_net':
-    chain    => 'FORWARD',
-    proto    => 'all',
-    source   => "${network_address}/${network_cidr}",
-    iniface  => $admin_iface,
-    action   => 'accept',
+  firewall { '024 allow loopback':
+    chain   => 'INPUT',
+    table   => 'filter',
+    proto   => 'all',
+    iniface => 'lo',
+    action  => 'accept',
+    state   => ['NEW'],
   }
 
-  firewall { '051 forward admin_net conntrack':
-    chain    => 'FORWARD',
-    proto    => 'all',
-    ctstate  => ['ESTABLISHED', 'RELATED'],
-    action   => 'accept'
+  firewall { '025 allow icmp echo-request':
+    chain  => 'INPUT',
+    table  => 'filter',
+    proto  => 'icmp',
+    icmp   => 'echo-request',
+    action => 'accept',
+    state  => ['NEW'],
+  }
+
+  firewall { '026 allow icmp echo-reply':
+    chain  => 'INPUT',
+    table  => 'filter',
+    proto  => 'icmp',
+    icmp   => 'echo-reply',
+    action => 'accept',
+    state  => ['NEW'],
+  }
+
+  firewall { '027 allow icmp dest-unreach':
+    chain  => 'INPUT',
+    table  => 'filter',
+    proto  => 'icmp',
+    icmp   => 'destination-unreachable',
+    action => 'accept',
+    state  => ['NEW'],
+  }
+
+  firewall { '028 allow icmp ttl-exceeded':
+    chain  => 'INPUT',
+    table  => 'filter',
+    proto  => 'icmp',
+    icmp   => 'ttl-exceeded',
+    action => 'accept',
+    state  => ['NEW'],
+  }
+
+  firewall { '997 externally defined rules':
+    chain  => $chain,
+    table  => 'filter',
+    jump   => 'ext-filter-input',
+  }
+
+  firewall { '998 accept related established rules':
+    chain  => $chain,
+    table  => 'filter',
+    proto  => 'all',
+    state  => ['RELATED', 'ESTABLISHED'],
+    action => 'accept',
   }
 
   firewall {'999 iptables denied':
     chain      => 'INPUT',
+    table      => 'filter',
     limit      => '5/min',
     jump       => 'LOG',
     log_prefix => 'iptables denied: ',
     log_level  => '7',
   }
 
+  ## FORWARD:filter:IPv4
 
+  firewall { '001 forward admin_net':
+    chain   => 'FORWARD',
+    table   => 'filter',
+    proto   => 'all',
+    source  => "${network_address}/${network_cidr}",
+    iniface => $admin_iface,
+    state   => ['NEW'],
+    action  => 'accept',
+  }
+
+  firewall { '002 forward admin_net conntrack':
+    chain   => 'FORWARD',
+    table   => 'filter',
+    proto   => 'all',
+    state   => ['RELATED', 'ESTABLISHED'],
+    action  => 'accept'
+  }
+
+  firewall { '999 externally defined rules':
+    chain  => 'FORWARD',
+    table  => 'filter',
+    jump   => 'ext-filter-forward',
+  }
+
+  ## POSTROUTING:nat:IPv4
+
+  #Host services
+  firewall { '001 forward_admin_net':
+    chain    => 'POSTROUTING',
+    table    => 'nat',
+    proto    => 'all',
+    source   => "${network_address}/${network_cidr}",
+    outiface => 'e+',
+    jump     => 'MASQUERADE',
+  }
+
+  firewall { '999 externally defined rules':
+    chain  => 'POSTROUTING',
+    table  => 'nat',
+    jump   => 'ext-nat-postrouting',
+  }
+
+  ## POSTROUTING:mangle:IPv4
+
+  firewall { '001 recalculate dhcp checksum':
+    chain         => 'POSTROUTING',
+    table         => 'mangle',
+    proto         => 'udp',
+    port          => 68,
+    jump          => 'CHECKSUM',
+    checksum_fill => true,
+  }
+
+  firewall { '999 externally defined rules':
+    chain  => 'POSTROUTING',
+    table  => 'mangle',
+    jump   => 'ext-mangle-postrouting',
+  }
 }
