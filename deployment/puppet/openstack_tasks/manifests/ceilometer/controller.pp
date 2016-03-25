@@ -44,7 +44,7 @@ class openstack_tasks::ceilometer::controller {
   $internal_auth_protocol     = get_ssl_property($ssl_hash, {}, 'keystone', 'internal', 'protocol', 'http')
   $internal_auth_endpoint     = get_ssl_property($ssl_hash, {}, 'keystone', 'internal', 'hostname', [$service_endpoint])
   $keystone_identity_uri      = "${internal_auth_protocol}://${internal_auth_endpoint}:35357/"
-  $keystone_auth_uri          = "${internal_auth_protocol}://${internal_auth_endpoint}:5000/"
+  $keystone_auth_uri          = "${internal_auth_protocol}://${internal_auth_endpoint}:5000/v2.0"
 
   prepare_network_config(hiera_hash('network_scheme', {}))
   $api_bind_address           = get_network_role_property('ceilometer/api', 'ipaddr')
