@@ -34,7 +34,7 @@ module PuppetfileValidator
       puts "INFO: validating module '#{name}'"
       if args.is_a? Hash and args.has_key?(:git) and args.has_key?(:ref)
         if validate_repo(args[:git])
-          if args[:ref] == 'master' or validate_ref(args[:git], args[:ref])
+          if args[:ref] == 'master' or args[:ref] =~ /stable\/.*/ or validate_ref(args[:git], args[:ref])
             puts "INFO: module '#{name}' is valid"
           else
             @valid = false
