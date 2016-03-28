@@ -1,8 +1,9 @@
 - id: murano
   type: puppet
-  version: 2.0.0
+  version: 2.1.0
   groups: [primary-controller, controller]
-  condition: "settings:murano.enabled == true"
+  condition:
+    yaql_exp: &murano_enabled '$.murano.enabled and changed($.murano.enabled)'
   required_for: [deploy_end, controller_remaining_tasks]
   requires: [primary-heat, heat, horizon, primary-rabbitmq, rabbitmq]
   cross-depends:
@@ -19,11 +20,12 @@
 
 - id: murano-db
   type: puppet
-  version: 2.0.0
+  version: 2.1.0
   groups: [primary-controller]
   cross-depends:
     - name: /(primary-)?database/
-  condition: "settings:murano.enabled == true"
+  condition:
+    yaql_exp: *murano_enabled
   required_for: [murano]
   requires: [primary-database, database]
   parameters:
@@ -33,9 +35,10 @@
 
 - id: murano-keystone
   type: puppet
-  version: 2.0.0
+  version: 2.1.0
   groups: [primary-controller]
-  condition: "settings:murano.enabled == true"
+  condition:
+    yaql_exp: *murano_enabled
   required_for: [murano]
   requires: [primary-keystone, keystone]
   cross-depends:
@@ -47,9 +50,10 @@
 
 - id: murano-rabbitmq
   type: puppet
-  version: 2.0.0
+  version: 2.1.0
   groups: [primary-controller, controller]
-  condition: "settings:murano.enabled == true"
+  condition:
+    yaql_exp: *murano_enabled
   required_for: [murano]
   cross-depends:
     - name: /(primary-)?rabbitmq/
@@ -62,9 +66,12 @@
 
 - id: murano-cfapi
   type: puppet
-  version: 2.0.0
+  version: 2.1.0
   groups: [primary-controller, controller]
-  condition: "settings:murano-cfapi.enabled == true"
+  condition:
+    yaql_exp: &murano_cfapi_enabled >
+      $.get('murano-cfapi').enabled and
+      changed($.get('murano-cfapi').enabled)
   requires: [murano]
   parameters:
     puppet_manifest: /etc/puppet/modules/openstack_tasks/examples/murano/cfapi.pp
@@ -73,9 +80,10 @@
 
 - id: murano-cfapi-keystone
   type: puppet
-  version: 2.0.0
+  version: 2.1.0
   groups: [primary-controller]
-  condition: "settings:murano-cfapi.enabled == true"
+  condition:
+    yaql_exp: *murano_cfapi_enabled
   required_for: [murano-cfapi]
   requires: [primary-keystone, keystone]
   cross-depends:

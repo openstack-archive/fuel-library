@@ -49,11 +49,21 @@
     timeout: 3600
 
 - id: primary-ceph-radosgw
-  version: 2.0.0
+  version: 2.1.0
   type: puppet
   groups: [primary-controller]
   required_for: [deploy_end, controller_remaining_tasks]
   requires: [apache, ceph-mon, primary-ceph-mon]
+  condition:
+    yaql_exp: &ceph_radosgw >
+      changedAny($.storage, $.keystone, $.network_metadata.vips,
+      $.get('external_lb'),
+      (len($.network_metadata.nodes.values().where(
+        ('controller' in $.node_roles) or
+        ('primary-controller' in $.node_roles)))),
+      $.get('use_ssl'), ('primary-controller' in $.roles), $.network_scheme,
+      $.get('apache_ports'), $.get('use_syslog'),
+      $.get('syslog_log_facility_ceph'), $.get('syslog_log_level_ceph'))
   parameters:
     puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/ceph/radosgw.pp
     puppet_modules: /etc/puppet/modules
@@ -65,12 +75,14 @@
 
 - id: ceph-radosgw
   type: puppet
-  version: 2.0.0
+  version: 2.1.0
   groups: [controller]
   cross-depends:
     - name: primary-ceph-radosgw
   required_for: [deploy_end, controller_remaining_tasks]
   requires: [apache, ceph-mon, primary-ceph-mon]
+  condition:
+    yaql_exp: *ceph_radosgw
   parameters:
     puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/ceph/radosgw.pp
     puppet_modules: /etc/puppet/modules
@@ -82,10 +94,14 @@
 
 - id: radosgw-keystone
   type: puppet
-  version: 2.0.0
+  version: 2.1.0
   groups: [primary-controller]
   required_for: [primary-ceph-radosgw, ceph-radosgw]
   requires: [primary-keystone, keystone]
+  condition:
+    yaql_exp: >
+      changedAny($.storage, $.network_metadata.vips,
+      $.get('region', 'RegionOne'), $.public_ssl, $.get('use_ssl'))
   cross-depends:
     - name: keystone
   parameters:
@@ -95,10 +111,18 @@
 
 - id: primary-ceph-mon
   type: puppet
-  version: 2.0.0
+  version: 2.1.0
   groups: [primary-controller]
   required_for: [deploy_end, controller_remaining_tasks]
   requires: [primary-openstack-controller, openstack-controller, openstack-cinder]
+  condition:
+    yaql_exp: &ceph_mon >
+      changedAny($.storage, $.quantum, $.network_metadata,
+      $.get('use_syslog'), $.get('syslog_log_facility_ceph'), $.keystone,
+      (len($.network_metadata.nodes.values().where(
+        ('controller' in $.node_roles) or
+        ('primary-controller' in $.node_roles)))),
+      $.network_scheme, $.get('syslog_log_level_ceph'))
   parameters:
     puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/ceph/mon.pp
     puppet_modules: /etc/puppet/modules
@@ -106,10 +130,12 @@
 
 - id: ceph-mon
   type: puppet
-  version: 2.0.0
+  version: 2.1.0
   groups: [controller]
   required_for: [deploy_end, controller_remaining_tasks]
   requires: [primary-openstack-controller, openstack-controller, openstack-cinder]
+  condition:
+    yaql_exp: *ceph_mon
   cross-depends:
     - name: primary-ceph-mon
   parameters:
@@ -123,13 +149,22 @@
 
 - id: ceph-compute
   type: puppet
-  version: 2.0.0
+  version: 2.1.0
   role: [compute]
   cross-depends:
     - name: ceph_create_pools
   requires: [ceph_create_pools]
   required_for: [post_deployment_end]
-  condition: "settings:storage.objects_ceph == true or settings:storage.images_ceph == true or settings:storage.volumes_ceph == true or settings:storage.ephemeral_ceph == true"
+  condition:
+    yaql_exp: &storage_changed >
+      ($.storage.objects_ceph or $.storage.images_ceph or
+       $.storage.volumes_ceph or $.storage.ephemeral_ceph) and
+      (changedAny($.storage, $.quantum, $.network_metadata.vips,
+       $.get('use_syslog'), $.get('syslog_log_facility_ceph'), $.keystone,
+       $.network_scheme,
+       (len(
+        $.network_metadata.nodes.values().flatten().node_roles.flatten().where(
+          $ = 'controller' or $ = 'primary-controller')))))
   parameters:
     puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/ceph/ceph_compute.pp
     puppet_modules: /etc/puppet/modules
@@ -140,13 +175,17 @@
 
 - id: ceph_create_pools
   type: puppet
-  version: 2.0.0
+  version: 2.1.0
   role: [primary-controller, controller]
   requires: [post_deployment_start]
   required_for: [ceph_ready_check]
   cross-depended-by:
     - name: ceph_ready_check
-  condition: "settings:storage.objects_ceph == true or settings:storage.images_ceph == true or settings:storage.volumes_ceph == true or settings:storage.ephemeral_ceph == true"
+  condition:
+    yaql_exp: &ceph_changed >
+      ($.storage.objects_ceph or $.storage.images_ceph or
+       $.storage.volumes_ceph or $.storage.ephemeral_ceph) and
+      changed($.storage)
   parameters:
     puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/ceph/ceph_pools.pp
     puppet_modules: /etc/puppet/modules
@@ -155,9 +194,10 @@
 
 - id: ceph_ready_check
   type: shell
-  version: 2.0.0
+  version: 2.1.0
   role: [primary-controller]
-  condition: "settings:storage.objects_ceph == true or settings:storage.images_ceph == true or settings:storage.volumes_ceph == true or settings:storage.ephemeral_ceph == true"
+  condition:
+    yaql_exp: *ceph_changed
   requires: [post_deployment_start]
   required_for: [enable_rados, upload_cirros]
   parameters:
@@ -166,9 +206,10 @@
 
 - id: enable_rados
   type: puppet
-  version: 2.0.0
+  version: 2.1.0
   role: [primary-controller, controller]
-  condition: "settings:storage.objects_ceph == true"
+  condition:
+    yaql_exp: '$.storage.objects_ceph and changed($.storage.objects_ceph)'
   requires: [post_deployment_start]
   required_for: [upload_cirros, post_deployment_end]
   cross-depended-by:
@@ -181,9 +222,10 @@
 
 - id: updatedb
   type: puppet
-  version: 2.0.0
+  version: 2.1.0
   role: [primary-controller, controller, ceph-osd]
-  condition: "settings:storage.objects_ceph == true or settings:storage.images_ceph == true or settings:storage.volumes_ceph == true or settings:storage.ephemeral_ceph == true"
+  condition:
+    yaql_exp: *storage_changed
   requires: [post_deployment_start]
   required_for: [post_deployment_end]
   parameters:

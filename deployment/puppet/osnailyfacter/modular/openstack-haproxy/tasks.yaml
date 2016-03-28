@@ -13,10 +13,18 @@
 
 - id: openstack-haproxy-horizon
   type: puppet
-  version: 2.0.0
+  version: 2.1.0
   groups: [primary-controller, controller]
   required_for: [deploy_end]
   requires: [deploy_start, primary-cluster-haproxy, cluster-haproxy]
+  condition:
+    yaql_exp: >
+      changedAny($.horizon, $.public_ssl, $.get('use_ssl'),
+      $.get('external_lb'),
+      (len($.network_metadata.nodes.values().where(
+        ('controller' in $.node_roles) or
+        ('primary-controller' in $.node_roles)))),
+      $.network_metadata.vips)
   cross-depends:
     - name: /(primary-)?cluster-haproxy/
       role: self
@@ -31,10 +39,19 @@
 
 - id: openstack-haproxy-keystone
   type: puppet
-  version: 2.0.0
+  version: 2.1.0
   groups: [primary-controller, controller]
   required_for: [deploy_end]
   requires: [primary-cluster-haproxy, cluster-haproxy]
+  condition:
+    yaql_exp: >
+      changedAny($.keystone, $.public_ssl, $.get('use_ssl'),
+      $.get('external_lb'),
+      (len($.network_metadata.nodes.values().where(
+        ('controller' in $.node_roles) or
+        ('primary-controller' in $.node_roles)))),
+      $.get('keystone_names'), $.get('keystone_ipaddresses'),
+      $.get('public_service_endpoint'), $.network_metadata.vips)
   cross-depends:
     - name: /(primary-)?cluster-haproxy/
       role: self
@@ -49,10 +66,17 @@
 
 - id: openstack-haproxy-nova
   type: puppet
-  version: 2.0.0
+  version: 2.1.0
   groups: [primary-controller, controller]
   required_for: [deploy_end]
   requires: [deploy_start, primary-cluster-haproxy, cluster-haproxy]
+  condition:
+    yaql_exp: >
+      changedAny($.nova, $.public_ssl, $.get('use_ssl'), $.get('external_lb'),
+      (len($.network_metadata.nodes.values().where(
+        ('controller' in $.node_roles) or
+        ('primary-controller' in $.node_roles)))),
+      $.network_metadata.vips)
   cross-depends:
     - name: /(primary-)?cluster-haproxy/
       role: self
@@ -67,10 +91,18 @@
 
 - id: openstack-haproxy-heat
   type: puppet
-  version: 2.0.0
+  version: 2.1.0
   groups: [primary-controller, controller]
   required_for: [deploy_end]
   requires: [deploy_start, primary-cluster-haproxy, cluster-haproxy]
+  condition:
+    yaql_exp: >
+      changedAny($.heat, $.public_ssl, $.get('use_ssl'), $.get('external_lb'),
+      $.get('heat_roles'),
+      (len($.network_metadata.nodes.values().where(
+        ('controller' in $.node_roles) or
+        ('primary-controller' in $.node_roles)))),
+      $.network_metadata.vips)
   cross-depends:
     - name: /(primary-)?cluster-haproxy/
       role: self
@@ -85,10 +117,17 @@
 
 - id: openstack-haproxy-glance
   type: puppet
-  version: 2.0.0
+  version: 2.1.0
   groups: [primary-controller, controller]
   required_for: [deploy_end]
   requires: [deploy_start, primary-cluster-haproxy, cluster-haproxy]
+  condition:
+    yaql_exp: >
+      changedAny($.glance, $.public_ssl, $.get('use_ssl'),
+      (len($.network_metadata.nodes.values().where(
+        ('controller' in $.node_roles) or
+        ('primary-controller' in $.node_roles)))),
+      $.network_metadata.vips)
   cross-depends:
     - name: /(primary-)?cluster-haproxy/
       role: self
@@ -103,10 +142,18 @@
 
 - id: openstack-haproxy-cinder
   type: puppet
-  version: 2.0.0
+  version: 2.1.0
   groups: [primary-controller, controller]
   required_for: [deploy_end]
   requires: [deploy_start, primary-cluster-haproxy, cluster-haproxy]
+  condition:
+    yaql_exp: >
+      changedAny($.cinder, $.public_ssl, $.get('use_ssl'),
+      $.get('external_lb'),
+      len($.network_metadata.nodes.values().where(
+        ('controller' in $.node_roles) or
+        ('primary-controller' in $.node_roles))),
+      $.network_metadata.vips)
   cross-depends:
     - name: /(primary-)?cluster-haproxy/
       role: self
@@ -121,10 +168,19 @@
 
 - id: openstack-haproxy-neutron
   type: puppet
-  version: 2.0.0
+  version: 2.1.0
   groups: [primary-controller, controller]
   required_for: [deploy_end]
   requires: [deploy_start, primary-cluster-haproxy, cluster-haproxy]
+  condition:
+    yaql_exp: >
+      changedAny($.quantum, $.public_ssl, $.get('use_ssl'),
+      $.get('external_lb'),
+      (len($.network_metadata.nodes.values().where(
+        ('controller' in $.node_roles) or
+        ('primary-controller' in $.node_roles)))),
+      $.get('neutron_names'), $.get('neutron_ipaddresses'),
+      $.network_metadata.vips)
   cross-depends:
     - name: /(primary-)?cluster-haproxy/
       role: self
@@ -139,10 +195,16 @@
 
 - id: openstack-haproxy-mysqld
   type: puppet
-  version: 2.0.0
+  version: 2.1.0
   groups: [primary-controller, controller]
   required_for: [deploy_end]
   requires: [deploy_start, primary-cluster-haproxy, cluster-haproxy]
+  condition:
+    yaql_exp: >
+      changedAny($.mysql, $.get('custom_mysql_setup_class', 'galera'),
+      $.get('external_lb'), $.get('database_nodes'), $.get('mysqld_names'),
+      $.get('mysqld_ipaddresses'), $.network_metadata.vips,
+      $.get('database_vip'), ('primary-controller' in $.roles))
   cross-depends:
     - name: /(primary-)?cluster-haproxy/
       role: self
@@ -157,10 +219,20 @@
 
 - id: openstack-haproxy-swift
   type: puppet
-  version: 2.0.0
+  version: 2.1.0
   groups: [primary-controller, controller]
   required_for: [deploy_end]
   requires: [deploy_start, primary-cluster-haproxy, cluster-haproxy]
+  condition:
+    yaql_exp: >
+      changedAny($.storage, $.get('swift_proxy_roles'),
+      len($.network_metadata.nodes.values().where(
+        ('controller' in $.node_roles) or
+        ('primary-controller' in $.node_roles))),
+      $.public_ssl, $.get('use_ssl'), $.get('external_lb'),
+      $.get('swift_server_names'), $.get('swift_ipaddresses'),
+      $.network_metadata.vips, $.ironic, $.network_scheme,
+      $.network_metadata.nodes.get(concat('node-', $.uid)))
   cross-depends:
     - name: /(primary-)?cluster-haproxy/
       role: self
@@ -175,10 +247,18 @@
 
 - id: openstack-haproxy-radosgw
   type: puppet
-  version: 2.0.0
+  version: 2.1.0
   groups: [primary-controller, controller]
   required_for: [deploy_end]
   requires: [deploy_start, primary-cluster-haproxy, cluster-haproxy]
+  condition:
+    yaql_exp: >
+      changedAny($.storage, $.public_ssl, $.get('use_ssl'),
+      $.get('external_lb'),
+      len($.network_metadata.nodes.values().where(
+        ('controller' in $.node_roles) or
+        ('primary-controller' in $.node_roles))),
+      $.network_metadata.vips, $.ironic)
   cross-depends:
     - name: /(primary-)?cluster-haproxy/
       role: self
@@ -193,10 +273,18 @@
 
 - id: openstack-haproxy-ceilometer
   type: puppet
-  version: 2.0.0
+  version: 2.1.0
   groups: [primary-controller, controller]
   required_for: [deploy_end]
   requires: [deploy_start, primary-cluster-haproxy, cluster-haproxy]
+  condition:
+    yaql_exp: >
+      changedAny($.ceilometer, $.public_ssl, $.get('use_ssl'),
+      $.get('external_lb'),
+      len($.network_metadata.nodes.values().where(
+        ('controller' in $.node_roles) or
+        ('primary-controller' in $.node_roles))),
+      $.network_metadata.vips)
   cross-depends:
     - name: /(primary-)?cluster-haproxy/
       role: self
@@ -211,10 +299,18 @@
 
 - id: openstack-haproxy-aodh
   type: puppet
-  version: 2.0.0
+  version: 2.1.0
   groups: [primary-controller, controller]
   required_for: [deploy_end]
   requires: [deploy_start, primary-cluster-haproxy, cluster-haproxy]
+  condition:
+    yaql_exp: >
+      changedAny($.ceilometer, $.public_ssl, $.get('use_ssl'),
+      $.get('external_lb'),
+      len($.network_metadata.nodes.values().where(
+        ('controller' in $.node_roles) or
+        ('primary-controller' in $.node_roles))),
+      $.network_metadata.vips)
   cross-depends:
     - name: /(primary-)?cluster-haproxy/
       role: self
@@ -229,10 +325,18 @@
 
 - id: openstack-haproxy-sahara
   type: puppet
-  version: 2.0.0
+  version: 2.1.0
   groups: [primary-controller, controller]
   required_for: [deploy_end]
   requires: [deploy_start, primary-cluster-haproxy, cluster-haproxy]
+  condition:
+    yaql_exp: >
+      changedAny($.sahara, $.public_ssl, $.get('use_ssl'),
+      $.get('external_lb'), $.get('sahara_roles'),
+      len($.network_metadata.nodes.values().where(
+        ('controller' in $.node_roles) or
+        ('primary-controller' in $.node_roles))),
+      $.network_metadata.vips)
   cross-depends:
     - name: /(primary-)?cluster-haproxy/
       role: self
@@ -247,10 +351,19 @@
 
 - id: openstack-haproxy-murano
   type: puppet
-  version: 2.0.0
+  version: 2.1.0
   groups: [primary-controller, controller]
   required_for: [deploy_end]
   requires: [deploy_start, primary-cluster-haproxy, cluster-haproxy]
+  condition:
+    yaql_exp: >
+      changedAny($.murano, $.get('murano-cfapi'), $.public_ssl,
+      $.get('use_ssl'), $.get('external_lb'), $.get('murano_roles'),
+      $.network_metadata.nodes.values().where(
+        ('controller' in $.node_roles) or
+        ('primary-controller' in $.node_roles)),
+      $.get('murano_names'), $.get('murano_ipaddresses'),
+      $.network_metadata.vips)
   cross-depends:
     - name: /(primary-)?cluster-haproxy/
       role: self
@@ -265,10 +378,12 @@
 
 - id: openstack-haproxy-stats
   type: puppet
-  version: 2.0.0
+  version: 2.1.0
   groups: [primary-controller, controller]
   required_for: [deploy_end]
   requires: [deploy_start, primary-cluster-haproxy, cluster-haproxy]
+  condition:
+    yaql_exp: "changed($.get('external_lb')) or changed($.network_metadata.vips)"
   cross-depends:
     - name: /(primary-)?cluster-haproxy/
       role: self
@@ -281,9 +396,10 @@
 
 - id: openstack-haproxy-ironic
   type: puppet
-  version: 2.0.0
+  version: 2.1.0
   groups: [primary-controller, controller]
-  condition: "settings:ironic.enabled == true"
+  condition:
+    yaql_exp: '$.ironic.enabled and changed($.ironic.enabled)'
   required_for: [deploy_end]
   requires: [deploy_start, primary-cluster-haproxy, cluster-haproxy]
   cross-depends:
