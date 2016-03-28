@@ -1,9 +1,10 @@
 - id: ssl-keys-saving
   type: puppet
-  version: 2.0.0
+  version: 2.1.0
   groups: [primary-controller, controller, compute, compute-vmware, cinder, cinder-vmware, primary-mongo, mongo, ceph-osd, virt]
   requires: [firewall]
-  condition: "(settings:public_ssl.horizon == true or settings:public_ssl.services == true) and settings:public_ssl.cert_source == 'user_uploaded'"
+  condition:
+    yaql_exp: '($.public_ssl.horizon or $.public_ssl.services) and $.public_ssl.cert_source = "user_uploaded" and changed($.public_ssl.cert_data)'
   required_for: [deploy_end]
   parameters:
     puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/ssl/ssl_keys_saving.pp
@@ -14,10 +15,11 @@
 
 - id: ssl-add-trust-chain
   type: puppet
-  version: 2.0.0
+  version: 2.1.0
   groups: [primary-controller, controller, compute, compute-vmware, cinder, cinder-vmware, primary-mongo, mongo, ceph-osd, virt]
   requires: [firewall, ssl-keys-saving]
-  condition: "settings:public_ssl.horizon == true or settings:public_ssl.services == true"
+  condition:
+    yaql_exp: &public_ssl_enabled 'changed($.public_ssl)'
   required_for: [hosts]
   parameters:
     puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/ssl/ssl_add_trust_chain.pp
@@ -28,10 +30,11 @@
 
 - id: ssl-dns-setup
   type: puppet
-  version: 2.0.0
+  version: 2.1.0
   groups: [primary-controller, controller]
   requires: [firewall, ssl-add-trust-chain]
-  condition: "settings:public_ssl.horizon == true or settings:public_ssl.services == true"
+  condition:
+    yaql_exp: *public_ssl_enabled
   required_for: [hosts]
   parameters:
     puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/ssl/ssl_dns_setup.pp

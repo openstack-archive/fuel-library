@@ -6,6 +6,8 @@
            primary-mongo, mongo, virt, ironic]
   required_for: [deploy_end]
   requires: [hiera]
+  condition:
+    yaql_exp: 'changed($)'
   reexecute_on: [deploy_changes]
   parameters:
     puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/globals/globals.pp

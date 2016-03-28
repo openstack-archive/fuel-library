@@ -4,6 +4,8 @@
   groups: [primary-controller, controller]
   requires: [deploy_start, openstack-haproxy]
   required_for: [primary-keystone, keystone]
+  condition:
+    yaql_exp: &keystone_changed "changed($.configuration) or changed($.network_scheme) or changed($.network_metadata) or changed($.keystone) or changed($.get('verbose')) or changed($.debug) or changed($.quantum) or changed($.get('use_syslog')) or changed($.get('use_stderr')) or changed($.access) or changed($.get('database_vip')) or changed($.glance) or changed($.nova) or changed($.cinder) or changed($.ceilometer) or changed($.get('syslog_log_facility_keystone')) or changed($.rabbit) or changed($.quantum_settings.keystone) or changed($.get('default_log_levels')) or changed('primary-controller' in $.roles) or changed($.get('kombu_compression')) or changed($.get('region')) or changed($.public_ssl) or changed($.get('use_ssl')) or changed($.get('memcache_server_port')) or changed($.get('memcached_addresses')) or changed($.get('memcache_roles')) or changed(len($.network_metadata.nodes.values().where(('controller' in $.node_roles) or ('primary-controller' in $.node_roles)))) or changed($.get('token_provider')) or changed($.get('max_pool_size')) or changed($.get('max_overflow')) or changed($.murano_settings) or changed($.murano) or changed($.get('external_lb')) or changed($.operator_user) or changed($.service_user) or changed($.get('apache_ports'))"
   refresh_on: [keystone_config]
   parameters:
     puppet_manifest: /etc/puppet/modules/openstack_tasks/examples/keystone/openrc_delete.pp
@@ -16,6 +18,8 @@
   groups: [primary-controller]
   required_for: [primary-openstack-controller, openstack-controller]
   requires: [openstack-haproxy, database, primary-rabbitmq, rabbitmq, primary-database]
+  condition:
+    yaql_exp: *keystone_changed
   refresh_on: [keystone_config]
   cross-depends:
     - name: /(primary-)?rabbitmq/
@@ -36,6 +40,8 @@
   version: 2.0.0
   required_for: [primary-openstack-controller, openstack-controller]
   requires: [openstack-haproxy, database, primary-rabbitmq, rabbitmq, primary-database]
+  condition:
+    yaql_exp: *keystone_changed
   refresh_on: [keystone_config]
   cross-depends:
     - name: /(primary-)?rabbitmq/
@@ -56,6 +62,8 @@
   groups: [primary-controller]
   required_for: [keystone, primary-keystone]
   requires: [primary-database, database]
+  condition:
+    yaql_exp: "changed($.network_metadata) or changed($.keystone) or changed($.mysql) or changed($.get('database_vip'))"
   cross-depends:
     - name: /(primary-)?database/
   parameters:

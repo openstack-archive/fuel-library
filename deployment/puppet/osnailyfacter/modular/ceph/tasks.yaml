@@ -123,13 +123,14 @@
 
 - id: ceph-compute
   type: puppet
-  version: 2.0.0
+  version: 2.1.0
   role: [compute]
   cross-depends:
     - name: ceph_create_pools
   requires: [ceph_create_pools]
   required_for: [post_deployment_end]
-  condition: "settings:storage.objects_ceph == true or settings:storage.images_ceph == true or settings:storage.volumes_ceph == true or settings:storage.ephemeral_ceph == true"
+  condition:
+    yaql_exp: &storage_changed "($.storage.objects_ceph or $.storage.images_ceph or $.storage.volumes_ceph or $.storage.ephemeral_ceph) and (changed($.storage) or changed($.quantum) or changed($.network_metadata.vips) or changed($.get('use_syslog')) or changed($.get('syslog_log_facility_ceph')) or changed($.keystone) or changed($.network_scheme) or changed(len($.network_metadata.nodes.values().flatten().node_roles.flatten().where($ = 'controller' or $ = 'primary-controller'))))"
   parameters:
     puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/ceph/ceph_compute.pp
     puppet_modules: /etc/puppet/modules
@@ -140,13 +141,14 @@
 
 - id: ceph_create_pools
   type: puppet
-  version: 2.0.0
+  version: 2.1.0
   role: [primary-controller, controller]
   requires: [post_deployment_start]
   required_for: [ceph_ready_check]
   cross-depended-by:
     - name: ceph_ready_check
-  condition: "settings:storage.objects_ceph == true or settings:storage.images_ceph == true or settings:storage.volumes_ceph == true or settings:storage.ephemeral_ceph == true"
+  condition:
+    yaql_exp: "($.storage.objects_ceph or $.storage.images_ceph or $.storage.volumes_ceph or $.storage.ephemeral_ceph) and changed($.storage)"
   parameters:
     puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/ceph/ceph_pools.pp
     puppet_modules: /etc/puppet/modules
@@ -155,9 +157,10 @@
 
 - id: ceph_ready_check
   type: shell
-  version: 2.0.0
+  version: 2.1.0
   role: [primary-controller]
-  condition: "settings:storage.objects_ceph == true or settings:storage.images_ceph == true or settings:storage.volumes_ceph == true or settings:storage.ephemeral_ceph == true"
+  condition:
+    yaql_exp: "($.storage.objects_ceph or $.storage.images_ceph or $.storage.volumes_ceph or $.storage.ephemeral_ceph) and changed($.storage)"
   requires: [post_deployment_start]
   required_for: [enable_rados, upload_cirros]
   parameters:
@@ -166,9 +169,10 @@
 
 - id: enable_rados
   type: puppet
-  version: 2.0.0
+  version: 2.1.0
   role: [primary-controller, controller]
-  condition: "settings:storage.objects_ceph == true"
+  condition:
+    yaql_exp: '$.storage.objects_ceph and changed($.storage.objects_ceph)'
   requires: [post_deployment_start]
   required_for: [upload_cirros, post_deployment_end]
   cross-depended-by:
@@ -181,9 +185,10 @@
 
 - id: updatedb
   type: puppet
-  version: 2.0.0
+  version: 2.1.0
   role: [primary-controller, controller, ceph-osd]
-  condition: "settings:storage.objects_ceph == true or settings:storage.images_ceph == true or settings:storage.volumes_ceph == true or settings:storage.ephemeral_ceph == true"
+  condition:
+    yaql_exp: *storage_changed
   requires: [post_deployment_start]
   required_for: [post_deployment_end]
   parameters:

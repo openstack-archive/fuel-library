@@ -1,13 +1,14 @@
 - id: ceilometer-controller
   type: puppet
-  version: 2.0.0
+  version: 2.1.0
   cross-depends:
     - name: ceilometer-keystone
     - name: /top-role-(primary-)?mongo/
   groups: [primary-controller, controller]
   required_for: [primary-openstack-controller, openstack-controller]
   requires: [openstack-haproxy]
-  condition: "settings:ceilometer.enabled == true"
+  condition:
+    yaql_exp: &ceilometer_enabled '$.ceilometer.enabled and changed($.ceilometer.enabled)'
   parameters:
     puppet_manifest: /etc/puppet/modules/openstack_tasks/examples/ceilometer/controller.pp
     puppet_modules: /etc/puppet/modules
@@ -19,13 +20,14 @@
 
 - id: ceilometer-compute
   type: puppet
-  version: 2.0.0
+  version: 2.1.0
   groups: [compute, compute-vmware]
   required_for: [deploy_end]
   requires: [ceilometer-controller, top-role-compute]
   cross-depends:
     - name: ceilometer-controller
-  condition: "settings:ceilometer.enabled == true"
+  condition:
+    yaql_exp: *ceilometer_enabled
   parameters:
     puppet_manifest: /etc/puppet/modules/openstack_tasks/examples/ceilometer/compute.pp
     puppet_modules: /etc/puppet/modules
@@ -37,10 +39,11 @@
 
 - id: ceilometer-keystone
   type: puppet
-  version: 2.0.0
+  version: 2.1.0
   groups: [primary-controller]
   required_for: [ceilometer-controller]
-  condition: "settings:ceilometer.enabled == true"
+  condition:
+    yaql_exp: *ceilometer_enabled
   requires: [primary-keystone, keystone]
   cross-depends:
     - name: /(primary-)?keystone/
@@ -51,11 +54,12 @@
 
 - id: ceilometer-radosgw-user
   type: puppet
-  version: 2.0.0
+  version: 2.1.0
   role: [primary-controller, controller]
   requires: [post_deployment_start, enable_rados]
   required_for: [post_deployment_end]
-  condition: "settings:ceilometer.enabled == true and settings:storage.objects_ceph == true"
+  condition:
+    yaql_exp: '($.ceilometer.enabled and $.storage.objects_ceph) and (changed($.ceilometer.enabled) or changed($.storage.objects_ceph))'
   parameters:
     puppet_manifest: /etc/puppet/modules/openstack_tasks/examples/ceilometer/radosgw_user.pp
     puppet_modules: /etc/puppet/modules

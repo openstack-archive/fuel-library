@@ -19,6 +19,8 @@
   groups: [primary-controller]
   required_for: [deploy_end]
   requires: [hosts, firewall, deploy_start]
+  condition:
+    yaql_exp: "changed($.network_scheme) or changed($.get('cluster_recheck_interval', '190s')) or changed($.network_metadata) or changed($.get('corosync_roles'))"
   parameters:
     puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/cluster/cluster.pp
     puppet_modules: /etc/puppet/modules

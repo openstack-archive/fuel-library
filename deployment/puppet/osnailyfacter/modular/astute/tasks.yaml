@@ -36,7 +36,9 @@
 - id: upload_configuration
   type: upload_file
   version: 2.1.0
-  role: ['/.*/']
+  role: ['master', '/.*/']
+  condition:
+    yaql_exp: 'changed($)'
   requires: [override_configuration]
   required_for: [pre_deployment_end]
   refresh_on: ['*']
@@ -50,6 +52,8 @@
   type: shell
   version: 2.1.0
   role: ['/.*/']
+  condition:
+    yaql_exp: '$.uid in added($.nodes).uid'
   requires: [upload_configuration]
   required_for: [pre_deployment_end]
   parameters:
@@ -62,6 +66,8 @@
   role: ['/.*/']
   required_for: [post_deployment_end]
   requires: [upload_nodes_info]
+  condition:
+    yaql_exp: 'changed($.network_metadata)'
   parameters:
     puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/hosts/hosts.pp
     puppet_modules: /etc/puppet/modules
@@ -70,11 +76,12 @@
 
 - id: vcenter_compute_zones_create
   type: shell
-  version: 2.0.0
+  version: 2.1.0
   role: [primary-controller, compute-vmware]
   requires: [post_deployment_start, enable_nova_compute_service]
   required_for: [post_deployment_end]
-  condition: "settings:use_vcenter == true"
+  condition:
+    yaql_exp: '$.use_vcenter and changed($.use_vcenter)'
   parameters:
     cmd: /usr/bin/python /etc/puppet/modules/osnailyfacter/modular/astute/vcenter_hooks.py --create_zones
     timeout: 180
@@ -111,6 +118,8 @@
   role: [primary-mongo, mongo, compute, compute-vmware, ceph-osd, cinder, cinder-vmware]
   requires: [post_deployment_start]
   required_for: [post_deployment_end]
+  condition:
+    yaql_exp: "changed($.network_scheme) or changed($.network_metadata.vips.management)"
   parameters:
     puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/netconfig/configure_default_route.pp
     puppet_modules: /etc/puppet/modules
@@ -131,7 +140,7 @@
 
 
 - id: clear_nodes_info
-  type: shell
+  type: skipped
   version: 2.0.0
   role: ['/.*/']
   requires: [pre_deployment_start]
@@ -184,10 +193,11 @@
 
 - id: generate_haproxy_keys
   type: shell
-  version: 2.0.0
+  version: 2.1.0
   role: master
   requires: [pre_deployment_start]
-  condition: "(settings:public_ssl.horizon == true or settings:public_ssl.services == true) and settings:public_ssl.cert_source == 'self_signed'"
+  condition:
+    yaql_exp: &public_ssl "(changed($.public_ssl.horizon) or changed($.public_ssl.services)) and ($.public_ssl.horizon or $.public_ssl.services) and (not (old($.public_ssl.horizon) or old($.public_ssl.services))) and $.public_ssl.cert_source = 'self_signed'"
   required_for: [copy_haproxy_keys]
   parameters:
     cmd: sh /etc/puppet/modules/osnailyfacter/modular/astute/generate_haproxy_keys.sh -i {CLUSTER_ID} -h {CN_HOSTNAME} -o 'haproxy' -p /var/lib/fuel/keys/
@@ -195,14 +205,15 @@
 
 - id: copy_haproxy_keys
   type: copy_files
-  version: 2.0.0
+  version: 2.1.0
   role: ['/.*/']
+  condition:
+    yaql_exp: "(((changed($.public_ssl.horizon) or changed($.public_ssl.services)) and ($.public_ssl.horizon or $.public_ssl.services) and (not (old($.public_ssl.horizon) or old($.public_ssl.services)))) or (($.public_ssl.horizon or $.public_ssl.services) and ($.uid in added($.nodes).uid))) and $.public_ssl.cert_source = 'self_signed'"
   required_for: [pre_deployment_end]
   requires: [generate_haproxy_keys]
   cross-depends:
       - name: generate_haproxy_keys
         role: master
-  condition: "(settings:public_ssl.horizon == true or settings:public_ssl.services == true) and settings:public_ssl.cert_source == 'self_signed'"
   parameters:
     files:
       - src: /var/lib/fuel/keys/{CLUSTER_ID}/haproxy/public_haproxy.pem
@@ -214,8 +225,10 @@
 
 - id: sync_time
   type: shell
-  version: 2.0.0
+  version: 2.1.0
   role: ['/.*/']
+  condition:
+    yaql_exp: '$.uid in added($.nodes).uid'
   requires: [pre_deployment_start]
   required_for: [pre_deployment_end]
   parameters:
@@ -226,8 +239,10 @@
 
 - id: pre_hiera_config
   type: puppet
-  version: 2.0.0
+  version: 2.1.0
   role: ['/.*/']
+  condition:
+    yaql_exp: '$.uid in added($.nodes).uid'
   requires: [pre_deployment_start, rsync_core_puppet]
   required_for: [pre_deployment_end]
   parameters:
@@ -238,8 +253,10 @@
 
 - id: override_configuration
   type: puppet
-  version: 2.0.0
+  version: 2.1.0
   role: ['/.*/']
+  condition:
+    yaql_exp: '$.uid in added($.nodes).uid'
   requires: [pre_hiera_config]
   required_for: [pre_deployment_end]
   parameters:
@@ -262,9 +279,10 @@
 
 - id: ironic_post_swift_key
   type: shell
-  version: 2.0.0
+  version: 2.1.0
   role: [primary-controller]
-  condition: "settings:ironic.enabled == true"
+  condition:
+    yaql_exp: &ironic_enabled '$.ironic.enabled and changed($.ironic.enabled)'
   requires: [enable_quorum, enable_rados]
   required_for: [post_deployment_end]
   parameters:
@@ -275,9 +293,10 @@
 
 - id: ironic_upload_images
   type: shell
-  version: 2.0.0
+  version: 2.1.0
   role: [primary-controller]
-  condition: "settings:ironic.enabled == true"
+  condition:
+    yaql_exp: *ironic_enabled
   required_for: [post_deployment_end]
   requires: [enable_quorum, enable_rados]
   parameters:
@@ -288,9 +307,10 @@
 
 - id: ironic_copy_bootstrap_key
   type: copy_files
-  version: 2.0.0
+  version: 2.1.0
   role: [ironic]
-  condition: "settings:ironic.enabled == true"
+  condition:
+    yaql_exp: '($.ironic.enabled and (changed($.ironic.enabled) or ("ironic" in added($.roles))))'
   required_for: [pre_deployment_end]
   requires: [pre_deployment_start]
   parameters:

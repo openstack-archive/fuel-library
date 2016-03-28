@@ -36,6 +36,8 @@
   groups: [primary-controller]
   required_for: [glance]
   requires: [primary-keystone, keystone]
+  condition:
+    yaql_exp: "changed($.glance) or changed($.network_metadata.vips) or changed($.public_ssl) or changed($.get('use_ssl')) or changed($.get('region', 'RegionOne'))"
   cross-depends:
     - name: keystone
   parameters:
