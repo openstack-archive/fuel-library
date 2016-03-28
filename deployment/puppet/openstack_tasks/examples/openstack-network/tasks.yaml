@@ -100,9 +100,10 @@
 
 - id: openstack-network-routers
   type: puppet
-  version: 2.0.0
+  version: 2.1.0
   groups: [primary-controller]
-  condition: "settings:neutron_advanced_configuration.neutron_l3_ha == false"
+  condition:
+    yaql_exp: 'not $.neutron_advanced_configuration.neutron_l3_ha and changed($.neutron_advanced_configuration.neutron_l3_ha)'
   required_for: [openstack-network-end]
   requires: [openstack-network-start, openstack-network-networks]
   parameters:
@@ -114,9 +115,10 @@
 # HA routers must be created on post-deployment step when all L3 agents are available
 - id: openstack-network-routers-ha
   type: puppet
-  version: 2.0.0
+  version: 2.1.0
   role: [primary-controller]
-  condition: "settings:neutron_advanced_configuration.neutron_l3_ha == true"
+  condition:
+    yaql_exp: '$.neutron_advanced_configuration.neutron_l3_ha and changed($.neutron_advanced_configuration.neutron_l3_ha)'
   required_for: [post_deployment_end]
   requires: [post_deployment_start]
   parameters:
