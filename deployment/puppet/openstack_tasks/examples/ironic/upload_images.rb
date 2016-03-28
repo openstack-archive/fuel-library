@@ -1,5 +1,7 @@
 #!/usr/bin/env ruby
 require 'hiera'
+require 'open-uri'
+require 'tempfile'
 
 ENV['LANG'] = 'C'
 
@@ -91,18 +93,17 @@ def image_list
   {:images => images, :exit_code => return_code}
 end
 
-# TODO vsaienko: remove --os-image-api-version after liberty (fuel-8.0) release
 def image_create(image_hash)
   command = <<-EOF
-/usr/bin/glance --os-image-api-version 1 image-create \
+/usr/bin/glance image-create \
 --name '#{image_hash['img_name']}' \
---is-public '#{image_hash['public']}' \
---is-protected '#{image_hash['protected']}' \
+--visibility '#{image_hash['visibility']}' \
+--protected '#{image_hash['protected']}' \
 --container-format='#{image_hash['container_format']}' \
 --disk-format='#{image_hash['disk_format']}' \
 --min-ram='#{image_hash['min_ram']}' \
 #{image_hash['glance_properties']} \
---copy-from '#{image_hash['img_location']}'
+--file '#{image_hash['img_file']}'
 EOF
   puts command
   stdout = `#{command}`
@@ -129,6 +130,17 @@ def upload_image(image)
     puts "Image '#{image['img_name']}' is already present!"
     return 0
   end
+
+  # convert old API v1 'public' property to API v2 'visibility' property
+  if image['public'] == 'true'
+    image['visibility'] = 'public'
+  else
+    image['visibility'] = 'private'
+  end
+
+  tmp_img=Tempfile.new("tmp_img")
+  tmp_img.write open("#{image['img_location']}").read
+  image['img_file'] = "#{tmp_img.path}"
 
   stdout, return_code = image_create(image)
   if return_code == 0
