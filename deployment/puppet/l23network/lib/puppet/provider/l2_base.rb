@@ -502,31 +502,28 @@ class Puppet::Provider::L2_base < Puppet::Provider::InterfaceToolset
     # bond_name => { bond options }
     #
     bond = {}
-    if File.exist?('/sys/class/net/bonding_masters')
-      bondlist = File.open("/sys/class/net/bonding_masters").read.chomp.split(/\s+/).sort
-    else
-      return {}
-    end
+    bondlist = self.get_sys_class('/sys/class/net/bonding_masters', true).sort
     bondlist.each do |bond_name|
-      mode = File.open("/sys/class/net/#{bond_name}/bonding/mode").read.split(/\s+/)[0]
+      next if bond_name.empty?
+      mode = self.get_sys_class("/sys/class/net/#{bond_name}/bonding/mode")
       bond[bond_name] = {
-        :mtu     => File.open("/sys/class/net/#{bond_name}/mtu").read.chomp.to_i,
-        :slaves  => File.open("/sys/class/net/#{bond_name}/bonding/slaves").read.chomp.split(/\s+/).sort,
+        :mtu     => self.get_sys_class("/sys/class/net/#{bond_name}/mtu").to_i,
+        :slaves  => self.get_sys_class("/sys/class/net/#{bond_name}/bonding/slaves", true).sort,
         :bond_properties => {
           :mode             => mode,
-          :miimon           => File.open("/sys/class/net/#{bond_name}/bonding/miimon").read.chomp,
-          :updelay          => File.open("/sys/class/net/#{bond_name}/bonding/updelay").read.chomp,
-          :downdelay        => File.open("/sys/class/net/#{bond_name}/bonding/downdelay").read.chomp,
+          :miimon           => self.get_sys_class("/sys/class/net/#{bond_name}/bonding/miimon"),
+          :updelay          => self.get_sys_class("/sys/class/net/#{bond_name}/bonding/updelay"),
+          :downdelay        => self.get_sys_class("/sys/class/net/#{bond_name}/bonding/downdelay"),
         }
       }
-      bond[bond_name][:mtu] = :absent if port[bond_name][:mtu] == 1500
+      bond[bond_name][:mtu] = :absent if bond[bond_name][:mtu] == 1500
       if ['802.3ad', 'balance-xor', 'balance-tlb', 'balance-alb'].include? mode
-        xmit_hash_policy = File.open("/sys/class/net/#{bond_name}/bonding/xmit_hash_policy").read.split(/\s+/)[0]
+        xmit_hash_policy = self.get_sys_class("/sys/class/net/#{bond_name}/bonding/xmit_hash_policy")
         bond[bond_name][:bond_properties][:xmit_hash_policy] = xmit_hash_policy
       end
       if mode=='802.3ad'
-        lacp_rate = File.open("/sys/class/net/#{bond_name}/bonding/lacp_rate").read.split(/\s+/)[0]
-        ad_select = File.open("/sys/class/net/#{bond_name}/bonding/ad_select").read.split(/\s+/)[0],
+        lacp_rate = self.get_sys_class("/sys/class/net/#{bond_name}/bonding/lacp_rate")
+        ad_select = self.get_sys_class("/sys/class/net/#{bond_name}/bonding/ad_select")
         bond[bond_name][:bond_properties][:lacp_rate] = lacp_rate
         bond[bond_name][:bond_properties][:ad_select] = ad_select
       end

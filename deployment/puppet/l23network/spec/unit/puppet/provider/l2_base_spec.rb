@@ -258,6 +258,22 @@ type                : patch
     }
   end
 
+  let(:get_lnx_bonds_result) do
+  {
+    "bond0" => {
+      :mtu=>:absent,
+      :slaves=>[],
+      :bond_properties=>{
+        :mode=>"balance-rr",
+        :miimon=>"0",
+        :updelay=>"0",
+        :downdelay=>"0"
+       },
+       :onboot=>false
+     }
+  }
+  end
+
   before(:each) do
     puppet_debug_override()
     subject.stubs(:ovs_vsctl).with('show').returns ovs_vsctl_show
@@ -273,5 +289,23 @@ type                : patch
   it 'parses the output of "ovs-vsctl show"' do
     expect(subject.ovs_vsctl_show).to eq ovs_vsctl_result
   end
-end
 
+  it 'parses the sysfs to get_lnx_bonds where is no bonds' do
+    subject.stubs(:get_sys_class).with('/sys/class/net/bonding_masters', true).returns([''])
+    expect(subject.get_lnx_bonds).to eq Hash[]
+  end
+
+  it 'parses the sysfs to get_lnx_bonds' do
+    subject.stubs(:get_sys_class).with('/sys/class/net/bonding_masters', true).returns(['bond0'])
+    subject.stubs(:get_sys_class).with('/sys/class/net/bond0/bonding/mode').returns('balance-rr')
+    subject.stubs(:get_sys_class).with('/sys/class/net/bond0/mtu').returns('1500')
+    subject.stubs(:get_sys_class).with('/sys/class/net/bond0/bonding/slaves', true).returns([])
+    subject.stubs(:get_sys_class).with('/sys/class/net/bond0/bonding/miimon').returns('0')
+    subject.stubs(:get_sys_class).with('/sys/class/net/bond0/bonding/updelay').returns('0')
+    subject.stubs(:get_sys_class).with('/sys/class/net/bond0/bonding/downdelay').returns('0')
+    subject.stubs(:get_sys_class).with('/sys/class/net/bond0/bonding/mode').returns('balance-rr')
+    subject.stubs(:get_sys_class).with('/sys/class/net/bond0/bonding/mode').returns('balance-rr')
+
+    expect(subject.get_lnx_bonds).to eq get_lnx_bonds_result
+  end
+end
