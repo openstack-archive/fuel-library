@@ -26,6 +26,7 @@ class openstack_tasks::openstack_network::common_config {
     $rabbit_hash      = hiera_hash('rabbit', {})
     $ceilometer_hash  = hiera_hash('ceilometer', {})
     $network_scheme   = hiera_hash('network_scheme', {})
+    $neutron_hash     = hiera_hash('neutron', {})
 
     $verbose      = pick($openstack_network_hash['verbose'], hiera('verbose', true))
     $debug        = pick($openstack_network_hash['debug'], hiera('debug', true))
@@ -77,7 +78,7 @@ class openstack_tasks::openstack_network::common_config {
       mac_generation_retries  => '32',
       dhcp_lease_duration     => '600',
       dhcp_agents_per_network => '2',
-      report_interval         => '10',
+      report_interval         => $neutron_hash['neutron_report_interval'],
       rabbit_user             => $amqp_user,
       rabbit_hosts            => $amqp_hosts,
       rabbit_password         => $amqp_password,
