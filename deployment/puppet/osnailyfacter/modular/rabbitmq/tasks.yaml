@@ -1,23 +1,41 @@
 - id: rabbitmq
   type: puppet
-  version: 2.0.0
+  version: 2.1.0
   groups: [controller]
   cross-depends:
     - name: primary-rabbitmq
   required_for: [deploy_end, openstack-controller, primary-openstack-controller, glance]
   requires: [netconfig, cluster]
+  condition:
+    yaql_exp: &rabbitmq >
+      changedAny($.network_scheme, $.get('queue_provider'),
+      $.get('erlang_cookie'), $.get('rabbit_version'), $.get('amqp_port'),
+      $.rabbit, $.get('rabbit_ocf'), $.debug,
+      $.get('rabbit_cluster_partition_handling'),
+      $.get('mnesia_table_loading_timeout'),
+      $.network_metadata.nodes.values().where($.uid = new().uid),
+      $.get('management_bind_ip_address'), $.get('rabbit_management_port'),
+      $.get('enable_rpc_ha'), $.get('enable_notifications_ha'),
+      $.get('node_name_prefix_for_messaging'),
+      $.get('rabbit_config_kernel_variables'),
+      $.get('rabbit_config_variables'),
+      $.get('rabbit_config_management_variables'),
+      $.get('rabbit_environment_variables'))
   parameters:
     puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/rabbitmq/rabbitmq.pp
     puppet_modules: /etc/puppet/modules
     timeout: 3600
   test_post:
     cmd: ruby /etc/puppet/modules/osnailyfacter/modular/rabbitmq/rabbitmq_post.rb
+
 - id: primary-rabbitmq
   type: puppet
-  version: 2.0.0
+  version: 2.1.0
   groups: [primary-controller]
   required_for: [deploy_end, openstack-controller, primary-openstack-controller, glance]
   requires: [netconfig, primary-cluster]
+  condition:
+    yaql_exp: *rabbitmq
   parameters:
     puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/rabbitmq/rabbitmq.pp
     puppet_modules: /etc/puppet/modules
