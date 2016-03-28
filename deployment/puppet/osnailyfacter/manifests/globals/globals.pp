@@ -85,6 +85,7 @@ class osnailyfacter::globals::globals {
   $mp_hash                        = hiera('mp', [])
   $keystone_hash                  = merge({'service_token_off' => $service_token_off},
                                           hiera_hash('keystone', {}))
+  $neutron_hash                   = hiera_hash('neutron', {})
 
   $dns_nameservers                = hiera('dns_nameservers', [])
   $use_neutron                    = hiera('quantum', false)
@@ -110,6 +111,10 @@ class osnailyfacter::globals::globals {
 
   $nova_report_interval           = hiera('nova_report_interval', 60)
   $nova_service_down_time         = hiera('nova_service_down_time', 180)
+  $cinder_report_interval         = hiera('cinder_report_interval', 60)
+  $cinder_service_down_time       = hiera('cinder_service_down_time', 10)
+  $neutron_report_interval        = hiera('neutron_report_interval', 10)
+  $neutron_agent_down_time        = hiera('neutron_agent_down_time', 30)
 
   $custom_theme_path              = hiera('custom_theme_path', 'themes/vendor')
 
@@ -473,6 +478,12 @@ class osnailyfacter::globals::globals {
                                         'num_networks' => $num_networks,
                                         'network_size' => $network_size,
                                         'network_manager' => $network_manager})
+
+  $real_cinder_hash = merge($cinder_hash, { 'cinder_report_interval'   => $cinder_report_interval,
+                                            'cinder_service_down_time' => $cinder_service_down_time,})
+
+  $real_neutron_hash = merge($neutron_hash, { 'neutron_report_interval' => $neutron_report_interval,
+                                              'neutron_agent_down_time' => $neutron_agent_down_time,})
 
   # Define how we should get memcache addresses
   if hiera('memcached_addresses', false) {
