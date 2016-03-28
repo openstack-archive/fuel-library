@@ -132,6 +132,7 @@ class openstack_tasks::openstack_cinder::openstack_cinder {
   #NOTE(mattymo): Remove keymgr_encryption_auth_url after LP#1516085 is fixed
   $keymgr_encryption_auth_url = "${identity_uri}/v3"
 
+
   class { '::cinder':
     rpc_backend            => $rpc_backend,
     rabbit_hosts           => split(hiera('amqp_hosts',''), ','),
