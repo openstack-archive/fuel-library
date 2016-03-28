@@ -352,7 +352,6 @@ Release: %{release}
 Group: System Environment/Libraries
 # FIXME(aglarendil): mixed license actually - need to figure out the best option
 License: GPLv2
-Requires: monit
 Requires: python-six
 Requires: PyYAML
 Requires: python-fuelclient

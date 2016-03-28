@@ -43,8 +43,6 @@ describe manifest do
       it { is_expected.to contain_sysctl__value(key).with(:value => value) }
     end
 
-    it { is_expected.to contain_class 'monit' }
-
     it { is_expected.to contain_exec 'Change protocol and port in in issue' }
 
     it { is_expected.to contain_service('dhcrelay').with(:ensure => 'stopped')}
