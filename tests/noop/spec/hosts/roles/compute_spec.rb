@@ -189,10 +189,10 @@ describe manifest do
     it 'should set up huge pages support for qemu-kvm' do
       if enable_hugepages
         qemu_hugepages_value    = 'set KVM_HUGEPAGES 1'
-        libvirt_hugetlbfs_mount = 'set hugetlbfs_mount /run/hugepages/kvm'
+        libvirt_hugetlbfs_mount = 'hugetlbfs_mount = "/run/hugepages/kvm"'
       else
         qemu_hugepages_value    = 'rm KVM_HUGEPAGES'
-        libvirt_hugetlbfs_mount = 'rm hugetlbfs_mount'
+        libvirt_hugetlbfs_mount = 'hugetlbfs_mount = ""'
       end
 
       if facts[:osfamily] == 'Debian'
@@ -201,9 +201,9 @@ describe manifest do
           'changes' => qemu_hugepages_value,
         ).that_notifies('Service[libvirt]')
 
-        should contain_augeas('libvirt_hugetlbfs_mount').with(
-          'context' => '/files/etc/libvirt/qemu.conf',
-          'changes' => libvirt_hugetlbfs_mount,
+        should contain_file_line('libvirt_hugetlbfs_mount').with(
+          'path'  => '/etc/libvirt/qemu.conf',
+          'line'  => libvirt_hugetlbfs_mount,
         ).that_notifies('Service[libvirt]')
 
         should contain_augeas('qemu_hugepages').that_notifies('Service[qemu-kvm]')
