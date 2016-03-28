@@ -59,7 +59,7 @@ describe manifest do
         }
 
         it { should contain_class('neutron').with('advertise_mtu' => 'true')}
-        it { should contain_class('neutron').with('report_interval' => '10')}
+        it { should contain_class('neutron').with('report_interval' => neutron_config['neutron_report_interval'])}
         it { should contain_class('neutron').with('kombu_reconnect_delay' => '5.0')}
         it { should contain_class('neutron').with('dhcp_agents_per_network' => '2')}
         it { should contain_class('neutron').with('dhcp_lease_duration' => '600')}

@@ -77,7 +77,7 @@ class openstack_tasks::openstack_network::common_config {
       mac_generation_retries  => '32',
       dhcp_lease_duration     => '600',
       dhcp_agents_per_network => '2',
-      report_interval         => '10',
+      report_interval         => $neutron_config['neutron_report_interval'],
       rabbit_user             => $amqp_user,
       rabbit_hosts            => $amqp_hosts,
       rabbit_password         => $amqp_password,
