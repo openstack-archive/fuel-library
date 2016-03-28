@@ -21,6 +21,7 @@ describe manifest do
 
       context 'with Neutron' do
         neutron_config = Noop.hiera('neutron_config')
+        neutron_hash = Noop.hiera_structure 'neutron'
         openstack_network_hash = Noop.hiera('openstack_network', {})
         adv_neutron_config = Noop.hiera_hash('neutron_advanced_configuration', {})
         enable_qos = adv_neutron_config.fetch('neutron_qos', false)
@@ -46,7 +47,7 @@ describe manifest do
         }
 
         it { should contain_class('neutron').with('advertise_mtu' => 'true')}
-        it { should contain_class('neutron').with('report_interval' => '10')}
+        it { should contain_class('neutron').with('report_interval' => cinder_hash['cinder_report_interval'])}
         it { should contain_class('neutron').with('kombu_reconnect_delay' => '5.0')}
         it { should contain_class('neutron').with('dhcp_agents_per_network' => '2')}
         it { should contain_class('neutron').with('dhcp_lease_duration' => '600')}
