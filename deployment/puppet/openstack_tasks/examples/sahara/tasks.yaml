@@ -1,8 +1,9 @@
 - id: sahara
   type: puppet
-  version: 2.0.0
+  version: 2.1.0
   groups: [primary-controller, controller]
-  condition: "settings:additional_components.sahara.value == true"
+  condition:
+    yaql_exp: &sahara_enabled '$.sahara.enabled and changed($.sahara.enabled)'
   required_for: [deploy_end, controller_remaining_tasks]
   requires: [openstack-network-end, horizon]
   cross-depends:
@@ -19,12 +20,13 @@
 
 - id: sahara-db
   type: puppet
-  version: 2.0.0
+  version: 2.1.0
   groups: [primary-controller]
   cross-depends:
     - name: /(primary-)?database/
   required_for: [sahara]
-  condition: "settings:additional_components.sahara.value == true"
+  condition:
+    yaql_exp: *sahara_enabled
   requires: [primary-database, database]
   parameters:
     puppet_manifest: /etc/puppet/modules/openstack_tasks/examples/sahara/db.pp
@@ -33,13 +35,14 @@
 
 - id: sahara-keystone
   type: puppet
-  version: 2.0.0
+  version: 2.1.0
   groups: [primary-controller]
   required_for: [sahara]
   requires: [primary-keystone, keystone]
   cross-depends:
     - name: keystone
-  condition: "settings:additional_components.sahara.value == true"
+  condition:
+    yaql_exp: *sahara_enabled
   parameters:
     puppet_manifest: /etc/puppet/modules/openstack_tasks/examples/sahara/keystone.pp
     puppet_modules: /etc/puppet/modules

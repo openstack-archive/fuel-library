@@ -53,11 +53,12 @@
 
 - id: vcenter_compute_zones_create
   type: shell
-  version: 2.0.0
+  version: 2.1.0
   role: [primary-controller, compute-vmware]
   requires: [post_deployment_start, enable_nova_compute_service]
   required_for: [post_deployment_end]
-  condition: "settings:common.use_vcenter.value == true"
+  condition:
+    yaql_exp: '$.use_vcenter and changed($.use_vcenter)'
   parameters:
     cmd: /usr/bin/python /etc/puppet/modules/osnailyfacter/modular/astute/vcenter_hooks.py --create_zones
     timeout: 180
@@ -167,10 +168,11 @@
 
 - id: generate_haproxy_keys
   type: shell
-  version: 2.0.0
+  version: 2.1.0
   role: master
   requires: [pre_deployment_start]
-  condition: "(settings:public_ssl.horizon.value == true or settings:public_ssl.services.value == true) and settings:public_ssl.cert_source.value == 'self_signed'"
+  condition:
+    yaql_exp: &public_ssl "($.public_ssl.horizon or $.public_ssl.services) and $.public_ssl.cert_source = 'self_signed'"
   required_for: [copy_haproxy_keys]
   parameters:
     cmd: sh /etc/puppet/modules/osnailyfacter/modular/astute/generate_haproxy_keys.sh -i {CLUSTER_ID} -h {CN_HOSTNAME} -o 'haproxy' -p /var/lib/fuel/keys/
@@ -178,14 +180,15 @@
 
 - id: copy_haproxy_keys
   type: copy_files
-  version: 2.0.0
+  version: 2.1.0
   role: '*'
   required_for: [pre_deployment_end]
   requires: [generate_haproxy_keys]
   cross-depends:
       - name: generate_haproxy_keys
         role: master
-  condition: "(settings:public_ssl.horizon.value == true or settings:public_ssl.services.value == true) and settings:public_ssl.cert_source.value == 'self_signed'"
+  condition:
+    yaql_exp: *public_ssl
   parameters:
     files:
       - src: /var/lib/fuel/keys/{CLUSTER_ID}/haproxy/public_haproxy.pem
@@ -245,9 +248,10 @@
 
 - id: ironic_post_swift_key
   type: shell
-  version: 2.0.0
+  version: 2.1.0
   role: [primary-controller]
-  condition: "settings:additional_components.ironic.value == true"
+  condition:
+    yaql_exp: &ironic_enabled '$.ironic.enabled and changed($.ironic.enabled)'
   requires: [enable_quorum, enable_rados]
   required_for: [post_deployment_end]
   parameters:
@@ -258,9 +262,10 @@
 
 - id: ironic_upload_images
   type: shell
-  version: 2.0.0
+  version: 2.1.0
   role: [primary-controller]
-  condition: "settings:additional_components.ironic.value == true"
+  condition:
+    yaql_exp: *ironic_enabled
   required_for: [post_deployment_end]
   requires: [enable_quorum, enable_rados]
   parameters:
@@ -271,9 +276,10 @@
 
 - id: ironic_copy_bootstrap_key
   type: copy_files
-  version: 2.0.0
+  version: 2.1.0
   role: [ironic]
-  condition: "settings:additional_components.ironic.value == true"
+  condition:
+    yaql_exp: '($.ironic.enabled and (changed($.ironic.enabled) and ("ironic" in added($.roles))))'
   required_for: [pre_deployment_end]
   requires: [pre_deployment_start]
   parameters:
