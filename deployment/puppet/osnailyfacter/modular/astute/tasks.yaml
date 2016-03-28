@@ -14,7 +14,7 @@
     timeout: 180
 
 - id: upload_cirros
-  type: shell
+  type: puppet
   version: 2.0.0
   role: [primary-controller]
   requires: [enable_quorum]
@@ -22,10 +22,10 @@
   cross-depends:
     - name: enable_quroum
   parameters:
-    cmd: ruby /etc/puppet/modules/osnailyfacter/modular/astute/upload_cirros.rb
-    retries: 3
-    interval: 20
-    timeout: 180
+    puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/astute/upload_cirros.pp
+    puppet_modules: /etc/puppet/modules
+    timeout: 300
+    cwd: /
 
 - id: upload_nodes_info
   type: skipped
