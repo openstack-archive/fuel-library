@@ -1,12 +1,3 @@
-# RUN: neut_vlan.ceph.ceil-primary-controller.overridden_ssl ubuntu
-# RUN: neut_vlan.ceph.controller-ephemeral-ceph ubuntu
-# RUN: neut_vlan.ironic.controller ubuntu
-# RUN: neut_vlan_l3ha.ceph.ceil-controller ubuntu
-# RUN: neut_vlan_l3ha.ceph.ceil-primary-controller ubuntu
-# RUN: neut_vxlan_dvr.murano.sahara-controller ubuntu
-# RUN: neut_vxlan_dvr.murano.sahara-primary-controller ubuntu
-# RUN: neut_vxlan_dvr.murano.sahara-primary-controller.overridden_ssl ubuntu
-
 require 'spec_helper'
 require 'shared-examples'
 manifest = 'openstack-network/server-config.pp'
@@ -45,6 +36,7 @@ describe manifest do
       context 'with Neutron-server' do
         workers_max      = Noop.hiera 'workers_max'
         neutron_config   = Noop.hiera_hash('neutron_config')
+        neutron_hash     = Noop.hiera_structure 'neutron'
         management_vip   = Noop.hiera('management_vip')
         service_endpoint = Noop.hiera('service_endpoint', management_vip)
         l3_ha            = Noop.hiera_hash('neutron_advanced_configuration', {}).fetch('neutron_l3_ha', false)
@@ -131,16 +123,15 @@ describe manifest do
             internal_auth_endpoint = Noop.hiera_structure('use_ssl/keystone_internal_hostname')
 
             it 'should have correct auth options' do
-              auth_url     = "#{internal_auth_protocol}://#{internal_auth_endpoint}:35357/"
-              auth_uri     = "#{internal_auth_protocol}://#{internal_auth_endpoint}:5000/"
+              identity_uri     = "#{internal_auth_protocol}://#{internal_auth_endpoint}:5000/"
               ks = neutron_config['keystone']
               should contain_class('neutron::server').with(
-                'password'      => ks.fetch('admin_password'),
-                'project_name'  => ks.fetch('admin_tenant', 'services'),
-                'region_name'   => Noop.hiera('region', 'RegionOne'),
-                'username'      => ks.fetch('admin_user', 'neutron'),
-                'auth_url'      => auth_url,
-                'auth_uri'      => auth_uri,
+                'auth_password' => ks.fetch('admin_password'),
+                'auth_tenant'   => ks.fetch('admin_tenant', 'services'),
+                'auth_region'   => Noop.hiera('region', 'RegionOne'),
+                'auth_user'     => ks.fetch('admin_user', 'neutron'),
+                'identity_uri'  => identity_uri,
+                'auth_uri'      => identity_uri,
               )
             end
 
@@ -153,28 +144,27 @@ describe manifest do
               nova_url            = "#{nova_auth_protocol}://#{internal_nova_endpoint}:8774/v2"
               nova_hash           = Noop.hiera_hash('nova', {})
               should contain_class('neutron::server::notifications').with(
-                'nova_url'     => nova_url,
-                'auth_url'     => nova_admin_auth_url,
-                'region_name'  => Noop.hiera('region', 'RegionOne'),
-                'username'     => nova_hash.fetch('user', 'nova'),
-                'project_name' => nova_hash.fetch('tenant', 'services'),
-                'password'     => nova_hash.fetch('user_password'),
+                'nova_url'    => nova_url,
+                'auth_url'    => nova_admin_auth_url,
+                'region_name' => Noop.hiera('region', 'RegionOne'),
+                'username'    => nova_hash.fetch('user', 'nova'),
+                'tenant_name' => nova_hash.fetch('tenant', 'services'),
+                'password'    => nova_hash.fetch('user_password'),
               )
             end
           end
         else
           context 'without overridden TLS for internal endpoints' do
             it 'should have correct auth options' do
-              auth_url     = "http://#{service_endpoint}:35357/"
-              auth_uri     = "http://#{service_endpoint}:5000/"
+              identity_uri     = "http://#{service_endpoint}:5000/"
               ks = neutron_config['keystone']
               should contain_class('neutron::server').with(
-                'password'      => ks.fetch('admin_password'),
-                'project_name'  => ks.fetch('admin_tenant', 'services'),
-                'region_name'   => Noop.hiera('region', 'RegionOne'),
-                'username'      => ks.fetch('admin_user', 'neutron'),
-                'auth_url'      => auth_url,
-                'auth_uri'      => auth_uri,
+                'auth_password' => ks.fetch('admin_password'),
+                'auth_tenant'   => ks.fetch('admin_tenant', 'services'),
+                'auth_region'   => Noop.hiera('region', 'RegionOne'),
+                'auth_user'     => ks.fetch('admin_user', 'neutron'),
+                'identity_uri'  => identity_uri,
+                'auth_uri'      => identity_uri,
               )
             end
 
@@ -184,12 +174,12 @@ describe manifest do
               nova_url            = "http://#{nova_endpoint}:8774/v2"
               nova_hash           = Noop.hiera_hash('nova', {})
               should contain_class('neutron::server::notifications').with(
-                'nova_url'     => nova_url,
-                'auth_url'     => nova_admin_auth_url,
-                'region_name'  => Noop.hiera('region', 'RegionOne'),
-                'username'     => nova_hash.fetch('user', 'nova'),
-                'project_name' => nova_hash.fetch('tenant', 'services'),
-                'password'     => nova_hash.fetch('user_password'),
+                'nova_url'    => nova_url,
+                'auth_url'    => nova_admin_auth_url,
+                'region_name' => Noop.hiera('region', 'RegionOne'),
+                'username'    => nova_hash.fetch('user', 'nova'),
+                'tenant_name' => nova_hash.fetch('tenant', 'services'),
+                'password'    => nova_hash.fetch('user_password'),
               )
             end
           end
@@ -197,7 +187,7 @@ describe manifest do
 
         it { should contain_class('neutron::server').with('manage_service' => 'true')}
         it { should contain_class('neutron::server').with('enabled' => 'true')}
-        it { should contain_class('neutron::server').with('agent_down_time' => '30')}
+        it { should contain_class('neutron::server').with('agent_down_time' => neutron_hash['neutron_agent_down_time'])}
 
         it 'dvr' do
           should contain_class('neutron::server').with('router_distributed' => dvr)

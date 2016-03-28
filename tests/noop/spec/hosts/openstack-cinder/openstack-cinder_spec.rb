@@ -1,12 +1,3 @@
-# RUN: neut_vlan.ceph.ceil-primary-controller.overridden_ssl ubuntu
-# RUN: neut_vlan.ceph.controller-ephemeral-ceph ubuntu
-# RUN: neut_vlan.ironic.controller ubuntu
-# RUN: neut_vlan_l3ha.ceph.ceil-controller ubuntu
-# RUN: neut_vlan_l3ha.ceph.ceil-primary-controller ubuntu
-# RUN: neut_vxlan_dvr.murano.sahara-controller ubuntu
-# RUN: neut_vxlan_dvr.murano.sahara-primary-controller ubuntu
-# RUN: neut_vxlan_dvr.murano.sahara-primary-controller.overridden_ssl ubuntu
-
 require 'spec_helper'
 require 'shared-examples'
 manifest = 'openstack-cinder/openstack-cinder.pp'
@@ -93,6 +84,13 @@ describe manifest do
       'database_max_pool_size' => max_pool_size,
       'database_max_retries'   => max_retries,
       'database_max_overflow'  => max_overflow,
+    )
+  end
+
+  it 'should declare ::cinder class with cinder_* parameters' do
+    should contain_class('cinder').with(
+      report_interval   => cinder_hash['cinder_report_interval'],
+      service_down_time => cinder_hash['cinder_service_down_time'],
     )
   end
 
