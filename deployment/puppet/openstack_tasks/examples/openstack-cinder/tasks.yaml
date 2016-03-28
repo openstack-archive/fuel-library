@@ -1,9 +1,20 @@
 - id: openstack-cinder
   type: puppet
-  version: 2.0.0
+  version: 2.1.0
   groups: [primary-controller, controller]
   required_for: [deploy_end, openstack-controller]
   requires: [primary-rabbitmq, rabbitmq, primary-keystone, keystone, hosts, firewall]
+  condition:
+    yaql_exp: >
+      changedAny($.network_scheme, $.cinder, $.network_metadata.vips,
+      $.get('cinder_volume_group'), $.storage, $.ceilometer, $.sahara,
+      $.rabbit, $.get('region', 'RegionOne'), $.get('use_ssl'),
+      ('primary-controller' in $.roles), $.get('proxy_port'),
+      $.get('kombu_compression'), $.get('keystone_endpoint'),
+      $.get('glance_endpoint'), $.get('glance_api_servers'),
+      $.get('use_syslog'), $.get('use_stderr'), $.get('verbose'), $.debug,
+      $.get('amqp_hosts'), $.get('syslog_log_facility_cinder'),
+      $.get('cinder_rate_limits'))
   cross-depends:
     - name: cinder-db
     - name: cinder-keystone
@@ -14,10 +25,14 @@
 
 - id: cinder-db
   type: puppet
-  version: 2.0.0
+  version: 2.1.0
   groups: [primary-controller]
   required_for: [openstack-cinder]
   requires: [primary-database, database]
+  condition:
+    yaql_exp: >
+      changedAny($.cinder, $.mysql, $.network_metadata.vips,
+      $.get('mysql_custom_setup_class'))
   cross-depends:
     - name: /(primary-)?database/
   parameters:
@@ -27,12 +42,16 @@
 
 - id: cinder-keystone
   type: puppet
-  version: 2.0.0
+  version: 2.1.0
   groups: [primary-controller]
   required_for: [openstack-cinder]
   cross-depends:
     - name: keystone
   requires: [primary-keystone, keystone]
+  condition:
+    yaql_exp: >
+      changedAny($.cinder, $.public_ssl, $.get('use_ssl'),
+      $.network_metadata.vips, $.get('region', 'RegionOne'))
   parameters:
     puppet_manifest: /etc/puppet/modules/openstack_tasks/examples/openstack-cinder/keystone.pp
     puppet_modules: /etc/puppet/modules/
@@ -40,10 +59,12 @@
 
 - id: create-cinder-types
   type: puppet
-  version: 2.0.0
+  version: 2.1.0
   groups: [primary-controller]
   requires: [openstack-cinder]
   required_for: [deploy_end]
+  condition:
+    yaql_exp: "changed($.storage)"
   parameters:
     puppet_manifest: /etc/puppet/modules/openstack_tasks/examples/openstack-cinder/create_cinder_types.pp
     puppet_modules: /etc/puppet/modules

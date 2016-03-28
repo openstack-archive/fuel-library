@@ -1,11 +1,13 @@
-- id: cluster
+- id: primary-cluster
   type: puppet
-  version: 2.0.0
-  groups: [controller]
-  cross-depends:
-    - name: primary-cluster
+  version: 2.1.0
+  groups: [primary-controller]
   required_for: [deploy_end]
   requires: [hosts, firewall, deploy_start]
+  condition:
+    yaql_exp: &cluster >
+      changedAny($.network_scheme, $.get('cluster_recheck_interval', '190s'),
+      $.network_metadata, $.get('corosync_roles'))
   parameters:
     puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/cluster/cluster.pp
     puppet_modules: /etc/puppet/modules
@@ -13,12 +15,16 @@
   test_post:
     cmd: ruby /etc/puppet/modules/osnailyfacter/modular/cluster/cluster_post.rb
 
-- id: primary-cluster
+- id: cluster
   type: puppet
-  version: 2.0.0
-  groups: [primary-controller]
+  version: 2.1.0
+  groups: [controller]
+  cross-depends:
+    - name: primary-cluster
   required_for: [deploy_end]
   requires: [hosts, firewall, deploy_start]
+  condition:
+    yaql_exp: *cluster
   parameters:
     puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/cluster/cluster.pp
     puppet_modules: /etc/puppet/modules
@@ -28,10 +34,15 @@
 
 - id: cluster_health
   type: puppet
-  version: 2.0.0
+  version: 2.1.0
   groups: [primary-controller, controller]
   required_for: [deploy_end]
   requires: [primary-cluster, cluster]
+  condition:
+    yaql_exp: >
+      changedAny($.get('corosync_roles'), $.get('corosync_disks'),
+      $.get('corosync_min_disk_space'), $.get('corosync_disk_unit'),
+      $.get('corosync_disk_monitor_interval'))
   cross-depends:
     - name: /(primary-)?cluster/
       role: self
