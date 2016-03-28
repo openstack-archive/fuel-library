@@ -1,9 +1,19 @@
 - id: horizon
   type: puppet
-  version: 2.0.0
+  version: 2.1.0
   groups: [primary-controller, controller]
   required_for: [deploy_end]
   requires: [primary-openstack-controller, openstack-controller]
+  condition:
+    yaql_exp: >
+      changedAny($.network_scheme, $.horizon, $.get('memcached_addresses'),
+      $.get('memcache_roles'),
+      (len($.network_metadata.nodes.values().where(
+        ('controller' in $.node_roles) or
+        ('primary-controller' in $.node_roles)))),
+      $.storage, $.neutron_advanced_configuration, $.public_ssl,
+      $.get('horizon_use_ssl'), $.get('external_lb'), $.get('use_ssl'),
+      $.nova_quota, $.debug, $.get('verbose'), $.get('apache_ports'))
   cross-depends:
     - name: memcached
   parameters:
