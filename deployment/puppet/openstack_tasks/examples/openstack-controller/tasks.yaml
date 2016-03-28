@@ -1,9 +1,23 @@
 - id: primary-openstack-controller
   type: puppet
-  version: 2.0.0
+  version: 2.1.0
   groups: [primary-controller]
   required_for: [deploy_end]
   requires: [openstack-haproxy]
+  condition:
+    yaql_exp: &nova_controller >
+      changedAny($.configuration, $.network_scheme, $.network_metadata,
+      ('primary-controller' in $.roles), $.get('use_syslog'),
+      $.get('use_stderr'), $.get('syslog_log_facility_nova'), $.sahara,
+      $.storage, $.nova, $.get('nova_config'),
+      $.get('nova_report_interval', '60'),
+      $.get('nova_service_down_time', '180'), $.rabbit, $.get('use_ssl'),
+      $.get('kombu_compression'), $.get('glance_endpoint'),
+      $.get('glance_api_servers'), $.get('region', 'RegionOne'), $.ironic,
+      $.get('memcached_addresses'), $.get('memcache_server_port'),
+      $.get('openstack_controller'), $.get('external_lb'), $.quantum_settings,
+      $.get('database_vip'), $.nova_quota, $.use_vcenter, $.libvirt_type,
+      $.get('amqp_hosts'), $.debug, $.use_cow_images, $.get('nova_endpoint'))
   cross-depends:
     - name: /(primary-)?rabbitmq/
     - name: nova-db
@@ -17,10 +31,12 @@
 
 - id: openstack-controller
   type: puppet
-  version: 2.0.0
+  version: 2.1.0
   groups: [controller]
   required_for: [deploy_end]
   requires: [openstack-haproxy]
+  condition:
+    yaql_exp: *nova_controller
   cross-depends:
     - name: primary-openstack-controller
   refresh_on: [nova_config, nova_paste_api_ini]
@@ -31,10 +47,12 @@
 
 - id: nova-db
   type: puppet
-  version: 2.0.0
+  version: 2.1.0
   groups: [primary-controller]
   required_for: [primary-openstack-controller, openstack-controller]
   requires: [primary-database, database]
+  condition:
+    yaql_exp: "changedAny($.nova, $.mysql, $.network_metadata.vips)"
   cross-depends:
     - name: /(primary-)?database/
   parameters:
@@ -44,10 +62,14 @@
 
 - id: nova-keystone
   type: puppet
-  version: 2.0.0
+  version: 2.1.0
   groups: [primary-controller]
   required_for: [primary-openstack-controller, openstack-controller]
   requires: [primary-keystone, keystone]
+  condition:
+    yaql_exp: >
+      changedAny($.nova, $.network_metadata.vips, $.public_ssl,
+      $.get('use_ssl'), $.get('region', 'RegionOne'))
   cross-depends:
     - name: keystone
   parameters:
