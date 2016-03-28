@@ -1,9 +1,11 @@
 - id: setup_repositories
   type: puppet
-  version: 2.0.0
+  version: 2.1.0
   groups: ['/.*/']
   requires: [hiera]
   required_for: [fuel_pkgs]
+  condition:
+    yaql_exp: '($.uid in added($.nodes).uid) or changed($.repo_setup)'
   parameters:
     puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/fuel_pkgs/setup_repositories.pp
     puppet_modules: /etc/puppet/modules
@@ -11,10 +13,12 @@
 
 - id: fuel_pkgs
   type: puppet
-  version: 2.0.0
+  version: 2.1.0
   groups: [primary-controller, controller, cinder, cinder-block-device, cinder-vmware, compute, ceph-osd, primary-mongo, mongo, ironic]
   requires: [setup_repositories]
   required_for: [globals]
+  condition:
+    yaql_exp: '$.uid in added($.nodes).uid'
   parameters:
     puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/fuel_pkgs/fuel_pkgs.pp
     puppet_modules: /etc/puppet/modules
