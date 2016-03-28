@@ -35,8 +35,6 @@ class l23network::l2::dpdk (
   $dpdk_dir                    = $::l23network::params::dpdk_dir,
   $dpdk_conf_file              = $::l23network::params::dpdk_conf_file,
   $dpdk_interfaces_file        = $::l23network::params::dpdk_interfaces_file,
-  $ovs_socket_dir_group        = $::l23network::params::ovs_socket_dir_group,
-  $ovs_socket_dir              = $::l23network::params::ovs_socket_dir,
   $ovs_default_file            = $::l23network::params::ovs_default_file,
   $install_ovs                 = true,
   $ensure_package              = 'present',
