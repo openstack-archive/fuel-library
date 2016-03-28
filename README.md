@@ -194,6 +194,7 @@ dependencies are skipped by having their name in the deployment/Puppetfile
 file, but also, additional modules could be defined in the
 util/jenkins/modules.disable_rake-lint file.
 
+
 ### Puppet module tests
 
 Puppet rspec tests should be provided for every module's directory included.
