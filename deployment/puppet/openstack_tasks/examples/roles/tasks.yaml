@@ -1,8 +1,11 @@
 - id: controller_remaining_tasks
   type: puppet
-  version: 2.0.0
+  version: 2.1.0
   groups: [primary-controller, controller]
   required_for: [deploy_end]
+  condition:
+    yaql_exp: >
+      changedAny(('primary-controller' in $.roles), $.quantum)
   parameters:
     puppet_manifest: /etc/puppet/modules/openstack_tasks/examples/roles/controller.pp
     puppet_modules: /etc/puppet/modules
@@ -10,10 +13,32 @@
 
 - id: top-role-compute
   type: puppet
-  version: 2.0.0
+  version: 2.1.0
   groups: [compute]
   required_for: [enable_nova_compute_service]
   requires: [hosts, firewall]
+  condition:
+    yaql_exp: &top_compute >
+      changedAny($.network_scheme, $.configuration, $.get('compute', ''),
+      $.network_metadata.vips, $.debug, $.storage, $.nova, $.public_ssl,
+      $.get('use_ssl', {}), $.get('nova_rate_limits', {}),
+      $.get('nova_report_interval', 60), $.get('nova_service_down_time', 180),
+      $.get('novanetwork_parameters', {}), $.get('nova_custom', {}), $.rabbit,
+      $.cinder, $.ceilometer,
+      $.get('use_syslog', true), $.get('use_stderr', false),
+      $.get('syslog_log_facility_nova', ''),
+      $.network_metadata.nodes.get(concat('node-', $.uid)), $.libvirt_type,
+      $.get('kombu_compression', ''), $.dpdk, $.get('glance_api_servers', ''),
+      $.get('block_device_allocate_retries', 300),
+      $.get('block_device_allocate_retries_interval', 3),
+      $.get('queue_provider', 'rabbit'), $.quantum_settings,
+      $.get('memcached_addresses', ''), $.get('memcache_roles', ''),
+      len($.network_metadata.nodes.values().where(
+        $.network_roles.get('mgmt/memcache') != null)),
+      $.memcache_server_port, $.get('amqp_hosts', ''),
+      len($.network_metadata.nodes.values().where(
+        $.network_roles.get('mgmt/messaging') != null)),
+      $.resume_guests_state_on_host_boot, $.use_cow_images)
   cross-depends:
     - name: keystone
     - name: /(primary-)?openstack-controller/
@@ -91,11 +116,13 @@
 
 - id: enable_nova_compute_service
   type: puppet
-  version: 2.0.0
+  version: 2.1.0
   groups: [compute, compute-vmware]
   requires: [top-role-compute, top-role-compute-vmware, openstack-network-compute-nova]
   required_for: [deploy_end]
   refresh_on: [nova_config, nova_paste_api_ini]
+  condition:
+    yaql_exp: *top_compute
   parameters:
     puppet_manifest: /etc/puppet/modules/openstack_tasks/examples/roles/enable_compute.pp
     puppet_modules: /etc/puppet/modules
@@ -104,10 +131,12 @@
 
 - id: allocate_hugepages
   type: puppet
-  version: 2.0.0
+  version: 2.1.0
   role: ['/.*/']
   requires: [setup_repositories]
   required_for: [globals]
+  condition:
+    yaql_exp: 'changed($.get("hugepages", []))'
   parameters:
     puppet_manifest: /etc/puppet/modules/openstack_tasks/examples/roles/allocate_hugepages.pp
     puppet_modules: /etc/puppet/modules

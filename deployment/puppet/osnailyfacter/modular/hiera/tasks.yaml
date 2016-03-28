@@ -1,10 +1,14 @@
 - id: hiera
   type: puppet
-  version: 2.0.0
+  version: 2.1.0
   groups: [primary-controller, controller, cinder, cinder-block-device,
     cinder-vmware, compute, ceph-osd, primary-mongo, mongo, virt, ironic]
   requires: [deploy_start]
   required_for: [setup_repositories]
+  condition:
+    yaql_exp: >
+      ($.uid in added($.nodes).uid) or
+      changed($.plugins)
   parameters:
     puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/hiera/hiera.pp
     puppet_modules: /etc/puppet/modules
