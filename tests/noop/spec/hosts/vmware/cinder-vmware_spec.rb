@@ -1,3 +1,5 @@
+# RUN: neut_vlan.cinder-block-device.compute ubuntu
+
 require 'spec_helper'
 require 'shared-examples'
 manifest = 'vmware/cinder-vmware.pp'
