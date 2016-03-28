@@ -197,7 +197,7 @@ describe manifest do
 
         it { should contain_class('neutron::server').with('manage_service' => 'true')}
         it { should contain_class('neutron::server').with('enabled' => 'true')}
-        it { should contain_class('neutron::server').with('agent_down_time' => '30')}
+        it { should contain_class('neutron::server').with('agent_down_time' => neutron_config['neutron_agent_down_time'])}
 
         it 'dvr' do
           should contain_class('neutron::server').with('router_distributed' => dvr)
