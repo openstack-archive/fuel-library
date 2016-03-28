@@ -5,6 +5,10 @@
   role: [primary-controller]
   requires: [post_deployment_start]
   required_for: [post_deployment_end]
+  cross-depends:
+    - name: dns-client
+    - name: ntp-server
+    - name: public_vip_ping
   parameters:
     cmd: ruby /etc/puppet/modules/osnailyfacter/modular/astute/enable_quorum.rb
     timeout: 180
@@ -15,6 +19,8 @@
   role: [primary-controller]
   requires: [enable_quorum]
   required_for: [post_deployment_end]
+  cross-depends:
+    - name: enable_quroum
   parameters:
     cmd: ruby /etc/puppet/modules/osnailyfacter/modular/astute/upload_cirros.rb
     retries: 3
