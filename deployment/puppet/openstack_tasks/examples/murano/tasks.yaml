@@ -1,8 +1,18 @@
 - id: murano
   type: puppet
-  version: 2.0.0
+  version: 2.1.0
   groups: [primary-controller, controller]
-  condition: "settings:murano.enabled == true"
+  condition:
+    yaql_exp: >
+      $.murano.enabled and changedAny($.murano, $.murano_settings,
+      $.rabbit, $.quantum_settings, $.network_metadata.vips,
+      $.get('database_vip'), $.get('region', 'RegionOne'), $.quantum,
+      $.network_metadata, $.get('syslog_log_facility_murano'), $.debug,
+      $.get('verbose'), $.get('default_log_levels'), $.get('use_syslog'),
+      $.get('use_stderr'), $.get('rabbit_ha_queues'), $.get('amqp_port'),
+      $.get('amqp_hosts'), $.external_dns, $.public_ssl, $.get('use_ssl'),
+      ('primary-controller' in $.roles), $.get('kombu_compression'),
+      $.get('external_lb'), $.get('keystone_endpoint'))
   required_for: [deploy_end, controller_remaining_tasks]
   requires: [primary-heat, heat, horizon, primary-rabbitmq, rabbitmq]
   cross-depends:
@@ -19,11 +29,15 @@
 
 - id: murano-db
   type: puppet
-  version: 2.0.0
+  version: 2.1.0
   groups: [primary-controller]
   cross-depends:
     - name: /(primary-)?database/
-  condition: "settings:murano.enabled == true"
+  condition:
+    yaql_exp: >
+      $.murano.enabled and changedAny(
+      $.network_metadata.nodes.values().where($.fqdn = new($.fqdn)),
+      $.murano, $.mysql, $.network_metadata.vips, $.get('database_vip'))
   required_for: [murano]
   requires: [primary-database, database]
   parameters:
@@ -33,9 +47,12 @@
 
 - id: murano-keystone
   type: puppet
-  version: 2.0.0
+  version: 2.1.0
   groups: [primary-controller]
-  condition: "settings:murano.enabled == true"
+  condition:
+    yaql_exp: >
+      $.murano.enabled and changedAny($.murano, $.network_metadata.vips,
+      $.get('region', 'RegionOne'), $.public_ssl, $.get('use_ssl'))
   required_for: [murano]
   requires: [primary-keystone, keystone]
   cross-depends:
@@ -47,9 +64,11 @@
 
 - id: murano-rabbitmq
   type: puppet
-  version: 2.0.0
+  version: 2.1.0
   groups: [primary-controller, controller]
-  condition: "settings:murano.enabled == true"
+  condition:
+    yaql_exp: >
+      $.murano.enabled and changedAny($.rabbit, $.murano)
   required_for: [murano]
   cross-depends:
     - name: /(primary-)?rabbitmq/
@@ -62,9 +81,13 @@
 
 - id: murano-cfapi
   type: puppet
-  version: 2.0.0
+  version: 2.1.0
   groups: [primary-controller, controller]
-  condition: "settings:murano-cfapi.enabled == true"
+  condition:
+    yaql_exp: >
+      $.get('murano-cfapi').enabled and changedAny($.access,
+      $.get('murano-cfapi'), $.network_metadata.vips, $.public_ssl,
+      $.get('use_ssl'), $.network_metadata, $.get('external_lb'))
   requires: [murano]
   parameters:
     puppet_manifest: /etc/puppet/modules/openstack_tasks/examples/murano/cfapi.pp
@@ -73,9 +96,13 @@
 
 - id: murano-cfapi-keystone
   type: puppet
-  version: 2.0.0
+  version: 2.1.0
   groups: [primary-controller]
-  condition: "settings:murano-cfapi.enabled == true"
+  condition:
+    yaql_exp: >
+      $.get('murano-cfapi').enabled and changedAny($.murano,
+      $.network_metadata.vips, $.get('region', 'RegionOne'), $.public_ssl,
+      $.get('use_ssl'))
   required_for: [murano-cfapi]
   requires: [primary-keystone, keystone]
   cross-depends:

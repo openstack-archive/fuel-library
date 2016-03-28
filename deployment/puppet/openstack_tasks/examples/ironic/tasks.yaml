@@ -1,8 +1,17 @@
 - id: ironic-api
   type: puppet
-  version: 2.0.0
+  version: 2.1.0
   groups: [primary-controller, controller]
-  condition: "settings:ironic.enabled == true"
+  condition:
+    yaql_exp: >
+      $.ironic.enabled and changedAny($.ironic,
+      $.get('service_endpoint'), $.get('database_vip'),
+      $.get('neutron_endpoint'), $.debug, $.get('verbose'), $.network_metadata,
+      $.get('glance_api_servers'), $.get('default_log_levels'),
+      $.get('use_syslog'), $.get('syslog_log_facility_ironic'), $.rabbit,
+      $.get('amqp_hosts'), $.get('amqp_port'), $.quantum_settings,
+      ('primary-controller' in $.roles), $.get('kombu_compression'),
+      $.get('use_ssl'), $.network_scheme)
   cross-depends:
     - name: ironic-db
     - name: ironic-keystone
@@ -15,11 +24,14 @@
 
 - id: ironic-db
   type: puppet
-  version: 2.0.0
+  version: 2.1.0
   groups: [primary-controller]
   cross-depends:
     - name: /(primary-)?database/
-  condition: "settings:ironic.enabled == true"
+  condition:
+    yaql_exp: >
+      $.ironic.enabled and changedAny($.ironic, $.mysql, $.get('database_vip'),
+      $.get('mysql_custom_setup_class'))
   required_for: [ironic-api]
   requires: [primary-database, database]
   parameters:
@@ -29,9 +41,12 @@
 
 - id: ironic-keystone
   type: puppet
-  version: 2.0.0
+  version: 2.1.0
   groups: [primary-controller]
-  condition: "settings:ironic.enabled == true"
+  condition:
+    yaql_exp: >
+      $.ironic.enabled and changedAny($.ironic, $.network_metadata.vips,
+      $.public_ssl, $.get('region', 'RegionOne'))
   required_for: [ironic-api]
   requires: [primary-keystone, keystone]
   cross-depends:
@@ -43,9 +58,23 @@
 
 - id: ironic-compute
   type: puppet
-  version: 2.0.0
+  version: 2.1.0
   groups: [primary-controller, controller]
-  condition: "settings:ironic.enabled == true"
+  condition:
+    yaql_exp: >
+      $.ironic.enabled and changedAny($.ironic, $.nova,
+      $.network_metadata.vips, $.get('database_vip'),
+      $.get('neutron_endpoint'), $.get('ironic_endpoint'),
+      $.get('glance_api_servers'), $.debug, $.get('verbose'),
+      $.get('use_syslog'), $.get('syslog_log_facility_ironic'),
+      $.get('syslog_log_facility_nova'), $.get('amqp_hosts'), $.rabbit,
+      $.get('nova_report_interval', '60'),
+      $.get('nova_service_down_time', '180'), $.quantum_settings,
+      $.get('memcached_addresses'),
+      (len($.network_metadata.nodes.values().where(
+        ('controller' in $.node_roles) or
+        ('primary-controller' in $.node_roles)))),
+      $.get('memcache_server_port'), $.get('use_ssl'))
   required_for: [deploy_end]
   requires: [primary-openstack-controller, openstack-controller, ironic-api]
   refresh_on: [nova_config, nova_paste_api_ini]
