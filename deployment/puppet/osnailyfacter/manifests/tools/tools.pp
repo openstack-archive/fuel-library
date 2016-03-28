@@ -3,6 +3,9 @@ class osnailyfacter::tools::tools {
   notice('MODULAR: tools/tools.pp')
 
   $custom_acct_file = hiera('custom_accounting_file', undef)
+  $puppet = hiera('puppet')
+  $deployment_mode = hiera('deployment_mode')
+
   class { '::osnailyfacter::atop':
     custom_acct_file => $custom_acct_file,
   }
@@ -55,12 +58,8 @@ class osnailyfacter::tools::tools {
     }
   }
 
-  $puppet = hiera('puppet')
   class { '::osnailyfacter::puppet_pull':
     modules_source   => $puppet['modules'],
     manifests_source => $puppet['manifests'],
   }
-
-  $deployment_mode = hiera('deployment_mode')
-
 }

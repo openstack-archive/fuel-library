@@ -1,10 +1,19 @@
 - id: database
   type: puppet
-  version: 2.0.0
+  version: 2.1.0
   groups: [controller]
   required_for: [openstack-controller, primary-openstack-controller]
   requires: [deploy_start, openstack-haproxy]
   reexecute_on: [deploy_changes]
+  condition:
+    yaql_exp: &db >
+      changedAny($.network_scheme, $.network_metadata, $.get('use_syslog'),
+      ('primary-controller' in $.roles), $.mysql, $.network_metadata.vips,
+      $.get('database_vip'),
+      $.network_metadata.nodes.get(concat('node-', $.uid)).network_roles.get(
+        'mgmt/database'),
+      $.get('database_nodes'), $.get('mysql_custom_setup_class'),
+      $.get('mysql_binary_logs'))
   cross-depends:
     - name: primary-database
   parameters:
@@ -18,10 +27,12 @@
 
 - id: primary-database
   type: puppet
-  version: 2.0.0
+  version: 2.1.0
   groups: [primary-controller]
   required_for: [openstack-controller, primary-openstack-controller]
   requires: [deploy_start, openstack-haproxy]
+  condition:
+    yaql_exp: *db
   reexecute_on: [deploy_changes]
   parameters:
     puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/database/database.pp
