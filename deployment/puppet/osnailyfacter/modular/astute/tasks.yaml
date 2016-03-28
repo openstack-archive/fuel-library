@@ -264,7 +264,7 @@
   required_for: [post_deployment_end]
   requires: [enable_quorum, enable_rados]
   parameters:
-    cmd: ruby /etc/puppet/modules/osnailyfacter/modular/ironic/upload_images.rb {CLUSTER_ID}
+    cmd: ruby /etc/puppet/modules/openstack_tasks/examples/ironic/upload_images.rb
     retries: 3
     interval: 20
     timeout: 180
