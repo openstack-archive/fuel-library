@@ -91,12 +91,11 @@ def image_list
   {:images => images, :exit_code => return_code}
 end
 
-# TODO vsaienko: remove --os-image-api-version after liberty (fuel-8.0) release
 def image_create(image_hash)
   command = <<-EOF
-/usr/bin/glance --os-image-api-version 1 image-create \
+/usr/bin/glance image-create \
 --name '#{image_hash['img_name']}' \
---is-public '#{image_hash['public']}' \
+--visibility '#{image_hash['visibility']}' \
 --is-protected '#{image_hash['protected']}' \
 --container-format='#{image_hash['container_format']}' \
 --disk-format='#{image_hash['disk_format']}' \
@@ -128,6 +127,13 @@ def upload_image(image)
   if list_of_images[:images].include?(image['img_name']) && list_of_images[:exit_code] == 0
     puts "Image '#{image['img_name']}' is already present!"
     return 0
+  end
+
+  # convert old API v1 'public' property to API v2 'visibility' property
+  if image['public'] == 'true'
+    image['visibility'] = 'public'
+  else
+    image['visibility'] = 'private'
   end
 
   stdout, return_code = image_create(image)
