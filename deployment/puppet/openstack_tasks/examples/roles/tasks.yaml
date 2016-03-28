@@ -3,6 +3,8 @@
   version: 2.0.0
   groups: [primary-controller, controller]
   required_for: [deploy_end]
+  condition:
+    yaql_exp: "changed('primary-controller' in $.roles) or changed($.get('neutron_mellanox')) or changed($.quantum)"
   parameters:
     puppet_manifest: /etc/puppet/modules/openstack_tasks/examples/roles/controller.pp
     puppet_modules: /etc/puppet/modules
@@ -14,6 +16,8 @@
   groups: [compute]
   required_for: [enable_nova_compute_service]
   requires: [hosts, firewall]
+  condition:
+    yaql_exp: &top_compute "changed($.network_scheme) or changed($.configuration) or changed($.get('compute', '')) or changed($.network_metadata.vips) or changed($.debug) or changed($.storage) or changed($.nova) or changed($.public_ssl) or changed($.get('use_ssl', {})) or changed($.get('nova_rate_limits', {})) or changed($.get('nova_report_interval', 60)) or changed($.get('nova_service_down_time', 180)) or changed($.get('novanetwork_parameters', {})) or changed($.get('nova_custom', {})) or changed($.rabbit) or changed($.cinder) or changed($.ceilometer) or changed($.get('neutron_mellanox', {})) or changed($.get('use_syslog', true)) or changed($.get('use_stderr', false)) or changed($.get('syslog_log_facility_nova', '')) or changed($.network_metadata.nodes.get(concat('node-', $.uid))) or changed($.libvirt_type) or changed($.get('kombu_compression', '')) or changed($.dpdk) or changed($.get('glance_api_servers', '')) or changed($.get('block_device_allocate_retries', 300)) or changed($.get('block_device_allocate_retries_interval', 3)) or changed($.get('queue_provider', 'rabbit')) or changed($.quantum_settings) or changed($.get('memcached_addresses', '')) or changed($.get('memcache_roles', '')) or changed(len($.network_metadata.nodes.values().where($.network_roles.get('mgmt/memcache') != null))) or changed($.memcache_server_port) or changed($.get('amqp_hosts', '')) or changed(len($.network_metadata.nodes.values().where($.network_roles.get('mgmt/messaging') != null))) or changed($.resume_guests_state_on_host_boot) or changed($.use_cow_images)"
   cross-depends:
     - name: keystone
     - name: /(primary-)?openstack-controller/
@@ -96,6 +100,8 @@
   requires: [top-role-compute, top-role-compute-vmware, openstack-network-compute-nova]
   required_for: [deploy_end]
   refresh_on: [nova_config, nova_paste_api_ini]
+  condition:
+    yaql_exp: *top_compute
   parameters:
     puppet_manifest: /etc/puppet/modules/openstack_tasks/examples/roles/enable_compute.pp
     puppet_modules: /etc/puppet/modules
@@ -104,10 +110,12 @@
 
 - id: allocate_hugepages
   type: puppet
-  version: 2.0.0
+  version: 2.1.0
   role: ['/.*/']
   requires: [setup_repositories]
   required_for: [globals]
+  condition:
+    yaql_exp: 'changed($.get("hugepages", []))'
   parameters:
     puppet_manifest: /etc/puppet/modules/openstack_tasks/examples/roles/allocate_hugepages.pp
     puppet_modules: /etc/puppet/modules

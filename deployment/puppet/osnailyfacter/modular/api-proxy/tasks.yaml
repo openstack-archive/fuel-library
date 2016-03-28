@@ -4,6 +4,8 @@
   groups: [primary-controller, controller]
   required_for: [deploy_end, controller_remaining_tasks]
   requires: [apache]
+  condition:
+    yaql_exp: "changed($.get('max_header_size')) or changed($.get('apache_ports')) or changed($.get('master_ip'))"
   parameters:
     puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/api-proxy/api-proxy.pp
     puppet_modules: /etc/puppet/modules

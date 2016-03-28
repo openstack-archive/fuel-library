@@ -1,10 +1,12 @@
 - id: netconfig
   type: puppet
-  version: 2.0.0
+  version: 2.1.0
   groups: [primary-controller, controller, cinder, cinder-block-device, cinder-vmware, compute, ceph-osd, primary-mongo, mongo, virt, ironic]
   required_for: [deploy_end]
   requires: [tools]
   reexecute_on: [deploy_changes]
+  condition:
+    yaql_exp: "changed($.network_scheme) or changed($.dpdk) or changed($.get('use_ovs')) or changed($.get('set_rps')) or changed($.get('set_rps')) or changed($.get('run_ping_checker')) or changed($.network_scheme.endpoints.values().where($.get('gateway') != null).gateway)"
   parameters:
     puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/netconfig/netconfig.pp
     puppet_modules: /etc/puppet/modules
@@ -16,11 +18,13 @@
 
 - id: connectivity_tests
   type: puppet
-  version: 2.0.0
+  version: 2.1.0
   groups: [primary-controller, controller, cinder, cinder-block-device, cinder-vmware, compute, ceph-osd, primary-mongo, mongo, virt, ironic]
   required_for: [firewall, hosts]
   requires: [netconfig]
   reexecute_on: [deploy_changes]
+  condition:
+    yaql_exp: 'changed($.repo_setup)'
   parameters:
     puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/netconfig/connectivity_tests.pp
     puppet_modules: /etc/puppet/modules
@@ -29,10 +33,12 @@
 
 - id: sriov_iommu_check
   type: puppet
-  version: 2.0.0
+  version: 2.1.0
   groups: [compute]
   requires: [netconfig]
   required_for: [firewall, hosts]
+  condition:
+    yaql_exp: 'changed($.network_scheme.transformations)'
   parameters:
     puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/netconfig/sriov_iommu_check.pp
     puppet_modules: /etc/puppet/modules
@@ -41,10 +47,12 @@
 
 - id: reserved_ports
   type: puppet
-  version: 2.0.0
+  version: 2.1.0
   groups: [primary-controller, controller, cinder, cinder-block-device, cinder-vmware, compute, ceph-osd, primary-mongo, mongo, virt, ironic]
   required_for: [globals]
   requires: [rsync_core_puppet]
+  condition:
+    yaql_exp: '$.uid in added($.nodes).uid'
   reexecute_on: [deploy_changes]
   parameters:
     puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/netconfig/reserved_ports.pp

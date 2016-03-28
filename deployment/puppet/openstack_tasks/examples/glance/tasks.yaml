@@ -4,6 +4,8 @@
   groups: [primary-controller, controller]
   required_for: [primary-openstack-controller, openstack-controller]
   requires: [openstack-haproxy, primary-database, database]
+  condition:
+    yaql_exp: "changed($.network_scheme) or changed($.network_metadata) or changed($.glance) or changed($.get('verbose')) or changed($.debug) or changed($.get('database_vip')) or changed($.storage) or changed($.get('use_syslog')) or changed($.get('use_stderr')) or changed($.get('syslog_log_facility_glance')) or changed($.rabbit) or changed($.get('max_pool_size')) or changed($.get('max_overflow')) or changed($.ceilometer) or changed($.get('region', 'RegionOne')) or changed($.ironic) or changed('primary-controller' in $.roles) or changed($.get('kombu_compression')) or changed($.get('amqp_hosts')) or changed($.get('use_ssl')) or changed($.murano)"
   cross-depends:
     - name: glance-db
     - name: glance-keystone
@@ -23,6 +25,8 @@
   groups: [primary-controller]
   required_for: [glance]
   requires: [primary-database, database]
+  condition:
+    yaql_exp: "changed($.glance) or changed($.mysql) or changed($.network_metadata.vips) or changed($.get('database_vip'))"
   cross-depends:
     - name: /(primary-)?database/
   parameters:
@@ -36,6 +40,8 @@
   groups: [primary-controller]
   required_for: [glance]
   requires: [primary-keystone, keystone]
+  condition:
+    yaql_exp: "changed($.glance) or changed($.network_metadata.vips) or changed($.public_ssl) or changed($.get('use_ssl')) or changed($.get('region', 'RegionOne'))"
   cross-depends:
     - name: keystone
   parameters:

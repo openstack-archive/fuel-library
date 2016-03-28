@@ -12,6 +12,7 @@
     timeout: 3600
   test_post:
     cmd: ruby /etc/puppet/modules/osnailyfacter/modular/rabbitmq/rabbitmq_post.rb
+
 - id: primary-rabbitmq
   type: puppet
   version: 2.0.0

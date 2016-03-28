@@ -4,6 +4,8 @@
   role: [primary-controller, controller]
   required_for: [ntp-client]
   requires: [dns-client]
+  condition:
+    yaql_exp: "changed($.external_ntp)"
   parameters:
     puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/ntp/ntp-server.pp
     puppet_modules: /etc/puppet/modules
@@ -22,6 +24,8 @@
     - name: ntp-server
       policy: any
   required_for: [post_deployment_end]
+  condition:
+    yaql_exp: "changed($.network_metadata.vips.management) or changed($.get('ntp_servers'))"
   parameters:
     puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/ntp/ntp-client.pp
     puppet_modules: /etc/puppet/modules
@@ -36,6 +40,8 @@
   role: [primary-controller, controller]
   required_for: [ntp-server]
   requires: [dns-client]
+  condition:
+    yaql_exp: "changed($.external_ntp)"
   parameters:
     puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/ntp/ntp-check.pp
     puppet_modules: /etc/puppet/modules

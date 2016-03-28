@@ -4,6 +4,8 @@
   groups: [primary-controller]
   required_for: [deploy_end]
   requires: [primary-openstack-controller, openstack-controller]
+  condition:
+    yaql_exp: &heat_enabled "changed($.network_scheme) or changed($.heat) or changed($.sahara) or changed($.rabbit) or changed($.get('max_retries')) or changed($.get('max_pool_size')) or changed($.get('max_overflow')) or changed($.get('idle_timeout')) or changed($.network_metadata.vips) or changed($.public_ssl) or changed($.get('use_ssl')) or changed('primary-controller' in $.roles) or changed($.get('kombu_compression')) or changed($.get('heat_endpoint')) or changed($.debug) or changed($.get('verbose')) or changed($.get('use_stderr')) or changed($.get('use_syslog')) or changed($.get('syslog_log_facility_heat')) or changed($.deployment_mode) or changed($.get('region', 'RegionOne')) or changed($.get('external_lb')) or changed($.get('database_vip')) or changed($.get('heat_db_name')) or changed($.get('amqp_hosts')) or changed($.get('heat_ha_engine'))"
   cross-depends:
     - name: heat-db
     - name: heat-keystone
@@ -23,6 +25,8 @@
   groups: [controller]
   required_for: [deploy_end]
   requires: [primary-openstack-controller, openstack-controller]
+  condition:
+    yaql_exp: *heat_enabled
   cross-depends:
     - name: primary-heat
   parameters:
@@ -40,6 +44,8 @@
   groups: [primary-controller]
   required_for: [primary-heat, heat]
   requires: [primary-database, database]
+  condition:
+    yaql_exp: "changed($.heat) or changed($.mysql) or changed($.network_metadata.vips.management) or changed($.get('database_vip')) or changed($.get('mysql_custom_setup_class'))"
   cross-depends:
     - name: /(primary-)?database/
   parameters:
@@ -53,6 +59,8 @@
   groups: [primary-controller]
   required_for: [heat, primary-heat]
   requires: [primary-keystone, keystone]
+  condition:
+    yaql_exp: "changed($.heat) or changed($.network_metadata.vips) or changed($.get('region', 'RegionOne')) or changed($.public_ssl) or changed($.get('use_ssl')) or changed($.get('heat_endpoint'))"
   cross-depends:
     - name: keystone
   parameters:

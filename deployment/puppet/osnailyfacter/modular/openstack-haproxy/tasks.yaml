@@ -17,6 +17,8 @@
   groups: [primary-controller, controller]
   required_for: [deploy_end]
   requires: [deploy_start, primary-cluster-haproxy, cluster-haproxy]
+  condition:
+    yaql_exp: "changed($.horizon) or changed($.public_ssl) or changed($.get('use_ssl')) or changed($.get('external_lb')) or changed(len($.network_metadata.nodes.values().where(('controller' in $.node_roles) or ('primary-controller' in $.node_roles)))) or changed($.network_metadata.vips)"
   cross-depends:
     - name: /(primary-)?cluster-haproxy/
       role: self
@@ -35,6 +37,8 @@
   groups: [primary-controller, controller]
   required_for: [deploy_end]
   requires: [primary-cluster-haproxy, cluster-haproxy]
+  condition:
+    yaql_exp: "changed($.keystone) or changed($.public_ssl) or changed($.get('use_ssl')) or changed($.get('external_lb')) or changed(len($.network_metadata.nodes.values().where(('controller' in $.node_roles) or ('primary-controller' in $.node_roles)))) or changed($.get('keystone_names')) or changed($.get('keystone_ipaddresses')) or changed($.get('public_service_endpoint')) or changed($.network_metadata.vips)"
   cross-depends:
     - name: /(primary-)?cluster-haproxy/
       role: self
@@ -53,6 +57,8 @@
   groups: [primary-controller, controller]
   required_for: [deploy_end]
   requires: [deploy_start, primary-cluster-haproxy, cluster-haproxy]
+  condition:
+    yaql_exp: "changed($.nova) or changed($.public_ssl) or changed($.get('use_ssl')) or changed($.get('external_lb')) or changed(len($.network_metadata.nodes.values().where(('controller' in $.node_roles) or ('primary-controller' in $.node_roles)))) or changed($.network_metadata.vips)"
   cross-depends:
     - name: /(primary-)?cluster-haproxy/
       role: self
@@ -71,6 +77,8 @@
   groups: [primary-controller, controller]
   required_for: [deploy_end]
   requires: [deploy_start, primary-cluster-haproxy, cluster-haproxy]
+  condition:
+    yaql_exp: "changed($.heat) or changed($.public_ssl) or changed($.get('use_ssl')) or changed($.get('external_lb')) or changed($.get('heat_roles')) or changed(len($.network_metadata.nodes.values().where(('controller' in $.node_roles) or ('primary-controller' in $.node_roles)))) or changed($.network_metadata.vips)"
   cross-depends:
     - name: /(primary-)?cluster-haproxy/
       role: self
@@ -89,6 +97,8 @@
   groups: [primary-controller, controller]
   required_for: [deploy_end]
   requires: [deploy_start, primary-cluster-haproxy, cluster-haproxy]
+  condition:
+    yaql_exp: "changed($.glance) or changed($.public_ssl) or changed($.get('use_ssl')) or changed(len($.network_metadata.nodes.values().where(('controller' in $.node_roles) or ('primary-controller' in $.node_roles)))) or changed($.network_metadata.vips)"
   cross-depends:
     - name: /(primary-)?cluster-haproxy/
       role: self
@@ -107,6 +117,8 @@
   groups: [primary-controller, controller]
   required_for: [deploy_end]
   requires: [deploy_start, primary-cluster-haproxy, cluster-haproxy]
+  condition:
+    yaql_exp: "changed($.cinder) or changed($.public_ssl) or changed($.get('use_ssl')) or changed($.get('external_lb')) or changed(len($.network_metadata.nodes.values().where(('controller' in $.node_roles) or ('primary-controller' in $.node_roles)))) or changed($.network_metadata.vips)"
   cross-depends:
     - name: /(primary-)?cluster-haproxy/
       role: self
@@ -125,6 +137,8 @@
   groups: [primary-controller, controller]
   required_for: [deploy_end]
   requires: [deploy_start, primary-cluster-haproxy, cluster-haproxy]
+  condition:
+    yaql_exp: "changed($.quantum) or changed($.public_ssl) or changed($.get('use_ssl')) or changed($.get('external_lb')) or changed(len($.network_metadata.nodes.values().where(('controller' in $.node_roles) or ('primary-controller' in $.node_roles)))) or changed($.get('neutron_names')) or changed($.get('neutron_ipaddresses')) or changed($.network_metadata.vips)"
   cross-depends:
     - name: /(primary-)?cluster-haproxy/
       role: self
@@ -143,6 +157,8 @@
   groups: [primary-controller, controller]
   required_for: [deploy_end]
   requires: [deploy_start, primary-cluster-haproxy, cluster-haproxy]
+  condition:
+    yaql_exp: "changed($.mysql) or changed($.get('custom_mysql_setup_class', 'galera')) or changed($.get('external_lb')) or changed($.get('database_nodes')) or changed($.get('mysqld_names')) or changed($.get('mysqld_ipaddresses')) or changed($.network_metadata.vips) or changed($.get('database_vip')) or changed('primary-controller' in $.roles)"
   cross-depends:
     - name: /(primary-)?cluster-haproxy/
       role: self
@@ -161,6 +177,8 @@
   groups: [primary-controller, controller]
   required_for: [deploy_end]
   requires: [deploy_start, primary-cluster-haproxy, cluster-haproxy]
+  condition:
+    yaql_exp: "changed($.storage) or changed($.get('swift_proxy_roles')) or changed(len($.network_metadata.nodes.values().where(('controller' in $.node_roles) or ('primary-controller' in $.node_roles)))) or changed($.public_ssl) or changed($.get('use_ssl')) or changed($.get('external_lb')) or changed($.get('swift_server_names')) or changed($.get('swift_ipaddresses')) or changed($.network_metadata.vips) or changed($.ironic) or changed($.network_scheme) or changed($.network_metadata.nodes.get(concat('node-', $.uid)))"
   cross-depends:
     - name: /(primary-)?cluster-haproxy/
       role: self
@@ -179,6 +197,8 @@
   groups: [primary-controller, controller]
   required_for: [deploy_end]
   requires: [deploy_start, primary-cluster-haproxy, cluster-haproxy]
+  condition:
+    yaql_exp: "changed($.storage) or changed($.public_ssl) or changed($.get('use_ssl')) or changed($.get('external_lb')) or changed(len($.network_metadata.nodes.values().where(('controller' in $.node_roles) or ('primary-controller' in $.node_roles)))) or changed($.network_metadata.vips) or changed($.ironic)"
   cross-depends:
     - name: /(primary-)?cluster-haproxy/
       role: self
@@ -197,6 +217,8 @@
   groups: [primary-controller, controller]
   required_for: [deploy_end]
   requires: [deploy_start, primary-cluster-haproxy, cluster-haproxy]
+  condition:
+    yaql_exp: "changed($.ceilometer) or changed($.public_ssl) or changed($.get('use_ssl')) or changed($.get('external_lb')) or changed(len($.network_metadata.nodes.values().where(('controller' in $.node_roles) or ('primary-controller' in $.node_roles)))) or changed($.network_metadata.vips)"
   cross-depends:
     - name: /(primary-)?cluster-haproxy/
       role: self
@@ -215,6 +237,8 @@
   groups: [primary-controller, controller]
   required_for: [deploy_end]
   requires: [deploy_start, primary-cluster-haproxy, cluster-haproxy]
+  condition:
+    yaql_exp: "changed($.ceilometer) or changed($.public_ssl) or changed($.get('use_ssl')) or changed($.get('external_lb')) or changed(len($.network_metadata.nodes.values().where(('controller' in $.node_roles) or ('primary-controller' in $.node_roles)))) or changed($.network_metadata.vips)"
   cross-depends:
     - name: /(primary-)?cluster-haproxy/
       role: self
@@ -233,6 +257,8 @@
   groups: [primary-controller, controller]
   required_for: [deploy_end]
   requires: [deploy_start, primary-cluster-haproxy, cluster-haproxy]
+  condition:
+    yaql_exp: "changed($.sahara) or changed($.public_ssl) or changed($.get('use_ssl')) or changed($.get('external_lb')) or changed($.get('sahara_roles')) or changed(len($.network_metadata.nodes.values().where(('controller' in $.node_roles) or ('primary-controller' in $.node_roles)))) or changed($.network_metadata.vips)"
   cross-depends:
     - name: /(primary-)?cluster-haproxy/
       role: self
@@ -251,6 +277,8 @@
   groups: [primary-controller, controller]
   required_for: [deploy_end]
   requires: [deploy_start, primary-cluster-haproxy, cluster-haproxy]
+  condition:
+    yaql_exp: "changed($.murano) or changed($.get('murano-cfapi')) or changed($.public_ssl) or changed($.get('use_ssl')) or changed($.get('external_lb')) or changed($.get('murano_roles')) or changed($.network_metadata.nodes.values().where(('controller' in $.node_roles) or ('primary-controller' in $.node_roles))) or changed($.get('murano_names')) or changed($.get('murano_ipaddresses')) or changed($.network_metadata.vips)"
   cross-depends:
     - name: /(primary-)?cluster-haproxy/
       role: self
@@ -269,6 +297,8 @@
   groups: [primary-controller, controller]
   required_for: [deploy_end]
   requires: [deploy_start, primary-cluster-haproxy, cluster-haproxy]
+  condition:
+    yaql_exp: "changed($.get('external_lb')) or changed($.network_metadata.vips)"
   cross-depends:
     - name: /(primary-)?cluster-haproxy/
       role: self
@@ -281,9 +311,10 @@
 
 - id: openstack-haproxy-ironic
   type: puppet
-  version: 2.0.0
+  version: 2.1.0
   groups: [primary-controller, controller]
-  condition: "settings:ironic.enabled == true"
+  condition:
+    yaql_exp: '$.ironic.enabled and changed($.ironic.enabled)'
   required_for: [deploy_end]
   requires: [deploy_start, primary-cluster-haproxy, cluster-haproxy]
   cross-depends:

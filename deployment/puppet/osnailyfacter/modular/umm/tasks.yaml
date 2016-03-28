@@ -4,6 +4,8 @@
   groups: [primary-controller, controller]
   required_for: [deploy_end]
   requires: [tools]
+  condition:
+    yaql_exp: "$.uid in added($.nodes.uid)"
   parameters:
     puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/umm/umm.pp
     puppet_modules: /etc/puppet/modules

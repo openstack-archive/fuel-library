@@ -4,6 +4,8 @@
   groups: [primary-controller]
   required_for: [deploy_end]
   requires: [openstack-haproxy]
+  condition:
+    yaql_exp: &nova_controller "changed($.configuration) or changed($.network_scheme) or changed($.network_metadata) or changed('primary-controller' in $.roles) or changed($.get('use_syslog')) or changed($.get('use_stderr')) or changed($.get('syslog_log_facility_nova')) or changed($.sahara) or changed($.storage) or changed($.nova) or changed($.get('nova_config')) or changed($.get('nova_report_interval', '60')) or changed($.get('nova_service_down_time', '180')) or changed($.rabbit) or changed($.get('use_ssl')) or changed($.get('kombu_compression')) or changed($.get('glance_endpoint')) or changed($.get('glance_api_servers')) or changed($.get('region', 'RegionOne')) or changed($.ironic) or changed($.get('memcached_addresses')) or changed($.get('memcache_server_port')) or changed($.get('openstack_controller')) or changed($.get('external_lb')) or changed($.quantum_settings) or changed($.get('database_vip')) or changed($.nova_quota) or changed($.use_vcenter) or changed($.libvirt_type) or changed($.get('amqp_hosts')) or changed($.debug) or changed($.use_cow_images) or changed($.get('nova_endpoint'))"
   cross-depends:
     - name: /(primary-)?rabbitmq/
     - name: nova-db
@@ -21,6 +23,8 @@
   groups: [controller]
   required_for: [deploy_end]
   requires: [openstack-haproxy]
+  condition:
+    yaql_exp: *nova_controller
   cross-depends:
     - name: primary-openstack-controller
   refresh_on: [nova_config, nova_paste_api_ini]
@@ -35,6 +39,8 @@
   groups: [primary-controller]
   required_for: [primary-openstack-controller, openstack-controller]
   requires: [primary-database, database]
+  condition:
+    yaql_exp: "changed($.nova) or changed($.mysql) or changed($.network_metadata.vips)"
   cross-depends:
     - name: /(primary-)?database/
   parameters:
@@ -48,6 +54,8 @@
   groups: [primary-controller]
   required_for: [primary-openstack-controller, openstack-controller]
   requires: [primary-keystone, keystone]
+  condition:
+    yaql_exp: "changed($.nova) or changed($.network_metadata.vips) or changed($.public_ssl) or changed($.get('use_ssl')) or changed($.get('region', 'RegionOne'))"
   cross-depends:
     - name: keystone
   parameters:

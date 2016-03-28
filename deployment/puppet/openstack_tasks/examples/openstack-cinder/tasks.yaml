@@ -4,6 +4,8 @@
   groups: [primary-controller, controller]
   required_for: [deploy_end, openstack-controller]
   requires: [primary-rabbitmq, rabbitmq, primary-keystone, keystone, hosts, firewall]
+  condition:
+    yaql_exp: "changed($.network_scheme) or changed($.cinder) or changed($.network_metadata.vips) or changed($.get('cinder_volume_group')) or changed($.storage) or changed($.ceilometer) or changed($.sahara) or changed($.rabbit) or changed($.get('region', 'RegionOne')) or changed($.get('use_ssl')) or changed('primary-controller' in $.roles) or changed($.get('proxy_port')) or changed($.get('kombu_compression')) or changed($.get('keystone_endpoint')) or changed($.get('glance_endpoint')) or changed($.get('glance_api_servers')) or changed($.get('use_syslog')) or changed($.get('use_stderr')) or changed($.get('verbose')) or changed($.debug) or changed($.get('amqp_hosts')) or changed($.get('syslog_log_facility_cinder')) or changed($.get('cinder_rate_limits'))"
   cross-depends:
     - name: cinder-db
     - name: cinder-keystone
@@ -18,6 +20,8 @@
   groups: [primary-controller]
   required_for: [openstack-cinder]
   requires: [primary-database, database]
+  condition:
+    yaql_exp: "changed($.cinder) or changed($.mysql) or changed($.network_metadata.vips) or changed($.get('mysql_custom_setup_class'))"
   cross-depends:
     - name: /(primary-)?database/
   parameters:
@@ -33,6 +37,8 @@
   cross-depends:
     - name: keystone
   requires: [primary-keystone, keystone]
+  condition:
+    yaql_exp: "changed($.cinder) or changed($.public_ssl) or changed($.get('use_ssl')) or changed($.network_metadata.vips) or changed($.get('region', 'RegionOne'))"
   parameters:
     puppet_manifest: /etc/puppet/modules/openstack_tasks/examples/openstack-cinder/keystone.pp
     puppet_modules: /etc/puppet/modules/
@@ -44,6 +50,8 @@
   groups: [primary-controller]
   requires: [openstack-cinder]
   required_for: [deploy_end]
+  condition:
+    yaql_exp: "changed($.storage)"
   parameters:
     puppet_manifest: /etc/puppet/modules/openstack_tasks/examples/openstack-cinder/create_cinder_types.pp
     puppet_modules: /etc/puppet/modules

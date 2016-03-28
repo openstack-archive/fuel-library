@@ -4,6 +4,8 @@
   groups: [primary-controller]
   required_for: [deploy_end]
   requires: [deploy_start, virtual_ips, primary-cluster]
+  condition:
+    yaql_exp: "changed($.network_scheme) or changed($.network_metadata.vips) or changed($.get('database_vip')) or changed('primary-controller' in $.roles) or changed($.get('haproxy')) or changed($.get('external_lb')) or changed($.get('colocate_haproxy')) or changed($.debug)"
   parameters:
     puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/cluster-haproxy/cluster-haproxy.pp
     puppet_modules: /etc/puppet/modules

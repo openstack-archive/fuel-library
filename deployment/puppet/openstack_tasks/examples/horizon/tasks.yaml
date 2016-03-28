@@ -4,6 +4,8 @@
   groups: [primary-controller, controller]
   required_for: [deploy_end]
   requires: [primary-openstack-controller, openstack-controller]
+  condition:
+    yaql_exp: "changed($.network_scheme) or changed($.horizon) or changed($.get('memcached_addresses')) or changed($.get('memcache_roles')) or changed(len($.network_metadata.nodes.values().where(('controller' in $.node_roles) or ('primary-controller' in $.node_roles)))) or changed($.storage) or changed($.neutron_advanced_configuration) or changed($.public_ssl) or changed($.get('horizon_use_ssl')) or changed($.get('external_lb')) or changed($.get('use_ssl')) or changed($.nova_quota) or changed($.debug) or changed($.get('verbose')) or changed($.get('apache_ports'))"
   cross-depends:
     - name: memcached
   parameters:

@@ -4,6 +4,8 @@
   groups: [primary-controller, controller]
   required_for: [deploy_end]
   requires: [primary-cluster,cluster]
+  condition:
+    yaql_exp: "changed($.network_metadata) or changed($.network_scheme) or changed($.roles)"
   cross-depends:
     - name: /(primary-)?cluster$/
       role: self
@@ -20,6 +22,8 @@
   groups: [primary-controller, controller]
   required_for: [deploy_end]
   requires: [virtual_ips,cluster,primary-cluster]
+  condition:
+    yaql_exp: "changed($.network_metadata) or changed($.network_scheme) or changed($.get('vrouter_name'))"
   cross-depends:
     - name: /(primary-)?cluster/
       role: self
