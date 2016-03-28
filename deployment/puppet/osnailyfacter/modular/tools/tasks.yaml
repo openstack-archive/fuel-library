@@ -1,9 +1,11 @@
 - id: tools
   type: puppet
-  version: 2.0.0
+  version: 2.1.0
   groups: [primary-controller, controller, cinder, cinder-block-device, cinder-vmware, compute, ceph-osd, primary-mongo, mongo, virt, ironic]
   required_for: [deploy_end]
   requires: [logging]
+  condition:
+    yaql_exp: 'changed($.get("custom_accounting_file", undef)) or changed($.puppet) or changed($.deployment_mode)'
   parameters:
     puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/tools/tools.pp
     puppet_modules: /etc/puppet/modules

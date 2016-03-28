@@ -22,6 +22,8 @@
     - name: ntp-server
       policy: any
   required_for: [post_deployment_end]
+  condition:
+    yaql_exp: "changed($.network_metadata.vips.management) or changed($.get('ntp_servers'))"
   parameters:
     puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/ntp/ntp-client.pp
     puppet_modules: /etc/puppet/modules

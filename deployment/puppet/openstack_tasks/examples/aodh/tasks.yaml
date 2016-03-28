@@ -1,13 +1,14 @@
 - id: aodh
   type: puppet
-  version: 2.0.0
+  version: 2.1.0
   groups: [primary-controller, controller]
   required_for: [ceilometer-controller, openstack-controller]
   requires: [openstack-haproxy]
   cross-depends:
     - name: aodh-db
     - name: aodh-keystone
-  condition: "settings:ceilometer.enabled == true"
+  condition:
+    yaql_exp: &ceilometer_enabled '$.ceilometer.enabled and changed($.ceilometer.enabled)'
   parameters:
     puppet_manifest: /etc/puppet/modules/openstack_tasks/examples/aodh/aodh.pp
     puppet_modules: /etc/puppet/modules
@@ -19,13 +20,14 @@
 
 - id: aodh-keystone
   type: puppet
-  version: 2.0.0
+  version: 2.1.0
   groups: [primary-controller]
   required_for: [aodh]
   requires: [primary-keystone, keystone]
   cross-depends:
     - name: keystone
-  condition: "settings:ceilometer.enabled == true"
+  condition:
+    yaql_exp: *ceilometer_enabled
   parameters:
     puppet_manifest: /etc/puppet/modules/openstack_tasks/examples/aodh/keystone.pp
     puppet_modules: /etc/puppet/modules
@@ -33,12 +35,13 @@
 
 - id: aodh-db
   type: puppet
-  version: 2.0.0
+  version: 2.1.0
   groups: [primary-controller]
   cross-depends:
     - name: /(primary-)?database/
   required_for: [aodh]
-  condition: "settings:ceilometer.enabled == true"
+  condition:
+    yaql_exp: *ceilometer_enabled
   requires: [primary-database, database]
   parameters:
     puppet_manifest: /etc/puppet/modules/openstack_tasks/examples/aodh/db.pp

@@ -1,8 +1,9 @@
 - id: ironic-api
   type: puppet
-  version: 2.0.0
+  version: 2.1.0
   groups: [primary-controller, controller]
-  condition: "settings:ironic.enabled == true"
+  condition:
+    yaql_exp: &ironic_enabled '$.ironic.enabled and changed($.ironic.enabled)'
   cross-depends:
     - name: ironic-db
     - name: ironic-keystone
@@ -15,11 +16,12 @@
 
 - id: ironic-db
   type: puppet
-  version: 2.0.0
+  version: 2.1.0
   groups: [primary-controller]
   cross-depends:
     - name: /(primary-)?database/
-  condition: "settings:ironic.enabled == true"
+  condition:
+    yaql_exp: *ironic_enabled
   required_for: [ironic-api]
   requires: [primary-database, database]
   parameters:
@@ -29,9 +31,10 @@
 
 - id: ironic-keystone
   type: puppet
-  version: 2.0.0
+  version: 2.1.0
   groups: [primary-controller]
-  condition: "settings:ironic.enabled == true"
+  condition:
+    yaql_exp: *ironic_enabled
   required_for: [ironic-api]
   requires: [primary-keystone, keystone]
   cross-depends:
@@ -43,9 +46,10 @@
 
 - id: ironic-compute
   type: puppet
-  version: 2.0.0
+  version: 2.1.0
   groups: [primary-controller, controller]
-  condition: "settings:ironic.enabled == true"
+  condition:
+    yaql_exp: *ironic_enabled
   required_for: [deploy_end]
   requires: [primary-openstack-controller, openstack-controller, ironic-api]
   refresh_on: [nova_config, nova_paste_api_ini]

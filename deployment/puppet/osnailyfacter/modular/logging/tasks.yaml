@@ -1,9 +1,11 @@
 - id: logging
   type: puppet
-  version: 2.0.0
+  version: 2.1.0
   groups: [primary-controller, controller, cinder, cinder-block-device, cinder-vmware, compute, ceph-osd, primary-mongo, mongo, virt, ironic]
   required_for: [deploy_end]
   requires: [globals,setup_repositories]
+  condition:
+    yaql_exp: "changed($.base_syslog) or changed($.syslog) or changed($.get('use_syslog', true)) or changed($.syslog.get('debug', $.get('debug', false))) or changed($.get('node_name_prefix_for_messaging', 'messaging-'))"
   parameters:
     puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/logging/logging.pp
     puppet_modules: /etc/puppet/modules

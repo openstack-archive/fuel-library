@@ -281,9 +281,10 @@
 
 - id: openstack-haproxy-ironic
   type: puppet
-  version: 2.0.0
+  version: 2.1.0
   groups: [primary-controller, controller]
-  condition: "settings:ironic.enabled == true"
+  condition:
+    yaql_exp: '$.ironic.enabled and changed($.ironic.enabled)'
   required_for: [deploy_end]
   requires: [deploy_start, primary-cluster-haproxy, cluster-haproxy]
   cross-depends:

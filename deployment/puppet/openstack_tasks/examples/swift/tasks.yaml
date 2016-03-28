@@ -1,10 +1,11 @@
 - id: swift-storage
   type: puppet
-  version: 2.0.0
+  version: 2.1.0
   groups: [primary-controller, controller]
   required_for: [deploy_end, controller_remaining_tasks]
   requires: [openstack-controller]
-  condition: &swift_enabled "( settings:storage.objects_ceph == false or settings:storage.images_ceph == false ) and settings:storage.images_vcenter == false"
+  condition:
+    yaql_exp: &swift_enabled '(not $.storage.objects_ceph or not $.storage.images_ceph) and not $.storage.images_vcenter'
   cross-depends:
     - name: /(primary-)?rabbitmq/
     - name: /glance/
@@ -20,11 +21,12 @@
 
 - id: swift-proxy
   type: puppet
-  version: 2.0.0
+  version: 2.1.0
   groups: [controller]
   required_for: [deploy_end, controller_remaining_tasks]
   requires: [primary-swift-proxy]
-  condition: *swift_enabled
+  condition:
+    yaql_exp: *swift_enabled
   cross-depends:
     - name: primary-swift-proxy
   parameters:
@@ -38,11 +40,12 @@
 
 - id: primary-swift-proxy
   type: puppet
-  version: 2.0.0
+  version: 2.1.0
   groups: [primary-controller]
   required_for: [deploy_end, controller_remaining_tasks]
   requires: [openstack-controller, swift-storage]
-  condition: *swift_enabled
+  condition:
+    yaql_exp: *swift_enabled
   cross-depends:
     - name: /(primary-)?rabbitmq/
     - name: swift-keystone
@@ -60,11 +63,12 @@
 
 - id: swift-rebalance-cron
   type: puppet
-  version: 2.0.0
+  version: 2.1.0
   groups: [primary-controller, controller]
   required_for: [deploy_end]
   requires: [primary-swift-proxy, swift-proxy]
-  condition: *swift_enabled
+  condition:
+    yaql_exp: *swift_enabled
   cross-depends:
     - name: /(primary-)?swift-proxy/
       role: self
@@ -79,10 +83,11 @@
 
 - id: swift-keystone
   type: puppet
-  version: 2.0.0
+  version: 2.1.0
   groups: [primary-controller]
   required_for: [primary-swift-proxy]
-  condition: *swift_enabled
+  condition:
+    yaql_exp: *swift_enabled
   cross-depends:
     - name: keystone
   requires: [primary-keystone, keystone]
