@@ -1,9 +1,19 @@
 - id: glance
   type: puppet
-  version: 2.0.0
+  version: 2.1.0
   groups: [primary-controller, controller]
   required_for: [primary-openstack-controller, openstack-controller]
   requires: [openstack-haproxy, primary-database, database]
+  condition:
+    yaql_exp: >
+      changedAny($.network_scheme, $.network_metadata, $.glance,
+      $.get('verbose'), $.debug, $.get('database_vip'), $.storage,
+      $.get('use_syslog'), $.get('use_stderr'),
+      $.get('syslog_log_facility_glance'), $.rabbit,
+      $.get('max_pool_size'), $.get('max_overflow'), $.ceilometer,
+      $.get('region', 'RegionOne'), $.ironic,
+      ('primary-controller' in $.roles), $.get('kombu_compression'),
+      $.get('amqp_hosts'), $.get('use_ssl'), $.murano)
   cross-depends:
     - name: glance-db
     - name: glance-keystone
@@ -19,10 +29,14 @@
 
 - id: glance-db
   type: puppet
-  version: 2.0.0
+  version: 2.1.0
   groups: [primary-controller]
   required_for: [glance]
   requires: [primary-database, database]
+  condition:
+    yaql_exp: >
+      changedAny($.glance, $.mysql, $.network_metadata.vips,
+      $.get('database_vip'))
   cross-depends:
     - name: /(primary-)?database/
   parameters:
@@ -32,10 +46,14 @@
 
 - id: glance-keystone
   type: puppet
-  version: 2.0.0
+  version: 2.1.0
   groups: [primary-controller]
   required_for: [glance]
   requires: [primary-keystone, keystone]
+  condition:
+    yaql_exp: >
+      changedAny($.glance, $.network_metadata.vips, $.public_ssl,
+      $.get('use_ssl'), $.get('region', 'RegionOne'))
   cross-depends:
     - name: keystone
   parameters:
