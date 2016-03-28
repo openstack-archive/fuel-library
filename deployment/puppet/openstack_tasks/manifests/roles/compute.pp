@@ -231,6 +231,7 @@ class openstack_tasks::roles::compute {
     augeas { 'libvirt_hugetlbfs_mount':
       context => '/files/etc/libvirt/qemu.conf',
       changes => $libvirt_hugetlbfs_mount,
+      require => Package[$::nova::params::libvirt_package_name],
       notify  => Service['libvirt'],
     }
 
