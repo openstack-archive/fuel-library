@@ -221,7 +221,7 @@ class openstack_tasks::roles::compute {
       $libvirt_hugetlbfs_mount = 'set hugetlbfs_mount /run/hugepages/kvm'
     } else {
       $qemu_hugepages_value    = 'rm KVM_HUGEPAGES'
-      $libvirt_hugetlbfs_mount = 'rm hugetlbfs_mount'
+      $libvirt_hugetlbfs_mount = 'set hugetlbfs_mount ""'
     }
     augeas { 'qemu_hugepages':
       context => '/files/etc/default/qemu-kvm',
@@ -231,6 +231,7 @@ class openstack_tasks::roles::compute {
     augeas { 'libvirt_hugetlbfs_mount':
       context => '/files/etc/libvirt/qemu.conf',
       changes => $libvirt_hugetlbfs_mount,
+      require => Package[$::nova::params::libvirt_package_name],
       notify  => Service['libvirt'],
     }
 
