@@ -49,8 +49,6 @@ describe manifest do
       )
     end
 
-    it { is_expected.to contain_class 'monit' }
-
     it { is_expected.to contain_exec 'Change protocol and port in in issue' }
 
     it { is_expected.to contain_service('dhcrelay').with(:ensure => 'stopped')}
