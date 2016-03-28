@@ -1,10 +1,14 @@
 - id: firewall
   type: puppet
-  version: 2.0.0
+  version: 2.1.0
   groups: [primary-controller, controller, cinder, cinder-block-device, cinder-vmware, compute, ceph-osd, primary-mongo, mongo, ironic]
   required_for: [deploy_end]
   requires: [netconfig]
   reexecute_on: [deploy_changes]
+  condition:
+    yaql_exp: >
+      changedAny($.network_scheme, $.network_metadata,
+      ($.ironic.enabled and changed($.ironic.enabled)), $.roles, $.master_ip)
   parameters:
     puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/firewall/firewall.pp
     puppet_modules: /etc/puppet/modules
