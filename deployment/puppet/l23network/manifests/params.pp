@@ -21,8 +21,6 @@ class l23network::params {
       $dpdk_dir                   = '/etc/dpdk'
       $dpdk_conf_file             = '/etc/dpdk/dpdk.conf'
       $dpdk_interfaces_file       = '/etc/dpdk/interfaces'
-      $ovs_socket_dir_group       = 'libvirt-qemu'
-      $ovs_socket_dir             = '/var/run/openvswitch'
       $ovs_kern_module_name       = 'openvswitch'
       $network_manager_name       = 'network-manager'
       $extra_tools                = 'iputils-arping'
@@ -45,8 +43,6 @@ class l23network::params {
       $dpdk_dir                   = undef
       $dpdk_conf_file             = undef
       $dpdk_interfaces_file       = undef
-      $ovs_socket_dir_group       = undef
-      $ovs_socket_dir             = undef
       $ovs_datapath_package_name  = $::l23_os ? {
                                       /(?i)oraclelinux/ => 'kmod-openvswitch-uek',
                                       default           => 'kmod-openvswitch',
@@ -73,8 +69,6 @@ class l23network::params {
       $dpdk_dir                   = undef
       $dpdk_conf_file             = undef
       $dpdk_interfaces_file       = undef
-      $ovs_socket_dir_group       = undef
-      $ovs_socket_dir             = undef
       $ovs_datapath_package_name  = undef
       $ovs_common_package_name    = undef
       $ovs_kern_module_name       = undef
