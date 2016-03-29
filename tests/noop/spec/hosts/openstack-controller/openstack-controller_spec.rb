@@ -1,11 +1,11 @@
-# FIXME: neut_vlan.ceph.ceil-primary-controller.overridden_ssl ubuntu
-# FIXME: neut_vlan.ceph.controller-ephemeral-ceph ubuntu
-# FIXME: neut_vlan.ironic.controller ubuntu
-# FIXME: neut_vlan_l3ha.ceph.ceil-controller ubuntu
-# FIXME: neut_vlan_l3ha.ceph.ceil-primary-controller ubuntu
-# FIXME: neut_vxlan_dvr.murano.sahara-controller ubuntu
-# FIXME: neut_vxlan_dvr.murano.sahara-primary-controller ubuntu
-# FIXME: neut_vxlan_dvr.murano.sahara-primary-controller.overridden_ssl ubuntu
+# RUN: neut_vlan.ceph.ceil-primary-controller.overridden_ssl ubuntu
+# RUN: neut_vlan.ceph.controller-ephemeral-ceph ubuntu
+# RUN: neut_vlan.ironic.controller ubuntu
+# RUN: neut_vlan_l3ha.ceph.ceil-controller ubuntu
+# RUN: neut_vlan_l3ha.ceph.ceil-primary-controller ubuntu
+# RUN: neut_vxlan_dvr.murano.sahara-controller ubuntu
+# RUN: neut_vxlan_dvr.murano.sahara-primary-controller ubuntu
+# RUN: neut_vxlan_dvr.murano.sahara-primary-controller.overridden_ssl ubuntu
 
 require 'spec_helper'
 require 'shared-examples'
@@ -126,8 +126,8 @@ describe manifest do
     let(:syslog_log_facility_nova) { Noop.hiera 'syslog_log_facility_nova', 'LOG_LOCAL6' }
     let(:use_syslog) { Noop.hiera 'use_syslog', true }
     let(:use_stderr) { Noop.hiera 'use_stderr', false }
-    let(:nova_report_interval) { Noop.puppet_function 'pick', nova_hash['nova_report_interval'], nil }
-    let(:nova_service_down_time) { Noop.puppet_function 'pick', nova_hash['nova_service_down_time'], nil }
+    let(:nova_report_interval) { Noop.hiera 'nova_report_interval', '60' }
+    let(:nova_service_down_time) { Noop.hiera 'nova_service_down_time', '180' }
     let(:notify_api_faults) { Noop.puppet_function 'pick', nova_hash['notify_api_faults'], false }
     let(:cinder_catalog_info) { Noop.puppet_function 'pick', nova_hash['cinder_catalog_info'], 'volumev2:cinderv2:internalURL' }
     let(:nova_notification_driver) do
