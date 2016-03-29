@@ -5,6 +5,8 @@ class fuel::iptables (
   $admin_iface           = $::fuel::params::admin_interface,
   $ssh_port              = '22',
   $ssh_network           = '0.0.0.0/0',
+  $ssh_rseconds          = 60,
+  $ssh_rhitcount         = 4,
   $nailgun_web_port      = $::fuel::params::nailgun_port,
   $nailgun_internal_port = $::fuel::params::nailgun_internal_port,
   $nailgun_repo_port     = $::fuel::params::repo_port,
@@ -24,11 +26,11 @@ class fuel::iptables (
   #Enable cobbler's iptables rules even if Cobbler not called
   include cobbler::iptables
 
-  firewall { '002 accept related established rules':
+  firewall { '001 accept related established rules':
     proto  => 'all',
     state  => ['RELATED', 'ESTABLISHED'],
     action => 'accept',
-  } ->
+  }
 
   #Host services
   firewall { '004 forward_admin_net':
@@ -41,11 +43,40 @@ class fuel::iptables (
   }
   sysctl::value{'net.ipv4.ip_forward': value=>'1'}
 
-  firewall { '005 ssh':
-    port    => $ssh_port,
-    proto   => 'tcp',
-    source  => $ssh_network,
-    action  => 'accept',
+ firewall { '002 ssh: new pipe for a sessions':
+    proto  => 'tcp',
+    dport  => $ssh_port,
+    state  => 'NEW',
+    recent => 'set',
+  }
+
+  firewall { '003 ssh: more than allowed attempts logged':
+    proto      => 'tcp',
+    dport      => $ssh_port,
+    state      => 'NEW',
+    recent     => 'update',
+    rseconds   => $ssh_rseconds,
+    rhitcount  => $ssh_rhitcount,
+    jump       => 'LOG',
+    log_prefix => 'iptables denied SSH brute-force: ',
+    log_level  => '7',
+  }
+
+  firewall { '004 ssh: block more than allowed attempts':
+    proto     => 'tcp',
+    dport     => $ssh_port,
+    state     => 'NEW',
+    recent    => 'update',
+    rseconds  => $ssh_rseconds,
+    rhitcount => $ssh_rhitcount,
+    action    => 'drop',
+  }
+
+  firewall { '005 ssh: restrict on network':
+    proto  => 'tcp',
+    dport  => $ssh_port,
+    source => $ssh_network,
+    action => 'accept',
   }
 
   firewall { '006 ntp':
