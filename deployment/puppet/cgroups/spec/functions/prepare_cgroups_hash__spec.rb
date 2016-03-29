@@ -192,6 +192,36 @@ describe Puppet::Parser::Functions.function(:prepare_cgroups_hash) do
 
   end
 
+  context "converting memory to megabytes only for bytes value" do
+
+    let(:sample) {
+      {
+        'neutron' => '{"memory":{"memory.swappiness": 10}}',
+        'nova' => '{"hugetlb":{"hugetlb.16GB.limit_in_bytes": 10}}'
+      }
+    }
+
+    let(:result) {
+      {
+        'neutron' => {
+          'memory' => {
+            'memory.swappiness' => 10
+          }
+        },
+        'nova' => {
+          'hugetlb' => {
+            'hugetlb.16GB.limit_in_bytes' => 10 * 1024 * 1024
+          }
+        }
+      }
+    }
+
+    it 'should convert memory values only for bytes values' do
+      should run.with_params(sample).and_return(result)
+    end
+
+  end
+
   context "service's cgroup settings are not a HASH" do
 
     let(:sample) {
