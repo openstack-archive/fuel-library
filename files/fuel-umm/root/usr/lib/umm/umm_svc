@@ -8,7 +8,7 @@ set_umm(){
 }
 
 # check if UMM enabled and sckip processing any services
-[[ "$UMM" == "yes" ]] || exit 0
+[[ "$UMM" == "yes" ]] || umm_skip
 
 if [[ "$1" == "timer" ]] ; then
     sleep $(($COUNTER_RESET_TIME*60))
