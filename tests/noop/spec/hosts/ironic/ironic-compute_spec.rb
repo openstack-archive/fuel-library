@@ -2,9 +2,8 @@ require 'spec_helper'
 require 'shared-examples'
 manifest = 'roles/ironic-compute.pp'
 
-# FIXME: neut_vlan.ironic.conductor.yaml ubuntu
-# FIXME: neut_vlan.ironic.controller.yaml ubuntu
-# SKIP_HIERA: neut_vlan.ironic.controller
+# RUN: neut_vlan.ironic.conductor.yaml ubuntu
+# RUN: neut_vlan.ironic.controller.yaml ubuntu
 
 describe manifest do
 
@@ -57,7 +56,7 @@ describe manifest do
         should contain_nova_config('DEFAULT/compute_driver').with(:value => 'ironic.IronicDriver')
         should contain_nova_config('DEFAULT/compute_manager').with(:value => 'ironic.nova.compute.manager.ClusteredComputeManager')
         should contain_nova_config('ironic/admin_url').with(:value => "#{admin_uri}/v2.0")
-        should contain_nova_config('neutron/admin_auth_url').with(:value => "#{admin_uri}/v2.0")
+        should contain_nova_config('neutron/auth_url').with(:value => "#{admin_uri}/v3")
       end
 
       it 'nova config should have reserved_host_memory_mb set to 0' do
@@ -65,7 +64,7 @@ describe manifest do
       end
 
       it 'nova config should contain right memcached servers list' do
-        should contain_nova_config('DEFAULT/memcached_servers').with(
+        should contain_nova_config('keystone_authtoken/memcached_servers').with(
           'value' => memcache_servers,
         )
       end
@@ -79,7 +78,7 @@ describe manifest do
                              :name               => "p_nova_compute_ironic",
                              :ensure             => "present",
                              :primitive_class    => "ocf",
-                             :primitive_provider => "pacemaker",
+                             :primitive_provider => "fuel",
                              :primitive_type     => "nova-compute",
                              :metadata        => {"resource-stickiness" => "1"},
                              :parameters      => {"config"                => "/etc/nova/nova.conf",
