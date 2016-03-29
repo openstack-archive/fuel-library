@@ -38,5 +38,5 @@ umm-off(){
 }
 
 umm-skip(){
-    return 0
+    exit 0
 }
