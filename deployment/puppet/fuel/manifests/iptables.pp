@@ -41,9 +41,26 @@ class fuel::iptables (
   }
   sysctl::value{'net.ipv4.ip_forward': value=>'1'}
 
-  firewall { '005 ssh':
-    port    => $ssh_port,
+  firewall { '003 ssh: new pipe for a sessions':
+    proto  => 'tcp',
+    dport  => $ssh_port,
+    state  => 'NEW',
+    recent => 'set',
+  }
+
+  firewall { '004 ssh: block more than 3 conn/min':
+    proto     => 'tcp',
+    dport     => $ssh_port,
+    state     => 'NEW',
+    recent    => 'update',
+    rseconds  => 60,
+    rhitcount => 4,
+    action    => 'drop',
+  }
+
+  firewall { '005 ssh: restrict on network':
     proto   => 'tcp',
+    dport   => $ssh_port,
     source  => $ssh_network,
     action  => 'accept',
   }
