@@ -5,8 +5,9 @@ class openstack_tasks::roles::enable_compute {
 
   $compute_service_name = $::nova::params::compute_service_name
   $use_ovs              = hiera('use_ovs', true)
+  $roles                = hiera('roles')
 
-  if $use_ovs {
+  if !('compute-vmware' in $roles) and $use_ovs {
     $neutron_integration_bridge = 'br-int'
     $bridge_exists_check        = "ovs-vsctl br-exists ${neutron_integration_bridge}"
 
