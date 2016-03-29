@@ -2,6 +2,13 @@ require 'spec_helper'
 
 describe 'get_ssl_property' do
 
+  let(:scope) { PuppetlabsSpec::PuppetInternals.scope }
+
+  subject do
+    function_name = Puppet::Parser::Functions.function(:get_ssl_property)
+    scope.method(function_name)
+  end
+
   let(:public_ssl_hash) do
     {
      'horizon' => true,
