@@ -28,6 +28,8 @@ class openstack_tasks::openstack_controller::openstack_controller {
   $nova_hash                    = hiera_hash('nova', {})
   $nova_rate_limits             = $nova_hash['nova_rate_limits']
   $nova_config_hash             = hiera_hash('nova_config', {})
+  $nova_report_interval         = hiera('nova_report_interval', '60')
+  $nova_service_down_time       = hiera('nova_service_down_time', '180')
   $api_bind_address             = get_network_role_property('nova/api', 'ipaddr')
   $rabbit_hash                  = hiera_hash('rabbit', {})
   $service_endpoint             = hiera('service_endpoint')
@@ -201,8 +203,8 @@ class openstack_tasks::openstack_controller::openstack_controller {
     use_syslog              => $use_syslog,
     use_stderr              => $use_stderr,
     database_idle_timeout   => $idle_timeout,
-    report_interval         => $nova_hash['nova_report_interval'],
-    service_down_time       => $nova_hash['nova_service_down_time'],
+    report_interval         => $nova_report_interval,
+    service_down_time       => $nova_service_down_time,
     notify_api_faults       => pick($nova_hash['notify_api_faults'], false),
     notification_driver     => $nova_notification_driver,
     memcached_servers       => $memcached_addresses,

@@ -23,8 +23,8 @@ class openstack_tasks::ironic::ironic_compute {
   $syslog_log_facility_nova       = hiera('syslog_log_facility_nova', 'LOG_LOCAL6')
   $amqp_hosts                     = hiera('amqp_hosts')
   $rabbit_hash                    = hiera_hash('rabbit')
-  $nova_report_interval           = $nova_hash['nova_report_interval']
-  $nova_service_down_time         = $nova_hash['nova_service_down_time']
+  $nova_report_interval           = hiera('nova_report_interval', '60')
+  $nova_service_down_time         = hiera('nova_service_down_time', '180')
   $neutron_config                 = hiera_hash('quantum_settings')
 
   $ironic_tenant                  = pick($ironic_hash['tenant'],'services')
