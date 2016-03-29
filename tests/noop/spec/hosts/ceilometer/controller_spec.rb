@@ -54,7 +54,7 @@ describe manifest do
     internal_auth_protocol = Noop.puppet_function 'get_ssl_property',ssl_hash,{},'keystone','internal','protocol','http'
     internal_auth_endpoint = Noop.puppet_function 'get_ssl_property',ssl_hash,{},'keystone','internal','hostname',[service_endpoint]
     keystone_identity_uri  = "#{internal_auth_protocol}://#{internal_auth_endpoint}:35357/"
-    keystone_auth_uri      = "#{internal_auth_protocol}://#{internal_auth_endpoint}:5000/"
+    keystone_auth_uri      = "#{internal_auth_protocol}://#{internal_auth_endpoint}:5000/v2.0"
     kombu_compression      = Noop.hiera 'kombu_compression', ''
 
     # Ceilometer

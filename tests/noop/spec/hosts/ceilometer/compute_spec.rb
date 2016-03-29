@@ -30,7 +30,7 @@ describe manifest do
     admin_auth_endpoint    = Noop.puppet_function 'get_ssl_property',ssl_hash,{},'keystone','admin','hostname',[service_endpoint]
 
     keystone_identity_uri  = "#{admin_auth_protocol}://#{admin_auth_endpoint}:35357/"
-    keystone_auth_uri      = "#{internal_auth_protocol}://#{internal_auth_endpoint}:5000/"
+    keystone_auth_uri      = "#{internal_auth_protocol}://#{internal_auth_endpoint}:5000/v2.0"
     kombu_compression      = Noop.hiera 'kombu_compression', ''
 
     if ceilometer_hash['enabled']
