@@ -5,7 +5,8 @@ class osnailyfacter::vmware::compute_vmware {
   $debug = hiera('debug', true)
 
   $vcenter_hash = hiera_hash('vcenter', {})
-  $computes_hash = parse_vcenter_settings($vcenter_hash['computes'])
+  $computes = $vcenter_hash['computes']
+  $computes_hash = parse_vcenter_settings($computes)
 
   $defaults = {
     current_node   => hiera('node_name'),
@@ -17,8 +18,7 @@ class osnailyfacter::vmware::compute_vmware {
   $ceilometer_hash = hiera_hash('ceilometer', {})
   $ceilometer_enabled = $ceilometer_hash['enabled']
 
-  if $ceilometer_enabled {
-    $computes = $vcenter_hash['computes']
+  if $ceilometer_enabled and $computes {
     $compute  = $computes[0]
 
     $password = $ceilometer_hash['user_password']
