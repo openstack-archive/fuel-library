@@ -48,7 +48,7 @@ describe manifest do
           'public_ssl'             => public_ssl,
           'require_service'        => 'glance-api',
           'haproxy_config_options' => {
-            'option'         => ['httpchk /versions', 'httplog', 'httpclose'],
+            'option'         => ['httpchk GET /healthcheck', 'httplog', 'httpclose'],
             'http-request'   => 'set-header X-Forwarded-Proto https if { ssl_fc }',
             'timeout server' => '11m',
            },
