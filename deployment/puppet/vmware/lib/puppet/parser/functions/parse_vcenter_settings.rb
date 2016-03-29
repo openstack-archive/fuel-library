@@ -10,7 +10,7 @@ EOS
   unless args.size > 0
     raise Puppet::ParseError, "You should give an array of computes!"
   end
-  settings = args[0]
+  settings = [args[0]].flatten
   settings_hash = Hash[(0...settings.size).zip settings]
 end
 
