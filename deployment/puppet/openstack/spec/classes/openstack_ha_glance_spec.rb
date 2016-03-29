@@ -22,7 +22,7 @@ require 'spec_helper'
         'public_ssl_path'        => '/var/lib/fuel/haproxy/public_glance.pem',
         'require_service'        => 'glance-api',
         'haproxy_config_options' => {
-          'option'       => ['httpchk /versions', 'httplog','httpclose'],
+          'option'       => ['httpchk /healthcheck', 'httplog','httpclose'],
           'http-request' => 'set-header X-Forwarded-Proto https if { ssl_fc }',
           'timeout server' => '11m',
         },
