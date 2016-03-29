@@ -152,6 +152,7 @@ describe manifest do
                    'admin_password'      => murano_password,
                    'admin_tenant_name'   => tenant,
                    'identity_uri'        => "#{admin_auth_protocol}://#{admin_auth_address}:35357/",
+                   'notification_driver' => 'messagingv2',
                    'use_neutron'         => use_neutron,
                    'rabbit_os_user'      => rabbit_os_user,
                    'rabbit_os_password'  => rabbit_os_password,

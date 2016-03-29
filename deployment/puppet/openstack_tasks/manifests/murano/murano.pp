@@ -117,6 +117,7 @@ class openstack_tasks::murano::murano {
       admin_password      => $murano_hash['user_password'],
       admin_tenant_name   => $tenant,
       identity_uri        => "${admin_auth_protocol}://${admin_auth_address}:35357/",
+      notification_driver => 'messagingv2',
       use_neutron         => $use_neutron,
       packages_service    => $packages_service,
       rabbit_os_user      => $rabbit_hash['user'],
