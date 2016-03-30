@@ -1,13 +1,14 @@
-- id: netconfig
+- id: netconfig-controller
   type: puppet
-  version: 2.1.0
-  groups: [primary-controller, controller, cinder, cinder-block-device, cinder-vmware, compute, ceph-osd, primary-mongo, mongo, virt, ironic]
+  version: 2.0.0
+  groups: [primary-controller, controller]
   required_for: [deploy_end]
   requires: [tools]
   condition:
     yaql_exp: >
       changedAny($.network_scheme, $.dpdk, $.get('use_ovs'), $.get('set_rps'),
       $.get('set_rps'), $.get('run_ping_checker'),
+      $.network_metadata.vips.get('management'),
       $.network_scheme.endpoints.values().where(
         $.get('gateway') != null).gateway)
   parameters:
@@ -19,12 +20,36 @@
   test_post:
     cmd: ruby /etc/puppet/modules/osnailyfacter/modular/netconfig/netconfig_post.rb
 
+- id: netconfig
+  type: puppet
+  version: 2.1.0
+  groups: [cinder, cinder-block-device, cinder-vmware, compute, compute-vmware, ceph-osd, primary-mongo, mongo, virt, ironic]
+  required_for: [deploy_end]
+  requires: [tools]
+  condition:
+    yaql_exp: >
+      changedAny($.network_scheme, $.dpdk, $.get('use_ovs'), $.get('set_rps'),
+      $.get('set_rps'), $.get('run_ping_checker'),
+      $.network_metadata.vips.get('management'),
+      $.network_scheme.endpoints.values().where(
+        $.get('gateway') != null).gateway)
+  parameters:
+    puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/netconfig/netconfig.pp
+    puppet_modules: /etc/puppet/modules
+    timeout: 3600
+  test_pre:
+    cmd: ruby /etc/puppet/modules/osnailyfacter/modular/netconfig/netconfig_pre.rb
+  test_post:
+    cmd: ruby /etc/puppet/modules/osnailyfacter/modular/netconfig/netconfig_post.rb
+  cross-depends:
+    - name: virtual_ips
+
 - id: connectivity_tests
   type: puppet
   version: 2.1.0
   groups: [primary-controller, controller, cinder, cinder-block-device, cinder-vmware, compute, ceph-osd, primary-mongo, mongo, virt, ironic]
   required_for: [firewall, hosts]
-  requires: [netconfig]
+  requires: [netconfig-controller, netconfig]
   condition:
     yaql_exp: 'changedAny($.repo_setup, $.network_scheme)'
   parameters:
