@@ -1,4 +1,4 @@
-class openstack_tasks::swift::storage { 
+class openstack_tasks::swift::storage {
   notice('MODULAR: swift/storage.pp')
 
   $network_scheme             = hiera_hash('network_scheme', {})
@@ -59,6 +59,7 @@ class openstack_tasks::swift::storage {
 
   }
 
+  # FIXME(bogdando) requires decomposition and unit tests
   class openstack::swift::storage_node (
     $swift_zone,
     $swift_hash_suffix          = 'swift_secret',
