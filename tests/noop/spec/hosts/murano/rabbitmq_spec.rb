@@ -1,11 +1,8 @@
-# FIXME: neut_vlan.ceph.ceil-primary-controller.overridden_ssl ubuntu
-# FIXME: neut_vlan.ceph.controller-ephemeral-ceph ubuntu
-# FIXME: neut_vlan.ironic.controller ubuntu
-# FIXME: neut_vlan_l3ha.ceph.ceil-controller ubuntu
-# FIXME: neut_vlan_l3ha.ceph.ceil-primary-controller ubuntu
-# FIXME: neut_vxlan_dvr.murano.sahara-controller ubuntu
-# FIXME: neut_vxlan_dvr.murano.sahara-primary-controller ubuntu
-# FIXME: neut_vxlan_dvr.murano.sahara-primary-controller.overridden_ssl ubuntu
+# RUN: neut_vxlan_dvr.murano.sahara-controller ubuntu
+# RUN: neut_vxlan_dvr.murano.sahara-primary-controller ubuntu
+# RUN: neut_vxlan_dvr.murano.sahara-primary-controller.overridden_ssl ubuntu
+# RUN: neut_vxlan_dvr.murano.sahara-cinder.yaml
+# RUN: neut_vxlan_dvr.murano.sahara-compute.yaml
 
 require 'spec_helper'
 require 'shared-examples'
