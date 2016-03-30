@@ -34,6 +34,14 @@
 # Initialization:
 
 OCF_ROOT_default="/usr/lib/ocf"
+: ${OCF_ROOT=${OCF_ROOT_default}}
+
+: ${OCF_FUNCTIONS_DIR=${OCF_ROOT}/lib/heartbeat}
+. ${OCF_FUNCTIONS_DIR}/ocf-shellfuncs
+: ${OCF_FUEL_FUNCTIONS_DIR=${OCF_ROOT}/resource.d/fuel}
+. ${OCF_FUEL_FUNCTIONS_DIR}/ocf-fuel-funcs
+
+###########################################################################
 
 OCF_RESKEY_ns_default="haproxy"
 OCF_RESKEY_conffile_default="/etc/haproxy/haproxy.cfg"
@@ -50,7 +58,6 @@ OCF_RESKEY_network_mask_default="30"
 OCF_RESKEY_route_metric_default="10000"
 OCF_RESKEY_debug_default=false
 
-: ${OCF_ROOT=${OCF_ROOT_default}}
 : ${HA_LOGTAG="ocf-ns_haproxy"}
 : ${HA_LOGFACILITY="daemon"}
 
@@ -68,11 +75,6 @@ OCF_RESKEY_debug_default=false
 : ${OCF_RESKEY_network_mask=${OCF_RESKEY_network_mask_default}}
 : ${OCF_RESKEY_route_metric=${OCF_RESKEY_route_metric_default}}
 : ${OCF_RESKEY_debug=${OCF_RESKEY_debug_default}}
-
-: ${OCF_FUNCTIONS_DIR=${OCF_ROOT}/resource.d/heartbeat}
-. ${OCF_FUNCTIONS_DIR}/.ocf-shellfuncs
-: ${OCF_FUEL_FUNCTIONS_DIR=${OCF_ROOT}/resource.d/fuel}
-. ${OCF_FUEL_FUNCTIONS_DIR}/ocf-fuel-funcs
 
 USAGE="Usage: $0 {start|stop|restart|status|monitor|validate-all|meta-data}";
 
@@ -313,9 +315,9 @@ get_variables() {
         CONF_FILE="${OCF_RESKEY_conffile}"
         COMMAND="$RUN ${OCF_RESKEY_binpath}"
         if [ -n "${OCF_RESKEY_pidfile}" ]; then
-                PIDFILE=$(grep -v "#" ${CONF_FILE} | grep "pidfile" | sed 's/^[ \t]*pidfile[ \t]*//')
-        else
                 PIDFILE="${OCF_RESKEY_pidfile}"
+        else
+                PIDFILE=$(grep -v "#" ${CONF_FILE} | grep "pidfile" | sed 's/^[ \t]*pidfile[ \t]*//')
         fi
         ocf_log debug "${LH} set up variables and PIDFILE name"
 }
