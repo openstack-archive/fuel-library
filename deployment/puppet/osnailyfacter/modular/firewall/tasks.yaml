@@ -3,7 +3,7 @@
   version: 2.0.0
   groups: [primary-controller, controller, cinder, cinder-block-device, cinder-vmware, compute, ceph-osd, primary-mongo, mongo, ironic]
   required_for: [deploy_end]
-  requires: [netconfig]
+  requires: [netconfig, netconfig-controller]
   reexecute_on: [deploy_changes]
   parameters:
     puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/firewall/firewall.pp

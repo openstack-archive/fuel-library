@@ -107,8 +107,9 @@
 
 - id: configure_default_route
   type: puppet
+  # TODO: (alex_didenko) remove this task when role-based deployment is deprecated
   version: 2.0.0
-  role: [primary-mongo, mongo, compute, compute-vmware, ceph-osd, cinder, cinder-vmware]
+  role: [primary-mongo, mongo]
   requires: [post_deployment_start]
   required_for: [post_deployment_end]
   parameters:

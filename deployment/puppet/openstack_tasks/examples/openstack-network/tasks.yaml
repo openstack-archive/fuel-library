@@ -29,7 +29,7 @@
   type: skipped
   version: 2.0.0
   groups: [primary-controller,controller,compute]
-  requires: [neutron-keystone, neutron-db, netconfig, primary-openstack-controller, openstack-controller, top-role-compute]
+  requires: [neutron-keystone, neutron-db, netconfig-controller, netconfig, primary-openstack-controller, openstack-controller, top-role-compute]
   required_for: [openstack-network-common-config]
   cross-depends:
     - name: neutron-keystone
