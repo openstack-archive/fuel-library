@@ -53,6 +53,8 @@ describe manifest do
       is_expected.to contain_fuel__dnsmasq__dhcp_range('default').with parameters
     end
 
+    it { is_expected.to contain_cobbler_profile('ubuntu_bootstrap').with_kopts(/\bip=frommedia\b/) }
+
   end
   run_test manifest
 end
