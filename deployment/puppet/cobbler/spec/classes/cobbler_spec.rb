@@ -37,7 +37,6 @@ describe 'cobbler' do
         should contain_class('cobbler::packages')
         should contain_class('cobbler::selinux')
         should contain_class('cobbler::iptables')
-        should contain_class('cobbler::snippets')
         should contain_class('cobbler::server').with(
           :domain_name      => params[:domain_name],
           :production       => params[:production],
