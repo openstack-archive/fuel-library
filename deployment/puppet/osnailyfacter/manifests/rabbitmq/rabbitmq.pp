@@ -19,6 +19,17 @@ class osnailyfacter::rabbitmq::rabbitmq {
         'password' => false,
       }
     )
+    $rabbit_ocf_default = {
+        'start_timeout'       => '180',
+        'stop_timeout'        => '120',
+        'mon_timeout'         => '180',
+        'promote_timeout'     => '120',
+        'demote_timeout'      => '120',
+        'notify_timeout'      => '180',
+        'slave_mon_interval'  => '30',
+        'master_mon_interval' => '27',
+    }
+    $rabbit_ocf = merge($rabbit_ocf_default, hiera_hash('rabbit_ocf', {}))
     $debug           = pick($rabbit_hash['debug'], hiera('debug', false))
     $enabled         = pick($rabbit_hash['enabled'], true)
     $use_pacemaker   = pick($rabbit_hash['pacemaker'], true)
@@ -64,7 +75,6 @@ class osnailyfacter::rabbitmq::rabbitmq {
       $epmd_bind_ip_address = $rabbitmq_bind_ip_address
     }
 
-    # NOTE(bogdando) not a hash. Keep an indentation as is
     $config_kernel_variables = hiera('rabbit_config_kernel_variables',
       {
         'inet_dist_listen_min'         => '41055',
@@ -183,6 +193,14 @@ class osnailyfacter::rabbitmq::rabbitmq {
           # NOTE(bogdando) The fuel-libraryX package installs the custom
           # policy file by the given path. So not a hardcode.
           policy_file             => '/usr/sbin/set_rabbitmq_policy',
+          start_timeout           => $rabbit_ocf['start_timeout'],
+          stop_timeout            => $rabbit_ocf['stop_timeout'],
+          mon_timeout             => $rabbit_ocf['mon_timeout'],
+          promote_timeout         => $rabbit_ocf['promote_timeout'],
+          demote_timeout          => $rabbit_ocf['demote_timeout'],
+          notify_timeout          => $rabbit_ocf['notify_timeout'],
+          slave_mon_interval      => $rabbit_ocf['slave_mon_interval'],
+          master_mon_interval     => $rabbit_ocf['master_mon_interval'],
           require                 => Class['::rabbitmq::install'],
         }
       }

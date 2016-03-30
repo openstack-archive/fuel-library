@@ -66,7 +66,39 @@
 #   String. Optional path to the policy file for HA queues.
 #   Defaults to undef
 #
-
+# [*start_timeout*]
+#   String. Optional op start timeout for lrmd.
+#   Defaults to '120'
+#
+# [*stop_timeout*]
+#   String. Optional op stop timeout for lrmd.
+#   Defaults to '120'
+#
+# [*mon_timeout*]
+#   String. Optional op monitor timeout for lrmd.
+#   Defaults to '120'
+#
+# [*promote_timeout*]
+#   String. Optional op promote timeout for lrmd.
+#   Defaults to '120'
+#
+# [*demote_timeout*]
+#  String. Optional op demote timeout for lrmd.
+#   Defaults to '120'
+#
+# [*notify_timeout*]
+#   String. Optional op demote timeout for lrmd.
+#   Defaults to '120'
+#
+# [*slave_mon_interval*]
+#   String. Optional slaves' op monitor interval for lrmd.
+#   Defaults to '30'
+#
+# [*master_mon_interval*]
+#   String. Optional op master's monitor interval for lrmd.
+#   Should as less overlap with the slave_mon_interval as
+#   possible. Defaults to '27'
+#
 class cluster::rabbitmq_ocf (
   $primitive_type          = 'rabbitmq-server',
   $service_name            = $::rabbitmq::service_name,
@@ -83,6 +115,14 @@ class cluster::rabbitmq_ocf (
   $fqdn_prefix             = '',
   $pid_file                = undef,
   $policy_file             = undef,
+  $start_timeout           = '120',
+  $stop_timeout            = '120',
+  $mon_timeout             = '120',
+  $promote_timeout         = '120',
+  $demote_timeout          = '120',
+  $notify_timeout          = '120',
+  $slave_mon_interval      = '30',
+  $master_mon_interval     = '30',
 ) inherits ::rabbitmq::service {
 
   if $host_ip == 'UNSET' or $host_ip == '0.0.0.0' {
@@ -124,40 +164,39 @@ class cluster::rabbitmq_ocf (
 
   $operations      = {
     'monitor' => {
-      'interval' => '30',
-      'timeout'  => '180'
+      'interval' => $slave_mon_interval,
+      'timeout'  => $mon_timeout
     },
     'monitor:Master' => { # name:role
       'role' => 'Master',
-      # should be non-intercectable with interval from ordinary monitor
-      'interval' => '27',
-      'timeout'  => '180'
+      'interval' => $master_mon_interval,
+      'timeout'  => $mon_timeout
     },
     'monitor:Slave'  => {
       'role'            => 'Slave',
-      'interval'        => '103',
-      'timeout'         => '180',
+      'interval'        => $slave_mon_interval,
+      'timeout'         => $mon_timeout,
       'OCF_CHECK_LEVEL' => '30'
     },
     'start'     => {
       'interval' => '0',
-      'timeout'  => '360'
+      'timeout'  => $start_timeout
     },
     'stop' => {
       'interval' => '0',
-      'timeout'  => '120'
+      'timeout'  => $stop_timeout
     },
     'promote' => {
       'interval' => '0',
-      'timeout'  => '120'
+      'timeout'  => $promote_timeout
     },
     'demote' => {
       'interval' => '0',
-      'timeout'  => '120'
+      'timeout'  => $demote_timeout
     },
     'notify' => {
       'interval' => '0',
-      'timeout'  => '180'
+      'timeout'  => $notify_timeout
     },
   }
 
