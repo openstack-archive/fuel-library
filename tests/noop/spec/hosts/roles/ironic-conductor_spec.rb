@@ -1,4 +1,4 @@
-# RUN: neut_vlan.ironic.conductor ubuntu
+# HIERA: neut_vlan.ironic.conductor
 
 require 'spec_helper'
 require 'shared-examples'

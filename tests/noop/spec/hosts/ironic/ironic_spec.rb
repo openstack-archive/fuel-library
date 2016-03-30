@@ -2,8 +2,8 @@ require 'spec_helper'
 require 'shared-examples'
 manifest = 'ironic/ironic.pp'
 
-# RUN: neut_vlan.ironic.conductor.yaml ubuntu
-# RUN: neut_vlan.ironic.controller.yaml ubuntu
+# HIERA: neut_vlan.ironic.conductor.yaml
+# HIERA: neut_vlan.ironic.controller.yaml
 # SKIP_HIERA: neut_vlan.ironic.controller
 
 ironic_enabled = Noop.hiera_structure 'ironic/enabled'

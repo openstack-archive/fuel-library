@@ -1,4 +1,4 @@
-# RUN: neut_vlan_l3ha.ceph.ceil-primary-mongo ubuntu
+# HIERA: neut_vlan_l3ha.ceph.ceil-primary-mongo
 
 require 'spec_helper'
 require 'shared-examples'

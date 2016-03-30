@@ -1,4 +1,4 @@
-# RUN: neut_gre.generate_vms.yaml ubuntu
+# HIERA: neut_gre.generate_vms.yaml
 
 require 'spec_helper'
 require 'shared-examples'

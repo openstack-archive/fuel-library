@@ -1,5 +1,5 @@
-# RUN: neut_vlan.cinder-block-device.compute ubuntu
-# RUN: neut_vxlan_dvr.murano.sahara-cinder ubuntu
+# HIERA: neut_vlan.cinder-block-device.compute
+# HIERA: neut_vxlan_dvr.murano.sahara-cinder
 
 require 'spec_helper'
 require 'shared-examples'

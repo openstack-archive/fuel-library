@@ -1,8 +1,8 @@
-# RUN: neut_vxlan_dvr.murano.sahara-controller ubuntu
-# RUN: neut_vxlan_dvr.murano.sahara-primary-controller ubuntu
-# RUN: neut_vxlan_dvr.murano.sahara-primary-controller.overridden_ssl ubuntu
-# RUN: neut_vxlan_dvr.murano.sahara-cinder.yaml
-# RUN: neut_vxlan_dvr.murano.sahara-compute.yaml
+# HIERA: neut_vxlan_dvr.murano.sahara-controller
+# HIERA: neut_vxlan_dvr.murano.sahara-primary-controller
+# HIERA: neut_vxlan_dvr.murano.sahara-primary-controller.overridden_ssl
+# HIERA: neut_vxlan_dvr.murano.sahara-cinder.yaml
+# HIERA: neut_vxlan_dvr.murano.sahara-compute.yaml
 
 require 'spec_helper'
 require 'shared-examples'

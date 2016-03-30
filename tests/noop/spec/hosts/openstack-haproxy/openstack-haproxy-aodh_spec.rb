@@ -1,11 +1,11 @@
 # SKIP_HIERA: neut_vlan.ceph.ceil-primary-controller.overridden_ssl FIXME
-# RUN: neut_vlan.ceph.controller-ephemeral-ceph ubuntu
-# RUN: neut_vlan.ironic.controller ubuntu
+# HIERA: neut_vlan.ceph.controller-ephemeral-ceph
+# HIERA: neut_vlan.ironic.controller
 # SKIP_HIERA: neut_vlan_l3ha.ceph.ceil-controller ubuntu FIXME
 # SKIP_HIERA: neut_vlan_l3ha.ceph.ceil-primary-controller ubuntu FIXME
-# RUN: neut_vxlan_dvr.murano.sahara-controller ubuntu
-# RUN: neut_vxlan_dvr.murano.sahara-primary-controller ubuntu
-# RUN: neut_vxlan_dvr.murano.sahara-primary-controller.overridden_ssl ubuntu
+# HIERA: neut_vxlan_dvr.murano.sahara-controller
+# HIERA: neut_vxlan_dvr.murano.sahara-primary-controller
+# HIERA: neut_vxlan_dvr.murano.sahara-primary-controller.overridden_ssl
 
 require 'spec_helper'
 require 'shared-examples'

@@ -1,12 +1,12 @@
-# RUN: neut_gre.generate_vms ubuntu
+# HIERA: neut_gre.generate_vms
 # SKIP_HIERA: neut_vlan.ceph.ceil-compute.overridden_ssl ubuntu FIXME
 # SKIP_HIERA: neut_vlan.ceph.compute-ephemeral-ceph ubuntu FIXME
-# RUN: neut_vlan.cinder-block-device.compute ubuntu
-# RUN: neut_vlan.compute.nossl ubuntu
-# RUN: neut_vlan.compute.ssl ubuntu
-# RUN: neut_vlan.compute.ssl.overridden ubuntu
+# HIERA: neut_vlan.cinder-block-device.compute
+# HIERA: neut_vlan.compute.nossl
+# HIERA: neut_vlan.compute.ssl
+# HIERA: neut_vlan.compute.ssl.overridden
 # SKIP_HIERA: neut_vlan_l3ha.ceph.ceil-compute ubuntu FIXME
-# RUN: neut_vxlan_dvr.murano.sahara-compute ubuntu
+# HIERA: neut_vxlan_dvr.murano.sahara-compute
 
 require 'spec_helper'
 require 'shared-examples'
