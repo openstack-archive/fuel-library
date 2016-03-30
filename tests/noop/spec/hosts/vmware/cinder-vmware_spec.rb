@@ -1,4 +1,4 @@
-# RUN: neut_vlan.cinder-block-device.compute ubuntu
+# HIERA: neut_vlan.cinder-block-device.compute
 
 require 'spec_helper'
 require 'shared-examples'

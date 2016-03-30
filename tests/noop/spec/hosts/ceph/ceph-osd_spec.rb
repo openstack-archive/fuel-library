@@ -1,6 +1,6 @@
-# RUN: neut_vlan.ceph.compute-ephemeral-ceph ubuntu
-# RUN: neut_vlan.ceph.controller-ephemeral-ceph ubuntu
-# RUN: neut_vlan_l3ha.ceph.ceil-ceph-osd ubuntu
+# HIERA: neut_vlan.ceph.compute-ephemeral-ceph
+# HIERA: neut_vlan.ceph.controller-ephemeral-ceph
+# HIERA: neut_vlan_l3ha.ceph.ceil-ceph-osd
 
 require 'spec_helper'
 require 'shared-examples'

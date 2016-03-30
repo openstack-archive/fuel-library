@@ -1,13 +1,13 @@
-# RUN: neut_vlan.ceph.ceil-primary-controller.overridden_ssl ubuntu
-# RUN: neut_vlan.ceph.compute-ephemeral-ceph ubuntu
-# RUN: neut_vlan.ceph.controller-ephemeral-ceph ubuntu
-# RUN: neut_vlan.ironic.controller ubuntu
-# RUN: neut_vlan_l3ha.ceph.ceil-ceph-osd ubuntu
-# RUN: neut_vlan_l3ha.ceph.ceil-controller ubuntu
-# RUN: neut_vlan_l3ha.ceph.ceil-primary-controller ubuntu
-# RUN: neut_vxlan_dvr.murano.sahara-controller ubuntu
-# RUN: neut_vxlan_dvr.murano.sahara-primary-controller ubuntu
-# RUN: neut_vxlan_dvr.murano.sahara-primary-controller.overridden_ssl ubuntu
+# HIERA: neut_vlan.ceph.ceil-primary-controller.overridden_ssl
+# HIERA: neut_vlan.ceph.compute-ephemeral-ceph
+# HIERA: neut_vlan.ceph.controller-ephemeral-ceph
+# HIERA: neut_vlan.ironic.controller
+# HIERA: neut_vlan_l3ha.ceph.ceil-ceph-osd
+# HIERA: neut_vlan_l3ha.ceph.ceil-controller
+# HIERA: neut_vlan_l3ha.ceph.ceil-primary-controller
+# HIERA: neut_vxlan_dvr.murano.sahara-controller
+# HIERA: neut_vxlan_dvr.murano.sahara-primary-controller
+# HIERA: neut_vxlan_dvr.murano.sahara-primary-controller.overridden_ssl
 
 require 'spec_helper'
 require 'shared-examples'
