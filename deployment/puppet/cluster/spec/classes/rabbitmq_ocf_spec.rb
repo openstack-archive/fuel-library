@@ -23,6 +23,14 @@ describe 'cluster::rabbitmq_ocf' do
       :fqdn_prefix             => 'nil',
       :pid_file                => 'nil',
       :policy_file             => 'nil',
+      :start_timeout           => '120',
+      :stop_timeout            => '120',
+      :mon_timeout             => '120',
+      :promote_timeout         => '120',
+      :demote_timeout          => '120',
+      :notify_timeout          => '120',
+      :slave_mon_interval      => '30',
+      :master_mon_interval     => '27',
     }}
 
     let(:metadata) {{
@@ -41,46 +49,46 @@ describe 'cluster::rabbitmq_ocf' do
     }}
 
     let(:monitor) {{
-      'interval' => '30',
-      'timeout'  => '180'
+      'interval' => params[:slave_mon_interval],
+      'timeout'  => params[:mon_timeout]
     }}
 
     let(:monitor_master) {{
-      'role' => 'Master',
-    'interval' => '27',
-    'timeout'  => '180'
+      'role'     => 'Master',
+      'interval' => params[:master_mon_interval],
+      'timeout'  => params[:mon_timeout]
     }}
 
     let(:monitor_slave) {{
       'role'            => 'Slave',
-      'interval'        => '103',
-      'timeout'         => '180',
+      'interval'        => params[:slave_mon_interval],
+      'timeout'         => params[:mon_timeout],
       'OCF_CHECK_LEVEL' => '30'
     }}
 
     let(:start) {{
       'interval' => '0',
-      'timeout'  => '360'
+      'timeout'  => params[:start_timeout]
     }}
 
     let(:stop) {{
       'interval' => '0',
-      'timeout'  => '120'
+      'timeout'  => params[:stop_timeout]
     }}
 
     let(:promote) {{
       'interval' => '0',
-      'timeout'  => '120'
+      'timeout'  => params[:promote_timeout]
     }}
 
     let(:demote) {{
       'interval' => '0',
-      'timeout'  => '120'
+      'timeout'  => params[:demote_timeout]
     }}
 
     let(:notify) {{
       'interval' => '0',
-      'timeout'  => '180'
+      'timeout'  => params[:notify_timeout]
     }}
 
     let(:operations) {{
