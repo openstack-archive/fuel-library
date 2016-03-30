@@ -1,15 +1,28 @@
+# RUN: neut_vlan.ceph.ceil-primary-controller.overridden_ssl ubuntu
+# RUN: neut_vlan.ceph.controller-ephemeral-ceph ubuntu
+# RUN: neut_vlan.ironic.controller ubuntu
+# RUN: neut_vlan_l3ha.ceph.ceil-controller ubuntu
+# RUN: neut_vlan_l3ha.ceph.ceil-primary-controller ubuntu
+# RUN: neut_vxlan_dvr.murano.sahara-primary-controller ubuntu
+# RUN: neut_vxlan_dvr.murano.sahara-primary-controller.overridden_ssl ubuntu
+
 require 'spec_helper'
 require 'shared-examples'
 manifest = 'swift/proxy.pp'
 
 describe manifest do
   shared_examples 'catalog' do
-    workers_max      = Noop.hiera 'workers_max'
+    network_scheme         = Noop.hiera_structure 'network_scheme', {}
+    network_metadata       = Noop.hiera_structure 'network_metadata', {}
+
+    let(:prepare) do
+      Noop.puppet_function 'prepare_network_config', network_scheme
+    end
+
+    workers_max      = Noop.hiera 'workers_max', 16
     role             = Noop.hiera 'role'
     storage_hash     = Noop.hiera_hash 'storage'
     swift_hash       = Noop.hiera_hash 'swift'
-    network_scheme   = Noop.hiera_hash 'network_scheme'
-    network_metadata = Noop.hiera_hash 'network_metadata'
 
     memcached_nodes     = Noop.puppet_function('get_nodes_hash_by_roles', network_metadata, ['primary-controller', 'controller'])
     memcached_addresses = Noop.hiera 'memcached_addresses'
@@ -19,12 +32,28 @@ describe manifest do
     swift_operator_roles = storage_hash.fetch('swift_operator_roles', ['admin', 'SwiftOperator'])
     ring_part_power = swift_hash.fetch('ring_part_power', 10)
     ring_min_part_hours = Noop.hiera 'swift_ring_min_part_hours', 1
-    deploy_swift_proxy = Noop.hiera('deploy_swift_proxy')
+    deploy_swift_proxy = Noop.hiera('deploy_swift_proxy', true)
     swift_proxies_num  = (Noop.hiera('swift_proxies')).size
     rabbit_hosts       = Noop.hiera('amqp_hosts')
     rabbit_user        = Noop.hiera_structure('rabbit/user', 'nova')
     rabbit_password    = Noop.hiera_structure('rabbit/password')
-    network_scheme     = Noop.hiera_hash 'network_scheme'
+
+    swift_master_role       = Noop.hiera 'swift_master_role', 'primary-controller'
+    swift_nodes             = Noop.hiera_hash 'swift_nodes', {}
+    swift_proxies_addr_list = Noop.puppet_function('values',
+      Noop.puppet_function('get_node_to_ipaddr_map_by_network_role',
+        Noop.hiera_hash('swift_proxies', {}), 'swift/api'))
+    is_primary_swift_proxy  = Noop.hiera 'is_primary_swift_proxy', false
+    proxy_port              = Noop.hiera 'proxy_port', '8080'
+    management_vip          = Noop.hiera 'management_vip'
+    swift_api_ipaddr        = Noop.puppet_function 'get_network_role_property', 'swift/api', 'ipaddr'
+    swift_storage_ipaddr    = Noop.puppet_function 'get_network_role_property', 'swift/replication', 'ipaddr'
+    debug                   = Noop.puppet_function 'pick', swift_hash['debug'], Noop.hiera('debug', false)
+    verbose                 = Noop.puppet_function 'pick', swift_hash['verbose'], Noop.hiera('verbose', false)
+    keystone_user           = Noop.puppet_function 'pick', swift_hash['user'], 'swift'
+    keystone_password       = Noop.puppet_function 'pick', swift_hash['user_password'], 'passsword'
+    keystone_tenant         = Noop.puppet_function 'pick', swift_hash['tenant'], 'services'
+    rabbit_hash             = Noop.hiera_hash 'rabbit'
 
     if swift_proxies_num < 2
       ring_replicas = 2
@@ -41,12 +70,10 @@ describe manifest do
     }
 
     let (:bind_to_one) {
-      api_ip = Noop.puppet_function 'get_network_role_property', 'swift/api', 'ipaddr'
-      storage_ip = Noop.puppet_function 'get_network_role_property', 'swift/replication', 'ipaddr'
-      api_ip == storage_ip
+      swift_api_ipaddr == swift_storage_ipaddr
     }
 
-    let(:ssl_hash) { Noop.hiera_hash 'use_ssl' }
+    let(:ssl_hash) { Noop.hiera_hash 'use_ssl', {} }
 
     let(:internal_auth_protocol) { Noop.puppet_function 'get_ssl_property',ssl_hash,{},'keystone','internal','protocol','http' }
 
@@ -62,261 +89,101 @@ describe manifest do
 
     # Swift
     if !(storage_hash['images_ceph'] and storage_hash['objects_ceph']) and !storage_hash['images_vcenter']
-      swift_partition = Noop.hiera 'swift_partition'
-      if !swift_partition
-        swift_partition = '/var/lib/glance/node'
-        it 'should allow swift user to write into /var/lib/glance directory' do
-          should contain_file('/var/lib/glance').with(
+      master_swift_proxy_nodes      = Noop.puppet_function 'get_nodes_hash_by_roles', network_metadata, [swift_master_role]
+      master_swift_proxy_nodes_list = Noop.puppet_function 'values', master_swift_proxy_nodes
+      master_swift_proxy_ip         = Noop.puppet_function 'regsubst', master_swift_proxy_nodes_list[0]['network_roles']['swift/api'], '\/\d+$', ''
+      master_swift_replication_ip   = Noop.puppet_function 'regsubst', master_swift_proxy_nodes_list[0]['network_roles']['swift/replication'], '\/\d+$', ''
+
+      if is_primary_swift_proxy
+        it 'should contain ring_devices' do
+          should contain_ring__devices('all').with(
+            :storages => swift_nodes
+          ).that_requires('Class[swift]')
+        end
+      end
+
+      if $deploy_swift_proxy
+        it 'should disable mount check for swift devices' do
+          should contain_class('swift::storage::all').with('mount_check' => false)
+        end
+
+        it 'should declare swift::proxy::cache class with correct memcache_servers parameter' do
+          should contain_class('swift::proxy::cache').with(
+            'memcache_servers' => memcached_servers,
+          )
+        end
+
+        it 'should declare class swift::proxy::keystone with correct operator_roles parameter' do
+          should contain_class('swift::proxy::keystone').with(
+            'operator_roles' => swift_operator_roles,
+          )
+        end
+
+        it 'should declare swift::dispersion' do
+            should contain_class('openstack_tasks::swift::proxy::swift::dispersion').with(
+              :auth_url       => "#{internal_auth_protocol}://#{internal_auth_address}:5000/v2.0/",
+              :auth_user      =>  keystone_user,
+              :auth_tenant    =>  keystone_tenant,
+              :auth_pass      =>  keystone_password,
+              :auth_version   =>  '2.0',
+            ).that_requires('Class[openstack_tasks::swift::proxy::openstack::swift::status]')
+        end
+
+        it 'should configure swift on separate partition' do
+          should contain_file(swift_partition).with(
             'ensure' => 'directory',
+            'owner'  => 'swift',
             'group'  => 'swift',
-          ).that_requires('Package[swift]')
-        end
-      end
-      if role == 'primary-controller'
-        ['account', 'object', 'container'].each do | ring |
-          it "should run rebalancing swift #{ring} ring" do
-            should contain_exec("rebalance_#{ring}").with(
-              'command' => "swift-ring-builder /etc/swift/#{ring}.builder rebalance",
-              'user'    => 'swift',
-              'returns' => [0,1],
-            )
-            should contain_exec("create_#{ring}").with(
-              'command' => "swift-ring-builder /etc/swift/#{ring}.builder create #{ring_part_power} #{ring_replicas} #{ring_min_part_hours}",
-              'user'    => 'swift',
-            )
-          end
-        end
-        ['account', 'object', 'container'].each do | ring |
-          it "should define swift::ringbuilder::rebalance[#{ring}] before swift proxy service" do
-            should contain_swift__ringbuilder__rebalance(ring).that_comes_before('Service[swift-proxy-server]')
-          end
-        end
-        ['account', 'object', 'container'].each do | ring |
-          ['account', 'object', 'container'].each do | storage |
-            it "should define swift::ringbuilder::rebalance[#{ring}] before swift::storage::generic[#{storage}]" do
-              should contain_swift__ringbuilder__rebalance(ring).that_comes_before("Swift::Storage::Generic[#{storage}]")
-            end
-          end
-        end
-      end
-
-      it 'should disable mount check for swift devices' do
-        should contain_class('swift::storage::all').with('mount_check' => false)
-      end
-
-      it 'should declare swift::proxy::cache class with correct memcache_servers parameter' do
-        should contain_class('swift::proxy::cache').with(
-          'memcache_servers' => memcached_servers,
-        )
-      end
-
-      it 'should declare class swift::proxy::keystone with correct operator_roles parameter' do
-        should contain_class('swift::proxy::keystone').with(
-          'operator_roles' => swift_operator_roles,
-        )
-      end
-
-      if Noop.hiera('use_ssl', false)
-        context 'with enabled internal TLS for keystone' do
-          keystone_endpoint = Noop.hiera_structure 'use_ssl/keystone_internal_hostname'
-          it 'should declare swift::dispersion' do
-            if bind_to_one
-              should contain_class('swift::dispersion').with(
-                'auth_url' => "https://#{keystone_endpoint}:5000/v2.0/"
-              ).that_requires('Class[openstack::swift::status]')
-            else
-              should contain_class('swift::dispersion').with(
-                'auth_url' => "https://#{keystone_endpoint}:5000/v2.0/"
-              ).that_requires('Class[openstack::swift::proxy]')
-            end
-          end
+          )
         end
 
-        context 'with enabled internal TLS for swift' do
-          swift_endpoint = Noop.hiera_structure 'use_ssl/swift_internal_hostname'
-            it {
-              if bind_to_one
-                should contain_class('openstack::swift::status').with(
-                  'endpoint'  => "https://#{swift_endpoint}:8080",
-                  'only_from' => "127.0.0.1 240.0.0.2 #{storage_nets} #{mgmt_nets}",
-                ).that_comes_before('Class[swift::dispersion]')
-              else
-                should_not contain_class('openstack::swift::status')
-              end
-            }
-        end
-      else
-        keystone_endpoint = Noop.hiera 'service_endpoint'
-        context 'with disabled internal TLS for keystone' do
-          it 'should declare swift::dispersion' do
-            if bind_to_one
-            should contain_class('swift::dispersion').with(
-              'auth_url' => "http://#{keystone_endpoint}:5000/v2.0/"
-            ).that_requires('Class[openstack::swift::status]')
-            else
-            should contain_class('swift::dispersion').with(
-              'auth_url' => "http://#{keystone_endpoint}:5000/v2.0/"
-            ).that_requires('Class[openstack::swift::proxy]')
-            end
-          end
+        it 'should configure proxy workers' do
+          fallback_workers = [[facts[:processorcount].to_i, 2].max, workers_max.to_i].min
+          workers = swift_hash.fetch('workers', fallback_workers)
+          should contain_class('swift::proxy').with(
+            'workers' => workers)
         end
 
-        context 'with disabled internal TLS for swift' do
-          it {
-            if bind_to_one
-            should contain_class('openstack::swift::status').with(
-              'only_from' => "127.0.0.1 240.0.0.2 #{storage_nets} #{mgmt_nets}",
-            ).that_comes_before('Class[swift::dispersion]')
-            else
-              should_not contain_class('openstack::swift::status')
-            end
-          }
+        it 'should declare swift::proxy class with 4 processess on 4 CPU & 32G system' do
+          should contain_class('swift::proxy').with(
+            'workers' => '4',
+          )
         end
-      end
 
-      it 'should configure swift on separate partition' do
-        should contain_file(swift_partition).with(
-          'ensure' => 'directory',
-          'owner'  => 'swift',
-          'group'  => 'swift',
-        )
-      end
-
-      it 'should configure proxy workers' do
-        fallback_workers = [[facts[:processorcount].to_i, 2].max, workers_max.to_i].min
-        workers = swift_hash.fetch('workers', fallback_workers)
-        should contain_class('swift::proxy').with(
-          'workers' => workers)
-      end
-
-      it 'should declare swift::proxy class with 4 processess on 4 CPU & 32G system' do
-        should contain_class('swift::proxy').with(
-          'workers' => '4',
-        )
+        it 'contains storage node class' do
+          should contain_class('openstack_tasks::swift::proxy::openstack::swift::proxy').with(
+            :swift_user_password            => swift_hash['user_password'],
+            :swift_operator_roles           => swift_operator_roles,
+            :swift_proxies_cache            => memcached_addresses,
+            :cache_server_port              => Hera.noop('memcache_server_port', '11211'),
+            :ring_part_power                => ring_part_power,
+            :ring_replicas                  => ring_replicas,
+            :primary_proxy                  => is_primary_swift_proxy,
+            :swift_proxy_local_ipaddr       => swift_api_ipaddr,
+            :swift_replication_local_ipaddr => swift_storage_ipaddr,
+            :master_swift_proxy_ip          => master_swift_proxy_ip,
+            :master_swift_replication_ip    => master_swift_replication_ip,
+            :proxy_port                     => proxy_port,
+            :proxy_workers                  => service_workers,
+            :debug                          => debug,
+            :verbose                        => verbose,
+            :log_facility                   => 'LOG_SYSLOG',
+            :ceilometer                     => Hiera.noop('use_ceilometer',false),
+            :ring_min_part_hours            => ring_min_part_hours,
+            :admin_user                     => keystone_user,
+            :admin_tenant_name              => keystone_tenant,
+            :admin_password                 => keystone_password,
+            :auth_host                      => internal_auth_address,
+            :auth_protocol                  => internal_auth_protocol,
+            :auth_uri                       => auth_uri,
+            :identity_uri                   => identity_uri,
+            :rabbit_user                    => rabbit_hash['user'],
+            :rabbit_password                => rabbit_hash['password'],
+            :rabbit_hosts                   => split(rabbit_hosts, ', '),
+          )
+        end
       end
     end
-    if deploy_swift_proxy
-      it 'should configure proxy workers' do
-        fallback_workers = [[facts[:processorcount].to_i, 2].max, workers_max.to_i].min
-        workers = swift_hash.fetch('workers', fallback_workers)
-        should contain_class('swift::proxy').with(
-          'workers' => workers)
-      end
-
-      it 'should declare swift::proxy class with 4 processess on 4 CPU & 32G system' do
-        should contain_class('swift::proxy').with(
-          'workers' => '4',
-        )
-      end
-
-      it 'should contain rabbit params' do
-        should contain_class('openstack::swift::proxy').with(
-          :rabbit_user     => rabbit_user,
-          :rabbit_password => rabbit_password,
-          :rabbit_hosts    => rabbit_hosts.split(', '),
-        )
-      end
-
-      it 'should contain valid auth uris' do
-        should contain_class('swift::proxy::authtoken').with(
-          'auth_uri'     => auth_uri,
-          'identity_uri' => identity_uri,
-        )
-      end
-
-      it 'should contain swift backups section in rsync conf' do
-        should contain rsync__server__module('swift_backups').with(
-          'path'            => '/etc/swift/backups',
-          'lock_file'       => '/var/lock/swift_backups.lock',
-          'uid'             => 'swift',
-          'gid'             => 'swift',
-          'incoming_chmod'  => false,
-          'outgoing_chmod'  => false,
-          'max_connections' => '5',
-          'read_only'       => true,
-        )
-      end
-    end
-
-#
-# Paste from swift_status spec
-# Needs rework
-#
-
-    context 'with default params' do
-      it 'contains xinetd::service' do
-        group = case facts[:osfamily]
-          when 'RedHat' then 'nobody'
-          when 'Debian' then 'nogroup'
-          else'nobody'
-        end
-
-        server_args = "#{default_params[:endpoint]} #{default_params[:scan_target]} #{default_params[:con_timeout]}"
-
-        is_expected.to contain_xinetd__service('swiftcheck').with(
-          {
-            'bind'        => default_params[:address],
-            'port'        => default_params[:port],
-            'only_from'   => default_params[:only_from],
-            'cps'         => '512 10',
-            'per_source'  => 'UNLIMITED',
-            'server'      => '/usr/bin/swiftcheck',
-            'server_args' => server_args,
-            'user'        => 'nobody',
-            'group'       => group,
-            'flags'       => 'IPv4',
-          }
-        ).that_requires('Augeas[swiftcheck]')
-      end
-
-      it 'configures (modifies) the /etc/services' do
-        port = default_params[:port]
-        is_expected.to contain_augeas('swiftcheck').with(
-          'context' => '/files/etc/services',
-          'changes' => [
-            "set /files/etc/services/service-name[port = '#{port}']/port #{port}",
-            "set /files/etc/services/service-name[port = '#{port}'] swiftcheck",
-            "set /files/etc/services/service-name[port = '#{port}']/protocol tcp",
-            "set /files/etc/services/service-name[port = '#{port}']/#comment 'Swift Health Check'",
-          ],
-        )
-      end
-    end
-
-    context 'with overriding class parameters' do
-      before do
-        params.merge!(
-          :address     => '100.41.52.5',
-          :only_from   => '100.70.123.1',
-          :port        => '49009',
-          :endpoint    => 'http://193.1.6.88:8080',
-          :scan_target => '193.44.2.66:5000',
-          :con_timeout => '3',
-        )
-      end
-
-      it 'contains xinetd::service' do
-        server_args = "#{params[:endpoint]} #{params[:scan_target]} #{params[:con_timeout]}"
-
-        is_expected.to contain_xinetd__service('swiftcheck').with(
-          {
-            'bind'        => params[:address],
-            'port'        => params[:port],
-            'only_from'   => params[:only_from],
-            'cps'         => '512 10',
-            'per_source'  => 'UNLIMITED',
-            'server'      => '/usr/bin/swiftcheck',
-            'server_args' => server_args,
-            'user'        => 'nobody',
-            'flags'       => 'IPv4',
-          }
-        )
-      end
-    end
-  end
-
-
   end
   test_ubuntu_and_centos manifest
 end
-
