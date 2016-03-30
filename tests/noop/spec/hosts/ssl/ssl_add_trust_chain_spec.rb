@@ -1,23 +1,23 @@
-# RUN: neut_gre.generate_vms ubuntu
-# RUN: neut_vlan.ceph.ceil-compute.overridden_ssl ubuntu
-# RUN: neut_vlan.ceph.ceil-primary-controller.overridden_ssl ubuntu
-# RUN: neut_vlan.ceph.compute-ephemeral-ceph ubuntu
-# RUN: neut_vlan.ceph.controller-ephemeral-ceph ubuntu
-# RUN: neut_vlan.cinder-block-device.compute ubuntu
-# RUN: neut_vlan.compute.nossl ubuntu
-# RUN: neut_vlan.compute.ssl ubuntu
-# RUN: neut_vlan.compute.ssl.overridden ubuntu
-# RUN: neut_vlan.ironic.controller ubuntu
-# RUN: neut_vlan_l3ha.ceph.ceil-ceph-osd ubuntu
-# RUN: neut_vlan_l3ha.ceph.ceil-compute ubuntu
-# RUN: neut_vlan_l3ha.ceph.ceil-controller ubuntu
-# RUN: neut_vlan_l3ha.ceph.ceil-primary-controller ubuntu
-# RUN: neut_vlan_l3ha.ceph.ceil-primary-mongo ubuntu
-# RUN: neut_vxlan_dvr.murano.sahara-cinder ubuntu
-# RUN: neut_vxlan_dvr.murano.sahara-compute ubuntu
-# RUN: neut_vxlan_dvr.murano.sahara-controller ubuntu
-# RUN: neut_vxlan_dvr.murano.sahara-primary-controller ubuntu
-# RUN: neut_vxlan_dvr.murano.sahara-primary-controller.overridden_ssl ubuntu
+# HIERA: neut_gre.generate_vms
+# HIERA: neut_vlan.ceph.ceil-compute.overridden_ssl
+# HIERA: neut_vlan.ceph.ceil-primary-controller.overridden_ssl
+# HIERA: neut_vlan.ceph.compute-ephemeral-ceph
+# HIERA: neut_vlan.ceph.controller-ephemeral-ceph
+# HIERA: neut_vlan.cinder-block-device.compute
+# HIERA: neut_vlan.compute.nossl
+# HIERA: neut_vlan.compute.ssl
+# HIERA: neut_vlan.compute.ssl.overridden
+# HIERA: neut_vlan.ironic.controller
+# HIERA: neut_vlan_l3ha.ceph.ceil-ceph-osd
+# HIERA: neut_vlan_l3ha.ceph.ceil-compute
+# HIERA: neut_vlan_l3ha.ceph.ceil-controller
+# HIERA: neut_vlan_l3ha.ceph.ceil-primary-controller
+# HIERA: neut_vlan_l3ha.ceph.ceil-primary-mongo
+# HIERA: neut_vxlan_dvr.murano.sahara-cinder
+# HIERA: neut_vxlan_dvr.murano.sahara-compute
+# HIERA: neut_vxlan_dvr.murano.sahara-controller
+# HIERA: neut_vxlan_dvr.murano.sahara-primary-controller
+# HIERA: neut_vxlan_dvr.murano.sahara-primary-controller.overridden_ssl
 
 require 'spec_helper'
 require 'shared-examples'

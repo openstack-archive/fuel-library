@@ -3,7 +3,7 @@ require 'shared-examples'
 manifest = 'roles/cinder.pp'
 
 # FIXME: neut_vlan.cinder-block-device.compute.yaml ubuntu
-# RUN: neut_vxlan_dvr.murano.sahara-cinder.yaml ubuntu
+# HIERA: neut_vxlan_dvr.murano.sahara-cinder.yaml
 # SKIP_HIERA: neut_vlan.cinder-block-device.compute
 
 describe manifest do
