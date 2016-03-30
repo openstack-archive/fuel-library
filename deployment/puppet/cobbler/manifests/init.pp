@@ -69,14 +69,12 @@ class cobbler(
   Anchor<| title == 'cobbler-begin' |> ->
   Class['::cobbler::packages'] ->
   Class['::cobbler::selinux'] ->
-  Class['::cobbler::snippets'] ->
   Class['::cobbler::server'] ->
   Anchor<| title == 'cobbler-end' |>
 
   class { '::cobbler::packages': }
   class { '::cobbler::selinux': }
   class { '::cobbler::iptables': }
-  class { '::cobbler::snippets': }
   class { '::cobbler::server':
     domain_name  => $domain_name,
     production   => $production,
