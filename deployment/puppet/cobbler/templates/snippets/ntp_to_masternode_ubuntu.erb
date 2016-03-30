@@ -1,7 +1,0 @@
-sed -i '/^\s*tinker panic/ d' /target/etc/ntp.conf && \
-sed -i '1 i tinker panic 0' /target/etc/ntp.conf && \
-echo 0 > /target/var/lib/ntp/ntp.drift && \
-sed -i '/^\s*server/ d' /target/etc/ntp.conf && \
-echo "server $server burst iburst" >> /target/etc/ntp.conf && \
-in-target ntpdate -t0.2 -p8 -ub $server;\
-in-target hwclock --systohc;\
