@@ -67,6 +67,7 @@ describe manifest do
     enable_rpc_ha = Noop.hiera('enable_rpc_ha', 'false')
     enable_notifications_ha = Noop.hiera('enable_notifications_ha', 'true')
     fqdn_prefix = Noop.hiera('node_name_prefix_for_messaging', 'messaging-')
+    rabbit_config_variables = Noop.hiera_hash('rabbit_config_variables', {})
 
     let (:params) do {
       :admin_enable                => true,
@@ -85,7 +86,7 @@ describe manifest do
       :node_ip_address             => rabbitmq_bind_ip_address,
       :config_kernel_variables     => $config_kernel_variables,
       :config_management_variables => $config_management_variables,
-      :config_variables            => $config_variables,
+      :config_variables            => $config_variables.merge(rabbit_config_variables),
       :environment_variables       => $environment_variables,
       :file_limit                  => file_limit,
       :tcp_keepalive               => true, }
