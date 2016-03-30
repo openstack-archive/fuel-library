@@ -315,18 +315,6 @@ class openstack_tasks::openstack_controller::openstack_controller {
     host    => $api_bind_address,
   }
 
-  # TODO(aschultz): when the openstacklib & nova modules have been updated
-  # with a version that supports os_package_type, remove this block
-  # See LP#1530912
-  if !$::os_package_type or $::os_package_type == 'debian' {
-    $nova_vncproxy_package = 'nova-consoleproxy'
-    Package<| title == 'nova-vncproxy' |> {
-      name => 'nova-consoleproxy'
-    }
-  } else {
-    $nova_vncproxy_package = 'nova-vncproxy'
-  }
-
   ####### Disable upstart startup on install #######
   if($::operatingsystem == 'Ubuntu') {
     tweaks::ubuntu_service_override { 'nova-cert':
@@ -335,8 +323,8 @@ class openstack_tasks::openstack_controller::openstack_controller {
     tweaks::ubuntu_service_override { 'nova-conductor':
       package_name => 'nova-conductor',
     }
-    tweaks::ubuntu_service_override { 'nova-consoleproxy':
-      package_name => 'nova-consoleproxy',
+    tweaks::ubuntu_service_override { 'nova-novncproxy':
+      package_name => $::nova::params::vncproxy_package_name,
     }
     tweaks::ubuntu_service_override { 'nova-api':
       package_name => 'nova-api',
@@ -346,9 +334,6 @@ class openstack_tasks::openstack_controller::openstack_controller {
     }
     tweaks::ubuntu_service_override { 'nova-consoleauth':
       package_name => 'nova-consoleauth',
-    }
-    tweaks::ubuntu_service_override { 'nova-vncproxy':
-      package_name => $nova_vncproxy_package,
     }
   }
 
