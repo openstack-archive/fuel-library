@@ -336,7 +336,7 @@ describe manifest do
         else
           nova_vncproxy_package = 'nova-vncproxy'
         end
-        should contain_tweaks__ubuntu_service_override('nova-vncproxy').with(
+        should contain_tweaks__ubuntu_service_override('nova-novncproxy').with(
           :package_name => nova_vncproxy_package
         )
       end
