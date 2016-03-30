@@ -121,16 +121,6 @@ class fuel::cobbler(
     require => Class['::cobbler::server'],
   } ->
 
-  cobbler_distro { 'ubuntu_1404_x86_64':
-    kernel    => "${repo_root}/ubuntu/x86_64/images/linux",
-    initrd    => "${repo_root}/ubuntu/x86_64/images/initrd.gz",
-    arch      => 'x86_64',
-    breed     => 'ubuntu',
-    osversion => 'trusty',
-    ksmeta    => '',
-    require   => Class['::cobbler::server'],
-  }
-
   cobbler_profile { 'centos-x86_64':
     kickstart => '/var/lib/cobbler/kickstarts/centos-x86_64.ks',
     kopts     => 'biosdevname=0 sshd=1 dhcptimeout=120',
@@ -139,16 +129,6 @@ class fuel::cobbler(
     menu      => false,
     server    => $real_server,
     require   => Cobbler_distro['centos-x86_64'],
-  }
-
-  cobbler_profile { 'ubuntu_1404_x86_64':
-    kickstart => '/var/lib/cobbler/kickstarts/ubuntu-amd64.preseed',
-    kopts     => 'net.ifnames=0 biosdevname=0 netcfg/choose_interface=eth0 netcfg/dhcp_timeout=120 netcfg/link_detection_timeout=20',
-    distro    => 'ubuntu_1404_x86_64',
-    ksmeta    => '',
-    menu      => false,
-    server    => $real_server,
-    require   => Cobbler_distro['ubuntu_1404_x86_64'],
   }
 
   cobbler_distro { 'ubuntu_bootstrap':
