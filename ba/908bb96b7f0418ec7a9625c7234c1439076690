@@ -1,0 +1,11 @@
+Code-Review+1: Mykola Golub <mgolub@mirantis.com>
+Verified+1: Fuel CI <fuel-ci-bot@mirantis.com>
+Code-Review+2: Bogdan Dobrelya <bdobrelia@mirantis.com>
+Code-Review+1: yashvant <yashvant.shrivastava@ericsson.com>
+Workflow+1: Bogdan Dobrelya <bdobrelia@mirantis.com>
+Verified+2: Jenkins
+Submitted-by: Jenkins
+Submitted-at: Wed, 30 Mar 2016 13:22:54 +0000
+Reviewed-on: https://review.openstack.org/298856
+Project: openstack/fuel-library
+Branch: refs/heads/master
