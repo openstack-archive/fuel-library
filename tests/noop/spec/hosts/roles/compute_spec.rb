@@ -89,6 +89,7 @@ describe manifest do
     let(:verbose) { Noop.puppet_function 'pick', compute_hash['verbose'], 'true' }
     let(:global_debug) { Noop.hiera 'debug', 'true' }
     let(:debug) { Noop.puppet_function 'pick', compute_hash['debug'], global_debug }
+    let(:config_drive_format) { Noop.puppet_function 'pick', compute_hash['config_drive_format'], 'vfat' }
     let(:log_facility) { Noop.hiera 'syslog_log_facility_nova', 'LOG_LOCAL6' }
 
 
@@ -325,7 +326,7 @@ describe manifest do
 
     it 'nova config should have config_drive_format set to vfat' do
       should contain_nova_config('DEFAULT/config_drive_format').with(
-        'value' => 'vfat'
+        'value' => config_drive_format
       )
     end
 
