@@ -5,6 +5,8 @@ class openstack_tasks::roles::compute {
   $network_scheme = hiera_hash('network_scheme', {})
   $override_configuration = hiera_hash('configuration', {})
   $network_metadata = hiera_hash('network_metadata', {})
+  $nova_report_interval = hiera('nova_report_interval', '60')
+  $nova_service_down_time = hiera('nova_service_down_time', '180')
   prepare_network_config($network_scheme)
 
   # override nova options
@@ -274,8 +276,8 @@ class openstack_tasks::roles::compute {
     use_stderr             => $use_stderr,
     log_facility           => $syslog_log_facility,
     state_path             => $nova_hash_real['state_path'],
-    report_interval        => $nova_hash_real['nova_report_interval'],
-    service_down_time      => $nova_hash_real['nova_service_down_time'],
+    report_interval        => $nova_report_interval,
+    service_down_time      => $nova_service_down_time,
     notify_on_state_change => $notify_on_state_change,
     notification_driver    => $ceilometer_hash['notification_driver'],
     memcached_servers      => $memcached_addresses,
