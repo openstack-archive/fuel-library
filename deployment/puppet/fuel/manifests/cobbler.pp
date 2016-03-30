@@ -92,65 +92,6 @@ class fuel::cobbler(
     require => Class['::cobbler::server'],
   }
 
-  # THIS VARIABLE IS NEEDED FOR TEMPLATING centos-x86_64.ks
-  $ks_repo = $centos_repos
-
-  file { '/var/lib/cobbler/kickstarts/centos-x86_64.ks':
-    content => template('cobbler/kickstart/centos.ks.erb'),
-    owner   => 'root',
-    group   => 'root',
-    mode    => '0644',
-    require => Class['::cobbler::server'],
-  } ->
-
-  cobbler_distro { 'centos-x86_64':
-    kernel    => "${repo_root}/centos/x86_64/isolinux/vmlinuz",
-    initrd    => "${repo_root}/centos/x86_64/isolinux/initrd.img",
-    arch      => 'x86_64',
-    breed     => 'redhat',
-    osversion => 'rhel6',
-    ksmeta    => 'tree=http://@@server@@:8080/centos/x86_64/',
-    require   => Class['::cobbler::server'],
-  }
-
-  file { '/var/lib/cobbler/kickstarts/ubuntu-amd64.preseed':
-    content => template('cobbler/preseed/ubuntu-1404.preseed.erb'),
-    owner   => 'root',
-    group   => 'root',
-    mode    => '0644',
-    require => Class['::cobbler::server'],
-  } ->
-
-  cobbler_distro { 'ubuntu_1404_x86_64':
-    kernel    => "${repo_root}/ubuntu/x86_64/images/linux",
-    initrd    => "${repo_root}/ubuntu/x86_64/images/initrd.gz",
-    arch      => 'x86_64',
-    breed     => 'ubuntu',
-    osversion => 'trusty',
-    ksmeta    => '',
-    require   => Class['::cobbler::server'],
-  }
-
-  cobbler_profile { 'centos-x86_64':
-    kickstart => '/var/lib/cobbler/kickstarts/centos-x86_64.ks',
-    kopts     => 'biosdevname=0 sshd=1 dhcptimeout=120',
-    distro    => 'centos-x86_64',
-    ksmeta    => '',
-    menu      => false,
-    server    => $real_server,
-    require   => Cobbler_distro['centos-x86_64'],
-  }
-
-  cobbler_profile { 'ubuntu_1404_x86_64':
-    kickstart => '/var/lib/cobbler/kickstarts/ubuntu-amd64.preseed',
-    kopts     => 'net.ifnames=0 biosdevname=0 netcfg/choose_interface=eth0 netcfg/dhcp_timeout=120 netcfg/link_detection_timeout=20',
-    distro    => 'ubuntu_1404_x86_64',
-    ksmeta    => '',
-    menu      => false,
-    server    => $real_server,
-    require   => Cobbler_distro['ubuntu_1404_x86_64'],
-  }
-
   cobbler_distro { 'ubuntu_bootstrap':
     kernel    => "${bootstrap_path}/vmlinuz",
     initrd    => "${bootstrap_path}/initrd.img",
