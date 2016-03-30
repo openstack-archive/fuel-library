@@ -1,6 +1,6 @@
-# SKIP_HIERA: neut_vlan.ceph.compute-ephemeral-ceph ubuntu FIXME
-# SKIP_HIERA: neut_vlan.ceph.controller-ephemeral-ceph ubuntu FIXME
-# SKIP_HIERA: neut_vlan_l3ha.ceph.ceil-ceph-osd ubuntu FIXME
+# RUN: neut_vlan.ceph.compute-ephemeral-ceph ubuntu
+# RUN: neut_vlan.ceph.controller-ephemeral-ceph ubuntu
+# RUN: neut_vlan_l3ha.ceph.ceil-ceph-osd ubuntu
 
 require 'spec_helper'
 require 'shared-examples'
