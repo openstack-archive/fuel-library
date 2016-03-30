@@ -68,6 +68,16 @@ describe manifest do
     enable_notifications_ha = Noop.hiera('enable_notifications_ha', 'true')
     fqdn_prefix = Noop.hiera('node_name_prefix_for_messaging', 'messaging-')
     rabbit_config_variables = Noop.hiera_hash('rabbit_config_variables', {})
+    rabbit_ocf = Noop.hiera_hash('rabbit_ocf', {
+      :start_timeout           => '180',
+      :stop_timeout            => '120',
+      :mon_timeout             => '180',
+      :promote_timeout         => '120',
+      :demote_timeout          => '120',
+      :notify_timeout          => '180',
+      :slave_mon_interval      => '30',
+      :master_mon_interval     => '30',
+    })
 
     let (:params) do {
       :admin_enable                => true,
@@ -165,6 +175,14 @@ describe manifest do
           :fqdn_prefix             => fqdn_prefix,
           :pid_file                => pid_file,
           :policy_file             => '/usr/sbin/set_rabbitmq_policy',
+          :start_timeout           => rabbit_ocf[:start_timeout],
+          :stop_timeout            => rabbit_ocf[:stop_timeout],
+          :mon_timeout             => rabbit_ocf[:mon_timeout],
+          :promote_timeout         => rabbit_ocf[:promote_timeout],
+          :demote_timeout          => rabbit_ocf[:demote_timeout],
+          :notify_timeout          => rabbit_ocf[:notify_timeout],
+          :slave_mon_interval      => rabbit_ocf[:slave_mon_interval],
+          :master_mon_interval     => rabbit_ocf[:master_mon_interval],
         ).that_comes_before('Class[nova::rabbitmq]')
         should contain_class('cluster::rabbitmq_ocf').that_requires(
           'Class[rabbitmq::install]')
