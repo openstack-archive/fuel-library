@@ -36,10 +36,11 @@ describe manifest do
     it "should allocate defined hugepages" do
       should contain_class('sysfs')
       should contain_sysfs_config_value('hugepages').with(
-        'ensure' => 'present',
-        'name'   => '/etc/sysfs.d/hugepages.conf',
-        'value'  => mapped_sysfs_hugepages,
-        'sysfs'  => '/sys/devices/system/node/node*/hugepages/hugepages-*kB/nr_hugepages',
+        'ensure'  => 'present',
+        'name'    => '/etc/sysfs.d/hugepages.conf',
+        'value'   => mapped_sysfs_hugepages,
+        'sysfs'   => '/sys/devices/system/node/node*/hugepages/hugepages-*kB/nr_hugepages',
+        'exclude' => '/sys/devices/system/node/node*/hugepages/hugepages-1048576kB/nr_hugepages',
       )
       should contain_sysctl__value('vm.max_map_count').with_value(max_map_count)
     end
