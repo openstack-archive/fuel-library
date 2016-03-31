@@ -13,5 +13,5 @@ umm-off(){
 
 umm-skip(){
     /sbin/initctl emit umm
-    return 0
+    exit 0
 }
