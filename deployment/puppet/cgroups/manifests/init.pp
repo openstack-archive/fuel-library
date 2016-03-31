@@ -29,20 +29,19 @@ class cgroups(
 
   file { '/etc/cgconfig.conf':
     content => template('cgroups/cgconfig.conf.erb'),
+    notify  => Service['cgconfigparser'],
     tag     => 'cgroups',
   }
 
   file { '/etc/cgrules.conf':
     content => template('cgroups/cgrules.conf.erb'),
+    notify  => Service['cgrulesengd'],
     tag     => 'cgroups',
   }
 
   class { '::cgroups::service':
     cgroups_settings => $cgroups_set,
   }
-
-  File <| tag == 'cgroups' |> ~>
-  Service['cgrulesengd']
 
   Package <| tag == 'cgroups' |> ~>
   Service['cgrulesengd']
