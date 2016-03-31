@@ -2,6 +2,7 @@ class openstack_tasks::keystone::workloads_collector_remove {
 
   notice('MODULAR: keystone/workloads_collector_remove.pp')
 
+  $workloads_hash   = hiera_hash('workloads_collector', {})
   $workloads_username = $workloads_hash['username']
   $workloads_tenant   = $workloads_hash['tenant']
 
