@@ -1,1 +1,1 @@
-include ::osnailyfacter::openstack_haproxy::openstack_haproxy_ceilometer
+class { '::osnailyfacter::openstack_haproxy::openstack_haproxy_ceilometer' :}

@@ -1,4 +1,4 @@
-include ::openstack_tasks::murano::db
+class { '::openstack_tasks::murano::db' :}
 
 class mysql::config {}
 include mysql::config

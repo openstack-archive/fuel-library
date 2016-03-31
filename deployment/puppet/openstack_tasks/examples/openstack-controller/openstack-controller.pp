@@ -1,1 +1,1 @@
-include ::openstack_tasks::openstack_controller::openstack_controller
+class { '::openstack_tasks::openstack_controller::openstack_controller' :}

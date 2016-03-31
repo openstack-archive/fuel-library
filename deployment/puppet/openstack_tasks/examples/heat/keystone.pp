@@ -1,1 +1,1 @@
-include ::openstack_tasks::heat::keystone
+class { '::openstack_tasks::heat::keystone' :}

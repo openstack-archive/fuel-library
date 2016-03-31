@@ -1,1 +1,1 @@
-include ::osnailyfacter::cluster::health
+class { '::osnailyfacter::cluster::health' :}

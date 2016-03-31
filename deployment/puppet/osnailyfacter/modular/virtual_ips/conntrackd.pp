@@ -1,1 +1,1 @@
-include ::osnailyfacter::virtual_ips::conntrackd
+class { '::osnailyfacter::virtual_ips::conntrackd' :}

@@ -1,1 +1,1 @@
-include ::osnailyfacter::dns::dns_server
+class { '::osnailyfacter::dns::dns_server' :}

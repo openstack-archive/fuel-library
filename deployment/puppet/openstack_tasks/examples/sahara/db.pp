@@ -1,4 +1,4 @@
-include ::openstack_tasks::sahara::db
+class { '::openstack_tasks::sahara::db' :}
 
 class mysql::config {}
 include mysql::config

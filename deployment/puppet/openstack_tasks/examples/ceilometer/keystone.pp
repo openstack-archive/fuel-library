@@ -1,1 +1,1 @@
-include ::openstack_tasks::ceilometer::keystone
+class { '::openstack_tasks::ceilometer::keystone' :}

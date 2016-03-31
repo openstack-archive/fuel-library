@@ -1,1 +1,1 @@
-include ::openstack_tasks::roles::mongo
+class { '::openstack_tasks::roles::mongo' :}

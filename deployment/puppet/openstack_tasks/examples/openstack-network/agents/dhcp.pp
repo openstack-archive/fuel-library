@@ -1,4 +1,4 @@
 class neutron {}
 class { 'neutron' :}
 
-include ::openstack_tasks::openstack_network::agents::dhcp
+class { '::openstack_tasks::openstack_network::agents::dhcp' :}

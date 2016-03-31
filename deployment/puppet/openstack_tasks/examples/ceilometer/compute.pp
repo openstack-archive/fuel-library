@@ -1,1 +1,1 @@
-include ::openstack_tasks::ceilometer::compute
+class { '::openstack_tasks::ceilometer::compute' :}

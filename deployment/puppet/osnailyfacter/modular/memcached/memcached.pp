@@ -1,1 +1,1 @@
-include ::osnailyfacter::memcached::memcached
+class { '::osnailyfacter::memcached::memcached' :}

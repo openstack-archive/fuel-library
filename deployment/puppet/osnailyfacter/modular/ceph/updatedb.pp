@@ -1,1 +1,1 @@
-include ::osnailyfacter::ceph::updatedb
+class { '::osnailyfacter::ceph::updatedb' :}

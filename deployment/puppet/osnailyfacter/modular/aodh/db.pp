@@ -1,4 +1,4 @@
-include ::openstack_tasks::aodh::db
+class { '::openstack_tasks::aodh::db' :}
 
 class mysql::config {}
 include mysql::config

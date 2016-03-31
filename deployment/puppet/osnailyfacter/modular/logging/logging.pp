@@ -1,1 +1,1 @@
-include ::osnailyfacter::logging::logging
+class { '::osnailyfacter::logging::logging' :}
