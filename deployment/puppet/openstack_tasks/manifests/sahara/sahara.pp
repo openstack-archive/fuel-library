@@ -134,6 +134,14 @@ class openstack_tasks::sahara::sahara {
 
     class { '::sahara::service::engine': }
 
+    # TODO degorenko: move this to upstream module, when RDO & UCA will prepare sahara-dashboard package
+    if $::os_package_type == 'debian' {
+      package { 'sahara-dashboard':
+        name   => 'python-sahara-dashboard',
+        ensure => present,
+      }
+    }
+
     class { '::sahara::client': }
 
     if $ceilometer_hash['enabled'] {
