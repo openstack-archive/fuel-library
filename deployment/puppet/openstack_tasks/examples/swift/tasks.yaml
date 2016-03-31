@@ -4,7 +4,7 @@
   groups: [primary-controller, controller]
   required_for: [deploy_end, controller_remaining_tasks]
   requires: [openstack-controller]
-  condition: &swift_enabled "( settings:storage.objects_ceph.value == false or settings:storage.images_ceph.value == false ) and settings:storage.images_vcenter.value == false"
+  condition: &swift_enabled "( settings:storage.objects_ceph == false or settings:storage.images_ceph == false ) and settings:storage.images_vcenter == false"
   cross-depends:
     - name: /(primary-)?rabbitmq/
     - name: /glance/

@@ -2,7 +2,7 @@
   type: puppet
   version: 2.0.0
   groups: [primary-controller, controller]
-  condition: "settings:additional_components.ironic.value == true"
+  condition: "settings:ironic.enabled == true"
   cross-depends:
     - name: ironic-db
     - name: ironic-keystone
@@ -19,7 +19,7 @@
   groups: [primary-controller]
   cross-depends:
     - name: /(primary-)?database/
-  condition: "settings:additional_components.ironic.value == true"
+  condition: "settings:ironic.enabled == true"
   required_for: [ironic-api]
   requires: [primary-database, database]
   parameters:
@@ -31,7 +31,7 @@
   type: puppet
   version: 2.0.0
   groups: [primary-controller]
-  condition: "settings:additional_components.ironic.value == true"
+  condition: "settings:ironic.enabled == true"
   required_for: [ironic-api]
   requires: [primary-keystone, keystone]
   cross-depends:
@@ -45,7 +45,7 @@
   type: puppet
   version: 2.0.0
   groups: [primary-controller, controller]
-  condition: "settings:additional_components.ironic.value == true"
+  condition: "settings:ironic.enabled == true"
   required_for: [deploy_end]
   requires: [primary-openstack-controller, openstack-controller, ironic-api]
   refresh_on: [nova_config, nova_paste_api_ini]
