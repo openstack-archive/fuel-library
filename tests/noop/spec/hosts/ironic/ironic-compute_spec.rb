@@ -57,6 +57,7 @@ describe manifest do
         should contain_nova_config('DEFAULT/compute_manager').with(:value => 'ironic.nova.compute.manager.ClusteredComputeManager')
         should contain_nova_config('ironic/admin_url').with(:value => "#{admin_uri}/v2.0")
         should contain_nova_config('neutron/auth_url').with(:value => "#{admin_uri}/v3")
+        should contain_nova_config('DEFAULT/max_concurrent_builds').with(:value => '50')
       end
 
       it 'nova config should have reserved_host_memory_mb set to 0' do
