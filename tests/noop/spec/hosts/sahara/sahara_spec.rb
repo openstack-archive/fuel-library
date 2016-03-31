@@ -185,6 +185,13 @@ describe manifest do
         should contain_class('sahara::client')
       end
 
+      it 'should contain sahara-dashboard package' do
+        should contain_package('sahara-dashboard').with(
+          :ensure => :present,
+          :name   => 'python-sahara-dashboard',
+        )
+      end
+
       enable = (Noop.hiera_structure('sahara/enabled') and Noop.hiera_structure('ceilometer/enabled'))
       context 'with ceilometer', :if => enable do
         it 'should declare sahara::notify class correctly' do
