@@ -188,8 +188,7 @@ describe manifest do
     let(:enable_hugepages) { node_hash.fetch('nova_hugepages_enabled', false) }
     let(:enable_cpu_pinning) { node_hash.fetch('nova_cpu_pinning_enabled', false) }
 
-    # FIXME(bogdando) it throws when there is no data in YAML for the cpu_pinning
-    xit 'should configure vcpu_pin_set for nova' do
+    it 'should configure vcpu_pin_set for nova' do
       if enable_cpu_pinning
         vcpu_pin_set = Noop.hiera_structure 'nova/cpu_pinning', false
         should contain_class('nova::compute').with(
@@ -198,8 +197,7 @@ describe manifest do
       end
     end
 
-    # FIXME(bogdando) it throws when fetching the enable_hugepages
-    xit 'should set up huge pages support for qemu-kvm' do
+    it 'should set up huge pages support for qemu-kvm' do
       if enable_hugepages
         qemu_hugepages_value    = 'set KVM_HUGEPAGES 1'
         libvirt_hugetlbfs_mount = 'set hugetlbfs_mount /run/hugepages/kvm'
