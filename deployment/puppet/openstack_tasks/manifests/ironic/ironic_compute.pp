@@ -36,6 +36,8 @@ class openstack_tasks::ironic::ironic_compute {
   $db_user                        = pick($nova_hash['db_user'], 'nova')
   $db_name                        = pick($nova_hash['db_name'], 'nova')
   $db_password                    = pick($nova_hash['db_password'], 'nova')
+
+  $max_concurrent_builds          = pick($ironic_hash['max_concurrent_builds'], 50)
   # LP#1526938 - python-mysqldb supports this, python-pymysql does not
   if $::os_package_type == 'debian' {
     $extra_params = { 'charset' => 'utf8', 'read_timeout' => 60 }
@@ -102,11 +104,12 @@ class openstack_tasks::ironic::ironic_compute {
   }
 
   class { '::nova::compute::ironic':
-    admin_url         => "${admin_identity_uri}/v2.0",
-    admin_username    => $ironic_username,
-    admin_tenant_name => $ironic_tenant,
-    admin_password    => $ironic_user_password,
-    api_endpoint      => "http://${ironic_endpoint}:6385/v1",
+    admin_url                 => "${admin_identity_uri}/v2.0",
+    admin_username            => $ironic_username,
+    admin_tenant_name         => $ironic_tenant,
+    admin_password            => $ironic_user_password,
+    api_endpoint              => "http://${ironic_endpoint}:6385/v1",
+    max_concurrent_builds     => $max_concurrent_builds
   }
 
   class { '::nova::network::neutron':
