@@ -185,6 +185,17 @@ describe manifest do
         should contain_class('sahara::client')
       end
 
+      it 'should test sahara-dashboard package' do
+        if facts[:os_package_type] == 'debian'
+          should contain_package('sahara-dashboard').with(
+            :ensure => :present,
+            :name   => 'python-sahara-dashboard',
+          )
+        else
+          should_not contain_package('sahara-dashboard')
+        end
+      end
+
       enable = (Noop.hiera_structure('sahara/enabled') and Noop.hiera_structure('ceilometer/enabled'))
       context 'with ceilometer', :if => enable do
         it 'should declare sahara::notify class correctly' do
