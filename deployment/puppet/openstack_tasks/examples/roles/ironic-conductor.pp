@@ -1,1 +1,1 @@
-include ::openstack_tasks::roles::ironic_conductor
+class { '::openstack_tasks::roles::ironic_conductor' :}

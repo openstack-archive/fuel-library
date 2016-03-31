@@ -1,1 +1,1 @@
-include ::osnailyfacter::umm::umm
+class { '::osnailyfacter::umm::umm' :}

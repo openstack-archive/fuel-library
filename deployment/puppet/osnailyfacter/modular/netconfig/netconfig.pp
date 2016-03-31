@@ -1,1 +1,1 @@
-include ::osnailyfacter::netconfig::netconfig
+class { '::osnailyfacter::netconfig::netconfig' :}

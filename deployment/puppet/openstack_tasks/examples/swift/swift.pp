@@ -1,5 +1,5 @@
-include ::openstack_tasks::swift::storage
-include ::openstack_tasks::swift::proxy
+class { '::openstack_tasks::swift::storage' :}
+class { '::openstack_tasks::swift::proxy' :}
 
 
 # 'ceilometer' class is being declared inside openstack::ceilometer class

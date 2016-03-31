@@ -1,1 +1,1 @@
-include ::osnailyfacter::openstack_haproxy::openstack_haproxy_radosgw
+class { '::osnailyfacter::openstack_haproxy::openstack_haproxy_radosgw' :}

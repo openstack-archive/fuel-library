@@ -1,1 +1,1 @@
-include ::openstack_tasks::openstack_network::routers
+class { '::openstack_tasks::openstack_network::routers' :}

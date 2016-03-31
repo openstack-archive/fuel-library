@@ -1,1 +1,1 @@
-include ::osnailyfacter::cluster_vrouter::cluster_vrouter
+class { '::osnailyfacter::cluster_vrouter::cluster_vrouter' :}

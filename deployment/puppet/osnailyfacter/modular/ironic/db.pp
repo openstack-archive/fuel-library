@@ -1,4 +1,4 @@
-include ::openstack_tasks::ironic::db
+class { '::openstack_tasks::ironic::db' :}
 
 class mysql::config {}
 include mysql::config
