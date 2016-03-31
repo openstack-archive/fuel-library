@@ -29,11 +29,13 @@ class cgroups(
 
   file { '/etc/cgconfig.conf':
     content => template('cgroups/cgconfig.conf.erb'),
+    notify  => Service['cgconfigparser']
     tag     => 'cgroups',
   }
 
   file { '/etc/cgrules.conf':
     content => template('cgroups/cgrules.conf.erb'),
+    notify  => Service['cgrulesengd'],
     tag     => 'cgroups',
   }
 
@@ -42,7 +44,7 @@ class cgroups(
   }
 
   File <| tag == 'cgroups' |> ~>
-  Service['cgrulesengd']
+  [Service['cgrulesengd'], Service['cgconfigparser']]
 
   Package <| tag == 'cgroups' |> ~>
   Service['cgrulesengd']
