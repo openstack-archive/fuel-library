@@ -1,1 +1,1 @@
-include ::openstack_tasks::murano::keystone_cfapi
+class { '::openstack_tasks::murano::keystone_cfapi' :}

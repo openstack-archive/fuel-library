@@ -1,1 +1,1 @@
-include ::osnailyfacter::tools::tools
+class { '::osnailyfacter::tools::tools' :}

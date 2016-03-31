@@ -1,1 +1,1 @@
-include ::osnailyfacter::hiera::hiera
+class { '::osnailyfacter::hiera::hiera' :}

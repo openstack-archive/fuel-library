@@ -1,1 +1,1 @@
-include ::osnailyfacter::apache::apache
+class { '::osnailyfacter::apache::apache' :}

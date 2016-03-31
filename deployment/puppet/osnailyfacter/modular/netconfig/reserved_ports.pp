@@ -1,1 +1,1 @@
-include ::osnailyfacter::netconfig::reserved_ports
+class { '::osnailyfacter::netconfig::reserved_ports' :}

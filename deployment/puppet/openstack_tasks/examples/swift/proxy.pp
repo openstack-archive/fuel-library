@@ -1,4 +1,4 @@
-include ::openstack_tasks::swift::proxy
+class { '::openstack_tasks::swift::proxy' :}
 
 # 'ceilometer' class is being declared inside openstack::ceilometer class
 # which is declared inside openstack::controller class in the other task.
@@ -11,4 +11,3 @@ include ceilometer
 # need to add this stub here.
 class memcached {}
 include memcached
-

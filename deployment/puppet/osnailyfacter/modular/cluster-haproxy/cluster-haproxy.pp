@@ -1,1 +1,1 @@
-include ::osnailyfacter::cluster_haproxy::cluster_haproxy
+class { '::osnailyfacter::cluster_haproxy::cluster_haproxy' :}

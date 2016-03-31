@@ -1,4 +1,4 @@
-include ::openstack_tasks::glance::db
+class { '::openstack_tasks::glance::db' :}
 
 class mysql::config {}
 include mysql::config

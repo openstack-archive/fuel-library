@@ -1,1 +1,1 @@
-include ::openstack_tasks::sahara::keystone
+class { '::openstack_tasks::sahara::keystone' :}

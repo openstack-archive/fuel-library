@@ -1,1 +1,1 @@
-include ::openstack_tasks::ceilometer::controller
+class { '::openstack_tasks::ceilometer::controller' :}

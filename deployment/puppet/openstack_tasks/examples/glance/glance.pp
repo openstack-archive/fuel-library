@@ -1,1 +1,1 @@
-include ::openstack_tasks::glance::glance
+class { '::openstack_tasks::glance::glance' :}

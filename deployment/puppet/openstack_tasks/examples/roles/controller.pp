@@ -1,1 +1,1 @@
-include ::openstack_tasks::roles::controller
+class { '::openstack_tasks::roles::controller' :}

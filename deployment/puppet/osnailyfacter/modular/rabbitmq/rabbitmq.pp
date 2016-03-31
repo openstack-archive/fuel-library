@@ -1,1 +1,1 @@
-include ::osnailyfacter::rabbitmq::rabbitmq
+class { '::osnailyfacter::rabbitmq::rabbitmq' :}

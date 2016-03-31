@@ -1,1 +1,1 @@
-include ::osnailyfacter::ceph::radosgw
+class { '::osnailyfacter::ceph::radosgw' :}

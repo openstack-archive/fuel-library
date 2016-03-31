@@ -1,1 +1,1 @@
-include ::openstack_tasks::swift::keystone
+class { '::openstack_tasks::swift::keystone' :}

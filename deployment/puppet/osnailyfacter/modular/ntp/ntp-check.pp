@@ -1,1 +1,1 @@
-include ::osnailyfacter::ntp::ntp_check
+class { '::osnailyfacter::ntp::ntp_check' :}
