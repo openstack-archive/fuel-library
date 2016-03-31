@@ -1,1 +1,1 @@
-include ::openstack_tasks::swift::rebalance_cronjob
+class { '::openstack_tasks::swift::rebalance_cronjob' :}

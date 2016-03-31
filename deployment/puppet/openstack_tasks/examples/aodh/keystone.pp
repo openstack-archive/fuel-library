@@ -1,1 +1,1 @@
-include ::openstack_tasks::aodh::keystone
+class { '::openstack_tasks::aodh::keystone' :}

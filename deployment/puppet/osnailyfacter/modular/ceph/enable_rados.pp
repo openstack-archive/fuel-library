@@ -1,1 +1,1 @@
-include ::osnailyfacter::ceph::enable_rados
+class { '::osnailyfacter::ceph::enable_rados' :}

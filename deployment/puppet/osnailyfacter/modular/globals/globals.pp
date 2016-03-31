@@ -1,1 +1,1 @@
-include ::osnailyfacter::globals::globals
+class { '::osnailyfacter::globals::globals' :}

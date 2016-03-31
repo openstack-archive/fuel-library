@@ -1,1 +1,1 @@
-include ::osnailyfacter::cgroups::cgroups
+class { '::osnailyfacter::cgroups::cgroups' :}

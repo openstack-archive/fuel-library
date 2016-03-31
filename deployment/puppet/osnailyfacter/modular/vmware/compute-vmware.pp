@@ -1,1 +1,1 @@
-include ::osnailyfacter::vmware::compute_vmware
+class { '::osnailyfacter::vmware::compute_vmware' :}

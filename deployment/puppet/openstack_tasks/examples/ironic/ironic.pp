@@ -1,1 +1,1 @@
-include ::openstack_tasks::ironic::ironic
+class { '::openstack_tasks::ironic::ironic' :}

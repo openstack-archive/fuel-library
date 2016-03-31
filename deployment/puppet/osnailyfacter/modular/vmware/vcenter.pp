@@ -1,1 +1,1 @@
-include ::osnailyfacter::vmware::vcenter
+class { '::osnailyfacter::vmware::vcenter' :}

@@ -1,1 +1,1 @@
-include ::osnailyfacter::cluster::cluster
+class { '::osnailyfacter::cluster::cluster' :}

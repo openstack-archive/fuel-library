@@ -1,1 +1,1 @@
-include ::openstack_tasks::roles::enable_compute
+class { '::openstack_tasks::roles::enable_compute' :}

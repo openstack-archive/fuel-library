@@ -1,1 +1,1 @@
-include ::osnailyfacter::ceph::ceph_pools
+class { '::osnailyfacter::ceph::ceph_pools' :}

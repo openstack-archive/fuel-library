@@ -1,1 +1,1 @@
-include ::osnailyfacter::vmware::cinder_vmware
+class { '::osnailyfacter::vmware::cinder_vmware' :}

@@ -1,1 +1,1 @@
-include ::osnailyfacter::netconfig::connectivity_tests
+class { '::osnailyfacter::netconfig::connectivity_tests' :}
