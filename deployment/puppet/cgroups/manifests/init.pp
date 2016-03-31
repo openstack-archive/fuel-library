@@ -42,7 +42,7 @@ class cgroups(
   }
 
   File <| tag == 'cgroups' |> ~>
-  Service['cgrulesengd']
+  [Service['cgrulesengd'], Service['cgconfigparser']]
 
   Package <| tag == 'cgroups' |> ~>
   Service['cgrulesengd']
