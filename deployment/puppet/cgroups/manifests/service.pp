@@ -8,8 +8,11 @@ class cgroups::service (
   }
 
   service { 'cgconfigparser':
-    ensure  => running,
-    require => Service['cgroup-lite'],
+    ensure    => running,
+    hasstatus => false,
+    status    => '/bin/true',
+    restart   => 'service cgconfigparser restart',
+    require   => Service['cgroup-lite'],
   }
 
   service { 'cgrulesengd':

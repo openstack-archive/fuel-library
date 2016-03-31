@@ -32,8 +32,11 @@ describe 'cgroups', :type => :class do
     end
 
     %w(/etc/cgconfig.conf /etc/cgrules.conf).each do |cg_file|
-      it { is_expected.to contain_file(cg_file).that_notifies('Service[cgrulesengd]').with(file_defaults) }
+      it { is_expected.to contain_file(cg_file).with(file_defaults) }
       it { p catalogue.resource 'file', cg_file }
     end
+
+    it { is_expected.to contain_file('/etc/cgrules.conf').that_notifies('Service[cgrulesengd]') }
+    it { is_expected.to contain_file('/etc/cgconfig.conf').that_notifies('Service[cgconfigparser]') }
   end
 end
