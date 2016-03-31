@@ -102,11 +102,12 @@ class openstack_tasks::ironic::ironic_compute {
   }
 
   class { '::nova::compute::ironic':
-    admin_url         => "${admin_identity_uri}/v2.0",
-    admin_username    => $ironic_username,
-    admin_tenant_name => $ironic_tenant,
-    admin_password    => $ironic_user_password,
-    api_endpoint      => "http://${ironic_endpoint}:6385/v1",
+    admin_url                 => "${admin_identity_uri}/v2.0",
+    admin_username            => $ironic_username,
+    admin_tenant_name         => $ironic_tenant,
+    admin_password            => $ironic_user_password,
+    api_endpoint              => "http://${ironic_endpoint}:6385/v1",
+    max_concurrent_builds     => 50
   }
 
   class { '::nova::network::neutron':
