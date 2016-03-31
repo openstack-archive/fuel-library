@@ -1,4 +1,4 @@
-include ::openstack_tasks::keystone::db
+class { '::openstack_tasks::keystone::db' :}
 
 class mysql::config {}
 include mysql::config

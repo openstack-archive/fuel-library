@@ -1,1 +1,1 @@
-include ::osnailyfacter::hosts::hosts
+class { '::osnailyfacter::hosts::hosts' :}

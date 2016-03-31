@@ -1,4 +1,4 @@
-include ::openstack_tasks::swift::storage
+class { '::openstack_tasks::swift::storage' :}
 
 # 'ceilometer' class is being declared inside openstack::ceilometer class
 # which is declared inside openstack::controller class in the other task.

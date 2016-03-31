@@ -1,1 +1,1 @@
-include ::openstack_tasks::aodh::aodh
+class { '::openstack_tasks::aodh::aodh' :}

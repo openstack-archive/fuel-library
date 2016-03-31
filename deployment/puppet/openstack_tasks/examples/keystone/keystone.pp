@@ -1,1 +1,1 @@
-include ::openstack_tasks::keystone::keystone
+class { '::openstack_tasks::keystone::keystone' :}

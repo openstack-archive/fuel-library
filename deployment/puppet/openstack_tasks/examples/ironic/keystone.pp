@@ -1,1 +1,1 @@
-include ::openstack_tasks::ironic::keystone
+class { '::openstack_tasks::ironic::keystone' :}

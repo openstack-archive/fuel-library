@@ -1,1 +1,1 @@
-include ::openstack_tasks::roles::enable_cinder
+class { '::openstack_tasks::roles::enable_cinder' :}

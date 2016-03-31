@@ -1,1 +1,1 @@
-include ::osnailyfacter::database::database
+class { '::osnailyfacter::database::database' :}

@@ -1,1 +1,1 @@
-include ::openstack_tasks::openstack_cinder::create_cinder_types
+class { '::openstack_tasks::openstack_cinder::create_cinder_types' :}

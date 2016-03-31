@@ -1,1 +1,1 @@
-include ::openstack_tasks::roles::allocate_hugepages
+class { '::openstack_tasks::roles::allocate_hugepages' :}

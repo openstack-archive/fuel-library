@@ -1,1 +1,1 @@
-include ::openstack_tasks::murano::keystone
+class { '::openstack_tasks::murano::keystone' :}

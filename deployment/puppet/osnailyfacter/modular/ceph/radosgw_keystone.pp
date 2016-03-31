@@ -1,1 +1,1 @@
-include ::osnailyfacter::ceph::radosgw_keystone
+class { '::osnailyfacter::ceph::radosgw_keystone' :}

@@ -1,1 +1,1 @@
-include ::osnailyfacter::ntp::timesync
+class { '::osnailyfacter::ntp::timesync' :}

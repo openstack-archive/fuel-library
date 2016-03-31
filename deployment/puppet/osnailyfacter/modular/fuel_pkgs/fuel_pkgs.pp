@@ -1,1 +1,1 @@
-include ::osnailyfacter::fuel_pkgs::fuel_pkgs
+class { '::osnailyfacter::fuel_pkgs::fuel_pkgs' :}

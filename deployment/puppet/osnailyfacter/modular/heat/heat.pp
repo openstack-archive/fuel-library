@@ -1,4 +1,4 @@
-include ::openstack_tasks::heat::heat
+class { '::openstack_tasks::heat::heat' :}
 
 class mysql::server {}
 class mysql::config {}
