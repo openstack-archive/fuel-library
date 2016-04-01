@@ -1,11 +1,11 @@
-# RUN: neut_vlan.ceph.ceil-primary-controller.overridden_ssl ubuntu
-# RUN: neut_vlan.ceph.controller-ephemeral-ceph ubuntu
-# RUN: neut_vlan.ironic.controller ubuntu
-# RUN: neut_vlan_l3ha.ceph.ceil-controller ubuntu
-# RUN: neut_vlan_l3ha.ceph.ceil-primary-controller ubuntu
-# RUN: neut_vxlan_dvr.murano.sahara-controller ubuntu
-# RUN: neut_vxlan_dvr.murano.sahara-primary-controller ubuntu
-# RUN: neut_vxlan_dvr.murano.sahara-primary-controller.overridden_ssl ubuntu
+# RUN: neut_tun.ceph.murano.sahara.ceil-controller ubuntu
+# RUN: neut_tun.ceph.murano.sahara.ceil-primary-controller ubuntu
+# RUN: neut_tun.ironic-primary-controller ubuntu
+# RUN: neut_tun.l3ha-primary-controller ubuntu
+# RUN: neut_vlan.ceph-primary-controller ubuntu
+# RUN: neut_vlan.dvr-primary-controller ubuntu
+# RUN: neut_vlan.murano.sahara.ceil-controller ubuntu
+# RUN: neut_vlan.murano.sahara.ceil-primary-controller ubuntu
 
 require 'spec_helper'
 require 'shared-examples'
@@ -15,6 +15,9 @@ describe manifest do
   shared_examples 'catalog' do
 
     horizon_nodes = Noop.hiera_hash('horizon_nodes')
+    public_ssl_hash = Noop.hiera_hash('public_ssl', {})
+    ssl_hash = Noop.hiera_hash('use_ssl', {})
+    public_ssl_horizon = Noop.puppet_function 'get_ssl_property',ssl_hash,public_ssl_hash,'horizon','public','usage',false
 
     let(:horizon_address_map) do
       Noop.puppet_function 'get_node_to_ipaddr_map_by_network_role', horizon_nodes, 'heat/api'
@@ -30,7 +33,6 @@ describe manifest do
 
     unless Noop.hiera('external_lb', false)
       it "should properly configure horizon haproxy based on ssl" do
-        public_ssl_horizon = Noop.hiera_structure('public_ssl/horizon', false)
         if public_ssl_horizon
           # http horizon should redirect to ssl horizon
           should contain_openstack__ha__haproxy_service('horizon').with(
@@ -66,13 +68,13 @@ describe manifest do
             'ipaddresses'            => ipaddresses,
             'server_names'           => server_names,
             'haproxy_config_options' => {
-              'option'      => ['forwardfor', 'httpchk', 'httpclose', 'httplog'],
-              'stick-table' => 'type ip size 200k expire 30m',
-              'stick'       => 'on src',
-              'balance'     => 'source',
-              'timeout'     => ['client 3h', 'server 3h'],
-              'mode'        => 'http',
-              'reqadd'      => 'X-Forwarded-Proto:\ https',
+              'balance' => 'source',
+              'capture' => 'cookie vgnvisitor= len 32',
+              'cookie'  => 'SERVERID insert indirect nocache',
+              'mode'    => 'http',
+              'option'  => [ 'forwardfor', 'httpchk', 'httpclose', 'httplog' ],
+              'rspidel' => '^Set-cookie:\ IP=',
+              'timeout' => [ 'client 3h', 'server 3h' ]
             }
           )
           should contain_haproxy__balancermember('horizon')

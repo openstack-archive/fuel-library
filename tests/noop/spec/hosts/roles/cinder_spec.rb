@@ -1,9 +1,10 @@
+# RUN: neut_vlan.murano.sahara.ceil-cinder ubuntu
 require 'spec_helper'
 require 'shared-examples'
 manifest = 'roles/cinder.pp'
 
-# RUN: neut_vlan.cinder-block-device.compute.yaml ubuntu
-# RUN: neut_vxlan_dvr.murano.sahara-cinder.yaml ubuntu
+# FIXME: neut_vlan.cinder-block-device.compute ubuntu
+# SKIP_HIERA: neut_vlan.cinder-block-device.compute
 
 describe manifest do
 
