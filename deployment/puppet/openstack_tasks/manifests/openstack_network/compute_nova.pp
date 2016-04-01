@@ -27,11 +27,10 @@ class openstack_tasks::openstack_network::compute_nova {
     $admin_identity_address     = get_ssl_property($ssl_hash, {}, 'keystone', 'admin', 'hostname', [$service_endpoint, $management_vip])
 
     $neutron_internal_protocol  = get_ssl_property($ssl_hash, {}, 'neutron', 'internal', 'protocol', 'http')
-    $neutron_endpoint           = get_ssl_property($ssl_hash, {}, 'neutron', 'internal', 'hostname', [hiera('neutron_endpoint', ''), $management_vip])
+    $neutron_internal_endpoint  = get_ssl_property($ssl_hash, {}, 'neutron', 'internal', 'hostname', [hiera('neutron_endpoint', ''), $management_vip])
 
-    $admin_identity_uri         = "${admin_identity_protocol}://${admin_identity_address}:35357"
-    $admin_auth_url             = "${admin_identity_uri}/${auth_api_version}"
-    $neutron_url                = "${neutron_internal_protocol}://${neutron_endpoint}:9696"
+    $neutron_auth_url           = "${admin_identity_protocol}://${admin_identity_address}:35357/${auth_api_version}"
+    $neutron_url                = "${neutron_internal_protocol}://${neutron_internal_endpoint}:9696"
 
     $nova_migration_ip          =  get_network_role_property('nova/migration', 'ipaddr')
 
@@ -78,13 +77,13 @@ class openstack_tasks::openstack_network::compute_nova {
     }
 
     class { '::nova::network::neutron' :
-      neutron_admin_password    => $admin_password,
-      neutron_admin_tenant_name => $admin_tenant_name,
-      neutron_region_name       => $region_name,
-      neutron_admin_username    => $admin_username,
-      neutron_admin_auth_url    => $admin_auth_url,
-      neutron_url               => $neutron_url,
-      neutron_ovs_bridge        => $neutron_integration_bridge,
+      neutron_password     => $admin_password,
+      neutron_project_name => $admin_tenant_name,
+      neutron_region_name  => $region_name,
+      neutron_username     => $admin_username,
+      neutron_auth_url     => $neutron_auth_url,
+      neutron_url          => $neutron_url,
+      neutron_ovs_bridge   => $neutron_integration_bridge,
     }
 
     augeas { 'sysctl-net.bridge.bridge-nf-call-arptables':

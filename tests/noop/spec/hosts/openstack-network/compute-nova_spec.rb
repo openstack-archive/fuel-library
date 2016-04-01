@@ -98,9 +98,8 @@ describe manifest do
         admin_username     = ks.fetch('admin_user', 'neutron')
         region_name        = Noop.hiera('region', 'RegionOne')
         auth_api_version   = 'v3'
-        admin_identity_uri = "http://#{service_endpoint}:35357"
-        admin_auth_url     = "#{admin_identity_uri}/#{auth_api_version}"
-        neutron_url        = "http://#{neutron_endpoint}:9696"
+        neutron_auth_url     = "http://#{service_endpoint}:35357/#{auth_api_version}"
+        neutron_url          = "http://#{neutron_endpoint}:9696"
 
         it { expect(subject).to contain_service('libvirt').with(
           :ensure   => 'running',
@@ -148,22 +147,22 @@ describe manifest do
         it { expect(subject).to contain_nova_config('DEFAULT/linuxnet_ovs_integration_bridge') }
         #
         it { expect(subject).to contain_class('nova::network::neutron').with(
-          :neutron_admin_password    => admin_password,
-          :neutron_admin_tenant_name => admin_tenant_name,
+          :neutron_password          => admin_password,
+          :neutron_project_name      => admin_tenant_name,
           :neutron_region_name       => region_name,
-          :neutron_admin_username    => admin_username,
+          :neutron_username          => admin_username,
           :neutron_ovs_bridge        => neutron_integration_bridge,
         )}
         if Noop.hiera_structure('use_ssl', false)
           admin_identity_address = Noop.hiera_structure('use_ssl/keystone_admin_hostname')
           neutron_internal_address = Noop.hiera_structure('use_ssl/neutron_internal_hostname')
           it { expect(subject).to contain_class('nova::network::neutron').with(
-            :neutron_admin_auth_url    => "https://#{admin_identity_address}:35357/v3",
+            :neutron_auth_url          => "https://#{admin_identity_address}:35357/v3",
             :neutron_url               => "https://#{neutron_internal_address}:9696",
           )}
         else
           it { expect(subject).to contain_class('nova::network::neutron').with(
-            :neutron_admin_auth_url    => admin_auth_url,
+            :neutron_auth_url          => neutron_auth_url,
             :neutron_url               => neutron_url,
           )}
         end

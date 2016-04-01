@@ -51,9 +51,6 @@ describe manifest do
           'manage_service' => true
         )}
         it { should contain_class('neutron::agents::dhcp').with(
-          'dhcp_delete_namespaces' => true
-        )}
-        it { should contain_class('neutron::agents::dhcp').with(
           'resync_interval' => 30
         )}
         it { should contain_class('neutron::agents::dhcp').with(
