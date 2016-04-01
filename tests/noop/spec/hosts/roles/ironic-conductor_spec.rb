@@ -1,8 +1,8 @@
-# RUN: neut_vlan.ironic.conductor ubuntu
+# RUN: neut_tun.ironic-ironic ubuntu
 
 require 'spec_helper'
 require 'shared-examples'
-manifest = 'roles/ironic-conductor.pp'
+manifest = 'roles/ironic.pp'
 
 describe manifest do
   shared_examples 'catalog' do
