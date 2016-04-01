@@ -66,7 +66,7 @@ Puppet::Type.type(:l3_ifconfig).provide(:lnx, :parent => Puppet::Provider::L3_ba
     if ! @property_flush.empty?
       debug("FLUSH properties: #{@property_flush}")
       # FLUSH changed properties
-      is_dhcp = @property_flush[:ipaddr].to_s.downcase == 'dhcp'
+      is_dhcp = (Array(@property_flush[:ipaddr]) & [:dhcp, 'dhcp', 'DHCP']).any?
       if ! @property_flush[:ipaddr].nil?
         if @property_flush[:ipaddr].include?(:absent)
           # flush all ip addresses from interface
