@@ -19,4 +19,9 @@ $MainMsgQueueSaveOnShutdown on
 $MainMsgQueueDequeueSlowdown 1000
 $MainMsgQueueWorkerThreads 2
 $MainMsgQueueDequeueBatchSize 128
+$MainMsgQueueMaxDiskSpace 1g
+$MainMsgQueueSize 1000000
+$MainMsgQueueLowWaterMark 10000
+$MainMsgQueueHighWatermark 20000
+$MainMsgQueueDiscardMark 950000
 $SystemLogRateLimitInterval 0   # disable rate limits for rsyslog
