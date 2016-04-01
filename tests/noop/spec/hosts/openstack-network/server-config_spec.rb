@@ -1,11 +1,11 @@
-# RUN: neut_vlan.ceph.ceil-primary-controller.overridden_ssl ubuntu
-# RUN: neut_vlan.ceph.controller-ephemeral-ceph ubuntu
-# RUN: neut_vlan.ironic.controller ubuntu
-# RUN: neut_vlan_l3ha.ceph.ceil-controller ubuntu
-# RUN: neut_vlan_l3ha.ceph.ceil-primary-controller ubuntu
-# RUN: neut_vxlan_dvr.murano.sahara-controller ubuntu
-# RUN: neut_vxlan_dvr.murano.sahara-primary-controller ubuntu
-# RUN: neut_vxlan_dvr.murano.sahara-primary-controller.overridden_ssl ubuntu
+# RUN: neut_tun.ceph.murano.sahara.ceil-controller ubuntu
+# RUN: neut_tun.ceph.murano.sahara.ceil-primary-controller ubuntu
+# RUN: neut_tun.ironic-primary-controller ubuntu
+# RUN: neut_tun.l3ha-primary-controller ubuntu
+# RUN: neut_vlan.ceph-primary-controller ubuntu
+# RUN: neut_vlan.dvr-primary-controller ubuntu
+# RUN: neut_vlan.murano.sahara.ceil-controller ubuntu
+# RUN: neut_vlan.murano.sahara.ceil-primary-controller ubuntu
 
 require 'spec_helper'
 require 'shared-examples'
@@ -56,6 +56,20 @@ describe manifest do
         adv_neutron_config = Noop.hiera_hash('neutron_advanced_configuration')
         dvr = adv_neutron_config.fetch('neutron_dvr', false)
         pci_vendor_devs = neutron_config.fetch('supported_pci_vendor_devs', false)
+        if role == 'compute' and !dvr
+          do_floating = false
+        else
+          do_floating = true
+        end
+        network_vlan_ranges = Noop.puppet_function('generate_physnet_vlan_ranges',
+                            neutron_config,
+                            Noop.hiera_hash('network_scheme', {}),
+                            {
+                              'do_floating' => do_floating,
+                              'do_tenant'   => true,
+                              'do_provider' => false
+                            }
+                          )
 
         if pci_vendor_devs
           use_sriov = true
@@ -76,29 +90,11 @@ describe manifest do
 
         if segmentation_type == 'vlan'
           network_type   = 'vlan'
-          network_vlan_ranges_physnet2 = pnets.fetch('physnet2',{}).fetch('vlan_range')
-          if role =~ /controller/ and !dvr
-            physnets_array = ["physnet1:#{pnets['physnet1']['bridge']}", "physnet2:#{pnets['physnet2']['bridge']}"]
-            network_vlan_ranges = ["physnet1", "physnet2:#{network_vlan_ranges_physnet2}"]
-          else
-            physnets_array = ["physnet2:#{pnets['physnet2']['bridge']}"]
-            network_vlan_ranges = ["physnet2:#{network_vlan_ranges_physnet2}"]
-          end
           tunnel_id_ranges  = []
           overlay_net_mtu = '1500'
           tunnel_types = []
-          if pnets['physnet-ironic']
-            physnets_array << "physnet-ironic:#{pnets['physnet-ironic']['bridge']}"
-            network_vlan_ranges << 'physnet-ironic'
-          end
         else
-          if role == 'compute' and !dvr
-            physnets_array = []
-          else
-            physnets_array = ["physnet1:#{pnets['physnet1']['bridge']}"]
-          end
           network_type   = 'vxlan'
-          network_vlan_ranges = []
           tunnel_id_ranges  = [neutron_config.fetch('L2',{}).fetch('tunnel_id_ranges')]
           overlay_net_mtu = '1450'
           tunnel_types    = [network_type]

@@ -1,20 +1,15 @@
-# RUN: neut_gre.generate_vms ubuntu
-# RUN: neut_vlan.ceph.ceil-compute.overridden_ssl ubuntu
-# RUN: neut_vlan.ceph.ceil-primary-controller.overridden_ssl ubuntu
-# RUN: neut_vlan.ceph.compute-ephemeral-ceph ubuntu
-# RUN: neut_vlan.ceph.controller-ephemeral-ceph ubuntu
-# RUN: neut_vlan.cinder-block-device.compute ubuntu
-# RUN: neut_vlan.compute.nossl ubuntu
-# RUN: neut_vlan.compute.ssl ubuntu
-# RUN: neut_vlan.compute.ssl.overridden ubuntu
-# RUN: neut_vlan.ironic.controller ubuntu
-# RUN: neut_vlan_l3ha.ceph.ceil-compute ubuntu
-# RUN: neut_vlan_l3ha.ceph.ceil-controller ubuntu
-# RUN: neut_vlan_l3ha.ceph.ceil-primary-controller ubuntu
-# RUN: neut_vxlan_dvr.murano.sahara-compute ubuntu
-# RUN: neut_vxlan_dvr.murano.sahara-controller ubuntu
-# RUN: neut_vxlan_dvr.murano.sahara-primary-controller ubuntu
-# RUN: neut_vxlan_dvr.murano.sahara-primary-controller.overridden_ssl ubuntu
+# RUN: neut_tun.ceph.murano.sahara.ceil-controller ubuntu
+# RUN: neut_tun.ceph.murano.sahara.ceil-primary-controller ubuntu
+# RUN: neut_tun.ironic-primary-controller ubuntu
+# RUN: neut_tun.l3ha-primary-controller ubuntu
+# RUN: neut_vlan.ceph-primary-controller ubuntu
+# RUN: neut_vlan.dvr-primary-controller ubuntu
+# RUN: neut_vlan.murano.sahara.ceil-controller ubuntu
+# RUN: neut_vlan.murano.sahara.ceil-primary-controller ubuntu
+# RUN: neut_tun.ceph.murano.sahara.ceil-compute ubuntu
+# RUN: neut_vlan.ceph-compute ubuntu
+# RUN: neut_vlan.murano.sahara.ceil-compute ubuntu
+# R_N: neut_gre.generate_vms ubuntu
 
 require 'spec_helper'
 require 'shared-examples'
@@ -65,6 +60,20 @@ describe manifest do
         dpdk_config = Noop.hiera_hash('dpdk', {})
         enable_dpdk = dpdk_config.fetch('enabled', false)
         enable_qos = adv_neutron_config.fetch('neutron_qos', false)
+        if role == 'compute' and !dvr
+          do_floating = false
+        else
+          do_floating = true
+        end
+        bridge_mappings = Noop.puppet_function('generate_bridge_mappings',
+                            neutron_config,
+                            Noop.hiera_hash('network_scheme', {}),
+                            {
+                              'do_floating' => do_floating,
+                              'do_tenant'   => true,
+                              'do_provider' => false
+                            }
+                          )
 
         if enable_qos
           it { should contain_class('neutron::agents::ml2::ovs').with(
@@ -74,45 +83,31 @@ describe manifest do
 
         if segmentation_type == 'vlan'
           network_type   = 'vlan'
-          if role =~ /controller/ and !dvr
-            physnets_array = ["physnet1:#{pnets['physnet1']['bridge']}", "physnet2:#{pnets['physnet2']['bridge']}"]
-          else
-            physnets_array = ["physnet2:#{pnets['physnet2']['bridge']}"]
-          end
           tunnel_id_ranges  = []
           tunnel_types = []
-          if pnets['physnet-ironic']
-            physnets_array << "physnet-ironic:#{pnets['physnet-ironic']['bridge']}"
-          end
         else
-          if role == 'compute' and !dvr
-            physnets_array = []
-          else
-            physnets_array = ["physnet1:#{pnets['physnet1']['bridge']}"]
-          end
           network_type   = 'vxlan'
           tunnel_types    = [network_type]
         end
 
-       if role == 'compute' and enable_dpdk
-         it 'should set dpdk-specific options for OVS agent' do
-           should contain_neutron_agent_ovs('securitygroup/enable_security_group').with_value('false')
-           should contain_class('neutron::agents::ml2::ovs').with(
-             'firewall_driver'      => 'neutron.agent.firewall.NoopFirewallDriver',
-             'datapath_type'        => 'netdev',
-             'vhostuser_socket_dir' => '/var/run/openvswitch',
-           )
-         end
-       else
-         it 'should skip dpdk-specific options for OVS agent' do
-           should contain_neutron_agent_ovs('securitygroup/enable_security_group').with_value('true')
-           should contain_class('neutron::agents::ml2::ovs').with(
-             'firewall_driver' => 'neutron.agent.linux.iptables_firewall.OVSHybridIptablesFirewallDriver',
-           )
-         end
-       end
+        if role == 'compute' and enable_dpdk
+          it 'should set dpdk-specific options for OVS agent' do
+            should contain_neutron_agent_ovs('securitygroup/enable_security_group').with_value('false')
+            should contain_class('neutron::agents::ml2::ovs').with(
+              'firewall_driver'      => 'neutron.agent.firewall.NoopFirewallDriver',
+              'datapath_type'        => 'netdev',
+              'vhostuser_socket_dir' => '/var/run/openvswitch',
+            )
+          end
+        else
+          it 'should skip dpdk-specific options for OVS agent' do
+            should contain_neutron_agent_ovs('securitygroup/enable_security_group').with_value('true')
+            should contain_class('neutron::agents::ml2::ovs').with(
+              'firewall_driver' => 'neutron.agent.linux.iptables_firewall.OVSHybridIptablesFirewallDriver',
+            )
+          end
+        end
 
-        bridge_mappings = physnets_array.compact
         it { should contain_class('neutron::agents::ml2::ovs').with(
           'bridge_mappings' => bridge_mappings
         )}

@@ -1,20 +1,15 @@
-# RUN: neut_gre.generate_vms ubuntu
-# RUN: neut_vlan.ceph.ceil-compute.overridden_ssl ubuntu
-# RUN: neut_vlan.ceph.ceil-primary-controller.overridden_ssl ubuntu
-# RUN: neut_vlan.ceph.compute-ephemeral-ceph ubuntu
-# RUN: neut_vlan.ceph.controller-ephemeral-ceph ubuntu
-# RUN: neut_vlan.cinder-block-device.compute ubuntu
-# RUN: neut_vlan.compute.nossl ubuntu
-# RUN: neut_vlan.compute.ssl ubuntu
-# RUN: neut_vlan.compute.ssl.overridden ubuntu
-# RUN: neut_vlan.ironic.controller ubuntu
-# RUN: neut_vlan_l3ha.ceph.ceil-compute ubuntu
-# RUN: neut_vlan_l3ha.ceph.ceil-controller ubuntu
-# RUN: neut_vlan_l3ha.ceph.ceil-primary-controller ubuntu
-# RUN: neut_vxlan_dvr.murano.sahara-compute ubuntu
-# RUN: neut_vxlan_dvr.murano.sahara-controller ubuntu
-# RUN: neut_vxlan_dvr.murano.sahara-primary-controller ubuntu
-# RUN: neut_vxlan_dvr.murano.sahara-primary-controller.overridden_ssl ubuntu
+# RUN: neut_tun.ceph.murano.sahara.ceil-controller ubuntu
+# RUN: neut_tun.ceph.murano.sahara.ceil-primary-controller ubuntu
+# RUN: neut_tun.ironic-primary-controller ubuntu
+# RUN: neut_tun.l3ha-primary-controller ubuntu
+# RUN: neut_vlan.ceph-primary-controller ubuntu
+# RUN: neut_vlan.dvr-primary-controller ubuntu
+# RUN: neut_vlan.murano.sahara.ceil-controller ubuntu
+# RUN: neut_vlan.murano.sahara.ceil-primary-controller ubuntu
+# RUN: neut_tun.ceph.murano.sahara.ceil-compute ubuntu
+# RUN: neut_vlan.ceph-compute ubuntu
+# RUN: neut_vlan.murano.sahara.ceil-compute ubuntu
+# R_N: neut_gre.generate_vms ubuntu
 
 require 'spec_helper'
 require 'shared-examples'

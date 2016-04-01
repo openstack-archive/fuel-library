@@ -72,13 +72,13 @@ describe manifest do
       it "should create certificate file for public endpoints in /var/" do
         should contain_file("/var/lib/astute/haproxy/public_haproxy.pem").with(
           'ensure'  => 'present',
-          'content' => certdata,
+          'content' => certdata.to_s,
         )
       end
       it "should create certificate file with for public endpoints in /etc/" do
         should contain_file("/etc/pki/tls/certs/public_haproxy.pem").with(
           'ensure'  => 'present',
-          'content' => certdata,
+          'content' => certdata.to_s,
         )
       end
     end
