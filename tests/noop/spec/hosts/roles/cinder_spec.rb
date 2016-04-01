@@ -2,9 +2,8 @@ require 'spec_helper'
 require 'shared-examples'
 manifest = 'roles/cinder.pp'
 
-# FIXME: neut_vlan.cinder-block-device.compute.yaml ubuntu
+# RUN: neut_vlan.cinder-block-device.compute.yaml ubuntu
 # RUN: neut_vxlan_dvr.murano.sahara-cinder.yaml ubuntu
-# SKIP_HIERA: neut_vlan.cinder-block-device.compute
 
 describe manifest do
 
@@ -34,12 +33,12 @@ describe manifest do
       'iscsi'
     elsif storage_hash['volumes_ceph']
       'ceph'
+    elsif storage_hash['volumes_block_device']
+      'fake'
     else
       false
     end
   end
-
-
 
   it 'should configure the database connection string' do
     if facts[:os_package_type] == 'debian'
@@ -95,7 +94,6 @@ describe manifest do
       should contain_cinder_config('DEFAULT/iscsi_ip_address').with(:value => iscsi_bind_host)
       should contain_cinder_config('DEFAULT/volume_group').with(:value => 'cinder')
       should contain_cinder_config('DEFAULT/volume_dir').with(:value => '/var/lib/cinder/volumes')
-      should contain_cinder_config('DEFAULT/volume_clear').with(:value => 'zero')
       should contain_cinder_config('DEFAULT/available_devices').with(:value => disks_list)
     end
   end
@@ -108,6 +106,10 @@ describe manifest do
     elsif storage_hash['volumes_ceph']
       should contain_cinder__backend__rbd('DEFAULT').with(
        'volume_backend_name' => volume_backend_name['volumes_ceph']
+      )
+    elsif storage_hash['volumes_block_device']
+      should contain_cinder_config('DEFAULT/volume_backend_name').with(
+       :value => volume_backend_name['volumes_block_device']
       )
     else
       should_not contain_cinder_config('DEFAULT/volume_backend_name')
