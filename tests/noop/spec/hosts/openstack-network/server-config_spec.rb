@@ -85,7 +85,7 @@ describe manifest do
             network_vlan_ranges = ["physnet2:#{network_vlan_ranges_physnet2}"]
           end
           tunnel_id_ranges  = []
-          overlay_net_mtu = '1500'
+          physical_net_mtu = '1500'
           tunnel_types = []
           if pnets['physnet-ironic']
             physnets_array << "physnet-ironic:#{pnets['physnet-ironic']['bridge']}"
@@ -100,7 +100,7 @@ describe manifest do
           network_type   = 'vxlan'
           network_vlan_ranges = []
           tunnel_id_ranges  = [neutron_config.fetch('L2',{}).fetch('tunnel_id_ranges')]
-          overlay_net_mtu = '1450'
+          physical_net_mtu = '1500'
           tunnel_types    = [network_type]
         end
 
@@ -311,7 +311,7 @@ describe manifest do
           'physical_network_mtus' => physical_network_mtus,
         )}
         it { should contain_class('neutron::plugins::ml2').with(
-          'path_mtu' => overlay_net_mtu,
+          'path_mtu' => physical_net_mtu,
         )}
         it { should contain_class('neutron::plugins::ml2').with(
           'extension_drivers' => extension_drivers,

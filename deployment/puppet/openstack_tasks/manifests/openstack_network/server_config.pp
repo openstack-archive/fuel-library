@@ -131,7 +131,6 @@ class openstack_tasks::openstack_network::server_config {
     if $segmentation_type == 'vlan' {
       $net_role_property    = 'neutron/private'
       $iface                = get_network_role_property($net_role_property, 'phys_dev')
-      $overlay_net_mtu      =  pick(get_transformation_property('mtu', $iface[0]), '1500')
       $physical_network_mtus = generate_physnet_mtus($neutron_config, $network_scheme, {
         'do_floating' => $do_floating,
         'do_tenant'   => true,
@@ -144,12 +143,10 @@ class openstack_tasks::openstack_network::server_config {
       })
       $tunnel_id_ranges = []
       $network_type = 'vlan'
-      $tunnel_types = []
     } else {
       $net_role_property = 'neutron/mesh'
       $tunneling_ip      = get_network_role_property($net_role_property, 'ipaddr')
       $iface             = get_network_role_property($net_role_property, 'phys_dev')
-      $physical_net_mtu  = pick(get_transformation_property('mtu', $iface[0]), '1500')
       $tunnel_id_ranges  = [try_get_value($neutron_config, 'L2/tunnel_id_ranges')]
       $physical_network_mtus = generate_physnet_mtus($neutron_config, $network_scheme, {
         'do_floating' => $do_floating,
@@ -159,21 +156,14 @@ class openstack_tasks::openstack_network::server_config {
       $network_vlan_ranges = []
 
       if $segmentation_type == 'gre' {
-        $mtu_offset = '42'
         $network_type = 'gre'
       } else {
         # vxlan is the default segmentation type for non-vlan cases
-        $mtu_offset = '50'
         $network_type = 'vxlan'
       }
-      $tunnel_types = [$network_type]
-
-      if $physical_net_mtu {
-        $overlay_net_mtu = $physical_net_mtu - $mtu_offset
-      } else {
-        $overlay_net_mtu = '1500' - $mtu_offset
-      }
     }
+
+    $physical_net_mtu = pick(get_transformation_property('mtu', $iface[0]), '1500')
 
     if $compute and ! $dvr {
       $do_floating = false
@@ -194,7 +184,7 @@ class openstack_tasks::openstack_network::server_config {
       vxlan_group               => $vxlan_group,
       vni_ranges                => $tunnel_id_ranges,
       physical_network_mtus     => $physical_network_mtus,
-      path_mtu                  => $overlay_net_mtu,
+      path_mtu                  => $physical_net_mtu,
       extension_drivers         => $extension_drivers,
       supported_pci_vendor_devs => $pci_vendor_devs,
       sriov_agent_required      => $use_sriov,
