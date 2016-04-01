@@ -23,7 +23,6 @@ class openstack_tasks::swift::proxy {
 # NOTE(mattymo): Changing ring_part_power or part_hours on redeploy leads to data loss
   $ring_part_power            = pick($swift_hash['ring_part_power'], 10)
   $ring_min_part_hours        = hiera('swift_ring_min_part_hours', 1)
-  $deploy_swift_storage       = hiera('deploy_swift_storage', true)
   $deploy_swift_proxy         = hiera('deploy_swift_proxy', true)
 #Keystone settings
   $keystone_user              = pick($swift_hash['user'], 'swift')
@@ -55,7 +54,6 @@ class openstack_tasks::swift::proxy {
     $master_swift_proxy_nodes_list = values($master_swift_proxy_nodes)
     $master_swift_proxy_ip         = regsubst($master_swift_proxy_nodes_list[0]['network_roles']['swift/api'], '\/\d+$', '')
     $master_swift_replication_ip   = regsubst($master_swift_proxy_nodes_list[0]['network_roles']['swift/replication'], '\/\d+$', '')
-    $swift_partition               = hiera('swift_partition', '/var/lib/glance/node')
 
     if $is_primary_swift_proxy {
       ring_devices {'all':
@@ -126,13 +124,10 @@ class openstack_tasks::swift::proxy {
 
       Class['openstack::swift::proxy'] -> Class['swift::dispersion']
       Service<| tag == 'swift-service' |> -> Class['swift::dispersion']
-
-      if defined(Class['openstack::swift::storage_node']) {
-        Class['openstack::swift::storage_node'] -> Class['swift::dispersion']
-      }
     }
   }
 
+  # FIXME(bogdando) requires decomposition and unit tests
   class openstack::swift::status (
     $address     = '0.0.0.0',
     $only_from   = '127.0.0.1',
@@ -174,7 +169,6 @@ class openstack_tasks::swift::proxy {
     }
   }
 
-#
   class openstack::swift::proxy (
     $swift_user_password               = 'swift_pass',
     $swift_hash_suffix                 = 'swift_secret',
