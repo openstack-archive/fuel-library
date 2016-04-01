@@ -1,4 +1,7 @@
-# RUN: neut_vlan_l3ha.ceph.ceil-primary-mongo ubuntu
+# RUN: neut_tun.ceph.murano.sahara.ceil-mongo ubuntu
+# RUN: neut_tun.ceph.murano.sahara.ceil-primary-mongo ubuntu
+# RUN: neut_vlan.murano.sahara.ceil-mongo ubuntu
+# RUN: neut_vlan.murano.sahara.ceil-primary-mongo ubuntu
 
 require 'spec_helper'
 require 'shared-examples'
