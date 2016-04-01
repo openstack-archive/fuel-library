@@ -1,52 +1,78 @@
-# RUN: neut_vlan.ceph.ceil-primary-controller.overridden_ssl ubuntu
-# RUN: neut_vlan.ceph.controller-ephemeral-ceph ubuntu
-# RUN: neut_vlan.ironic.controller ubuntu
-# RUN: neut_vlan_l3ha.ceph.ceil-controller ubuntu
-# RUN: neut_vlan_l3ha.ceph.ceil-primary-controller ubuntu
-# RUN: neut_vxlan_dvr.murano.sahara-primary-controller ubuntu
-# RUN: neut_vxlan_dvr.murano.sahara-primary-controller.overridden_ssl ubuntu
-
+# RUN: neut_tun.ceph.murano.sahara.ceil-controller ubuntu
+# RUN: neut_tun.ceph.murano.sahara.ceil-primary-controller ubuntu
+# RUN: neut_tun.ironic-primary-controller ubuntu
+# RUN: neut_tun.l3ha-primary-controller ubuntu
+# RUN: neut_vlan.ceph-primary-controller ubuntu
+# RUN: neut_vlan.dvr-primary-controller ubuntu
+# RUN: neut_vlan.murano.sahara.ceil-controller ubuntu
+# RUN: neut_vlan.murano.sahara.ceil-primary-controller ubuntu
 require 'spec_helper'
 require 'shared-examples'
 manifest = 'swift/storage.pp'
 
 describe manifest do
   shared_examples 'catalog' do
-    network_scheme         = Noop.hiera_structure 'network_scheme', {}
-    network_metadata       = Noop.hiera_structure 'network_metadata', {}
+    workers_max      = Noop.hiera 'workers_max'
+    role             = Noop.hiera 'role'
+    storage_hash     = Noop.hiera_hash 'storage'
+    swift_hash       = Noop.hiera_hash 'swift'
+    network_scheme   = Noop.hiera_hash 'network_scheme'
+    network_metadata = Noop.hiera_hash 'network_metadata'
 
-    let(:prepare) do
-      Noop.puppet_function 'prepare_network_config', network_scheme
+    memcached_nodes     = Noop.puppet_function('get_nodes_hash_by_roles', network_metadata, ['primary-controller', 'controller'])
+    memcached_addresses = Noop.hiera 'memcached_addresses'
+    memcached_port      = Noop.hiera 'memcache_server_port', '11211'
+    memcached_servers   = memcached_addresses.sort.map{ |n| n = n + ':' + memcached_port }
+
+    swift_operator_roles = storage_hash.fetch('swift_operator_roles', ['admin', 'SwiftOperator'])
+    ring_part_power = swift_hash.fetch('ring_part_power', 10)
+    ring_min_part_hours = Noop.hiera 'swift_ring_min_part_hours', 1
+    deploy_swift_proxy = Noop.hiera('deploy_swift_proxy')
+    swift_proxies_num  = (Noop.hiera('swift_proxies')).size
+    rabbit_hosts       = Noop.hiera('amqp_hosts')
+    rabbit_user        = Noop.hiera_structure('rabbit/user', 'nova')
+    rabbit_password    = Noop.hiera_structure('rabbit/password')
+    network_scheme     = Noop.hiera_hash 'network_scheme'
+
+    if swift_proxies_num < 2
+      ring_replicas = 2
+    else
+      ring_replicas = 3
     end
 
-    storage_hash           = Noop.hiera_hash 'storage'
-    swift_hash             = Noop.hiera_hash 'swift'
-    rabbit_hosts           = Noop.hiera 'amqp_hosts'
-    rabbit_user            = Noop.hiera_structure 'rabbit/user', 'nova'
-    rabbit_password        = Noop.hiera_structure 'rabbit/password'
-    network_scheme         = Noop.hiera_hash 'network_scheme'
-    swift_master_role      = Noop.hiera 'swift_master_role', 'primary-controller'
-    is_primary_swift_proxy = Noop.hiera 'is_primary_swift_proxy', false
-    mp_hash                = Noop.hiera 'mp'
+    let (:storage_nets){
+        Noop.puppet_function 'get_routable_networks_for_network_role', network_scheme, 'swift/replication', ' '
+    }
 
-    let(:swift_storage_ipaddr) do
-      prepare
-      Noop.puppet_function 'get_network_role_property', 'swift/replication', 'ipaddr'
-    end
+    let (:mgmt_nets){
+        Noop.puppet_function 'get_routable_networks_for_network_role', network_scheme, 'swift/api', ' '
+    }
 
-    debug                  = Noop.puppet_function 'pick', swift_hash['debug'], Noop.hiera('debug', false)
-    verbose                = Noop.puppet_function 'pick', swift_hash['verbose'], Noop.hiera('verbose', false)
-    deploy_swift_storage   = Noop.hiera 'deploy_swift_storage', true
+    let (:bind_to_one) {
+      api_ip = Noop.puppet_function 'get_network_role_property', 'swift/api', 'ipaddr'
+      storage_ip = Noop.puppet_function 'get_network_role_property', 'swift/replication', 'ipaddr'
+      api_ip == storage_ip
+    }
+
+    let(:ssl_hash) { Noop.hiera_hash 'use_ssl' }
+
+    let(:internal_auth_protocol) { Noop.puppet_function 'get_ssl_property',ssl_hash,{},'keystone','internal','protocol','http' }
+
+    let(:internal_auth_address) { Noop.puppet_function 'get_ssl_property',ssl_hash,{},'keystone','internal','hostname',[Noop.hiera('service_endpoint', ''), management_vip] }
+
+    let(:admin_auth_protocol) { Noop.puppet_function 'get_ssl_property',ssl_hash,{},'keystone','admin','protocol','http' }
+
+    let(:admin_auth_address) { Noop.puppet_function 'get_ssl_property',ssl_hash,{},'keystone','admin','hostname',[Noop.hiera('service_endpoint', ''), management_vip] }
+
+    let(:auth_uri) { "#{internal_auth_protocol}://#{internal_auth_address}:5000/" }
+
+    let(:identity_uri) { "#{admin_auth_protocol}://#{admin_auth_address}:35357/" }
 
     # Swift
     if !(storage_hash['images_ceph'] and storage_hash['objects_ceph']) and !storage_hash['images_vcenter']
-      swift_partition = Noop.hiera 'swift_partition', '/var/lib/glance/node'
-      master_swift_proxy_nodes      = Noop.puppet_function 'get_nodes_hash_by_roles', network_metadata, [swift_master_role]
-      master_swift_proxy_nodes_list = Noop.puppet_function 'values', master_swift_proxy_nodes
-      master_swift_proxy_ip         = Noop.puppet_function 'regsubst', master_swift_proxy_nodes_list[0]['network_roles']['swift/api'], '\/\d+$', ''
-      master_swift_replication_ip   = Noop.puppet_function 'regsubst', master_swift_proxy_nodes_list[0]['network_roles']['swift/replication'], '\/\d+$', ''
-
-      if deploy_swift_storage
+      swift_partition = Noop.hiera 'swift_partition'
+      if !swift_partition
+        swift_partition = '/var/lib/glance/node'
         it 'should allow swift user to write into /var/lib/glance directory' do
           should contain_file('/var/lib/glance').with(
             'ensure' => 'directory',
@@ -55,23 +81,20 @@ describe manifest do
         end
       end
 
-      it 'should contain openstack::swift::storage_node' do
-        should contain_class('openstack_tasks::swift::storage::openstack::swift::storage_node').with(
-          :storage_type                => false,
-          :loopback_size               => '5243780',
-          :storage_mnt_base_dir        => swift_partition,
-          :storage_devices             => Noop.puppet_function('filter_hash', mp_hash, 'point'),
-          :swift_zone                  => master_swift_proxy_nodes_list[0]['swift_zone'],
-          :swift_local_net_ip          => swift_storage_ipaddr,
-          :master_swift_proxy_ip       => master_swift_proxy_ip,
-          :master_swift_replication_ip => master_swift_replication_ip,
-          :sync_rings                  => ! is_primary_swift_proxy,
-          :debug                       => debug,
-          :verbose                     => verbose,
-          :log_facility                => 'LOG_SYSLOG',
+      it 'should disable mount check for swift devices' do
+        should contain_class('swift::storage::all').with('mount_check' => false)
+      end
+
+      it 'should configure swift on separate partition' do
+        should contain_file(swift_partition).with(
+          'ensure' => 'directory',
+          'owner'  => 'swift',
+          'group'  => 'swift',
         )
       end
+
     end
   end
   test_ubuntu_and_centos manifest
 end
+
