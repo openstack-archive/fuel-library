@@ -1,9 +1,16 @@
+# RUN: neut_tun.ironic-ironic ubuntu
+# RUN: neut_tun.ceph.murano.sahara.ceil-controller ubuntu
+# RUN: neut_tun.ceph.murano.sahara.ceil-primary-controller ubuntu
+# RUN: neut_tun.ironic-primary-controller ubuntu
+# RUN: neut_tun.l3ha-primary-controller ubuntu
+# RUN: neut_vlan.ceph-primary-controller ubuntu
+# RUN: neut_vlan.dvr-primary-controller ubuntu
+# RUN: neut_vlan.murano.sahara.ceil-controller ubuntu
+# RUN: neut_vlan.murano.sahara.ceil-primary-controller ubuntu
 require 'spec_helper'
 require 'shared-examples'
 manifest = 'ironic/ironic.pp'
 
-# RUN: neut_vlan.ironic.conductor.yaml ubuntu
-# RUN: neut_vlan.ironic.controller.yaml ubuntu
 # SKIP_HIERA: neut_vlan.ironic.controller
 
 ironic_enabled = Noop.hiera_structure 'ironic/enabled'
