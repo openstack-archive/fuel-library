@@ -56,6 +56,7 @@ class cluster::haproxy (
   $colocate_haproxy             = false,
   $stats_ipaddresses            = ['127.0.0.1'],
   $spread_checks                = '3',
+  $user_defined_options         = {}
 ) {
   include ::haproxy::params
   include ::rsyslog::params
@@ -105,9 +106,10 @@ class cluster::haproxy (
   $service_name = 'p_haproxy'
 
   class { 'haproxy::base':
-    global_options    => $global_options,
-    defaults_options  => $defaults_options,
+    global_options    => merge($global_options, $user_defined_options['global']),
+    defaults_options  => merge($defaults_options, $user_defined_options['defaults']),
     stats_ipaddresses => $stats_ipaddresses,
+    custom_fragment   => $user_defined_options['custom_fragment'],
     use_include       => true,
   }
 
