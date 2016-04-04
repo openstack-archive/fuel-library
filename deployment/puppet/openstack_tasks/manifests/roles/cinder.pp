@@ -302,10 +302,8 @@ class openstack_tasks::roles::cinder {
     }
   }
 
-  if $notification_driver {
-    class { 'cinder::ceilometer':
-      notification_driver => $ceilometer_hash['notification_driver'],
-    }
+  class { 'cinder::ceilometer':
+    notification_driver => $ceilometer_hash['notification_driver'],
   }
 
   # TODO (iberezovskiy): remove this workaround in N when cinder module
