@@ -41,6 +41,20 @@ class openstack_tasks::ceilometer::compute {
   $keystone_identity_uri      = "${admin_auth_protocol}://${admin_auth_endpoint}:35357/"
   $keystone_auth_uri          = "${internal_auth_protocol}://${internal_auth_endpoint}:5000/v2.0"
 
+  $override_configuration = hiera_hash('configuration', {})
+
+  # override ceilometer.conf options
+  override_resources { 'ceilometer_config':
+    data => $override_configuration['ceilometer']
+  }
+  # override ceilometer api paste options
+  override_resources { 'ceilometer_api_paste_ini':
+    data => $override_configuration['ceilometer_api_paste_ini']
+  }
+
+  Override_resources <||> ~> Service <| tag == 'ceilometer-service' |>
+
+
   if ($ceilometer_enabled) {
 
     class { '::ceilometer':
