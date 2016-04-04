@@ -43,6 +43,8 @@ class osnailyfacter::database::database {
 
   $external_lb = hiera('external_lb', false)
 
+  $configuration = hiera_hash('configuration', {})
+  $mysql_user_defined_configuration = pick($configuration['mysql'], {})
   #############################################################################
   validate_string($status_password)
   validate_string($mysql_root_password)
@@ -243,7 +245,7 @@ class osnailyfacter::database::database {
       $syslog_options
     )
     $galera_options = mysql_deepmerge($wsrep_options, $vendor_override_options)
-    $override_options = mysql_deepmerge($mysql_override_options, $galera_options)
+    $override_options = mysql_deepmerge($mysql_user_defined_configuration, $mysql_override_options, $galera_options)
 
     class { '::galera':
       vendor_type           => $vendor_type,

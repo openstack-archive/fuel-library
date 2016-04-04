@@ -1,6 +1,6 @@
 - id: rabbitmq
   type: puppet
-  version: 2.0.0
+  version: 2.1.0
   groups: [controller]
   cross-depends:
     - name: primary-rabbitmq
@@ -10,11 +10,16 @@
     puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/rabbitmq/rabbitmq.pp
     puppet_modules: /etc/puppet/modules
     timeout: 3600
+    strategy:
+      type: parallel
+      amount:
+        yaql_exp: &rabbitmq_reconfig >
+         switch((added($.uid) and changed($.configuration.rabbitmq)) => 1, true => 3)
   test_post:
     cmd: ruby /etc/puppet/modules/osnailyfacter/modular/rabbitmq/rabbitmq_post.rb
 - id: primary-rabbitmq
   type: puppet
-  version: 2.0.0
+  version: 2.1.0
   groups: [primary-controller]
   required_for: [deploy_end, openstack-controller, primary-openstack-controller, glance]
   requires: [netconfig, primary-cluster]
@@ -22,5 +27,9 @@
     puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/rabbitmq/rabbitmq.pp
     puppet_modules: /etc/puppet/modules
     timeout: 3600
+    strategy:
+      type: parallel
+      amount:
+        yaql_exp: *rabbitmq_reconfig
   test_post:
     cmd: ruby /etc/puppet/modules/osnailyfacter/modular/rabbitmq/rabbitmq_post.rb
