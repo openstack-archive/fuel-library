@@ -14,6 +14,8 @@
       $.get('region', 'RegionOne'), $.ironic,
       ('primary-controller' in $.roles), $.get('kombu_compression'),
       $.get('amqp_hosts'), $.get('use_ssl'), $.murano)
+      $.configuration.get('glance_api'), $.configuration.get('glance_cache'))
+      $.configuration.get('glance_registry'), $.configuration.get('glare_config'))
   cross-depends:
     - name: glance-db
     - name: glance-keystone
