@@ -192,12 +192,18 @@ describe manifest do
       else
         show_image_direct_url = true
       end
-      let :params do { :glance_backend => 'vmware', } end
+      let :params do { :glance_backend => 'vmware', :glance_vcenter_ca_file => { 'name' => 'vcenter-ca.pem', 'content' => 'RSA'} } end
       it 'should declare vmware backend' do
         should contain_class('glance::backend::vsphere').with(:glare_enabled => true)
       end
       it 'should configure show_image_direct_url' do
         should contain_glance_api_config('DEFAULT/show_image_direct_url').with_value(show_image_direct_url)
+      end
+      it 'should configure vmware_ca_file setting' do
+        should contain_glance_api_config('glance_store/vmware_ca_file').with_value('vcenter-ca.pem')
+      end
+      it 'should contain CA certificate for vCenter server' do
+        should contain_file('/etc/glance/vcenter-ca.pem').with_content('RSA')
       end
     else
       if glance_config && glance_config.has_key?('show_image_direct_url')
