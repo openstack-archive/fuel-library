@@ -72,6 +72,7 @@ class openstack_tasks::glance::glance {
   $glance_vcenter_datastore       = $glance_hash['vc_datastore']
   $glance_vcenter_image_dir       = $glance_hash['vc_image_dir']
   $glance_vcenter_api_retry_count = '20'
+  $glance_vcenter_ca_file         = $glance_hash['vc_ca_file']
   $glance_image_cache_max_size    = $glance_hash['image_cache_max_size']
   $pipeline                       = pick($glance_hash['pipeline'], 'keystone')
   $glance_large_object_size       = pick($glance_hash['large_object_size'], '5120')
@@ -302,6 +303,7 @@ class openstack_tasks::glance::glance {
           vcenter_image_dir       => $glance_vcenter_image_dir,
           vcenter_api_retry_count => $glance_vcenter_api_retry_count,
           glare_enabled           => true,
+          vcenter_ca_file         => $glance_vcenter_ca_file,
       }
     }
     default: {
