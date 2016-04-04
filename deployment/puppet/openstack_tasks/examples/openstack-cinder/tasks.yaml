@@ -14,7 +14,8 @@
       $.get('glance_endpoint'), $.get('glance_api_servers'),
       $.get('use_syslog'), $.get('use_stderr'), $.get('verbose'), $.debug,
       $.get('amqp_hosts'), $.get('syslog_log_facility_cinder'),
-      $.get('cinder_rate_limits'))
+      $.get('cinder_rate_limits'),
+      $.configuration.get('cinder_api_paste_ini'), $.configuration.get('cinder'))
   cross-depends:
     - name: cinder-db
     - name: cinder-keystone

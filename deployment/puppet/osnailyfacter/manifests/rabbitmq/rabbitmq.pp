@@ -76,14 +76,21 @@ class osnailyfacter::rabbitmq::rabbitmq {
       $epmd_bind_ip_address = $rabbitmq_bind_ip_address
     }
 
-    $config_kernel_variables = hiera('rabbit_config_kernel_variables',
-      {
+    $configuration = hiera_hash('configuration', {})
+
+    $config_vars = pick($configuration['rabbitmq'], {})
+
+    $config_kernel_variables = pick(
+      $config_vars['kernel'],
+      hiera_hash('rabbit_config_kernel_variables', {})
+    )
+    $config_kernel_variables_default =       {
         'inet_dist_listen_min'         => '41055',
         'inet_dist_listen_max'         => '41055',
         'inet_default_connect_options' => '[{nodelay,true}]',
         'net_ticktime'                 => '10',
-      }
-    )
+    }
+    $config_kernel_variables_merged = merge ($config_kernel_variables_default, $config_kernel_variables)
 
     $config_variables_default = {
       'log_levels'                   => $rabbit_levels,
@@ -94,14 +101,18 @@ class osnailyfacter::rabbitmq::rabbitmq {
       'collect_statistics_interval'  => '30000',
       'disk_free_limit'              => '5000000', # Corosync checks for disk space, reduce rabbitmq check to 5M see LP#1493520 comment #15
     }
-    $config_variables = merge($config_variables_default, hiera_hash('rabbit_config_variables', {}))
 
-    $config_management_variables = hiera('rabbit_config_management_variables',
-      {
+    $config_variables = pick($config_vars['application'], hiera_hash('rabbit_config_variables', {}))
+    $config_variables_merged = merge($config_variables_default, $config_variables)
+
+    $config_management_variables = pick($config_vars['management'], hiera_hash('rabbit_config_management_variables', {}))
+
+    $config_management_variables_default ={
         'rates_mode' => 'none',
         'listener'   => "[{port, ${management_port}}, {ip,\"${management_bind_ip_address}\"}]",
       }
-    )
+
+    $config_management_variables_merged = merge($config_management_variables_default, $config_management_variables)
     # NOTE(bogdando) to get the limit for threads, the max amount of worker processess will be doubled
     $thread_pool_calc = min($workers_max*2,max(12*$physicalprocessorcount,30))
 
@@ -137,9 +148,9 @@ class osnailyfacter::rabbitmq::rabbitmq {
         #cluster_partition_handling => $cluster_partition_handling,
         version                     => $version,
         node_ip_address             => $rabbitmq_bind_ip_address,
-        config_kernel_variables     => $config_kernel_variables,
-        config_management_variables => $config_management_variables,
-        config_variables            => $config_variables,
+        config_kernel_variables     => $config_kernel_variables_merged,
+        config_management_variables => $config_management_variables_merged,
+        config_variables            => $config_variables_merged,
         environment_variables       => $environment_variables,
         file_limit                  => $file_limit,
         tcp_keepalive               => true,
