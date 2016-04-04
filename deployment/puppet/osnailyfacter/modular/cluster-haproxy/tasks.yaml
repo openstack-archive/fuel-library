@@ -14,6 +14,11 @@
     puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/cluster-haproxy/cluster-haproxy.pp
     puppet_modules: /etc/puppet/modules
     timeout: 3600
+    strategy:
+      type: parallel
+      amount:
+        yaql_exp: &haproxy_reconfig >
+          switch((added($.uid) and changed($.configuration.haproxy)) => 1, true => 6)
   test_post:
     cmd: ruby /etc/puppet/modules/osnailyfacter/modular/cluster-haproxy/cluster-haproxy_post.rb
 
@@ -31,5 +36,9 @@
     puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/cluster-haproxy/cluster-haproxy.pp
     puppet_modules: /etc/puppet/modules
     timeout: 3600
+    strategy:
+      type: parallel
+      amount:
+        yaql_exp: *haproxy_reconfig
   test_post:
     cmd: ruby /etc/puppet/modules/osnailyfacter/modular/cluster-haproxy/cluster-haproxy_post.rb

@@ -19,6 +19,11 @@
     puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/database/database.pp
     puppet_modules: /etc/puppet/modules
     timeout: 3600
+    strategy:
+      type: parallel
+      amount:
+        yaql_exp: &mysql_reconfig >
+          switch((added($.uid) and changed($.configuration.mysql)) => 1, true => 6)
   test_pre:
     cmd: ruby /etc/puppet/modules/osnailyfacter/modular/database/database_pre.rb
   test_post:
@@ -36,6 +41,10 @@
     puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/database/database.pp
     puppet_modules: /etc/puppet/modules
     timeout: 3600
+    strategy:
+      type: parallel
+      amount:
+        yaql_exp: *mysql_reconfig
   test_pre:
     cmd: ruby /etc/puppet/modules/osnailyfacter/modular/database/database_pre.rb
   test_post:
