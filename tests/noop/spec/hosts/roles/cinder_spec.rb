@@ -1,10 +1,8 @@
 # RUN: neut_vlan.murano.sahara.ceil-cinder ubuntu
+# RUN: neut_vlan.murano.sahara.ceil-cinder-block-device ubuntu
 require 'spec_helper'
 require 'shared-examples'
 manifest = 'roles/cinder.pp'
-
-# FIXME: neut_vlan.cinder-block-device.compute ubuntu
-# SKIP_HIERA: neut_vlan.cinder-block-device.compute
 
 describe manifest do
 
@@ -120,10 +118,8 @@ describe manifest do
     Noop.hiera_hash 'ceilometer', { 'enabled' => false }
   end
 
-  if ceilometer_hash['enabled']
-    it 'should contain notification_driver option' do
-      should contain_cinder_config('DEFAULT/notification_driver').with(:value => ceilometer_hash['notification_driver'])
-    end
+  it 'should contain notification_driver option' do
+    should contain_cinder_config('DEFAULT/notification_driver').with(:value => ceilometer_hash['notification_driver'])
   end
 
   it 'should check stuff that openstack cinder did' do
