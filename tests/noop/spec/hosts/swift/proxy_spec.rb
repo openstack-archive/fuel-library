@@ -49,9 +49,9 @@ describe manifest do
     }
 
     let (:bind_to_one) {
-      api_ip = Noop.puppet_function 'get_network_role_property', 'swift/api', 'ipaddr'
-      storage_ip = Noop.puppet_function 'get_network_role_property', 'swift/replication', 'ipaddr'
-      api_ip == storage_ip
+      internal_virtual_ip = Noop.hiera_structure 'network_metadata/vips/management/ipaddr'
+      api_net = Noop.puppet_function 'get_network_role_property', 'swift/api', 'network'
+      Noop.puppet_function 'check_ip_in_net', internal_virtual_ip, api_net
     }
 
     let(:ssl_hash) { Noop.hiera_hash 'use_ssl' }
