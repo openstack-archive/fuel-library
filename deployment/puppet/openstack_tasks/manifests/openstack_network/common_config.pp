@@ -54,28 +54,11 @@ class openstack_tasks::openstack_network::common_config {
 
     if $segmentation_type == 'vlan' {
       $net_role_property    = 'neutron/private'
-      $iface                = get_network_role_property($net_role_property, 'phys_dev')
-      $mtu_for_virt_network = pick(get_transformation_property('mtu', $iface[0]), '1500')
-      $overlay_net_mtu      = $mtu_for_virt_network
     } else {
       $net_role_property = 'neutron/mesh'
-      $iface             = get_network_role_property($net_role_property, 'phys_dev')
-      $physical_net_mtu  = pick(get_transformation_property('mtu', $iface[0]), '1500')
-
-      if $segmentation_type == 'gre' {
-        $mtu_offset = '42'
-      } else {
-      # vxlan is the default segmentation type for non-vlan cases
-        $mtu_offset = '50'
-      }
-
-      if $physical_net_mtu {
-        $overlay_net_mtu = $physical_net_mtu - $mtu_offset
-      } else {
-        $overlay_net_mtu = '1500' - $mtu_offset
-      }
-
     }
+    $iface           = get_network_role_property($net_role_property, 'phys_dev')
+    $physical_net_mtu = pick(get_transformation_property('mtu', $iface[0]), '1500')
 
     $default_log_levels  = hiera_hash('default_log_levels')
 
@@ -99,7 +82,7 @@ class openstack_tasks::openstack_network::common_config {
       rabbit_hosts            => $amqp_hosts,
       rabbit_password         => $amqp_password,
       kombu_reconnect_delay   => '5.0',
-      network_device_mtu      => $overlay_net_mtu,
+      network_device_mtu      => $physical_net_mtu,
       advertise_mtu           => true,
     }
 
