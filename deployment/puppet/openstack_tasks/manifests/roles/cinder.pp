@@ -291,7 +291,7 @@ class openstack_tasks::roles::cinder {
             'DEFAULT/volume_driver'       => { value => 'cinder.volume.drivers.block_device.BlockDeviceDriver' },
             'DEFAULT/volume_group'        => { value => 'cinder' },
             'DEFAULT/volume_dir'          => { value => '/var/lib/cinder/volumes' },
-            'DEFAULT/available_devices'   => { value => $physical_volume },
+            'DEFAULT/available_devices'   => { value => $physical_volumes },
           }
         }
       }
