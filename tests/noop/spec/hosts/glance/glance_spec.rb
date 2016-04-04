@@ -60,6 +60,8 @@ describe manifest do
 
     let(:identity_uri) { "#{admin_auth_protocol}://#{admin_auth_address}:35357/" }
 
+    vc_ca_file_data = Noop.hiera_structure 'glance/vc_ca_file', {}
+
     it 'should select right protocols and addresses for auth' do
       should contain_class('glance::api').with(
         'auth_uri'     => auth_uri,
@@ -198,6 +200,12 @@ describe manifest do
       end
       it 'should configure show_image_direct_url' do
         should contain_glance_api_config('DEFAULT/show_image_direct_url').with_value(show_image_direct_url)
+      end
+      it 'should configure vmware_ca_file setting' do
+        should contain_glance_api_config('glance_store/vmware_ca_file').with_value('<SERVICE DEFAULT>')
+      end
+      it 'should contain CA certificate for vCenter server' do
+        should contain_file('/etc/glance/vcenter-ca-bundle.pem').with_content(vc_ca_file_data)
       end
     else
       if glance_config && glance_config.has_key?('show_image_direct_url')
