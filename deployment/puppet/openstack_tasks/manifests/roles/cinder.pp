@@ -302,7 +302,7 @@ class openstack_tasks::roles::cinder {
     }
   }
 
-  if $notification_driver {
+  if pick($ceilometer_hash['enabled'], false) {
     class { 'cinder::ceilometer':
       notification_driver => $ceilometer_hash['notification_driver'],
     }
