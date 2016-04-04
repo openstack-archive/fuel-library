@@ -1,6 +1,6 @@
 - id: primary-cluster-haproxy
   type: puppet
-  version: 2.0.0
+  version: 2.1.0
   groups: [primary-controller]
   required_for: [deploy_end]
   requires: [deploy_start, virtual_ips, primary-cluster]
@@ -8,12 +8,17 @@
     puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/cluster-haproxy/cluster-haproxy.pp
     puppet_modules: /etc/puppet/modules
     timeout: 3600
+    strategy:
+      type: parallel
+      amount:
+        yaql_exp: &haproxy_reconfig >
+          switch((added($.uid) and changed($.configuration.haproxy)) => 1, true => 6)
   test_post:
     cmd: ruby /etc/puppet/modules/osnailyfacter/modular/cluster-haproxy/cluster-haproxy_post.rb
 
 - id: cluster-haproxy
   type: puppet
-  version: 2.0.0
+  version: 2.1.0
   groups: [controller]
   required_for: [deploy_end]
   requires: [deploy_start, virtual_ips, cluster]
@@ -23,5 +28,9 @@
     puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/cluster-haproxy/cluster-haproxy.pp
     puppet_modules: /etc/puppet/modules
     timeout: 3600
+    strategy:
+      type: parallel
+      amount:
+        yaql_exp: *haproxy_reconfig
   test_post:
     cmd: ruby /etc/puppet/modules/osnailyfacter/modular/cluster-haproxy/cluster-haproxy_post.rb
