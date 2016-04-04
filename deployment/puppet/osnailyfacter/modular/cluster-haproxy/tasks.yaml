@@ -4,6 +4,7 @@
   groups: [primary-controller]
   required_for: [deploy_end]
   requires: [deploy_start, virtual_ips, primary-cluster]
+  condition: yaql_exp = "changed($.nodes.where($.role.matches('controller'))"
   parameters:
     puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/cluster-haproxy/cluster-haproxy.pp
     puppet_modules: /etc/puppet/modules
@@ -23,5 +24,6 @@
     puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/cluster-haproxy/cluster-haproxy.pp
     puppet_modules: /etc/puppet/modules
     timeout: 3600
+  strategy: yaql_exp = "switch_case($.cluster.status == operational) => '{type:one-by-one}','{type: parallel}')"
   test_post:
     cmd: ruby /etc/puppet/modules/osnailyfacter/modular/cluster-haproxy/cluster-haproxy_post.rb

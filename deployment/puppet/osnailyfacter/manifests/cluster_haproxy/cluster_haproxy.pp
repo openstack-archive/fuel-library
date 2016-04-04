@@ -12,18 +12,21 @@ class osnailyfacter::cluster_haproxy::cluster_haproxy {
   #FIXME(mattymo): Move colocations to a separate task
   $colocate_haproxy   = hiera('colocate_haproxy', true)
 
+  $override_configuration = hiera_hash('configuration', {})
+  $user_defined_options = $override_configration['haproxy']
   if !$external_lb {
     #FIXME(mattymo): Replace with only VIPs for roles assigned to this node
     $stats_ipaddresses          = delete_undef_values([$management_vip, $database_vip, $service_endpoint, '127.0.0.1'])
 
     class { '::cluster::haproxy':
-      haproxy_maxconn    => '16000',
-      haproxy_bufsize    => '32768',
-      primary_controller => $primary_controller,
-      debug              => pick($haproxy_hash['debug'], hiera('debug', false)),
-      other_networks     => direct_networks($network_scheme['endpoints']),
-      stats_ipaddresses  => $stats_ipaddresses,
-      colocate_haproxy   => $colocate_haproxy,
+      haproxy_maxconn      => '16000',
+      haproxy_bufsize      => '32768',
+      primary_controller   => $primary_controller,
+      debug                => pick($haproxy_hash['debug'], hiera('debug', false)),
+      other_networks       => direct_networks($network_scheme['endpoints']),
+      stats_ipaddresses    => $stats_ipaddresses,
+      colocate_haproxy     => $colocate_haproxy,
+      user_defined_options => $user_defined_options
     }
   }
 
