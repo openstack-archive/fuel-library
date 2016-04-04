@@ -28,6 +28,7 @@ class osnailyfacter::rabbitmq::rabbitmq {
         'notify_timeout'      => '180',
         'slave_mon_interval'  => '30',
         'master_mon_interval' => '27',
+        'mon_interval'        => '103',
     }
     $rabbit_ocf = merge($rabbit_ocf_default, hiera_hash('rabbit_ocf', {}))
     $debug           = pick($rabbit_hash['debug'], hiera('debug', false))
@@ -201,6 +202,7 @@ class osnailyfacter::rabbitmq::rabbitmq {
           notify_timeout          => $rabbit_ocf['notify_timeout'],
           slave_mon_interval      => $rabbit_ocf['slave_mon_interval'],
           master_mon_interval     => $rabbit_ocf['master_mon_interval'],
+          mon_interval            => $rabbit_ocf['mon_interval'],
           require                 => Class['::rabbitmq::install'],
         }
       }

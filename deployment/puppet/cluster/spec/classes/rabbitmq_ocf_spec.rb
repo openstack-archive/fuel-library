@@ -31,6 +31,7 @@ describe 'cluster::rabbitmq_ocf' do
       :notify_timeout          => '120',
       :slave_mon_interval      => '30',
       :master_mon_interval     => '27',
+      :mon_interval            => '103',
     }}
 
     let(:metadata) {{
@@ -49,7 +50,7 @@ describe 'cluster::rabbitmq_ocf' do
     }}
 
     let(:monitor) {{
-      'interval' => params[:slave_mon_interval],
+      'interval' => params[:mon_interval],
       'timeout'  => params[:mon_timeout]
     }}
 

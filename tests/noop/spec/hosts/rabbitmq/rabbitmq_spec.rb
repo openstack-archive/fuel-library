@@ -77,6 +77,7 @@ describe manifest do
       :notify_timeout          => '180',
       :slave_mon_interval      => '30',
       :master_mon_interval     => '27',
+      :mon_interval            => '103',
     })
 
     let (:params) do {
@@ -183,6 +184,7 @@ describe manifest do
           :notify_timeout          => rabbit_ocf[:notify_timeout],
           :slave_mon_interval      => rabbit_ocf[:slave_mon_interval],
           :master_mon_interval     => rabbit_ocf[:master_mon_interval],
+          :mon_interval            => rabbit_ocf[:mon_interval],
         ).that_comes_before('Class[nova::rabbitmq]')
         should contain_class('cluster::rabbitmq_ocf').that_requires(
           'Class[rabbitmq::install]')
