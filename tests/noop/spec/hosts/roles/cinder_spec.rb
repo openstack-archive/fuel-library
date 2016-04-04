@@ -16,7 +16,7 @@ describe manifest do
 
   shared_examples 'catalog' do
 
-  storage_hash = Noop.hiera_hash 'storage'
+  storage_hash = Noop.hiera_structure 'storage'
   ceilometer_hash = Noop.hiera_hash 'ceilometer', { 'enabled' => false }
   use_ceph = Noop.hiera 'use_ceph'
   volume_backend_name = storage_hash['volume_backend_names']
@@ -34,7 +34,7 @@ describe manifest do
     elsif storage_hash['volumes_ceph']
       'ceph'
     elsif storage_hash['volumes_block_device']
-      'fake'
+      'block'
     else
       false
     end
@@ -88,28 +88,27 @@ describe manifest do
     end
 
     it 'should contain proper config file for cinder' do
-      should contain_cinder_config('DEFAULT/iscsi_helper').with(:value => 'fake')
-      should contain_cinder_config('DEFAULT/iscsi_protocol').with(:value => 'iscsi')
-      should contain_cinder_config('DEFAULT/volume_driver').with(:value => 'cinder.volume.drivers.block_device.BlockDeviceDriver')
-      should contain_cinder_config('DEFAULT/iscsi_ip_address').with(:value => iscsi_bind_host)
-      should contain_cinder_config('DEFAULT/volume_group').with(:value => 'cinder')
-      should contain_cinder_config('DEFAULT/volume_dir').with(:value => '/var/lib/cinder/volumes')
-      should contain_cinder_config('DEFAULT/available_devices').with(:value => disks_list)
+      should contain_cinder_config('BDD-backend/iscsi_helper').with(:value => 'tgtadm')
+      should contain_cinder_config('BDD-backend/volume_driver').with(:value => 'cinder.volume.drivers.block_device.BlockDeviceDriver')
+      should contain_cinder_config('BDD-backend/iscsi_ip_address').with(:value => iscsi_bind_host)
+      should contain_cinder_config('BDD-backend/volume_group').with(:value => 'cinder')
+      should contain_cinder_config('BDD-backend/volumes_dir').with(:value => '/var/lib/cinder/volumes')
+      should contain_cinder_config('BDD-backend/available_devices').with(:value => disks_list)
     end
   end
 
   it 'ensures that cinder have proper volume_backend_name' do
     if cinder and storage_hash['volumes_lvm']
-      should contain_cinder__backend__iscsi('DEFAULT').with(
+      should contain_cinder__backend__iscsi(volume_backend_name['volumes_lvm']).with(
         'volume_backend_name' => volume_backend_name['volumes_lvm']
       )
     elsif storage_hash['volumes_ceph']
-      should contain_cinder__backend__rbd('DEFAULT').with(
+      should contain_cinder__backend__rbd(volume_backend_name['volumes_ceph']).with(
        'volume_backend_name' => volume_backend_name['volumes_ceph']
       )
     elsif storage_hash['volumes_block_device']
-      should contain_cinder_config('DEFAULT/volume_backend_name').with(
-       :value => volume_backend_name['volumes_block_device']
+      should contain_cinder__backend__bdd(volume_backend_name['volumes_block_device']).with(
+       'volume_backend_name' => volume_backend_name['volumes_block_device']
       )
     else
       should_not contain_cinder_config('DEFAULT/volume_backend_name')
@@ -130,8 +129,10 @@ describe manifest do
     is_expected.to contain_class('cinder')
     if manage_volumes
       is_expected.to contain_class('cinder::volume')
+      is_expected.to contain_class('cinder::backends')
     else
       is_expected.to_not contain_class('cinder::volume')
+      is_expected.to_not contain_class('cinder::backends')
     end
   end
 
