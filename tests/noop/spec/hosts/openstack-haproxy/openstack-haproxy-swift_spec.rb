@@ -28,18 +28,18 @@ describe manifest do
     end
 
     let (:bind_to_one) {
-      api_ip = Noop.puppet_function 'get_network_role_property', 'swift/api', 'ipaddr'
-      storage_ip = Noop.puppet_function 'get_network_role_property', 'swift/replication', 'ipaddr'
-      api_ip == storage_ip
+      internal_virtual_ip = Noop.hiera_structure 'network_metadata/vips/management/ipaddr'
+      api_net = Noop.puppet_function 'get_network_role_property', 'swift/api', 'network'
+      Noop.puppet_function 'check_ip_in_net', internal_virtual_ip, api_net
     }
 
     let (:bm_options) {
       bm_opt_tail = 'inter 15s fastinter 2s downinter 8s rise 3 fall 3'
-      bind_to_one ? "check port 49001 #{bm_opt_tail}" : "check #{bm_opt_tail}"
+      bind_to_one ? "check #{bm_opt_tail}" : "check port 49001 #{bm_opt_tail}"
     }
 
     let (:http_check) {
-      bind_to_one ? 'httpchk' : 'httpchk HEAD /healthcheck HTTP/1.0'
+      bind_to_one ? 'httpchk HEAD /healthcheck HTTP/1.0' : 'httpchk'
     }
 
     let(:haproxy_config_opts) do
