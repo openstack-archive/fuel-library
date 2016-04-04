@@ -9,11 +9,16 @@
       changedAny($.network_scheme, $.network_metadata.vips,
       $.get('database_vip'), ('primary-controller' in $.roles),
       $.get('haproxy'), $.get('external_lb'), $.get('colocate_haproxy'),
-      $.debug)
+      $.debug, $.configuration.get('haproxy'))
   parameters:
     puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/cluster-haproxy/cluster-haproxy.pp
     puppet_modules: /etc/puppet/modules
     timeout: 3600
+    strategy:
+      type: parallel
+      amount:
+        yaql_exp: &haproxy_strategy >
+          switch($.get('deployed_before').$.get('value') => 1, true => 6)
   test_post:
     cmd: ruby /etc/puppet/modules/osnailyfacter/modular/cluster-haproxy/cluster-haproxy_post.rb
 
@@ -31,5 +36,9 @@
     puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/cluster-haproxy/cluster-haproxy.pp
     puppet_modules: /etc/puppet/modules
     timeout: 3600
+    strategy:
+      type: parallel
+      amount:
+        yaql_exp: *haproxy_strategy
   test_post:
     cmd: ruby /etc/puppet/modules/osnailyfacter/modular/cluster-haproxy/cluster-haproxy_post.rb
