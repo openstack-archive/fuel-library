@@ -41,7 +41,7 @@ describe manifest do
     end
 
     let(:access_networks) do
-      access_networks = ['240.0.0.0/255.255.0.0'] + other_networks.split(' ')
+      ['240.0.0.0/255.255.0.0'] + other_networks.split(' ')
     end
 
     let(:mysql_hash) do
@@ -61,7 +61,7 @@ describe manifest do
     end
 
     let(:mysql_binary_logs) do
-      Noop.hiera 'mysql_binary_logs', true
+      Noop.hiera 'mysql_binary_logs', false
     end
 
     let(:log_bin) do
@@ -221,15 +221,21 @@ describe manifest do
       )
     end
 
-    it 'should configure mysql binary logging by default' do
+    it 'should not configure mysql binary logging by default' do
       expect(subject).to contain_class('galera').with_override_options(
-          /"log_bin"=>"mysql-bin"/
+        /"log_bin"=>:undef/
       )
       expect(subject).to contain_class('galera').with_override_options(
-          /"expire_logs_days"=>"#{expire_logs_days}"/
+        /"expire_logs_days"=>:undef/
       )
       expect(subject).to contain_class('galera').with_override_options(
-          /"max_binlog_size"=>"#{max_binlog_size}"/
+        /"max_binlog_size"=>:undef/
+      )
+    end
+
+    it 'should contain gcache.size as 512M' do
+      expect(subject).to contain_class('galera').with_override_options(
+        /gcache.size=512M/
       )
     end
 
