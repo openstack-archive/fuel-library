@@ -3,15 +3,21 @@
 # Class for proxy realization using apache
 #
 # [*master_ip*]
-# (required) String. IP address of master node.
+#  (required) String. IP address of master node.
 #
 # [*max_header_size*]
-# (optional) String. Set the limit on the allowed size
+#  (optional) String. Set the limit on the allowed size
 #  of an HTTP request header field.
+#
+# [*ports*]
+#  (optional) List of open ports for connections from master node.
+#  (list value)
 #
 class osnailyfacter::apache_api_proxy(
   $master_ip,
   $max_header_size = '8190',
+  $ports           = ['443', '563', '5000', '6385', '8000', '8003', '8004', '8042', '8080',
+                        '8082', '8386', '8773', '8774', '8776', '8777', '9292', '9696'],
 ) {
 
   # Allow connection to the apache for ostf tests
