@@ -8,9 +8,9 @@ describe manifest do
   shared_examples 'catalog' do
 
     vms = Noop.hiera 'vms_conf'
-    enabled = vms.collect{|x| x['created']}.compact.any?
+    created = vms.any? {|x| x["created"]}
 
-    if enabled
+    unless created
       libvirt_dir = '/etc/libvirt/qemu'
       template_dir = '/var/lib/nova'
       libvirt_service = 'libvirtd'
@@ -19,8 +19,9 @@ describe manifest do
       vms.each do | vm |
         it "should define osnailyfacter::generate_vms::vm_config #{vm}" do
           should contain_osnailyfacter__generate_vms__vm_config(vm).with(
-            'before' => 'Exec[generate_vms]',
-            'require' => "File[#{template_dir}]",
+            'template_dir' => template_dir,
+            'before'       => 'Exec[generate_vms]',
+            'require'      => "File[#{template_dir}]",
           )
         end
       end
