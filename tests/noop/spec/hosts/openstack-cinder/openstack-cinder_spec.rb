@@ -96,6 +96,13 @@ describe manifest do
     )
   end
 
+  it 'should declare ::cinder class with cinder_* parameters' do
+    should contain_class('cinder').with(
+      :report_interval   => cinder_hash['cinder_report_interval'],
+      :service_down_time => cinder_hash['cinder_service_down_time'],
+    )
+  end
+
   if Noop.hiera_structure('use_ssl', false)
     internal_auth_protocol = 'https'
     keystone_auth_host = Noop.hiera_structure('use_ssl/keystone_internal_hostname')

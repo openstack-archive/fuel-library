@@ -204,7 +204,7 @@ class openstack_tasks::openstack_network::server_config {
       database_connection              => $db_connection,
       database_max_retries             => '-1',
 
-      agent_down_time                  => '30',
+      agent_down_time                  => $neutron_config['neutron_agent_down_time'],
       allow_automatic_l3agent_failover => $l3agent_failover,
       l3_ha                            => $l3_ha,
       min_l3_agents_per_router         => 2,
