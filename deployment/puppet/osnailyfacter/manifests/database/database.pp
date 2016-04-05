@@ -30,15 +30,11 @@ class osnailyfacter::database::database {
   $mysql_skip_name_resolve  = true
   $custom_setup_class       = hiera('mysql_custom_setup_class', 'galera')
 
-  # Get galera gcache factor based on cluster node's count
-  $galera_gcache_factor     = count(keys($network_metadata['nodes']))
-  # FIXME(dbilunov): enable binary logs to avoid mysqld crashes (LP#1541338).
-  # Revert this option to false after the upstream bug is resolved.
-  # https://github.com/codership/mysql-wsrep/issues/112
-  $mysql_binary_logs        = hiera('mysql_binary_logs', true)
+  $galera_gcache_size       = pick($mysql_hash['galera_gcache_size'], '512M')
+  $mysql_binary_logs        = hiera('mysql_binary_logs', false)
   $log_bin                  = pick($mysql_hash['log_bin'], 'mysql-bin')
   $expire_logs_days         = pick($mysql_hash['expire_logs_days'], '1')
-  $max_binlog_size          = pick($mysql_hash['max_binlog_size'], '64M')
+  $max_binlog_size          = pick($mysql_hash['max_binlog_size'], '256M')
 
   $status_user              = 'clustercheck'
   $status_password          = $mysql_hash['wsrep_password']
@@ -127,7 +123,6 @@ class osnailyfacter::database::database {
       }
     }
 
-    $gcache_size = inline_template("<%= [256, ${::galera_gcache_factor}*64, 2048].sort[1] %>M")
     $wsrep_group_comm_port = '4567'
     if $::memorysize_mb < 4000 {
       $mysql_performance_schema = 'off'
@@ -143,7 +138,7 @@ class osnailyfacter::database::database {
             "<%= [[((${::memorysize_mb} * 0.3 - ${key_buffer_size}) /
              (${sort_buffer_size_mb} + ${read_buffer_size_mb})).floor, 8192].min, 2048].max %>")
 
-    $wsrep_provider_options = "\"gcache.size=${gcache_size}; gmcast.listen_addr=tcp://${galera_node_address}:${wsrep_group_comm_port}\""
+    $wsrep_provider_options = "\"gcache.size=${galera_gcache_size}; gmcast.listen_addr=tcp://${galera_node_address}:${wsrep_group_comm_port}\""
     $wsrep_slave_threads = inline_template("<%= [[${::processorcount}*2, 4].max, 12].min %>")
 
     if $use_syslog {
