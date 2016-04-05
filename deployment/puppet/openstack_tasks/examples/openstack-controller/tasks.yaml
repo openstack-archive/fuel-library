@@ -9,7 +9,7 @@
       changedAny($.configuration, $.network_scheme, $.network_metadata,
       ('primary-controller' in $.roles), $.get('use_syslog'),
       $.get('use_stderr'), $.get('syslog_log_facility_nova'), $.sahara,
-      $.storage, $.nova, $.get('nova_config'),
+      $.storage, $.nova, $.get('nova_config'), $.ceilometer,
       $.get('nova_report_interval', '60'),
       $.get('nova_service_down_time', '180'), $.rabbit, $.get('use_ssl'),
       $.get('kombu_compression'), $.get('glance_endpoint'),
