@@ -1,4 +1,4 @@
-# RUN: neut_tun.ironic-ironic ubuntu
+# HIERA: neut_tun.ironic-ironic
 
 require 'spec_helper'
 require 'shared-examples'

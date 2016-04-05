@@ -1,7 +1,7 @@
-# RUN: neut_vlan.murano.sahara.ceil-cinder ubuntu
-# RUN: neut_tun.ceph.murano.sahara.ceil-compute ubuntu
-# RUN: neut_vlan.ceph-compute ubuntu
-# RUN: neut_vlan.murano.sahara.ceil-compute ubuntu
+# HIERA: neut_vlan.murano.sahara.ceil-cinder
+# HIERA: neut_tun.ceph.murano.sahara.ceil-compute
+# HIERA: neut_vlan.ceph-compute
+# HIERA: neut_vlan.murano.sahara.ceil-compute
 
 require 'spec_helper'
 require 'shared-examples'

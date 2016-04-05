@@ -1,7 +1,7 @@
-# RUN: neut_tun.ceph.murano.sahara.ceil-compute ubuntu
-# RUN: neut_vlan.ceph-compute ubuntu
-# RUN: neut_vlan.murano.sahara.ceil-compute ubuntu
-# R_N: neut_gre.generate_vms ubuntu
+# HIERA: neut_tun.ceph.murano.sahara.ceil-compute
+# HIERA: neut_vlan.ceph-compute
+# HIERA: neut_vlan.murano.sahara.ceil-compute
+# R_N: neut_gre.generate_vms
 # SKIP_HIERA: neut_vlan.ceph.ceil-compute.overridden ubuntu FIXME
 # SKIP_HIERA: neut_vlan.ceph.compute-ephemeral-ceph ubuntu FIXME
 # SKIP_HIERA: neut_vlan_l3ha.ceph.ceil-compute ubuntu FIXME

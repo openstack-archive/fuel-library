@@ -1,5 +1,5 @@
-# RUN: neut_vlan.murano.sahara.ceil-cinder ubuntu
-# RUN: neut_vlan.murano.sahara.ceil-cinder-block-device ubuntu
+# HIERA: neut_vlan.murano.sahara.ceil-cinder
+# HIERA: neut_vlan.murano.sahara.ceil-cinder-block-device
 require 'spec_helper'
 require 'shared-examples'
 manifest = 'roles/cinder.pp'

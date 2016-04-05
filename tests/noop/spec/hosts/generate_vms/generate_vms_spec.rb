@@ -1,4 +1,4 @@
-# R_N: neut_gre.generate_vms ubuntu
+# R_N: neut_gre.generate_vms
 
 require 'spec_helper'
 require 'shared-examples'
