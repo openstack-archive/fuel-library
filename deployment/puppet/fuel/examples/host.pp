@@ -31,7 +31,6 @@ ensure_packages(["sudo", "ami-creator", "python-daemon", "httpd",
                  "fuel-notify"])
 
 Class['openstack::logrotate'] ->
-Class['monit'] ->
 Class['fuel::bootstrap_cli']
 
 fuel::sshkeygen { '/root/.ssh/id_rsa':
@@ -99,12 +98,7 @@ service {'dhcrelay':
   ensure => stopped,
 }
 
-# Enable monit
-class { 'monit': }
-
 # Free disk space monitoring
-Package['fuel-notify'] ~> Service['monit']
-
 file { '/etc/fuel/free_disk_check.yaml':
   content => template('fuel/free_disk_check.yaml.erb'),
   owner   => 'root',
