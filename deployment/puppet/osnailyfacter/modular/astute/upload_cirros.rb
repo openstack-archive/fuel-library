@@ -91,23 +91,11 @@ end
 
 # upload image to Glance
 # if it have not been already uploaded
-# TODO omolchanov: remove tries for uploading images when https://launchpad.net/bugs/1556068 will be fixed
 def upload_image(image)
-  10.times do
-    list_of_images = image_list
-    if list_of_images[:images].include?(image['img_name'] => "active") && list_of_images[:exit_code] == 0
-      puts "Image '#{image['img_name']}' is already present!"
-      return 0
-      break
-    end
-
-
-    if ['saving', 'queued'].any? {|state| list_of_images[:images].include?(image['img_name'] => state)} && list_of_images[:exit_code] == 0
-      puts "Image '#{image['img_name']}' saving is being processed!"
-      sleep 20
-      next
-    end
-    break
+  list_of_images = image_list
+  if list_of_images[:images].include?(image['img_name'] => "active") && list_of_images[:exit_code] == 0
+    puts "Image '#{image['img_name']}' is already present!"
+    return 0
   end
 
   # convert old API v1 'public' property to API v2 'visibility' property
@@ -120,7 +108,7 @@ def upload_image(image)
   if return_code == 0
     puts "Image '#{image['img_name']}' was uploaded from '#{image['img_path']}'"
   else
-    puts "Image '#{image['img_name']}' upload from '#{image['img_path']}' have FAILED!"
+    puts "Image '#{image['img_name']}' upload from '#{image['img_path']}' FAILED!"
   end
   puts stdout
   return return_code
