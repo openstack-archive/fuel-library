@@ -22,6 +22,10 @@ describe manifest do
       Noop.hiera('max_header_size', '81900')
     end
 
+    let(:ports) do
+      Noop.hiera('api_proxy_ports', ['443', '563', '5000', '6385', '8000', '8003', '8004', '8042', '8080', '8082', '8386', '8773', '8774', '8776', '8777', '9292', '9696'])
+    end
+
     it {
       should contain_service('httpd').with(
            'hasrestart' => true,
@@ -60,7 +64,7 @@ describe manifest do
   ## Custom fragment
   ProxyRequests on
   ProxyVia On
-  AllowCONNECT 443 563 5000 6385 8000 8003 8004 8080 8082 8386 8773 8774 8776 8777 9292 9696
+  AllowCONNECT #{ports.join(' ')}
   HostnameLookups off
   LimitRequestFieldSize 81900
   SetEnv force-proxy-request-1.0 1
