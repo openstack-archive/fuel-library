@@ -20,7 +20,8 @@
       $.network_metadata.nodes.values().where(
         $.node_roles.any($.matches('controller'))).network_roles.select(
           $.get('mgmt/messaging')),
-      $.get('amqp_hosts'), $.debug, $.use_cow_images, $.get('nova_endpoint'))
+      $.get('amqp_hosts'), $.debug, $.use_cow_images, $.get('nova_endpoint')),
+      $.ceilometer.enabled
   cross-depends:
     - name: /(primary-)?rabbitmq/
       role: self
