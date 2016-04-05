@@ -1,0 +1,12 @@
+Code-Review+2: Alex Schultz <aschultz@mirantis.com>
+Code-Review+1: Gage Hugo <gh159m@att.com>
+Code-Review+1: Michael Polenchuk <mpolenchuk@mirantis.com>
+Code-Review+2: Sergii Golovatiuk <sgolovatiuk@mirantis.com>
+Verified+1: Fuel CI <fuel-ci-bot@mirantis.com>
+Workflow+1: Aleksandr Didenko <adidenko@mirantis.com>
+Verified+2: Jenkins
+Submitted-by: Jenkins
+Submitted-at: Tue, 05 Apr 2016 10:00:55 +0000
+Reviewed-on: https://review.openstack.org/301107
+Project: openstack/fuel-library
+Branch: refs/heads/master
