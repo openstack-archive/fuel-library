@@ -1,0 +1,21 @@
+- id: plugins_rsync
+  type: puppet
+  version: 2.0.0
+  groups: ['/.*/']
+  requires: [pre_deployment_start, hiera]
+  required_for: [globals, pre_deployment_end]
+  parameters:
+    puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/plugins/plugins_rsync.pp
+    puppet_modules: /etc/puppet/modules
+    timeout: 600
+
+- id: plugins_setup_repositories
+  type: puppet
+  version: 2.0.0
+  groups: ['/.*/']
+  requires: [pre_deployment_start, plugins_rsync]
+  required_for: [globals, pre_deployment_end]
+  parameters:
+    puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/plugins/plugins_setup_repositories.pp
+    puppet_modules: /etc/puppet/modules
+    timeout: 600
