@@ -1,4 +1,6 @@
-define osnailyfacter::generate_vms::vm_config {
+define osnailyfacter::generate_vms::vm_config(
+  $template_dir = '/var/lib/nova',
+) {
   $details = $name
   $id = $details['id']
 
