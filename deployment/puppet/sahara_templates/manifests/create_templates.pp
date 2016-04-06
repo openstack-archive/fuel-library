@@ -76,7 +76,7 @@ class sahara_templates::create_templates (
         "YARN_JOBHISTORY",
         "OOZIE_SERVER"
     ],
-    hadoop_version => '5.4.0',
+    hadoop_version => '5.5.0',
     auto_security_group => true,
   }
 
@@ -87,7 +87,7 @@ class sahara_templates::create_templates (
     node_processes => [
         "CLOUDERA_MANAGER"
     ],
-    hadoop_version => '5.4.0',
+    hadoop_version => '5.5.0',
     auto_security_group => true,
   }
 
@@ -99,7 +99,7 @@ class sahara_templates::create_templates (
         "HDFS_DATANODE",
         "YARN_NODEMANAGER"
     ],
-    hadoop_version => '5.4.0',
+    hadoop_version => '5.5.0',
     auto_security_group => true,
   }
 
@@ -111,7 +111,7 @@ class sahara_templates::create_templates (
       {'name' => 'cdh-5-manager', 'count' => 1},
       {'name' => 'cdh-5-worker', 'count' => 3}
     ],
-    hadoop_version => '5.4.0',
+    hadoop_version => '5.5.0',
   }
 
   sahara_node_group_template { 'hdp-2-3-master' :
