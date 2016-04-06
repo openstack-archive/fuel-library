@@ -1,3 +1,14 @@
+# ROLE: virt
+# ROLE: primary-mongo
+# ROLE: primary-controller
+# ROLE: mongo
+# ROLE: ironic
+# ROLE: controller
+# ROLE: compute
+# ROLE: cinder-vmware
+# ROLE: cinder-block-device
+# ROLE: cinder
+# ROLE: ceph-osd
 require 'spec_helper'
 require 'shared-examples'
 
