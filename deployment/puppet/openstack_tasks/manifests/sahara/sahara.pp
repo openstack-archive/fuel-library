@@ -27,12 +27,9 @@ class openstack_tasks::sahara::sahara {
   $amqp_hosts                 = hiera('amqp_hosts')
   $external_lb                = hiera('external_lb', false)
   $ssl_hash                   = hiera_hash('use_ssl', {})
-  $internal_auth_protocol     = get_ssl_property($ssl_hash, {}, 'keystone', 'internal', 'protocol', 'http')
-  $internal_auth_address      = get_ssl_property($ssl_hash, {}, 'keystone', 'internal', 'hostname', [$service_endpoint, $management_vip])
-  $internal_auth_url          = "${internal_auth_protocol}://${internal_auth_address}:5000"
-  $admin_identity_protocol    = get_ssl_property($ssl_hash, {}, 'keystone', 'admin', 'protocol', 'http')
-  $admin_identity_address     = get_ssl_property($ssl_hash, {}, 'keystone', 'admin', 'hostname', [$service_endpoint, $management_vip])
-  $admin_identity_uri         = "${admin_identity_protocol}://${admin_identity_address}:35357"
+  $internal_auth_url           = hiera('internal_auth_uri')
+  $admin_identity_url         = hiera('admin_identity_uri')
+
   $kombu_compression          = hiera('kombu_compression', '')
 
   #################################################################

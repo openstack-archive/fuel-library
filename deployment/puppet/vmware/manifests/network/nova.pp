@@ -46,8 +46,7 @@ class vmware::network::nova (
   $nova_user = 'nova'
   $nova_hash = hiera('nova')
   $nova_password = $nova_hash['user_password']
-  $management_vip = hiera('management_vip')
-  $auth_url = "http://${management_vip}:5000/v2.0"
+  $auth_url = hiera('internal_auth_uri')
   $region = hiera('region', 'RegionOne')
 
   $service_name       = 'p_vcenter_nova_network'

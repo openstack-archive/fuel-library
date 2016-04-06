@@ -203,6 +203,20 @@ class osnailyfacter::globals::globals {
     }
   }
 
+  $public_auth_protocol   = get_ssl_property($ssl_hash, $public_ssl_hash, 'keystone', 'public', 'protocol', 'http')
+  $public_auth_address    = get_ssl_property($ssl_hash, $public_ssl_hash, 'keystone', 'public', 'hostname', [$public_ip])
+
+  $internal_auth_protocol = get_ssl_property($ssl_hash, {}, 'keystone', 'internal', 'protocol', 'http')
+  $internal_auth_address  = get_ssl_property($ssl_hash, {}, 'keystone', 'internal', 'hostname', [hiera('keystone_endpoint', ''), $service_endpoint, $management_vip])
+
+  $admin_auth_protocol    = get_ssl_property($ssl_hash, {}, 'keystone', 'admin', 'protocol', 'http')
+  $admin_auth_address     = get_ssl_property($ssl_hash, {}, 'keystone', 'admin', 'hostname', [hiera('keystone_endpoint', ''), $service_endpoint, $management_vip])
+
+  $keystone_auth_version = hiera('keystone_auth_version', 'v3'
+  $public_auth_uri    = hiera('public_auth_uri', "${public_auth_protocol}://${public_auth_address}:5000/${keystone_auth_version}"
+  $internal_auth_uri  = hiera('internal_auth_uri',"${internal_auth_protocol}://${internal_auth_address}:5000/${keystone_auth_version}"
+  $admin_identity_uri     = hiera('admin_auth_uri', "${admin_auth_protocol}://${admin_auth_address}:35357/"
+
   $openstack_version = hiera('openstack_version',
     {
     'keystone'   => 'installed',

@@ -89,9 +89,15 @@ class openstack_tasks::roles::ironic_conductor {
     tftp_master_path => "${tftp_root}/master_images",
   }
 
+  # TODO(xarses): Someone needs to follow up with the ironic guys,
+  # configuring auth_uri and auth_host makes no sense
+
+  # TODO(xarses): Someone needs to make these URL's actually respect
+  # TLS settings https://bugs.launchpad.net/fuel/+bug/1568059
+
   ironic_config {
     'neutron/url':                          value => "http://${neutron_endpoint}:9696";
-    'keystone_authtoken/auth_uri':          value => "http://${service_endpoint}:5000/";
+    'keystone_authtoken/auth_uri':          value => hiera('internal_auth_uri')
     'keystone_authtoken/auth_host':         value => $service_endpoint;
     'keystone_authtoken/admin_tenant_name': value => $ironic_tenant;
     'keystone_authtoken/admin_user':        value => $ironic_user;

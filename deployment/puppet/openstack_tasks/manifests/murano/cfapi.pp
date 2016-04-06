@@ -11,10 +11,8 @@ class openstack_tasks::murano::cfapi {
   $public_ssl_hash            = hiera_hash('public_ssl', {})
   $ssl_hash                   = hiera_hash('use_ssl', {})
 
-  $public_auth_protocol       = get_ssl_property($ssl_hash, $public_ssl_hash, 'keystone', 'public', 'protocol', 'http')
-  $public_auth_address        = get_ssl_property($ssl_hash, $public_ssl_hash, 'keystone', 'public', 'hostname', [$public_ip])
+  $public_auth_uri            =hiera('public_auth_uri')
 
-  $internal_api_protocol      = 'http'
   $cfapi_bind_host            = get_network_role_property('murano/cfapi', 'ipaddr')
 
   $service_endpoint           = hiera('service_endpoint')
@@ -43,7 +41,7 @@ class openstack_tasks::murano::cfapi {
       tenant    => $access_hash['tenant'],
       bind_host => $cfapi_bind_host,
       bind_port => $cfapi_bind_port,
-      auth_url  => "${public_auth_protocol}://${public_auth_address}:5000/v3",
+      auth_url  => $public_auth_uri,
     }
 
     $haproxy_stats_url = "http://${management_ip}:10000/;csv"

@@ -49,6 +49,7 @@ define osnailyfacter::credentials_file(
   $path                     = $title,
   $controller_node          = '127.0.0.1',
   $auth_url                 = 'http://127.0.0.1:5000/v2.0',
+  $auth_version             = 'v2.0',
   $keystone_admin_token     = undef,
   $admin_user               = 'admin',
   $admin_tenant             = 'openstack',

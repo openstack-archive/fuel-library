@@ -10,28 +10,19 @@ class openstack_tasks::heat::heat {
   $max_pool_size            = hiera('max_pool_size')
   $max_overflow             = hiera('max_overflow')
   $idle_timeout             = hiera('idle_timeout')
-  $keystone_host            = hiera('service_endpoint')
   $public_ssl_hash          = hiera_hash('public_ssl')
   $ssl_hash                 = hiera_hash('use_ssl', {})
   $public_vip               = hiera('public_vip')
-  $management_vip           = hiera('management_vip')
   $primary_controller       = hiera('primary_controller')
   $kombu_compression        = hiera('kombu_compression', '')
-
-  $public_auth_protocol     = get_ssl_property($ssl_hash, $public_ssl_hash, 'keystone', 'public', 'protocol', 'http')
-  $public_auth_address      = get_ssl_property($ssl_hash, $public_ssl_hash, 'keystone', 'public', 'hostname', [$public_vip])
-  $internal_auth_protocol   = get_ssl_property($ssl_hash, {}, 'keystone', 'internal', 'protocol', 'http')
-  $internal_auth_address    = get_ssl_property($ssl_hash, {}, 'keystone', 'internal', 'hostname', [$keystone_host, $management_vip])
-  $admin_auth_protocol      = get_ssl_property($ssl_hash, {}, 'keystone', 'admin', 'protocol', 'http')
-  $admin_auth_address       = get_ssl_property($ssl_hash, {}, 'keystone', 'admin', 'hostname', [$keystone_host, $management_vip])
 
   $heat_protocol            = get_ssl_property($ssl_hash, {}, 'heat', 'public', 'protocol', 'http')
   $heat_endpoint            = get_ssl_property($ssl_hash, {}, 'heat', 'public', 'hostname', [hiera('heat_endpoint', ''), $public_vip])
   $public_ssl               = get_ssl_property($ssl_hash, {}, 'heat', 'public', 'usage', false)
 
-  $auth_uri                 = "${public_auth_protocol}://${public_auth_address}:5000/v2.0/"
-  $identity_uri             = "${admin_auth_protocol}://${admin_auth_address}:35357/"
-  $keystone_ec2_uri         = "${internal_auth_protocol}://${internal_auth_address}:5000/v2.0"
+  $auth_uri                 = hiera('public_auth_uri')
+  $identity_uri             = hiera('admin_identity_uri')
+  $internal_auth_uri        = hiera('internal_auth_uri')
 
   $api_bind_port            = '8004'
   $api_cfn_bind_port        = '8000'
@@ -191,7 +182,7 @@ class openstack_tasks::heat::heat {
   class { '::heat':
     auth_uri               => $auth_uri,
     identity_uri           => $identity_uri,
-    keystone_ec2_uri       => $keystone_ec2_uri,
+    keystone_ec2_uri       => "${internal_auth_uri}/ec2tokens",
     keystone_user          => $keystone_user,
     keystone_tenant        => $keystone_tenant,
     keystone_password      => $heat_hash['user_password'],

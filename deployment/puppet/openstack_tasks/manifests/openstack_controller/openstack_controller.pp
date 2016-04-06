@@ -36,21 +36,16 @@ class openstack_tasks::openstack_controller::openstack_controller {
   $nova_service_down_time       = hiera('nova_service_down_time', '180')
   $api_bind_address             = get_network_role_property('nova/api', 'ipaddr')
   $rabbit_hash                  = hiera_hash('rabbit', {})
-  $service_endpoint             = hiera('service_endpoint')
   $ssl_hash                     = hiera_hash('use_ssl', {})
   $node_hash                    = hiera_hash('node_hash', {})
   $sahara_enabled               = pick($sahara_hash['enabled'], false)
   $kombu_compression            = hiera('kombu_compression', '')
 
-  $internal_auth_protocol = get_ssl_property($ssl_hash, {}, 'keystone', 'internal', 'protocol', [$nova_hash['auth_protocol'], 'http'])
-  $internal_auth_address  = get_ssl_property($ssl_hash, {}, 'keystone', 'internal', 'hostname', [$service_endpoint, $management_vip])
-  $admin_auth_protocol    = get_ssl_property($ssl_hash, {}, 'keystone', 'admin', 'protocol', [$nova_hash['auth_protocol'], 'http'])
-  $admin_auth_address     = get_ssl_property($ssl_hash, {}, 'keystone', 'admin', 'hostname', [$service_endpoint, $management_vip])
+  $keystone_auth_uri     = hiera('internal_auth_uri')
+  $keystone_identity_uri = hiera('admin_identity_uri')
 
-  $keystone_auth_uri     = "${internal_auth_protocol}://${internal_auth_address}:5000/"
-  $keystone_identity_uri = "${admin_auth_protocol}://${admin_auth_address}:35357/"
-  $keystone_ec2_url      = "${keystone_auth_uri}v2.0/ec2tokens"
-
+  # TODO(Xarses): we shouldn't need to if glance_ssl, the lookup should have
+  # solved it for us. https://bugs.launchpad.net/fuel/+bug/1568088
   $glance_protocol              = get_ssl_property($ssl_hash, {}, 'glance', 'internal', 'protocol', 'http')
   $glance_endpoint              = get_ssl_property($ssl_hash, {}, 'glance', 'internal', 'hostname', [hiera('glance_endpoint', ''), $management_vip])
   $glance_ssl                   = get_ssl_property($ssl_hash, {}, 'glance', 'internal', 'usage', false)
@@ -397,7 +392,7 @@ class openstack_tasks::openstack_controller::openstack_controller {
         "OS_PROJECT_NAME=${keystone_tenant}",
         "OS_USERNAME=${keystone_user}",
         "OS_PASSWORD=${nova_hash['user_password']}",
-        "OS_AUTH_URL=${internal_auth_protocol}://${internal_auth_address}:5000/v2.0/",
+        "OS_AUTH_URL=${keystone_auth_uri}",
         'OS_ENDPOINT_TYPE=internalURL',
         "OS_REGION_NAME=${region}",
         "NOVA_ENDPOINT_TYPE=internalURL",

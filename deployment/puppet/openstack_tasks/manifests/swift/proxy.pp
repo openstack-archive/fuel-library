@@ -37,11 +37,9 @@ class openstack_tasks::swift::proxy {
 
   $internal_auth_protocol = get_ssl_property($ssl_hash, {}, 'keystone', 'internal', 'protocol', [pick($swift_hash['auth_protocol'], 'http')])
   $internal_auth_address  = get_ssl_property($ssl_hash, {}, 'keystone', 'internal', 'hostname', [hiera('service_endpoint', ''), $management_vip])
-  $admin_auth_protocol    = get_ssl_property($ssl_hash, {}, 'keystone', 'admin', 'protocol', [pick($swift_hash['auth_protocol'], 'http')])
-  $admin_auth_address     = get_ssl_property($ssl_hash, {}, 'keystone', 'admin', 'hostname', [hiera('service_endpoint', ''), $management_vip])
 
-  $auth_uri     = "${internal_auth_protocol}://${internal_auth_address}:5000/"
-  $identity_uri = "${admin_auth_protocol}://${admin_auth_address}:35357/"
+  $auth_uri     = hiera('internal_auth_uri')
+  $identity_uri = hiera('admin_identity_uri')
 
   $swift_internal_protocol    = get_ssl_property($ssl_hash, {}, 'swift', 'internal', 'protocol', 'http')
   $swift_internal_address    = get_ssl_property($ssl_hash, {}, 'swift', 'internal', 'hostname', [$swift_api_ipaddr, $management_vip])

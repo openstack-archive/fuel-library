@@ -76,20 +76,16 @@ class openstack_tasks::glance::glance {
   $pipeline                       = pick($glance_hash['pipeline'], 'keystone')
   $glance_large_object_size       = pick($glance_hash['large_object_size'], '5120')
 
-  $ssl_hash               = hiera_hash('use_ssl', {})
-  $internal_auth_protocol = get_ssl_property($ssl_hash, {}, 'keystone', 'internal', 'protocol', 'http')
-  $internal_auth_address  = get_ssl_property($ssl_hash, {}, 'keystone', 'internal', 'hostname', [hiera('service_endpoint', ''), $management_vip])
-  $admin_auth_protocol    = get_ssl_property($ssl_hash, {}, 'keystone', 'admin', 'protocol', 'http')
-  $admin_auth_address     = get_ssl_property($ssl_hash, {}, 'keystone', 'admin', 'hostname', [hiera('service_endpoint', ''), $management_vip])
-  $glance_endpoint        = get_ssl_property($ssl_hash, {}, 'glance', 'internal', 'hostname', [$management_vip])
+  $ssl_hash         = hiera_hash('use_ssl', {})
+  $glance_endpoint  = get_ssl_property($ssl_hash, {}, 'glance', 'internal', 'hostname', [$management_vip])
 
-  $murano_hash    = hiera_hash('murano', {})
-  $murano_plugins = pick($murano_hash['plugins'], {})
+  $murano_hash      = hiera_hash('murano', {})
+  $murano_plugins   = pick($murano_hash['plugins'], {})
 
-  $auth_uri     = "${internal_auth_protocol}://${internal_auth_address}:5000/"
-  $identity_uri = "${admin_auth_protocol}://${admin_auth_address}:35357/"
+  $auth_uri         = hiera('internal_auth_uri')
+  $identity_uri     = hiera('admin_identity_uri')
 
-  $rados_connect_timeout          = '30'
+  $rados_connect_timeout  = '30'
 
   if ($storage_hash['images_ceph'] and !$ironic_hash['enabled']) {
     $glance_backend = 'ceph'

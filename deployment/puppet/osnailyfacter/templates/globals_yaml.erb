@@ -1,6 +1,7 @@
 <% require "yaml" -%>
 <% globals = {} -%>
 <% globals.store "access", @access_hash -%>
+<% globals.store "admin_identity_uri", @admin_identity_uri -%>
 <% globals.store "amqp_hosts", @amqp_hosts -%>
 <% globals.store "amqp_port", @amqp_port -%>
 <% globals.store "aodh_hash", @aodh -%>
@@ -37,7 +38,9 @@
 <% globals.store "custom_theme_path", @custom_theme_path -%>
 <% globals.store "node_name", @node_name -%>
 <% globals.store "idle_timeout", @idle_timeout -%>
+<% globals.store "internal_auth_uri", @internal_auth_uri -%>
 <% globals.store "keystone", @keystone_hash -%>
+<% globals.store "keystone_auth_version", @keystone_auth_version -%>
 <% globals.store "keystone_nodes", @keystone_nodes -%>
 <% globals.store "manage_volumes", @manage_volumes -%>
 <% globals.store "management_network_range", @management_network_range -%>
@@ -67,6 +70,7 @@
 <% globals.store "openstack_version", @openstack_version -%>
 <% globals.store "primary_controller", @primary_controller -%>
 <% globals.store "private_int", @private_int -%>
+<% globals.store "public_auth_uri", @public_auth_uri -%>
 <% globals.store "queue_provider", @queue_provider -%>
 <% globals.store "rabbit_ha_queues", @rabbit_ha_queues -%>
 <% globals.store "rabbit", @real_rabbit_hash -%>
