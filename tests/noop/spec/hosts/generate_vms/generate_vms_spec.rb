@@ -1,4 +1,4 @@
-# R_N: neut_gre.generate_vms ubuntu
+# ROLE: virt
 
 require 'spec_helper'
 require 'shared-examples'
