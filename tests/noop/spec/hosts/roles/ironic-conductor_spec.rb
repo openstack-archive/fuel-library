@@ -1,8 +1,8 @@
-# RUN: neut_tun.ironic-ironic ubuntu
+# ROLE: ironic
 
 require 'spec_helper'
 require 'shared-examples'
-manifest = 'roles/ironic.pp'
+manifest = 'roles/ironic-conductor.pp'
 
 describe manifest do
   shared_examples 'catalog' do
