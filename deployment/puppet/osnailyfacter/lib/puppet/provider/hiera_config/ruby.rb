@@ -68,7 +68,7 @@ Puppet::Type.type(:hiera_config).provide(:ruby) do
     resource[:name].to_s
   end
 
-  # remove all mnemoization
+  # remove all memoization
   def reset
     @override_metadata_elements = nil
     @override_directory_elements = nil
@@ -84,7 +84,8 @@ Puppet::Type.type(:hiera_config).provide(:ruby) do
     return unless data['plugins'].is_a? Array
     @override_metadata_elements = []
     data['plugins'].each do |plugin|
-      @override_metadata_elements << File.join(override_dir_name, plugin.to_s) if plugin
+      next unless plugin['name']
+      @override_metadata_elements << File.join(override_dir_name, plugin['name'].to_s)
     end
     @override_metadata_elements.sort!
     debug "Found plugins hierarchy elements in '#{resource[:metadata_yaml_file]}': #{@override_metadata_elements.inspect}"
@@ -92,7 +93,7 @@ Puppet::Type.type(:hiera_config).provide(:ruby) do
   end
 
   # scan for the override directory and get all the data entries found there
-  # sorts entries alphabeticly
+  # sorts entries alphabetically
   # @return [Array]
   def override_directory_entries
     return @override_directory_elements if @override_directory_elements
@@ -123,7 +124,7 @@ Puppet::Type.type(:hiera_config).provide(:ruby) do
     YAML.load_file file
   end
 
-  # retrieve only basic hierarhy part from the confugaration structure
+  # retrieve only basic hierarchy part from the configuration structure
   # @return [Array]
   def get_basic_hierarchy(data)
     hierarchy = data[:hierarchy] || []
@@ -132,7 +133,7 @@ Puppet::Type.type(:hiera_config).provide(:ruby) do
     end
   end
 
-  # retrieve only override hierarhy part from the confugaration structure
+  # retrieve only override hierarchy part from the configuration structure
   # @return [Array]
   def get_override_hierarchy(data)
     hierarchy = data[:hierarchy] || []
@@ -141,7 +142,7 @@ Puppet::Type.type(:hiera_config).provide(:ruby) do
     end
   end
 
-  # join both hierarhy parts to form the hierarhy structure
+  # join both hierarchy parts to form the hierarchy structure
   # @return [Array]
   def generate_hierarhy
     hierarchy = []
@@ -160,7 +161,7 @@ Puppet::Type.type(:hiera_config).provide(:ruby) do
     resource[:hierarchy_override] = entries
   end
 
-  # load parameters from the configuration structure read from the coinfig file
+  # load parameters from the configuration structure read from the config file
   # @return [Hash]
   def load_configuration
     return if property_hash.is_a? Hash and property_hash.any?
@@ -193,7 +194,7 @@ Puppet::Type.type(:hiera_config).provide(:ruby) do
     config
   end
 
-  # readt the hiera configuratio file
+  # read the hiera configuration file
   # @return [Hash]
   def read_configuration
     begin
