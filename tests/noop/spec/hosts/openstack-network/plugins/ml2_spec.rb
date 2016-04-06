@@ -9,7 +9,6 @@
 # RUN: neut_tun.ceph.murano.sahara.ceil-compute ubuntu
 # RUN: neut_vlan.ceph-compute ubuntu
 # RUN: neut_vlan.murano.sahara.ceil-compute ubuntu
-# R_N: neut_gre.generate_vms ubuntu
 
 require 'spec_helper'
 require 'shared-examples'
