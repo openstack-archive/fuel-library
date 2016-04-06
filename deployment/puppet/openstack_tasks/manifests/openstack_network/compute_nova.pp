@@ -34,11 +34,18 @@ class openstack_tasks::openstack_network::compute_nova {
 
     $nova_migration_ip          =  get_network_role_property('nova/migration', 'ipaddr')
 
+    service { 'virtlogd' :
+      ensure   => 'running',
+      enable   => true,
+      provider => $::nova::params::special_service_provider,
+    }
+
     service { 'libvirt' :
       ensure   => 'running',
       enable   => true,
       name     => $::nova::params::libvirt_service_name,
       provider => $::nova::params::special_service_provider,
+      require  => Service['virtlogd'],
     }
 
     exec { 'destroy_libvirt_default_network':
