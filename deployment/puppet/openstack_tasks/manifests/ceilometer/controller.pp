@@ -21,7 +21,6 @@ class openstack_tasks::ceilometer::controller {
   $syslog_log_facility      = hiera('syslog_log_facility_ceilometer', 'LOG_LOCAL0')
   $storage_hash             = hiera('storage')
   $rabbit_hash              = hiera_hash('rabbit')
-  $management_vip           = hiera('management_vip')
   $region                   = hiera('region', 'RegionOne')
   $ceilometer_region        = pick($ceilometer_hash['region'], $region)
   $mongo_nodes              = get_nodes_hash_by_roles(hiera_hash('network_metadata'), hiera('mongo_roles'))
@@ -34,17 +33,14 @@ class openstack_tasks::ceilometer::controller {
   $swift_rados_backend        = $storage_hash['objects_ceph']
   $amqp_password              = $rabbit_hash['password']
   $amqp_user                  = $rabbit_hash['user']
-  $service_endpoint           = hiera('service_endpoint', $management_vip)
   $ha_mode                    = pick($ceilometer_hash['ha_mode'], true)
-  $ssl_hash                   = hiera_hash('use_ssl', {})
   $workers_max                = hiera('workers_max', 16)
   $service_workers            = pick($ceilometer_hash['workers'],
   min(max($::processorcount, 2), $workers_max))
 
-  $internal_auth_protocol     = get_ssl_property($ssl_hash, {}, 'keystone', 'internal', 'protocol', 'http')
-  $internal_auth_endpoint     = get_ssl_property($ssl_hash, {}, 'keystone', 'internal', 'hostname', [$service_endpoint])
-  $keystone_identity_uri      = "${internal_auth_protocol}://${internal_auth_endpoint}:35357/"
-  $keystone_auth_uri          = "${internal_auth_protocol}://${internal_auth_endpoint}:5000/v2.0"
+  $keystone_identity_uri      = hiera('admin_auth_uri')
+  $keystone_auth_uri          = hiera('internal_auth_uri')
+
 
   prepare_network_config(hiera_hash('network_scheme', {}))
   $api_bind_address           = get_network_role_property('ceilometer/api', 'ipaddr')

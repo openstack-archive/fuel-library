@@ -23,9 +23,6 @@ class openstack_tasks::openstack_network::server_config {
     $neutron_config          = hiera_hash('neutron_config')
     $neutron_server_enable   = pick($neutron_config['neutron_server_enable'], true)
     $database_vip            = hiera('database_vip')
-    $management_vip          = hiera('management_vip')
-    $service_endpoint        = hiera('service_endpoint', $management_vip)
-    $nova_endpoint           = hiera('nova_endpoint', $management_vip)
     $nova_hash               = hiera_hash('nova', { })
     $pci_vendor_devs         = $neutron_config['supported_pci_vendor_devs']
 
@@ -67,23 +64,17 @@ class openstack_tasks::openstack_network::server_config {
     $username                = pick($neutron_config['keystone']['admin_user'], 'neutron')
     $project_name            = pick($neutron_config['keystone']['admin_tenant'], 'services')
     $region_name             = hiera('region', 'RegionOne')
-    $auth_endpoint_type      = 'internalURL'
 
     $ssl_hash                = hiera_hash('use_ssl', {})
-
-    $internal_auth_protocol  = get_ssl_property($ssl_hash, {}, 'keystone', 'internal', 'protocol', 'http')
-    $internal_auth_endpoint  = get_ssl_property($ssl_hash, {}, 'keystone', 'internal', 'hostname', [$service_endpoint, $management_vip])
-
-    $admin_auth_protocol     = get_ssl_property($ssl_hash, {}, 'keystone', 'admin', 'protocol', 'http')
-    $admin_auth_endpoint     = get_ssl_property($ssl_hash, {}, 'keystone', 'admin', 'hostname', [$service_endpoint, $management_vip])
+    $management_vip          = hiera('management_vip')
+    $nova_endpoint           = hiera('nova_endpoint', $management_vip)
 
     $nova_internal_protocol  = get_ssl_property($ssl_hash, {}, 'nova', 'internal', 'protocol', 'http')
     $nova_internal_endpoint  = get_ssl_property($ssl_hash, {}, 'nova', 'internal', 'hostname', [$nova_endpoint])
 
-    $auth_api_version        = 'v2.0'
-    $auth_uri                = "${internal_auth_protocol}://${internal_auth_endpoint}:5000/"
-    $auth_url                = "${internal_auth_protocol}://${internal_auth_endpoint}:35357/"
-    $nova_admin_auth_url     = "${admin_auth_protocol}://${admin_auth_endpoint}:35357/"
+    $auth_uri                = hiera('internal_auth_uri')
+    $identity_uri            = hiera('admin_identity_uri')
+
     $nova_url                = "${nova_internal_protocol}://${nova_internal_endpoint}:8774/v2"
 
     $workers_max             = hiera('workers_max', 16)
@@ -192,6 +183,8 @@ class openstack_tasks::openstack_network::server_config {
       firewall_driver           => 'neutron.agent.linux.iptables_firewall.OVSHybridIptablesFirewallDriver',
     }
 
+    # TODO(Xarses): Uhh.. what? why are auth_uri and auth_url different to neutron?
+    # https://bugs.launchpad.net/fuel/+bug/1568080
     class { '::neutron::server':
       sync_db                          => $primary_controller,
 
@@ -199,7 +192,7 @@ class openstack_tasks::openstack_network::server_config {
       password                         => $password,
       project_name                     => $project_name,
       region_name                      => $region_name,
-      auth_url                         => $auth_url,
+      auth_url                         => $identity_uri,
       auth_uri                         => $auth_uri,
 
       database_connection              => $db_connection,
@@ -234,7 +227,7 @@ class openstack_tasks::openstack_network::server_config {
 
     class { '::neutron::server::notifications':
       nova_url     => $nova_url,
-      auth_url     => $nova_admin_auth_url,
+      auth_url     => $identity_uri,
       username     => $nova_auth_user,
       project_name => $nova_auth_tenant,
       password     => $nova_auth_password,

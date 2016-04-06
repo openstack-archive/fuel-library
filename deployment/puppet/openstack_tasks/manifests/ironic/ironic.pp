@@ -5,12 +5,10 @@ class openstack_tasks::ironic::ironic {
   $ironic_hash                = hiera_hash('ironic', {})
   $public_vip                 = hiera('public_vip')
   $management_vip             = hiera('management_vip')
-  $service_endpoint           = hiera('service_endpoint')
 
   $network_metadata           = hiera_hash('network_metadata', {})
 
   $database_vip               = hiera('database_vip')
-  $keystone_endpoint          = hiera('service_endpoint')
   $neutron_endpoint           = hiera('neutron_endpoint', $management_vip)
   $glance_api_servers         = hiera('glance_api_servers', "${management_vip}:9292")
   $debug                      = hiera('debug', false)
@@ -50,13 +48,8 @@ class openstack_tasks::ironic::ironic {
   $ironic_tenant              = pick($ironic_hash['tenant'],'services')
   $ironic_user                = pick($ironic_hash['auth_name'],'ironic')
   $ironic_user_password       = pick($ironic_hash['user_password'],'ironic')
-  $ssl_hash                   = hiera_hash('use_ssl', {})
-  $internal_auth_protocol     = get_ssl_property($ssl_hash, {}, 'keystone', 'internal', 'protocol', 'http')
-  $internal_auth_address      = get_ssl_property($ssl_hash, {}, 'keystone', 'internal', 'hostname', [$service_endpoint, $management_vip])
-  $internal_auth_url          = "${internal_auth_protocol}://${internal_auth_address}:5000"
-  $admin_identity_protocol    = get_ssl_property($ssl_hash, {}, 'keystone', 'admin', 'protocol', 'http')
-  $admin_identity_address     = get_ssl_property($ssl_hash, {}, 'keystone', 'admin', 'hostname', [$service_endpoint, $management_vip])
-  $admin_identity_uri         = "${admin_identity_protocol}://${admin_identity_address}:35357"
+  $internal_auth_url          = hiera('internal_auth_uri')
+  $admin_identity_uri         = hiera('admin_identity_uri')
 
   prepare_network_config(hiera_hash('network_scheme', {}))
 

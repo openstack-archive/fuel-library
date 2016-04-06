@@ -29,14 +29,8 @@ class openstack_tasks::murano::murano {
   $primary_controller         = hiera('primary_controller')
   $kombu_compression          = hiera('kombu_compression', '')
 
-  $public_auth_protocol       = get_ssl_property($ssl_hash, $public_ssl_hash, 'keystone', 'public', 'protocol', 'http')
-  $public_auth_address        = get_ssl_property($ssl_hash, $public_ssl_hash, 'keystone', 'public', 'hostname', [$public_ip])
-
-  $internal_auth_protocol     = get_ssl_property($ssl_hash, {}, 'keystone', 'internal', 'protocol', 'http')
-  $internal_auth_address      = get_ssl_property($ssl_hash, {}, 'keystone', 'internal', 'hostname', [hiera('keystone_endpoint', ''), $service_endpoint, $management_vip])
-
-  $admin_auth_protocol        = get_ssl_property($ssl_hash, {}, 'keystone', 'admin', 'protocol', 'http')
-  $admin_auth_address         = get_ssl_property($ssl_hash, {}, 'keystone', 'admin', 'hostname', [hiera('keystone_endpoint', ''), $service_endpoint, $management_vip])
+  $internal_auth_url  = hiera('internal_auth_uri')
+  $admin_identity_url = hiera('admin_identity_uri')
 
   $api_bind_host              = get_network_role_property('murano/api', 'ipaddr')
 
@@ -112,11 +106,11 @@ class openstack_tasks::murano::murano {
       log_facility        => $syslog_log_facility_murano,
       database_connection => $db_connection,
       sync_db             => $primary_controller,
-      auth_uri            => "${public_auth_protocol}://${public_auth_address}:5000/v3",
+      auth_uri            => $internal_auth_url,
       admin_user          => $murano_user,
       admin_password      => $murano_hash['user_password'],
       admin_tenant_name   => $tenant,
-      identity_uri        => "${admin_auth_protocol}://${admin_auth_address}:35357/",
+      identity_uri        => $admin_identity_url,
       notification_driver => 'messagingv2',
       use_neutron         => $use_neutron,
       packages_service    => $packages_service,
@@ -183,9 +177,6 @@ class openstack_tasks::murano::murano {
     }
 
     if roles_include('primary-controller') {
-
-      $internal_auth_url  = "${internal_auth_protocol}://${internal_auth_address}:5000"
-      $admin_identity_url = "${admin_auth_protocol}://${admin_auth_address}:35357"
 
       class { '::osnailyfacter::wait_for_keystone_backends':}
       murano::application { 'io.murano' : }
