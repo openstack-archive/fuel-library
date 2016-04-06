@@ -8,3 +8,5 @@ auto eth1
 iface eth1 inet static
 address 169.254.0.1/24
 post-up sleep 25
+post-up ethtool -G eth1 rx 2048 | true  # RX
+post-up ethtool -G eth1 tx 2048 | true  # TX

@@ -376,7 +376,11 @@ class Puppet::Provider::L23_stored_config_ubuntu < Puppet::Provider::L23_stored_
       key_fullname = key_fullname[0][0]
       next if key_fullname.to_s == ''
       rv[section_name] ||= {}
-      rv[section_name][key_fullname] = (record[3]=='on')
+      rv[section_name][key_fullname] = case record[3]
+        when 'on' then true
+        when 'off' then false
+        else record[3]
+      end
     end
     return rv
   end
@@ -562,7 +566,11 @@ class Puppet::Provider::L23_stored_config_ubuntu < Puppet::Provider::L23_stored_
       rules.each do |k,v|
         next if L23network.ethtool_name_commands_mapping[section_name][k].nil?
         iface=provider.name
-        val = (v==true  ?  'on'  :  'off')
+        val = case v
+          when true then 'on'
+          when false then 'off'
+          else v
+        end
         rv << "post-up ethtool #{section_key} #{iface} #{L23network.ethtool_name_commands_mapping[section_name][k]} #{val} | true  # #{k}"
       end
     end
