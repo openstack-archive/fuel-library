@@ -16,7 +16,7 @@ update_fixtures_repo() {
   cd 'fuel-noop-fixtures' || return 1
   git fetch --all
   git clean -fd
-  git reset --hard 'origin/master'
+  git reset --hard 'origin/stable/mitaka'
   cd '..'
 }
 
