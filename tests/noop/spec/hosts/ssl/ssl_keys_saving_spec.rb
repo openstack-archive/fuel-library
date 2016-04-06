@@ -1,3 +1,13 @@
+# ROLE: virt
+# ROLE: primary-mongo
+# ROLE: primary-controller
+# ROLE: mongo
+# ROLE: controller
+# ROLE: compute-vmware
+# ROLE: compute
+# ROLE: cinder-vmware
+# ROLE: cinder
+# ROLE: ceph-osd
 require 'spec_helper'
 require 'shared-examples'
 manifest = 'ssl/ssl_keys_saving.pp'

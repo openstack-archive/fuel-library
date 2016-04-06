@@ -1,22 +1,29 @@
-# RUN: neut_tun.ceph.murano.sahara.ceil-mongo ubuntu
-# RUN: neut_tun.ceph.murano.sahara.ceil-primary-mongo ubuntu
-# RUN: neut_vlan.murano.sahara.ceil-mongo ubuntu
-# RUN: neut_vlan.murano.sahara.ceil-primary-mongo ubuntu
-# RUN: neut_vlan.murano.sahara.ceil-cinder ubuntu
-# RUN: neut_tun.ironic-ironic ubuntu
-# RUN: neut_tun.ceph.murano.sahara.ceil-ceph-osd ubuntu
-# RUN: neut_vlan.ceph-ceph-osd ubuntu
-# RUN: neut_tun.ceph.murano.sahara.ceil-controller ubuntu
-# RUN: neut_tun.ceph.murano.sahara.ceil-primary-controller ubuntu
-# RUN: neut_tun.ironic-primary-controller ubuntu
-# RUN: neut_tun.l3ha-primary-controller ubuntu
-# RUN: neut_vlan.ceph-primary-controller ubuntu
-# RUN: neut_vlan.dvr-primary-controller ubuntu
-# RUN: neut_vlan.murano.sahara.ceil-controller ubuntu
-# RUN: neut_vlan.murano.sahara.ceil-primary-controller ubuntu
-# RUN: neut_tun.ceph.murano.sahara.ceil-compute ubuntu
-# RUN: neut_vlan.ceph-compute ubuntu
-# RUN: neut_vlan.murano.sahara.ceil-compute ubuntu
+# ROLE: virt
+# ROLE: virt
+# ROLE: primary-mongo
+# ROLE: primary-mongo
+# ROLE: primary-controller
+# ROLE: primary-controller
+# ROLE: mongo
+# ROLE: mongo
+# ROLE: ironic
+# ROLE: ironic
+# ROLE: controller
+# ROLE: controller
+# ROLE: compute-vmware
+# ROLE: compute-vmware
+# ROLE: compute
+# ROLE: compute
+# ROLE: cinder-vmware
+# ROLE: cinder-vmware
+# ROLE: cinder-block-device
+# ROLE: cinder-block-device
+# ROLE: cinder
+# ROLE: cinder
+# ROLE: ceph-osd
+# ROLE: ceph-osd
+# ROLE: base-os
+# ROLE: base-os
 # R_N: neut_gre.generate_vms ubuntu
 
 require 'spec_helper'

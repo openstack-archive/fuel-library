@@ -1,3 +1,4 @@
+# ROLE: virt
 # R_N: neut_gre.generate_vms ubuntu
 
 require 'spec_helper'
