@@ -1,7 +1,5 @@
-# RUN: neut_tun.ceph.murano.sahara.ceil-mongo ubuntu
-# RUN: neut_tun.ceph.murano.sahara.ceil-primary-mongo ubuntu
-# RUN: neut_vlan.murano.sahara.ceil-mongo ubuntu
-# RUN: neut_vlan.murano.sahara.ceil-primary-mongo ubuntu
+# ROLE: primary-mongo
+# ROLE: mongo
 
 require 'spec_helper'
 require 'shared-examples'
