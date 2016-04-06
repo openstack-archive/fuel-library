@@ -84,7 +84,7 @@ Puppet::Type.type(:hiera_config).provide(:ruby) do
     return unless data['plugins'].is_a? Array
     @override_metadata_elements = []
     data['plugins'].each do |plugin|
-      @override_metadata_elements << File.join(override_dir_name, plugin.to_s) if plugin
+      @override_metadata_elements << File.join(override_dir_name, plugin['name'].to_s) if plugin['name']
     end
     @override_metadata_elements.sort!
     debug "Found plugins hierarchy elements in '#{resource[:metadata_yaml_file]}': #{@override_metadata_elements.inspect}"
