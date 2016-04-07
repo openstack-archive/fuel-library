@@ -27,12 +27,14 @@
 
 - id: top-role-cinder
   type: puppet
-  version: 2.0.0
+  version: 2.1.0
   groups: [cinder, cinder-block-device, cinder-vmware]
   required_for: [enable_cinder_volume_service]
   requires: [hosts, firewall]
   cross-depends:
     - name: openstack-cinder
+  condition:
+    yaql_exp: "changed($.cinder) or changed($.get('cinder_volume_group')) or changed($.network_metadata.nodes.get(concat(\"node-\", $.uid)).network_roles.get('cinder/iscsi')) or changed($.network_metadata.vips) or changed($.debug) or changed($.node_volumes) or changed($.storage) or changed($.rabbit) or changed($.ceilometer) or changed($.get('use_stderr')) or changed($.get('use_syslog')) or changed($.get('syslog_log_facility_cinder')) or changed($.get('syslog_log_facility_ceph')) or changed($.get('proxy_port')) or changed($.get('kombu_compression')) or changed($.get('use_ssl')) or changed($.get('service_endpoint')) or changed($.get('glance_api_servers'))"
   parameters:
     puppet_manifest: /etc/puppet/modules/openstack_tasks/examples/roles/cinder.pp
     puppet_modules: /etc/puppet/modules
@@ -44,6 +46,8 @@
   groups: [cinder, cinder-block-device]
   requires: [top-role-cinder]
   required_for: [deploy_end]
+  condition:
+    yaql_exp: "changed($.cinder) or changed($.get('cinder_volume_group')) or changed($.network_metadata.nodes.get(concat(\"node-\", $.uid)).network_roles.get('cinder/iscsi')) or changed($.network_metadata.vips) or changed($.debug) or changed($.node_volumes) or changed($.storage) or changed($.rabbit) or changed($.ceilometer) or changed($.get('use_stderr')) or changed($.get('use_syslog')) or changed($.get('syslog_log_facility_cinder')) or changed($.get('syslog_log_facility_ceph')) or changed($.get('proxy_port')) or changed($.get('kombu_compression')) or changed($.get('use_ssl')) or changed($.get('service_endpoint')) or changed($.get('glance_api_servers'))"
   parameters:
     puppet_manifest: /etc/puppet/modules/openstack_tasks/examples/roles/enable_cinder.pp
     puppet_modules: /etc/puppet/modules
