@@ -235,20 +235,20 @@ class osnailyfacter::globals::globals {
   )
 
   $default_gateway        = get_default_gateways()
-  $public_vip             = $network_metadata['vips']['public']['ipaddr']
-  $management_vip         = $network_metadata['vips']['management']['ipaddr']
-  $public_vrouter_vip     = $network_metadata['vips']['vrouter_pub']['ipaddr']
-  $management_vrouter_vip = $network_metadata['vips']['vrouter']['ipaddr']
   $vips                   = $network_metadata['vips']
 
-  $database_vip = is_hash($network_metadata['vips']['database']) ? {
-    true    => pick($network_metadata['vips']['database']['ipaddr'], $management_vip),
-    default => $management_vip
-  }
-  $service_endpoint = is_hash($network_metadata['vips']['service_endpoint']) ? {
-    true    => pick($network_metadata['vips']['service_endpoint']['ipaddr'], $management_vip),
-    default => $management_vip
-  }
+  # TODO(mpolenchuk): try_get_value() is deprecated,
+  # replace with dig() once stdlib 4.12 will be available
+  $public_vip             = try_get_value($vips, 'public/ipaddr',
+                              get_network_role_property('public/vip', 'ipaddr')
+                            )
+  $management_vip         = try_get_value($vips, 'management/ipaddr',
+                              get_network_role_property('mgmt/vip', 'ipaddr')
+                            )
+  $public_vrouter_vip     = try_get_value($vips, 'vrouter_pub/ipaddr', undef)
+  $management_vrouter_vip = try_get_value($vips, 'vrouter/ipaddr', undef)
+  $database_vip           = try_get_value($vips, 'database/ipaddr', $management_vip)
+  $service_endpoint       = try_get_value($vips, 'service_endpoint/ipaddr', $management_vip)
 
   if $use_neutron {
     $novanetwork_params            = {}
