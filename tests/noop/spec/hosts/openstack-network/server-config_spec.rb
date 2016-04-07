@@ -277,10 +277,9 @@ describe manifest do
         it { should contain_class('neutron::plugins::ml2').with(
           'enable_security_group' => 'true',
         )}
-# TODO (skolekonov): enable once I9819867251e3c35f252ddbbad1178bff1c585314 is landed
-#        it { should contain_class('neutron::plugins::ml2').with(
-#          'firewall_driver' => 'neutron.agent.linux.iptables_firewall.OVSHybridIptablesFirewallDriver',
-#        )}
+        it { should contain_class('neutron::plugins::ml2').with(
+          'firewall_driver' => 'neutron.agent.linux.iptables_firewall.OVSHybridIptablesFirewallDriver',
+        )}
         it { should contain_class('neutron::plugins::ml2').with(
           'flat_networks' => '*',
         )}
