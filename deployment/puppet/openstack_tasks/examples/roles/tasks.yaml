@@ -27,12 +27,20 @@
 
 - id: top-role-cinder
   type: puppet
-  version: 2.0.0
+  version: 2.1.0
   groups: [cinder, cinder-block-device, cinder-vmware]
   required_for: [enable_cinder_volume_service]
   requires: [hosts, firewall]
   cross-depends:
     - name: openstack-cinder
+  condition:
+    yaql_exp: >
+      changedAny($.cinder, $.get('cinder_volume_group'),
+      $.network_metadata.nodes.get(concat(\"node-\", $.uid)).network_roles.get('cinder/iscsi'),
+      $.network_metadata.vips, $.debug, $.node_volumes, $.storage, $.rabbit, $.ceilometer,
+      $.get('use_stderr'), $.get('use_syslog'), $.get('syslog_log_facility_cinder'),
+      $.get('syslog_log_facility_ceph'), $.get('proxy_port'), $.get('kombu_compression'),
+      $.get('use_ssl'), $.get('service_endpoint'), $.get('glance_api_servers'))
   parameters:
     puppet_manifest: /etc/puppet/modules/openstack_tasks/examples/roles/cinder.pp
     puppet_modules: /etc/puppet/modules
@@ -44,6 +52,14 @@
   groups: [cinder, cinder-block-device]
   requires: [top-role-cinder]
   required_for: [deploy_end]
+  condition:
+    yaql_exp: >
+      changedAny($.cinder, $.get('cinder_volume_group'),
+      $.network_metadata.nodes.get(concat(\"node-\", $.uid)).network_roles.get('cinder/iscsi'),
+      $.network_metadata.vips, $.debug, $.node_volumes, $.storage, $.rabbit, $.ceilometer,
+      $.get('use_stderr'), $.get('use_syslog'), $.get('syslog_log_facility_cinder'),
+      $.get('syslog_log_facility_ceph'), $.get('proxy_port'), $.get('kombu_compression'),
+      $.get('use_ssl'), $.get('service_endpoint'), $.get('glance_api_servers'))
   parameters:
     puppet_manifest: /etc/puppet/modules/openstack_tasks/examples/roles/enable_cinder.pp
     puppet_modules: /etc/puppet/modules
