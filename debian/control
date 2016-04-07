@@ -5,7 +5,7 @@ Maintainer: Mirantis Product <product@mirantis.com>
 Build-Depends: debhelper (>= 7), python-all, librarian-puppet-simple
 Standards-Version: 3.9.2
 
-Package: fuel-library9.0
+Package: fuel-library10.0
 Provides: fuel-library
 Architecture: all
 Depends: ruby | ruby-interpreter, puppet, ${misc:Depends}, ${python:Depends}
