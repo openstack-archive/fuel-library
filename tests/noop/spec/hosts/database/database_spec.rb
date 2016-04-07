@@ -158,12 +158,16 @@ describe manifest do
       )
     end
 
-    it 'should setup additional root grants from other hosts' do
-      should contain_class('osnailyfacter::mysql_user_access').with(
-        :db_user          => 'root',
-        :db_password_hash => mysql_database_password_hash,
-        :access_networks  => access_networks
-      )
+    it 'should setup additional root grants from other hosts only on primary controller' do
+      if primary_controller
+        should contain_class('osnailyfacter::mysql_user_access').with(
+          :db_user          => 'root',
+          :db_password_hash => mysql_database_password_hash,
+          :access_networks  => access_networks
+        )
+      else
+        should_not contain_class('osnailyfacter::mysql_user_access')
+      end
     end
 
     it 'should remove package provided wsrep.cnf' do
