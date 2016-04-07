@@ -19,7 +19,7 @@ class osnailyfacter::database::database {
   $haproxy_stats_port   = '10000'
   $haproxy_stats_url    = "http://${database_vip}:${haproxy_stats_port}/;csv"
 
-  $mysql_database_password   = $mysql_hash['root_password']
+  $mysql_root_password       = $mysql_hash['root_password']
   $enabled                   = pick($mysql_hash['enabled'], true)
 
   $galera_node_address       = get_network_role_property('mgmt/database', 'ipaddr')
@@ -49,7 +49,7 @@ class osnailyfacter::database::database {
 
   #############################################################################
   validate_string($status_password)
-  validate_string($mysql_database_password)
+  validate_string($mysql_root_password)
   validate_string($status_password)
 
   if $enabled {
@@ -216,13 +216,16 @@ class osnailyfacter::database::database {
         'wsrep_provider_options'         => $wsrep_provider_options,
         'wsrep_slave_threads'            => $wsrep_slave_threads,
         'wsrep_sst_method'               => 'xtrabackup-v2',
-        'wsrep_sst_auth'                 => "\"root:${mysql_database_password}\"", #TODO fix this, should be a specific user not root
+        #TODO (sgolovatiuk): fix this, should be a specific user not root
+        'wsrep_sst_auth'                 => "\"root:${mysql_root_password}\"",
         'wsrep_node_address'             => $galera_node_address,
         'wsrep_node_incoming_address'    => $galera_node_address,
         'wsrep_sst_receive_address'      => $galera_node_address,
       },
       'xtrabackup' => {
-        'parallel' => inline_template("<%= [[${::processorcount}, 2].max, 6].min %>"),
+        'parallel' => inline_template(
+                        "<%= [[${::processorcount}, 2].max, 6].min %>"
+                      ),
       },
       'sst'        => {
         'streamfmt'   => 'xbstream',
@@ -252,9 +255,10 @@ class osnailyfacter::database::database {
       galera_package_name   => $galera_package_name,
       client_package_name   => $client_package_name,
       galera_servers        => $galera_nodes,
-      galera_master         => false, # NOTE: we don't want the galera module to boostrap
+      # NOTE: we don't want the galera module to boostrap
+      galera_master         => false,
       mysql_port            => $backend_port,
-      root_password         => $mysql_database_password,
+      root_password         => $mysql_root_password,
       create_root_user      => $primary_controller,
       create_root_my_cnf    => true,
       configure_repo        => false, # NOTE: repos should be managed via fuel
@@ -326,19 +330,22 @@ class osnailyfacter::database::database {
     # TODO: (sgolovatiuk): This class should be removed once
     # https://github.com/puppetlabs/puppetlabs-mysql/pull/801/files is accepted
     class { '::osnailyfacter::mysql_access':
-      db_password => $mysql_database_password,
+      db_password => $mysql_root_password,
+      require     => Class['::galera'],
     }
 
     # this sets up remote grants for use with detached db
-    class { '::osnailyfacter::mysql_user_access':
-      db_user          => 'root',
-      db_password_hash => mysql_password($mysql_database_password),
-      access_networks  => $access_networks,
+    if $primary_controller {
+      # We do not need to create users on all controllers as
+      # whole /var/lib/mysql will be transferred during SST
+      # Also this leads to split brain as MyISAM tables are got diverged
+      class { '::osnailyfacter::mysql_user_access':
+        db_user          => 'root',
+        db_password_hash => mysql_password($mysql_root_password),
+        access_networks  => $access_networks,
+        require          => Class['::osnailyfacter::mysql_access'],
+      }
     }
-
-    Class['::galera'] ->
-      Class['::osnailyfacter::mysql_access'] ->
-        Class['::osnailyfacter::mysql_user_access']
 
     Class['::openstack::galera::status'] ->
       ::Osnailyfacter::Wait_for_backend['mysql']
