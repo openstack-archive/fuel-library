@@ -75,9 +75,7 @@ class cobbler(
 
   class { '::cobbler::packages': }
   class { '::cobbler::selinux': }
-  if $production !~ /docker/ {
-    include ::cobbler::iptables
-  }
+  class { '::cobbler::iptables': }
   class { '::cobbler::snippets': }
   class { '::cobbler::server':
     domain_name  => $domain_name,

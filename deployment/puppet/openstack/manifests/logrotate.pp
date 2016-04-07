@@ -10,29 +10,19 @@ class openstack::logrotate (
   validate_re($rotation, 'daily|weekly|monthly')
   $logrotatefile = '/etc/logrotate.d/fuel.nodaily'
 
-  if $role == 'server' {
-    # Configure log rotation for master node and docker containers
-    file { $logrotatefile:
-      owner   => 'root',
-      group   => 'root',
-      mode    => '0644',
-      content => template('openstack/10-fuel-docker.conf.erb'),
-    }
-  } else {
-    # Configure log rotation for other nodes
-    file { $logrotatefile:
-      owner   => 'root',
-      group   => 'root',
-      mode    => '0644',
-      content => template('openstack/10-fuel.conf.erb'),
-    }
+  # Configure log rotation for other nodes
+  file { $logrotatefile:
+    owner   => 'root',
+    group   => 'root',
+    mode    => '0644',
+    content => template('openstack/10-fuel.conf.erb'),
+  }
 
-    file { '/etc/logrotate.d/puppet':
-      owner  => 'root',
-      group  => 'root',
-      mode   => '0644',
-      source => 'puppet:///modules/openstack/logrotate-puppet.conf',
-    }
+  file { '/etc/logrotate.d/puppet':
+    owner  => 'root',
+    group  => 'root',
+    mode   => '0644',
+    source => 'puppet:///modules/openstack/logrotate-puppet.conf',
   }
 
   #Upstart logs are managed by fuel logrotate file

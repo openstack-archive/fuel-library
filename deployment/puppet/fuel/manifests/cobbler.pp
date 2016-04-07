@@ -30,7 +30,6 @@ class fuel::cobbler(
   Class['::cobbler'] ->
   Anchor<| title == 'nailgun-cobbler-end' |>
 
-  #Set real_server so Cobbler identifies its own IP correctly in Docker
   $real_server = $next_server
 
   if $::osfamily == 'RedHat' {

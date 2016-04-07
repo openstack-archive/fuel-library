@@ -22,10 +22,6 @@ describe 'cobbler::checksum_bootpc' do
         elsif facts[:operatingsystem] == 'Debian'
           save_location = '/etc/iptables.rules'
         end
-        should contain_exec('checksum_fill_bootpc').with(
-          :command => "iptables -t mangle -A POSTROUTING -p udp --dport 68 -j CHECKSUM --checksum-fill; iptables-save -c > #{save_location}",
-          :unless  => 'iptables -t mangle -S POSTROUTING | grep -q "^-A POSTROUTING -p udp -m udp --dport 68 -j CHECKSUM --checksum-fill"'
-        )
       end
     end
   end
