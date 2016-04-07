@@ -50,9 +50,10 @@ Puppet::Type.type(:package).provide :apt_fuel, :parent => :apt, :source => :apt 
       begin
         self.wait_for_lock()
         super
+        info("Attempt #{try+1} was successful") if try > 0 
         break
       rescue Puppet::ExecutionFailure => e
-        err("Try #{try+1} of #{tries} failed: #{e.message}")
+        warn("Attempt #{try+1} of #{tries} failed: #{e.message}")
         sleep 5
       end
     end
