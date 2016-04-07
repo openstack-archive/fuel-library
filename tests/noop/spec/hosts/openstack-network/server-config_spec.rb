@@ -121,7 +121,10 @@ describe manifest do
             'sync_db'                 => sync_db,
             'database_retry_interval' => '2',
             'database_connection'     => db_connection,
-            'database_max_retries'    => '-1',
+            'database_max_retries'    => Noop.hiera('max_retries'),
+            'database_idle_timeout'   => Noop.hiera('idle_timeout'),
+            'database_max_pool_size'  => Noop.hiera('max_pool_size'),
+            'database_max_overflow'   => Noop.hiera('max_overflow'),
           )
         end
 
