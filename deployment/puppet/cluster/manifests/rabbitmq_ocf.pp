@@ -154,7 +154,6 @@ class cluster::rabbitmq_ocf (
   $metadata        = {
     'migration-threshold' => '10',
     'failure-timeout'     => '30s',
-    'resource-stickiness' => '100',
   }
 
   $complex_metadata     = {
