@@ -37,8 +37,8 @@ class cluster::ntp_ocf inherits ntp::params {
   pcmk_colocation { 'ntp-with-vrouter-ns' :
     ensure     => 'present',
     score      => 'INFINITY',
-    first => "clone_p_$service_name",
-    second =>  "clone_p_vrouter",
+    first      => 'clone_p_vrouter',
+    second     => 'clone_p_${service_name}',
   }
 
   pacemaker::service { $service_name :
