@@ -210,10 +210,6 @@ class openstack::cinder(
           volume_group        => $volume_group,
           volume_backend_name => $volume_backend_name,
         }
-        class { 'mellanox_openstack::cinder':
-          iser            => $iser,
-          iser_ip_address => $iscsi_bind_host,
-        }
 
         class { 'cinder::backup':
           enabled => true,

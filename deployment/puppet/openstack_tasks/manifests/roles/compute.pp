@@ -41,7 +41,6 @@ class openstack_tasks::roles::compute {
   $cinder_hash                    = hiera_hash('cinder', {})
   $ceilometer_hash                = hiera_hash('ceilometer', {})
   $access_hash                    = hiera_hash('access', {})
-  $neutron_mellanox               = hiera('neutron_mellanox', false)
   $syslog_hash                    = hiera_hash('syslog', {})
   $base_syslog_hash               = hiera_hash('base_syslog', {})
   $use_syslog                     = hiera('use_syslog', true)
@@ -89,24 +88,7 @@ class openstack_tasks::roles::compute {
     $rpc_backend_real = $rpc_backend
   }
 
-  # Do the stuff
-  if $neutron_mellanox {
-    $mellanox_mode = $neutron_mellanox['plugin']
-  } else {
-    $mellanox_mode = 'disabled'
-  }
-
   include ::osnailyfacter::test_compute
-
-  if ($::mellanox_mode == 'ethernet') {
-    $neutron_config      = hiera_hash('quantum_settings')
-    $neutron_private_net = pick($neutron_config['default_private_net'], 'net04')
-    $physnet             = $neutron_config['predefined_networks'][$neutron_private_net]['L2']['physnet']
-    class { '::mellanox_openstack::compute':
-      physnet => $physnet,
-      physifc => $neutron_mellanox['physical_port'],
-    }
-  }
 
   $floating_hash = {}
 

@@ -1,7 +1,6 @@
 # List of modules with disabled 'rake spec' check.
 # No need to include here modules defined in the fuel-library Puppetfile.
 docker
-mellanox_openstack
 mysql
 nailgun
 pacemaker
