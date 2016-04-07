@@ -37,7 +37,6 @@ describe 'cluster::rabbitmq_ocf' do
     let(:metadata) {{
       'migration-threshold' => '10',
       'failure-timeout'     => '30s',
-      'resource-stickiness' => '100',
     }}
 
     let(:complex_metadata) {{
