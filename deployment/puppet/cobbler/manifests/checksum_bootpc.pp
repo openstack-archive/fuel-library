@@ -25,14 +25,4 @@ class cobbler::checksum_bootpc () {
       fail('Unsupported OS')
     }
   }
-
-  # TODO(aschultz): replace this with a proper firewall resource usage which
-  # requires an firewall module verison bump and figure out how to get around
-  # the module not being able to save the rules inside docker (which currently
-  # errors)
-  exec { 'checksum_fill_bootpc':
-    command => "iptables -t mangle -A POSTROUTING -p udp --dport 68 -j CHECKSUM --checksum-fill; iptables-save -c > ${iptables_save_location}", # lint:ignore:80chars
-    path    => '/usr/bin:/bin:/usr/sbin:/sbin',
-    unless  => 'iptables -t mangle -S POSTROUTING | grep -q "^-A POSTROUTING -p udp -m udp --dport 68 -j CHECKSUM --checksum-fill"' # lint:ignore:80chars
-  }
 }

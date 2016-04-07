@@ -51,34 +51,6 @@ describe 'cobbler' do
         should contain_file_line('Change debug level in cobbler')
       end
     end
-
-    context 'with production = docker' do
-      let :params do
-        default_params.merge!({
-          :production => 'docker'
-        })
-      end
-
-      it 'configures with the default params' do
-        should contain_class('cobbler')
-        should contain_class('cobbler::packages')
-        should contain_class('cobbler::selinux')
-        should_not contain_class('cobbler::iptables')
-        should contain_class('cobbler::snippets')
-        should contain_class('cobbler::server').with(
-          :domain_name      => params[:domain_name],
-          :production       => params[:production],
-          :dns_upstream     => params[:dns_upstream],
-          :dns_domain       => params[:dns_domain],
-          :dns_search       => params[:dns_search],
-          :dhcp_gateway     => params[:dhcp_gateway],
-          :extra_admins_net => params[:extra_admins_nets])
-        should contain_cobbler_digest_user(params[:cobbler_user]).with(
-          :password => params[:cobbler_password])
-        should contain_file_line('Change debug level in cobbler')
-      end
-    end
-
   end
 
   context 'on Debian platforms' do
