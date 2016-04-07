@@ -350,13 +350,8 @@ class openstack::logging (
       }
     }
 
-    if $production =~ /docker/ {
-      $enable_tcp = false
-      $enable_udp = false
-    } else {
-      $enable_tcp = $proto ? { 'tcp' => true, 'both' => true, default => false }
-      $enable_udp = $proto ? { 'udp' => true, 'both' => true, default => true }
-    }
+    $enable_tcp = $proto ? { 'tcp' => true, 'both' => true, default => false }
+    $enable_udp = $proto ? { 'udp' => true, 'both' => true, default => true }
 
     class { '::rsyslog::server':
       enable_tcp                => $enable_tcp,

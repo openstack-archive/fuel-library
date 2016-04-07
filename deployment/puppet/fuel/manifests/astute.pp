@@ -68,7 +68,6 @@ class fuel::astute(
     mode   => 0755,
   }
 
-  # This hack came from setup.sh of astute docker container
   # FIXME(dteselkin): use correct versions of rubygem packages
   exec {'use correct versions of rubygem packages':
     command => '/usr/bin/sed -i "/amq-protocol/ s/~>/>=/" /usr/share/gems/specifications/amqp-*.gemspec',

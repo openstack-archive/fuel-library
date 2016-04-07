@@ -30,7 +30,6 @@ class fuel::cobbler(
   Class['::cobbler'] ->
   Anchor<| title == 'nailgun-cobbler-end' |>
 
-  #Set real_server so Cobbler identifies its own IP correctly in Docker
   $real_server = $next_server
 
   if $::osfamily == 'RedHat' {
@@ -171,8 +170,6 @@ class fuel::cobbler(
     server    => $real_server,
     require   => Cobbler_distro['ubuntu_bootstrap'],
   }
-
-  if str2bool($::is_virtual) {  class { 'cobbler::checksum_bootpc': } }
 
   exec { 'cobbler_system_add_default':
     command => "cobbler system add --name=default \
