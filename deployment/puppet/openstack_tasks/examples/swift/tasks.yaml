@@ -8,6 +8,7 @@
   cross-depends:
     - name: /(primary-)?rabbitmq/
     - name: /glance/
+    - name: primary-swift-proxy
   parameters:
     puppet_manifest: /etc/puppet/modules/openstack_tasks/examples/swift/storage.pp
     puppet_modules: /etc/puppet/modules
@@ -41,14 +42,13 @@
   version: 2.0.0
   groups: [primary-controller]
   required_for: [deploy_end, controller_remaining_tasks]
-  requires: [openstack-controller, swift-storage]
+  requires: [openstack-controller]
   condition: *swift_enabled
   cross-depends:
     - name: /(primary-)?rabbitmq/
     - name: swift-keystone
     - name: memcached
     - name: ceilometer-controller
-    - name: swift-storage
   parameters:
     puppet_manifest: /etc/puppet/modules/openstack_tasks/examples/swift/proxy.pp
     puppet_modules: /etc/puppet/modules
