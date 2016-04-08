@@ -76,7 +76,17 @@ describe Puppet::Type.type(:hiera_config).provider(:ruby) do
         'c' => {
             'metadata' => 'd'
         },
-        'plugins' => %w(plugin1 plugin2),
+        'plugins' => [
+            {
+                'name' => 'plugin1',
+            },
+            {
+                'name' => 'plugin2',
+            },
+            {
+                'type' => 'bad_plugin',
+            }
+        ],
     }
   end
 
