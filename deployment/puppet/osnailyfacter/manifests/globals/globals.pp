@@ -81,6 +81,7 @@ class osnailyfacter::globals::globals {
   $swift_hash                     = hiera('swift', {})
   $cinder_hash                    = hiera_hash('cinder', {})
   $access_hash                    = hiera_hash('access', {})
+  $ceilometer_hash                = hiera_hash('ceilometer', {})
   # mp_hash is actually an array, not a hash
   $mp_hash                        = hiera('mp', [])
   $keystone_hash                  = merge({'service_token_off' => $service_token_off},
@@ -120,15 +121,24 @@ class osnailyfacter::globals::globals {
   $horizon_address                = pick(get_network_role_property('horizon', 'ipaddr'), '127.0.0.1')
   $apache_api_proxy_address       = get_network_role_property('admin/pxe', 'ipaddr')
   $keystone_api_address           = get_network_role_property('keystone/api', 'ipaddr')
+  $ceilometer_api_address         = get_network_role_property('ceilometer/api', 'ipaddr')
+  $ceilometer_enabled             = $ceilometer_hash['enabled']
 
   # Listen directives with host required for ip_based vhosts
-  $apache_ports                   = hiera_array('apache_ports', unique([
-                                      '127.0.0.1:80',
-                                      "${horizon_address}:80",
-                                      "${apache_api_proxy_address}:8888",
-                                      "${keystone_api_address}:5000",
-                                      "${keystone_api_address}:35357"
-                                      ]))
+  $apache_ports_defaults = hiera_array('apache_ports', unique([
+                               '127.0.0.1:80',
+                               "${horizon_address}:80",
+                               "${apache_api_proxy_address}:8888",
+                               "${keystone_api_address}:5000",
+                               "${keystone_api_address}:35357",
+                               ]))
+
+  $apache_ports = hiera_array('apache_ports', unique(
+    $ceilometer_enabled ? {
+      true => concat($apache_ports_defaults, "ceilometer_api_address:8777"),
+      false => $apache_ports_defaults,
+    })
+  )
 
   $token_provider                 = hiera('token_provider','keystone.token.providers.fernet.Provider')
 
