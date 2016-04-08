@@ -1,0 +1,7 @@
+#!/bin/bash
+if [ -z "$OCF_ROOT" ]; then
+  echo Only Pacemaker can start/stop RabbitMQ 1>&2
+  exit 0
+else
+  ulimit 100000
+fi
