@@ -42,9 +42,18 @@ define tweaks::ubuntu_service_override (
         onlyif  => "test -f ${policyrc_file}",
       })
 
-      File['create-policy-rc.d'] ->
-        Package <| name == $package_name |> ->
-          Exec['remove-policy-rc.d']
+      ensure_resource('file', "${service_name}.override")
+        path    => "/etc/init/${service_name}.override",
+        content => 'manual',
+        mode    => '0755',
+        owner   => 'root',
+        group   => 'root',
+      }
+
+      File["${service_name}.override"] ->
+        File['create-policy-rc.d'] ->
+          Package <| name == $package_name |> ->
+            Exec['remove-policy-rc.d']
       File['create-policy-rc.d'] ->
         Package <| title == $package_name |> ->
           Exec['remove-policy-rc.d']
