@@ -46,6 +46,11 @@ class openstack_tasks::ceilometer::controller {
   $keystone_identity_uri      = "${internal_auth_protocol}://${internal_auth_endpoint}:35357/"
   $keystone_auth_uri          = "${internal_auth_protocol}://${internal_auth_endpoint}:5000/v2.0"
 
+#as $ssl default value in ceilometer::wsgi::apache is true and
+#we use SSL at HAproxy, but not the API host we should set 'false'
+#value for $ssl.
+  $ssl = false
+
   prepare_network_config(hiera_hash('network_scheme', {}))
   $api_bind_address           = get_network_role_property('ceilometer/api', 'ipaddr')
 
@@ -156,6 +161,16 @@ class openstack_tasks::ceilometer::controller {
       sync_db             => $primary_controller,
     }
 
+    class { 'osnailyfacter::apache':
+      listen_ports => hiera_array('apache_ports', ['0.0.0.0:80', '0.0.0.0:8888', '0.0.0.0:5000', '0.0.0.0:35357', '0.0.0.0:8777']),
+    }
+
+    class { 'ceilometer::wsgi::apache':
+      ssl       => $ssl,
+      bind_host => $api_bind_address,
+      workers   => $service_workers,
+    }
+
     # Install the ceilometer-api service
     # The keystone_password parameter is mandatory
     class { '::ceilometer::api':
@@ -165,8 +180,7 @@ class openstack_tasks::ceilometer::controller {
       keystone_password => $ceilometer_hash['user_password'],
       keystone_tenant   => $ceilometer_hash['tenant'],
       host              => $api_bind_address,
-      port              => '8777',
-      api_workers       => $service_workers,
+      service_name      => 'httpd',
     }
 
     # Clean up expired data once a week
