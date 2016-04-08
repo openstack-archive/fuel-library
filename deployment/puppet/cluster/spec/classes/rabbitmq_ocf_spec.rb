@@ -129,6 +129,12 @@ describe 'cluster::rabbitmq_ocf' do
         :parameters       => parameters
       )
     end
+
+    it 'executes rabbitmq_ready check' do
+      should contain_exec('rabbitmq_ready').with(
+        :command => 'rabbitmqctl cluster_status'
+      )
+    end
   end
 
   context 'on Debian platforms' do
