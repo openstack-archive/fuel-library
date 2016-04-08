@@ -182,6 +182,9 @@ describe manifest do
         ).that_comes_before('Class[nova::rabbitmq]')
         should contain_class('cluster::rabbitmq_ocf').that_requires(
           'Class[rabbitmq::install]')
+        should contain_file('/etc/default/rabbitmq').with(
+          :content                 => "#!/bin/bash\nexit 0\n",
+        )
       end
     end
 

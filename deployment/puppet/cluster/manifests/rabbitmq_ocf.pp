@@ -214,5 +214,14 @@ class cluster::rabbitmq_ocf (
     parameters          => $parameters,
     #    ocf_script_file     => $ocf_script_file,
   }
-  Service[$service_name] -> Rabbitmq_user <||>
+
+  exec { 'rabbitmq_ready':
+    path      => '/bin:/usr/bin:/sbin:/usr/sbin:/usr/local/bin',
+    command   => 'rabbitmqctl cluster_status',
+    tries     => '40',
+    try_sleep => '5',
+  }
+
+  Service[$service_name] -> Exec['rabbitmq_ready'] -> Rabbitmq_user <||>
+
 }
