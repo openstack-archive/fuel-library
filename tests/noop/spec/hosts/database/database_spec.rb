@@ -35,7 +35,7 @@ describe manifest do
     end
 
     let(:access_networks) do
-      access_networks = ['240.0.0.0/255.255.0.0'] + other_networks.split(' ')
+      ['240.0.0.0/255.255.0.0'] + other_networks.split(' ')
     end
 
     let(:mysql_hash) do
@@ -54,8 +54,12 @@ describe manifest do
       (Noop.puppet_function 'get_node_to_ipaddr_map_by_network_role', database_nodes, 'mgmt/database').values
     end
 
+    let(:galera_gcache_size) do
+      Noop.puppet_function 'pick', mysql_hash['galera_gcache_size'], '512M'
+    end
+
     let(:mysql_binary_logs) do
-      Noop.hiera 'mysql_binary_logs', true
+      Noop.hiera 'mysql_binary_logs', false
     end
 
     let(:log_bin) do
@@ -215,15 +219,21 @@ describe manifest do
       )
     end
 
-    it 'should configure mysql binary logging by default' do
+    it 'should not configure mysql binary logging by default' do
       expect(subject).to contain_class('galera').with_override_options(
-          /"log_bin"=>"mysql-bin"/
+        /"log_bin"=>:undef/
       )
       expect(subject).to contain_class('galera').with_override_options(
-          /"expire_logs_days"=>"#{expire_logs_days}"/
+        /"expire_logs_days"=>:undef/
       )
       expect(subject).to contain_class('galera').with_override_options(
-          /"max_binlog_size"=>"#{max_binlog_size}"/
+        /"max_binlog_size"=>:undef/
+      )
+    end
+
+    it "should contain gcache.size" do
+      expect(subject).to contain_class('galera').with_override_options(
+        /gcache.size=#{galera_gcache_size}/
       )
     end
 
