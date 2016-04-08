@@ -179,6 +179,11 @@ class osnailyfacter::rabbitmq::rabbitmq {
       }
 
       if ($use_pacemaker) {
+        # Make sure upstart provider cannot stop pacemaker managed RabbitMQ
+        File <| title == '/etc/default/rabbitmq-server' |> {
+          content => template('osnailyfacter/rabbitmq-server.default.erb'),
+        }
+
         class { '::cluster::rabbitmq_ocf':
           command_timeout         => $command_timeout,
           debug                   => $debug,
