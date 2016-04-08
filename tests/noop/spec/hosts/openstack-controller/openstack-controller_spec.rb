@@ -89,6 +89,7 @@ describe manifest do
     default_log_levels_hash = Noop.hiera_hash 'default_log_levels'
     default_log_levels = Noop.puppet_function 'join_keys_to_values',default_log_levels_hash,'='
 
+    let(:ceilometer_hash) { Noop.hiera_hash 'ceilometer', {} }
     storage_hash = Noop.hiera_structure 'storage'
     sahara_hash  = Noop.hiera_structure 'sahara'
     nova_internal_protocol = Noop.puppet_function 'get_ssl_property',
@@ -116,13 +117,6 @@ describe manifest do
     let(:nova_service_down_time) { Noop.hiera 'nova_service_down_time', '180' }
     let(:notify_api_faults) { Noop.puppet_function 'pick', nova_hash['notify_api_faults'], false }
     let(:cinder_catalog_info) { Noop.puppet_function 'pick', nova_hash['cinder_catalog_info'], 'volumev2:cinderv2:internalURL' }
-    let(:nova_notification_driver) do
-      if nova_hash['notification_driver']
-          nova_hash['notification_driver']
-      else
-        []
-      end
-    end
 
     let(:nova_quota) { Noop.hiera 'nova_quota', false }
 
@@ -224,7 +218,8 @@ describe manifest do
         :report_interval        => nova_report_interval,
         :service_down_time      => nova_service_down_time,
         :notify_api_faults      => notify_api_faults,
-        :notification_driver    => nova_notification_driver,
+        :notification_driver    => ceilometer_hash['notification_driver'],
+        :notify_on_state_change => 'vm_and_task_state',
         :cinder_catalog_info    => cinder_catalog_info,
         :database_max_pool_size => 20,
         :database_max_retries   => '-1',
