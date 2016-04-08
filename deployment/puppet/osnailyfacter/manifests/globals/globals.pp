@@ -120,15 +120,28 @@ class osnailyfacter::globals::globals {
   $horizon_address                = pick(get_network_role_property('horizon', 'ipaddr'), '127.0.0.1')
   $apache_api_proxy_address       = get_network_role_property('admin/pxe', 'ipaddr')
   $keystone_api_address           = get_network_role_property('keystone/api', 'ipaddr')
+  $ceilometer_api_address         = get_network_role_property('ceilometer/api', 'ipaddr')
+  $ceilometer_enabled             = $ceilometer_hash['enabled']
 
   # Listen directives with host required for ip_based vhosts
-  $apache_ports                   = hiera_array('apache_ports', unique([
-                                      '127.0.0.1:80',
-                                      "${horizon_address}:80",
-                                      "${apache_api_proxy_address}:8888",
-                                      "${keystone_api_address}:5000",
-                                      "${keystone_api_address}:35357"
-                                      ]))
+  if ($ceilometer_enabled) {
+    $apache_ports                   = hiera_array('apache_ports', unique([
+                                        '127.0.0.1:80',
+                                        "${horizon_address}:80",
+                                        "${apache_api_proxy_address}:8888",
+                                        "${keystone_api_address}:5000",
+                                        "${keystone_api_address}:35357",
+                                        "${ceilometer_api_address}:8777"
+                                        ]))
+  } else {
+    $apache_ports                   = hiera_array('apache_ports', unique([
+                                        '127.0.0.1:80',
+                                        "${horizon_address}:80",
+                                        "${apache_api_proxy_address}:8888",
+                                        "${keystone_api_address}:5000",
+                                        "${keystone_api_address}:35357"
+                                        ]))
+  }
 
   $token_provider                 = hiera('token_provider','keystone.token.providers.fernet.Provider')
 
