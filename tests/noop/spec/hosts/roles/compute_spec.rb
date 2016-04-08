@@ -25,7 +25,8 @@ describe manifest do
 
     let(:facts) {
       Noop.ubuntu_facts.merge({
-        :libvirt_uuid => '0251bf3e0a3f48da8cdf8daad5473a7f'
+        :libvirt_uuid        => '0251bf3e0a3f48da8cdf8daad5473a7f',
+        :allocated_hugepages => {'2M' => true, '1G' => true},
       })
     }
 
@@ -179,6 +180,8 @@ describe manifest do
     let(:node_hash) { Noop.hiera_hash 'node' }
     let(:enable_hugepages) { node_hash.fetch('nova_hugepages_enabled', false) }
     let(:enable_cpu_pinning) { node_hash.fetch('nova_cpu_pinning_enabled', false) }
+    let(:use_1g_huge_pages) { facts[:allocated_hugepages]['1G'] }
+    let(:use_2m_huge_pages) { facts[:allocated_hugepages]['2M'] }
 
     it 'should configure vcpu_pin_set for nova' do
       if enable_cpu_pinning
@@ -191,11 +194,35 @@ describe manifest do
 
     it 'should set up huge pages support for qemu-kvm' do
       if enable_hugepages
-        qemu_hugepages_value    = 'set KVM_HUGEPAGES 1'
-        libvirt_hugetlbfs_mount = 'set hugetlbfs_mount /run/hugepages/kvm'
+        if use_1g_huge_pages
+          hugepages_1g_opts_ensure = 'present'
+          should contain_file('/mnt/hugepages_1GB').with(
+            'ensure'  => 'directory',
+            'owner'   => 'root',
+            'group'   => 'kvm',
+            'require' => 'Package[qemu-kvm]',
+          )
+          should contain_exec('mount_hugetlbfs_1g').with(
+            'command' => 'mount -t hugetlbfs hugetlbfs-kvm -o mode=775,gid=kvm,pagesize=1GB /mnt/hugepages_1GB',
+            'unless'  => 'grep -q /mnt/hugepages_1GB /proc/mounts',
+            'path'    => '/usr/sbin:/usr/bin:/sbin:/bin',
+            'require' => 'File[/mnt/hugepages_1GB]',
+          )
+          if use_2m_huge_pages
+            libvirt_hugetlbfs_mount = 'hugetlbfs_mount = ["/run/hugepages/kvm", "/mnt/hugepages_1GB"]'
+            qemu_hugepages_value    = 'set KVM_HUGEPAGES 1'
+          else
+            libvirt_hugetlbfs_mount = 'hugetlbfs_mount = "/mnt/hugepages_1GB"'
+            qemu_hugepages_value    = 'rm KVM_HUGEPAGES'
+          end
+        else
+          qemu_hugepages_value    = 'set KVM_HUGEPAGES 1'
+          libvirt_hugetlbfs_mount = 'hugetlbfs_mount = "/run/hugepages/kvm"'
+        end
       else
-        qemu_hugepages_value    = 'rm KVM_HUGEPAGES'
-        libvirt_hugetlbfs_mount = 'set hugetlbfs_mount ""'
+        qemu_hugepages_value     = 'rm KVM_HUGEPAGES'
+        libvirt_hugetlbfs_mount  = 'hugetlbfs_mount = ""'
+        hugepages_1g_opts_ensure = 'absent'
       end
 
       if facts[:osfamily] == 'Debian'
@@ -204,11 +231,25 @@ describe manifest do
           'changes' => qemu_hugepages_value,
         ).that_notifies('Service[libvirt]')
 
-        should contain_augeas('libvirt_hugetlbfs_mount').with(
-          'context' => '/files/etc/libvirt/qemu.conf',
-          'changes' => libvirt_hugetlbfs_mount,
+        should contain_file_line('libvirt_hugetlbfs_mount').with(
+          'path'    => '/etc/libvirt/qemu.conf',
+          'line'    => libvirt_hugetlbfs_mount,
           'require' => 'Package[libvirt-bin]',
         ).that_notifies('Service[libvirt]')
+
+        should contain_file_line('libvirt_1g_hugepages_apparmor').with(
+          'path'    => '/etc/apparmor.d/abstractions/libvirt-qemu',
+          'after'   => 'owner "/run/hugepages/kvm/libvirt/qemu/',
+          'line'    => '  owner "/mnt/hugepages_1GB/libvirt/qemu/**" rw,',
+          'require' => 'Package[libvirt-bin]',
+          'ensure'  => hugepages_1g_opts_ensure,
+        ).that_notifies('Exec[refresh_apparmor]')
+
+        should contain_file_line('1g_hugepages_fstab').with(
+          'path'    => '/etc/fstab',
+          'line'    => 'hugetlbfs-kvm /mnt/hugepages_1GB hugetlbfs mode=775,gid=kvm,pagesize=1GB 0 0',
+          'ensure'  => hugepages_1g_opts_ensure,
+        )
 
         should contain_augeas('qemu_hugepages').that_notifies('Service[qemu-kvm]')
         should contain_service('qemu-kvm').that_comes_before('Service[libvirt]')
