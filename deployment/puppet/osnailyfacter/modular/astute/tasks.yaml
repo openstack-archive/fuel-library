@@ -98,6 +98,10 @@
   role: [primary-controller, controller]
   requires: [upload_cirros]
   required_for: [post_deployment_end]
+  condition:
+    yaql_exp: >
+      changed($.keystone.get('service_token_off')) and
+      $.keystone.get('service_token_off')
   cross-depends:
     - name: upload_cirros
   parameters:
