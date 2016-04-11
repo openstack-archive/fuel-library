@@ -119,9 +119,10 @@ describe manifest do
     Noop.hiera_hash 'ceilometer', { 'enabled' => false }
   end
 
-  it 'should contain notification_driver option' do
-    should contain_cinder_config('DEFAULT/notification_driver').with(:value => ceilometer_hash['notification_driver'])
-  end
+  # TODO(dmburmistrov): uncomment this test after puppet-cinder switch to oslo resources
+  # it 'should contain oslo_messaging_notifications "driver" option' do
+  #   should contain_cinder_config('oslo_messaging_notifications/driver').with(:value => ceilometer_hash['notification_driver'])
+  # end
 
   it 'should check stuff that openstack cinder did' do
     is_expected.to contain_class('cinder')
