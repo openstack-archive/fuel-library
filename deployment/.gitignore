@@ -22,6 +22,7 @@ puppet/keystone
 puppet/mcollective
 puppet/memcached
 puppet/mongodb
+puppet/monit
 puppet/murano
 puppet/mysql
 puppet/neutron
