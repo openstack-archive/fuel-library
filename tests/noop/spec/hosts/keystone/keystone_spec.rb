@@ -289,11 +289,12 @@ describe manifest do
       end
     end
 
-    if ceilometer_hash['enabled']
-      it 'should configure notification driver' do
-        should contain_keystone_config('DEFAULT/notification_driver').with(:value => ceilometer_hash['notification_driver'])
-      end
-    end
+    # TODO(dmburmistrov): uncomment this test after this patch (https://review.openstack.org/#/c/302738/) merged
+    # if ceilometer_hash['enabled']
+    #   it 'should configure oslo_messaging_notifications "driver"' do
+    #     should contain_keystone_config('oslo_messaging_notifications/driver').with(:value => ceilometer_hash['notification_driver'])
+    #   end
+    # end
 
     if murano_glare_plugin['enabled']
       it 'should configure glance_murano_plugin' do

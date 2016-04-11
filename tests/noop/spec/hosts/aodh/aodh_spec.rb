@@ -68,7 +68,7 @@ describe manifest do
       should contain_aodh_config('DEFAULT/debug').with(:value => debug)
       should contain_aodh_config('DEFAULT/verbose').with(:value => verbose)
       should contain_aodh_config('DEFAULT/rpc_backend').with(:value => 'rabbit')
-      should contain_aodh_config('DEFAULT/notification_topics').with(:value => 'notifications')
+      should contain_aodh_config('oslo_messaging_notifications/topics').with(:value => 'notifications')
     end
 
     it 'should configure "api/" section ' do
