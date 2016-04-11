@@ -29,4 +29,3 @@ fixtures:
     pacemaker: "#{source_dir}/../pacemaker"
     haproxy: "#{source_dir}/../haproxy"
     ceilometer_ha: "#{source_dir}/../ceilometer_ha"
-    mellanox_openstack: "#{source_dir}/../mellanox_openstack"
