@@ -27,6 +27,7 @@ describe manifest do
     rabbit_user        = Noop.hiera_structure('rabbit/user', 'nova')
     rabbit_password    = Noop.hiera_structure('rabbit/password')
     network_scheme     = Noop.hiera_hash 'network_scheme'
+    internal_virtual_ip = Noop.hiera_structure('network_metadata/vips/management/ipaddr')
 
     if swift_proxies_num < 2
       ring_replicas = 2
@@ -43,9 +44,8 @@ describe manifest do
     }
 
     let (:bind_to_one) {
-      api_ip = Noop.puppet_function 'get_network_role_property', 'swift/api', 'ipaddr'
-      storage_ip = Noop.puppet_function 'get_network_role_property', 'swift/replication', 'ipaddr'
-      api_ip == storage_ip
+      api_net = Noop.puppet_function 'get_network_role_property', 'swift/api', 'network'
+      Noop.puppet_function 'has_ip_in_network', internal_virtual_ip, api_net
     }
 
     let(:ssl_hash) { Noop.hiera_hash 'use_ssl' }
@@ -110,10 +110,11 @@ describe manifest do
         context 'with enabled internal TLS for swift' do
           swift_endpoint = Noop.hiera_structure 'use_ssl/swift_internal_hostname'
             it {
-              if bind_to_one
+              unless bind_to_one
                 should contain_class('openstack::swift::status').with(
                   'endpoint'  => "https://#{swift_endpoint}:8080",
                   'only_from' => "127.0.0.1 240.0.0.2 #{storage_nets} #{mgmt_nets}",
+                  'scan_target' => "#{internal_virtual_ip}:5000",
                 ).that_comes_before('Class[swift::dispersion]')
               else
                 should_not contain_class('openstack::swift::status')
@@ -125,9 +126,10 @@ describe manifest do
 
         context 'with disabled internal TLS for swift' do
           it {
-            if bind_to_one
+            unless bind_to_one
             should contain_class('openstack::swift::status').with(
               'only_from' => "127.0.0.1 240.0.0.2 #{storage_nets} #{mgmt_nets}",
+              'scan_target' => "#{internal_virtual_ip}:5000",
             ).that_comes_before('Class[swift::dispersion]')
             else
               should_not contain_class('openstack::swift::status')
