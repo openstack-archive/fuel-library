@@ -4,6 +4,8 @@
   groups: [virt]
   requires: [netconfig]
   required_for: [deploy_end]
+  condition:
+    yaql_exp: "changed($.vms_conf)"
   parameters:
     puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/generate_vms/generate_vms.pp
     puppet_modules: /etc/puppet/modules
