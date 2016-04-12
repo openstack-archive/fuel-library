@@ -203,9 +203,12 @@ class openstack_tasks::openstack_network::server_config {
       auth_url                         => $auth_url,
       auth_uri                         => $auth_uri,
 
-      database_retry_interval          => '2',
       database_connection              => $db_connection,
-      database_max_retries             => '-1',
+      database_max_retries             => hiera('max_retries'),
+      database_idle_timeout            => hiera('idle_timeout'),
+      database_max_pool_size           => hiera('max_pool_size'),
+      database_max_overflow            => hiera('max_overflow'),
+      database_retry_interval          => '2',
 
       agent_down_time                  => $neutron_config['neutron_agent_down_time'],
       allow_automatic_l3agent_failover => $l3agent_failover,
