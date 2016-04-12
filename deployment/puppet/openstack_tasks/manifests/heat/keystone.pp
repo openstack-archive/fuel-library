@@ -27,6 +27,7 @@ class openstack_tasks::heat::keystone {
   $tenant              = pick($heat_hash['tenant'], 'services')
 
   Class['::osnailyfacter::wait_for_keystone_backends'] -> Class['::heat::keystone::auth']
+  Class['::osnailyfacter::wait_for_keystone_backends'] -> Class['::heat::keystone::auth_cfn']
 
   validate_string($public_address)
   validate_string($password)
@@ -34,6 +35,9 @@ class openstack_tasks::heat::keystone {
   $public_url          = "${public_protocol}://${public_address}:8004/v1/%(tenant_id)s"
   $internal_url        = "${internal_protocol}://${internal_address}:8004/v1/%(tenant_id)s"
   $admin_url           = "${admin_protocol}://${admin_address}:8004/v1/%(tenant_id)s"
+  $public_url_cfn      = "${public_protocol}://${public_address}:8000/v1"
+  $internal_url_cfn    = "${internal_protocol}://${internal_address}:8000/v1"
+  $admin_url_cfn       = "${admin_protocol}://${admin_address}:8000/v1"
 
   class { '::osnailyfacter::wait_for_keystone_backends': }
 
@@ -51,4 +55,20 @@ class openstack_tasks::heat::keystone {
     internal_url           => $internal_url,
     admin_url              => $admin_url,
   }
+
+  class { '::heat::keystone::auth_cfn' :
+    password            => $password,
+    auth_name           => "${auth_name}-cfn",
+    service_type        => 'cloudformation',
+    region              => $region,
+    tenant              => $keystone_tenant,
+    email               => "${auth_name}-cfn@localhost",
+    configure_endpoint  => true,
+    configure_user      => $configure_user,
+    configure_user_role => $configure_user_role,
+    public_url          => $public_url_cfn,
+    internal_url        => $internal_url_cfn,
+    admin_url           => $admin_url_cfn,
+  }
+
 }
