@@ -61,8 +61,8 @@ file { '/var/www/nailgun/dump':
   mode   => '0755',
 }
 
-file { '/etc/dhcp/dhcp-enter-hooks':
-  content => template('fuel/dhcp-enter-hooks.erb'),
+file { '/etc/dhcp/dhclient-enter-hooks':
+  content => template('fuel/dhclient-enter-hooks.erb'),
   owner   => 'root',
   group   => 'root',
   mode    => '0755',
@@ -96,6 +96,12 @@ class { '::openstack::reserved_ports':
 
 service {'dhcrelay':
   ensure => stopped,
+}
+
+# Remove NetworkManager if installed
+class { '::l23network':
+  network_manager  => false,
+  install_bondtool => false,
 }
 
 # Free disk space monitoring
