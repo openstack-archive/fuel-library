@@ -38,6 +38,9 @@ describe manifest do
     public_url          = "#{public_protocol}://#{public_address}:8004/v1/%(tenant_id)s"
     internal_url        = "#{internal_protocol}://#{internal_address}:8004/v1/%(tenant_id)s"
     admin_url           = "#{admin_protocol}://#{admin_address}:8004/v1/%(tenant_id)s"
+    public_url_cfn      = "#{public_protocol}://#{public_address}:8000/v1"
+    internal_url_cfn    = "#{internal_protocol}://#{internal_address}:8000/v1"
+    admin_url_cfn       = "#{admin_protocol}://#{admin_address}:8000/v1"
     tenant              = Noop.hiera_structure 'heat/tenant', 'services'
 
     it 'class heat::keystone::auth should contain correct *_url' do
@@ -46,15 +49,30 @@ describe manifest do
       should contain_class('heat::keystone::auth').with('admin_url' => admin_url)
     end
 
+    it 'class heat::keystone::auth_cfn should contain correct *_url' do
+      should contain_class('heat::keystone::auth_cfn').with('public_url' => public_url_cfn)
+      should contain_class('heat::keystone::auth_cfn').with('internal_url' => internal_url_cfn)
+      should contain_class('heat::keystone::auth_cfn').with('admin_url' => admin_url_cfn)
+    end
+
     it 'should have explicit ordering between LB classes and particular actions' do
       expect(graph).to ensure_transitive_dependency("Haproxy_backend_status[keystone-public]",
                                                       "Class[heat::keystone::auth]")
       expect(graph).to ensure_transitive_dependency("Haproxy_backend_status[keystone-admin]",
                                                       "Class[heat::keystone::auth]")
+      expect(graph).to ensure_transitive_dependency("Haproxy_backend_status[keystone-public]",
+                                                      "Class[heat::keystone::auth_cfn]")
+      expect(graph).to ensure_transitive_dependency("Haproxy_backend_status[keystone-admin]",
+                                                      "Class[heat::keystone::auth_cfn]")
     end
 
     it 'class heat::keystone::auth should contain tenant' do
       should contain_class('heat::keystone::auth').with('tenant' => tenant)
+    end
+
+    it 'class heat::keystone::auth_cfn should contain configure_user parameters' do
+      should contain_class('heat::keystone::auth_cfn').with('configure_user' => configure_user)
+      should contain_class('heat::keystone::auth_cfn').with('configure_user_role' => configure_user_role)
     end
 
     it 'class heat::keystone::auth should contain configure_user parameters' do
