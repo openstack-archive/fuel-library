@@ -32,6 +32,7 @@ describe manifest do
   volume_backend_name = Noop.hiera_structure 'storage/volume_backend_names'
   kombu_compression = Noop.hiera 'kombu_compression', ''
 
+  management_vip = Noop.hiera 'management_vip'
   database_vip = Noop.hiera('database_vip')
   cinder = Noop.puppet_function 'roles_include', 'cinder'
   cinder_db_password = Noop.hiera_structure 'cinder/db_password', 'cinder'
@@ -54,6 +55,12 @@ describe manifest do
       false
     end
   end
+
+  let(:ssl_hash) { Noop.hiera_hash 'use_ssl', {} }
+  let(:glance_endpoint_default) { Noop.hiera 'glance_endpoint', management_vip }
+  let(:glance_protocol) { Noop.puppet_function 'get_ssl_property',ssl_hash,{},'glance','internal','protocol','http' }
+  let(:glance_endpoint) { Noop.puppet_function 'get_ssl_property',ssl_hash,{},'glance','internal','hostname', glance_endpoint_default}
+  let(:glance_api_servers) { Noop.hiera 'glance_api_servers', "#{glance_protocol}://#{glance_endpoint}:9292" }
 
   it 'should configure default_log_levels' do
     should contain_cinder_config('DEFAULT/default_log_levels').with_value(default_log_levels.sort.join(','))
@@ -97,12 +104,12 @@ describe manifest do
     )
   end
 
-  if Noop.hiera_structure('use_ssl', false)
-    internal_auth_protocol = 'https'
-    keystone_auth_host = Noop.hiera_structure('use_ssl/keystone_internal_hostname')
-  else
+  if ssl_hash.empty?
     internal_auth_protocol = 'http'
     keystone_auth_host = Noop.hiera 'service_endpoint'
+  else
+    internal_auth_protocol = 'https'
+    keystone_auth_host = Noop.hiera_structure('use_ssl/keystone_internal_hostname')
   end
   auth_uri            = "#{internal_auth_protocol}://#{keystone_auth_host}:5000/"
   identity_uri        = "#{internal_auth_protocol}://#{keystone_auth_host}:5000/"
@@ -206,8 +213,12 @@ describe manifest do
     'keymgr_encryption_auth_url' => "#{identity_uri}/v3",
   ) }
 
+  it { is_expected.to contain_class('cinder::glance').with(
+    :glance_api_servers => glance_api_servers,
+    :glance_api_version => '2',
+  )}
+
   it { is_expected.to contain_class('cinder') }
-  it { is_expected.to contain_class('cinder::glance') }
   it { is_expected.to contain_class('cinder::logging') }
   it { is_expected.to contain_class('cinder::scheduler') }
   it {

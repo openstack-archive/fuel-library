@@ -352,14 +352,16 @@ describe manifest do
 
     # SSL support
     management_vip = Noop.hiera('management_vip')
-    glance_api_servers = "#{management_vip}:9292"
     vncproxy_protocol = 'https'
 
-    if Noop.hiera_structure('use_ssl')
+    let(:ssl_hash) { Noop.hiera_hash 'use_ssl', {} }
+    let(:glance_endpoint_default) { Noop.hiera 'glance_endpoint', management_vip }
+    let(:glance_protocol) { Noop.puppet_function 'get_ssl_property',ssl_hash,{},'glance','internal','protocol','http' }
+    let(:glance_endpoint) { Noop.puppet_function 'get_ssl_property',ssl_hash,{},'glance','internal','hostname', glance_endpoint_default}
+    let(:glance_api_servers) { Noop.hiera 'glance_api_servers', "#{glance_protocol}://#{glance_endpoint}:9292" }
+
+    if !ssl_hash.empty?
       vncproxy_host = Noop.hiera_structure('use_ssl/nova_public_hostname')
-      glance_protocol = 'https'
-      glance_endpoint = Noop.hiera_structure('use_ssl/glance_internal_hostname')
-      glance_api_servers = "#{glance_protocol}://#{glance_endpoint}:9292"
     elsif Noop.hiera_structure('public_ssl/services')
       vncproxy_host = Noop.hiera_structure('public_ssl/hostname')
     else
