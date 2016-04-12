@@ -38,7 +38,7 @@ describe 'l23network::l2::bond', :type => :define do
         'bond_mode'      => 'balance-rr',
         'bond_slaves'    => ['eth3', 'eth4'],
         'bond_miimon'    => '100',
-        'bond_updelay'   => '200',
+        'bond_updelay'   => '2000',
         'bond_downdelay' => '200',
       })
     end
@@ -49,7 +49,7 @@ describe 'l23network::l2::bond', :type => :define do
         'bond_properties' => {:mode=>"balance-rr",
                               :miimon=>"100",
                               :use_carrier=>"1",
-                              :updelay=>"200",
+                              :updelay=>"2000",
                               :downdelay=>"200"},
       })
     end
@@ -98,7 +98,7 @@ describe 'l23network::l2::bond', :type => :define do
         'bond_mode'      => 'active-backup',
         'bond_slaves'    => ['eth31', 'eth41'],
         'bond_miimon'    => '100',
-        'bond_updelay'   => '200',
+        'bond_updelay'   => '2000',
         'bond_downdelay' => '200',
       })
     end
@@ -111,7 +111,7 @@ describe 'l23network::l2::bond', :type => :define do
                               :miimon=>"100",
                               :use_carrier=>"1",
                               :lacp=>"off",
-                              :updelay=>"200",
+                              :updelay=>"2000",
                               :downdelay=>"200"},
       })
     end
@@ -166,7 +166,7 @@ describe 'l23network::l2::bond', :type => :define do
         'bond_properties' => {:mode=>'balance-rr',
                               :miimon=>'100',
                               :use_carrier=>'1',
-                              :updelay=>'200',
+                              :updelay=>'2000',
                               :downdelay=>'200'},
       })
     end
@@ -293,7 +293,7 @@ describe 'l23network::l2::bond', :type => :define do
                               :ad_select=>'bandwidth',
                               :miimon=>'100',
                               :use_carrier=>'1',
-                              :updelay=>'200',
+                              :updelay=>'2000',
                               :downdelay=>'200'},
       })
     end
@@ -335,7 +335,7 @@ describe 'l23network::l2::bond', :type => :define do
         'bond_properties' => {:mode=>'active-backup',
                               :miimon=>'100',
                               :use_carrier=>'1',
-                              :updelay=>'200',
+                              :updelay=>'2000',
                               :downdelay=>'200'},
       })
     end
@@ -451,7 +451,7 @@ describe 'l23network::l2::bond', :type => :define do
         'bond_lacp'             => 'active',
         'bond_lacp_rate'        => 'fast',
         'bond_miimon'           => '300',
-        'bond_updelay'          => '600',
+        'bond_updelay'          => '6000',
         'bond_downdelay'        => '600',
       })
       should contain_l23_stored_config('bond-ovs').without_bond_xmit_hash_policy()
@@ -465,7 +465,7 @@ describe 'l23network::l2::bond', :type => :define do
           :lacp_rate        => 'fast',
           :use_carrier      => '1',
           :miimon           => '300',
-          :updelay          => '600',
+          :updelay          => '6000',
           :downdelay        => '600',
         },
       })
