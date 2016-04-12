@@ -128,10 +128,6 @@ class openstack::cinder(
         control_exchange       => 'cinder',
         rabbit_ha_queues       => $rabbit_ha_queues,
       }
-
-      cinder_config {
-        'DEFAULT/kombu_reconnect_delay': value => '5.0';
-      }
     }
     'qpid': {
       $rpc_backend = 'cinder.openstack.common.rpc.impl_qpid'

@@ -237,7 +237,6 @@ class openstack_tasks::glance::glance {
     rabbit_password       => $rabbit_password,
     rabbit_userid         => $rabbit_userid,
     rabbit_hosts          => $rabbit_hosts,
-    kombu_reconnect_delay => 5.0,
     notification_driver   => $ceilometer_hash['notification_driver'],
   }
 

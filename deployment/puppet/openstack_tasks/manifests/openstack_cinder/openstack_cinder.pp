@@ -153,10 +153,6 @@ class openstack_tasks::openstack_cinder::openstack_cinder {
     service_down_time        => $cinder_hash['cinder_service_down_time'],
   }
 
-  cinder_config {
-    'DEFAULT/kombu_reconnect_delay': value => '5.0';
-  }
-
   if ($bind_host) {
     class { 'cinder::api':
       auth_uri                     => $auth_uri,
