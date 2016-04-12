@@ -1,11 +1,7 @@
-# RUN: neut_tun.ceph.murano.sahara.ceil-controller ubuntu
-# RUN: neut_tun.ceph.murano.sahara.ceil-primary-controller ubuntu
-# RUN: neut_tun.ironic-primary-controller ubuntu
-# RUN: neut_tun.l3ha-primary-controller ubuntu
-# RUN: neut_vlan.ceph-primary-controller ubuntu
-# RUN: neut_vlan.dvr-primary-controller ubuntu
-# RUN: neut_vlan.murano.sahara.ceil-controller ubuntu
-# RUN: neut_vlan.murano.sahara.ceil-primary-controller ubuntu
+# ROLE: primary-controller
+# TODO: (adidenko) this manifest is not present in task graph, so basically
+#       Fuel does not run this manifest. So we have this noop test just to
+#       test the manifest, it's not actually executed on primary-controller
 
 require 'spec_helper'
 require 'shared-examples'
