@@ -16,7 +16,7 @@ describe manifest do
       /root/.ssh/config
       /var/log/remote
       /var/www/nailgun/dump
-      /etc/dhcp/dhcp-enter-hooks
+      /etc/dhcp/dhclient-enter-hooks
       /etc/resolv.conf
       /etc/dhcp/dhclient.conf
       /etc/fuel/free_disk_check.yaml
@@ -46,6 +46,13 @@ describe manifest do
     it 'should reserve unprivleged ports for services' do
       is_expected.to contain_class('openstack::reserved_ports').with(
           :ports => '35357,41055,61613'
+      )
+    end
+
+    it 'should declare "::l23network" with the correct parameters' do
+      is_expected.to contain_class('l23network').with(
+          :network_manager  => false,
+          :install_bondtool => false,
       )
     end
 
