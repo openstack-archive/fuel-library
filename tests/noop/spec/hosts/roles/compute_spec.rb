@@ -433,7 +433,6 @@ describe manifest do
     it 'configures with the default params' do
 
       should contain_class('nova').with(
-        'kombu_reconnect_delay' => '5.0',
         'verbose'          => verbose,
         'debug'            => debug,
         'log_facility'     => log_facility,
