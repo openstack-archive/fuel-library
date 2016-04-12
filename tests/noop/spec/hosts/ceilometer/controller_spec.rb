@@ -111,7 +111,7 @@ describe manifest do
       end
       ha_mode = Noop.puppet_function 'pick', ceilometer_hash['ha_mode'], 'true'
       if ha_mode
-        it { is_expected.to contain_class('ceilometer_ha::agent::central') }
+        it { is_expected.to contain_class('cluster::ceilometer_central') }
       end
 
       it 'contains class ceilometer::agent::polling' do
