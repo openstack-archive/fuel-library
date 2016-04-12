@@ -51,14 +51,11 @@ class openstack_tasks::openstack_controller::openstack_controller {
   $keystone_identity_uri = "${admin_auth_protocol}://${admin_auth_address}:35357/"
   $keystone_ec2_url      = "${keystone_auth_uri}v2.0/ec2tokens"
 
+  # get glance api servers list
+  $glance_endpoint_default      = hiera('glance_endpoint', $management_vip)
   $glance_protocol              = get_ssl_property($ssl_hash, {}, 'glance', 'internal', 'protocol', 'http')
-  $glance_endpoint              = get_ssl_property($ssl_hash, {}, 'glance', 'internal', 'hostname', [hiera('glance_endpoint', ''), $management_vip])
-  $glance_ssl                   = get_ssl_property($ssl_hash, {}, 'glance', 'internal', 'usage', false)
-  if $glance_ssl {
-    $glance_api_servers = "${glance_protocol}://${glance_endpoint}:9292"
-  } else {
-    $glance_api_servers = hiera('glance_api_servers', "${management_vip}:9292")
-  }
+  $glance_endpoint              = get_ssl_property($ssl_hash, {}, 'glance', 'internal', 'hostname', $glance_endpoint_default)
+  $glance_api_servers           = hiera('glance_api_servers', "${glance_protocol}://${glance_endpoint}:9292")
 
   $keystone_user                = pick($nova_hash['user'], 'nova')
   $keystone_tenant              = pick($nova_hash['tenant'], 'services')
