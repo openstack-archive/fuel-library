@@ -29,12 +29,18 @@ describe manifest do
         Noop.puppet_function('get_nic_passthrough_whitelist', 'sriov')
       end
 
+      let(:adv_neutron_config) do
+        Noop.hiera_hash('neutron_advanced_configuration', {})
+      end
+
       context 'with Neutron SRIOV agent' do
         it 'configures SRIOV agent' do
           if pci_passthrough
+            enable_qos = adv_neutron_config.fetch('neutron_qos', false)
             should contain_class('neutron::agents::ml2::sriov').with(
               'manage_service'           => true,
               'enabled'                  => true,
+              'extensions'               => enable_qos ? ['qos'] : '',
               'physical_device_mappings' => Noop.puppet_function('nic_whitelist_to_mappings', pci_passthrough)
             )
           end
