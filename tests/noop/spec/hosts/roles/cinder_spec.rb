@@ -22,6 +22,7 @@ describe manifest do
   volume_backend_name = storage_hash['volume_backend_names']
   kombu_compression = Noop.hiera 'kombu_compression', ''
 
+  management_vip = Noop.hiera 'management_vip'
   database_vip = Noop.hiera('database_vip')
   cinder_db_password = Noop.hiera_structure 'cinder/db_password', 'cinder'
   cinder_db_user = Noop.hiera_structure 'cinder/db_user', 'cinder'
@@ -57,18 +58,16 @@ describe manifest do
 
   it { should contain_package('python-amqp') }
 
-  if Noop.hiera_structure('use_ssl')
-    glance_protocol = 'https'
-    glance_internal_address = Noop.hiera_structure('use_ssl/glance_internal_hostname')
-  else
-    glance_protocol = 'http'
-    glance_internal_address = Noop.hiera('management_vip')
-  end
-  glance_api_servers = "#{glance_protocol}://#{glance_internal_address}:9292"
+  let(:ssl_hash) { Noop.hiera_hash 'use_ssl', {} }
+  let(:glance_endpoint_default) { Noop.hiera 'glance_endpoint', management_vip }
+  let(:glance_protocol) { Noop.puppet_function 'get_ssl_property',ssl_hash,{},'glance','internal','protocol','http' }
+  let(:glance_endpoint) { Noop.puppet_function 'get_ssl_property',ssl_hash,{},'glance','internal','hostname', glance_endpoint_default}
+  let(:glance_api_servers) { Noop.hiera 'glance_api_servers', "#{glance_protocol}://#{glance_endpoint}:9292" }
 
   it 'should contain correct glance api servers addresses' do
     should contain_class('cinder::glance').with(
-      'glance_api_servers' => glance_api_servers
+      :glance_api_servers => glance_api_servers,
+      :glance_api_version => '2',
     )
   end
 
