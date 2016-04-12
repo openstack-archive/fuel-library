@@ -66,14 +66,11 @@ class openstack_tasks::roles::compute {
     $network_device_mtu = 65000
   }
 
+  # get glance api servers list
+  $glance_endpoint_default        = hiera('glance_endpoint', $management_vip)
   $glance_protocol                = get_ssl_property($ssl_hash, {}, 'glance', 'internal', 'protocol', 'http')
-  $glance_endpoint                = get_ssl_property($ssl_hash, {}, 'glance', 'internal', 'hostname', [hiera('glance_endpoint', $management_vip)])
-  $glance_internal_ssl            = get_ssl_property($ssl_hash, {}, 'glance', 'internal', 'usage', false)
-  if $glance_internal_ssl {
-    $glance_api_servers = "${glance_protocol}://${glance_endpoint}:9292"
-  } else {
-    $glance_api_servers = hiera('glance_api_servers', "${management_vip}:9292")
-  }
+  $glance_endpoint                = get_ssl_property($ssl_hash, {}, 'glance', 'internal', 'hostname', $glance_endpoint_default)
+  $glance_api_servers             = hiera('glance_api_servers', "${glance_protocol}://${glance_endpoint}:9292")
 
   $vncproxy_protocol                      = get_ssl_property($ssl_hash, $public_ssl_hash, 'nova', 'public', 'protocol', [$nova_hash['vncproxy_protocol'], 'http'])
   $vncproxy_host                          = get_ssl_property($ssl_hash, $public_ssl_hash, 'nova', 'public', 'hostname', [$public_vip])
