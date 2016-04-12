@@ -136,14 +136,14 @@ define l23network::l2::bond (
   if is_integer($bond_properties[updelay]) and $bond_properties[updelay] >= 0 {
     $default_bond_properties[updelay] = $bond_properties[updelay]
   } else {
-    $default_bond_properties[updelay] = 200
+    $default_bond_properties[updelay] = 30*$miimon
   }
 
   # calculate default downdelay
   if is_integer($bond_properties[downdelay]) and $bond_properties[downdelay] >= 0 {
     $default_bond_properties[downdelay] = $bond_properties[downdelay]
   } else {
-    $default_bond_properties[downdelay] = 200
+    $default_bond_properties[downdelay] = 10*$miimon
   }
 
   # calculate default ad_select
