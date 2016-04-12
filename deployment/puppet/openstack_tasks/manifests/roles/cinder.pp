@@ -195,6 +195,7 @@ class openstack_tasks::roles::cinder {
     database_max_retries   => $max_retries,
     database_max_overflow  => $max_overflow,
     control_exchange       => 'cinder',
+    host                   => hiera('fqdn')
   }
 
   if $manage_volumes {
