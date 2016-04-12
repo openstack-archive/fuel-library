@@ -38,6 +38,8 @@ describe 'l23network::l2::bond', :type => :define do
         'bond_mode'   => 'balance-rr',
         'bond_slaves' => ['eth3', 'eth4'],
         'bond_miimon' => '100',
+        'bond_updelay'   => '3000',
+        'bond_downdelay' => '1000',
       })
     end
 
@@ -337,8 +339,8 @@ describe 'l23network::l2::bond', :type => :define do
         'bond_lacp'             => 'active',
         'bond_lacp_rate'        => 'fast',
         'bond_miimon'           => '300',
-        'bond_updelay'          => '200',
-        'bond_downdelay'        => '200',
+        'bond_updelay'          => '3000',
+        'bond_downdelay'        => '1000',
         'bond_ad_select'        => 'bandwidth',
       })
       should contain_l23_stored_config('bond-ovs').without_bond_xmit_hash_policy()
@@ -352,8 +354,8 @@ describe 'l23network::l2::bond', :type => :define do
           :lacp_rate        => 'fast',
           :miimon           => '300',
           :xmit_hash_policy => :undef,
-          :updelay          =>"200",
-          :downdelay        =>"200",
+          :updelay          =>"3000",
+          :downdelay        =>"1000",
           :ad_select        =>"bandwidth",
         },
       })
