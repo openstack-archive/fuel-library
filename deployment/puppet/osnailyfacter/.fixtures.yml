@@ -9,3 +9,4 @@ fixtures:
     cinder: "#{source_dir}/../cinder"
     openstacklib: "#{source_dir}/../openstacklib"
     sysfs: "#{source_dir}/../sysfs"
+    oslo: "#{source_dir}/../oslo"

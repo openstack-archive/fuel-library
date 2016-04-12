@@ -6,3 +6,4 @@ fixtures:
     nova: "#{source_dir}/../nova"
     openstacklib: "#{source_dir}/../openstacklib"
     inifile: "#{source_dir}/../inifile"
+    oslo: "#{source_dir}/../oslo"

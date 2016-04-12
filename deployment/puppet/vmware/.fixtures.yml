@@ -6,3 +6,4 @@ fixtures:
     nova: "#{source_dir}/../nova"
     stdlib: "#{source_dir}/../stdlib"
     vmware: "#{source_dir}"
+    oslo: "#{source_dir}/../oslo"

@@ -29,3 +29,4 @@ fixtures:
     pacemaker: "#{source_dir}/../pacemaker"
     haproxy: "#{source_dir}/../haproxy"
     ceilometer_ha: "#{source_dir}/../ceilometer_ha"
+    oslo: "#{source_dir}/../oslo"
