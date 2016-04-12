@@ -165,7 +165,7 @@ define l23network::l2::bond (
   $miimon               = pick($bond_properties[miimon], 100 )
   $real_bond_properties = merge($calculated_bond_properties, { miimon     => $miimon,
                                                               use_carrier => pick($bond_properties[use_carrier], 1),
-                                                              updelay     => pick($bond_properties[updelay], 2*$miimon),
+                                                              updelay     => pick($bond_properties[updelay], 20*$miimon),
                                                               downdelay   => pick($bond_properties[downdelay], 2*$miimon), })
 
   if $interfaces {
