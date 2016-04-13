@@ -91,7 +91,7 @@ class fuel::iptables (
   firewall { '010 ssh':
     chain  => $chain,
     table  => 'filter',
-    port   => $ssh_port,
+    dport  => $ssh_port,
     proto  => 'tcp',
     source => $ssh_network,
     action => 'accept',
@@ -101,7 +101,7 @@ class fuel::iptables (
   firewall { '020 ntp':
     chain   => $chain,
     table   => 'filter',
-    port    => $ntp_port,
+    dport   => $ntp_port,
     proto   => 'tcp',
     iniface => $admin_iface,
     action  => 'accept',
@@ -111,7 +111,7 @@ class fuel::iptables (
   firewall { '030 ntp_udp':
     chain   => $chain,
     table   => 'filter',
-    port    => $ntp_port,
+    dport   => $ntp_port,
     proto   => 'udp',
     iniface => $admin_iface,
     action  => 'accept',
@@ -121,17 +121,16 @@ class fuel::iptables (
   firewall { '040 snmp':
     chain  => $chain,
     table  => 'filter',
-    port   => '162',
+    dport  => '162',
     proto  => 'udp',
     action => 'accept',
     state  => ['NEW'],
   }
 
-  #Containerized services
   firewall { '050 nailgun_web':
     chain  => $chain,
     table  => 'filter',
-    port   => $nailgun_web_port,
+    dport  => $nailgun_web_port,
     proto  => 'tcp',
     action => 'accept',
     state  => ['NEW'],
@@ -140,7 +139,7 @@ class fuel::iptables (
   firewall { '060 nailgun_internal':
     chain   => $chain,
     table   => 'filter',
-    port    => $nailgun_internal_port,
+    dport   => $nailgun_internal_port,
     proto   => 'tcp',
     iniface => $admin_iface,
     action  => 'accept',
@@ -150,7 +149,7 @@ class fuel::iptables (
   firewall { '070 nailgun_internal_block_ext':
     chain  => $chain,
     table  => 'filter',
-    port   => $nailgun_internal_port,
+    dport  => $nailgun_internal_port,
     proto  => 'tcp',
     action => 'reject',
     state  => ['NEW'],
@@ -159,7 +158,7 @@ class fuel::iptables (
   firewall { '080 postgres_local':
     chain    => $chain,
     table    => 'filter',
-    port     => $postgres_port,
+    dport    => $postgres_port,
     proto    => 'tcp',
     src_type => 'LOCAL',
     action   => 'accept',
@@ -169,7 +168,7 @@ class fuel::iptables (
   firewall { '090 postgres':
     chain   => $chain,
     table   => 'filter',
-    port    => $postgres_port,
+    dport   => $postgres_port,
     proto   => 'tcp',
     iniface => $admin_iface,
     action  => 'accept',
@@ -179,7 +178,7 @@ class fuel::iptables (
   firewall { '100 postgres_block_ext':
     chain  => $chain,
     table  => 'filter',
-    port   => $postgres_port,
+    dport  => $postgres_port,
     proto  => 'tcp',
     action => 'reject',
     state  => ['NEW'],
@@ -188,7 +187,7 @@ class fuel::iptables (
   firewall { '110 ostf_admin':
     chain   => $chain,
     table   => 'filter',
-    port    => $ostf_port,
+    dport   => $ostf_port,
     proto   => 'tcp',
     iniface => $admin_iface,
     action  => 'accept',
@@ -198,7 +197,7 @@ class fuel::iptables (
   firewall { '120 ostf_local':
     chain    => $chain,
     table    => 'filter',
-    port     => $ostf_port,
+    dport    => $ostf_port,
     proto    => 'tcp',
     src_type => 'LOCAL',
     action   => 'accept',
@@ -208,7 +207,7 @@ class fuel::iptables (
   firewall { '130 ostf_block_ext':
     chain  => $chain,
     table  => 'filter',
-    port   => $ostf_port,
+    dport  => $ostf_port,
     proto  => 'tcp',
     action => 'reject',
     state  => ['NEW'],
@@ -217,7 +216,7 @@ class fuel::iptables (
   firewall { '140 rsync':
     chain  => $chain,
     table  => 'filter',
-    port   => $rsync_port,
+    dport  => $rsync_port,
     proto  => 'tcp',
     action => 'accept',
     state  => ['NEW'],
@@ -226,7 +225,7 @@ class fuel::iptables (
   firewall { '150 rsyslog':
     chain   => $chain,
     table   => 'filter',
-    port    => $rsyslog_port,
+    dport   => $rsyslog_port,
     proto   => 'tcp',
     iniface => $admin_iface,
     action  => 'accept',
@@ -236,7 +235,7 @@ class fuel::iptables (
   firewall { '160 rsyslog':
     chain   => $chain,
     table   => 'filter',
-    port    => $rsyslog_port,
+    dport   => $rsyslog_port,
     proto   => 'udp',
     iniface => $admin_iface,
     action  => 'accept',
@@ -246,7 +245,7 @@ class fuel::iptables (
   firewall { '170 rabbitmq_admin_net':
     chain   => $chain,
     table   => 'filter',
-    port    => $rabbitmq_ports,
+    dport   => $rabbitmq_ports,
     proto   => 'tcp',
     iniface => $admin_iface,
     action  => 'accept',
@@ -256,7 +255,7 @@ class fuel::iptables (
   firewall { '180 rabbitmq_local':
     chain    => $chain,
     table    => 'filter',
-    port     => concat($rabbitmq_ports, $rabbitmq_admin_port),
+    dport    => concat($rabbitmq_ports, $rabbitmq_admin_port),
     proto    => 'tcp',
     src_type => 'LOCAL',
     action   => 'accept',
@@ -266,7 +265,7 @@ class fuel::iptables (
   firewall { '190 rabbitmq_block_ext':
     chain  => $chain,
     table  => 'filter',
-    port   => $rabbitmq_ports,
+    dport  => $rabbitmq_ports,
     proto  => 'tcp',
     action => 'reject',
     state  => ['NEW'],
@@ -275,7 +274,7 @@ class fuel::iptables (
   firewall { '200 fuelweb_port':
     chain  => $chain,
     table  => 'filter',
-    port   => $fuelweb_port,
+    dport  => $fuelweb_port,
     proto  => 'tcp',
     action => 'accept',
     state  => ['NEW'],
@@ -284,7 +283,7 @@ class fuel::iptables (
   firewall { '210 keystone_admin':
     chain  => $chain,
     table  => 'filter',
-    port   => $keystone_port,
+    dport  => $keystone_port,
     proto  => 'tcp',
     action => 'accept',
     state  => ['NEW'],
@@ -293,7 +292,7 @@ class fuel::iptables (
   firewall { '220 keystone_admin_port admin_net':
     chain   => $chain,
     table   => 'filter',
-    port    => $keystone_admin_port,
+    dport   => $keystone_admin_port,
     proto   => 'tcp',
     iniface => $admin_iface,
     action  => 'accept',
@@ -303,7 +302,7 @@ class fuel::iptables (
   firewall { '230 nailgun_repo_admin':
     chain  => $chain,
     table  => 'filter',
-    port   => $nailgun_repo_port,
+    dport  => $nailgun_repo_port,
     proto  => 'tcp',
     action => 'accept',
     state  => ['NEW'],
@@ -348,6 +347,7 @@ class fuel::iptables (
   firewall { '970 externally defined rules: ext-filter-input':
     chain => 'INPUT',
     table => 'filter',
+    proto => 'all',
     jump  => 'ext-filter-input',
   }
 
@@ -362,6 +362,7 @@ class fuel::iptables (
   firewall { '999 iptables denied':
     chain      => 'INPUT',
     table      => 'filter',
+    proto      => 'all',
     limit      => '5/min',
     jump       => 'LOG',
     log_prefix => 'iptables denied: ',
@@ -383,6 +384,7 @@ class fuel::iptables (
   firewall { '970 externally defined rules':
     chain  => 'FORWARD',
     table  => 'filter',
+    proto  => 'all',
     jump   => 'ext-filter-forward',
   }
 
@@ -396,7 +398,6 @@ class fuel::iptables (
 
   ## POSTROUTING:nat:IPv4
 
-  #Host services
   firewall { '010 forward_admin_net':
     chain    => 'POSTROUTING',
     table    => 'nat',
@@ -409,6 +410,7 @@ class fuel::iptables (
   firewall { '980 externally defined rules: ext-nat-postrouting':
     chain  => 'POSTROUTING',
     table  => 'nat',
+    proto  => 'all',
     jump   => 'ext-nat-postrouting',
   }
 
@@ -418,7 +420,7 @@ class fuel::iptables (
     chain         => 'POSTROUTING',
     table         => 'mangle',
     proto         => 'udp',
-    port          => 68,
+    dport         => 68,
     jump          => 'CHECKSUM',
     checksum_fill => true,
   }
