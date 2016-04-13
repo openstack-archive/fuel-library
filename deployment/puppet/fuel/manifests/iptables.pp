@@ -383,6 +383,7 @@ class fuel::iptables (
   firewall { '970 externally defined rules':
     chain  => 'FORWARD',
     table  => 'filter',
+    proto    => 'all',
     jump   => 'ext-filter-forward',
   }
 
@@ -409,6 +410,7 @@ class fuel::iptables (
   firewall { '980 externally defined rules: ext-nat-postrouting':
     chain  => 'POSTROUTING',
     table  => 'nat',
+    proto    => 'all',
     jump   => 'ext-nat-postrouting',
   }
 
