@@ -135,6 +135,9 @@ class { 'fuel::iptables':
   network_cidr    => ipcalc_network_cidr_by_netmask($::fuel_settings['ADMIN_NETWORK']['netmask']),
 }
 
+# enable forwarding for the NAT/MASQUERADE configured by iptables
+sysctl::value{'net.ipv4.ip_forward': value=>'1'}
+
 # FIXME(kozhukalov): this should be a part of repo management tool
 class { 'fuel::auxiliaryrepos':
   fuel_version => $::fuel_release,

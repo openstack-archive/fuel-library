@@ -39,6 +39,7 @@ describe manifest do
         ['net.ipv4.neigh.default.gc_thresh1', '256'],
         ['net.ipv4.neigh.default.gc_thresh2', '1024'],
         ['net.ipv4.neigh.default.gc_thresh3', '2048'],
+        ['net.ipv4.ip_forward', '1'],
     ].each do |key, value|
       it { is_expected.to contain_sysctl__value(key).with(:value => value) }
     end
