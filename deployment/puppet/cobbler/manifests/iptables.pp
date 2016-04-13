@@ -38,37 +38,37 @@ class cobbler::iptables (
 
   firewall { '101 dns_tcp':
     chain  => $chain,
-    port   => '53',
+    dport  => '53',
     proto  => 'tcp',
     action => 'accept',
   }
   firewall { '102 dns_udp':
     chain  => $chain,
-    port   => '53',
+    dport  => '53',
     proto  => 'udp',
     action => 'accept',
   }
   firewall { '103 dhcp':
     chain  => $chain,
-    port   => ['67','68'],
+    dport  => ['67','68'],
     proto  => 'udp',
     action => 'accept',
   }
   firewall { '104 tftp':
     chain  => $chain,
-    port   => '69',
+    dport  => '69',
     proto  => 'udp',
     action => 'accept',
   }
-  firewall { '110 squidproxy':
+  firewall { '105 squidproxy':
     chain  => $chain,
-    port   => '3128',
+    dport  => '3128',
     proto  => 'tcp',
     action => 'accept',
   }
-  firewall { '111 cobbler_web':
+  firewall { '106 cobbler_web':
     chain  => $chain,
-    port   => ['80','443'],
+    dport  => ['80','443'],
     proto  => 'tcp',
     action => 'accept',
   }
