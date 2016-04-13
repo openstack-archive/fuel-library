@@ -87,7 +87,7 @@ class openstack_tasks::openstack_network::server_config {
     $nova_url                = "${nova_internal_protocol}://${nova_internal_endpoint}:8774/v2"
 
     $workers_max             = hiera('workers_max', 16)
-    $service_workers         = pick($neutron_config['workers'], min(max($::processorcount, 2), $workers_max))
+    $service_workers         = pick($neutron_config['workers'], min(max($::processorcount, 1), $workers_max))
 
     $neutron_advanced_config = hiera_hash('neutron_advanced_configuration', { })
     $l2_population           = try_get_value($neutron_advanced_config, 'neutron_l2_pop', false)
