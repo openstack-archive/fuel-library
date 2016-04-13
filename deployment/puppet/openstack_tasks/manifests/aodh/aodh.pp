@@ -121,7 +121,6 @@ class openstack_tasks::aodh::aodh {
     auth_endpoint_type => 'internalURL',
   }
 
-  aodh_config { 'oslo_policy/policy_file'  : value => '/etc/aodh/policy.json'; }
   aodh_config { 'notification/store_events': value => true; }
 
   if $debug {
