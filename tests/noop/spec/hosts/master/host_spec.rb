@@ -39,6 +39,7 @@ describe manifest do
         ['net.ipv4.neigh.default.gc_thresh1', '256'],
         ['net.ipv4.neigh.default.gc_thresh2', '1024'],
         ['net.ipv4.neigh.default.gc_thresh3', '2048'],
+        ['net.ipv4.ip_forward', '1'],
     ].each do |key, value|
       it { is_expected.to contain_sysctl__value(key).with(:value => value) }
     end
@@ -122,44 +123,151 @@ describe manifest do
     end
 
     it 'class "fuel::iptables" should contain the correct firewall rules' do
-      should contain_firewall('000 allow loopback')
-      should contain_firewall('010 ssh')
-      should contain_firewall('020 ntp')
-      should contain_firewall('030 ntp_udp')
-      should contain_firewall('040 snmp')
-      should contain_firewall('050 nailgun_web')
-      should contain_firewall('060 nailgun_internal')
-      should contain_firewall('070 nailgun_internal_block_ext')
-      should contain_firewall('080 postgres_local')
-      should contain_firewall('090 postgres')
-      should contain_firewall('100 postgres_block_ext')
-      should contain_firewall('110 ostf_admin')
-      should contain_firewall('120 ostf_local')
-      should contain_firewall('130 ostf_block_ext')
-      should contain_firewall('140 rsync')
-      should contain_firewall('150 rsyslog')
-      should contain_firewall('160 rsyslog')
-      should contain_firewall('170 rabbitmq_admin_net')
-      should contain_firewall('180 rabbitmq_local')
-      should contain_firewall('190 rabbitmq_block_ext')
-      should contain_firewall('200 fuelweb_port')
-      should contain_firewall('210 keystone_admin')
-      should contain_firewall('220 keystone_admin_port admin_net')
-      should contain_firewall('230 nailgun_repo_admin')
-      should contain_firewall('240 allow icmp echo-request')
-      should contain_firewall('250 allow icmp echo-reply')
-      should contain_firewall('260 allow icmp dest-unreach')
-      should contain_firewall('270 allow icmp time-exceeded')
-      should contain_firewall('970 externally defined rules: ext-filter-input')
-      should contain_firewall('980 accept related established rules')
-      should contain_firewall('999 iptables denied')
-      should contain_firewall('010 forward admin_net')
-      should contain_firewall('970 externally defined rules')
-      should contain_firewall('980 forward admin_net conntrack')
-      should contain_firewall('010 forward_admin_net')
-      should contain_firewall('980 externally defined rules: ext-nat-postrouting')
-      should contain_firewall('010 recalculate dhcp checksum')
-      should contain_firewall('980 externally defined rules: ext-mangle-postrouting')
+      should contain_firewall('000 allow loopback').with(
+        :table => 'filter',
+      )
+      should contain_firewall('010 ssh').with(
+        :table => 'filter',
+      )
+      should contain_firewall('020 ntp').with(
+        :table => 'filter',
+      )
+      should contain_firewall('030 ntp_udp').with(
+        :table => 'filter',
+      )
+      should contain_firewall('040 snmp').with(
+        :table => 'filter',
+      )
+      should contain_firewall('050 nailgun_web').with(
+        :table => 'filter',
+      )
+      should contain_firewall('060 nailgun_internal').with(
+        :table => 'filter',
+      )
+      should contain_firewall('070 nailgun_internal_block_ext').with(
+        :table => 'filter',
+      )
+      should contain_firewall('080 postgres_local').with(
+        :table => 'filter',
+      )
+      should contain_firewall('090 postgres').with(
+        :table => 'filter',
+      )
+      should contain_firewall('100 postgres_block_ext').with(
+        :table => 'filter',
+      )
+      should contain_firewall('110 ostf_admin').with(
+        :table => 'filter',
+      )
+      should contain_firewall('120 ostf_local').with(
+        :table => 'filter',
+      )
+      should contain_firewall('130 ostf_block_ext').with(
+        :table => 'filter',
+      )
+      should contain_firewall('140 rsync').with(
+        :table => 'filter',
+      )
+      should contain_firewall('150 rsyslog').with(
+        :table => 'filter',
+      )
+      should contain_firewall('160 rsyslog').with(
+        :table => 'filter',
+      )
+      should contain_firewall('170 rabbitmq_admin_net').with(
+        :table => 'filter',
+      )
+      should contain_firewall('180 rabbitmq_local').with(
+        :table => 'filter',
+      )
+      should contain_firewall('190 rabbitmq_block_ext').with(
+        :table => 'filter',
+      )
+      should contain_firewall('200 fuelweb_port').with(
+        :table => 'filter',
+      )
+      should contain_firewall('210 keystone_admin').with(
+        :table => 'filter',
+      )
+      should contain_firewall('220 keystone_admin_port admin_net').with(
+        :table => 'filter',
+      )
+      should contain_firewall('230 nailgun_repo_admin').with(
+        :table => 'filter',
+      )
+      should contain_firewall('240 allow icmp echo-request').with(
+        :table => 'filter',
+      )
+      should contain_firewall('250 allow icmp echo-reply').with(
+        :table => 'filter',
+      )
+      should contain_firewall('260 allow icmp dest-unreach').with(
+        :table => 'filter',
+      )
+      should contain_firewall('270 allow icmp time-exceeded').with(
+        :table => 'filter',
+      )
+      should contain_firewall('970 externally defined rules: ext-filter-input').with(
+        :table => 'filter',
+      )
+      should contain_firewall('980 accept related established rules').with(
+        :table => 'filter',
+      )
+      should contain_firewall('999 iptables denied').with(
+        :table => 'filter',
+      )
+
+      should contain_firewall('010 forward admin_net').with(
+        :table => 'filter',
+        :chain => 'FORWARD',
+      )
+      should contain_firewall('970 externally defined rules').with(
+        :table => 'filter',
+        :chain => 'FORWARD',
+      )
+      should contain_firewall('980 forward admin_net conntrack').with(
+        :table => 'filter',
+        :chain => 'FORWARD',
+      )
+
+      should contain_firewall('010 forward_admin_net').with(
+        :chain => 'POSTROUTING',
+        :table => 'nat',
+      )
+      should contain_firewall('980 externally defined rules: ext-nat-postrouting').with(
+        :chain => 'POSTROUTING',
+        :table => 'nat',
+      )
+
+      should contain_firewall('010 recalculate dhcp checksum').with(
+        :chain => 'POSTROUTING',
+        :table => 'mangle',
+      )
+      should contain_firewall('980 externally defined rules: ext-mangle-postrouting').with(
+        :chain => 'POSTROUTING',
+        :table => 'mangle',
+      )
+    end
+
+    it 'class "fuel::iptables" should contain firewall rules from cobbler module' do
+      should contain_firewall('101 dns_tcp').with(
+        :table => 'filter',
+      )
+      should contain_firewall('102 dns_udp').with(
+        :table => 'filter',
+      )
+      should contain_firewall('103 dhcp').with(
+        :table => 'filter',
+      )
+      should contain_firewall('104 tftp').with(
+        :table => 'filter',
+      )
+      should contain_firewall('105 squidproxy').with(
+        :table => 'filter',
+      )
+      should contain_firewall('106 cobbler_web').with(
+        :table => 'filter',
+      )
     end
 
     it 'should declare "openstack::clocksync" class with parameters' do
