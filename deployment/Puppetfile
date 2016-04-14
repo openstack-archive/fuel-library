@@ -64,7 +64,7 @@ mod 'apache',
 # Pull in puppetlabs-apt
 mod 'apt',
     :git => 'https://github.com/fuel-infra/puppetlabs-apt.git',
-    :ref => '2.2.0'
+    :ref => '2.2.2'
 
 # Pull in puppetlabs-firewall
 mod 'firewall',
