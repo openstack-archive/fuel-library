@@ -84,14 +84,18 @@ class openstack_tasks::heat::heat {
     tweaks::ubuntu_service_override { 'heat-api':
       package_name => 'heat-api',
     }
-    tweaks::ubuntu_service_override { 'heat-engine':
-      package_name => 'heat-engine',
+
+    if hiera('heat_pcs_engine', false) {
+      warning('Pacemaker for heat-engine is deprecated.')
+      tweaks::ubuntu_service_override { 'heat-engine':
+        package_name => 'heat-engine',
+      }
+      Tweaks::Ubuntu_service_override['heat-engine'] -> Service['heat-engine']
     }
 
     Tweaks::Ubuntu_service_override['heat-api']            -> Service['heat-api']
     Tweaks::Ubuntu_service_override['heat-api-cfn']        -> Service['heat-api-cfn']
     Tweaks::Ubuntu_service_override['heat-api-cloudwatch'] -> Service['heat-api-cloudwatch']
-    Tweaks::Ubuntu_service_override['heat-engine']         -> Service['heat-engine']
   }
 
   if $sahara_hash['enabled'] {
@@ -238,8 +242,9 @@ class openstack_tasks::heat::heat {
     instance_connection_is_secure                   => '0',
   }
 
-  if hiera('heat_ha_engine', true){
+  if hiera('heat_ha_engine', true) and hiera('heat_pcs_engine', false) {
     if ($deployment_mode == 'ha') or ($deployment_mode == 'ha_compact') {
+      warning('Pacemaker for heat-engine is deprecated.')
       include ::cluster::heat_engine
     }
   }
