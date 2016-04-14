@@ -33,6 +33,10 @@ describe manifest do
       Noop.hiera 'heat_ha_engine', true
     end
 
+    let(:heat_pcs_engine) do
+      Noop.hiera 'heat_pcs_engine', true
+    end
+
     admin_auth_protocol = 'http'
     admin_auth_address = Noop.hiera('service_endpoint')
     if Noop.hiera_structure('use_ssl', false)
@@ -174,7 +178,7 @@ describe manifest do
     }
 
     it 'should configure heat ha engine' do
-      if heat_ha_engine
+      if heat_ha_engine and !heat_pcs_engine
         should contain_class('cluster::heat_engine')
       else
         should_not contain_class('cluster::heat_engine')
