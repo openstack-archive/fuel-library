@@ -51,29 +51,7 @@ describe manifest do
     end
 
     master_ip = Noop.hiera 'master_ip'
-    it 'should contain 25-apache_api_proxy.conf with correct statements' do
-        should contain_file('/tmp//25-apache_api_proxy.conf/fragments/270_apache_api_proxy-custom_fragment').with(
-         'ensure' => 'file',
-         'content' => "
-  ## Custom fragment
-    ProxyRequests on
-  ProxyVia On
-  AllowCONNECT #{ports.join(' ')}
-  HostnameLookups off
-  LimitRequestFieldSize 81900
-  SetEnv force-proxy-request-1.0 1
-  SetEnv proxy-nokeepalive 1
-  RequestHeader unset Expect early
-  RequestReadTimeout header=0,MinRate=500 body=0,MinRate=500
-  <Proxy *>
-    Order Deny,Allow
-        Allow from #{master_ip}
-        Deny from all
-  </Proxy>
-
-"     )
-    end
-
+    
     it 'should declare apache::mod::headers' do
       should contain_class('apache::mod::headers')
     end
