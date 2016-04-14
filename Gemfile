@@ -21,6 +21,7 @@ group :development, :test do
   gem 'webmock',                              :require => 'false'
   gem 'fakefs',                               :require => 'false'
   gem 'fog-google', '0.1.0',                  :require => 'false' # 0.1.1+ requires ruby 2.0
+  gem 'google-api-client', '0.9.4',           :require => 'false' # 0.9.5 requires ruby 2.0
   gem 'beaker-rspec',                         :require => 'false'
   gem 'beaker-puppet_install_helper',         :require => 'false'
   gem 'psych',                                :require => 'false'
