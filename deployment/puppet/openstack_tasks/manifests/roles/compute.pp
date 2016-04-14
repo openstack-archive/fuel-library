@@ -268,7 +268,6 @@ class openstack_tasks::roles::compute {
     rabbit_hosts           => split(hiera('amqp_hosts',''), ','),
     rabbit_userid          => pick($rabbit_hash['user'], 'nova'),
     rabbit_password        => $rabbit_hash['password'],
-    kombu_reconnect_delay  => '5.0',
     glance_api_servers     => $glance_api_servers,
     verbose                => $verbose,
     debug                  => $debug,

@@ -212,7 +212,6 @@ describe manifest do
         :rabbit_hosts           => rabbit_hosts,
         :rabbit_userid          => rabbit_hash['user'],
         :rabbit_password        => rabbit_hash['password'],
-        :kombu_reconnect_delay  => '5.0',
         :image_service          => 'nova.image.glance.GlanceImageService',
         :glance_api_servers     => glance_api_servers,
         :verbose                => verbose,
