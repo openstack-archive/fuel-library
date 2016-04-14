@@ -89,7 +89,7 @@ mod 'staging',
 # Pull in puppetlabs-vcsrepo
 mod 'vcsrepo',
     :git => 'https://github.com/fuel-infra/puppetlabs-vcsrepo.git',
-    :ref => '1.3.1'
+    :ref => '1.3.2'
 
 # Pull in puppetlabs-postgresql
 mod 'postgresql',
