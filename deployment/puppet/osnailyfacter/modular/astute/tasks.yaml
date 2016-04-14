@@ -20,7 +20,7 @@
   requires: [enable_quorum]
   required_for: [post_deployment_end]
   cross-depends:
-    - name: enable_quroum
+    - name: enable_quorum
   parameters:
     cmd: ruby /etc/puppet/modules/osnailyfacter/modular/astute/upload_cirros.rb
     retries: 3
