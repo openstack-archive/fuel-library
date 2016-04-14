@@ -51,6 +51,8 @@ class openstack_tasks::roles::compute {
   $ssl_hash                       = hiera_hash('use_ssl', {})
   $node_hash                      = hiera_hash('node', {})
   $use_huge_pages                 = pick($node_hash['nova_hugepages_enabled'], false)
+  $use_2m_huge_pages              = $::allocated_hugepages['2M']
+  $use_1g_huge_pages              = $::allocated_hugepages['1G']
   $libvirt_type                   = hiera('libvirt_type', undef)
   $kombu_compression              = hiera('kombu_compression', '')
 
@@ -193,22 +195,61 @@ class openstack_tasks::roles::compute {
 
   if $::osfamily == 'Debian' {
     if $use_huge_pages {
-      $qemu_hugepages_value    = 'set KVM_HUGEPAGES 1'
-      $libvirt_hugetlbfs_mount = 'set hugetlbfs_mount /run/hugepages/kvm'
+      if $use_1g_huge_pages {
+        $hugepages_1g_opts_ensure = 'present'
+        file { '/mnt/hugepages_1GB':
+          ensure  => 'directory',
+          owner   => 'root',
+          group   => 'kvm',
+          mode    => '775',
+          require => Package[$libvirt_type_kvm],
+        }
+        exec { 'mount_hugetlbfs_1g':
+          command  => 'mount -t hugetlbfs hugetlbfs-kvm -o mode=775,gid=kvm,pagesize=1GB /mnt/hugepages_1GB',
+          unless   => 'grep -q /mnt/hugepages_1GB /proc/mounts',
+          path     => '/usr/sbin:/usr/bin:/sbin:/bin',
+          require  => File['/mnt/hugepages_1GB'],
+        }
+        if $use_2m_huge_pages {
+          $libvirt_hugetlbfs_mount = 'hugetlbfs_mount = ["/run/hugepages/kvm", "/mnt/hugepages_1GB"]'
+          $qemu_hugepages_value    = 'set KVM_HUGEPAGES 1'
+        } else {
+          $libvirt_hugetlbfs_mount = 'hugetlbfs_mount = "/mnt/hugepages_1GB"'
+          $qemu_hugepages_value    = 'rm KVM_HUGEPAGES'
+        }
+      } else {
+        $qemu_hugepages_value    = 'set KVM_HUGEPAGES 1'
+        $libvirt_hugetlbfs_mount = 'hugetlbfs_mount = "/run/hugepages/kvm"'
+      }
     } else {
-      $qemu_hugepages_value    = 'rm KVM_HUGEPAGES'
-      $libvirt_hugetlbfs_mount = 'set hugetlbfs_mount ""'
+      $qemu_hugepages_value     = 'rm KVM_HUGEPAGES'
+      $libvirt_hugetlbfs_mount  = 'hugetlbfs_mount = ""'
+      $hugepages_1g_opts_ensure = 'absent'
     }
     augeas { 'qemu_hugepages':
       context => '/files/etc/default/qemu-kvm',
       changes => $qemu_hugepages_value,
       notify  => Service['libvirt'],
     }
-    augeas { 'libvirt_hugetlbfs_mount':
-      context => '/files/etc/libvirt/qemu.conf',
-      changes => $libvirt_hugetlbfs_mount,
+    file_line { 'libvirt_hugetlbfs_mount':
+      path    => '/etc/libvirt/qemu.conf',
+      line    => $libvirt_hugetlbfs_mount,
+      match   => '^hugetlbfs_mount =.*$',
       require => Package[$::nova::params::libvirt_package_name],
       notify  => Service['libvirt'],
+    }
+    file_line { 'libvirt_1g_hugepages_apparmor':
+      path    => '/etc/apparmor.d/abstractions/libvirt-qemu',
+      after   => 'owner "/run/hugepages/kvm/libvirt/qemu/',
+      line    => '  owner "/mnt/hugepages_1GB/libvirt/qemu/**" rw,',
+      require => Package[$::nova::params::libvirt_package_name],
+      notify  => Exec['refresh_apparmor'],
+      ensure  => $hugepages_1g_opts_ensure,
+    }
+    file_line { '1g_hugepages_fstab':
+      path   => '/etc/fstab',
+      line   => 'hugetlbfs-kvm /mnt/hugepages_1GB hugetlbfs mode=775,gid=kvm,pagesize=1GB 0 0',
+      ensure => $hugepages_1g_opts_ensure,
     }
 
     Augeas['qemu_hugepages'] ~> Service<| title == 'qemu-kvm'|>
