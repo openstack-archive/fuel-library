@@ -188,8 +188,8 @@ class openstack_tasks::ceilometer::controller {
     }
 
     if $ha_mode {
-      include ceilometer_ha::agent::central
-      Service['ceilometer-polling'] -> Class['::ceilometer_ha::agent::central']
+      include cluster::ceilometer_central
+      Service['ceilometer-polling'] -> Class['::cluster::ceilometer_central']
     }
 
     class { '::ceilometer::agent::polling':

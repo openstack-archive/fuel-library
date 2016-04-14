@@ -1,4 +1,11 @@
-class ceilometer_ha::agent::central inherits ceilometer::agent::central {
+# == Class: cluster::ceilometer::central
+#
+# This class is used to configure pacemaker service for ceilometer agent central
+#
+class cluster::ceilometer_central (
+) {
+  include ceilometer::agent::central
+
   pacemaker::service { $::ceilometer::params::agent_central_service_name :
     primitive_type  => 'ceilometer-agent-central',
     metadata        => { 'resource-stickiness' => '1' },
@@ -8,11 +15,11 @@ class ceilometer_ha::agent::central inherits ceilometer::agent::central {
         'interval' => '20',
         'timeout'  => '30',
       },
-      'start' => {
+      'start'   => {
         'interval' => '0',
         'timeout'  => '360',
       },
-      'stop' => {
+      'stop'    => {
         'interval' => '0',
         'timeout'  => '360',
       },
