@@ -226,7 +226,7 @@ describe manifest do
         end
 
         it 'worker count' do
-          fallback_workers = [[facts[:processorcount].to_i, 2].max, workers_max.to_i].min
+          fallback_workers = [[facts[:processorcount].to_i, 1].max, workers_max.to_i].min
           workers = neutron_config.fetch('workers', fallback_workers)
           should contain_class('neutron::server').with(
             'api_workers' => workers,
