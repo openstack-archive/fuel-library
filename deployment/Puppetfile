@@ -34,7 +34,7 @@ mod 'pacemaker',
 # Pull in puppetlabs-concat
 mod 'concat',
     :git => 'https://github.com/fuel-infra/puppetlabs-concat.git',
-    :ref => '1.2.3'
+    :ref => '2.1.0'
 
 # Pull in puppetlabs-inifile
 mod 'inifile',
