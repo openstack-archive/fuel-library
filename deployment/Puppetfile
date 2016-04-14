@@ -114,7 +114,7 @@ mod 'nova',
 # Pull in puppet-heat
 mod 'heat',
     :git => 'https://review.fuel-infra.org/p/puppet-modules/puppet-heat.git',
-    :ref => '7.0.0-mos-rc2'
+    :ref => 'mos-8.0'
 
 # Pull in puppet-horizon
 mod 'horizon',
