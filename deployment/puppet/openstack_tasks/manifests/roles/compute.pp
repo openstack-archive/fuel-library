@@ -314,6 +314,19 @@ class openstack_tasks::roles::compute {
     tweaks::ubuntu_service_override { 'nova-compute':
       package_name => "nova-compute-${libvirt_type}",
     }
+
+    # TODO(aschultz): work around until https://review.openstack.org/#/c/306677/
+    # lands.
+    if $::os_package_type == 'ubuntu' {
+      ensure_resource('service', ['virtlogd','virtlockd'], {
+        ensure => running, enable => true,
+      })
+
+      Package[$::nova::params::libvirt_package_name] ->
+        Service['virtlogd'] ->
+          Service['virtlockd'] ->
+            Service['libvirt']
+    }
   }
 
   # NOTE(bogdando) deploy compute node with disabled nova-compute
