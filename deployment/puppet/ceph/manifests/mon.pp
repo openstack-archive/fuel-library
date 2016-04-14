@@ -30,9 +30,9 @@ class ceph::mon (
 
   exec {'ceph-deploy gatherkeys':
     command   => "ceph-deploy gatherkeys ${node_hostname}",
-    unless    => ['test -f /root/ceph.bootstrap-mds.keyring',
-                  'test -f /root/ceph.bootstrap-osd.keyring',
-                  'test -f /root/ceph.client.admin.keyring',
+    unless    => ['test -f /root/ceph.bootstrap-mds.keyring \
+                     -a -f /root/ceph.bootstrap-osd.keyring \
+                     -a -f /root/ceph.client.admin.keyring',
                  ],
     try_sleep => 5,
     tries     => 6,
