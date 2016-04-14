@@ -23,6 +23,9 @@ class openstack_tasks::openstack_network::common_config {
       $service_plugins = $default_service_plugins
     }
 
+    $neutron_config_l3   = pick($neutron_config['l3'], {})
+    $dhcp_lease_duration = pick($neutron_config_l3['dhcp_lease_duration'], '600')
+
     $rabbit_hash      = hiera_hash('rabbit', {})
     $ceilometer_hash  = hiera_hash('ceilometer', {})
     $network_scheme   = hiera_hash('network_scheme', {})
@@ -75,7 +78,7 @@ class openstack_tasks::openstack_network::common_config {
       service_plugins         => $service_plugins,
       allow_overlapping_ips   => true,
       mac_generation_retries  => '32',
-      dhcp_lease_duration     => '600',
+      dhcp_lease_duration     => $dhcp_lease_duration,
       dhcp_agents_per_network => '2',
       report_interval         => $neutron_config['neutron_report_interval'],
       rabbit_user             => $amqp_user,
