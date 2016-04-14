@@ -27,6 +27,7 @@ describe manifest do
   cinder_db_user = Noop.hiera_structure 'cinder/db_user', 'cinder'
   cinder_db_name = Noop.hiera_structure 'cinder/db_name', 'cinder'
   cinder = Noop.puppet_function 'roles_include', 'cinder'
+  hostname = Noop.hiera('fqdn')
 
   let(:manage_volumes) do
     if cinder and storage_hash['volumes_lvm']
@@ -126,6 +127,7 @@ describe manifest do
 
   it 'should check stuff that openstack cinder did' do
     is_expected.to contain_class('cinder')
+    is_expected.to contain_cinder_config('DEFAULT/host').with(:value => hostname)
     if manage_volumes
       is_expected.to contain_class('cinder::volume')
       is_expected.to contain_class('cinder::backends')
