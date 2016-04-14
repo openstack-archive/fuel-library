@@ -51,10 +51,8 @@ describe manifest do
     end
 
     master_ip = Noop.hiera 'master_ip'
-    it 'should contain 25-apache_api_proxy.conf with correct statements' do
-        should contain_file('/tmp//25-apache_api_proxy.conf/fragments/270_apache_api_proxy-custom_fragment').with(
-         'ensure' => 'file',
-         'content' => "
+    it 'should contain concat_fragment("apache_api_proxy-custom_fragment") resource with correct statements' do
+      is_expected.to contain_concat_fragment('apache_api_proxy-custom_fragment').with_content("
   ## Custom fragment
     ProxyRequests on
   ProxyVia On
@@ -71,9 +69,8 @@ describe manifest do
         Deny from all
   </Proxy>
 
-"     )
+")
     end
-
     it 'should declare apache::mod::headers' do
       should contain_class('apache::mod::headers')
     end
