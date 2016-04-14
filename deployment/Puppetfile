@@ -59,7 +59,7 @@ mod 'ntp',
 # Pull in puppetlabs-apache
 mod 'apache',
     :git => 'https://github.com/fuel-infra/puppetlabs-apache.git',
-    :ref => '1.6.0-rc1'
+    :ref => '1.8.1'
 
 # Pull in puppetlabs-apt
 mod 'apt',
