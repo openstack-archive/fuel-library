@@ -268,7 +268,7 @@ update_node_gtid() {
     #Final try to recover
     if [ -z ${GTID} ]; then
         GTID=$(${OCF_RESKEY_binary} --wsrep-recover \
-            --log-error=/dev/stdout 2>&1 | grep 'Recovered position' | awk '{print $NF}')
+            --console 2>&1 | grep 'Recovered position' | awk '{print $NF}')
     fi
 
     if validate_gtid "$GTID"; then
@@ -453,11 +453,6 @@ mysql_status() {
     local sleeptime=${3:-2}
 
     while [ $count -gt 0 ]; do
-        if [ -f "${OCF_RESKEY_datadir}"/sst_in_progress ]; then
-            ocf_log $loglevel "${LH} SST is in progress"
-            return $OCF_SUCCESS
-        fi
-
         if [ -f "$OCF_RESKEY_pid" ]; then
             ocf_log info "${LH} MySQL PID found"
             break
@@ -503,6 +498,12 @@ mysql_monitor() {
     fi
 
     update_node_gtid
+
+    # Do not try to connect to the server during SST
+    if [ -f "${OCF_RESKEY_datadir}"/sst_in_progress ]; then
+      ocf_log info "${LH} SST is in progress"
+      return $OCF_SUCCESS
+    fi
 
     WSREP_CONNECTED=$($MYSQL $MYSQL_OPTIONS_TEST -s -N \
         -e "SHOW STATUS LIKE 'wsrep_connected'" | awk '{print $NF}')
