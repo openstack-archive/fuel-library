@@ -437,7 +437,7 @@ describe manifest do
       nova_scheduler_default_filters = [ 'RetryFilter', 'AvailabilityZoneFilter', 'RamFilter', 'CoreFilter', 'DiskFilter', 'ComputeFilter', 'ComputeCapabilitiesFilter', 'ImagePropertiesFilter', 'ServerGroupAntiAffinityFilter', 'ServerGroupAffinityFilter' ]
       sahara_filters                 = [ 'DifferentHostFilter' ]
       sriov_filters                  = [ 'PciPassthroughFilter','AggregateInstanceExtraSpecsFilter' ]
-      huge_pages_filters             = [ 'AggregateInstanceExtraSpecsFilter' ]
+      huge_pages_filters             = [ 'NUMATopologyFilter' ]
       cpu_pinning_filters            = [ 'NUMATopologyFilter', 'AggregateInstanceExtraSpecsFilter' ]
 
       enable_sahara    = Noop.hiera_structure 'sahara/enabled', false
