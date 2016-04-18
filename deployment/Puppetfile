@@ -39,7 +39,7 @@ mod 'concat',
 # Pull in puppetlabs-inifile
 mod 'inifile',
     :git => 'https://github.com/fuel-infra/puppetlabs-inifile.git',
-    :ref => '1.4.2'
+    :ref => '1.5.0'
 
 # Pull in puppetlabs-xinetd
 mod 'xinetd',
