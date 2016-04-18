@@ -61,9 +61,9 @@ class cluster::haproxy (
   include ::haproxy::params
   include ::rsyslog::params
 
-  package { 'haproxy':
-    name => $::haproxy::params::package_name,
-  }
+  #package { 'haproxy':
+  #  name => $::haproxy::params::package_name,
+  #}
 
   #NOTE(bogdando) we want defaults w/o chroot
   #  and this override looks the only possible if
@@ -105,25 +105,42 @@ class cluster::haproxy (
 
   $service_name = 'p_haproxy'
 
-  class { 'haproxy::base':
-    global_options    => $global_options,
-    defaults_options  => $defaults_options,
-    stats_ipaddresses => $stats_ipaddresses,
-    use_include       => true,
+  class { '::haproxy':
+    global_options   => $global_options,
+    defaults_options => $defaults_options,
   }
+
+  #class { 'haproxy::instance':
+  #  global_options    => $global_options,
+  #  defaults_options  => $defaults_options,
+  #  stats_ipaddresses => $stats_ipaddresses,
+  #  use_include       => true,
+  #}
 
   sysctl::value { 'net.ipv4.ip_nonlocal_bind':
     value => '1'
   }
 
-  service { 'haproxy' :
-    ensure     => 'running',
-    name       => $service_name,
-    enable     => true,
-    hasstatus  => true,
-    hasrestart => true,
-  }
+  #service { 'haproxy' :
+  #  ensure     => 'running',
+  #  name       => $service_name,
+  #  enable     => true,
+  #  hasstatus  => true,
+  #  hasrestart => true,
+  #}
 
+  haproxy::listen { 'Stats':
+    mode    => 'http',
+    options => {
+      'stats' => [
+        'enable',
+        'uri /',
+        'refresh 5s',
+        'show-node',
+        'show-legends',
+      ],
+    }
+  }
   tweaks::ubuntu_service_override { 'haproxy' :
     service_name => 'haproxy',
     package_name => $haproxy::params::package_name,
@@ -133,14 +150,14 @@ class cluster::haproxy (
     log_file => $haproxy_log_file,
   }
 
-  Package['haproxy'] ->
-  Class['haproxy::base']
+# Package['haproxy'] ->
+# Class['haproxy::base']
 
-  Class['haproxy::base'] ~>
-  Service['haproxy']
+# Class['haproxy::base'] ~>
+# Service['haproxy']
 
-  Package['haproxy'] ~>
-  Service['haproxy']
+# Package['haproxy'] ~>
+# Service['haproxy']
 
   Sysctl::Value['net.ipv4.ip_nonlocal_bind'] ~>
   Service['haproxy']
