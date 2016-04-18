@@ -8,14 +8,13 @@ require 'spec_helper'
                     :public_ssl          => true,
                     :public_ssl_path     => '/var/lib/fuel/haproxy/public_nova.pem',
                  } }
-    let(:facts) { {:kernel => 'Linux',
+    let(:facts) { {:osfamily       => 'Debian',
                    :concat_basedir => '/var/lib/puppet/concat',
                    :fqdn           => 'some.host.tld'
                 } }
 
     it "should properly configure nova compute API haproxy based on ssl" do
       should contain_openstack__ha__haproxy_service('nova-api').with(
-        'order'                  => '040',
         'listen_port'            => 8774,
         'public'                 => true,
         'public_ssl'             => true,
@@ -31,7 +30,6 @@ require 'spec_helper'
     end
     it "should properly configure nova metadata API haproxy based on ssl" do
       should contain_openstack__ha__haproxy_service('nova-metadata-api').with(
-        'order'                  => '050',
         'listen_port'            => 8775,
         'haproxy_config_options' => {
           'option'         => ['httpchk', 'httplog', 'httpclose'],
@@ -41,7 +39,6 @@ require 'spec_helper'
     end
     it "should properly configure nova novncproxy haproxy based on ssl" do
       should contain_openstack__ha__haproxy_service('nova-novncproxy').with(
-        'order'                  => '170',
         'listen_port'            => 6080,
         'public'                 => true,
         'public_ssl'             => true,

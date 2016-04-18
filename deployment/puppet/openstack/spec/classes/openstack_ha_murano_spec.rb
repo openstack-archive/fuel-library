@@ -8,14 +8,13 @@ require 'spec_helper'
                     :public_ssl          => true,
                     :public_ssl_path     => '/var/lib/fuel/haproxy/public_murano.pem',
                  } }
-    let(:facts) { {:kernel => 'Linux',
+    let(:facts) { {:osfamily       => 'Debian',
                    :concat_basedir => '/var/lib/puppet/concat',
                    :fqdn           => 'some.host.tld'
                 } }
 
     it "should properly configure murano haproxy based on ssl" do
       should contain_openstack__ha__haproxy_service('murano-api').with(
-        'order'                  => '190',
         'listen_port'            => 8082,
         'public'                 => true,
         'public_ssl'             => true,
@@ -28,7 +27,6 @@ require 'spec_helper'
     end
     it "should properly configure murano haproxy based on ssl" do
       should contain_openstack__ha__haproxy_service('murano_rabbitmq').with(
-        'order'                  => '191',
         'listen_port'            => 55572,
         'define_backups'         => true,
         'internal'               => false,

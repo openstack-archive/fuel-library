@@ -8,14 +8,13 @@ require 'spec_helper'
                     :public_ssl          => true,
                     :public_ssl_path     => '/var/lib/fuel/haproxy/public_sahara.pem',
                  } }
-    let(:facts) { {:kernel => 'Linux',
+    let(:facts) { {:osfamily       => 'Debian',
                    :concat_basedir => '/var/lib/puppet/concat',
                    :fqdn           => 'some.host.tld'
                 } }
 
     it "should properly configure sahara haproxy based on ssl" do
       should contain_openstack__ha__haproxy_service('sahara').with(
-        'order'                  => '150',
         'listen_port'            => 8386,
         'public'                 => true,
         'public_ssl'             => true,

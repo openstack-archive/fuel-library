@@ -8,14 +8,13 @@ require 'spec_helper'
                     :public_ssl          => true,
                     :public_ssl_path     => '/var/lib/fuel/haproxy/public_cinder.pem',
                  } }
-    let(:facts) { {:kernel => 'Linux',
+    let(:facts) { {:osfamily       => 'Debian',
                    :concat_basedir => '/var/lib/puppet/concat',
                    :fqdn           => 'some.host.tld'
                 } }
 
     it "should properly configure cinder haproxy based on ssl" do
       should contain_openstack__ha__haproxy_service('cinder-api').with(
-        'order'                  => '070',
         'listen_port'            => 8776,
         'public'                 => true,
         'public_ssl'             => true,
