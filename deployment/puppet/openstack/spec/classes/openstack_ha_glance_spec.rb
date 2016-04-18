@@ -8,14 +8,13 @@ require 'spec_helper'
                     :public_ssl          => true,
                     :public_ssl_path     => '/var/lib/fuel/haproxy/public_glance.pem',
                  } }
-    let(:facts) { {:kernel => 'Linux',
+    let(:facts) { {:osfamily       => 'Debian',
                    :concat_basedir => '/var/lib/puppet/concat',
                    :fqdn           => 'some.host.tld'
                 } }
 
     it "should properly configure glance haproxy based on ssl" do
       should contain_openstack__ha__haproxy_service('glance-api').with(
-        'order'                  => '080',
         'listen_port'            => 9292,
         'public'                 => true,
         'public_ssl'             => true,
@@ -31,7 +30,6 @@ require 'spec_helper'
     end
     it "should properly configure glance haproxy based on ssl" do
       should contain_openstack__ha__haproxy_service('glance-glare').with(
-        'order'                  => '081',
         'listen_port'            => 9494,
         'public'                 => true,
         'public_ssl'             => true,
@@ -47,7 +45,6 @@ require 'spec_helper'
     end
     it "should properly configure glance-registry" do
       should contain_openstack__ha__haproxy_service('glance-registry').with(
-        'order'                  => '090',
         'listen_port'            => 9191,
         'haproxy_config_options' => {
           'timeout server' => '11m',

@@ -8,14 +8,13 @@ require 'spec_helper'
                     :public_ssl          => true,
                     :public_ssl_path     => '/var/lib/fuel/haproxy/public_ceilometer.pem',
                  } }
-    let(:facts) { {:kernel => 'Linux',
+    let(:facts) { {:osfamily       => 'Debian',
                    :concat_basedir => '/var/lib/puppet/concat',
                    :fqdn           => 'some.host.tld'
                 } }
 
     it "should properly configure ceilometer haproxy based on ssl" do
       should contain_openstack__ha__haproxy_service('ceilometer').with(
-        'order'                  => '140',
         'listen_port'            => 8777,
         'public'                 => true,
         'public_ssl'             => true,

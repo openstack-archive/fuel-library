@@ -46,3 +46,4 @@ puppet/xinetd
 puppet/corosync
 puppet/rabbitmq
 puppet/pacemaker
+puppet/haproxy

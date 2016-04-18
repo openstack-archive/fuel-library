@@ -15,7 +15,7 @@ require 'spec_helper'
 
     let :facts do
       {
-        :kernel         => 'Linux',
+        :osfamily       => 'Debian',
         :concat_basedir => '/var/lib/puppet/concat',
         :fqdn           => 'some.host.tld'
       }
@@ -30,7 +30,6 @@ require 'spec_helper'
 
     it "should properly configure radosgw haproxy based on ssl" do
       should contain_openstack__ha__haproxy_service('object-storage').with(
-        'order'                  => '130',
         'listen_port'            => 8080,
         'balancermember_port'    => 6780,
         'public'                 => true,
@@ -42,7 +41,6 @@ require 'spec_helper'
 
     it "should properly configure radosgw haproxy on baremetal VIP" do
       should contain_openstack__ha__haproxy_service('object-storage-baremetal').with(
-        'order'                  => '135',
         'listen_port'            => 8080,
         'balancermember_port'    => 6780,
         'public_virtual_ip'      => false,

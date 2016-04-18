@@ -21,7 +21,6 @@ describe 'openstack::ha::keystone' do
 
     it "should properly configure keystone haproxy based on ssl" do
       should contain_openstack__ha__haproxy_service('keystone-1').with(
-        'order'                  => '020',
         'listen_port'            => 5000,
         'public'                 => true,
         'public_ssl'             => true,
@@ -36,7 +35,6 @@ describe 'openstack::ha::keystone' do
 
     it "should properly configure keystone admin haproxy without ssl" do
       should contain_openstack__ha__haproxy_service('keystone-2').with(
-        'order'                  => '030',
         'listen_port'            => 35357,
         'public'                 => false,
         'haproxy_config_options' => {
