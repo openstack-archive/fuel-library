@@ -40,11 +40,7 @@ class cobbler::server (
     path => '/usr/bin:/bin:/usr/sbin:/sbin'
   }
 
-  if $production == 'docker-build' {
-    $real_fqdn = "fuel.${domain_name}"
-  } else {
-    $real_fqdn = $::fqdn
-  }
+  $real_fqdn = $::fqdn
 
   case $::operatingsystem {
     /(?i)(centos|redhat)/ : {
@@ -90,37 +86,21 @@ class cobbler::server (
     Exec['cobbler_sync'] ->
       Service[$dnsmasq_service]
 
-  if $production != 'docker-build' {
-    service { $cobbler_service:
-      ensure     => running,
-      enable     => true,
-      hasrestart => true,
-      require    => Package[$cobbler::packages::cobbler_package],
-    }
-
-    service { $dnsmasq_service:
-      ensure     => running,
-      enable     => true,
-      hasrestart => true,
-      require    => Package[$cobbler::packages::dnsmasq_package],
-      subscribe  => Exec['cobbler_sync'],
-    }
-  } else {
-    service { $cobbler_service:
-      ensure     => running,
-      enable     => true,
-      hasrestart => true,
-      require    => Package[$cobbler::packages::cobbler_package],
-    }
-
-    service { $dnsmasq_service:
-      ensure     => false,
-      enable     => false,
-      hasrestart => true,
-      require    => Package[$cobbler::packages::dnsmasq_package],
-      subscribe  => Exec['cobbler_sync'],
-    }
+  service { $cobbler_service:
+    ensure     => running,
+    enable     => true,
+    hasrestart => true,
+    require    => Package[$cobbler::packages::cobbler_package],
   }
+
+  service { $dnsmasq_service:
+    ensure     => running,
+    enable     => true,
+    hasrestart => true,
+    require    => Package[$cobbler::packages::dnsmasq_package],
+    subscribe  => Exec['cobbler_sync'],
+  }
+
   if $apache_ssl_module {
     file { '/etc/apache2/mods-enabled/ssl.load':
       ensure => link,
