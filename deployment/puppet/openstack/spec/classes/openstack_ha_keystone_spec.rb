@@ -8,14 +8,13 @@ require 'spec_helper'
                     :public_ssl          => true,
                     :public_ssl_path     => '/var/lib/fuel/haproxy/public_keystone.pem',
                  } }
-    let(:facts) { {:kernel => 'Linux',
+    let(:facts) { {:osfamily       => 'Debian',
                    :concat_basedir => '/var/lib/puppet/concat',
                    :fqdn           => 'some.host.tld'
                 } }
 
     it "should properly configure keystone haproxy based on ssl" do
       should contain_openstack__ha__haproxy_service('keystone-1').with(
-        'order'                  => '020',
         'listen_port'            => 5000,
         'public'                 => true,
         'public_ssl'             => true,
@@ -32,7 +31,6 @@ require 'spec_helper'
 
     it "should properly configure keystone admin haproxy without ssl" do
       should contain_openstack__ha__haproxy_service('keystone-2').with(
-        'order'                  => '030',
         'listen_port'            => 35357,
         'public'                 => false,
         'haproxy_config_options' => {

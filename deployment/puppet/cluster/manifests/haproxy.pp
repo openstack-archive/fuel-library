@@ -44,6 +44,10 @@
 #   (optional) Array of addresses to allow stats calls
 #   Defaults to ['127.0.0.1']
 #
+# [*spread_checks*]
+#   (optional) Amount of randomness between the check intervals for haproxy
+#   Defaults to '3'
+#
 class cluster::haproxy (
   $haproxy_maxconn              = '4000',
   $haproxy_bufsize              = '16384',
@@ -57,13 +61,8 @@ class cluster::haproxy (
   $stats_ipaddresses            = ['127.0.0.1'],
   $spread_checks                = '3',
 ) {
-  include ::concat::setup
   include ::haproxy::params
   include ::rsyslog::params
-
-  package { 'haproxy':
-    name => $::haproxy::params::package_name,
-  }
 
   #NOTE(bogdando) we want defaults w/o chroot
   #  and this override looks the only possible if
@@ -105,11 +104,10 @@ class cluster::haproxy (
 
   $service_name = 'p_haproxy'
 
-  class { 'haproxy::base':
-    global_options    => $global_options,
-    defaults_options  => $defaults_options,
-    stats_ipaddresses => $stats_ipaddresses,
-    use_include       => true,
+  class { '::haproxy':
+    global_options   => $global_options,
+    defaults_options => $defaults_options,
+    service_manage   => false,
   }
 
   sysctl::value { 'net.ipv4.ip_nonlocal_bind':
@@ -124,29 +122,33 @@ class cluster::haproxy (
     hasrestart => true,
   }
 
+  haproxy::listen { 'Stats':
+    mode    => 'http',
+    options => {
+      'stats' => [
+        'enable',
+        'uri /',
+        'refresh 5s',
+        'show-node',
+        'show-legends',
+      ],
+    }
+  }
+
   tweaks::ubuntu_service_override { 'haproxy' :
     service_name => 'haproxy',
     package_name => $haproxy::params::package_name,
   }
 
-  class { 'cluster::haproxy::rsyslog':
+  class { '::cluster::haproxy::rsyslog':
     log_file => $haproxy_log_file,
   }
 
-  Package['haproxy'] ->
-  Class['haproxy::base']
-
-  Class['haproxy::base'] ~>
-  Service['haproxy']
-
-  Package['haproxy'] ~>
-  Service['haproxy']
-
   Sysctl::Value['net.ipv4.ip_nonlocal_bind'] ~>
-  Service['haproxy']
+    Service['haproxy']
 
   # Pacemaker
-  class { 'cluster::haproxy_ocf':
+  class { '::cluster::haproxy_ocf':
     debug            => $debug,
     other_networks   => $other_networks,
     colocate_haproxy => $colocate_haproxy,

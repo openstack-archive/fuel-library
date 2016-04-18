@@ -9,14 +9,13 @@ require 'spec_helper'
                     :public_ssl           => true,
                     :public_ssl_path      => '/var/lib/fuel/haproxy/public_ironic.pem',
                  } }
-    let(:facts) { {:kernel => 'Linux',
+    let(:facts) { {:osfamily       => 'Debian',
                    :concat_basedir => '/var/lib/puppet/concat',
                    :fqdn           => 'some.host.tld'
                 } }
 
     it "should properly configure ironic haproxy based on ssl" do
       should contain_openstack__ha__haproxy_service('ironic').with(
-        'order'                  => '180',
         'listen_port'            => 6385,
         'public'                 => true,
         'public_ssl'             => true,
@@ -30,7 +29,6 @@ require 'spec_helper'
 
     it "should properly configure ironic haproxy on baremetal VIP" do
       should contain_openstack__ha__haproxy_service('ironic-baremetal').with(
-        'order'                  => '185',
         'listen_port'            => 6385,
         'public_ssl'             => false,
         'internal_virtual_ip'    => '192.168.0.2',
