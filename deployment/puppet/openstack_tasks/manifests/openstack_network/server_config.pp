@@ -189,8 +189,7 @@ class openstack_tasks::openstack_network::server_config {
       supported_pci_vendor_devs => $pci_vendor_devs,
       sriov_agent_required      => $use_sriov,
       enable_security_group     => true,
-# TODO (skolekonov): pass once I9819867251e3c35f252ddbbad1178bff1c585314 is landed
-#      firewall_driver           => 'neutron.agent.linux.iptables_firewall.OVSHybridIptablesFirewallDriver',
+      firewall_driver           => 'neutron.agent.linux.iptables_firewall.OVSHybridIptablesFirewallDriver',
     }
 
     class { '::neutron::server':
