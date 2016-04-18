@@ -13,6 +13,9 @@ describe manifest do
     rabbit_user = Noop.hiera_structure 'rabbit/user', 'nova'
     rabbit_password = Noop.hiera_structure 'rabbit/password'
     ceilometer_hash = Noop.hiera_structure 'ceilometer'
+    ceilometer_user_password = ceilometer_hash['user_password']
+    ceilometer_tenant = Noop.hiera_structure('ceilometer/tenant', "services")
+    ceilometer_user = Noop.hiera_structure('ceilometer/user', "ceilometer")
     mongo_hash = Noop.hiera_structure('mongo', { 'enabled' => false })
     network_metadata = Noop.hiera_structure 'network_metadata'
     mongo_roles = Noop.hiera 'mongo_roles'
@@ -51,6 +54,17 @@ describe manifest do
     keystone_auth_uri      = "#{internal_auth_protocol}://#{internal_auth_endpoint}:5000/v2.0"
     kombu_compression      = Noop.hiera 'kombu_compression', ''
 
+    ssl = 'false'
+
+    let (:api_bind_address) do
+      api_bind_address = Noop.puppet_function('get_network_role_property', 'ceilometer/api', 'ipaddr')
+    end
+
+    let (:service_workers) do
+      fallback_workers = [[facts[:processorcount].to_i, 2].max, workers_max.to_i].min
+      service_workers = Noop.puppet_function 'pick', ceilometer_hash['workers'], fallback_workers
+    end
+
     # Ceilometer
     if ceilometer_hash['enabled']
       it 'should properly build connection string' do
@@ -60,6 +74,26 @@ describe manifest do
           db_params = "?readPreference=primaryPreferred"
         end
         should contain_ceilometer_config('database/connection').with(:value => "mongodb://#{ceilometer_db_user}:#{ceilometer_db_password}@#{db_hosts}/#{ceilometer_db_dbname}#{db_params}")
+      end
+
+      it 'should declare ceilometer::wsgi::apache class with correct parameters' do
+        should contain_class('ceilometer::wsgi::apache').with(
+          'ssl'       => ssl,
+          'bind_host' => api_bind_address,
+          'workers'   => service_workers,
+        )
+      end
+
+      it 'should declare ceilometer::api class with correct parameters' do
+        should contain_class('ceilometer::api').with(
+          'auth_uri'              => keystone_auth_uri,
+          'identity_uri'          => keystone_identity_uri,
+          'keystone_user'         => ceilometer_user,
+          'keystone_password'     => ceilometer_user_password,
+          'keystone_tenant'       => ceilometer_tenant,
+          'host'                  => api_bind_address,
+          'service_name'          => 'httpd',
+        )
       end
 
       it 'should configure auth and identity uri' do
@@ -98,10 +132,6 @@ describe manifest do
       end
 
       it 'should configure workers for API, Collector and Agent Notification services' do
-        fallback_workers = [[facts[:processorcount].to_i, 2].max, workers_max.to_i].min
-        service_workers = Noop.puppet_function 'pick', ceilometer_hash['workers'], fallback_workers
-
-        should contain_ceilometer_config('api/workers').with(:value => service_workers)
         should contain_ceilometer_config('collector/workers').with(:value => service_workers)
         should contain_ceilometer_config('notification/workers').with(:value => service_workers)
       end
