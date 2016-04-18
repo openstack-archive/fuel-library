@@ -97,6 +97,8 @@ define openstack::ha::haproxy_service (
   validate_bool($public)
   validate_bool($internal)
 
+  # TODO(aschultz): address this
+  warning('$order parameter is ignored')
   include openstack::ha::haproxy_restart
 
   if $public_ssl and !$public_ssl_path {
@@ -134,7 +136,6 @@ define openstack::ha::haproxy_service (
 
   # Configure HAProxy to listen
   haproxy::listen { $name:
-    order       => $order,
     bind        => merge($public_bind, $internal_bind),
     options     => $haproxy_config_options,
     mode        => $mode,
@@ -144,7 +145,6 @@ define openstack::ha::haproxy_service (
 
   if $ipaddresses and $server_names {
     haproxy::balancermember { $name:
-      order             => $order,
       listening_service => $name,
       server_names      => $server_names,
       ipaddresses       => $ipaddresses,
