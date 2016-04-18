@@ -8,14 +8,13 @@ require 'spec_helper'
                     :public_ssl          => true,
                     :public_ssl_path     => '/var/lib/fuel/haproxy/public_heat.pem',
                  } }
-    let(:facts) { {:kernel => 'Linux',
+    let(:facts) { {:osfamily       => 'Debian',
                    :concat_basedir => '/var/lib/puppet/concat',
                    :fqdn           => 'some.host.tld'
                 } }
 
     it "should properly configure heat haproxy based on ssl" do
       should contain_openstack__ha__haproxy_service('heat-api').with(
-        'order'                  => '160',
         'listen_port'            => 8004,
         'public'                 => true,
         'public_ssl'             => true,
@@ -32,7 +31,6 @@ require 'spec_helper'
 
     it "should properly configure heat-api-cfn" do
       should contain_openstack__ha__haproxy_service('heat-api-cfn').with(
-        'order'                  => '161',
         'listen_port'            => 8000,
         'public'                 => true,
         'public_ssl'             => true,
@@ -49,7 +47,6 @@ require 'spec_helper'
 
     it "should properly configure heat-api-cfn" do
       should contain_openstack__ha__haproxy_service('heat-api-cloudwatch').with(
-        'order'                  => '162',
         'listen_port'            => 8003,
         'public'                 => true,
         'public_ssl'             => true,
