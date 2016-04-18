@@ -1,1 +1,1 @@
-include ::osnailyfacter::openstack_haproxy::openstack_haproxy_murano
+#include ::osnailyfacter::openstack_haproxy::openstack_haproxy_murano
