@@ -120,16 +120,10 @@ describe manifest do
 
     let(:nova_quota) { Noop.hiera 'nova_quota', false }
 
+    let(:glance_endpoint_default) { Noop.hiera 'glance_endpoint', management_vip }
     let(:glance_protocol) { Noop.puppet_function 'get_ssl_property',ssl_hash,{},'glance','internal','protocol','http' }
-    let(:glance_endpoint) { Noop.puppet_function 'get_ssl_property',ssl_hash,{},'glance','internal','hostname',[Noop.hiera('glance_endpoint', ''), management_vip] }
-    let(:glance_ssl) { Noop.puppet_function 'get_ssl_property',ssl_hash,{},'glance','internal','usage',false }
-    let(:glance_api_servers) do
-      if glance_ssl
-        "#{glance_protocol}://#{glance_endpoint}:9292"
-      else
-        Noop.hiera 'glance_api_servers', "#{management_vip}:9292"
-      end
-    end
+    let(:glance_endpoint) { Noop.puppet_function 'get_ssl_property',ssl_hash,{},'glance','internal','hostname', glance_endpoint_default}
+    let(:glance_api_servers) { Noop.hiera 'glance_api_servers', "#{glance_protocol}://#{glance_endpoint}:9292" }
 
     let(:keystone_user) { Noop.puppet_function 'pick', nova_hash['user'], 'nova' }
     let(:keystone_tenant) { Noop.puppet_function 'pick', nova_hash['tenant'], 'services' }
