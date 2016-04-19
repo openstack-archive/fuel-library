@@ -25,6 +25,10 @@
 #  (optional) The path to configuration file of bootstrap cli package
 #  Defaults to '/etc/fuel-bootstrap-cli/fuel_bootstrap_cli.yaml'
 #
+# [*config_wgetrc*]
+#  (optional) Boolean. Writes more robust wgetrc config for the system
+#  Defaults to 'false'
+#
 # === Examples
 #
 # class { 'fuel::bootstrap_cli':
@@ -32,6 +36,7 @@
 #   settings              => {},
 #   direct_repo_addresses => [ '192.168.0.1' ],
 #   config_path           => '/etc/fuel-bootstrap-cli/fuel_bootstrap_cli.yaml',
+#   config_wgetrc         => true,
 # }
 #
 class fuel::bootstrap_cli(
@@ -39,6 +44,7 @@ class fuel::bootstrap_cli(
   $settings               = {},
   $direct_repo_addresses  = ['127.0.0.1'],
   $config_path            = '/etc/fuel-bootstrap-cli/fuel_bootstrap_cli.yaml',
+  $config_wgetrc          = false,
   ) {
 
   $additional_settings = {'direct_repo_addresses' => $direct_repo_addresses}
@@ -51,5 +57,15 @@ class fuel::bootstrap_cli(
     override_settings => $custom_settings,
     ensure            => present,
     require           => Package[$bootstrap_cli_package],
+  }
+
+  if $config_wgetrc {
+    file {'/etc/wgetrc':
+      ensure  => file,
+      content => template('fuel/wgetrc.erb')
+      mode    => '0644',
+      owner   => 'root',
+      group   => 'root',
+    }
   }
 }

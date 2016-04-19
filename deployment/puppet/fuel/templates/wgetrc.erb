@@ -1,0 +1,12 @@
+# This file managed via puppet
+
+# Default is 900 which is too long
+timeout = 60
+# Default is 10 - we don't need to wait so long
+waitretry = 2
+# Instead of default 20
+tries = 5
+# 64k per dot, instead of 1k. Mega means less dot spam
+dot_style = mega
+# without this, no retries are attempted if refused HTTP request
+retry_connrefused = on
