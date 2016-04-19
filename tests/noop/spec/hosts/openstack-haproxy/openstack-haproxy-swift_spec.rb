@@ -65,7 +65,7 @@ describe manifest do
 
       if ironic_enabled
 
-        baremetal_virtual_ip = Noop.hiera_structure 'network_metadata/vips/baremetal/ipaddr'
+        baremetal_virtual_ip = Noop.hiera_structure 'network_metadata/vips/baremetal/ipaddr', false
 
         it 'should declare ::openstack::ha::swift class with baremetal_virtual_ip' do
           should contain_class('openstack::ha::swift').with(
@@ -73,17 +73,18 @@ describe manifest do
           )
         end
 
-        it 'should declare openstack::ha::haproxy_service with name swift-baremetal' do
-          should contain_openstack__ha__haproxy_service('object-storage-baremetal').with(
-            'order'                  => '135',
-            'listen_port'            => 8080,
-            'public_virtual_ip'      => false,
-            'internal_virtual_ip'    => baremetal_virtual_ip,
-            'haproxy_config_options' => haproxy_config_opts,
-            'balancermember_options' => bm_options,
-          )
+        if baremetal_virtual_ip
+          it 'should declare openstack::ha::haproxy_service with name swift-baremetal' do
+            should contain_openstack__ha__haproxy_service('object-storage-baremetal').with(
+              'order'                  => '135',
+              'listen_port'            => 8080,
+              'public_virtual_ip'      => false,
+              'internal_virtual_ip'    => baremetal_virtual_ip,
+              'haproxy_config_options' => haproxy_config_opts,
+              'balancermember_options' => bm_options,
+            )
+          end
         end
-
       end
 
     end

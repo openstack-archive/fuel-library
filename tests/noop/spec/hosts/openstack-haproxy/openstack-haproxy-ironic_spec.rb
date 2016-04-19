@@ -25,7 +25,7 @@ if ironic_enabled
       end
 
       use_ironic = Noop.hiera_structure('ironic/enabled', true)
-      baremetal_virtual_ip = Noop.hiera_structure 'network_metadata/vips/baremetal/ipaddr'
+      baremetal_virtual_ip = Noop.hiera_structure 'network_metadata/vips/baremetal/ipaddr', false
       public_ssl_ironic = Noop.hiera_structure('public_ssl/services', false)
 
       if use_ironic and !Noop.hiera('external_lb', false)
@@ -44,28 +44,32 @@ if ironic_enabled
 
           )
         end
-        it "should properly configure ironic haproxy on baremetal vip" do
-          should contain_openstack__ha__haproxy_service('ironic-baremetal').with(
-            'order'                  => '185',
-            'ipaddresses'            => ipaddresses,
-            'server_names'           => server_names,
-            'listen_port'            => 6385,
-            'public_virtual_ip'      => false,
-            'internal_virtual_ip'    => baremetal_virtual_ip,
-            'haproxy_config_options' => {
-              'option'       => ['httpchk GET /', 'httplog', 'httpclose'],
-              'http-request' => 'set-header X-Forwarded-Proto https if { ssl_fc }',
-            },
 
+        if baremetal_virtual_ip
+          it "should properly configure ironic haproxy on baremetal vip" do
+            should contain_openstack__ha__haproxy_service('ironic-baremetal').with(
+              'order'                  => '185',
+              'ipaddresses'            => ipaddresses,
+              'server_names'           => server_names,
+              'listen_port'            => 6385,
+              'public_virtual_ip'      => false,
+              'internal_virtual_ip'    => baremetal_virtual_ip,
+              'haproxy_config_options' => {
+                'option'       => ['httpchk GET /', 'httplog', 'httpclose'],
+                'http-request' => 'set-header X-Forwarded-Proto https if { ssl_fc }',
+              },
+
+            )
+          end
+        end
+
+        it 'should declare openstack::ha::ironic class with baremetal_virtual_ip' do
+          should contain_class('openstack::ha::ironic').with(
+            'baremetal_virtual_ip' => baremetal_virtual_ip,
           )
         end
       end
 
-      it 'should declare openstack::ha::ironic class with baremetal_virtual_ip' do
-        should contain_class('openstack::ha::ironic').with(
-          'baremetal_virtual_ip' => baremetal_virtual_ip,
-        )
-      end
     end # end of shared_examples
     test_ubuntu_and_centos manifest
   end

@@ -61,9 +61,12 @@ class openstack::ha::ironic (
     public_ssl_path        => $public_ssl_path,
   }
 
-  openstack::ha::haproxy_service { 'ironic-baremetal':
-    order                  => '185',
-    public_virtual_ip      => false,
-    internal_virtual_ip    => $baremetal_virtual_ip,
+  if $baremetal_virtual_ip {
+    openstack::ha::haproxy_service { 'ironic-baremetal':
+      order               => '185',
+      public_virtual_ip   => false,
+      internal_virtual_ip => $baremetal_virtual_ip,
+    }
   }
+
 }
