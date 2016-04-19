@@ -32,7 +32,7 @@ class osnailyfacter::openstack_haproxy::openstack_haproxy_swift {
 
     if $ironic_hash['enabled'] {
       $network_metadata     = hiera_hash('network_metadata')
-      $baremetal_virtual_ip = $network_metadata['vips']['baremetal']['ipaddr']
+      $baremetal_virtual_ip = try_get_value($network_metadata, 'vips/baremetal/ipaddr', undef)
     }
 
     prepare_network_config(hiera_hash('network_scheme', {}))

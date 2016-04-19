@@ -16,7 +16,7 @@ class osnailyfacter::openstack_haproxy::openstack_haproxy_ironic {
   $public_virtual_ip    = hiera('public_vip')
   $internal_virtual_ip  = hiera('management_vip')
 
-  $baremetal_virtual_ip = $network_metadata['vips']['baremetal']['ipaddr']
+  $baremetal_virtual_ip = try_get_value($network_metadata, 'vips/baremetal/ipaddr', undef)
   $external_lb          = hiera('external_lb', false)
 
   if !$external_lb {
