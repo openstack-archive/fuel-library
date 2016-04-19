@@ -62,6 +62,11 @@ describe manifest do
 
     let(:identity_uri) { "#{admin_auth_protocol}://#{admin_auth_address}:35357/" }
 
+    let(:proxy_port) { Noop.hiera 'proxy_port', '8080' }
+    let(:swift_api_ipaddr) { Noop.puppet_function 'get_network_role_property', 'swift/api', 'ipaddr' }
+    let(:swift_internal_protocol) { Noop.puppet_function 'get_ssl_property',ssl_hash,{},'swift','internal','protocol','http' }
+    let(:swift_interal_address) { Noop.puppet_function 'get_ssl_property',ssl_hash,{},'swift','internal','hostname',[swift_api_ipaddr, management_vip] }
+
     # Swift
     if !(storage_hash['images_ceph'] and storage_hash['objects_ceph']) and !storage_hash['images_vcenter']
       swift_partition = Noop.hiera 'swift_partition'
@@ -106,38 +111,6 @@ describe manifest do
         )
       end
 
-      if Noop.hiera('use_ssl', false)
-        context 'with enabled internal TLS for swift' do
-          swift_endpoint = Noop.hiera_structure 'use_ssl/swift_internal_hostname'
-            it {
-              unless bind_to_one
-                should contain_class('openstack::swift::status').with(
-                  'endpoint'  => "https://#{swift_endpoint}:8080",
-                  'only_from' => "127.0.0.1 240.0.0.2 #{storage_nets} #{mgmt_nets}",
-                  'scan_target' => "#{internal_virtual_ip}:5000",
-                ).that_comes_before('Class[swift::dispersion]')
-              else
-                should_not contain_class('openstack::swift::status')
-              end
-            }
-        end
-      else
-        keystone_endpoint = Noop.hiera 'service_endpoint'
-
-        context 'with disabled internal TLS for swift' do
-          it {
-            unless bind_to_one
-            should contain_class('openstack::swift::status').with(
-              'only_from' => "127.0.0.1 240.0.0.2 #{storage_nets} #{mgmt_nets}",
-              'scan_target' => "#{internal_virtual_ip}:5000",
-            ).that_comes_before('Class[swift::dispersion]')
-            else
-              should_not contain_class('openstack::swift::status')
-            end
-          }
-        end
-      end
-
       it 'should configure proxy workers' do
         fallback_workers = [[facts[:processorcount].to_i, 2].max, workers_max.to_i].min
         workers = swift_hash.fetch('workers', fallback_workers)
@@ -171,6 +144,19 @@ describe manifest do
           :rabbit_password => rabbit_password,
           :rabbit_hosts    => rabbit_hosts.split(', '),
         )
+      end
+
+      it 'should configure health check service correctly' do
+        if !bind_to_one
+          should_not contain_class('openstack::swift:status').with(
+            :endpoint    => "#{swift_internal_protocol}://#{swift_internal_address}:#{proxy_port}",
+            :scan_target => "#{internal_auth_address}:5000",
+            :only_from   => "127.0.0.1 240.0.0.2 #{storage_nets} #{mgmt_nets}",
+            :con_timeout => 5
+          ).that_comes_before('Class[swift::dispersion]')
+        else
+          should_not contain_class('openstack::swift:status')
+        end
       end
 
       it 'should contain valid auth uris' do
