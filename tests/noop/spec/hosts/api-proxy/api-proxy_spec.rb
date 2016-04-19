@@ -56,7 +56,7 @@ describe manifest do
          'ensure' => 'file',
          'content' => "
   ## Custom fragment
-  ProxyRequests on
+    ProxyRequests on
   ProxyVia On
   AllowCONNECT #{ports.join(' ')}
   HostnameLookups off
@@ -71,8 +71,7 @@ describe manifest do
         Deny from all
   </Proxy>
 
-"
-        )
+"     )
     end
 
     it 'should declare apache::mod::headers' do
