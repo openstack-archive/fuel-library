@@ -51,8 +51,9 @@ class openstack_tasks::roles::compute {
   $ssl_hash                       = hiera_hash('use_ssl', {})
   $node_hash                      = hiera_hash('node', {})
   $use_huge_pages                 = pick($node_hash['nova_hugepages_enabled'], false)
-  $use_2m_huge_pages              = $::allocated_hugepages['2M']
-  $use_1g_huge_pages              = $::allocated_hugepages['1G']
+  $allocated_hugepages            = parsejson($::allocated_hugepages)
+  $use_2m_huge_pages              = $allocated_hugepages['2M']
+  $use_1g_huge_pages              = $allocated_hugepages['1G']
   $libvirt_type                   = hiera('libvirt_type', undef)
   $kombu_compression              = hiera('kombu_compression', '')
 

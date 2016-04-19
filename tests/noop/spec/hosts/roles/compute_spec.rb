@@ -26,7 +26,7 @@ describe manifest do
     let(:facts) {
       Noop.ubuntu_facts.merge({
         :libvirt_uuid        => '0251bf3e0a3f48da8cdf8daad5473a7f',
-        :allocated_hugepages => {'2M' => true, '1G' => true},
+        :allocated_hugepages => '{"1G":true,"2M":true}',
       })
     }
 
@@ -180,8 +180,9 @@ describe manifest do
     let(:node_hash) { Noop.hiera_hash 'node' }
     let(:enable_hugepages) { node_hash.fetch('nova_hugepages_enabled', false) }
     let(:enable_cpu_pinning) { node_hash.fetch('nova_cpu_pinning_enabled', false) }
-    let(:use_1g_huge_pages) { facts[:allocated_hugepages]['1G'] }
-    let(:use_2m_huge_pages) { facts[:allocated_hugepages]['2M'] }
+    let(:allocated_hugepages) { Noop.puppet_function 'parsejson', facts[:allocated_hugepages] }
+    let(:use_1g_huge_pages) { allocated_hugepages['1G'] }
+    let(:use_2m_huge_pages) { allocated_hugepages['2M'] }
 
     it 'should configure vcpu_pin_set for nova' do
       if enable_cpu_pinning

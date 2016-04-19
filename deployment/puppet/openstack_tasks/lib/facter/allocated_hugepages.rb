@@ -13,6 +13,6 @@ end
 
 Facter.add(:allocated_hugepages) do
   setcode do
-    hugepages
+    hugepages.to_json
   end
 end
