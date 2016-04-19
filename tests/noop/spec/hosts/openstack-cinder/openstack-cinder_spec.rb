@@ -113,7 +113,8 @@ describe manifest do
   end
   auth_uri            = "#{internal_auth_protocol}://#{keystone_auth_host}:5000/"
   identity_uri        = "#{internal_auth_protocol}://#{keystone_auth_host}:5000/"
-  privileged_auth_uri = "#{internal_auth_protocol}://#{keystone_auth_host}:5000/v2.0/"
+  privileged_auth_uri = "#{internal_auth_protocol}://#{keystone_auth_host}:5000/v3/"
+  auth_version        = Noop.hiera 'keystone_api' 'v3'
 
   it 'should configure workers for API service' do
     fallback_workers = [[facts[:processorcount].to_i, 2].max, workers_max.to_i].min
@@ -125,6 +126,7 @@ describe manifest do
   it 'ensures cinder_config contains auth_uri and identity_uri ' do
       should contain_cinder_config('keystone_authtoken/auth_uri').with(:value  => auth_uri)
       should contain_cinder_config('keystone_authtoken/identity_uri').with(:value  => identity_uri)
+      should contain_cinder_config('keystone_authtoken/auth_version').with(:value  => auth_version)
   end
 
   it 'ensures cinder_config contains correct values' do
