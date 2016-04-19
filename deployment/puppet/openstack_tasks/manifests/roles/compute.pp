@@ -31,7 +31,6 @@ class openstack_tasks::roles::compute {
   $sahara_hash                    = hiera_hash('sahara', {})
   $murano_hash                    = hiera_hash('murano', {})
   $mp_hash                        = hiera('mp')
-  $verbose                        = pick($compute_hash['verbose'], true)
   $debug                          = pick($compute_hash['debug'], hiera('debug', true))
   $storage_hash                   = hiera_hash('storage', {})
   $nova_hash                      = hiera_hash('nova', {})
@@ -281,7 +280,6 @@ class openstack_tasks::roles::compute {
     rabbit_userid          => pick($rabbit_hash['user'], 'nova'),
     rabbit_password        => $rabbit_hash['password'],
     glance_api_servers     => $glance_api_servers,
-    verbose                => $verbose,
     debug                  => $debug,
     use_syslog             => $use_syslog,
     use_stderr             => $use_stderr,

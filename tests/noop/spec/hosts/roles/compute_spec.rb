@@ -79,7 +79,6 @@ describe manifest do
     let(:nova_service_down_time) { Noop.hiera 'nova_service_down_time', '180' }
 
 
-    let(:verbose) { Noop.puppet_function 'pick', compute_hash['verbose'], 'true' }
     let(:global_debug) { Noop.hiera 'debug', 'true' }
     let(:debug) { Noop.puppet_function 'pick', compute_hash['debug'], global_debug }
     let(:config_drive_format) { Noop.puppet_function 'pick', compute_hash['config_drive_format'], 'vfat' }
@@ -477,7 +476,6 @@ describe manifest do
     it 'configures with the default params' do
 
       should contain_class('nova').with(
-        'verbose'          => verbose,
         'debug'            => debug,
         'log_facility'     => log_facility,
         'state_path'       => nova_hash['state_path'],

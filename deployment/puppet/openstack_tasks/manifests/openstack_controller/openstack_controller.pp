@@ -171,7 +171,6 @@ class openstack_tasks::openstack_controller::openstack_controller {
   $amqp_hosts    = hiera('amqp_hosts','')
   $amqp_user     = $rabbit_hash['user']
   $amqp_password = $rabbit_hash['password']
-  $verbose       = pick($openstack_controller_hash['verbose'], true)
   $debug         = pick($openstack_controller_hash['debug'], hiera('debug', true))
 
   $fping_path = $::osfamily ? {
@@ -192,7 +191,6 @@ class openstack_tasks::openstack_controller::openstack_controller {
     rabbit_password         => $amqp_password,
     image_service           => 'nova.image.glance.GlanceImageService',
     glance_api_servers      => $glance_api_servers,
-    verbose                 => $verbose,
     debug                   => $debug,
     log_facility            => $syslog_log_facility_nova,
     use_syslog              => $use_syslog,

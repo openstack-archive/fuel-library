@@ -105,7 +105,6 @@ describe manifest do
     let(:rabbit_hash) { Noop.hiera_hash 'rabbit', {} }
     let(:rabbit_hosts) { Noop.puppet_function 'split', amqp_hosts, ',' }
     let(:openstack_controller_hash) { Noop.hiera_hash 'openstack_controller', {} }
-    let(:verbose) { Noop.puppet_function 'pick', openstack_controller_hash['verbose'], true }
     let(:debug) do
       global_debug = Noop.hiera 'debug', true
       Noop.puppet_function 'pick', openstack_controller_hash['debug'], global_debug
@@ -202,7 +201,6 @@ describe manifest do
         :rabbit_password        => rabbit_hash['password'],
         :image_service          => 'nova.image.glance.GlanceImageService',
         :glance_api_servers     => glance_api_servers,
-        :verbose                => verbose,
         :debug                  => debug,
         :log_facility           => syslog_log_facility_nova,
         :use_syslog             => use_syslog,
