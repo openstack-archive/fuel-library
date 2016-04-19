@@ -60,10 +60,11 @@ class openstack_tasks::openstack_cinder::openstack_cinder {
   $swift_url = "${swift_internal_protocol}://${swift_internal_address}:${proxy_port}"
 
   $service_port        = '5000'
+  $keystone_api        = hiera('keystone_api', 'v3')
   $auth_uri            = "${keystone_auth_protocol}://${keystone_auth_host}:${service_port}/"
   $identity_uri        = "${keystone_auth_protocol}://${keystone_auth_host}:${service_port}/"
   # TODO(degorenko): it should be fixed in upstream
-  $privileged_auth_uri = "${keystone_auth_protocol}://${keystone_auth_host}:${service_port}/v2.0/"
+  $privileged_auth_uri = "${keystone_auth_protocol}://${keystone_auth_host}:${service_port}/${keystone_api}/"
 
   # Determine who should get the volume service
   if roles_include(['cinder']) and $storage_hash['volumes_lvm'] {
@@ -171,6 +172,7 @@ class openstack_tasks::openstack_cinder::openstack_cinder {
     cinder_config {
       'keystone_authtoken/signing_dir':     value => '/tmp/keystone-signing-cinder';
       'keystone_authtoken/signing_dirname': value => '/tmp/keystone-signing-cinder';
+      'keystone_authtoken/auth_version':    value => $keystone_api;
     }
   }
 
