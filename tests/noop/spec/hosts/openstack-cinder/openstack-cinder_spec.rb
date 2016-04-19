@@ -111,8 +111,8 @@ describe manifest do
     internal_auth_protocol = 'https'
     keystone_auth_host = Noop.hiera_structure('use_ssl/keystone_internal_hostname')
   end
-  auth_uri            = "#{internal_auth_protocol}://#{keystone_auth_host}:5000/"
-  identity_uri        = "#{internal_auth_protocol}://#{keystone_auth_host}:5000/"
+  auth_uri            = "#{internal_auth_protocol}://#{keystone_auth_host}:5000/v3"
+  identity_uri        = "#{internal_auth_protocol}://#{keystone_auth_host}:5000/v3"
   privileged_auth_uri = "#{internal_auth_protocol}://#{keystone_auth_host}:5000/v2.0/"
 
   it 'should configure workers for API service' do

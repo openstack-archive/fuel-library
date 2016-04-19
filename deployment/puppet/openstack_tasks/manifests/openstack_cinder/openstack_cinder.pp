@@ -60,8 +60,9 @@ class openstack_tasks::openstack_cinder::openstack_cinder {
   $swift_url = "${swift_internal_protocol}://${swift_internal_address}:${proxy_port}"
 
   $service_port        = '5000'
-  $auth_uri            = "${keystone_auth_protocol}://${keystone_auth_host}:${service_port}/"
-  $identity_uri        = "${keystone_auth_protocol}://${keystone_auth_host}:${service_port}/"
+  $keystone_api        = hiera('keystone_api')
+  $auth_uri            = "${keystone_auth_protocol}://${keystone_auth_host}:${service_port}/${keystone_api}"
+  $identity_uri        = "${keystone_auth_protocol}://${keystone_auth_host}:${service_port}/${keystone_api}"
   # TODO(degorenko): it should be fixed in upstream
   $privileged_auth_uri = "${keystone_auth_protocol}://${keystone_auth_host}:${service_port}/v2.0/"
 
