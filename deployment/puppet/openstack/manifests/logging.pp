@@ -231,6 +231,13 @@ class openstack::logging (
       file_severity => 'DEBUG',
     }
 
+    ::rsyslog::imfile { '10-dpkg' :
+      file_name     => '/var/log/dpkg.log',
+      file_tag      => 'dpkg',
+      file_facility => 'syslog',
+      file_severity => 'INFO',
+    }
+
     # OS syslog configs for rsyslog client
     ::rsyslog::snippet { '10-nova':
       content => template("${module_name}/10-nova.conf.erb"),
