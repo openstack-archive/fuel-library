@@ -24,7 +24,7 @@
   version: 2.0.0
   groups: [controller]
   required_for: [deploy_end, controller_remaining_tasks]
-  requires: [primary-swift-proxy]
+  requires: [rabbitmq, memcached]
   condition: *swift_enabled
   cross-depends:
     - name: primary-swift-proxy
@@ -42,13 +42,14 @@
   version: 2.0.0
   groups: [primary-controller]
   required_for: [deploy_end, controller_remaining_tasks]
-  requires: [openstack-controller]
+  requires: [primary-rabbitmq, memcached]
   condition: *swift_enabled
   cross-depends:
     - name: /(primary-)?rabbitmq/
     - name: swift-keystone
     - name: memcached
     - name: ceilometer-controller
+      role: self
   parameters:
     puppet_manifest: /etc/puppet/modules/openstack_tasks/examples/swift/proxy.pp
     puppet_modules: /etc/puppet/modules
