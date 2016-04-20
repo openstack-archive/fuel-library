@@ -8,6 +8,7 @@ group :development, :test do
   gem 'rspec-puppet', '~>2.1.0', :require => false
   gem 'puppetlabs_spec_helper',  :require => false
   gem 'puppet-lint',             :require => false
+  gem 'webmock', '1.22.6',       :require => false
 end
 
 if puppetversion = ENV['PUPPET_GEM_VERSION']
