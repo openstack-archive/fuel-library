@@ -16,6 +16,14 @@ Puppet::Type.type(:hiera_config).provide(:ruby) do
     property_hash[:logger] = value
   end
 
+  def backends
+    property_hash[:backends]
+  end
+
+  def backends=(value)
+    property_hash[:backends] = value
+  end
+
   def merge_behavior
     property_hash[:merge_behavior]
   end
@@ -48,6 +56,14 @@ Puppet::Type.type(:hiera_config).provide(:ruby) do
     property_hash[:data_dir] = value
   end
 
+  def additions
+    property_hash[:additions]
+  end
+
+  def additions=(value)
+    property_hash[:additions] = value
+  end
+
   #####
 
   # join basic and override directories to form the path to the override files directory
@@ -65,7 +81,7 @@ Puppet::Type.type(:hiera_config).provide(:ruby) do
   # the path to the Hiera config file
   # @return [String]
   def config_file
-    resource[:name].to_s
+    resource[:path].to_s
   end
 
   # remove all memoization
@@ -144,7 +160,7 @@ Puppet::Type.type(:hiera_config).provide(:ruby) do
 
   # join both hierarchy parts to form the hierarchy structure
   # @return [Array]
-  def generate_hierarhy
+  def generate_hierarchy
     hierarchy = []
     hierarchy += property_hash[:hierarchy_override] if property_hash[:hierarchy_override].is_a? Array
     hierarchy += property_hash[:hierarchy] if property_hash[:hierarchy].is_a? Array
@@ -169,27 +185,38 @@ Puppet::Type.type(:hiera_config).provide(:ruby) do
     data = read_configuration
     self.property_hash = {}
     property_hash[:logger] = data[:logger]
+    property_hash[:backends] = data[:backends]
     property_hash[:data_dir] = data.fetch(:yaml, {})[:datadir]
     property_hash[:hierarchy] = get_basic_hierarchy data
     property_hash[:hierarchy_override] = get_override_hierarchy data
     property_hash[:merge_behavior] = data[:merge_behavior]
+    property_hash[:additions] = {}
+
+    data.each do |key, value|
+      next if managed_keys.include? key
+      property_hash[:additions].store key, value
+    end
 
     debug "Loaded configuration: #{property_hash.inspect}"
     property_hash
+  end
+
+  # managed config file keys
+  # @return [Array]
+  def managed_keys
+    resource.managed_keys
   end
 
   # generate configuration data structure from the parameters
   # @return [Hash]
   def generate_configuration
     config = {}
-    backends = ['yaml']
-
-    config[:logger] = property_hash[:logger]
-    config[:yaml] = {:datadir => property_hash[:data_dir]}
-    config[:hierarchy] = generate_hierarhy
+    config[:logger] = logger
     config[:backends] = backends
-    config[:merge_behavior] = property_hash[:merge_behavior]
-
+    config[:yaml] = {:datadir => data_dir}
+    config[:hierarchy] = generate_hierarchy
+    config[:merge_behavior] = merge_behavior
+    config.merge! additions if additions.is_a? Hash
     debug "Generated configuration: #{config.inspect}"
     config
   end
@@ -254,10 +281,23 @@ Puppet::Type.type(:hiera_config).provide(:ruby) do
     self.property_hash = {}
   end
 
+  def create
+    debug 'Call: create'
+    self.property_hash = {}
+    generate_override_entries
+    property_hash[:logger] = resource[:logger]
+    property_hash[:backends] = resource[:backends]
+    property_hash[:data_dir] = resource[:data_dir]
+    property_hash[:merge_behavior] = resource[:merge_behavior]
+    property_hash[:hierarchy] = resource[:hierarchy]
+    property_hash[:hierarchy_override] = resource[:hierarchy_override]
+    property_hash[:additions] = resource[:additions]
+  end
+
   def flush
     debug 'Call: flush'
     return unless property_hash.is_a? Hash and property_hash.any?
-    configuration = read_configuration.merge generate_configuration
+    configuration = generate_configuration
     debug "Writing configuration: #{configuration.inspect}"
     write_configuration configuration
   end
