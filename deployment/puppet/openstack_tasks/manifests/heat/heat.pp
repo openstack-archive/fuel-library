@@ -6,6 +6,7 @@ class openstack_tasks::heat::heat {
   $heat_hash                = hiera_hash('heat', {})
   $sahara_hash              = hiera_hash('sahara', {})
   $rabbit_hash              = hiera_hash('rabbit', {})
+  $ceilometer_hash          = hiera_hash('ceilometer', {})
   $max_retries              = hiera('max_retries')
   $max_pool_size            = hiera('max_pool_size')
   $max_overflow             = hiera('max_overflow')
@@ -216,7 +217,7 @@ class openstack_tasks::heat::heat {
 
     max_template_size      => '5440000',
     max_json_body_size     => '10880000',
-    notification_driver    => 'heat.openstack.common.notifier.rpc_notifier',
+    notification_driver    => $ceilometer_hash['notification_driver'],
 
     database_max_pool_size => $max_pool_size,
     database_max_overflow  => $max_overflow,

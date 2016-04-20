@@ -44,6 +44,8 @@ describe manifest do
     glance_db_user = Noop.hiera_structure 'glance/db_user', 'glance'
     glance_db_name = Noop.hiera_structure 'glance/db_name', 'glance'
 
+    let(:ceilometer_hash) { Noop.hiera_structure 'ceilometer' }
+
     let(:ssl_hash) { Noop.hiera_hash 'use_ssl', {} }
 
     let(:internal_auth_protocol) { Noop.puppet_function 'get_ssl_property',ssl_hash,{},'keystone','internal','protocol','http' }
@@ -210,6 +212,11 @@ describe manifest do
       it 'should configure show_image_direct_url' do
         should contain_glance_api_config('DEFAULT/show_image_direct_url').with_value(show_image_direct_url)
       end
+    end
+
+    it 'should contain oslo_messaging_notifications "driver" option' do
+      should contain_glance_api_config('oslo_messaging_notifications/driver').with(:value => ceilometer_hash['notification_driver'])
+      should contain_glance_registry_config('oslo_messaging_notifications/driver').with(:value => ceilometer_hash['notification_driver'])
     end
 
     if ['gzip', 'bz2'].include?(kombu_compression)

@@ -6,7 +6,7 @@
   requires: [primary-openstack-controller, openstack-controller]
   condition:
     yaql_exp: &heat_enabled >
-      changedAny($.network_scheme, $.heat, $.sahara, $.rabbit,
+      changedAny($.network_scheme, $.heat, $.sahara, $.rabbit, $.ceilometer,
       $.get('max_retries'), $.get('max_pool_size'), $.get('max_overflow'),
       $.get('idle_timeout'), $.network_metadata.vips, $.public_ssl,
       $.get('use_ssl'), ('primary-controller' in $.roles),
