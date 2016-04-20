@@ -42,8 +42,8 @@ Puppet::Type.newtype(:hiera_config) do
   end
 
   newproperty(:hierarchy_override, :array_matching => :all) do
-    desc 'Override hierarchy elements. These list will be automaticly gathered
-          either from the metadata file of from the override directoiry scanning.
+    desc 'Override hierarchy elements. These list will be automatically gathered
+          either from the metadata file of from the override directory scanning.
           If you provide the list manually it will be used without any automatic
           element gathering.'
     defaultto []
@@ -73,6 +73,46 @@ Puppet::Type.newtype(:hiera_config) do
     munge do |value|
       value.to_s
     end
+  end
+
+  newproperty(:backends, :array_matching => :all) do
+    desc 'The list of Hiera backends'
+    defaultto ['yaml']
+  end
+
+  newproperty(:additions) do
+    desc 'Additional configuration options to merge with the generated Hiera config file.
+          Will not override the existing managed config values.'
+
+    validate do |value|
+      fail "Additional config options should be a Hash! Got: #{value.inspect}" unless value.is_a? Hash
+    end
+
+    munge do |hash|
+      additions = {}
+      hash.each do |key, value|
+        key = key.to_s.to_sym
+        next if resource.managed_keys.include? key
+        additions.store key, value
+      end
+      additions
+    end
+
+    def is_to_s(value)
+      value.inspect
+    end
+
+    def should_to_s(value)
+      value.inspect
+    end
+
+    defaultto {}
+  end
+
+  # managed config file keys
+  # @return [Array]
+  def managed_keys
+    [:logger, :backends, :yaml, :hierarchy, :merge_behavior]
   end
 
 end
