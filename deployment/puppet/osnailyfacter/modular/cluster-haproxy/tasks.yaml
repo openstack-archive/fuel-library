@@ -1,9 +1,15 @@
 - id: primary-cluster-haproxy
   type: puppet
-  version: 2.0.0
+  version: 2.1.0
   groups: [primary-controller]
   required_for: [deploy_end]
   requires: [deploy_start, virtual_ips, primary-cluster]
+  condition:
+    yaql_exp: &cluster_haproxy >
+      changedAny($.network_scheme, $.network_metadata.vips,
+      $.get('database_vip'), ('primary-controller' in $.roles),
+      $.get('haproxy'), $.get('external_lb'), $.get('colocate_haproxy'),
+      $.debug)
   parameters:
     puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/cluster-haproxy/cluster-haproxy.pp
     puppet_modules: /etc/puppet/modules
@@ -13,10 +19,12 @@
 
 - id: cluster-haproxy
   type: puppet
-  version: 2.0.0
+  version: 2.1.0
   groups: [controller]
   required_for: [deploy_end]
   requires: [deploy_start, virtual_ips, cluster]
+  condition:
+    yaql_exp: *cluster_haproxy
   cross-depends:
     - name: primary-cluster-haproxy
   parameters:

@@ -1,8 +1,17 @@
 - id: sahara
   type: puppet
-  version: 2.0.0
+  version: 2.1.0
   groups: [primary-controller, controller]
-  condition: "settings:sahara.enabled == true"
+  condition:
+    yaql_exp: >
+      $.sahara.enabled and changedAny($.access, $.sahara, $.rabbit,
+      $.public_ssl, $.ceilometer,
+      ('primary-controller' in $.roles), $.network_metadata.vips,
+      $.get('database_vip'), $.quantum_settings, $.quantum, $.network_scheme,
+      $.get('syslog_log_facility_sahara'), $.debug, $.get('verbose'),
+      $.get('default_log_levels'), $.get('use_syslog'), $.get('use_stderr'),
+      $.get('rabbit_ha_queues'), $.get('amqp_port'), $.get('amqp_hosts'),
+      $.get('external_lb'), $.get('use_ssl'), $.get('kombu_compression'))
   required_for: [deploy_end, controller_remaining_tasks]
   requires: [openstack-network-end, horizon]
   cross-depends:
@@ -19,12 +28,16 @@
 
 - id: sahara-db
   type: puppet
-  version: 2.0.0
+  version: 2.1.0
   groups: [primary-controller]
   cross-depends:
     - name: /(primary-)?database/
   required_for: [sahara]
-  condition: "settings:sahara.enabled == true"
+  condition:
+    yaql_exp: >
+      $.sahara.enabled and changedAny($.sahara, $.mysql,
+      $.network_metadata.vips, $.get('database_vip'),
+      $.get('mysql_custom_setup_class'))
   requires: [primary-database, database]
   parameters:
     puppet_manifest: /etc/puppet/modules/openstack_tasks/examples/sahara/db.pp
@@ -33,13 +46,16 @@
 
 - id: sahara-keystone
   type: puppet
-  version: 2.0.0
+  version: 2.1.0
   groups: [primary-controller]
   required_for: [sahara]
   requires: [primary-keystone, keystone]
   cross-depends:
     - name: keystone
-  condition: "settings:sahara.enabled == true"
+  condition:
+    yaql_exp: >
+      $.sahara.enabled and changedAny($.sahara, $.public_ssl,
+      $.network_metadata.vips, $.get('region', 'RegionOne'))
   parameters:
     puppet_manifest: /etc/puppet/modules/openstack_tasks/examples/sahara/keystone.pp
     puppet_modules: /etc/puppet/modules

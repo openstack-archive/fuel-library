@@ -1,9 +1,21 @@
 - id: primary-heat
   type: puppet
-  version: 2.0.0
+  version: 2.1.0
   groups: [primary-controller]
   required_for: [deploy_end]
   requires: [primary-openstack-controller, openstack-controller]
+  condition:
+    yaql_exp: &heat_enabled >
+      changedAny($.network_scheme, $.heat, $.sahara, $.rabbit,
+      $.get('max_retries'), $.get('max_pool_size'), $.get('max_overflow'),
+      $.get('idle_timeout'), $.network_metadata.vips, $.public_ssl,
+      $.get('use_ssl'), ('primary-controller' in $.roles),
+      $.get('kombu_compression'), $.get('heat_endpoint'), $.debug,
+      $.get('verbose'), $.get('use_stderr'), $.get('use_syslog'),
+      $.get('syslog_log_facility_heat'), $.deployment_mode,
+      $.get('region', 'RegionOne'), $.get('external_lb'),
+      $.get('database_vip'), $.get('heat_db_name'), $.get('amqp_hosts'),
+      $.get('heat_ha_engine'))
   cross-depends:
     - name: heat-db
     - name: heat-keystone
@@ -19,10 +31,12 @@
 
 - id: heat
   type: puppet
-  version: 2.0.0
+  version: 2.1.0
   groups: [controller]
   required_for: [deploy_end]
   requires: [primary-openstack-controller, openstack-controller]
+  condition:
+    yaql_exp: *heat_enabled
   cross-depends:
     - name: primary-heat
   parameters:
@@ -36,10 +50,14 @@
 
 - id: heat-db
   type: puppet
-  version: 2.0.0
+  version: 2.1.0
   groups: [primary-controller]
   required_for: [primary-heat, heat]
   requires: [primary-database, database]
+  condition:
+    yaql_exp: >
+      changedAny($.heat, $.mysql, $.network_metadata.vips.management,
+      $.get('database_vip'), $.get('mysql_custom_setup_class'))
   cross-depends:
     - name: /(primary-)?database/
   parameters:
@@ -49,10 +67,15 @@
 
 - id: heat-keystone
   type: puppet
-  version: 2.0.0
+  version: 2.1.0
   groups: [primary-controller]
   required_for: [heat, primary-heat]
   requires: [primary-keystone, keystone]
+  condition:
+    yaql_exp: >
+      changedAny($.heat, $.network_metadata.vips,
+      $.get('region', 'RegionOne'), $.public_ssl, $.get('use_ssl'),
+      $.get('heat_endpoint'))
   cross-depends:
     - name: keystone
   parameters:
