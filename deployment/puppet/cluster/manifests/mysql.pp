@@ -35,10 +35,16 @@ class cluster::mysql (
   $primitive_type     = 'mysql-wss'
   $complex_type       = 'clone'
 
+  $user_conf = '/etc/mysql/user.cnf'
+  file { $user_conf:
+    owner   => 'root',
+    mode    => '0600',
+    content => template('cluster/mysql_user.cnf.erb')
+  } -> Exec <||>
+
   $parameters = {
     'config'      => $mysql_config,
-    'test_user'   => $mysql_user,
-    'test_passwd' => $mysql_password,
+    'test_conf'   => $user_conf,
     'socket'      => $mysql_socket,
   }
 
@@ -77,7 +83,8 @@ class cluster::mysql (
     "flush privileges;",
   ], "\n")
 
-  $user_password_string = "-u${mysql_user} -p${mysql_password}"
+  # NOTE(bogdando) it's a positional param, must go first
+  $user_password_string = "--defaults-extra-file=${user_conf}"
 
   # This file is used to prep the mysql instance with the monitor user so that
   # pacemaker can check that the instance is UP.
