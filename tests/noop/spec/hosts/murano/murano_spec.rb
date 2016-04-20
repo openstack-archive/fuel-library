@@ -21,6 +21,10 @@ describe manifest do
       Noop.hiera_hash 'network_scheme'
     end
 
+    let(:ceilometer_hash) do
+      Noop.hiera_structure 'ceilometer'
+    end
+
     let(:prepare) do
       Noop.puppet_function 'prepare_network_config', network_scheme
     end
@@ -146,7 +150,7 @@ describe manifest do
                    'admin_password'      => murano_password,
                    'admin_tenant_name'   => tenant,
                    'identity_uri'        => "#{admin_auth_protocol}://#{admin_auth_address}:35357/",
-                   'notification_driver' => 'messagingv2',
+                   'notification_driver' => ceilometer_hash['notification_driver'],
                    'use_neutron'         => use_neutron,
                    'rabbit_os_user'      => rabbit_os_user,
                    'rabbit_os_password'  => rabbit_os_password,

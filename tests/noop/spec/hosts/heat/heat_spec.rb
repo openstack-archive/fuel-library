@@ -33,6 +33,8 @@ describe manifest do
       Noop.hiera 'heat_ha_engine', true
     end
 
+    let(:ceilometer_hash) { Noop.hiera_structure 'ceilometer' }
+
     admin_auth_protocol = 'http'
     admin_auth_address = Noop.hiera('service_endpoint')
     if Noop.hiera_structure('use_ssl', false)
@@ -179,6 +181,10 @@ describe manifest do
       else
         should_not contain_class('cluster::heat_engine')
       end
+    end
+
+    it 'should contain oslo_messaging_notifications "driver" option' do
+      should contain_heat_config('oslo_messaging_notifications/driver').with(:value => ceilometer_hash['notification_driver'])
     end
 
     if ['gzip', 'bz2'].include?(kombu_compression)

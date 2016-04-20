@@ -7,6 +7,7 @@ class openstack_tasks::murano::murano {
   $murano_hash                = hiera_hash('murano', {})
   $murano_settings_hash       = hiera_hash('murano_settings', {})
   $rabbit_hash                = hiera_hash('rabbit', {})
+  $ceilometer_hash            = hiera_hash('ceilometer', {})
   $neutron_config             = hiera_hash('neutron_config', {})
   $public_ip                  = hiera('public_vip')
   $database_ip                = hiera('database_vip')
@@ -117,7 +118,7 @@ class openstack_tasks::murano::murano {
       admin_password      => $murano_hash['user_password'],
       admin_tenant_name   => $tenant,
       identity_uri        => "${admin_auth_protocol}://${admin_auth_address}:35357/",
-      notification_driver => 'messagingv2',
+      notification_driver => $ceilometer_hash['notification_driver'],
       use_neutron         => $use_neutron,
       packages_service    => $packages_service,
       rabbit_os_user      => $rabbit_hash['user'],
