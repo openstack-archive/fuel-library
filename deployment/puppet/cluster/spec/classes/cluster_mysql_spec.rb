@@ -13,6 +13,12 @@ describe 'cluster::mysql' do
         }
       end
 
+      it 'defines a creds file' do
+        should contain_file('/etc/mysql/user.cnf').with_content(
+          "user = #{mysql_user}\npassword = #{mysql_password}"
+        )
+      end
+
       it 'configures a cs_resource' do
         should contain_pcmk_resource('p_mysqld').with(
           :ensure => 'present',
