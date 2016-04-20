@@ -21,6 +21,7 @@ socket    = <%= @socket %>
 port      = <%= @port %>
 basedir   = <%= @basedir %>
 datadir   = <%= @datadir %>
+innodb-data-home-dir = <%= @datadir %>
 tmpdir    = /tmp
 <% if @ignore_db_dirs and (@ignore_db_dirs.length > 0) %>
   <% @ignore_db_dirs.each do |directory| %>
