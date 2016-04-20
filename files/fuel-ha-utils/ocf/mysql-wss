@@ -446,6 +446,16 @@ mysql_validate() {
     return $OCF_SUCCESS
 }
 
+check_if_sst() {
+    local LH="${LL} check_if_sst():"
+    local loglevel=${1:-'info'}
+    if [ -f "${OCF_RESKEY_datadir}/sst_in_progress" ]; then
+        ocf_log $loglevel "${LH} SST is in progress"
+        return $OCF_SUCCESS
+    fi
+    return $OCF_ERR_GENERIC
+}
+
 mysql_status() {
     local LH="${LL} mysql_status():"
     local loglevel=${1:-'info'}
@@ -453,11 +463,6 @@ mysql_status() {
     local sleeptime=${3:-2}
 
     while [ $count -gt 0 ]; do
-        if [ -f "${OCF_RESKEY_datadir}"/sst_in_progress ]; then
-            ocf_log $loglevel "${LH} SST is in progress"
-            return $OCF_SUCCESS
-        fi
-
         if [ -f "$OCF_RESKEY_pid" ]; then
             ocf_log info "${LH} MySQL PID found"
             break
@@ -494,6 +499,9 @@ mysql_monitor() {
     if ocf_is_probe; then
         status_loglevel="info"
     fi
+
+    check_if_sst
+    [ $? -eq $OCF_SUCCESS ] && return $OCF_SUCCESS
 
     mysql_status $status_loglevel
     rc=$?
@@ -600,9 +608,12 @@ mysql_start() {
         return $rc
     fi
 
-    # Spin waiting for the server to come up.
+    # Spin waiting for the server to come up or exit, if SST's in progress
     # Let the CRM/LRM time us out if required.
     while :; do
+        check_if_sst
+        [ $? -eq $OCF_SUCCESS ] && break
+
         if mysql_status info 1; then
             break
         fi
