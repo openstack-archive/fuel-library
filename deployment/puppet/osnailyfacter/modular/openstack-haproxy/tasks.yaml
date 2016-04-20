@@ -97,8 +97,8 @@
   requires: [deploy_start, primary-cluster-haproxy, cluster-haproxy]
   condition:
     yaql_exp: >
-      changedAny($.heat, $.public_ssl, $.get('use_ssl'), $.get('external_lb'),
-      $.get('heat_roles'),
+      $.heat.enabled and changedAny($.heat, $.public_ssl, $.get('use_ssl'),
+      $.get('external_lb'), $.get('heat_roles'),
       (len($.network_metadata.nodes.values().where(
         ('controller' in $.node_roles) or
         ('primary-controller' in $.node_roles)))),
@@ -279,8 +279,8 @@
   requires: [deploy_start, primary-cluster-haproxy, cluster-haproxy]
   condition:
     yaql_exp: >
-      changedAny($.ceilometer, $.public_ssl, $.get('use_ssl'),
-      $.get('external_lb'),
+      $.ceilometer.enabled and changedAny($.ceilometer, $.public_ssl,
+      $.get('use_ssl'), $.get('external_lb'),
       len($.network_metadata.nodes.values().where(
         ('controller' in $.node_roles) or
         ('primary-controller' in $.node_roles))),
@@ -331,8 +331,8 @@
   requires: [deploy_start, primary-cluster-haproxy, cluster-haproxy]
   condition:
     yaql_exp: >
-      changedAny($.sahara, $.public_ssl, $.get('use_ssl'),
-      $.get('external_lb'), $.get('sahara_roles'),
+      $.sahara.enabled and changedAny($.sahara, $.public_ssl,
+      $.get('use_ssl'), $.get('external_lb'), $.get('sahara_roles'),
       len($.network_metadata.nodes.values().where(
         ('controller' in $.node_roles) or
         ('primary-controller' in $.node_roles))),
@@ -357,8 +357,9 @@
   requires: [deploy_start, primary-cluster-haproxy, cluster-haproxy]
   condition:
     yaql_exp: >
-      changedAny($.murano, $.get('murano-cfapi'), $.public_ssl,
-      $.get('use_ssl'), $.get('external_lb'), $.get('murano_roles'),
+      $.murano.enabled and changedAny($.murano, $.get('murano-cfapi'),
+      $.public_ssl, $.get('use_ssl'), $.get('external_lb'),
+      $.get('murano_roles'),
       $.network_metadata.nodes.values().where(
         ('controller' in $.node_roles) or
         ('primary-controller' in $.node_roles)),
@@ -399,7 +400,9 @@
   version: 2.1.0
   groups: [primary-controller, controller]
   condition:
-    yaql_exp: '$.ironic.enabled and changed($.ironic.enabled)'
+    yaql_exp: >
+      $.ironic.enabled and changedAny($.get('ironic_api_nodes'),
+      $.network_metadata, $.public_ssl, $.get('use_ssl'), $.get('external_lb'))
   required_for: [deploy_end]
   requires: [deploy_start, primary-cluster-haproxy, cluster-haproxy]
   cross-depends:
