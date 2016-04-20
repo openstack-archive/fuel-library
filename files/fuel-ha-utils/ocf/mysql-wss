@@ -248,6 +248,8 @@ update_node_gtid() {
     local LH="${LL} update_node_gtid():"
     local status_loglevel="err"
     local GTID
+    local CLUSTER_ID
+    local COMMIT_ID
 
     # Set loglevel to info during probe
     if ocf_is_probe; then
@@ -294,7 +296,6 @@ get_master_timeout() {
 #Get gtid attribute for $1 node, "0" means no GTID set or wrong format for GTID
 get_node_gtid() {
     local LH="${LL} get_node_gtid():"
-    local rc
     local GTID
 
     GTID=$(crm_attribute --quiet --node $1 --lifetime reboot --query \
@@ -338,6 +339,9 @@ choose_master() {
     local LH="${LL} choose_master():"
     local NODES=$1
     local -A TMP
+    local MASTER
+    local NODE_ID
+    local NODE
 
     for NODE in $NODES; do
         NODE_ID=$(echo $NODE | md5sum | awk '{print $1}')
@@ -360,6 +364,8 @@ get_possible_masters() {
     local -A TMP
     local MASTER_GTID
     local GTID
+    local NODE
+    local NODE_SCORE
 
     for NODE in $NODES; do
         GTID=$(get_node_gtid $NODE)
@@ -387,6 +393,7 @@ check_if_galera_pc() {
     local LH="${LL} check_if_galera_pc():"
     local NODES
     local MASTERS
+    local MASTER
     local timeout=$(get_master_timeout)
 
     ocf_log info "${LH} Checking if Primary Component"
@@ -451,6 +458,7 @@ mysql_status() {
     local loglevel=${1:-'info'}
     local count=${2:-3}
     local sleeptime=${3:-2}
+    local pid
 
     while [ $count -gt 0 ]; do
         if [ -f "${OCF_RESKEY_datadir}"/sst_in_progress ]; then
@@ -534,6 +542,11 @@ mysql_monitor() {
 mysql_start() {
     local LH="${LL} mysql_start():"
     local NODES
+    local socket_dir
+    local pid_dir
+    local rc
+    local dir
+    local mysql_extra_params
 
     if mysql_status info 1; then
         ocf_log info "${LH} MySQL already running"
