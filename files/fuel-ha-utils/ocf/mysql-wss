@@ -244,7 +244,7 @@ validate_gtid() {
         return 1
     fi
 
-    echo $1 | grep -q -E '^\w{8}-\w{4}-\w{4}-\w{4}-\w{12}:([[:digit:]]|-1)'
+    echo $1 | grep -q -E '^\w{8}-\w{4}-\w{4}-\w{4}-\w{12}:([[:digit:]]+|-1)$'
     rc=$?
 
     if [ $rc -ne 0 ]; then
@@ -281,7 +281,7 @@ update_node_gtid() {
     fi
 
     #Final try to recover
-    if [ -z ${GTID} ]; then
+    if [ -z "${GTID}" ]; then
         GTID=$(${OCF_RESKEY_binary} --wsrep-recover \
             --log-error=/dev/stdout 2>&1 | grep 'Recovered position' | awk '{print $NF}')
     fi
@@ -348,30 +348,8 @@ check_if_reelection_needed() {
     return 0
 }
 
-choose_master() {
-    local LH="${LL} choose_master():"
-    local NODES=$1
-    local -A TMP
-    local MASTER
-    local NODE_ID
-    local NODE
-
-    for NODE in $NODES; do
-        NODE_ID=$(echo $NODE | md5sum | awk '{print $1}')
-        TMP[$NODE_ID]=$NODE
-    done
-
-    MASTER=$(printf -- '%s\n' "${!TMP[@]}" | sort | head -1)
-    if [ -z $MASTER ]
-    then
-        ocf_log err "${LH} No master picked."
-    fi
-    ocf_log info "${LH} Choosed master: ${TMP[$MASTER]}"
-    echo ${TMP[$MASTER]}
-}
-
-get_possible_masters() {
-    local LH="${LL} get_possible_masters()"
+get_master() {
+    local LH="${LL} get_master()"
     local NODES=$*
     local POSSIBLE_MASTERS
     local -A TMP
@@ -379,13 +357,21 @@ get_possible_masters() {
     local GTID
     local NODE
     local NODE_SCORE
+    local LATEST_SEQNO=-1
+    local SEQNO
+    local MASTER
 
+    # Form a hash of keys as node names, values as GTID:SEQNO
     for NODE in $NODES; do
         GTID=$(get_node_gtid $NODE)
-        TMP[$NODE]=$(echo $GTID|cut -d":" -f 2)
+        # Cut the seqno off the GTID:SEQNO pairs
+        TMP[$NODE]=$GTID
     done
 
-    MASTER_GTID=$(printf -- '%s\n' "${TMP[@]}" | sort -r | head -1)
+    # Find possible masters
+    # Cut the seqnums off the stored GTID:SEQNO pairs, then find the most seen GTID for the nodes
+    MASTER_GTID=$(printf -- '%s\n' "${TMP[@]%:*}" | sort | uniq -c | awk '{print $2}' | head -1)
+    ocf_log info "${LH} The most seen GTID is: ${MASTER_GTID}"
     for NODE in $NODES; do
         NODE_SCORE=`crm_simulate -Ls |  awk "/${OCF_RESOURCE_INSTANCE}/ && /clone_color/ && !/${OCF_RESOURCE_INSTANCE}:/ && /${NODE}/"  | sed  -r -e 's/.*score on (.*)/\1/' | awk -F ':' '{print $2}' | tr -d '[:space:]'`
         if [[ $NODE_SCORE =~ ^-?[0-9]+$ && $NODE_SCORE -le 0 || $NODE_SCORE = "-INFINITY" || -z $NODE_SCORE ]]
@@ -393,19 +379,82 @@ get_possible_masters() {
             ocf_log info "${LH} Skipping node $NODE as it is not eligible for running the resource. Its score is ${NODE_SCORE:-NULL}"
             continue
         fi
-        if [ $MASTER_GTID -eq ${TMP[$NODE]} ]; then
+        ocf_log info "${LH} Node's ${NODE} score: ${NODE_SCORE}, GTID/SEQNUM: ${TMP[$NODE]}"
+        # Filter node names with the most seen GTID as possible masters and find the latest SEQNO
+        if [ "${MASTER_GTID}" = "${TMP[$NODE]%:*}" ]; then
             POSSIBLE_MASTERS="$POSSIBLE_MASTERS $NODE"
+            SEQNO=${TMP[$NODE]#*:}
+            [ $SEQNO -gt $LATEST_SEQNO ] && LATEST_SEQNO=$SEQNO
         fi
     done
-
     ocf_log info "${LH} Possible masters: $POSSIBLE_MASTERS"
-    echo $POSSIBLE_MASTERS
+
+    # Cut the gtids off the stored GTID:SEQNO pairs, then
+    # filter the master, which is one who has the latest SEQNO from the possible masters
+    for NODE in $POSSIBLE_MASTERS; do
+        [ "${LATEST_SEQNO}" = "${TMP[$NODE]#*:}" ] && MASTER=$NODE
+    done
+    ocf_log info "${LH} Choosed master: ${MASTER} with GTID: ${TMP[$MASTER]}"
+    echo "$MASTER"
+}
+    local NODES=$*
+    local POSSIBLE_MASTERS
+    local -A TMP
+    local MASTER_GTID
+    local GTID
+    local NODE
+    local NODE_SCORE
+    local LATEST_SEQNO=-1
+    local SEQNO
+    local MASTER
+
+
+    # Form a hash of keys as node names, values as GTID:SEQNO
+    for NODE in $NODES; do
+        GTID=$(get_node_gtid $NODE)
+        # Cut the seqno off the GTID:SEQNO pairs
+        TMP[$NODE]=$GTID
+    done
+
+    # Find possible masters
+    # Cut the seqnums off the stored GTID:SEQNO pairs, then find the most seen GTID for the nodes
+    MASTER_GTID=$(printf -- '%s\n' "${TMP[@]%:*}" | sort | uniq -c | awk '{print $2}' | head -1)
+    ocf_log info "${LH} The most seen GTID is: ${MASTER_GTID}"
+    for NODE in $NODES; do
+        NODE_SCORE=`crm_simulate -Ls |  awk "/${OCF_RESOURCE_INSTANCE}/ && /clone_color/ && !/${OCF_RESOURCE_INSTANCE}:/ && /${NODE}/"  | sed  -r -e 's/.*score on (.*)/\1/' | awk -F ':' '{print $2}' | tr -d '[:space:]'`
+        if [[ $NODE_SCORE =~ ^-?[0-9]+$ && $NODE_SCORE -le 0 || $NODE_SCORE = "-INFINITY" || -z $NODE_SCORE ]]
+        then
+            ocf_log info "${LH} Skipping node $NODE as it is not eligible for running the resource. Its score is ${NODE_SCORE:-NULL}"
+            continue
+        fi
+        ocf_log info "${LH} Node's ${NODE} score: ${NODE_SCORE}, GTID/SEQNUM: ${TMP[$NODE]}"
+        # Filter node names with the most seen GTID as possible masters and find the latest SEQNO
+        if [ "${MASTER_GTID}" = "${TMP[$NODE]%:*}" ]; then
+            POSSIBLE_MASTERS="$POSSIBLE_MASTERS $NODE"
+            SEQNO=${TMP[$NODE]#*:}
+            [ $SEQNO -gt $LATEST_SEQNO ] && LATEST_SEQNO=$SEQNO
+        fi
+    done
+    ocf_log info "${LH} Possible masters: $POSSIBLE_MASTERS"
+
+    # Cut the gtids off the stored GTID:SEQNO pairs, then
+    # filter the master, which is one who has the latest SEQNO from the possible masters
+    for NODE in $POSSIBLE_MASTERS; do
+        [ "${LATEST_SEQNO}" = "${TMP[$NODE]#*:}" ] && MASTER=$NODE
+    done
+    ocf_log info "${LH} Choosed master: ${MASTER} with GTID: ${TMP[$MASTER]}"
+    echo "$MASTER"
 }
 
 check_if_galera_pc() {
     local LH="${LL} check_if_galera_pc():"
     local NODES
-    local MASTERS
+    local MASTER
+    local timeout=$(get_master_timeout)
+
+    ocf_log info "${LH} Checking if Primary Component"
+
+    while [ $timeout -gt 0 ]; do
     local MASTER
     local timeout=$(get_master_timeout)
 
@@ -413,8 +462,7 @@ check_if_galera_pc() {
 
     while [ $timeout -gt 0 ]; do
         NODES=$(nodes_in_cluster_online)
-        MASTERS=$(get_possible_masters "$NODES")
-        MASTER=$(choose_master "$MASTERS")
+        MASTER=$(get_master "$NODES")
         if [ "$MASTER" = "$HOSTNAME" ]; then
             ocf_log info "${LH} I\'m Primary Component. Join me!"
             return 1
