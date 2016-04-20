@@ -34,6 +34,8 @@ OCF_RESKEY_test_user_default="root"
 OCF_RESKEY_test_passwd_default=""
 OCF_RESKEY_additional_parameters_default=""
 OCF_RESKEY_master_timeout_default="300"
+OCF_RESKEY_streamfmt_default="xbstream"
+OCF_RESKEY_transferfmt_default="socat"
 
 : ${HA_LOGTAG="ocf-mysql-wss"}
 : ${HA_LOGFACILITY="daemon"}
@@ -56,6 +58,8 @@ MYSQL_BINDIR="$(dirname ${OCF_RESKEY_binary})"
 
 : ${OCF_RESKEY_additional_parameters=${OCF_RESKEY_additional_parameters_default}}
 : ${OCF_RESKEY_master_timeout=${OCF_RESKEY_master_timeout_default}}
+: ${OCF_RESKEY_streamfmt=${OCF_RESKEY_streamfmt_default}}
+: ${OCF_RESKEY_transferfmt=${OCF_RESKEY_transferfmt_default}}
 
 #######################################################################
 # Convenience variables
@@ -177,6 +181,20 @@ meta_data() {
       <shortdesc lang="en">Galera master timeout</shortdesc>
       <content type="integer" default="${OCF_RESKEY_master_timeout_default}"/>
     </parameter>
+    <parameter name="streamfmt" unique="0" required="0">
+      <longdesc lang="en">
+      The streamfmt setting for xtrabackup-v2 SST config
+      </longdesc>
+      <shortdesc lang="en">SST streamfmt</shortdesc>
+      <content type="string" default="${OCF_RESKEY_streamfmt_default}"/>
+    </parameter>
+    <parameter name="transferfmt" unique="0" required="0">
+      <longdesc lang="en">
+      The transferfmt setting for xtrabackup-v2 SST config
+      </longdesc>
+      <shortdesc lang="en">SST transferfmt</shortdesc>
+      <content type="string" default="${OCF_RESKEY_transferfmt_default}"/>
+    </parameter>
   </parameters>
   <actions>
     <action name="start"        timeout="330" />
@@ -225,7 +243,7 @@ validate_gtid() {
         return 1
     fi
 
-    echo $1 | grep -q -E '^\w{8}-\w{4}-\w{4}-\w{4}-\w{12}:([[:digit:]]|-1)'
+    echo $1 | grep -q -E "${UUID_REGEX}"
     rc=$?
 
     if [ $rc -ne 0 ]; then
@@ -241,6 +259,9 @@ validate_gtid() {
 update_node_gtid() {
     local status_loglevel="err"
     local GTID
+    local GTID_current
+    local CLUSTER_ID
+    local COMMIT_ID
 
     # Set loglevel to info during probe
     if ocf_is_probe; then
@@ -254,23 +275,21 @@ update_node_gtid() {
             -e "SHOW STATUS LIKE 'wsrep_last_committed'" | awk '{print $NF}')
         GTID="$CLUSTER_ID:$COMMIT_ID"
     else
-        GTID=$(cat ${OCF_RESKEY_datadir}/grastate.dat \
+        GTID=$(${OCF_RESKEY_binary} --wsrep-recover \
+            --log-error=/dev/stdout 2>&1 | grep -e 'Recovered position' -e 'wsrep_start_position' | grep -Eo "${UUID_REGEX}")
+        [ -z "${GTID}" ] && GTID=$(cat ${OCF_RESKEY_datadir}/grastate.dat \
             | awk '/uuid/ { uuid = $NF} /seqno/ { seqno = $NF} END {print uuid":"seqno}')
     fi
 
-    #Final try to recover
-    if [ -z ${GTID} ]; then
-        GTID=$(${OCF_RESKEY_binary} --wsrep-recover \
-            --log-error=/dev/stdout 2>&1 | grep 'Recovered position' | awk '{print $NF}')
-    fi
-
-    if validate_gtid "$GTID"; then
-        ocf_log info "Galera GTID: ${GTID}"
-        crm_attribute --quiet --node $HOSTNAME --lifetime reboot --name gtid \
-            --update $GTID
-    else
-        ocf_log info "Wrong GTID: ${GTID}, Removing"
-        crm_attribute --quiet --node $HOSTNAME --lifetime reboot --name gtid -D
+    GTID_current=$(get_node_gtid $HOSTNAME)
+    if [ "${GTID}" != "${GTID_current}" ]; then
+        if validate_gtid "${GTID}"; then
+            ocf_log info "${LH} Galera GTID: ${GTID}"
+            crm_attribute --quiet --node $HOSTNAME --lifetime reboot --name gtid \
+                --update $GTID
+            echo "${GTID}"
+            return 0
+        fi
     fi
 }
 
@@ -285,7 +304,6 @@ get_master_timeout() {
 
 #Get gtid attribute for $1 node, "0" means no GTID set or wrong format for GTID
 get_node_gtid() {
-    local rc
     local GTID
 
     GTID=$(crm_attribute --quiet --node $1 --lifetime reboot --query \
@@ -324,55 +342,63 @@ check_if_reelection_needed() {
     return 0
 }
 
-choose_master() {
-    local NODES=$1
-    local -A TMP
-
-    for NODE in $NODES; do
-        NODE_ID=$(echo $NODE | md5sum | awk '{print $1}')
-        TMP[$NODE_ID]=$NODE
-    done
-
-    MASTER=$(printf -- '%s\n' "${!TMP[@]}" | sort | head -1)
-    ocf_log info "Choosed master: ${TMP[$MASTER]}"
-    echo ${TMP[$MASTER]}
-}
-
-get_possible_masters() {
+get_master() {
+    local LH="${LL} get_master()"
     local NODES=$*
     local POSSIBLE_MASTERS
     local -A TMP
     local MASTER_GTID
     local GTID
+    local NODE
+    local NODE_SCORE
+    local LATEST_SEQNO=-1
+    local SEQNO
+    local MASTER
 
+    # Ensure the same nodes list to reach a consensus for the choosen master across all of the nodes
+    NODES=$(printf -- '%s\n' ${NODES} | sort -u)
+    # Form a hash of keys as node names, values as GTID:SEQNO
     for NODE in $NODES; do
         GTID=$(get_node_gtid $NODE)
-        TMP[$NODE]=$(echo $GTID|cut -d":" -f 2)
+        # Cut the seqno off the GTID:SEQNO pairs
+        TMP[$NODE]=$GTID
     done
 
-    MASTER_GTID=$(printf -- '%s\n' "${TMP[@]}" | sort -r | head -1)
-
+    # Find possible masters
+    # Cut the seqnums off the stored GTID:SEQNO pairs, then find the most seen GTID for the nodes
+    MASTER_GTID=$(printf -- '%s\n' ${TMP[@]%:*} | grep -vE -e "^0$" -e $ZEROID | sort | uniq -c | awk '{print $2}' | head -1)
+    [ "${MASTER_GTID}" ] || MASTER_GTID=$ZEROID
+    ocf_log info "${LH} The most seen GTID is: ${MASTER_GTID}"
     for NODE in $NODES; do
-        if [ $MASTER_GTID -eq ${TMP[$NODE]} ]; then
+        ocf_log info "${LH} Node's ${NODE} score: ${NODE_SCORE}, GTID/SEQNUM: ${TMP[$NODE]}"
+        # Filter node names with the most seen GTID as possible masters and find the latest SEQNO
+        if [ "${MASTER_GTID}" = "${TMP[$NODE]%:*}" ]; then
             POSSIBLE_MASTERS="$POSSIBLE_MASTERS $NODE"
+            SEQNO=${TMP[$NODE]#*:}
+            [ $SEQNO -gt $LATEST_SEQNO ] && LATEST_SEQNO=$SEQNO
         fi
     done
+    ocf_log info "${LH} Possible masters: $POSSIBLE_MASTERS"
 
-    ocf_log info "Possible masters: $POSSIBLE_MASTERS"
-    echo $POSSIBLE_MASTERS
+    # Cut the gtids off the stored GTID:SEQNO pairs, then
+    # filter the master, which is one who has the latest SEQNO from the possible masters
+    for NODE in $POSSIBLE_MASTERS; do
+        [ "${LATEST_SEQNO}" = "${TMP[$NODE]#*:}" ] && MASTER=$NODE
+    done
+    ocf_log info "${LH} Choosed master: ${MASTER} with GTID: ${TMP[$MASTER]}"
+    echo "$MASTER"
 }
 
 check_if_galera_pc() {
     local NODES
-    local MASTERS
+    local MASTER
     local timeout=$(get_master_timeout)
 
     ocf_log info "Checking if Primary Component"
 
     while [ $timeout -gt 0 ]; do
         NODES=$(nodes_in_cluster_online)
-        MASTERS=$(get_possible_masters "$NODES")
-        MASTER=$(choose_master "$MASTERS")
+        MASTER=$(get_master "$NODES")
         if [ "$MASTER" = "$HOSTNAME" ]; then
             ocf_log info "I\'m Primary Component. Join me!"
             return 1
@@ -422,17 +448,41 @@ mysql_validate() {
     return $OCF_SUCCESS
 }
 
-mysql_status() {
-    i=${2:-3}
-    sleeptime=${3:-5}
-    while [ $i -gt 0 ]; do
-        if [ -f "${OCF_RESKEY_datadir}"/sst_in_progress ]; then
-            ocf_log info 'SST is in progress'
+check_if_sst() {
+    local LH="${LL} check_if_sst():"
+    local loglevel=${1:-'info'}
+    local pid
+    local pid2
+    local pid3
+    local pid4
+    # Match a mysqld pid by the datadir, exclude position recovery
+    pid=$(ps -C mysqld -o pid= -o command= -o args= | grep "${OCF_RESKEY_datadir}" | \
+        awk '!/wsrep.recover|defunct/ {print $1}')
+    if [ "${pid}" ] ; then
+        ocf_log info "${LH} MySQL process ${pid} found"
+        # Myslqd's running and may be blocked, check for signs of SST
+        pid2=$(ps -C ${OCF_RESKEY_streamfmt} -o pid= -o command= | awk '!/defunct/ {print $1}')
+        pid3=$(ps -C ${OCF_RESKEY_transferfmt} -o pid= -o command= | awk '!/defunct/ {print $1}')
+        pid4=$(ps -C innobackupex -o pid= -o command= | awk '!/defunct/ {print $1}')
+        if [ "${pid2}" -o "${pid3}" -o "${pid4}" ]; then
+            ocf_log $loglevel "${LH} SST is in progress"
             return $OCF_SUCCESS
         fi
+    fi
+    ocf_log $loglevel "${LH} No signs of SST found"
+    return $OCF_ERR_GENERIC
+}
 
+mysql_status() {
+    local LH="${LL} mysql_status():"
+    local loglevel=${1:-'info'}
+    local count=${2:-3}
+    local sleeptime=${3:-2}
+    local pid
+
+    while [ $count -gt 0 ]; do
         if [ -f "$OCF_RESKEY_pid" ]; then
-            ocf_log info 'MySQL PID found'
+            ocf_log info "${LH} MySQL PID found"
             break
         fi
         sleep $sleeptime
@@ -456,6 +506,7 @@ mysql_status() {
 
 mysql_monitor() {
     local rc
+    local rc2
     local status_loglevel="err"
     local WSREP_CONNECTED
     local WSREP_LOCAL_STATE_COMMENT
@@ -466,17 +517,13 @@ mysql_monitor() {
         status_loglevel="info"
     fi
 
-    if [ -f "${OCF_RESKEY_datadir}"/sst_in_progress ]; then
-        ocf_log info 'SST is in progress'
-        return $OCF_SUCCESS
-    fi
+    check_if_sst
+    rc=$?
+    [ $rc -eq $OCF_SUCCESS ] && return $rc
 
     mysql_status $status_loglevel
     rc=$?
-
-    if [ $rc -ne $OCF_SUCCESS ]; then
-        return $rc
-    fi
+    [ $rc -eq $OCF_SUCCESS ] || return $rc
 
     update_node_gtid
 
@@ -509,6 +556,11 @@ mysql_monitor() {
 
 mysql_start() {
     local NODES
+    local socket_dir
+    local pid_dir
+    local rc
+    local dir
+    local mysql_extra_params
 
     if mysql_status info 1; then
         ocf_log info "MySQL already running"
@@ -575,16 +627,21 @@ mysql_start() {
         return $rc
     fi
 
-    # Spin waiting for the server to come up.
+    # Spin waiting for the server to come up or exit, if SST's in progress
     # Let the CRM/LRM time us out if required.
     while :; do
+        check_if_sst
+        rc=$?
+        [ $rc -eq $OCF_SUCCESS ] && break
+
         if mysql_status info 1; then
             break
         fi
         sleep 3
     done
 
-    ocf_log info "MySQL started"
+    ocf_log info "${LH} MySQL started"
+    [ $rc -ne $OCF_SUCCESS ] && update_node_gtid
     return $OCF_SUCCESS
 }
 
@@ -652,6 +709,8 @@ mysql_stop() {
 # and the log must be writable and not a symlink.
 ##########################################################################
 DEBUG_LOG="/tmp/mysql.ocf.ra.debug/log"
+UUID_REGEX="\w{8}-\w{4}-\w{4}-\w{4}-\w{12}:([[:digit:]]+|-1)"
+ZEROID="00000000-0000-0000-0000-000000000000"
 if [ "${DEBUG_LOG}" -a -w "${DEBUG_LOG}" -a ! -L "${DEBUG_LOG}" ]; then
     DEBUG_LOG_DIR="${DEBUG_LOG%/*}"
     if [ -d "${DEBUG_LOG_DIR}" ]; then
