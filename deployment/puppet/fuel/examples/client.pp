@@ -6,7 +6,8 @@ class { "fuel::nailgun::client":
   server_address     => $::fuel_settings['ADMIN_NETWORK']['ipaddress'],
   keystone_user      => $::fuel_settings['FUEL_ACCESS']['user'],
   keystone_password  => $::fuel_settings['FUEL_ACCESS']['password'],
-  keystone_tenant    => pick($::fuel_settings['FUEL_ACCESS']['tenant'], 'admin')
+  keystone_tenant    => pick($::fuel_settings['FUEL_ACCESS']['tenant'], 'admin'),
+  auth_url           => "http://${::fuel_settings['ADMIN_NETWORK']['ipaddress']}:8000/keystone/v2.0",
 }
 
 # This exec needs python-fuelclient to be installed and nailgun running
