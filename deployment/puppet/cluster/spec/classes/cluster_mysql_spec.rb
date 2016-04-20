@@ -13,6 +13,12 @@ describe 'cluster::mysql' do
         }
       end
 
+      it 'defines a creds file' do
+        should contain_file('/etc/mysql/user.cnf').with_content(
+          "[client]\nuser = #{params[:mysql_user]}\npassword = #{params[:mysql_password]}"
+        )
+      end
+
       it 'configures a cs_resource' do
         should contain_pcmk_resource('p_mysqld').with(
           :ensure => 'present',
@@ -20,6 +26,7 @@ describe 'cluster::mysql' do
             'config' => '/etc/mysql/my.cnf',
             'test_user' => 'username',
             'test_passwd' => 'password',
+            'test_conf' => '/etc/mysql/user.cnf',
             'socket' =>'/var/run/mysqld/mysqld.sock'
           }
         )

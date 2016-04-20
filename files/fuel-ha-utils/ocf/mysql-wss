@@ -35,6 +35,7 @@ OCF_RESKEY_pid_default="${HA_RSCTMP}/${__SCRIPT_NAME}/${__SCRIPT_NAME}.pid"
 OCF_RESKEY_socket_default="/var/lib/mysql/mysql.sock"
 OCF_RESKEY_test_user_default="root"
 OCF_RESKEY_test_passwd_default=""
+OCF_RESKEY_test_conf_default=""
 OCF_RESKEY_additional_parameters_default=""
 OCF_RESKEY_master_timeout_default="300"
 
@@ -56,6 +57,7 @@ MYSQL_BINDIR="$(dirname ${OCF_RESKEY_binary})"
 
 : ${OCF_RESKEY_test_user=${OCF_RESKEY_test_user_default}}
 : ${OCF_RESKEY_test_passwd=${OCF_RESKEY_test_passwd_default}}
+: ${OCF_RESKEY_test_conf=${OCF_RESKEY_test_conf_default}}
 
 : ${OCF_RESKEY_additional_parameters=${OCF_RESKEY_additional_parameters_default}}
 : ${OCF_RESKEY_master_timeout=${OCF_RESKEY_master_timeout_default}}
@@ -65,7 +67,11 @@ MYSQL_BINDIR="$(dirname ${OCF_RESKEY_binary})"
 MYSQL=$OCF_RESKEY_client_binary
 HOSTNAME=$(uname -n)
 MYSQL_OPTIONS_LOCAL="-S $OCF_RESKEY_socket --connect_timeout=10"
-MYSQL_OPTIONS_TEST="$MYSQL_OPTIONS_LOCAL --user=$OCF_RESKEY_test_user --password=$OCF_RESKEY_test_passwd"
+if [ "${OCF_RESKEY_test_conf}" ]; then
+  MYSQL_OPTIONS_TEST="--defaults-extra-file=${OCF_RESKEY_test_conf} ${MYSQL_OPTIONS_LOCAL}"
+else
+  MYSQL_OPTIONS_TEST="$MYSQL_OPTIONS_LOCAL --user=$OCF_RESKEY_test_user --password=$OCF_RESKEY_test_passwd"
+fi
 #######################################################################
 usage() {
     cat <<UEND
@@ -160,6 +166,13 @@ meta_data() {
       </longdesc>
       <shortdesc lang="en">MySQL test user password</shortdesc>
       <content type="string" default="${OCF_RESKEY_test_passwd_default}" />
+    </parameter>
+    <parameter name="test_conf" unique="0" required="0">
+      <longdesc lang="en">
+      MySQL test user conf file to override user/pass
+      </longdesc>
+      <shortdesc lang="en">MySQL test user conf file</shortdesc>
+      <content type="string" default="${OCF_RESKEY_test_conf_default}" />
     </parameter>
     <parameter name="additional_parameters" unique="0" required="0">
       <longdesc lang="en">
