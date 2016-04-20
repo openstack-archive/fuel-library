@@ -54,20 +54,16 @@ class openstack_tasks::openstack_cinder::openstack_cinder {
   $keystone_auth_protocol = get_ssl_property($ssl_hash, {}, 'keystone', 'internal', 'protocol', 'http')
   $keystone_auth_host     = get_ssl_property($ssl_hash, {}, 'keystone', 'internal', 'hostname', [hiera('keystone_endpoint', ''), $service_endpoint, $management_vip])
 
-  $glance_protocol        = get_ssl_property($ssl_hash, {}, 'glance', 'internal', 'protocol', 'http')
-  $glance_endpoint        = get_ssl_property($ssl_hash, {}, 'heat', 'internal', 'hostname', [hiera('glance_endpoint', ''), $management_vip])
-  $glance_ssl_usage       = get_ssl_property($ssl_hash, {}, 'glance', 'internal', 'usage', false)
+  # get glance api servers list
+  $glance_endpoint_default = hiera('glance_endpoint', $management_vip)
+  $glance_protocol         = get_ssl_property($ssl_hash, {}, 'glance', 'internal', 'protocol', 'http')
+  $glance_endpoint         = get_ssl_property($ssl_hash, {}, 'glance', 'internal', 'hostname', $glance_endpoint_default)
+  $glance_api_servers      = hiera('glance_api_servers', "${glance_protocol}://${glance_endpoint}:9292")
 
   $swift_internal_protocol = get_ssl_property($ssl_hash, {}, 'swift', 'internal', 'protocol', 'http')
   $swift_internal_address  = get_ssl_property($ssl_hash, {}, 'swift', 'internal', 'hostname', [$management_vip])
 
   $swift_url = "${swift_internal_protocol}://${swift_internal_address}:${proxy_port}"
-
-  if $glance_ssl_usage {
-    $glance_api_servers = "${glance_protocol}://${glance_endpoint}:9292"
-  } else {
-    $glance_api_servers = hiera('glance_api_servers', "${management_vip}:9292")
-  }
 
   $service_port        = '5000'
   $auth_uri            = "${keystone_auth_protocol}://${keystone_auth_host}:${service_port}/"
