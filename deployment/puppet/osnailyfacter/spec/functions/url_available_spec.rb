@@ -18,6 +18,11 @@ describe 'the structure function' do
     ]
   end
 
+  before(:each) do
+    valid_urls.each { |valid_url| stub_request(:get, valid_url) }
+    invalid_urls.each { |invalid_url| stub_request(:get, invalid_url).to_raise(StandardError) }
+  end
+
   it 'should exist' do
     expect(Puppet::Parser::Functions.function('url_available')).to eq 'function_url_available'
   end

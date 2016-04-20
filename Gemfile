@@ -18,7 +18,7 @@ group :development, :test do
   gem 'json',                                 :require => 'false'
   gem 'pry',                                  :require => 'false'
   gem 'simplecov',                            :require => 'false'
-  gem 'webmock',                              :require => 'false'
+  gem 'webmock', '1.22.6',                    :require => 'false'
   gem 'fakefs',                               :require => 'false'
   gem 'fog-google', '0.1.0',                  :require => 'false' # 0.1.1+ requires ruby 2.0
   gem 'google-api-client', '0.9.4',           :require => 'false' # 0.9.5 requires ruby 2.0
