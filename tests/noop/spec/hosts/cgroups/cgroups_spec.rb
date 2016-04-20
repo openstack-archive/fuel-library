@@ -16,23 +16,25 @@ require 'shared-examples'
 manifest = 'cgroups/cgroups.pp'
 
 describe manifest do
-
-  before(:each) do
-    Noop.puppet_function_load :prepare_cgroups_hash
-    MockFunction.new(:prepare_cgroups_hash) do |function|
-      allow(function).to receive(:call).and_return({})
-    end
-  end
-
   shared_examples 'catalog' do
-    cgroups_hash = Noop.hiera_structure('cgroups', nil)
-    if cgroups_hash
+
+    let(:cgroups_config) do
+      Noop.hiera_hash 'cgroups', {}
+    end
+
+    cgroups_settings = Noop.puppet_function(
+      'prepare_cgroups_hash',
+      cgroups_config
+    )
+
+    if cgroups_settings
       it 'should declare cgroups class correctly' do
         should contain_class('cgroups').with(
-          'cgroups_set'  => {},
+          'cgroups_set'  => cgroups_settings,
         )
       end
     end
+
   end
   test_ubuntu_and_centos manifest
 end
