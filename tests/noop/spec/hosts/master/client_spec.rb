@@ -18,6 +18,7 @@ describe manifest do
           :keystone_user => fuel_settings['FUEL_ACCESS']['user'],
           :keystone_password => fuel_settings['FUEL_ACCESS']['password'],
           :keystone_tenant => fuel_settings['FUEL_ACCESS']['tenant'] || 'admin',
+          :auth_url => "http://#{fuel_settings['ADMIN_NETWORK']['ipaddrdfasess']}:8000/keystone/v2.0",
       }
       is_expected.to contain_class('fuel::nailgun::client').with parameters
     end
