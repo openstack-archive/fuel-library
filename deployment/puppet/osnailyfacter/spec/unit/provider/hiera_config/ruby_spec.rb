@@ -4,7 +4,11 @@ describe Puppet::Type.type(:hiera_config).provider(:ruby) do
   let(:params) do
     {
         :name => '/etc/hiera.yaml',
-        :hierarchy => %w(base additional),
+        :hierarchy => %w(additional base),
+        :merge_behavior => 'deeper',
+        :additions => {
+            'test' => '123',
+        }
     }
   end
 
@@ -23,34 +27,40 @@ describe Puppet::Type.type(:hiera_config).provider(:ruby) do
   let(:config_file_data) do
     {
         :yaml => {
-            :datadir => "/etc/hiera",
+            :datadir => '/etc/hiera',
         },
         :hierarchy => %w(plugins/a plugins/b plugins/c additional base),
-        :backends => ["yaml"],
-        :logger => "noop",
+        :backends => ['yaml'],
+        :logger => 'noop',
         :merge_behavior => 'deeper',
+        :test => '123',
     }
   end
 
   let(:config_file_data_for_metadata_entries) do
     {
         :yaml => {
-            :datadir => "/etc/hiera",
+            :datadir => '/etc/hiera',
         },
         :hierarchy => %w(plugins/plugin1 plugins/plugin2 additional base),
-        :backends => ["yaml"],
-        :logger => "noop",
+        :backends => ['yaml'],
+        :logger => 'noop',
         :merge_behavior => 'deeper',
+        :test => '123',
     }
   end
 
   let(:property_hash) do
     {
-        :logger => "noop",
-        :data_dir => "/etc/hiera",
+        :logger => 'noop',
+        :backends => ['yaml'],
+        :data_dir => '/etc/hiera',
         :hierarchy => %w(additional base),
         :hierarchy_override => %w(plugins/a plugins/b plugins/c),
         :merge_behavior => 'deeper',
+        :additions => {
+            :test => '123',
+        },
     }
   end
 
@@ -159,7 +169,7 @@ describe Puppet::Type.type(:hiera_config).provider(:ruby) do
     end
 
     it 'can generate the hierarchy structure' do
-      expect(provider.generate_hierarhy).to eq config_file_data[:hierarchy]
+      expect(provider.generate_hierarchy).to eq config_file_data[:hierarchy]
     end
 
     it 'can generate a new configuration structure from the property_hash' do
@@ -179,15 +189,16 @@ describe Puppet::Type.type(:hiera_config).provider(:ruby) do
       provider.flush
     end
 
-    it 'will save any additional parameters in the Hiera config file' do
-      provider.stubs(:read_configuration).returns(config_file_data.merge(:a => 1))
-      provider.load_configuration
-      provider.expects(:write_configuration).with(config_file_data.merge(:a => 1))
+    it 'can create a new configuration file' do
+      provider.stubs(:read_configuration).returns({})
+      provider.exists?
+      provider.create
+      provider.expects(:write_configuration).with(config_file_data)
       provider.flush
     end
   end
 
-  context '#both retreive and generate' do
+  context '#both retrieve and generate' do
     it 'cat generate configuration with directory entries' do
       provider.load_configuration
       provider.hierarchy_override = resource[:hierarchy_override]
