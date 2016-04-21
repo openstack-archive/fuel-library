@@ -93,6 +93,9 @@ class osnailyfacter::rabbitmq::rabbitmq {
       'mnesia_table_loading_timeout' => $mnesia_table_loading_timeout,
       'collect_statistics_interval'  => '30000',
       'disk_free_limit'              => '5000000', # Corosync checks for disk space, reduce rabbitmq check to 5M see LP#1493520 comment #15
+      # TODO(mpolenchuk) Get optimal value for number of
+      # Erlang processes that will accept connections
+      'num_tcp_acceptors'            => 10,
     }
     $config_variables = merge($config_variables_default, hiera_hash('rabbit_config_variables', {}))
 
