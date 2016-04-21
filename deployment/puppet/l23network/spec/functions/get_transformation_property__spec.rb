@@ -124,6 +124,14 @@ end
       should run.with_params('mtu', 'eth3').and_return(nil)
     end
 
+    it 'should return ovs for "br-floating" transformation' do
+      should run.with_params('provider', 'br-floating').and_return('ovs')
+    end
+
+    it 'should return NIL for "br-storage" transformation' do
+      should run.with_params('provider', 'br-storage').and_return(nil)
+    end
+
   end
 
 end
