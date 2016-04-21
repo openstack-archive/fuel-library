@@ -49,7 +49,7 @@ describe manifest do
       neutron_endpoint = Noop.hiera 'neutron_endpoint', service_endpoint
       neutron_url = "http://#{neutron_endpoint}:9696"
       ironic_user = Noop.hiera_structure 'ironic/user', 'ironic'
-      temp_url_endpoint_type = (storage_config['images_ceph']) ? 'radosgw' : 'swift'
+      temp_url_endpoint_type = (storage_config['objects_ceph']) ? 'radosgw' : 'swift'
       it 'ironic config should have propper config options' do
         should contain_ironic_config('pxe/tftp_root').with('value' => '/var/lib/ironic/tftpboot')
         should contain_ironic_config('neutron/url').with('value' => neutron_url)
