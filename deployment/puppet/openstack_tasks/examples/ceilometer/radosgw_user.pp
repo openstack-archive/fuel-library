@@ -1,1 +1,1 @@
-include ::openstack_tasks::ceilometer::radosgw_user
+class { '::openstack_tasks::ceilometer::radosgw_user' :}

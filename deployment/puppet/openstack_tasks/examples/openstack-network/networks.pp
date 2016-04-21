@@ -1,1 +1,1 @@
-include ::openstack_tasks::openstack_network::networks
+class { '::openstack_tasks::openstack_network::networks' :}

@@ -1,1 +1,1 @@
-include ::osnailyfacter::firewall::firewall
+class { '::osnailyfacter::firewall::firewall' :}

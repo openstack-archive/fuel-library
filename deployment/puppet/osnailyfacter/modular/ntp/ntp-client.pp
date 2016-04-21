@@ -1,1 +1,1 @@
-include ::osnailyfacter::ntp::ntp_client
+class { '::osnailyfacter::ntp::ntp_client' :}

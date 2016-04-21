@@ -1,1 +1,1 @@
-include ::osnailyfacter::ceph::mon
+class { '::osnailyfacter::ceph::mon' :}

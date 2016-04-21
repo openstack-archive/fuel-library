@@ -1,1 +1,1 @@
-include ::osnailyfacter::astute::service_token_off
+class { '::osnailyfacter::astute::service_token_off' :}

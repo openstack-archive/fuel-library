@@ -1,1 +1,1 @@
-include ::openstack_tasks::horizon::horizon
+class { '::openstack_tasks::horizon::horizon' :}

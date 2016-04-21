@@ -1,1 +1,1 @@
-include ::osnailyfacter::ceph::ceph_osd
+class { '::osnailyfacter::ceph::ceph_osd' :}

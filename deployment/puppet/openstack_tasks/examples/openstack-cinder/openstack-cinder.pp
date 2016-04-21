@@ -1,1 +1,1 @@
-include ::openstack_tasks::openstack_cinder::openstack_cinder
+class { '::openstack_tasks::openstack_cinder::openstack_cinder' :}

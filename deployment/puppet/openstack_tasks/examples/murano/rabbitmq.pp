@@ -1,1 +1,1 @@
-include ::openstack_tasks::murano::rabbitmq
+class { '::openstack_tasks::murano::rabbitmq' :}

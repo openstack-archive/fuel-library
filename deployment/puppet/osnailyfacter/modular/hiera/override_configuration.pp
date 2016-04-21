@@ -1,1 +1,1 @@
-include ::osnailyfacter::hiera::override_configuration
+class { '::osnailyfacter::hiera::override_configuration' :}

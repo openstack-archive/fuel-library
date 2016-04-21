@@ -1,1 +1,1 @@
-include ::osnailyfacter::astute::dump_rabbitmq_definitions
+class { '::osnailyfacter::astute::dump_rabbitmq_definitions' :}
