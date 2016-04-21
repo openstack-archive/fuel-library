@@ -280,6 +280,13 @@ describe manifest do
 
     libvirt_type = Noop.hiera 'libvirt_type', nil
 
+    it 'should manage libvirt-services under Ubuntu UCA' do
+      if facts[:os_package_type] == 'ubuntu'
+        should contain_service('virtlogd').that_comes_before('Service[libvirt]')
+        should contain_service('virtlockd').that_comes_before('Service[libvirt]')
+      end
+    end
+
     it 'should set permissions for /dev/kvm under Ubuntu' do
       if facts[:operatingsystem] == 'Ubuntu' and libvirt_type == 'kvm'
         should contain_file('/dev/kvm').with(
