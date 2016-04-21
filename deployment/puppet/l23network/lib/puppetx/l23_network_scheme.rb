@@ -84,6 +84,12 @@ module L23network
           end
         end
         rv = (mtu.empty?  ?  nil  :  mtu.min()  )
+      when 'PROVIDER'
+        transformations.each do |transform|
+          if transform[:name] == trans_name and transform[:provider] != nil
+            rv = transform[:provider]
+          end
+        end
       else
         rv = nil
     end

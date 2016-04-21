@@ -189,27 +189,37 @@ network_scheme:
   version: 1.1
   provider: lnx
   interfaces:
+    eth1: {}
     eth2: {}
     eth3: {}
   transformations:
-    - action: add-bond
-      name:   bond0
-      interfaces:
-        - eth2
-        - eth3
-      bridge: some-bridge
-      bond_properties:
-        mode: balance-rr
+    - action: add-br
+      name: br-eth1
+    - action: add-port
+      bridge: br-eth1
+      name: eth1
+    - action: add-br
+      name: br-eth2
       provider: ovs
+    - action: add-port
+      bridge: br-eth2
+      name: eth2
+      provider: lnx
+    - action: add-br
+      name: br-eth3
+      provider: ovs
+    - action: add-port
+      bridge: br-eth3
+      name: eth3
   endpoints:
-    bond0:
+    br-eth3:
       IP:
         - 192.168.101.3/24
   roles: {}
 eof
 end
 
-  context 'with transformations and endpoint for bond' do
+  context 'with transformations and endpoint for bridge' do
     let(:title) { 'empty network scheme' }
     let(:facts) {
       {
@@ -234,34 +244,40 @@ end
     end
 
     it do
-      should contain_L23network__L2__Bond_interface('eth2')
+      should contain_L23network__L2__Bridge('br-eth1')
     end
     it do
-      should contain_L23network__L2__Port('eth2')
-    end
-
-    it do
-      should contain_L23network__L2__Bond_interface('eth3')
-    end
-    it do
-      should contain_L23network__L2__Port('eth3')
+      should contain_L23network__L2__Port('eth1').with({
+        :bridge => 'br-eth1',
+        :provider => 'lnx'})
     end
 
     it do
-      should contain_L23network__L2__Bond('bond0')
+      should contain_L23network__L2__Bridge('br-eth2')
     end
     it do
-      should contain_L2_bond('bond0').that_requires('L2_port[eth2]')
-    end
-    it do
-      should contain_L2_bond('bond0').that_requires('L2_port[eth3]')
+      should contain_L23network__L2__Port('eth2').with({
+        :bridge => 'br-eth2',
+        :provider => 'lnx'})
     end
 
     it do
-      should contain_L23network__L3__Ifconfig('bond0')
+      should contain_L23network__L2__Bridge('br-eth3')
     end
     it do
-      should contain_L23network__L3__Ifconfig('bond0').that_requires("L23network::L2::Bond[bond0]")
+      should contain_L23network__L2__Port('eth3').with({
+        :bridge => 'br-eth3',
+        :provider => 'ovs'})
+    end
+    #it do
+    #  should contain_L2_bridge('br-eth3').that_requires('L2_port[eth3]')
+    #end
+
+    it do
+      should contain_L23network__L3__Ifconfig('br-eth3')
+    end
+    it do
+      should contain_L23network__L3__Ifconfig('br-eth3').that_requires("L23network::L2::Bridge[br-eth3]")
     end
 
   end
