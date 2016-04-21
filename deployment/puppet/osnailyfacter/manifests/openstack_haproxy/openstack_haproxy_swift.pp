@@ -42,6 +42,8 @@ class osnailyfacter::openstack_haproxy::openstack_haproxy_swift {
     # health check returns OK, but all requests forwarded from HAproxy fail, see LP#1459772
     # In order to detect such bad swift backends we enable a service which checks Keystone
     # availability from swift node. HAProxy monitors that service to get proper backend status.
+    # NOTE: this is the same logic in the swift proxy task so if this is updated
+    # then it must be updated overthere as well. See LP#1548275
     $swift_api_network     = get_network_role_property('swift/api', 'network')
     $bind_to_one           = has_ip_in_network($internal_virtual_ip, $swift_api_network)
 
