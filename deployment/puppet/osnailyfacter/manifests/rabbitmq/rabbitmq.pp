@@ -52,13 +52,9 @@ class osnailyfacter::rabbitmq::rabbitmq {
       }
     }
 
-    if ($debug) {
-      # FIXME(aschultz): debug wasn't introduced until v3.5.0, when we upgrade
-      # we should change info to debug. Also don't forget to fix tests!
-      $rabbit_levels = '[{connection,info}]'
-    } else {
-      $rabbit_levels = '[{connection,info}]'
-    }
+    $rabbit_levels = sprintf('[{connection, %s}]',
+      $debug ? { true => 'debug', default => 'info' }
+    )
 
     $cluster_partition_handling   = hiera('rabbit_cluster_partition_handling', 'autoheal')
     $mnesia_table_loading_timeout = hiera('mnesia_table_loading_timeout', '10000')
@@ -93,6 +89,9 @@ class osnailyfacter::rabbitmq::rabbitmq {
       'mnesia_table_loading_timeout' => $mnesia_table_loading_timeout,
       'collect_statistics_interval'  => '30000',
       'disk_free_limit'              => '5000000', # Corosync checks for disk space, reduce rabbitmq check to 5M see LP#1493520 comment #15
+      # TODO(mpolenchuk) Get optimal value for number of
+      # Erlang processes that will accept connections
+      'num_tcp_acceptors'            => 10,
     }
     $config_variables = merge($config_variables_default, hiera_hash('rabbit_config_variables', {}))
 

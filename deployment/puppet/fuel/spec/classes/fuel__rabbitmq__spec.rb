@@ -10,9 +10,17 @@ describe 'fuel::rabbitmq', :type => :class do
     }}
     context 'with default parameters' do
       describe 'declares rabbitmq class' do
-        it {
-          should contain_class('rabbitmq')
-        }
+        it { should contain_class('rabbitmq').with(
+          :repos_ensure      => false,
+          :package_provider  => 'yum',
+          :service_ensure    => 'running',
+          :delete_guest_user => true,
+          :config_cluster    => false,
+          :cluster_nodes     => [],
+          :config_stomp      => true,
+          :ssl               => false,
+          :tcp_keepalive     => true,
+        )}
       end
       describe 'and sets appropriate log_level configuration for rabbitmq' do
         it {

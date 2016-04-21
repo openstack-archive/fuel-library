@@ -185,16 +185,8 @@ describe manifest do
       end
     end
 
-    # LP#1477595
     it "should contain rabbitmq correct log levels" do
-      if debug
-        # FIXME(aschultz): debug wasn't introduced until v3.5.0, when we upgrade
-        # we should change info to debug. Also, don't forget to fix the
-        # provisioning code!
-        log_levels = '[{connection,info}]'
-      else
-        log_levels = '[{connection,info}]'
-      end
+      log_levels = sprintf('[{connection, %s}]', debug ? 'debug' : 'info')
       should contain_class('rabbitmq').with_config_variables(/#{log_levels}/)
     end
 
