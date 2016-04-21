@@ -431,7 +431,7 @@ class openstack_tasks::openstack_controller::openstack_controller {
   $nova_scheduler_default_filters = [ 'RetryFilter', 'AvailabilityZoneFilter', 'RamFilter', 'CoreFilter', 'DiskFilter', 'ComputeFilter', 'ComputeCapabilitiesFilter', 'ImagePropertiesFilter', 'ServerGroupAntiAffinityFilter', 'ServerGroupAffinityFilter' ]
   $sriov_filters                  = $sriov_enabled ? { true => [ 'PciPassthroughFilter','AggregateInstanceExtraSpecsFilter' ], default => []}
   $sahara_filters                 = $sahara_enabled ? { true => [ 'DifferentHostFilter' ], default => []}
-  $huge_pages_filters             = $use_huge_pages ? { true => [ 'AggregateInstanceExtraSpecsFilter' ], default => []}
+  $huge_pages_filters             = $use_huge_pages ? { true => [ 'NUMATopologyFilter' ], default => []}
   $cpu_pinning_filters            = $enable_cpu_pinning ? { true => [ 'NUMATopologyFilter', 'AggregateInstanceExtraSpecsFilter' ], default => []}
   $nova_scheduler_filters         = unique(concat(pick($nova_config_hash['default_filters'], $nova_scheduler_default_filters), $sahara_filters, $sriov_filters, $huge_pages_filters, $cpu_pinning_filters))
 
