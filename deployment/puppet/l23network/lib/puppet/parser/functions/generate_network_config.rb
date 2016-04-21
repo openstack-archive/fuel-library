@@ -356,7 +356,7 @@ Puppet::Parser::Functions::newfunction(:generate_network_config, :type => :rvalu
       if action != :noop
 
         #debug("TXX: '#{t[:name]}' =>  '#{t.to_yaml.gsub('!ruby/sym ','')}'.")
-        trans = L23network.sanitize_transformation(t, default_provider)
+        trans = L23network.sanitize_transformation(t)
         #debug("TTT: '#{trans[:name]}' =>  '#{trans.to_yaml.gsub('!ruby/sym ','')}'.")
 
         # merge interface properties with transformations and vendor_specific
@@ -370,6 +370,15 @@ Puppet::Parser::Functions::newfunction(:generate_network_config, :type => :rvalu
             if trans[:mtu].nil?
               trans[:mtu] = L23network.get_property_for_transformation('MTU', devices[0], lookupvar('l3_fqdn_hostname'))
             end
+          end
+        end
+
+        if !trans[:provider]
+          if action == :port && trans[:bridge]
+            provider = L23network.get_property_for_transformation('PROVIDER', trans[:bridge], lookupvar('l3_fqdn_hostname'))
+            trans[:provider] = provider || default_provider
+          else
+            trans[:provider] = default_provider
           end
         end
 
