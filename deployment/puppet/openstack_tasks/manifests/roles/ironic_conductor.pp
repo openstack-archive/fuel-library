@@ -54,7 +54,7 @@ class openstack_tasks::roles::ironic_conductor {
 
   $tftp_root                  = '/var/lib/ironic/tftpboot'
 
-  $temp_url_endpoint_type = $storage_hash['images_ceph'] ? {
+  $temp_url_endpoint_type = $storage_hash['objects_ceph'] ? {
     true    => 'radosgw',
     default => 'swift'
   }
