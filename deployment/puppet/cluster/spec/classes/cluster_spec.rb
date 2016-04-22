@@ -37,6 +37,7 @@ describe 'cluster' do
     let :facts do
       { :osfamily => 'Debian',
         :operatingsystem => 'Debian',
+        :operatingsystemrelease => '8',
         :hostname => 'hostname.example.com', }
     end
 
@@ -48,10 +49,11 @@ describe 'cluster' do
     let :facts do
       { :osfamily => 'RedHat',
         :operatingsystem => 'RedHat',
+        :operatingsystemrelease => '7.2',
         :hostname => 'hostname.example.com', }
     end
 
-    let(:packages) { 'crmsh' }
+    let(:packages) { ['crmsh'] }
     it_configures 'cluster configuration'
   end
 
