@@ -83,7 +83,6 @@ class fuel::params {
   $mco_connector                 = 'rabbitmq'
   $mco_packages_extra            = [
     'fuel-agent',
-    'fuel-provisioning-scripts',
     'shotgun',
     'ironic-fa-bootstrap-configs',
     'fuel-bootstrap-cli',
