@@ -8,13 +8,16 @@ class osnailyfacter::virtual_ips::conntrackd {
   $bind_address = get_network_role_property('mgmt/vip', 'ipaddr')
   $mgmt_bridge = get_network_role_property('mgmt/vip', 'interface')
 
-  # CONNTRACKD for CentOS 6 doesn't work under namespaces
-  if $::operatingsystem == 'Ubuntu' {
-    class { '::cluster::conntrackd_ocf' :
-      vrouter_name => $vrouter_name,
-      bind_address => $bind_address,
-      mgmt_bridge  => $mgmt_bridge,
+  # If VIP has namespace set to 'false' or 'undef' then we do not configure
+  # it under corosync cluster. So we should not configure colocation with it.
+  if $network_metadata['vips']["vrouter_${vrouter_name}"]['namespace'] {
+    # CONNTRACKD for CentOS 6 doesn't work under namespaces
+    if $::operatingsystem == 'Ubuntu' {
+      class { '::cluster::conntrackd_ocf' :
+        vrouter_name => $vrouter_name,
+        bind_address => $bind_address,
+        mgmt_bridge  => $mgmt_bridge,
+      }
     }
   }
-
 }
