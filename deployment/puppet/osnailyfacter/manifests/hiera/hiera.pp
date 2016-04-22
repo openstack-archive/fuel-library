@@ -18,6 +18,7 @@ class osnailyfacter::hiera::hiera {
     'override/configuration/cluster',
     'class/%{calling_class}',
     'module/%{calling_module}',
+    'deleted_nodes',
     'nodes',
     'globals%{disable_globals_yaml}',
     'astute',
