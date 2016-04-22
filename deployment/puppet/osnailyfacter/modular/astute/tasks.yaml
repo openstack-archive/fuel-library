@@ -358,3 +358,17 @@
     data:
       yaql_exp: '{"deleted_nodes" => deleted($.nodes.fqdn)}.toYaml()'
 
+- id: purge_service_entries
+  version: 2.1.0
+  type: puppet
+  role: [primary-controller]
+  condition:
+    yaql_exp: 'changed($.network_metadata)'
+  requires: [post_deployment_start]
+  required_for: [post_deployment_end]
+  parameters:
+    puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/astute/purge_service_entries.pp
+    puppet_modules: /etc/puppet/modules
+    timeout: 180
+    cwd: /
+
