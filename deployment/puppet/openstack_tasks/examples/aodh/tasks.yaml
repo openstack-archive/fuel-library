@@ -15,7 +15,7 @@
       $.get('region', 'RegionOne'), $.debug, $.get('verbose'),
       $.get('database_vip'), $.get('external_lb'), $.network_metadata.vips,
       $.public_ssl, $.get('use_ssl'), $.ceilometer)
-    parameters:
+  parameters:
     puppet_manifest: /etc/puppet/modules/openstack_tasks/examples/aodh/aodh.pp
     puppet_modules: /etc/puppet/modules
     timeout: 3600
