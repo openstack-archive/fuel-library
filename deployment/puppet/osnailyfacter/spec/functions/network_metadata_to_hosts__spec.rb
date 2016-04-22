@@ -10,7 +10,7 @@ let(:network_metadata) {"""
     node-5:
       swift_zone: '5'
       uid: '5'
-      fqdn: node-5.domain.local
+      fqdn: ctrl-005.domain.local
       network_roles:
         keystone/api: 10.88.0.6
         neutron/api: 10.88.0.6
@@ -21,11 +21,11 @@ let(:network_metadata) {"""
       user_node_name: CO22
       node_roles:
       - compute
-      name: node-5
+      name: ctrl-005
     node-4:
       swift_zone: '4'
       uid: '4'
-      fqdn: node-4.domain.local
+      fqdn: ctrl-004.domain.local
       network_roles:
         keystone/api: 10.88.0.7
         neutron/api: 10.88.0.7
@@ -39,11 +39,11 @@ let(:network_metadata) {"""
       user_node_name: CNT21
       node_roles:
       - primary-controller
-      name: node-4
+      name: ctrl-004
     node-6:
       swift_zone: '6'
       uid: '6'
-      fqdn: node-6.domain.local
+      fqdn: ctrl-006.domain.local
       network_roles:
         keystone/api: 10.88.0.8
         neutron/api: 10.88.0.8
@@ -55,7 +55,7 @@ let(:network_metadata) {"""
       user_node_name: CO23
       node_roles:
       - compute
-      name: node-6
+      name: ctrl-006
   vips:
     vrouter_pub:
       network_role: public/vip
@@ -105,23 +105,25 @@ let(:network_metadata) {"""
 
   it 'should return hash for creating ordinary set of "host" puppet resources by create_resources()' do
     expect(scope.function_network_metadata_to_hosts([YAML.load(network_metadata)])).to eq({
-      'node-6.domain.local' => {:ip => '10.88.0.8', :host_aliases => ['node-6']},
-      'node-5.domain.local' => {:ip => '10.88.0.6', :host_aliases => ['node-5']},
-      'node-4.domain.local' => {:ip => '10.88.0.7', :host_aliases => ['node-4']},
+      'ctrl-006.domain.local' => {:ip => '10.88.0.8', :host_aliases => ['ctrl-006']},
+      'ctrl-005.domain.local' => {:ip => '10.88.0.6', :host_aliases => ['ctrl-005']},
+      'ctrl-004.domain.local' => {:ip => '10.88.0.7', :host_aliases => ['ctrl-004']},
     })
   end
 
   it 'should return hash for creating prefixed set of "host" puppet resources by create_resources()' do
     expect(scope.function_network_metadata_to_hosts([YAML.load(network_metadata), 'nova/migration', 'xxx-'])).to eq({
-      'xxx-node-6.domain.local' => {:ip => '10.77.0.8', :host_aliases => ['xxx-node-6']},
-      'xxx-node-5.domain.local' => {:ip => '10.77.0.6', :host_aliases => ['xxx-node-5']},
-      'xxx-node-4.domain.local' => {:ip => '10.77.0.7', :host_aliases => ['xxx-node-4']},
+      'xxx-ctrl-006.domain.local' => {:ip => '10.77.0.8', :host_aliases => ['xxx-ctrl-006']},
+      'xxx-ctrl-005.domain.local' => {:ip => '10.77.0.6', :host_aliases => ['xxx-ctrl-005']},
+      'xxx-ctrl-004.domain.local' => {:ip => '10.77.0.7', :host_aliases => ['xxx-ctrl-004']},
     })
   end
 
+  it { expect{scope.function_network_metadata_to_hosts()}.to raise_error(ArgumentError, /Wrong number of arguments given/) }
+
   it 'should throw exception on wrong number of parameters' do
     expect{scope.function_network_metadata_to_hosts([YAML.load(network_metadata), 'nova/migration'])}.to \
-      raise_error(Puppet::ParseError, /Wrong number of arg/)
+      raise_error(ArgumentError, /opts are required/)
   end
 
 end
