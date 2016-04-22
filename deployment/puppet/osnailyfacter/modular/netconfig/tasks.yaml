@@ -4,7 +4,6 @@
   groups: [primary-controller, controller, cinder, cinder-block-device, cinder-vmware, compute, ceph-osd, primary-mongo, mongo, virt, ironic]
   required_for: [deploy_end]
   requires: [tools]
-  reexecute_on: [deploy_changes]
   condition:
     yaql_exp: >
       changedAny($.network_scheme, $.dpdk, $.get('use_ovs'), $.get('set_rps'),
@@ -26,7 +25,6 @@
   groups: [primary-controller, controller, cinder, cinder-block-device, cinder-vmware, compute, ceph-osd, primary-mongo, mongo, virt, ironic]
   required_for: [firewall, hosts]
   requires: [netconfig]
-  reexecute_on: [deploy_changes]
   condition:
     yaql_exp: 'changedAny($.repo_setup, $.network_scheme)'
   parameters:
@@ -57,7 +55,6 @@
   requires: [rsync_core_puppet]
   condition:
     yaql_exp: '$.uid in added($.nodes).uid'
-  reexecute_on: [deploy_changes]
   parameters:
     puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/netconfig/reserved_ports.pp
     puppet_modules: /etc/puppet/modules
