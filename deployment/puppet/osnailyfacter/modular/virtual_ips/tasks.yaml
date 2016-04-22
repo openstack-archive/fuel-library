@@ -1,9 +1,11 @@
 - id: virtual_ips
   type: puppet
-  version: 2.0.0
+  version: 2.1.0
   groups: [primary-controller, controller]
   required_for: [deploy_end]
   requires: [primary-cluster,cluster]
+  condition:
+    yaql_exp: "changedAny($.network_metadata, $.network_scheme, $.roles)"
   cross-depends:
     - name: /(primary-)?cluster$/
       role: self
@@ -16,10 +18,14 @@
 
 - id: conntrackd
   type: puppet
-  version: 2.0.0
+  version: 2.1.0
   groups: [primary-controller, controller]
   required_for: [deploy_end]
   requires: [virtual_ips,cluster,primary-cluster]
+  condition:
+    yaql_exp: >
+      changedAny($.network_metadata, $.network_scheme,
+      $.get('vrouter_name'))
   cross-depends:
     - name: /(primary-)?cluster/
       role: self
