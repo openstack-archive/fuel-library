@@ -7,6 +7,7 @@ class osnailyfacter::memcached::memcached {
   class { '::memcached':
     listen_ip  => get_network_role_property('mgmt/memcache', 'ipaddr'),
     max_memory => '50%',
+    item_size  => '10m',
   }
 
 }
