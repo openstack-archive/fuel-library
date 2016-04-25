@@ -256,11 +256,12 @@ validate_gtid() {
     fi
 }
 
-#Get galera GTID from local mysql instance
+#Get galera GTID from local mysql instance, store in CIB, and return it as well
 update_node_gtid() {
     local LH="${LL} update_node_gtid():"
     local status_loglevel="err"
     local GTID
+    local GTID_current
     local CLUSTER_ID
     local COMMIT_ID
 
@@ -276,25 +277,29 @@ update_node_gtid() {
             -e "SHOW STATUS LIKE 'wsrep_last_committed'" | awk '{print $NF}')
         GTID="$CLUSTER_ID:$COMMIT_ID"
     else
-        GTID=$(cat ${OCF_RESKEY_datadir}/grastate.dat \
+        GTID=$(${OCF_RESKEY_binary} --wsrep-recover \
+            --log-error=/dev/stdout 2>&1 | grep 'Recovered position' | awk '{print $NF}')
+        [ -z "${GTID}" ] && GTID=$(cat ${OCF_RESKEY_datadir}/grastate.dat \
             | awk '/uuid/ { uuid = $NF} /seqno/ { seqno = $NF} END {print uuid":"seqno}')
     fi
 
-    #Final try to recover
-    if [ -z "${GTID}" ]; then
-        GTID=$(${OCF_RESKEY_binary} --wsrep-recover \
-            --log-error=/dev/stdout 2>&1 | grep 'Recovered position' | awk '{print $NF}')
+    GTID_current=$(get_node_gtid $HOSTNAME)
+    if [ "${GTID}" != "${GTID_current}" ]; then
+        if validate_gtid "$GTID"; then
+            ocf_log info "${LH} Galera GTID: ${GTID}"
+            crm_attribute --quiet --node $HOSTNAME --lifetime reboot --name gtid \
+                --update $GTID
+            echo "${GTID}"
+            return 0
+        else
+            ocf_log info "${LH} Wrong GTID: ${GTID}, Removing"
+            crm_attribute --quiet --node $HOSTNAME --lifetime reboot --name gtid \
+                --delete
+            echo ""
+            return 0
+        fi
     fi
-
-    if validate_gtid "$GTID"; then
-        ocf_log info "${LH} Galera GTID: ${GTID}"
-        crm_attribute --quiet --node $HOSTNAME --lifetime reboot --name gtid \
-            --update $GTID
-    else
-        ocf_log info "${LH} Wrong GTID: ${GTID}, Removing"
-        crm_attribute --quiet --node $HOSTNAME --lifetime reboot --name gtid \
-            --delete
-    fi
+    echo "${GTID_current}"
 }
 
 get_master_timeout() {
@@ -369,12 +374,13 @@ get_master() {
     done
 
     # Find possible masters
-    # Cut the seqnums off the stored GTID:SEQNO pairs, then find the most seen GTID for the nodes
-    MASTER_GTID=$(printf -- '%s\n' "${TMP[@]%:*}" | sort | uniq -c | awk '{print $2}' | head -1)
+    # Cut the seqnums off the stored GTID:SEQNO pairs, then find the most seen GTID for the nodes but not the "zero" one
+    MASTER_GTID=$(printf -- '%s\n' "${TMP[@]%:*}" | grep -v $ZEROID | sort | uniq -c | awk '{print $2}' | head -1)
+    [ "${MASTER_GTID}" ] || $MASTER_GTID=$ZEROID
     ocf_log info "${LH} The most seen GTID is: ${MASTER_GTID}"
     for NODE in $NODES; do
         NODE_SCORE=`crm_simulate -Ls |  awk "/${OCF_RESOURCE_INSTANCE}/ && /clone_color/ && !/${OCF_RESOURCE_INSTANCE}:/ && /${NODE}/"  | sed  -r -e 's/.*score on (.*)/\1/' | awk -F ':' '{print $2}' | tr -d '[:space:]'`
-        if [[ $NODE_SCORE =~ ^-?[0-9]+$ && $NODE_SCORE -le 0 || $NODE_SCORE = "-INFINITY" || -z $NODE_SCORE ]]
+        if [[ $NODE_SCORE =~ ^-?[0-9]+$ && $NODE_SCORE -lt 0 || $NODE_SCORE = "-INFINITY" || -z $NODE_SCORE ]]
         then
             ocf_log info "${LH} Skipping node $NODE as it is not eligible for running the resource. Its score is ${NODE_SCORE:-NULL}"
             continue
@@ -505,27 +511,35 @@ mysql_status() {
 mysql_monitor() {
     local LH="${LL} mysql_monitor():"
     local rc
+    local rc2
     local status_loglevel="err"
     local WSREP_CONNECTED
     local WSREP_LOCAL_STATE_COMMENT
     local WSREP_READY
+    local NODES
+    local MASTER
+    local GTID_current
+    local GTID_master
 
     # Set loglevel to info during probe
     if ocf_is_probe; then
         status_loglevel="info"
     fi
 
-    check_if_sst
-    [ $? -eq $OCF_SUCCESS ] && return $OCF_SUCCESS
-
+    GTID_current=$(update_node_gtid)
     mysql_status $status_loglevel
     rc=$?
-
-    if [ $rc -ne $OCF_SUCCESS ]; then
-        return $rc
+    check_if_sst
+    rc2=$?
+    if [ $rc2 -eq $OCF_SUCCESS -a $rc -ne $OCF_SUCCESS ] ; then
+       # The sst_in_progress file isn't removed if mysqld has died and shall be purged
+       ocf_log warn "${LH} found and purged a stale sst_in_progress file"
+       rm -f "${OCF_RESKEY_datadir}/sst_in_progress"
+    elif [ $rc2 -eq $OCF_SUCCESS ]; then
+       return $OCF_SUCCESS
+    elif [ $rc -ne $OCF_SUCCESS ]; then
+       return $rc
     fi
-
-    update_node_gtid
 
     WSREP_CONNECTED=$($MYSQL $MYSQL_OPTIONS_TEST -s -N \
         -e "SHOW STATUS LIKE 'wsrep_connected'" | awk '{print $NF}')
@@ -550,8 +564,17 @@ mysql_monitor() {
         return $OCF_ERR_GENERIC
     fi
 
-    ocf_log debug "${LH} MySQL monitor succeeded";
-    return $OCF_SUCCESS
+    NODES=$(nodes_in_cluster_online)
+    MASTER=$(get_master "$NODES")
+    GTID_master=$(get_node_gtid $MASTER)
+    if [ "${GTID_current}" = "${GTID_master}" -o "${HOSTNAME}" = "${MASTER}" ]; then
+        ocf_log debug "${LH} MySQL monitor succeeded"
+        return $OCF_SUCCESS
+    else
+        ocf_log err "${LH} My GTID:${GTID_current} is diverged from the master ${MASTER}'s GTID:${GTID_master}"
+        ocf_log debug "${LH} MySQL monitor failed"
+        return $OCF_ERR_GENERIC
+    fi
 }
 
 mysql_start() {
@@ -602,16 +625,8 @@ mysql_start() {
     fi
 
     update_node_gtid
-    check_if_reelection_needed
-    rc=$?
-
-    if [ $rc -eq 1 ]; then
-        check_if_galera_pc
-        rc=$?
-
-        if [ $rc -eq 1 ]; then
-            mysql_extra_params="$mysql_extra_params --wsrep-new-cluster"
-        fi
+    if ! check_if_galera_pc; then
+        mysql_extra_params="$mysql_extra_params --wsrep-new-cluster"
     fi
 
     ocf_log info "${LH} Starting MySQL"
@@ -630,9 +645,11 @@ mysql_start() {
 
     # Spin waiting for the server to come up or exit, if SST's in progress
     # Let the CRM/LRM time us out if required.
+    rc=$OCF_ERR_GENERIC
     while :; do
         check_if_sst
-        [ $? -eq $OCF_SUCCESS ] && break
+        rc=$?
+        [ $rc -eq $OCF_SUCCESS ] && break
 
         if mysql_status info 1; then
             break
@@ -641,7 +658,9 @@ mysql_start() {
     done
 
     ocf_log info "${LH} MySQL started"
-    update_node_gtid
+    # If no SST's in progress, update GTID
+    # Otherwise do nothing or a race may lock ./ibdata1 and fail the SST
+    [ $rc -ne $OCF_SUCCESS ] && update_node_gtid
     return $OCF_SUCCESS
 }
 
@@ -688,6 +707,7 @@ mysql_stop() {
 # and the log must be writable and not a symlink.
 ##########################################################################
 DEBUG_LOG="/tmp/mysql.ocf.ra.debug/log"
+ZEROID="00000000-0000-0000-0000-000000000000"
 if [ "${DEBUG_LOG}" -a -w "${DEBUG_LOG}" -a ! -L "${DEBUG_LOG}" ]; then
     DEBUG_LOG_DIR="${DEBUG_LOG%/*}"
     if [ -d "${DEBUG_LOG_DIR}" ]; then
