@@ -32,7 +32,7 @@
   version: 2.1.0
   groups: [controller]
   required_for: [deploy_end, controller_remaining_tasks]
-  requires: [primary-swift-proxy]
+  requires: [rabbitmq, memcached]
   condition:
     yaql_exp: &swift_enabled >
       ((not $.storage.objects_ceph or not $.storage.images_ceph) and
@@ -64,7 +64,7 @@
   version: 2.1.0
   groups: [primary-controller]
   required_for: [deploy_end, controller_remaining_tasks]
-  requires: [openstack-controller]
+  requires: [primary-rabbitmq, memcached]
   condition:
     yaql_exp: *swift_enabled
   cross-depends:
