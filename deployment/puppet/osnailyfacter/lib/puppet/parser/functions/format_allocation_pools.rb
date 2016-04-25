@@ -1,41 +1,30 @@
 require 'ipaddr'
 
-Puppet::Parser::Functions::newfunction(:format_allocation_pools, :type => :rvalue, :doc => <<-EOS
+Puppet::Parser::Functions::newfunction(:format_allocation_pools, :type => :rvalue, :arity => -2, :doc => <<-EOS
 This function gets floating ranges and format allocation_pools attribute value for neutron subnet resource.
 EOS
 ) do |args|
 
-   raise ArgumentError, ("format_allocation_pools(): wrong number of arguments (#{args.length}; must be 1 or 2)") if (args.length > 2 or args.length < 1)
+  floating_ranges = Array(args[0])
+  floating_cidr = IPAddr.new(args[1]) rescue false
 
-   floating_ranges = args[0]
-   floating_cidr = args[1]
+  raise(
+    ArgumentError,
+    'format_allocation_pools(): Requires array/string [start_ip:end_ip] as first argument'
+  ) unless floating_ranges.all? { |r| r =~ /\S+:\S+/ }
 
-   raise ArgumentError, 'format_allocation_pools(): floating_cidr is not string!' if floating_cidr and !floating_cidr.is_a?(String)
-   raise ArgumentError, 'format_allocation_pools(): floating_ranges is not array!' if !(floating_ranges.is_a?(Array) or floating_ranges.is_a?(String))
+  # return mapped ranges as is if cidr ain't provided
+  return floating_ranges.map { |r| 'start=%s,end=%s' % r.split(':')} unless floating_cidr
 
-   debug "Formating allocation_pools for #{floating_ranges} subnet #{floating_cidr}"
-   allocation_pools = []
-   #TODO: Is a temporary solution while network_data['L3']['floating'] is not array
-   floating_ranges = [floating_ranges] unless floating_ranges.is_a?(Array)
-
-   floating_ranges.each do | range |
-
-     range_start, range_end = range.split(':')
-
-     unless floating_cidr
-       allocation_pools << "start=#{range_start},end=#{range_end}"
-       next
-     end
-
-     floating_range = IPAddr.new(floating_cidr)
-     if floating_range.include?(range_start) and floating_range.include?(range_end)
-       allocation_pools << "start=#{range_start},end=#{range_end}"
-     else
-       warning("Skipping #{range} floating IP range because it does not match #{floating_cidr}.")
-     end
-
-   end
-
-   debug("Format is done, value is: #{allocation_pools}")
-   allocation_pools
+  # walk through the ranges and skip an entry
+  # if it doesn't match the network cidr
+  floating_ranges.reduce([]) do |alloc_pools, srange|
+    range = srange.split(':')
+    if range.all? { |ip| floating_cidr.include? ip }
+      alloc_pools << 'start=%s,end=%s' % range
+    else
+      warning("#{srange} doesn't match #{floating_cidr.inspect}, skip it over")
+    end
+    alloc_pools
+  end
 end
