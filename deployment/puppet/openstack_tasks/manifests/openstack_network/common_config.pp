@@ -66,26 +66,27 @@ class openstack_tasks::openstack_network::common_config {
     $default_log_levels  = hiera_hash('default_log_levels')
 
     class { '::neutron' :
-      verbose                 => $verbose,
-      debug                   => $debug,
-      use_syslog              => $use_syslog,
-      use_stderr              => $use_stderr,
-      lock_path               => '/var/lib/neutron/lock',
-      log_facility            => $log_facility,
-      bind_host               => $bind_host,
-      base_mac                => $base_mac,
-      core_plugin             => $core_plugin,
-      service_plugins         => $service_plugins,
-      allow_overlapping_ips   => true,
-      mac_generation_retries  => '32',
-      dhcp_lease_duration     => $dhcp_lease_duration,
-      dhcp_agents_per_network => '2',
-      report_interval         => $neutron_config['neutron_report_interval'],
-      rabbit_user             => $amqp_user,
-      rabbit_hosts            => $amqp_hosts,
-      rabbit_password         => $amqp_password,
-      network_device_mtu      => $physical_net_mtu,
-      advertise_mtu           => true,
+      verbose                            => $verbose,
+      debug                              => $debug,
+      use_syslog                         => $use_syslog,
+      use_stderr                         => $use_stderr,
+      lock_path                          => '/var/lib/neutron/lock',
+      log_facility                       => $log_facility,
+      bind_host                          => $bind_host,
+      base_mac                           => $base_mac,
+      core_plugin                        => $core_plugin,
+      service_plugins                    => $service_plugins,
+      allow_overlapping_ips              => true,
+      mac_generation_retries             => '32',
+      dhcp_lease_duration                => $dhcp_lease_duration,
+      dhcp_agents_per_network            => '2',
+      report_interval                    => $neutron_config['neutron_report_interval'],
+      rabbit_user                        => $amqp_user,
+      rabbit_hosts                       => $amqp_hosts,
+      rabbit_password                    => $amqp_password,
+      rabbit_heartbeat_timeout_threshold => 0,
+      network_device_mtu                 => $physical_net_mtu,
+      advertise_mtu                      => true,
     }
 
     # TODO (iberezovskiy): remove this workaround in N when neutron module
@@ -98,13 +99,17 @@ class openstack_tasks::openstack_network::common_config {
       }
     }
 
+    # TODO (skolekonov): remove this workaround in N when neutron module
+    # will be switched to puppet-oslo usage for rabbit configuration
     if $default_log_levels {
-      neutron_config {
-        'DEFAULT/default_log_levels' :
-          value => join(sort(join_keys_to_values($default_log_levels, '=')), ',');
+      if !defined(Oslo::Log['neutron_config']) and !defined(Neutron_config['DEFAULT/default_log_levels']) {
+        neutron_config {
+          'DEFAULT/default_log_levels' :
+            value => join(sort(join_keys_to_values($default_log_levels, '=')), ',');
+        }
+      } else {
+        Neutron_config<| title == 'DEFAULT/default_log_levels' |> { value => join(sort(join_keys_to_values($default_log_levels, '=')), ',') }
       }
-    } else {
-      neutron_config { 'DEFAULT/default_log_levels' : ensure => absent; }
     }
 
     if $use_syslog {
