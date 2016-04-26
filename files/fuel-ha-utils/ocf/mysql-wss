@@ -261,6 +261,7 @@ update_node_gtid() {
     local LH="${LL} update_node_gtid():"
     local status_loglevel="err"
     local GTID
+    local GTID_current
     local CLUSTER_ID
     local COMMIT_ID
 
@@ -276,24 +277,21 @@ update_node_gtid() {
             -e "SHOW STATUS LIKE 'wsrep_last_committed'" | awk '{print $NF}')
         GTID="$CLUSTER_ID:$COMMIT_ID"
     else
-        GTID=$(cat ${OCF_RESKEY_datadir}/grastate.dat \
+        GTID=$(${OCF_RESKEY_binary} --wsrep-recover \
+            --log-error=/dev/stdout 2>&1 | grep 'Recovered position' | awk '{print $NF}')
+        [ -z "${GTID}" ] && GTID=$(cat ${OCF_RESKEY_datadir}/grastate.dat \
             | awk '/uuid/ { uuid = $NF} /seqno/ { seqno = $NF} END {print uuid":"seqno}')
     fi
 
-    #Final try to recover
-    if [ -z "${GTID}" ]; then
-        GTID=$(${OCF_RESKEY_binary} --wsrep-recover \
-            --log-error=/dev/stdout 2>&1 | grep 'Recovered position' | awk '{print $NF}')
-    fi
-
-    if validate_gtid "$GTID"; then
-        ocf_log info "${LH} Galera GTID: ${GTID}"
-        crm_attribute --quiet --node $HOSTNAME --lifetime reboot --name gtid \
-            --update $GTID
-    else
-        ocf_log info "${LH} Wrong GTID: ${GTID}, Removing"
-        crm_attribute --quiet --node $HOSTNAME --lifetime reboot --name gtid \
-            --delete
+    GTID_current=$(get_node_gtid $HOSTNAME)
+    if [ "${GTID}" != "${GTID_current}" ]; then
+        if validate_gtid "${GTID}"; then
+            ocf_log info "${LH} Galera GTID: ${GTID}"
+            crm_attribute --quiet --node $HOSTNAME --lifetime reboot --name gtid \
+                --update $GTID
+            echo "${GTID}"
+            return 0
+        fi
     fi
 }
 
