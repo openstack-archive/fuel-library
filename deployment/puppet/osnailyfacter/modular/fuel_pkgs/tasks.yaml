@@ -5,7 +5,7 @@
   requires: [hiera]
   required_for: [fuel_pkgs]
   condition:
-    yaql_exp: '($.uid in added($.nodes).uid) or changed($.repo_setup)'
+    yaql_exp: '($.uid in added($.network_metadata.nodes.values()).uid) or changed($.repo_setup)'
   parameters:
     puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/fuel_pkgs/setup_repositories.pp
     puppet_modules: /etc/puppet/modules
@@ -18,7 +18,7 @@
   requires: [setup_repositories]
   required_for: [globals]
   condition:
-    yaql_exp: '$.uid in added($.nodes).uid'
+    yaql_exp: '$.uid in added($.network_metadata.nodes.values()).uid'
   parameters:
     puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/fuel_pkgs/fuel_pkgs.pp
     puppet_modules: /etc/puppet/modules
