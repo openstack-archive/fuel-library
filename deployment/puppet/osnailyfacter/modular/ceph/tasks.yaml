@@ -36,10 +36,18 @@
 
 - id: top-role-ceph-osd
   type: puppet
-  version: 2.0.0
+  version: 2.1.0
   groups: [ceph-osd]
   required_for: [deploy_end]
   requires: [hosts, firewall]
+  condition:
+    yaql_exp: >
+      changedAny($.storage, $.debug, $.network_scheme, $.get('use_syslog'),
+      $.network_metadata.nodes.values.where(
+        ('primary-controller' in $.node_roles) or
+        ('controller' in $.node_roles)),
+      $.get('ceph_tuning_settings'), $.get('syslog_log_level_ceph'),
+      $.get('syslog_log_facility_ceph'))
   cross-depends:
     - name: ceph-mon
   parameters:

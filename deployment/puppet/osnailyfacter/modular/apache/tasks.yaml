@@ -4,7 +4,6 @@
   groups: [primary-controller, controller]
   required_for: [keystone, primary-keystone]
   requires: [netconfig]
-  requires: [openstack-haproxy]
   condition:
     yaql_exp: "$.uid in added($.nodes.uid)"
   parameters:

@@ -35,7 +35,7 @@
       $.get('memcached_addresses', ''), $.get('memcache_roles', ''),
       len($.network_metadata.nodes.values().where(
         $.network_roles.get('mgmt/memcache') != null)),
-      $.memcache_server_port, $.get('amqp_hosts', ''),
+      $.get('memcache_server_port'), $.get('amqp_hosts', ''),
       len($.network_metadata.nodes.values().where(
         $.network_roles.get('mgmt/messaging') != null)),
       $.resume_guests_state_on_host_boot, $.use_cow_images)
@@ -93,10 +93,18 @@
 
 - id: top-role-primary-mongo
   type: puppet
-  version: 2.0.0
+  version: 2.1.0
   groups: [primary-mongo]
   required_for: [deploy_end]
   requires: [hosts, firewall]
+  condition:
+    yaql_exp: &top_mongo >
+      $.ceilometer.enabled and changedAny($.network_scheme, $.mongo,
+      $.get('mongodb_port'),
+      $.network_metadata.nodes.values().where(
+        ('primary-mongo' in $.node_roles) or
+        ('mongo' in $.node_roles)),
+      $.get('use_syslog'), $.gebug, $.ceilometer, $.roles)
   parameters:
     puppet_manifest: /etc/puppet/modules/openstack_tasks/examples/roles/mongo.pp
     puppet_modules: /etc/puppet/modules
@@ -104,12 +112,14 @@
 
 - id: top-role-mongo
   type: puppet
-  version: 2.0.0
+  version: 2.1.0
   groups: [mongo]
   cross-depends:
     - name: top-role-primary-mongo
   required_for: [deploy_end]
   requires: [hosts, firewall]
+  condition:
+    yaql_exp: *top_mongo
   parameters:
     puppet_manifest: /etc/puppet/modules/openstack_tasks/examples/roles/mongo.pp
     puppet_modules: /etc/puppet/modules
@@ -117,10 +127,18 @@
 
 - id: ironic-conductor
   type: puppet
-  version: 2.0.0
+  version: 2.1.0
   groups: [ironic]
   required_for: [deploy_end]
   requires: [hosts, firewall]
+  condition:
+    yaql_exp: >
+      $.ironic.enabled and changedAny($.network_scheme, $.ironic,
+      $.network_metadata.vips, $.get('database_vip'),
+      $.get('neutron_endpoint'), $.get('glance_api_servers'),
+      $.get('amqp_hosts'), $.gebug, $.verbose, $.get('use_syslog'),
+      $.get('syslog_log_facility_ironic'), $.rabbit, $.storage,
+      $.get('kombu_compression'))
   cross-depends:
     - name: ironic
     - name: /(primary-)?database/
