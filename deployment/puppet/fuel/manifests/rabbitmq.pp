@@ -132,18 +132,6 @@ class fuel::rabbitmq (
     try_sleep => 3,
   }
 
-  # NOTE(bogdando) indentation is important
-  $rabbit_tcp_listen_options =
-    '[
-      binary,
-      {packet, raw},
-      {reuseaddr, true},
-      {backlog, 128},
-      {nodelay, true},
-      {exit_on_close, false},
-      {keepalive, true}
-    ]'
-
   $rabbitmq_management_variables = {
     'listener' => "[
       {port, ${management_port}},
@@ -165,6 +153,7 @@ class fuel::rabbitmq (
     stomp_port              => $stompport,
     ssl                     => false,
     node_ip_address         => $bind_ip,
+    tcp_keepalive           => true,
     config_kernel_variables => {
      'inet_dist_listen_min'         => '41055',
      'inet_dist_listen_max'         => '41055',
@@ -174,7 +163,6 @@ class fuel::rabbitmq (
       'log_levels'                  => '[{connection,debug,info,error}]',
       'default_vhost'               => '<<"">>',
       'default_permissions'         => '[<<".*">>, <<".*">>, <<".*">>]',
-      'tcp_listen_options'          => $rabbit_tcp_listen_options,
     },
 
     config_management_variables     => $rabbitmq_management_variables,
