@@ -42,18 +42,11 @@ class osnailyfacter::ceph::mon {
     $mon_initial_members = $mon_hosts
     $mon_host            = $mon_ips
   }
-
   if ($storage_hash['volumes_ceph'] or
-    $storage_hash['images_ceph'] or
-    $storage_hash['objects_ceph'] or
-    $storage_hash['ephemeral_ceph']
+      $storage_hash['images_ceph'] or
+      $storage_hash['objects_ceph'] or
+      $storage_hash['ephemeral_ceph']
   ) {
-    $use_ceph = true
-  } else {
-    $use_ceph = false
-  }
-
-  if $use_ceph {
     class { '::ceph':
       fsid                      => $fsid,
       mon_initial_members       => $mon_initial_members,
@@ -79,7 +72,7 @@ class osnailyfacter::ceph::mon {
     }
 
     Ceph::Key {
-      inject => true,
+      inject         => true,
       inject_as_id   => 'mon.',
       inject_keyring => "/var/lib/ceph/mon/ceph-${::hostname}/keyring",
     }
@@ -102,7 +95,7 @@ class osnailyfacter::ceph::mon {
 
     if ($storage_hash['volumes_ceph']) {
       include ::cinder::params
-      service { 'cinder-volume':
+        service { 'cinder-volume':
         ensure     => 'running',
         name       => $::cinder::params::volume_service,
         hasstatus  => true,
@@ -121,7 +114,7 @@ class osnailyfacter::ceph::mon {
     }
 
     if ($storage_hash['images_ceph']) {
-      include ::glance::params
+    include ::glance::params
       service { 'glance-api':
         ensure     => 'running',
         name       => $::glance::params::api_service_name,
