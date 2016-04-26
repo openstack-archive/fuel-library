@@ -1,38 +1,9 @@
-- id: swift-storage
+- id: swift-proxy_storage
   type: puppet
   version: 2.1.0
   groups: [primary-controller, controller]
   required_for: [deploy_end, controller_remaining_tasks]
-  requires: [openstack-controller]
-  condition:
-    yaql_exp: >
-      ((not $.storage.objects_ceph or not $.storage.images_ceph) and
-        not $.storage.images_vcenter) and
-      (changedAny($.network_scheme, $.network_metadata, $.swift,
-        $.get('swift_master_role', 'primary-controller'),
-        ('primary-controller' in $.roles), $.get('proxy_port'), $.storage,
-        $.debug, $.get('verbose'), $.mp, $.get('deploy_swift_storage'),
-        $.get('swift_partition')))
-  cross-depends:
-    - name: /(primary-)?rabbitmq/
-    - name: /glance/
-    - name: /(primary-)?swift-proxy/
-  parameters:
-    puppet_manifest: /etc/puppet/modules/openstack_tasks/examples/swift/storage.pp
-    puppet_modules: /etc/puppet/modules
-    timeout: 3600
-  test_pre:
-    cmd: ruby /etc/puppet/modules/openstack_tasks/examples/swift/swift_pre.rb
-  test_post:
-    cmd: ruby /etc/puppet/modules/openstack_tasks/examples/swift/swift_post.rb
-
-
-- id: swift-proxy
-  type: puppet
-  version: 2.1.0
-  groups: [controller]
-  required_for: [deploy_end, controller_remaining_tasks]
-  requires: [rabbitmq, memcached]
+  requires: [openstack-controller, primary-rabbitmq, rabbitmq, memcached]
   condition:
     yaql_exp: &swift_enabled >
       ((not $.storage.objects_ceph or not $.storage.images_ceph) and
@@ -47,33 +18,15 @@
         $.get('proxy_port'), $.storage, $.debug, $.get('verbose'),
         $.get('swift_ring_min_part_hours'), $.get('deploy_swift_proxy'),
         $.get('use_ssl'), $.rabbit, $.get('amqp_hosts'),
-        $.get('memcache_server_port'),$.ceilometer.enabled))
-  cross-depends:
-    - name: primary-swift-proxy
-  parameters:
-    puppet_manifest: /etc/puppet/modules/openstack_tasks/examples/swift/proxy.pp
-    puppet_modules: /etc/puppet/modules
-    timeout: 3600
-  test_pre:
-    cmd: ruby /etc/puppet/modules/openstack_tasks/examples/swift/swift_pre.rb
-  test_post:
-    cmd: ruby /etc/puppet/modules/openstack_tasks/examples/swift/swift_post.rb
-
-- id: primary-swift-proxy
-  type: puppet
-  version: 2.1.0
-  groups: [primary-controller]
-  required_for: [deploy_end, controller_remaining_tasks]
-  requires: [primary-rabbitmq, memcached]
-  condition:
-    yaql_exp: *swift_enabled
+        $.get('memcache_server_port'), $.ceilometer.enabled, $.mp, $.get('swift_partition'), $.get('deploy_swift_storage')))
   cross-depends:
     - name: /(primary-)?rabbitmq/
+    - name: /glance/
     - name: swift-keystone
     - name: memcached
     - name: ceilometer-controller
   parameters:
-    puppet_manifest: /etc/puppet/modules/openstack_tasks/examples/swift/proxy.pp
+    puppet_manifest: /etc/puppet/modules/openstack_tasks/examples/swift/proxy_storage.pp
     puppet_modules: /etc/puppet/modules
     timeout: 3600
   test_pre:
@@ -86,7 +39,7 @@
   version: 2.1.0
   groups: [primary-controller, controller]
   required_for: [deploy_end]
-  requires: [primary-swift-proxy, swift-proxy]
+  requires: [swift-proxy_storage]
   condition:
     yaql_exp: >
       ((not $.storage.objects_ceph or not $.storage.images_ceph) and
@@ -109,7 +62,7 @@
   type: puppet
   version: 2.1.0
   groups: [primary-controller]
-  required_for: [primary-swift-proxy]
+  required_for: [swift-proxy_storage]
   condition:
     yaql_exp: >
       ((not $.storage.objects_ceph or not $.storage.images_ceph) and
