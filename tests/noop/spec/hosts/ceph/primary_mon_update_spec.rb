@@ -18,17 +18,9 @@ describe manifest do
         storage_hash['ephemeral_ceph']
        )
 
-      it 'should wait for ceph to be ready' do
-        should contain_exec('Wait for Ceph quorum')
-      end
-
       it 'should add parameters to ceph.conf' do
         should contain_ceph_config('global/mon_host').with(:value => mon_ips)
         should contain_ceph_config('global/mon_initial_members').with(:value => mon_hosts)
-      end
-
-      it 'should reload Ceph' do
-        should contain_exec('reload Ceph for HA')
       end
     end
   end
