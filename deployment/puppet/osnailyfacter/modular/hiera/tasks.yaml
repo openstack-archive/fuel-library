@@ -8,7 +8,7 @@
   condition:
     yaql_exp: >
       ($.uid in added($.nodes).uid) or
-      changed($.plugins)
+      changedAny($.plugins, $.cgroups)
   parameters:
     puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/hiera/hiera.pp
     puppet_modules: /etc/puppet/modules
