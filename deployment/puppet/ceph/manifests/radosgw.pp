@@ -151,6 +151,8 @@ class ceph::radosgw (
     file {'/etc/apache2/sites-enabled/rgw.conf':
       ensure => link,
       target => "${::ceph::params::dir_httpd_sites}/rgw.conf",
+      owner   => 'root',
+      group   => 'root',
     }
 
     Package[$::ceph::params::package_fastcgi] ->
@@ -189,6 +191,8 @@ class ceph::radosgw (
 
   file { "${::ceph::params::dir_httpd_sites}/rgw.conf":
     content => template('ceph/rgw.conf.erb'),
+    owner   => 'root',
+    group   => 'root',
   }
 
   file { "${dir_httpd_root}/s3gw.fcgi":
@@ -199,7 +203,9 @@ class ceph::radosgw (
   file {"${::ceph::params::dir_httpd_sites}/fastcgi.conf":
     content => template('ceph/fastcgi.conf.erb'),
     mode    => '0755',
-    }
+    owner   => 'root',
+    group   => 'root',
+  }
 
   exec { "ceph create ${radosgw_auth_key}":
     command => "ceph auth get-or-create ${radosgw_auth_key} osd 'allow rwx' mon 'allow rw'",
