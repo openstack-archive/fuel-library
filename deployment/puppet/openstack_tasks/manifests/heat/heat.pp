@@ -238,8 +238,10 @@ class openstack_tasks::heat::heat {
     instance_connection_is_secure                   => '0',
   }
 
-  if hiera('heat_ha_engine', true){
-    if ($deployment_mode == 'ha') or ($deployment_mode == 'ha_compact') {
+  # TODO(dmburmistrov): completely remove pacemaker for heat-engine after release "N"
+  if hiera('heat_ha_engine', true) and hiera('heat_pcs_engine', false) {
+    if $deployment_mode in ['ha', 'ha_compact'] {
+      warning('Pacemaker for heat-engine will be dropped in the next release.')
       include ::cluster::heat_engine
     }
   }
