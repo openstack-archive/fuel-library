@@ -7,6 +7,14 @@ manifest = 'master/cobbler.pp'
 # FACTS: master_centos7
 
 describe manifest do
+
+  before(:each) do
+    Noop.puppet_function_load :loadmetadata
+    MockFunction.new(:loadmetadata) do |function|
+      allow(function).to receive(:call).and_return({})
+    end
+  end
+
   shared_examples 'catalog' do
     let(:fuel_settings) do
       YAML.load facts[:astute_settings_yaml]

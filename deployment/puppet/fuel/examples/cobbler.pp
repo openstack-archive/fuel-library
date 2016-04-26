@@ -7,7 +7,7 @@ $admin_network               = $::fuel_settings['ADMIN_NETWORK']
 $nailgun_api_url             = "http://${::fuel_settings['ADMIN_NETWORK']['ipaddress']}:8000/api"
 $bootstrap_settings          = pick($::fuel_settings['BOOTSTRAP'], {})
 $bootstrap_path              = pick($bootstrap_settings['path'], '/var/www/nailgun/bootstraps/active_bootstrap')
-$bootstrap_meta              = pick(loadyaml("${bootstrap_path}/metadata.yaml"), {})
+$bootstrap_meta              = loadmetadata("${bootstrap_path}/metadata.yaml")
 $bootstrap_ethdevice_timeout = pick($bootstrap_settings['ethdevice_timeout'], '120')
 $dhcp_gw                     = $::fuel_settings['ADMIN_NETWORK']['dhcp_gateway']
 
