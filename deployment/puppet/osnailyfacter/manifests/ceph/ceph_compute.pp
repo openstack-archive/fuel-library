@@ -33,12 +33,6 @@ class osnailyfacter::ceph::ceph_compute {
     $storage_hash['objects_ceph'] or
     $storage_hash['ephemeral_ceph']
   ) {
-    $use_ceph = true
-  } else {
-    $use_ceph = false
-  }
-
-  if $use_ceph {
     class { '::ceph':
       fsid                => $fsid,
       mon_initial_members => $mon_hosts,
