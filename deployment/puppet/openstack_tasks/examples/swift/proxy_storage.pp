@@ -1,4 +1,4 @@
-class { '::openstack_tasks::swift::proxy' :}
+class { '::openstack_tasks::swift::proxy_storage' :}
 
 # 'ceilometer' class is being declared inside openstack::ceilometer class
 # which is declared inside openstack::controller class in the other task.
@@ -11,5 +11,3 @@ include ceilometer
 # need to add this stub here.
 class memcached {}
 include memcached
-
-warning('osnailyfacter/modular/./swift/proxy.pp is deprecated in mitaka and will be removed in newton. Please use openstack_tasks/examples/./swift/proxy.pp')
