@@ -46,16 +46,16 @@ class osnailyfacter::ceph::radosgw {
     include ::tweaks::apache_wrappers
     include ::ceph::params
 
-    #######################################
-    # Ugly hack to support our ceph package
-    #######################################
+#######################################
+# TODO (omolchanov): Remove template once we switch to systemd
+#######################################
 
     file { '/etc/init/radosgw.conf':
       ensure  => present,
       content => template('osnailyfacter/radosgw-init.erb'),
       before  => Ceph::Rgw[$gateway_name],
     }
-    #######################################
+#######################################
 
     ceph::rgw { $gateway_name:
       frontend_type      => 'apache-proxy-fcgi',
