@@ -1,39 +1,3 @@
-# PRE_DEPLOYMENT Tasks
-#
-
-- id: copy_keys_ceph
-  type: copy_files
-  version: 2.0.0
-  role: ['/.*/']
-  required_for: [pre_deployment_end]
-  requires: [generate_keys_ceph]
-  cross-depends:
-      - name: generate_keys_ceph
-        role: master
-  parameters:
-    files:
-      - src: /var/lib/fuel/keys/{CLUSTER_ID}/ceph/ceph.pub
-        dst: /var/lib/astute/ceph/ceph.pub
-      - src: /var/lib/fuel/keys/{CLUSTER_ID}/ceph/ceph
-        dst: /var/lib/astute/ceph/ceph
-    permissions: '0600'
-    dir_permissions: '0700'
-
-- id: generate_keys_ceph
-  type: shell
-  version: 2.0.0
-  role: master
-  requires: [pre_deployment_start]
-  required_for: [copy_keys_ceph]
-  parameters:
-    cmd: sh /etc/puppet/modules/osnailyfacter/modular/astute/generate_keys.sh -i {CLUSTER_ID} -s 'ceph' -p /var/lib/fuel/keys/
-    timeout: 180
-
-
-#
-# DEPLOYMENT Tasks
-#
-
 - id: top-role-ceph-osd
   type: puppet
   version: 2.1.0
@@ -41,62 +5,19 @@
   required_for: [deploy_end]
   requires: [hosts, firewall]
   condition:
-    yaql_exp: >
-      changedAny($.storage, $.debug, $.network_scheme, $.get('use_syslog'),
-      $.network_metadata.nodes.values().where(
-        ('primary-controller' in $.node_roles) or
-        ('controller' in $.node_roles)),
-      $.get('ceph_tuning_settings'), $.get('syslog_log_level_ceph'),
-      $.get('syslog_log_facility_ceph'))
+    yaql_exp:
+      changedAny($.storage, $.ceph_tuning_settings, $.get('use_ssl'),
+      $.get('use_syslog'), $.network_scheme,
+      (len($.network_metadata.nodes.values().where(
+        ('controller' in $.node_roles) or
+        ('primary-controller' in $.node_roles)))),
+      ('primary-controller' in $.roles))
   cross-depends:
-    - name: ceph-mon
+    - name: /(primary-)?ceph-mon/
   parameters:
     puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/ceph/ceph-osd.pp
     puppet_modules: /etc/puppet/modules
     timeout: 3600
-
-- id: ceph-radosgw
-  version: 2.1.0
-  type: puppet
-  role: [primary-controller, controller]
-  required_for: [upload_cirros, post_deployment_end]
-  requires: [post_deployment_start]
-  condition:
-    yaql_exp: &ceph_radosgw >
-      changedAny($.storage, $.keystone, $.network_metadata.vips,
-      $.get('external_lb'),
-      (len($.network_metadata.nodes.values().where(
-        ('controller' in $.node_roles) or
-        ('primary-controller' in $.node_roles)))),
-      $.get('use_ssl'), ('primary-controller' in $.roles), $.network_scheme,
-      $.get('apache_ports'), $.get('use_syslog'),
-      $.get('syslog_log_facility_ceph'), $.get('syslog_log_level_ceph'))
-  parameters:
-    puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/ceph/radosgw.pp
-    puppet_modules: /etc/puppet/modules
-    timeout: 3600
-  test_pre:
-    cmd: ruby /etc/puppet/modules/osnailyfacter/modular/ceph/radosgw_pre.rb
-  test_post:
-    cmd: ruby /etc/puppet/modules/osnailyfacter/modular/ceph/radosgw_post.rb
-
-- id: radosgw-keystone
-  type: puppet
-  version: 2.1.0
-  role: [primary-controller]
-  required_for: [ceph-radosgw]
-  requires: [post_deployment_start]
-  condition:
-    yaql_exp: >
-      changedAny($.storage, $.network_metadata.vips,
-      $.get('region', 'RegionOne'), $.public_ssl, $.get('use_ssl'))
-  cross-depends:
-    - name: /(primary-)?keystone/
-      role: self
-  parameters:
-    puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/ceph/radosgw_keystone.pp
-    puppet_modules: /etc/puppet/modules
-    timeout: 1800
 
 - id: primary-ceph-mon
   type: puppet
@@ -106,12 +27,11 @@
   requires: [primary-openstack-controller, openstack-controller, openstack-cinder]
   condition:
     yaql_exp: &ceph_mon >
-      changedAny($.storage, $.quantum, $.network_metadata,
-      $.get('use_syslog'), $.get('syslog_log_facility_ceph'), $.keystone,
+      ($.storage.objects_ceph or $.storage.images_ceph or
+       $.storage.volumes_ceph or $.storage.ephemeral_ceph) and
+      changedAny($.storage, $.get('use_syslog'), $.network_scheme,
       (len($.network_metadata.nodes.values().where(
-        ('controller' in $.node_roles) or
-        ('primary-controller' in $.node_roles)))),
-      $.network_scheme, $.get('syslog_log_level_ceph'))
+       $.node_roles.any($.matches('(primary-)?controller'))))))
   parameters:
     puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/ceph/mon.pp
     puppet_modules: /etc/puppet/modules
@@ -135,30 +55,67 @@
 - id: primary-mon-update
   type: puppet
   version: 2.1.0
-  role: [primary-controller]
-  required_for: [post_deployment_end]
-  requires: [post_deployment_start]
+  groups: [primary-controller]
+  required_for: [deploy_end, controller_remaining_tasks]
+  requires: [primary-ceph-mon]
+  condition:
+    yaql_exp: *ceph_mon
   cross-depends:
     - name: /(primary-)?ceph-mon/
-  cross-depended-by:
-    - name: ceph_create_pools
   parameters:
     puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/ceph/primary_mon_update.pp
     puppet_modules: /etc/puppet/modules
     timeout: 3600
 
-#
-# POST_DEPLOYMENT Tasks
-#
+- id: ceph-radosgw
+  version: 2.1.0
+  type: puppet
+  groups: [primary-controller, controller]
+  required_for: [deploy_end]
+  requires: [radosgw-keystone, apache, keystone]
+  condition:
+    yaql_exp:
+      $.storage.objects_ceph and
+      changedAny($.storage, $.get('use_syslog'), $.keystone, $.network_metadata.vips, $.get('use_ssl'),
+      (len($.network_metadata.nodes.values().where(
+        ('controller' in $.node_roles) or
+        ('primary-controller' in $.node_roles)))),
+      ('primary-controller' in $.roles), $.network_scheme, $.get('apache_ports'))
+  parameters:
+    puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/ceph/radosgw.pp
+    puppet_modules: /etc/puppet/modules
+    timeout: 3600
+  test_pre:
+    cmd: ruby /etc/puppet/modules/osnailyfacter/modular/ceph/radosgw_pre.rb
+  test_post:
+    cmd: ruby /etc/puppet/modules/osnailyfacter/modular/ceph/radosgw_post.rb
+
+- id: radosgw-keystone
+  type: puppet
+  version: 2.1.0
+  groups: [primary-controller]
+  required_for: [ceph-radosgw]
+  requires: [keystone, primary-mon-update]
+  condition:
+    yaql_exp:
+      $.storage.objects_ceph and
+      changedAny($.storage, $.network_metadata.vips,
+      $.get('region', 'RegionOne'), $.public_ssl, $.get('use_ssl'))
+  cross-depends:
+    - name: keystone
+  parameters:
+    puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/ceph/radosgw_keystone.pp
+    puppet_modules: /etc/puppet/modules
+    timeout: 1800
 
 - id: ceph-compute
   type: puppet
   version: 2.1.0
-  role: [compute]
+  groups: [compute]
   cross-depends:
-    - name: ceph_create_pools
-  requires: [ceph_create_pools]
-  required_for: [post_deployment_end]
+    - name: /(primary-)?ceph-mon/
+  requires: [top-role-compute]
+  required_for: [deploy_end]
   condition:
     yaql_exp: &storage_changed >
       ($.storage.objects_ceph or $.storage.images_ceph or
@@ -176,6 +133,10 @@
     cwd: /
   test_post:
     cmd: ruby /etc/puppet/modules/osnailyfacter/modular/ceph/ceph_compute_post.rb
+
+#
+# POST_DEPLOYMENT Tasks
+#
 
 - id: ceph_create_pools
   type: puppet
@@ -203,7 +164,7 @@
   condition:
     yaql_exp: *ceph_changed
   requires: [post_deployment_start]
-  required_for: [ceph-radosgw, upload_cirros]
+  required_for: [upload_cirros]
   parameters:
     cmd: ruby /etc/puppet/modules/osnailyfacter/modular/ceph/ceph_ready_check.rb
     timeout: 1800
@@ -213,7 +174,7 @@
   version: 2.1.0
   role: [primary-controller, controller, ceph-osd]
   condition:
-    yaql_exp: *storage_changed
+    yaql_exp: *ceph_changed
   requires: [post_deployment_start]
   required_for: [post_deployment_end]
   parameters:
