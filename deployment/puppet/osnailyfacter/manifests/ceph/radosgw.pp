@@ -30,76 +30,73 @@ class osnailyfacter::ceph::radosgw {
   $mon_ips         = join(values($mon_address_map), ',')
   $mon_hosts       = join(keys($mon_address_map), ',')
 
-  if $storage_hash['objects_ceph'] {
-    ceph::key { "client.${gateway_name}":
-      keyring_path => "/etc/ceph/client.${gateway_name}",
-      secret       => $radosgw_key,
-      cap_mon      => 'allow rw',
-      cap_osd      => 'allow rwx',
-      inject       => true,
-    }
-
-    class { 'ceph':
-      fsid => $fsid,
-    }
-
-    include ::tweaks::apache_wrappers
-    include ::ceph::params
-
-    #######################################
-    # Ugly hack to support our ceph package
-    #######################################
-
-    file { '/etc/init/radosgw.conf':
-      ensure  => present,
-      content => template('osnailyfacter/radosgw-init.erb'),
-      before  => Ceph::Rgw[$gateway_name],
-    }
-    #######################################
-
-    ceph::rgw { $gateway_name:
-      frontend_type      => 'apache-proxy-fcgi',
-      rgw_print_continue => true,
-      keyring_path       => "/etc/ceph/client.${gateway_name}",
-      rgw_data           => "/var/lib/ceph/radosgw-${gateway_name}",
-      rgw_dns_name       => "*.${::domain}",
-      log_file           => undef,
-    }
-
-    ceph::rgw::keystone { $gateway_name:
-      rgw_keystone_url                 => $admin_identity_url,
-      rgw_keystone_admin_token         => $keystone_hash['admin_token'],
-      rgw_keystone_token_cache_size    => $rgw_keystone_token_cache_size,
-      rgw_keystone_accepted_roles      => $rgw_keystone_accepted_roles,
-      rgw_keystone_revocation_interval => $rgw_keystone_revocation_interval,
-    }
-
-    file { "/var/lib/ceph/radosgw/ceph-${gateway_name}":
-      ensure => directory,
-    }
-
-    ceph::rgw::apache_proxy_fcgi { 'radosgw.gateway':
-      docroot              => '/var/www/radosgw',
-      rgw_port             => '6780',
-      apache_purge_configs => false,
-      apache_purge_vhost   => false,
-      custom_apache_ports  => hiera_array('apache_ports', ['0.0.0.0:80']),
-    }
-
-    if ! $use_syslog {
-      ceph_config {
-        'client.radosgw.gateway/log_file':      value => $rgw_log_file;
-        'client.radosgw.gateway/log_to_syslog': value => $use_syslog;
-      }
-    }
-
-    exec { "Create ${rgw_large_pool_name} pool":
-      command => "ceph -n client.radosgw.gateway osd pool create ${rgw_large_pool_name} ${rgw_large_pool_pg_nums} ${rgw_large_pool_pg_nums}",
-      path    => '/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/bin',
-      unless  => "rados lspools | grep '^${rgw_large_pool_name}$'",
-    }
-
-    Ceph::Key["client.${gateway_name}"] -> Exec["Create ${rgw_large_pool_name} pool"]
+  ceph::key { "client.${gateway_name}":
+    keyring_path => "/etc/ceph/client.${gateway_name}",
+    secret       => $radosgw_key,
+    cap_mon      => 'allow rw',
+    cap_osd      => 'allow rwx',
+    inject       => true,
   }
 
+  class { 'ceph':
+    fsid => $fsid,
+  }
+
+  include ::tweaks::apache_wrappers
+  include ::ceph::params
+
+#######################################
+# TODO (omolchanov): Remove template once we switch to systemd
+#######################################
+
+  file { '/etc/init/radosgw.conf':
+    ensure  => present,
+    content => template('osnailyfacter/radosgw-init.erb'),
+    before  => Ceph::Rgw[$gateway_name],
+  }
+#######################################
+
+  ceph::rgw { $gateway_name:
+    frontend_type      => 'apache-proxy-fcgi',
+    rgw_print_continue => true,
+    keyring_path       => "/etc/ceph/client.${gateway_name}",
+    rgw_data           => "/var/lib/ceph/radosgw-${gateway_name}",
+    rgw_dns_name       => "*.${::domain}",
+    log_file           => undef,
+  }
+
+  ceph::rgw::keystone { $gateway_name:
+    rgw_keystone_url                 => $admin_identity_url,
+    rgw_keystone_admin_token         => $keystone_hash['admin_token'],
+    rgw_keystone_token_cache_size    => $rgw_keystone_token_cache_size,
+    rgw_keystone_accepted_roles      => $rgw_keystone_accepted_roles,
+    rgw_keystone_revocation_interval => $rgw_keystone_revocation_interval,
+  }
+
+  file { "/var/lib/ceph/radosgw/ceph-${gateway_name}":
+    ensure => directory,
+  }
+
+  ceph::rgw::apache_proxy_fcgi { 'radosgw.gateway':
+    docroot              => '/var/www/radosgw',
+    rgw_port             => '6780',
+    apache_purge_configs => false,
+    apache_purge_vhost   => false,
+    custom_apache_ports  => hiera_array('apache_ports', ['0.0.0.0:80']),
+  }
+
+  if ! $use_syslog {
+    ceph_config {
+      'client.radosgw.gateway/log_file':      value => $rgw_log_file;
+      'client.radosgw.gateway/log_to_syslog': value => $use_syslog;
+    }
+  }
+
+  exec { "Create ${rgw_large_pool_name} pool":
+    command => "ceph -n client.radosgw.gateway osd pool create ${rgw_large_pool_name} ${rgw_large_pool_pg_nums} ${rgw_large_pool_pg_nums}",
+    path    => '/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/bin',
+    unless  => "rados lspools | grep '^${rgw_large_pool_name}$'",
+  }
+
+  Ceph::Key["client.${gateway_name}"] -> Exec["Create ${rgw_large_pool_name} pool"]
 }

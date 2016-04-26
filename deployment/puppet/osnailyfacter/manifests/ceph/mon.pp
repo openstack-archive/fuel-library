@@ -43,93 +43,81 @@ class osnailyfacter::ceph::mon {
     $mon_host            = $mon_ips
   }
 
-  if ($storage_hash['volumes_ceph'] or
-    $storage_hash['images_ceph'] or
-    $storage_hash['objects_ceph'] or
-    $storage_hash['ephemeral_ceph']
-  ) {
-    $use_ceph = true
-  } else {
-    $use_ceph = false
+  class { '::ceph':
+    fsid                      => $fsid,
+    mon_initial_members       => $mon_initial_members,
+    mon_host                  => $mon_host,
+    cluster_network           => $ceph_cluster_network,
+    public_network            => $ceph_public_network,
+    osd_pool_default_size     => $osd_pool_default_size,
+    osd_pool_default_pg_num   => $osd_pool_default_pg_num,
+    osd_pool_default_pgp_num  => $osd_pool_default_pgp_num,
+    osd_pool_default_min_size => $osd_pool_default_min_size,
+    osd_journal_size          => $osd_journal_size,
   }
 
-  if $use_ceph {
-    class { '::ceph':
-      fsid                      => $fsid,
-      mon_initial_members       => $mon_initial_members,
-      mon_host                  => $mon_host,
-      cluster_network           => $ceph_cluster_network,
-      public_network            => $ceph_public_network,
-      osd_pool_default_size     => $osd_pool_default_size,
-      osd_pool_default_pg_num   => $osd_pool_default_pg_num,
-      osd_pool_default_pgp_num  => $osd_pool_default_pgp_num,
-      osd_pool_default_min_size => $osd_pool_default_min_size,
-      osd_journal_size          => $osd_journal_size,
-    }
+  ceph_config {
+    'global/filestore_xattr_use_omap'           : value => $filestore_xattr_use_omap;
+    'global/osd_recovery_max_active'            : value => $osd_recovery_max_active;
+    'global/osd_max_backfills'                  : value => $osd_max_backfills;
+    'client/rbd_cache_writethrough_until_flush' : value => $rbd_cache_writethrough_until_flush;
+    'client/rbd_cache'                          : value => $rbd_cache;
+    'global/log_to_syslog'                      : value => $log_to_syslog;
+    'global/log_to_syslog_level'                : value => $log_to_syslog_level;
+    'global/log_to_syslog_facility'             : value => $log_to_syslog_facility;
+  }
 
-    ceph_config {
-      'global/filestore_xattr_use_omap'           : value => $filestore_xattr_use_omap;
-      'global/osd_recovery_max_active'            : value => $osd_recovery_max_active;
-      'global/osd_max_backfills'                  : value => $osd_max_backfills;
-      'client/rbd_cache_writethrough_until_flush' : value => $rbd_cache_writethrough_until_flush;
-      'client/rbd_cache'                          : value => $rbd_cache;
-      'global/log_to_syslog'                      : value => $log_to_syslog;
-      'global/log_to_syslog_level'                : value => $log_to_syslog_level;
-      'global/log_to_syslog_facility'             : value => $log_to_syslog_facility;
-    }
+  Ceph::Key {
+    inject         => true,
+    inject_as_id   => 'mon.',
+    inject_keyring => "/var/lib/ceph/mon/ceph-${::hostname}/keyring",
+  }
 
-    Ceph::Key {
-      inject => true,
-      inject_as_id   => 'mon.',
-      inject_keyring => "/var/lib/ceph/mon/ceph-${::hostname}/keyring",
-    }
+  ceph::key { 'client.admin':
+    secret  => $admin_key,
+    cap_mon => 'allow *',
+    cap_osd => 'allow *',
+    cap_mds => 'allow',
+  }
 
-    ceph::key { 'client.admin':
-      secret  => $admin_key,
-      cap_mon => 'allow *',
-      cap_osd => 'allow *',
-      cap_mds => 'allow',
-    }
+  ceph::key { 'client.bootstrap-osd':
+    secret  => $bootstrap_osd_key,
+    cap_mon => 'allow profile bootstrap-osd',
+  }
 
-    ceph::key { 'client.bootstrap-osd':
-      secret  => $bootstrap_osd_key,
-      cap_mon => 'allow profile bootstrap-osd',
-    }
+  ceph::mon { $::hostname:
+    key => $mon_key,
+  }
 
-    ceph::mon { $::hostname:
-      key => $mon_key,
-    }
-
-    if ($storage_hash['volumes_ceph']) {
-      include ::cinder::params
+  if ($storage_hash['volumes_ceph']) {
+    include ::cinder::params
       service { 'cinder-volume':
-        ensure     => 'running',
-        name       => $::cinder::params::volume_service,
-        hasstatus  => true,
-        hasrestart => true,
-      }
-
-      service { 'cinder-backup':
-        ensure     => 'running',
-        name       => $::cinder::params::backup_service,
-        hasstatus  => true,
-        hasrestart => true,
-      }
-
-      Class['ceph'] ~> Service['cinder-volume']
-      Class['ceph'] ~> Service['cinder-backup']
+      ensure     => 'running',
+      name       => $::cinder::params::volume_service,
+      hasstatus  => true,
+      hasrestart => true,
     }
 
-    if ($storage_hash['images_ceph']) {
-      include ::glance::params
-      service { 'glance-api':
-        ensure     => 'running',
-        name       => $::glance::params::api_service_name,
-        hasstatus  => true,
-        hasrestart => true,
-      }
-
-      Class['ceph'] ~> Service['glance-api']
+    service { 'cinder-backup':
+      ensure     => 'running',
+      name       => $::cinder::params::backup_service,
+      hasstatus  => true,
+      hasrestart => true,
     }
+
+    Class['ceph'] ~> Service['cinder-volume']
+    Class['ceph'] ~> Service['cinder-backup']
+  }
+
+  if ($storage_hash['images_ceph']) {
+  include ::glance::params
+    service { 'glance-api':
+      ensure     => 'running',
+      name       => $::glance::params::api_service_name,
+      hasstatus  => true,
+      hasrestart => true,
+    }
+
+    Class['ceph'] ~> Service['glance-api']
   }
 }

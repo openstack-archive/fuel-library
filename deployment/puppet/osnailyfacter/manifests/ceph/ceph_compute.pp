@@ -28,47 +28,35 @@ class osnailyfacter::ceph::ceph_compute {
     $libvirt_images_type = 'rbd'
   }
 
-  if ($storage_hash['volumes_ceph'] or
-    $storage_hash['images_ceph'] or
-    $storage_hash['objects_ceph'] or
-    $storage_hash['ephemeral_ceph']
-  ) {
-    $use_ceph = true
-  } else {
-    $use_ceph = false
+  class { '::ceph':
+    fsid                => $fsid,
+    mon_initial_members => $mon_hosts,
+    mon_host            => $mon_ips,
+    cluster_network     => $ceph_cluster_network,
+    public_network      => $ceph_public_network,
   }
 
-  if $use_ceph {
-    class { '::ceph':
-      fsid                => $fsid,
-      mon_initial_members => $mon_hosts,
-      mon_host            => $mon_ips,
-      cluster_network     => $ceph_cluster_network,
-      public_network      => $ceph_public_network,
-    }
-
-    ceph::pool { $compute_pool:
-      pg_num  => $compute_pool_pg_num,
-      pgp_num => $compute_pool_pgp_num,
-    }
-
-    ceph::key { "client.${compute_user}":
-      user    => 'nova',
-      group   => 'nova',
-      secret  => $secret,
-      cap_mon => 'allow r',
-      cap_osd => "allow class-read object_prefix rbd_children, allow rwx pool=${cinder_pool}, allow rx pool=${glance_pool}, allow rwx pool=${compute_pool}",
-      inject  => true,
-    }
-
-    class {'::osnailyfacter::ceph_nova_compute':
-      user                => $compute_user,
-      compute_pool        => $compute_pool,
-      libvirt_images_type => $libvirt_images_type,
-    }
-
-    Class['ceph'] ->
-    Ceph::Pool[$compute_pool] ->
-    Class['osnailyfacter::ceph_nova_compute']
+  ceph::pool { $compute_pool:
+    pg_num  => $compute_pool_pg_num,
+    pgp_num => $compute_pool_pgp_num,
   }
+
+  ceph::key { "client.${compute_user}":
+    user    => 'nova',
+    group   => 'nova',
+    secret  => $secret,
+    cap_mon => 'allow r',
+    cap_osd => "allow class-read object_prefix rbd_children, allow rwx pool=${cinder_pool}, allow rx pool=${glance_pool}, allow rwx pool=${compute_pool}",
+    inject  => true,
+  }
+
+  class {'::osnailyfacter::ceph_nova_compute':
+    user                => $compute_user,
+    compute_pool        => $compute_pool,
+    libvirt_images_type => $libvirt_images_type,
+  }
+
+  Class['ceph'] ->
+  Ceph::Pool[$compute_pool] ->
+  Class['osnailyfacter::ceph_nova_compute']
 }

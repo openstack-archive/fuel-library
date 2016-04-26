@@ -12,6 +12,7 @@ class osnailyfacter::ceph::ceph_pools {
   $glance_user        = 'images'
   $glance_pool        = 'images'
 
+
   class {'ceph':
     fsid => $fsid
   }
@@ -93,5 +94,4 @@ class osnailyfacter::ceph::ceph_pools {
 
     Ceph::Pool[$glance_pool] ~> Service['glance-api']
   }
-
 }
