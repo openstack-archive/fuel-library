@@ -35,7 +35,7 @@
       $.get('memcached_addresses', ''), $.get('memcache_roles', ''),
       len($.network_metadata.nodes.values().where(
         $.network_roles.get('mgmt/memcache') != null)),
-      $.memcache_server_port, $.get('amqp_hosts', ''),
+      $.get('memcache_server_port'), $.get('amqp_hosts', ''),
       len($.network_metadata.nodes.values().where(
         $.network_roles.get('mgmt/messaging') != null)),
       $.resume_guests_state_on_host_boot, $.use_cow_images)
