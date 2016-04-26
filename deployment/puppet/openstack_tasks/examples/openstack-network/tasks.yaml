@@ -78,7 +78,6 @@
       $.get('neutron_compute_nodes'), $.get('region', 'RegionOne'),
       $.get('use_ssl'), $.neutron_advanced_configuration, $.network_scheme)
   refresh_on: [neutron_plugin_ml2, neutron_config, neutron_api_config]
-  reexecute_on: [deploy_changes]
   parameters:
     puppet_manifest: /etc/puppet/modules/openstack_tasks/examples/openstack-network/server-config.pp
     puppet_modules: /etc/puppet/modules

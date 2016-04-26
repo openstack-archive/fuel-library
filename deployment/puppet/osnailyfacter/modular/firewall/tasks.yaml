@@ -4,7 +4,6 @@
   groups: [primary-controller, controller, cinder, cinder-block-device, cinder-vmware, compute, ceph-osd, primary-mongo, mongo, ironic]
   required_for: [deploy_end]
   requires: [netconfig]
-  reexecute_on: [deploy_changes]
   condition:
     yaql_exp: >
       changedAny($.network_scheme, $.network_metadata,

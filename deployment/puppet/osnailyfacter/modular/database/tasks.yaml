@@ -4,7 +4,6 @@
   groups: [controller]
   required_for: [openstack-controller, primary-openstack-controller]
   requires: [deploy_start, openstack-haproxy]
-  reexecute_on: [deploy_changes]
   condition:
     yaql_exp: &db >
       changedAny($.network_scheme, $.network_metadata, $.get('use_syslog'),
@@ -33,7 +32,6 @@
   requires: [deploy_start, openstack-haproxy]
   condition:
     yaql_exp: *db
-  reexecute_on: [deploy_changes]
   parameters:
     puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/database/database.pp
     puppet_modules: /etc/puppet/modules
