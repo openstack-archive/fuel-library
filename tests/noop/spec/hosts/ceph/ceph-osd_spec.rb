@@ -133,13 +133,6 @@ describe manifest do
       )
     end
 
-    it 'should start osd daemons' do
-      should contain_service('ceph-osd-all-starter').with(
-        'ensure'   => 'running',
-        'provider' => 'upstart',
-      ).that_requires('Class[ceph::osds]')
-    end
-
     if ceph_tuning_settings != {}
       it 'should set Ceph tuning settings' do
         should contain_ceph_config('global/debug_default').with(:value => debug)
