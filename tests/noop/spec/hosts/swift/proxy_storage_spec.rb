@@ -1,8 +1,8 @@
-# ROLE: primary-controller
+storage_nets# ROLE: primary-controller
 # ROLE: controller
 require 'spec_helper'
 require 'shared-examples'
-manifest = 'swift/proxy.pp'
+manifest = 'swift/proxy_storage.pp'
 
 describe manifest do
   shared_examples 'catalog' do
@@ -123,7 +123,30 @@ describe manifest do
           'workers' => '4',
         )
       end
+
+      if !swift_partition
+        swift_partition = '/var/lib/glance/node'
+        it 'should allow swift user to write into /var/lib/glance directory' do
+          should contain_file('/var/lib/glance').with(
+            'ensure' => 'directory',
+            'group'  => 'swift',
+          ).that_requires('Package[swift]')
+        end
+      end
+
+      it 'should disable mount check for swift devices' do
+        should contain_class('swift::storage::all').with('mount_check' => false)
+      end
+
+      it 'should configure swift on separate partition' do
+        should contain_file(swift_partition).with(
+          'ensure' => 'directory',
+          'owner'  => 'swift',
+          'group'  => 'swift',
+        )
+      end
     end
+
     if deploy_swift_proxy
       it 'should configure proxy workers' do
         fallback_workers = [[facts[:processorcount].to_i, 2].max, workers_max.to_i].min
@@ -179,7 +202,6 @@ describe manifest do
         )
       end
     end
-
   end
   test_ubuntu_and_centos manifest
 end
