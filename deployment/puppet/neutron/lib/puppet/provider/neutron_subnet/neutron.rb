@@ -1,3 +1,4 @@
+require 'json'
 require File.join(File.dirname(__FILE__), '..','..','..',
                   'puppet/provider/neutron')
 
@@ -58,9 +59,9 @@ Puppet::Type.type(:neutron_subnet).provide(
     allocation_pools = []
     return [] if values.empty?
     for value in Array(values)
-      matchdata = /\{\s*"start"\s*:\s*"(.*)"\s*,\s*"end"\s*:\s*"(.*)"\s*\}/.match(value.gsub(/\\"/,'"'))
-      start_ip = matchdata[1]
-      end_ip = matchdata[2]
+      allocation_pool = JSON.parse(value.gsub(/\\"/,'"'))
+      start_ip = allocation_pool['start']
+      end_ip = allocation_pool['end']
       allocation_pools << "start=#{start_ip},end=#{end_ip}"
     end
     return allocation_pools
@@ -70,9 +71,9 @@ Puppet::Type.type(:neutron_subnet).provide(
     host_routes = []
     return [] if values.empty?
     for value in Array(values)
-      matchdata = /\{\s*"destination"\s*:\s*"(.*)"\s*,\s*"nexthop"\s*:\s*"(.*)"\s*\}/.match(value)
-      destination = matchdata[1]
-      nexthop = matchdata[2]
+      host_route = JSON.parse(value.gsub(/\\"/,'"'))
+      nexthop = host_route['nexthop']
+      destination = host_route['destination']
       host_routes << "destination=#{destination},nexthop=#{nexthop}"
     end
     return host_routes
