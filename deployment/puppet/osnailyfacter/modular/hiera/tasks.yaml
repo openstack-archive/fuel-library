@@ -7,7 +7,7 @@
   required_for: [setup_repositories]
   condition:
     yaql_exp: >
-      ($.uid in added($.nodes).uid) or
+      ($.uid in added($.network_metadata.nodes.values().nodes).uid) or
       changed($.plugins)
   parameters:
     puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/hiera/hiera.pp

@@ -6,7 +6,7 @@
   requires: [post_deployment_start]
   required_for: [post_deployment_end]
   condition:
-    yaql_exp: "changed($.nodes) or changed($.get('corosync_roles'))"
+    yaql_exp: "changed($.network_metadata.nodes) or changed($.get('corosync_roles'))"
   cross-depends:
     - name: dns-client
     - name: ntp-server
@@ -59,7 +59,7 @@
   version: 2.1.0
   role: ['/.*/']
   condition:
-    yaql_exp: '$.uid in added($.nodes).uid'
+    yaql_exp: '$.uid in added($.network_metadata.nodes.values()).uid'
   requires: [upload_configuration]
   required_for: [pre_deployment_end]
   parameters:
@@ -228,7 +228,7 @@
           ($.public_ssl.horizon or $.public_ssl.services) and
           (not (old($.public_ssl.horizon) or old($.public_ssl.services)))) or
         (($.public_ssl.horizon or $.public_ssl.services) and
-          ($.uid in added($.nodes).uid))) and
+          ($.uid in added($.network_metadata.nodes.values()).uid))) and
       $.public_ssl.cert_source = 'self_signed'
   required_for: [pre_deployment_end]
   requires: [generate_haproxy_keys]
@@ -249,7 +249,7 @@
   version: 2.1.0
   role: ['/.*/']
   condition:
-    yaql_exp: '$.uid in added($.nodes).uid'
+    yaql_exp: '$.uid in added($.network_metadata.nodes.values()).uid'
   requires: [pre_deployment_start]
   required_for: [pre_deployment_end]
   parameters:
@@ -263,7 +263,7 @@
   version: 2.1.0
   role: ['/.*/']
   condition:
-    yaql_exp: '$.uid in added($.nodes).uid'
+    yaql_exp: '$.uid in added($.network_metadata.nodes.values()).uid'
   requires: [pre_deployment_start, rsync_core_puppet]
   required_for: [pre_deployment_end]
   parameters:
@@ -277,7 +277,7 @@
   version: 2.1.0
   role: ['/.*/']
   condition:
-    yaql_exp: '$.uid in added($.nodes).uid'
+    yaql_exp: '$.uid in added($.network_metadata.nodes.values()).uid'
   requires: [pre_hiera_config]
   required_for: [pre_deployment_end]
   parameters:

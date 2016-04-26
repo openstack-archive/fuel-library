@@ -54,7 +54,7 @@
   required_for: [globals]
   requires: [rsync_core_puppet]
   condition:
-    yaql_exp: '$.uid in added($.nodes).uid'
+    yaql_exp: '$.uid in added($.network_metadata.nodes.values()).uid'
   parameters:
     puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/netconfig/reserved_ports.pp
     puppet_modules: /etc/puppet/modules
