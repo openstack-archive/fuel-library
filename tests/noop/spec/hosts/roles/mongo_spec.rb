@@ -19,7 +19,7 @@ describe manifest do
     use_syslog = Noop.hiera 'use_syslog'
     ceilometer_hash = Noop.hiera_structure 'ceilometer'
     mongodb_port = Noop.hiera('mongodb_port', '27017')
-    oplog_size = Noop.hiera('mongo/oplog_size', '10240')
+    mongo_params = Noop.hiera_structure 'mongo'
     profile = Noop.hiera('mongo/profile', '1')
     directoryperdb = Noop.hiera('mongo/directoryperdb', true)
     keyfile = '/etc/mongodb.key'
@@ -54,8 +54,10 @@ describe manifest do
       end
     end
 
-    it 'should configure oplog size for local database' do
-      should contain_class('mongodb::server').with('oplog_size' => oplog_size)
+    if mongo_params['oplog_size']
+      it 'should configure oplog size for local database' do
+        should contain_class('mongodb::server').with('oplog_size' => mongo_params['oplog_size'])
+      end
     end
 
     it 'should capture data regarding performance' do

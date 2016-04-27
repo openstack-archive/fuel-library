@@ -31,6 +31,13 @@ class openstack_tasks::roles::mongo {
     $logpath = undef
   }
 
+  if $mongo_hash['oplog_size'] {
+    $oplog_size = $mongo_hash['oplog_size']
+  } else {
+    # undef to use defaults
+    $oplog_size = undef
+  }
+
   file { $keyfile:
     content => file($astute_keyfile),
     owner   => 'mongodb',
@@ -60,7 +67,7 @@ class openstack_tasks::roles::mongo {
     directoryperdb  => pick($mongo_hash['directoryperdb'], true),
     fork            => pick($mongo_hash['fork'], false),
     profile         => pick($mongo_hash['profile'], '1'),
-    oplog_size      => pick($mongo_hash['oplog_size'], '10240'),
+    oplog_size      => $oplog_size,
     dbpath          => pick($mongo_hash['dbpath'], '/var/lib/mongo/mongodb'),
     create_admin    => true,
     admin_password  => $ceilometer_hash['db_password'],
