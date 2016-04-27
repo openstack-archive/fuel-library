@@ -219,6 +219,18 @@ describe manifest do
       should contain_glance_registry_config('oslo_messaging_notifications/driver').with(:value => ceilometer_hash['notification_driver'])
     end
 
+      it 'should properly configure rabbit queue' do
+        should contain_api_config('DEFAULT/rpc_backend').with(:value => 'rabbit')
+        should contain_registry_config('DEFAULT/rpc_backend').with(:value => 'rabbit')
+
+        should contain_api_config('oslo_messaging_rabbit/heartbeat_timeout_threshold').with(:value => '0')
+        should contain_registry_config('oslo_messaging_rabbit/heartbeat_timeout_threshold').with(:value => '0')
+        should contain_api_config('oslo_messaging_rabbit/default_notification_exchange').with(:value => 'glance')
+        should contain_registry_config('oslo_messaging_rabbit/default_notification_exchange').with(:value => 'glance')
+        should contain_api_config('oslo_messaging_notifications/topics').with(:value => 'notifications')
+        should contain_registry_config('oslo_messaging_notifications/topics').with(:value => 'notifications')
+      end
+
     if ['gzip', 'bz2'].include?(kombu_compression)
       it 'should configure kombu compression' do
         should contain_glance_api_config('oslo_messaging_rabbit/kombu_compression').with(:value => kombu_compression)
