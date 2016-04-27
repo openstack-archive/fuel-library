@@ -37,6 +37,9 @@ describe manifest do
 
       management_vip = Noop.hiera('management_vip')
       nova_endpoint  = Noop.hiera('nova_endpoint', management_vip)
+      nova_metadata_protocol = Noop.hiera('nova_metadata_protocol', 'http')
+      let(:nova_internal_protocol) { Noop.puppet_function 'get_ssl_property', ssl_hash, {}, 'nova', 'internal', 'protocol', nova_metadata_protocol }
+      let(:nova_internal_endpoint) { Noop.puppet_function 'get_ssl_property', ssl_hash, {}, 'nova', 'internal', 'endpoint', nova_endpoint }
 
       if neutron_compute_roles.include?(Noop.hiera('role'))
         context 'neutron-metadata-agent on compute' do
@@ -57,7 +60,10 @@ describe manifest do
               'manage_service' => true
             )}
             it { should contain_class('neutron::agents::metadata').with(
-              'metadata_ip' => nova_endpoint
+              'metadata_ip' => nova_internal_endpoint
+            )}
+            it { should contain_class('neutron::agents::metadata').with(
+              'metadata_protocol' => nova_internal_protocol
             )}
             it { should contain_class('neutron::agents::metadata').with(
               'shared_secret' => secret
@@ -105,7 +111,10 @@ describe manifest do
             'manage_service' => true
           )}
           it { should contain_class('neutron::agents::metadata').with(
-            'metadata_ip' => nova_endpoint
+            'metadata_ip' => nova_internal_endpoint
+          )}
+          it { should contain_class('neutron::agents::metadata').with(
+            'metadata_protocol' => nova_internal_protocol
           )}
           it { should contain_class('neutron::agents::metadata').with(
             'shared_secret' => secret
