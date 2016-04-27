@@ -289,7 +289,7 @@
       changedAny($.get('neutron_compute_nodes'),
         $.neutron_advanced_configuration, $.debug, $.configuration,
         $.get('region'), $.network_metadata.vips, $.get('use_ssl'),
-        $.quantum_settings, $.get('nova_endpoint'),
+        $.quantum_settings, $.get('nova_endpoint'), $.get('nova_metadata_protocol'),
         ('primary-controller' in $.roles))
   cross-depends:
     - name: /(primary-)?openstack-network-plugins-l2/
