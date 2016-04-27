@@ -17,6 +17,7 @@ describe manifest do
     ceilometer_hash = Noop.hiera_structure 'ceilometer'
     nodes_hash = Noop.hiera 'nodes'
     mongodb_port = Noop.hiera('mongodb_port', '27017')
+    mongo_params = Noop.hiera_structure 'mongo'
 
     it 'should configure MongoDB only with replica set' do
       should contain_class('mongodb::server').with('replset' => 'ceilometer')
@@ -44,8 +45,10 @@ describe manifest do
       end
     end
 
-    it 'should configure oplog size for local database' do
-      should contain_class('mongodb::server').with('oplog_size' => '10240')
+    if mongo_params['oplog_size']
+      it 'should configure oplog size for local database' do
+        should contain_class('mongodb::server').with('oplog_size' => mongo_params['oplog_size'])
+      end
     end
 
     it 'should capture data regarding performance' do

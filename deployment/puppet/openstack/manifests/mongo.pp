@@ -18,7 +18,7 @@ class openstack::mongo (
   $replset_name               = 'ceilometer',
   $keyfile                    = '/etc/mongodb.key',
   $key                        = undef,
-  $oplog_size                 = '10240',
+  $oplog_size                 = undef,
   $fork                       = false,
   $directoryperdb             = true,
   $profile                    = "1",
