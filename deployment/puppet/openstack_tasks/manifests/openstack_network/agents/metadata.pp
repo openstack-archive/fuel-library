@@ -19,20 +19,25 @@ class openstack_tasks::openstack_network::agents::metadata {
   }
 
   if $use_neutron and ($controller or ($dvr and $compute)) {
-    $debug                   = hiera('debug', true)
-    $ha_agent                = try_get_value($neutron_advanced_config, 'metadata_agent_ha', true)
-    $service_endpoint        = hiera('service_endpoint')
-    $management_vip          = hiera('management_vip')
-    $neutron_config          = hiera_hash('neutron_config')
-    $shared_secret           = try_get_value($neutron_config, 'metadata/metadata_proxy_shared_secret')
-    $nova_endpoint           = hiera('nova_endpoint', $management_vip)
+    $debug                  = hiera('debug', true)
+    $ha_agent               = try_get_value($neutron_advanced_config, 'metadata_agent_ha', true)
+    $service_endpoint       = hiera('service_endpoint')
+    $management_vip         = hiera('management_vip')
+    $neutron_config         = hiera_hash('neutron_config')
+    $shared_secret          = try_get_value($neutron_config, 'metadata/metadata_proxy_shared_secret')
+    $nova_endpoint          = hiera('nova_endpoint', $management_vip)
+    $nova_metadata_protocol = hiera('nova_metadata_protocol', 'http')
+
+    $nova_internal_protocol = get_ssl_property($ssl_hash, {}, 'nova', 'internal', 'protocol', [$nova_metadata_protocol])
+    $nova_internal_endpoint = get_ssl_property($ssl_hash, {}, 'nova', 'internal', 'hostname', [$nova_endpoint])
 
     class { '::neutron::agents::metadata':
-      debug          => $debug,
-      shared_secret  => $shared_secret,
-      metadata_ip    => $nova_endpoint,
-      manage_service => true,
-      enabled        => true,
+      debug             => $debug,
+      shared_secret     => $shared_secret,
+      metadata_ip       => $nova_internal_endpoint,
+      metadata_protocol => $nova_internal_protocol,
+      manage_service    => true,
+      enabled           => true,
     }
 
     if ($ha_agent) and !($compute) {
