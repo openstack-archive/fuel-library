@@ -76,6 +76,7 @@ describe manifest do
           should contain_class('neutron').with('rabbit_user' => rabbit_hash['user'])
           should contain_class('neutron').with('rabbit_password' => rabbit_hash['password'])
           should contain_class('neutron').with('rabbit_hosts' => Noop.hiera('amqp_hosts', '').split(','))
+          should contain_class('neutron').with('rabbit_heartbeat_timeout_threshold' => 0)
         end
 
         default_log_levels_hash = Noop.hiera_hash 'default_log_levels'
