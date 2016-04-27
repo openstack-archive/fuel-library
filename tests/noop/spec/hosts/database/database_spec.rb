@@ -42,6 +42,10 @@ describe manifest do
       Noop.hiera 'mysql', {}
     end
 
+    let(:debug) do
+      Noop.puppet_function 'pick', mysql_hash['debug'], Noop.hiera('debug', false)
+    end
+
     let(:database_nodes) do
       Noop.hiera('database_nodes')
     end
@@ -204,6 +208,18 @@ describe manifest do
     it "should configure mysql to ignore lost+found directory" do
       should contain_class('galera').with_override_options(
           /"ignore-db-dir"=>\["lost\+found"\]/
+      )
+    end
+
+    it "should configure mysql to innodb-data-home-dir" do
+      should contain_class('galera').with_override_options(
+          /"innodb-data-home-dir"=>"\/var\/lib\/mysql"/
+      )
+    end
+
+    it "should configure mysql to evaluate time of SST operations" do
+      should contain_class('galera').with_override_options(
+          debug ? /"time"=>"1"/ : /"time"=>"0"/
       )
     end
 

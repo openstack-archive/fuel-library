@@ -8,6 +8,7 @@ class osnailyfacter::database::database {
   $use_syslog               = hiera('use_syslog', true)
   $primary_controller       = hiera('primary_controller')
   $mysql_hash               = hiera_hash('mysql', {})
+  $debug                    = pick($mysql_hash['debug'], hiera('debug', false))
   $management_vip           = hiera('management_vip')
   $database_vip             = hiera('database_vip', $management_vip)
 
@@ -185,6 +186,7 @@ class osnailyfacter::database::database {
         'max_allowed_packet'             => '256M',
         'query_cache_size'               => '0',
         'query_cache_type'               => '0',
+        'innodb-data-home-dir'           => '/var/lib/mysql',
         'innodb_file_format'             => 'Barracuda',
         'innodb_file_per_table'          => '1',
         'innodb_buffer_pool_size'        => "${innodb_buffer_pool_size}M",
@@ -196,6 +198,9 @@ class osnailyfacter::database::database {
         'innodb_flush_method'            => 'O_DIRECT',
         'innodb_doublewrite'             => '0',
       },
+      'sst' => {
+        'time' => $debug ? {true => '1', default => '0'}
+      }
     }
 
     $server_list = join($galera_nodes, ',')
