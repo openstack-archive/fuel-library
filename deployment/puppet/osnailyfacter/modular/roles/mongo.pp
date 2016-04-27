@@ -12,6 +12,13 @@ $roles             = hiera('roles')
 $replset_name      = 'ceilometer'
 $mongodb_port      = hiera('mongodb_port', '27017')
 
+if $mongo_hash['oplog_size'] {
+  $oplog_size = $mongo_hash['oplog_size']
+} else {
+  # undef to use defaults
+  $oplog_size = undef
+}
+
 ####################################################################
 class { 'openstack::mongo':
   mongodb_bind_address       => [ '127.0.0.1', $bind_address ],
@@ -23,6 +30,7 @@ class { 'openstack::mongo':
   mongo_version              => '2.6.10',
   use_syslog                 => $use_syslog,
   debug                      => $debug,
+  oplog_size                 => $oplog_size,
 }
 
 if ! roles_include(['controller', 'primary-controller']) {
