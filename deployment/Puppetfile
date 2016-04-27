@@ -104,7 +104,7 @@ mod 'keystone',
 # Pull in puppet-neutron
 mod 'neutron',
     :git => 'https://review.fuel-infra.org/p/puppet-modules/puppet-neutron.git',
-    :ref => '7.0.0-rc7'
+    :ref => '7.0.0-rc8'
 
 # Pull in puppet-nova
 mod 'nova',
