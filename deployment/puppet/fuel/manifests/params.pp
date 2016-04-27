@@ -15,7 +15,7 @@ class fuel::params {
   $feature_groups           = []
   $staticdir                = '/usr/share/nailgun/static'
   $templatedir              = '/usr/share/nailgun/static'
-  $logdumpdir               = '/var/dump'
+  $logdumpdir               = '/var/log/dump'
 
   # keystone
   $keystone_host              = '127.0.0.1'
