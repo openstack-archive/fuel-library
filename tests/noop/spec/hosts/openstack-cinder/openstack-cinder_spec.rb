@@ -195,14 +195,13 @@ describe manifest do
     end
   end
 
-  # TODO(dmburmistrov): uncomment this test after migration to non-deprecated option 'oslo_messaging_notifications/driver'
-  # it 'should contain oslo_messaging_notifications "driver" option' do
-  #   if ceilometer_hash['enabled']
-  #     should contain_cinder_config('oslo_messaging_notifications/driver').with(:value => ceilometer_hash['notification_driver'])
-  #   else
-  #     should_not contain_cinder_config('oslo_messaging_notifications/driver')
-  #   end
-  # end
+  it 'should contain oslo_messaging_notifications "driver" option' do
+    if ceilometer_hash['enabled']
+      should contain_cinder_config('oslo_messaging_notifications/driver').with(:value => ceilometer_hash['notification_driver'])
+    else
+      should_not contain_cinder_config('oslo_messaging_notifications/driver')
+    end
+  end
 
     let (:bind_host) do
       Noop.puppet_function('get_network_role_property', 'cinder/api', 'ipaddr')

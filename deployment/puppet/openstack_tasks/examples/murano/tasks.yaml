@@ -5,7 +5,7 @@
   condition:
     yaql_exp: >
       $.murano.enabled and changedAny($.murano, $.murano_settings,
-      $.rabbit, $.quantum_settings, $.network_metadata.vips,
+      $.rabbit, $.ceilometer, $.quantum_settings, $.network_metadata.vips,
       $.get('database_vip'), $.get('region', 'RegionOne'), $.quantum,
       $.network_metadata, $.get('syslog_log_facility_murano'), $.debug,
       $.get('verbose'), $.get('default_log_levels'), $.get('use_syslog'),
