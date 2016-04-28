@@ -1,22 +1,110 @@
 [DEFAULT]
-host=<%= @index %>
+
+# A list of backend names to use. These backend names should be backed by a
+# unique [CONFIG] group with its options (list value)
+#enabled_backends = <None>
+enabled_backends=VMwareVcVmdk-backend
+
+# Availability zone of this node (string value)
+#storage_availability_zone = nova
 storage_availability_zone=<%= @availability_zone_name %>-cinder
+
+# Default availability zone for new volumes. If not set, the
+# storage_availability_zone option value is used as the default for new volumes.
+# (string value)
+#default_availability_zone = <None>
 default_availability_zone=<%= @availability_zone_name %>-cinder
-volume_driver=cinder.volume.drivers.vmware.vmdk.VMwareVcVmdkDriver
+
+# If set to true, the logging level will be set to DEBUG instead of the default
+# INFO level. (boolean value)
+#debug = false
 debug=<%= @debug %>
-vmware_host_ip=<%= @vc_host %>
-vmware_host_username=<%= @vc_user %>
-vmware_host_password=<%= @vc_password %>
-vmware_volume_folder=<%= @vc_volume_folder %>
-<% if !@vc_wsdl_location.empty? %>
-vmware_wsdl_location=<%= @vc_wsdl_location %>
-<% end %>
+
+
+[VMwareVcVmdk-backend]
+# Backend override of host value. (string value)
+# Deprecated group/name - [DEFAULT]/host
+#backend_host = <None>
+backend_host=<%= @index %>
+
+# The backend name for a given driver implementation (string value)
+#volume_backend_name = <None>
+volume_backend_name=VMwareVcVmdk-backend
+
+# Driver to use for volume creation (string value)
+#volume_driver = cinder.volume.drivers.lvm.LVMVolumeDriver
+volume_driver=cinder.volume.drivers.vmware.vmdk.VMwareVcVmdkDriver
+
+# Number of times VMware vCenter server API must be retried upon connection
+# related issues. (integer value)
+#vmware_api_retry_count = 10
 vmware_api_retry_count=<%= @vc_api_retry_count %>
+
+# CA bundle file to use in verifying the vCenter server certificate. (string
+# value)
+#vmware_ca_file = <None>
+
+# Name of a vCenter compute cluster where volumes should be created. (multi
+# valued)
+#vmware_cluster_name =
+
+# IP address for connecting to VMware vCenter server. (string value)
+#vmware_host_ip = <None>
+vmware_host_ip=<%= @vc_host %>
+
+# Password for authenticating with VMware vCenter server. (string value)
+#vmware_host_password = <None>
+vmware_host_password=<%= @vc_password %>
+
+# Username for authenticating with VMware vCenter server. (string value)
+#vmware_host_username = <None>
+vmware_host_username=<%= @vc_user %>
+
+# Optional string specifying the VMware vCenter server version. The driver
+# attempts to retrieve the version from VMware vCenter server. Set this
+# configuration only if you want to override the vCenter server version. (string
+# value)
+#vmware_host_version = <None>
 <% if !@vc_host_version.empty? %>
 vmware_host_version=<%= @vc_host_version %>
 <% end %>
+
+# Timeout in seconds for VMDK volume transfer between Cinder and Glance.
+# (integer value)
+#vmware_image_transfer_timeout_secs = 7200
 vmware_image_transfer_timeout_secs=<%= @vc_image_transfer_timeout_secs %>
+
+# If true, the vCenter server certificate is not verified. If false, then the
+# default CA truststore is used for verification. This option is ignored if
+# "vmware_ca_file" is set. (boolean value)
+#vmware_insecure = false
 vmware_insecure = True
+
+# Max number of objects to be retrieved per batch. Query results will be
+# obtained in batches from the server and not in one shot. Server may still
+# limit the count to something less than the configured value. (integer value)
+#vmware_max_objects_retrieval = 100
 vmware_max_objects_retrieval=<%= @vc_max_objects_retrieval %>
+
+# The interval (in seconds) for polling remote tasks invoked on VMware vCenter
+# server. (floating point value)
+#vmware_task_poll_interval = 0.5
 vmware_task_poll_interval=<%= @vc_task_poll_interval %>
+
+# Directory where virtual disks are stored during volume backup and restore.
+# (string value)
+#vmware_tmp_dir = /tmp
 vmware_tmp_dir=<%= @vc_tmp_dir %>
+
+# Name of the vCenter inventory folder that will contain Cinder volumes. This
+# folder will be created under "OpenStack/<project_folder>", where
+# project_folder is of format "Project (<volume_project_id>)". (string value)
+#vmware_volume_folder = Volumes
+vmware_volume_folder=<%= @vc_volume_folder %>
+
+# Optional VIM service WSDL Location e.g http://<server>/vimService.wsdl.
+# Optional over-ride to default location for bug work-arounds. (string value)
+#vmware_wsdl_location = <None>
+<% if !@vc_wsdl_location.empty? %>
+vmware_wsdl_location=<%= @vc_wsdl_location %>
+<% end %>

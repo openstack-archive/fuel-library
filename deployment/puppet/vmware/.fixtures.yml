@@ -7,3 +7,4 @@ fixtures:
     stdlib: "#{source_dir}/../stdlib"
     vmware: "#{source_dir}"
     oslo: "#{source_dir}/../oslo"
+    cinder: "#{source_dir}/../cinder"
