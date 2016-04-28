@@ -5,6 +5,8 @@ class fuel::iptables (
   $admin_iface           = $::fuel::params::admin_interface,
   $ssh_port              = '22',
   $ssh_network           = '0.0.0.0/0',
+  $ssh_rseconds          = 60,
+  $ssh_rhitcount         = 4,
   $nailgun_web_port      = $::fuel::params::nailgun_port,
   $nailgun_internal_port = $::fuel::params::nailgun_internal_port,
   $nailgun_repo_port     = $::fuel::params::repo_port,
@@ -86,6 +88,43 @@ class fuel::iptables (
     proto   => 'all',
     iniface => 'lo',
     action  => 'accept',
+  }
+
+  # use SSH brute frorce protection only for external networks
+  if $ssh_network == '0.0.0.0/0' {
+
+    firewall { '007 ssh: new pipe for a sessions':
+      proto   => 'tcp',
+      dport   => $ssh_port,
+      iniface => "! $admin_iface",
+      state   => 'NEW',
+      recent  => 'set',
+    }
+
+    firewall { '008 ssh: more than allowed attempts logged':
+      proto      => 'tcp',
+      dport      => $ssh_port,
+      iniface    => "! $admin_iface",
+      state      => 'NEW',
+      recent     => 'update',
+      rseconds   => $ssh_rseconds,
+      rhitcount  => $ssh_rhitcount,
+      jump       => 'LOG',
+      log_prefix => 'iptables SSH brute-force: ',
+      log_level  => '7',
+    }
+
+    firewall { '009 ssh: block more than allowed attempts':
+      proto     => 'tcp',
+      dport     => $ssh_port,
+      iniface   => "! $admin_iface",
+      state     => 'NEW',
+      recent    => 'update',
+      rseconds  => $ssh_rseconds,
+      rhitcount => $ssh_rhitcount,
+      action    => 'drop',
+    }
+
   }
 
   firewall { '010 ssh':
