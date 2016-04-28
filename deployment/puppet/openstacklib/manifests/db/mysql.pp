@@ -77,7 +77,6 @@ define openstacklib::db::mysql (
   $real_allowed_hosts = prefix($allowed_hosts_list, "${dbname}_")
 
   openstacklib::db::mysql::host_access { $real_allowed_hosts:
-    mysql_module  => $mysql_module,
     user          => $user,
     password_hash => $password_hash,
     database      => $dbname,
