@@ -60,6 +60,10 @@ describe manifest do
         should contain_nova_config('DEFAULT/max_concurrent_builds').with(:value => '50')
       end
 
+      it 'nova config should have proper queue settings' do
+        should contain_nova_config('oslo_messaging_rabbit/heartbeat_timeout_threshold').with(:value => '0')
+      end
+
       it 'nova config should have reserved_host_memory_mb set to 0' do
         should contain_nova_config('DEFAULT/reserved_host_memory_mb').with(:value => '0')
       end
