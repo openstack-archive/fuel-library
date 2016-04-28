@@ -9,9 +9,18 @@
 #  Array of specific IPs or Networks or Hostnames
 #  to access the database with user
 #
-define osnailyfacter::mysql_grant ( $user    = '',
-                                    $network = $name ) {
-  exec { "mysql_${user}_${network}":
-    command => "mysql -NBe \"grant all on *.* to \'${user}\'@\'${network}\' with grant option\"",
+define osnailyfacter::mysql_grant (
+  $user    = '',
+  $network = $name
+) {
+
+  $user_identity = "${user}@${network}"
+
+  database_grant { "${user_identity}/*.*":
+    user       => $user_identity,
+    table      => '*.*',
+    options    => ['GRANT'],
+    privileges => ['ALL']
   }
+
 }

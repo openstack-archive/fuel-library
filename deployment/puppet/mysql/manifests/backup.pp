@@ -35,9 +35,11 @@ class mysql::backup (
     require       => Class['mysql::config'],
   }
 
-  database_grant { "${backupuser}@localhost":
-    privileges => [ 'Select_priv', 'Reload_priv', 'Lock_tables_priv' ],
-    require    => Database_user["${backupuser}@localhost"],
+  database_grant { "${backupuser}@localhost/*.*":
+    ensure     => $ensure,
+    user       => "${backupuser}@localhost",
+    table      => '*.*',
+    privileges => [ 'SELECT', 'RELOAD', 'LOCK_TABLES' ],
   }
 
   cron { 'mysql-backup':
