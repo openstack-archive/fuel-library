@@ -211,9 +211,15 @@ describe manifest do
       )
     end
 
-    it "should configure mysql to innodb-data-home-dir" do
+    it "should configure mysql to innodb dirs for xtrabackup-v2" do
       should contain_class('galera').with_override_options(
           /"innodb-data-home-dir"=>"\/var\/lib\/mysql"/
+      )
+      should contain_class('galera').with_override_options(
+          /"innodb-log-group-home-dir"=>"\/var\/lib\/mysql\/logs"/
+      )
+      should contain_class('galera').with_override_options(
+         /"innodb-data-file-path"=>"ibdata1:12M:autoextend"/
       )
     end
 

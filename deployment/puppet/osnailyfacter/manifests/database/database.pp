@@ -187,6 +187,8 @@ class osnailyfacter::database::database {
         'query_cache_size'               => '0',
         'query_cache_type'               => '0',
         'innodb-data-home-dir'           => '/var/lib/mysql',
+        'innodb-log-group-home-dir'      => '/var/lib/mysql/logs',
+        'innodb-data-file-path'          => 'ibdata1:12M:autoextend',
         'innodb_file_format'             => 'Barracuda',
         'innodb_file_per_table'          => '1',
         'innodb_buffer_pool_size'        => "${innodb_buffer_pool_size}M",
@@ -199,7 +201,8 @@ class osnailyfacter::database::database {
         'innodb_doublewrite'             => '0',
       },
       'sst' => {
-        'time' => $debug ? {true => '1', default => '0'}
+        'time' => $debug ? {true => '1', default => '0'},
+        'cpat' => ".*\/logs$\|.*galera\.cache$\|.*sst_in_progress$\|.*gvwstate\.dat$\|.*grastate\.dat$\|.*\.err$\|.*\.log$\|.*RPM_UPGRADE_MARKER$\|.*RPM_UPGRADE_HISTORY$"
       }
     }
 
@@ -285,6 +288,13 @@ class osnailyfacter::database::database {
     file { $wsrep_config_file:
       ensure => absent,
       before => Class['::mysql::server::installdb'],
+    }
+
+    # FIXME(bogdnado) w/a https://bugs.launchpad.net/fuel/+bug/1576073
+    file { '/var/lib/mysql/logs':
+      user  => 'mysql',
+      owner => 'mysql',
+      mode  => '750'
     }
 
     $management_networks = get_routable_networks_for_network_role($network_scheme, 'mgmt/database', ' ')
