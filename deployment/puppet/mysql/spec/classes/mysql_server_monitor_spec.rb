@@ -15,4 +15,10 @@ describe 'mysql::server::monitor' do
   end
 
   it { should contain_database_user("monitoruser@monitorhost")}
+  it { should contain_database_grant('monitoruser@monitorhost/*.*').with(
+     :ensure     => 'present',
+     :user       => 'monitoruser@monitorhost',
+     :table      => '*.*',
+     :privileges => ["PROCESS", "SUPER"],
+   )}
 end
