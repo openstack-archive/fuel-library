@@ -37,16 +37,17 @@ define mysql::db (
   $password,
   $charset     = 'utf8',
   $host        = 'localhost',
-  $grant       = 'all',
+  $grant       = 'ALL',
   $sql         = '',
   $enforce_sql = false
 ) {
+
+  $table = "${name}.*"
 
   database { $name:
     ensure   => present,
     charset  => $charset,
     provider => 'mysql',
-    require  => Class['mysql::server'],
   }
 
   database_user { "${user}@${host}":
@@ -56,10 +57,11 @@ define mysql::db (
     require       => Database[$name],
   }
 
-  database_grant { "${user}@${host}/${name}":
+  database_grant { "${user}@${host}/${table}":
     privileges => $grant,
     provider   => 'mysql',
-    require    => Database_user["${user}@${host}"],
+    user       => "${user}@${host}",
+    table      => $table,
   }
 
   $refresh = ! $enforce_sql
@@ -69,7 +71,7 @@ define mysql::db (
       command     => "/usr/bin/mysql ${name} < ${sql}",
       logoutput   => true,
       refreshonly => $refresh,
-      require     => Database_grant["${user}@${host}/${name}"],
+      require     => Database_grant["${user}@${host}/${table}"],
       subscribe   => Database[$name],
     }
   }

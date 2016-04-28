@@ -27,41 +27,26 @@ define openstacklib::db::mysql::host_access (
   $password_hash,
   $database,
   $privileges,
-  $mysql_module = '0.3',
 ) {
   validate_re($title, '_', 'Title must be $dbname_$host')
 
   $host = inline_template('<%= @title.split("_").last %>')
 
-  if ($mysql_module >= 2.2) {
-    mysql_user { "${user}@${host}":
+  if !defined(Database_user["${user}@${host}"]) {
+    database_user { "${user}@${host}":
       password_hash => $password_hash,
-      require       => Mysql_database[$database],
+      provider      => 'mysql',
+      require       => Database[$database],
     }
+  }
 
-    mysql_grant { "${user}@${host}/${database}.*":
+  if !defined(Database_grant["${user}@${host}/${database}.*"]) {
+    database_grant { "${user}@${host}/${database}.*":
       privileges => $privileges,
       table      => "${database}.*",
-      require    => Mysql_user["${user}@${host}"],
       user       => "${user}@${host}",
+      require    => Database_user["${user}@${host}"]
     }
   }
-  else {
-    if !defined(Database_user["${user}@${host}"]) {
-      database_user { "${user}@${host}":
-        password_hash => $password_hash,
-        provider      => 'mysql',
-        require       => Database[$database],
-      }
-    }
 
-    if !defined(Database_grant["${user}@${host}/${database}"]) {
-      database_grant { "${user}@${host}/${database}":
-        # TODO figure out which privileges to grant.
-        privileges => 'all',
-        provider   => 'mysql',
-        require    => Database_user["${user}@${host}"]
-      }
-    }
-  }
 }

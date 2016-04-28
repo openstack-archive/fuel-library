@@ -1,75 +1,100 @@
 # This has to be a separate type to enable collecting
 Puppet::Type.newtype(:database_grant) do
-  @doc = "Manage a database user's rights."
-  #ensurable
+  @doc = "Manage a MySQL user's rights."
+  ensurable
 
-  autorequire :database do
-    # puts "Starting db autoreq for %s" % self[:name]
-    reqs = []
-    matches = self[:name].match(/^([^@]+)@([^\/]+)\/(.+)$/)
-    unless matches.nil?
-      reqs << matches[3]
+  autorequire(:database_user) { self[:user] }
+
+  def initialize(*args)
+    super
+    # Forcibly munge any privilege with 'ALL' in the array to exist of just
+    # 'ALL'.  This can't be done in the munge in the property as that iterates
+    # over the array and there's no way to replace the entire array before it's
+    # returned to the provider.
+    if self[:ensure] == :present and Array(self[:privileges]).count > 1 and self[:privileges].to_s.include?('ALL')
+      self[:privileges] = 'ALL'
     end
-    # puts "Autoreq: '%s'" % reqs.join(" ")
-    reqs
+    # Sort the privileges array in order to ensure the comparision in the provider
+    # self.instances method match.  Otherwise this causes it to keep resetting the
+    # privileges.
+    self[:privileges] = Array(self[:privileges]).map{ |priv|
+       # split and sort the column_privileges in the parentheses and rejoin
+       if priv.include?('(')
+         type, col=priv.strip.split(/\s+|\b/,2)
+         type.upcase + " (" + col.slice(1...-1).strip.split(/\s*,\s*/).sort.join(', ') + ")"
+       else
+         priv.strip.upcase
+       end
+     }.uniq.reject{|k| k == 'GRANT' or k == 'GRANT OPTION'}.sort!
   end
 
-  autorequire :database_user do
-    # puts "Starting user autoreq for %s" % self[:name]
-    reqs = []
-    matches = self[:name].match(/^([^@]+)@([^\/]+).*$/)
-    unless matches.nil?
-      reqs << "%s@%s" % [ matches[1], matches[2] ]
-    end
-    # puts "Autoreq: '%s'" % reqs.join(" ")
-    reqs
+  validate do
+    fail('privileges parameter is required.') if self[:ensure] == :present and self[:privileges].nil?
+    fail('table parameter is required.') if self[:ensure] == :present and self[:table].nil?
+    fail('user parameter is required.') if self[:ensure] == :present and self[:user].nil?
+    fail('name must match user and table parameters') if self[:name] != "#{self[:user]}/#{self[:table]}"
   end
 
-  newparam(:name, :namevar=>true) do
-    desc "The primary key: either user@host for global privilges or user@host/database for database specific privileges"
+  newparam(:name, :namevar => true) do
+    desc 'Name to describe the grant.'
+
+    munge do |value|
+      value.delete("'")
+    end
   end
 
   newproperty(:privileges, :array_matching => :all) do
-    desc "The privileges the user should have. The possible values are implementation dependent."
+    desc 'Privileges for user'
+  end
 
-    def should_to_s(newvalue = @should)
-      if newvalue
-        unless newvalue.is_a?(Array)
-          newvalue = [ newvalue ]
-        end
-        newvalue.collect do |v| v.downcase end.sort.join ", "
+  newproperty(:table) do
+    desc 'Table to apply privileges to.'
+
+    munge do |value|
+      value.delete("`")
+    end
+
+    newvalues(/.*\..*/,/@/)
+  end
+
+  newproperty(:user) do
+    desc 'User to operate on.'
+    validate do |value|
+      # http://dev.mysql.com/doc/refman/5.5/en/identifiers.html
+      # If at least one special char is used, string must be quoted
+
+      # http://stackoverflow.com/questions/8055727/negating-a-backreference-in-regular-expressions/8057827#8057827
+      if matches = /^(['`"])((?!\1).)*\1@([\w%\.:\-\/]+)$/.match(value)
+        user_part = matches[2]
+        host_part = matches[3]
+      elsif matches = /^([0-9a-zA-Z$_]*)@([\w%\.:\-\/]+)$/.match(value)
+        user_part = matches[1]
+        host_part = matches[2]
+      elsif matches = /^((?!['`"]).*[^0-9a-zA-Z$_].*)@(.+)$/.match(value)
+        user_part = matches[1]
+        host_part = matches[2]
       else
-        nil
+        raise(ArgumentError, "Invalid database user #{value}")
+      end
+
+      mysql_version = Facter.value(:mysql_version)
+      unless mysql_version.nil?
+        if Puppet::Util::Package.versioncmp(mysql_version, '10.0.0') < 0 and user_part.size > 16
+          raise(ArgumentError, 'MySQL usernames are limited to a maximum of 16 characters')
+        elsif Puppet::Util::Package.versioncmp(mysql_version, '10.0.0') > 0 and user_part.size > 80
+          raise(ArgumentError, 'MySQL usernames are limited to a maximum of 80 characters')
+        end
       end
     end
 
-    def is_to_s(currentvalue = @is)
-      if currentvalue
-        unless currentvalue.is_a?(Array)
-          currentvalue = [ currentvalue ]
-        end
-        currentvalue.collect do |v| v.downcase end.sort.join ", "
-      else
-        nil
-      end
-    end
-
-    # use the sorted outputs for comparison
-    def insync?(is)
-      if defined? @should and @should
-        case self.should_to_s
-        when "all"
-          self.provider.all_privs_set?
-        when self.is_to_s(is)
-          true
-        else
-          false
-        end
-      else
-        true
-      end
+    munge do |value|
+      matches = /^((['`"]?).*\2)@(.+)$/.match(value)
+      "#{matches[1]}@#{matches[3].downcase}"
     end
   end
 
-end
+  newproperty(:options, :array_matching => :all) do
+    desc 'Options to grant.'
+  end
 
+end
