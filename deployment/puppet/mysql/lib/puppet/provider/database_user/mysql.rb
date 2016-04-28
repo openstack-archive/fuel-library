@@ -5,7 +5,6 @@ Puppet::Type.type(:database_user).provide(:mysql) do
   defaultfor :kernel => 'Linux'
 
   optional_commands :mysql      => 'mysql'
-  optional_commands :mysqladmin => 'mysqladmin'
 
   # Optional defaults file
   def self.defaults_file
@@ -52,11 +51,6 @@ Puppet::Type.type(:database_user).provide(:mysql) do
         sleep 5
         retry unless (tries -= 1) <= 0
     end
-  end
-
-  def flush
-    @property_hash.clear
-    mysqladmin defaults_file, "flush-privileges"
   end
 
 end
