@@ -370,7 +370,7 @@ get_master() {
 
     # Find possible masters
     # Cut the seqnums off the stored GTID:SEQNO pairs, then find the most seen GTID for the nodes
-    MASTER_GTID=$(printf -- '%s\n' "${TMP[@]%:*}" | sort | uniq -c | awk '{print $2}' | head -1)
+    MASTER_GTID=$(printf -- '%s\n' "${TMP[@]%:*}" | grep -vE "^0$" | sort | uniq -c | awk '{print $2}' | head -1)
     ocf_log info "${LH} The most seen GTID is: ${MASTER_GTID}"
     for NODE in $NODES; do
         NODE_SCORE=`crm_simulate -Ls |  awk "/${OCF_RESOURCE_INSTANCE}/ && /clone_color/ && !/${OCF_RESOURCE_INSTANCE}:/ && /${NODE}/"  | sed  -r -e 's/.*score on (.*)/\1/' | awk -F ':' '{print $2}' | tr -d '[:space:]'`
