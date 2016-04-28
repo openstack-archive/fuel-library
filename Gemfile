@@ -26,6 +26,7 @@ group :development, :test do
   gem 'beaker-puppet_install_helper',         :require => 'false'
   gem 'psych',                                :require => 'false'
   gem 'puppet-spec',                          :require => 'false'
+  gem 'rspec-puppet-facts'
 end
 
 if puppetversion = ENV['PUPPET_GEM_VERSION']
