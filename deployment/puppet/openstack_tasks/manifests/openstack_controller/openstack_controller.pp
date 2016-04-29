@@ -269,7 +269,6 @@ class openstack_tasks::openstack_controller::openstack_controller {
     ratelimits                           => $nova_rate_limits_string,
     neutron_metadata_proxy_shared_secret => $neutron_metadata_proxy_secret,
     osapi_compute_workers                => $service_workers,
-    metadata_workers                     => $service_workers,
     sync_db                              => $primary_controller,
     sync_db_api                          => $primary_controller,
     fping_path                           => $fping_path,
