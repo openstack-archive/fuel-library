@@ -18,7 +18,7 @@ describe manifest do
     memcached_port      = Noop.hiera 'memcache_server_port', '11211'
     memcached_servers   = memcached_addresses.map{ |n| n = n + ':' + memcached_port }
 
-    swift_operator_roles = storage_hash.fetch('swift_operator_roles', ['admin', 'SwiftOperator'])
+    swift_operator_roles = storage_hash.fetch('swift_operator_roles', ['admin', 'SwiftOperator', '_member_'])
     ring_part_power = swift_hash.fetch('ring_part_power', 10)
     ring_min_part_hours = Noop.hiera 'swift_ring_min_part_hours', 1
     deploy_swift_proxy = Noop.hiera('deploy_swift_proxy')
