@@ -8,7 +8,17 @@ class openstack_tasks::openstack_network::agents::metadata {
   $controller               = roles_include($neutron_controller_roles)
   $compute                  = roles_include($neutron_compute_roles)
   $neutron_advanced_config  = hiera_hash('neutron_advanced_configuration', { })
+  $neutron_config           = hiera_hash('neutron_config')
   $dvr                      = pick($neutron_advanced_config['neutron_dvr'], false)
+  $workers_max              = hiera('workers_max', 16)
+
+  if $compute {
+    $metadata_workers = pick($neutron_config['workers'],
+                             min($::processorcount / 8 + 1, $workers_max))
+  } else {
+    $metadata_workers = pick($neutron_config['workers'],
+                             min(max($::processorcount, 2), $workers_max))
+  }
 
   if $use_neutron and ($controller or ($dvr and $compute)) {
     # override neutron options
@@ -23,16 +33,16 @@ class openstack_tasks::openstack_network::agents::metadata {
     $ha_agent                = try_get_value($neutron_advanced_config, 'metadata_agent_ha', true)
     $service_endpoint        = hiera('service_endpoint')
     $management_vip          = hiera('management_vip')
-    $neutron_config          = hiera_hash('neutron_config')
     $shared_secret           = try_get_value($neutron_config, 'metadata/metadata_proxy_shared_secret')
     $nova_endpoint           = hiera('nova_endpoint', $management_vip)
 
     class { '::neutron::agents::metadata':
-      debug          => $debug,
-      shared_secret  => $shared_secret,
-      metadata_ip    => $nova_endpoint,
-      manage_service => true,
-      enabled        => true,
+      debug            => $debug,
+      shared_secret    => $shared_secret,
+      metadata_ip      => $nova_endpoint,
+      metadata_workers => $metadata_workers,
+      manage_service   => true,
+      enabled          => true,
     }
 
     if ($ha_agent) and !($compute) {
