@@ -1463,7 +1463,7 @@ action_notify() {
                 ocf_log info "${LH} post-promote begin."
                 # Do nothing, if the list of nodes being promoted reported empty.
                 # Delegate recovery, if needed, to the "running out of the cluster" monitor's logic
-                if [ -z ${OCF_RESKEY_CRM_meta_notify_promote_uname} ] ; then
+                if [ -z "${OCF_RESKEY_CRM_meta_notify_promote_uname}" ] ; then
                   ocf_log warn "${LH} there are no nodes to join to reported on post-promote. Nothing to do."
                   ocf_log info "${LH} post-promote end."
                   return $OCF_SUCCESS
@@ -1494,7 +1494,7 @@ action_notify() {
                 rc=$?
                 # Do nothing, if there is no master reported
                 # Delegate recovery, if needed, to the "running out of the cluster" monitor's logic
-                if [ -z ${OCF_RESKEY_CRM_meta_notify_master_uname} ] ; then
+                if [ -z "${OCF_RESKEY_CRM_meta_notify_master_uname}" ] ; then
                   ocf_log warn "${LH} there are no nodes to join to reported on post-start. Nothing to do."
                   ocf_log info "${LH} post-start end."
                   return $OCF_SUCCESS
@@ -1540,7 +1540,7 @@ action_notify() {
                 # if rabbitmq-server stops on any another node, we should remove it from cluster (as ordinary operation)
                 ocf_log info "${LH} post-stop begin."
                 # Report not running, if there are no nodes being stopped reported
-                if [ -z ${OCF_RESKEY_CRM_meta_notify_stop_uname} ] ; then
+                if [ -z "${OCF_RESKEY_CRM_meta_notify_stop_uname}" ] ; then
                   ocf_log warn "${LH} there are no nodes being stopped reported on post-stop. The resource will be restarted."
                   ocf_log info "${LH} post-stop end."
                   return $OCF_ERR_GENERIC
@@ -1562,7 +1562,7 @@ action_notify() {
                 # if rabbitmq-server stops on any another node, we should remove it from cluster (as ordinary operation)
                 ocf_log info "${LH} post-demote begin."
                 # Report not running, if the list of nodes being demoted reported empty
-                if [ -z ${OCF_RESKEY_CRM_meta_notify_demote_uname} ] ; then
+                if [ -z "${OCF_RESKEY_CRM_meta_notify_demote_uname}" ] ; then
                   ocf_log warn "${LH} there are no nodes being demoted reported on post-demote. The resource will be restarted."
                   ocf_log info "${LH} post-demote end."
                   return $OCF_ERR_GENERIC
