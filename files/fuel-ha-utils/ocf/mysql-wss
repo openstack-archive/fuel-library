@@ -463,7 +463,7 @@ mysql_validate() {
 check_if_sst() {
     local LH="${LL} check_if_sst():"
     local loglevel=${1:-'info'}
-    if [ -f "${OCF_RESKEY_datadir}/sst_in_progress" ]; then
+    if [ -f "${OCF_RESKEY_datadir}/sst_in_progress" -a ! -f "${OCF_RESKEY_datadir}/ibdata1" ]; then
         ocf_log $loglevel "${LH} SST is in progress"
         return $OCF_SUCCESS
     fi
@@ -639,7 +639,8 @@ mysql_start() {
     # Let the CRM/LRM time us out if required.
     while :; do
         check_if_sst
-        [ $? -eq $OCF_SUCCESS ] && break
+        rc=$?
+        [ $rc -eq $OCF_SUCCESS ] && break
 
         if mysql_status info 1; then
             break
@@ -648,7 +649,7 @@ mysql_start() {
     done
 
     ocf_log info "${LH} MySQL started"
-    update_node_gtid
+    [ $rc -ne $OCF_SUCCESS] && update_node_gtid
     return $OCF_SUCCESS
 }
 
