@@ -191,3 +191,17 @@
     puppet_modules: /etc/puppet/modules
     timeout: 300
     cwd: /
+
+- id: delete_mongo
+  type: puppet
+  version: 2.1.0
+  role: [mongo, primary-mongo]
+  condition:
+    yaql_exp: deleted($.network_metadata.nodes.values().where(('mongo' in $.node_roles) or ('primary-mongo' in $.node_roles)))
+  requires: [deploy_start]
+  required_for: [deploy_end]
+  parameters:
+    puppet_manifest: /etc/puppet/modules/openstack_tasks/examples/roles/delete_mongo.pp
+    puppet_modules: /etc/puppet/modules
+    timeout: 300
+    cwd: /
