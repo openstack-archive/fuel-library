@@ -104,7 +104,7 @@
       $.network_metadata.nodes.values().where(
         ('primary-mongo' in $.node_roles) or
         ('mongo' in $.node_roles)),
-      $.get('use_syslog'), $.gebug, $.ceilometer, $.roles)
+      $.get('use_syslog'), $.debug, $.ceilometer, $.roles)
   parameters:
     puppet_manifest: /etc/puppet/modules/openstack_tasks/examples/roles/mongo.pp
     puppet_modules: /etc/puppet/modules
@@ -136,7 +136,7 @@
       $.ironic.enabled and changedAny($.network_scheme, $.ironic,
       $.network_metadata.vips, $.get('database_vip'),
       $.get('neutron_endpoint'), $.get('glance_api_servers'),
-      $.get('amqp_hosts'), $.gebug, $.verbose, $.get('use_syslog'),
+      $.get('amqp_hosts'), $.debug, $.verbose, $.get('use_syslog'),
       $.get('syslog_log_facility_ironic'), $.rabbit, $.storage,
       $.get('kombu_compression'))
   cross-depends:
