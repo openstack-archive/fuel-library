@@ -647,7 +647,7 @@ mysql_start() {
     done
 
     ocf_log info "${LH} MySQL started"
-    [ $rc -ne $OCF_SUCCESS] && update_node_gtid
+    [ $rc -ne $OCF_SUCCESS ] && update_node_gtid
     return $OCF_SUCCESS
 }
 
