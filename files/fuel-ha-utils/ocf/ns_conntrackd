@@ -171,11 +171,12 @@ get_veth_pair() {
   # create pair (tail's can't be alone) and attach tail to the net.namespace
   if [[ $rc != 0 ]] ; then
     local last_octet=$(ifconfig $OCF_RESKEY_bridge 2>/dev/null|awk '/inet addr:/ {print $2}'|sed 's/addr://' | awk -F. '{print $NF}')
+    local bridge_mtu=$(cat /sys/class/net/${OCF_RESKEY_bridge}/mtu)
 
     ocf_run ip link add $OCF_RESKEY_host_interface type veth peer name $OCF_RESKEY_ns_interface
     ocf_run ip link set dev $OCF_RESKEY_ns_interface netns $OCF_RESKEY_ns
-    ocf_run ip netns exec $OCF_RESKEY_ns ip link set up dev $OCF_RESKEY_ns_interface
-    ocf_run ip link set up dev $OCF_RESKEY_host_interface
+    ocf_run ip netns exec $OCF_RESKEY_ns ip link set up dev $OCF_RESKEY_ns_interface mtu $bridge_mtu
+    ocf_run ip link set up dev $OCF_RESKEY_host_interface mtu $bridge_mtu
     ocf_run ip netns exec $OCF_RESKEY_ns ip addr add 240.1.0.${last_octet}/24 dev $OCF_RESKEY_ns_interface
   fi
 
