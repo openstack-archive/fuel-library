@@ -10,6 +10,9 @@ describe 'cluster::mysql' do
         {
           :mysql_user => 'username',
           :mysql_password => 'password',
+          :wsrecover_innodb_log_group_home_dir => '/var/tmp',
+          :wsrecover_innodb_data_file_path => 'ibdata1:12M:autoextend ',
+          :wsrecover_innodb_data_home_dir => '/var/tmp',
         }
       end
 
@@ -19,11 +22,21 @@ describe 'cluster::mysql' do
         )
       end
 
+      it 'defines a wsrep recover conf file' do
+        should contain_file('/etc/mysql/wsrecover.cnf').with_content(
+          "[mysqld]\nlog_bin=binlog\n" +
+          "innodb-data-home-dir = #{params[:wsrecover_innodb_data_home_dir]}\n" +
+          "innodb-log-group-home-dir = #{params[:wsrecover_innodb_log_group_home_dir]}\n" +
+          "innodb-data-file-path = #{params[:wsrecover_innodb_data_file_path]}\n"
+        )
+      end
+
       it 'configures a cs_resource' do
         should contain_pcmk_resource('p_mysqld').with(
           :ensure => 'present',
           :parameters => {
             'config' => '/etc/mysql/my.cnf',
+            'config_wsrecover' => '/etc/mysql/wsrecover.cnf',
             'test_conf' => '/etc/mysql/user.cnf',
             'socket' =>'/var/run/mysqld/mysqld.sock'
           }

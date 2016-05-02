@@ -28,6 +28,7 @@
 OCF_RESKEY_binary_default="/usr/bin/mysqld_safe"
 OCF_RESKEY_client_binary_default="/usr/bin/mysql"
 OCF_RESKEY_config_default="/etc/mysql/my.cnf"
+OCF_RESKEY_config_wsrecover_default=""
 OCF_RESKEY_datadir_default="/var/lib/mysql"
 OCF_RESKEY_user_default="mysql"
 OCF_RESKEY_group_default="mysql"
@@ -47,6 +48,7 @@ MYSQL_BINDIR="$(dirname ${OCF_RESKEY_binary})"
 : ${OCF_RESKEY_client_binary=${OCF_RESKEY_client_binary_default}}
 
 : ${OCF_RESKEY_config=${OCF_RESKEY_config_default}}
+: ${OCF_RESKEY_config_wsrecover=${OCF_RESKEY_config_wsrecover_default}}
 : ${OCF_RESKEY_datadir=${OCF_RESKEY_datadir_default}}
 
 : ${OCF_RESKEY_user=${OCF_RESKEY_user_default}}
@@ -117,6 +119,13 @@ meta_data() {
       </longdesc>
       <shortdesc lang="en">MySQL config</shortdesc>
       <content type="string" default="${OCF_RESKEY_config_default}" />
+    </parameter>
+    <parameter name="config_wsrecover" unique="0" required="0">
+      <longdesc lang="en">
+      Configuration file for running wsrep position recover
+      </longdesc>
+      <shortdesc lang="en">A config for wsrep-recover</shortdesc>
+      <content type="string" default="${OCF_RESKEY_config_wsrecover_default}" />
     </parameter>
     <parameter name="datadir" unique="0" required="0">
       <longdesc lang="en">
@@ -264,6 +273,7 @@ update_node_gtid() {
     local GTID_current
     local CLUSTER_ID
     local COMMIT_ID
+    local recover_command
 
     # Set loglevel to info during probe
     if ocf_is_probe; then
@@ -277,7 +287,10 @@ update_node_gtid() {
             -e "SHOW STATUS LIKE 'wsrep_last_committed'" | awk '{print $NF}')
         GTID="$CLUSTER_ID:$COMMIT_ID"
     else
-        GTID=$(${OCF_RESKEY_binary} --wsrep-recover \
+        # Run position recovery with alternative config file, if specified
+        recover_command="${OCF_RESKEY_binary}"
+        [ "${OCF_RESKEY_config_wsrecover}" ] && recover_command="${recover_command} --defaults-file=${OCF_RESKEY_config_wsrecover}"
+        GTID=$(${recover_command} --wsrep-recover \
             --log-error=/dev/stdout 2>&1 | grep -e 'Recovered position' -e 'wsrep_start_position' | grep -Eo "${UUID_REGEX}")
         [ -z "${GTID}" ] && GTID=$(cat ${OCF_RESKEY_datadir}/grastate.dat \
             | awk '/uuid/ { uuid = $NF} /seqno/ { seqno = $NF} END {print uuid":"seqno}')
@@ -435,6 +448,11 @@ mysql_validate() {
 
     if [ ! -f $OCF_RESKEY_config ]; then
         ocf_log err "${LH} Config $OCF_RESKEY_config doesn't exist";
+        return $OCF_ERR_INSTALLED;
+    fi
+
+    if [ "${OCF_RESKEY_config_wsrecover}" -a ! -f $OCF_RESKEY_config_wsrecover ]; then
+        ocf_log err "${LH} Config $OCF_RESKEY_config_wsrecover doesn't exist";
         return $OCF_ERR_INSTALLED;
     fi
 
