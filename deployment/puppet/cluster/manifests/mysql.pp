@@ -23,11 +23,27 @@
 #  (optional). String. The socket file to use for connection checks.
 #  Defaults to '/var/run/mysqld/mysqld.sock'
 #
+# [*wsrecover_innodb_data_home_dir*]
+#  (optional). String. The data home for wsrep position recover conf.
+#  Defaults to '/var/tmp'
+#
+# [*wsrecover_innodb_log_group_home_dir*]
+#  (optional). String. The log files path for wsrep position recover conf.
+#  Defaults to '/var/tmp'
+#
+# [*wsrecover_innodb_data_file_path*]
+#  (optional). String. The data file path for wsrep position recover conf.
+#  Defaults to '/var/tmp'
+#
+
 class cluster::mysql (
   $mysql_user,
   $mysql_password,
   $mysql_config = '/etc/mysql/my.cnf',
   $mysql_socket = '/var/run/mysqld/mysqld.sock',
+  $wsrecover_innodb_data_home_dir = '/var/tmp',
+  $wsrecover_innodb_log_group_home_dir = '/var/tmp',
+  $wsrecover_innodb_data_file_path = 'ibdata1:12M:autoextend',
 ) {
   $service_name       = 'mysqld'
   $primitive_class    = 'ocf'
@@ -42,10 +58,19 @@ class cluster::mysql (
     content => template('cluster/mysql_user.cnf.erb')
   } -> Exec <||>
 
+  # NOTE(bogdando) config for wsrep recover postion to not race with mysqld
+  $config_wsrecover = '/etc/mysql/wsrecover.cnf'
+  file { $config_wsrecover:
+    owner   => 'root',
+    mode    => '0640',
+    content => template('cluster/mysql_wsrecover.cnf.erb')
+  } -> Exec <||>
+
   $parameters = {
-    'config'      => $mysql_config,
-    'test_conf'   => $user_conf,
-    'socket'      => $mysql_socket,
+    'config'           => $mysql_config,
+    'config_wsrecover' => $config_wsrecover,
+    'test_conf'        => $user_conf,
+    'socket'           => $mysql_socket,
   }
 
   $operations = {
