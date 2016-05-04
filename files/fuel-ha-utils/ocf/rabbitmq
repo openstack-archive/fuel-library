@@ -13,8 +13,8 @@
 #
 # See usage() function below for more details ...
 #
-# Note that the script uses set_rabbitmq_policy.sh script located in the
-# same directory to setup RabbitMQ policies.
+# Note that the script uses an external file to setup RabbitMQ policies
+# so make sure to create it from an example shipped with the package.
 #
 #######################################################################
 # Initialization:
@@ -45,7 +45,8 @@ OCF_RESKEY_erlang_cookie_default=false
 OCF_RESKEY_erlang_cookie_file_default="/var/lib/rabbitmq/.erlang.cookie"
 OCF_RESKEY_use_fqdn_default=false
 OCF_RESKEY_fqdn_prefix_default=""
-OCF_RESKEY_max_rabbitmqctl_timeouts_default=1
+OCF_RESKEY_max_rabbitmqctl_timeouts_default=3
+OCF_RESKEY_policy_file_default="/usr/local/sbin/set_rabbitmq_policy"
 
 : ${HA_LOGTAG="lrmd"}
 : ${HA_LOGFACILITY="daemon"}
@@ -66,6 +67,7 @@ OCF_RESKEY_max_rabbitmqctl_timeouts_default=1
 : ${OCF_RESKEY_use_fqdn=${OCF_RESKEY_use_fqdn_default}}
 : ${OCF_RESKEY_fqdn_prefix=${OCF_RESKEY_fqdn_prefix_default}}
 : ${OCF_RESKEY_max_rabbitmqctl_timeouts=${OCF_RESKEY_max_rabbitmqctl_timeouts_default}}
+: ${OCF_RESKEY_policy_file=${OCF_RESKEY_policy_file_default}}
 
 #######################################################################
 
@@ -286,6 +288,14 @@ If too many timeouts happen in a raw, the monitor call will return with error.
 </longdesc>
 <shortdesc lang="en">Fail only if that many rabbitmqctl timeouts in a row occurred</shortdesc>
 <content type="string" default="${OCF_RESKEY_max_rabbitmqctl_timeouts_default}" />
+</parameter>
+
+<parameter name="policy_file" unique="0" required="0">
+<longdesc lang="en">
+A path to the shell script to setup RabbitMQ policies
+</longdesc>
+<shortdesc lang="en">A policy file path</shortdesc>
+<content type="string" default="${OCF_RESKEY_policy_file_default}" />
 </parameter>
 
 $EXTENDED_OCF_PARAMS
@@ -528,7 +538,8 @@ get_hostname() {
     fi
 }
 
-# Strip the FQDN to the shortname, if OCF_RESKEY_use_fqdn was set
+# Strip the FQDN to the shortname, if OCF_RESKEY_use_fqdn was set;
+# Prepend prefix to the hostname
 process_fqdn() {
     if [ "${OCF_RESKEY_use_fqdn}" = 'false' ] ; then
         echo "${OCF_RESKEY_fqdn_prefix}$1" | awk -F. '{print $1}'
@@ -612,7 +623,7 @@ rmq_setup_env() {
         fi
     done
 
-    export LL="${OCF_RESOURCE_INSTANCE}:"
+    export LL="${OCF_RESOURCE_INSTANCE}[$$]:"
     update_cookie
 }
 
@@ -667,8 +678,8 @@ reset_mnesia() {
     # remove mnesia files, if required
     if $make_amnesia ; then
         kill_rmq_and_remove_pid
-        ocf_run rm -rf "${MNESIA_FILES}/*"
-        ocf_log warn "${LH} Mnesia files appear corrupted and have been removed."
+        ocf_run rm -rf "${MNESIA_FILES}"
+        ocf_log warn "${LH} Mnesia files appear corrupted and have been removed from ${MNESIA_FILES}."
     fi
     # always return OCF SUCCESS
     return $OCF_SUCCESS
@@ -750,6 +761,31 @@ get_alive_pacemaker_nodes_but()
         echo `crm_node -l -p | sed -e "s/${1}//g" | sed -e '/(null)/d'`
     fi
 }
+
+# Get current master. If a parameter is provided,
+# do not check node with that name
+get_master_name_but()
+{
+    local node
+    for node in $(get_alive_pacemaker_nodes_but "$@")
+    do
+        ocf_log info "${LH} looking if $node is master"
+
+        if is_master $node; then
+            ocf_log info "${LH} master is $node"
+            echo $node
+            break
+        fi
+    done
+}
+
+# Returns 0 if we are clustered with provideded node
+is_clustered_with()
+{
+    get_running_nodes | grep -q $(rabbit_node_name $1);
+    return $?
+}
+
 
 check_need_join_to() {
     local join_to
@@ -845,9 +881,9 @@ join_to_cluster() {
     local nowtime
 
     ocf_log info "${LH} start."
-    ocf_log info "${LH} Joining to cluster by node '${rmq_node}'."
 
     rmq_node=$(rabbit_node_name $node)
+    ocf_log info "${LH} Joining to cluster by node '${rmq_node}'."
     get_status rabbit
     rc=$?
     if [ $rc -eq $OCF_SUCCESS ] ; then
@@ -928,9 +964,10 @@ unjoin_nodes_from_cluster() {
                 local tries=0
                 until [ $tries -eq 5 ]; do
                     tries=$((tries+1))
-                    if get_running_nodes | grep -q $(rabbit_node_name $nodename)
-                    then
+                    if is_clustered_with $nodename; then
                         ocf_log info "${LH} the ${nodename} is alive and cannot be kicked from the cluster yet"
+                    else
+                        break
                     fi
                     sleep 10
                 done
@@ -1259,6 +1296,7 @@ start_rmq_server_app() {
 get_status() {
     local what="${1:-kernel}"
     local rc=$OCF_NOT_RUNNING
+    local LH="${LL} get_status():"
     local body
     local beam_running
 
@@ -1269,11 +1307,11 @@ get_status() {
     beam_running=$?
     # report not running only if the which_applications() reported an error AND the beam is not running
     if [ $rc -ne 0 -a $beam_running -ne 0 ] ; then
-        ocf_log info "get_status() failed with code ${rc}. Command output: ${body}"
+        ocf_log info "${LH} failed with code ${rc}. Command output: ${body}"
         return $OCF_NOT_RUNNING
     # return a generic error, if there were errors and beam is found running
     elif [ $rc -ne 0 ] ; then
-        ocf_log info "get_status() found the beam process running but failed with code ${rc}. Command output: ${body}"
+        ocf_log info "${LH} found the beam process running but failed with code ${rc}. Command output: ${body}"
         return $OCF_ERR_GENERIC
     fi
 
@@ -1283,7 +1321,7 @@ get_status() {
         echo "$body" | grep "\{${what}," 2>&1 > /dev/null && rc=$OCF_SUCCESS
 
         if [ $rc -ne $OCF_SUCCESS ] ; then
-            ocf_log info "get_status(): app ${what} was not found in command output: ${body}"
+            ocf_log info "${LH} app ${what} was not found in command output: ${body}"
         fi
     fi
 
@@ -1370,7 +1408,6 @@ get_monitor() {
     local name
     local node
     local nodelist
-    local rc_check=$OCF_SUCCESS
     local max
     local our_uptime
     local node_uptime
@@ -1407,58 +1444,49 @@ get_monitor() {
 
     if [ $rabbit_running -eq $OCF_SUCCESS ]
     then
-            ocf_log info "${LH} rabbit app is running. checking if we are the part of healthy cluster"
+        ocf_log info "${LH} rabbit app is running. checking if we are the part of healthy cluster"
 
-            if [ $rc -eq $OCF_RUNNING_MASTER ] ; then
-                # The master is always running inside of its cluster
-                ocf_log info "${LH} rabbit app is running and is master of cluster"
-                rc_check=$OCF_SUCCESS
+        if [ $rc -eq $OCF_RUNNING_MASTER ] ; then
+            # The master is always running inside of its cluster
+            ocf_log info "${LH} rabbit app is running and is master of cluster"
+
+        else
+            local master_name=$(get_master_name_but $THIS_PCMK_NODE)
+
+            if [ -z "$master_name" ]; then
+                ocf_log info "${LH} no master is elected currently. Skipping cluster health check."
+
+            elif is_clustered_with $master_name; then
+                ocf_log info "${LH} rabbit app is running and is member of healthy cluster"
+
             else
-                rc_check=$OCF_ERR_GENERIC
-                nodelist=$(get_alive_pacemaker_nodes_but)
-                for node in $nodelist
-                do
-                    ocf_log info "${LH} rabbit app is running. looking for master on $node"
-                    is_master $node
-                    status_master=$?
-                    ocf_log info "${LH} fetched master attribute for $node. attr value is ${status_master}"
-                    if [ $status_master -eq 0 ] ; then
-                        ocf_log info "${LH} rabbit app is running. master is $node"
-                        if get_running_nodes | grep -q $(rabbit_node_name $node)
-                        then
-                            ocf_log info "${LH} rabbit app is running and is member of healthy cluster"
-                            rc_check=$OCF_SUCCESS
-                            break
-                        fi
-                    fi
-                done
-                [ $rc_check -eq $OCF_ERR_GENERIC ] && ocf_log err "${LH} rabbit node is running out of the cluster"
+                # Rabbit is running but is not connected to master
+                # Failing to avoid split brain
+                ocf_log err "${LH} rabbit node is running out of the cluster"
+                stop_server_process
+                rc=$OCF_ERR_GENERIC
             fi
+        fi
     else
-      if [ "$OCF_CHECK_LEVEL" -gt 20 ]; then
+        if [ "$OCF_CHECK_LEVEL" -gt 20 ]; then
             ocf_log info "${LH} rabbit app is not running. checking if there is a master"
             # Do not refetch the master status as we know it already
             if [ $rc -eq $OCF_RUNNING_MASTER ]; then
               ocf_log err "${LH} we are the master and rabbit app is not running. this is a failure"
               exit $OCF_FAILED_MASTER
             fi
-            nodelist=$(get_alive_pacemaker_nodes_but $THIS_PCMK_NODE)
-            rc_check=$OCF_SUCCESS
-            for node in $nodelist
-            do
-                is_master $node
-                status_master=$?
-                ocf_log info "${LH} fetched master attribute for $node. attr value is ${status_master}"
-                if [ $status_master -eq 0 ] ; then
-                    rc_check=$OCF_ERR_GENERIC
-                    ocf_log info "${LH} rabbit app is not running. master is $node. exiting to be restarted by pacemaker"
-                    break
-                fi
-            done
-      fi
+
+            local master_name=$(get_master_name_but $THIS_PCMK_NODE)
+
+            if [ -n "$master_name" ]; then
+                ocf_log info "${LH} master exists and rabbit app is not running. Exiting to be restarted by pacemaker"
+                stop_server_process
+                rc=$OCF_ERR_GENERIC
+            fi
+        fi
     fi
 
-    if [ $rc -eq $OCF_ERR_GENERIC -o $rc_check -eq $OCF_ERR_GENERIC ]; then
+    if [ $rc -eq $OCF_ERR_GENERIC ]; then
         ocf_log err "${LH} get_status() returns generic error ${rc}"
         ocf_log info "${LH} ensuring this slave does not get promoted."
         master_score 0
@@ -1886,23 +1914,33 @@ action_notify() {
         case "$OCF_RESKEY_CRM_meta_notify_operation" in
             promote)
                 ocf_log info "${LH} post-promote begin."
+
+                rc=$OCF_SUCCESS
+
                 # Do nothing, if the list of nodes being promoted reported empty.
                 # Delegate recovery, if needed, to the "running out of the cluster" monitor's logic
                 if [ -z "${OCF_RESKEY_CRM_meta_notify_promote_uname}" ] ; then
-                  ocf_log warn "${LH} there are no nodes to join to reported on post-promote. Nothing to do."
-                  ocf_log info "${LH} post-promote end."
-                  return $OCF_SUCCESS
+                    ocf_log warn "${LH} there are no nodes to join to reported on post-promote. Nothing to do."
+
+                elif my_host "${OCF_RESKEY_CRM_meta_notify_promote_uname}"; then
+                    ocf_log info "${LH} ignoring post-promote of self"
+
+                elif is_clustered_with "${OCF_RESKEY_CRM_meta_notify_promote_uname}"; then
+                    ocf_log info "${LH} we are already clustered with master - ${OCF_RESKEY_CRM_meta_notify_promote_uname}. Nothing to do."
+
+                else
+                    # Note, this should fail when the mnesia is inconsistent.
+                    # For example, when the "old" master processing the promition of the new one.
+                    # Later this ex-master node will rejoin the cluster at post-start.
+                    jjj_join "${OCF_RESKEY_CRM_meta_notify_promote_uname}"
+                    rc=$?
+                    if [ $rc -eq $OCF_ERR_GENERIC ] ; then
+                        ocf_log err "${LH} Failed to join the cluster on post-promote. The resource will be restarted."
+                    fi
                 fi
-                # Note, this should fail when the mnesia is inconsistent.
-                # For example, when the "old" master processing the promition of the new one.
-                # Later this ex-master node will rejoin the cluster at post-start.
-                jjj_join "${OCF_RESKEY_CRM_meta_notify_promote_uname}"
-                rc=$?
+
                 ocf_log info "${LH} post-promote end."
-                if [ $rc -eq $OCF_ERR_GENERIC ] ; then
-                    ocf_log err "${LH} Failed to join the cluster on post-promote. The resource will be restarted."
-                    return $OCF_ERR_GENERIC
-                fi
+                return $rc
                 ;;
             start)
                 ocf_log info "${LH} post-start begin."
@@ -1949,7 +1987,7 @@ action_notify() {
                     ocf_log info "${LH} post-start end."
                     if [ -s "${OCF_RESKEY_definitions_dump_file}" ] ; then
                         ocf_log info "File ${OCF_RESKEY_definitions_dump_file} exists"
-                        ocf_run  curl -X POST -u $OCF_RESKEY_admin_user:$OCF_RESKEY_admin_password $OCF_RESKEY_host_ip:15672/api/definitions --header "Content-Type:application/json" -d @$OCF_RESKEY_definitions_dump_file
+                        ocf_run curl --silent --show-error --request POST --user $OCF_RESKEY_admin_user:$OCF_RESKEY_admin_password $OCF_RESKEY_host_ip:15672/api/definitions --header "Content-Type:application/json" --data @$OCF_RESKEY_definitions_dump_file
                         rc=$?
                         if [ $rc -eq $OCF_SUCCESS ] ; then
                             ocf_log info "RMQ definitions have imported succesfully."
@@ -2072,8 +2110,7 @@ action_promote() {
                         exit $OCF_FAILED_MASTER
                     fi
 
-                    local set_policy_path="$(dirname $0)/set_rabbitmq_policy.sh"
-                    [ -f $set_policy_path ] && . $set_policy_path
+                    [ -f "${OCF_RESKEY_policy_file}" ] && . "${OCF_RESKEY_policy_file}"
 
                     # create timestamp file
                     nowtime="$(now)"
