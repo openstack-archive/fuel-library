@@ -481,6 +481,13 @@ mysql_status() {
             break
         fi
 
+        # Match a mysqld pid by the datadir, exclude position recovery
+        pid=$(ps -C mysqld -o pid= -o args= | grep "datadir=${OCF_RESKEY_datadir}" | awk "!/wsrep-recover/ {print $1}")
+        if [ "${pid}" ] ; then
+            ocf_log info "${LH} MySQL process ${pid} found"
+            return $OCF_SUCCESS
+        fi
+
         count=$(( count-1 ))
         ocf_log $loglevel "${LH} PIDFile ${OCF_RESKEY_pid} of MySQL server not found. Sleeping for $sleeptime seconds. ${count} retries left"
         sleep $sleeptime
