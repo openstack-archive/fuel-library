@@ -468,6 +468,10 @@ check_if_sst() {
     return $OCF_ERR_GENERIC
 }
 
+dummy_test(){
+    $MYSQL $MYSQL_OPTIONS_TEST -s -N -e "select 1;" > /dev/null
+}
+
 mysql_status() {
     local LH="${LL} mysql_status():"
     local loglevel=${1:-'info'}
@@ -477,8 +481,22 @@ mysql_status() {
 
     while [ $count -gt 0 ]; do
         if [ -f "$OCF_RESKEY_pid" ]; then
-            ocf_log info "${LH} MySQL PID found"
-            break
+            dummy_test
+            if [ $? -eq 0 ]; then
+                ocf_log info "${LH} MySQL PID found and looks healthy"
+                break
+            fi
+        fi
+
+        # Match a mysqld pid by the datadir, exclude position recovery
+        pid=$(ps -C mysqld -o pid= -o args= | awk -v v="${OCF_RESKEY_datadir}" \
+            '/datadir='$v'/ { if ($1 ~ !/wsrep-recover/) print $1}')
+        if [ "${pid}" ] ; then
+            dummy_test
+            if [ $? -eq 0 ]; then
+                ocf_log info "${LH} MySQL process ${pid} found and looks healthy"
+                return $OCF_SUCCESS
+            fi
         fi
 
         count=$(( count-1 ))
