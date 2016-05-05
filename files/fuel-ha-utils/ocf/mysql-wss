@@ -489,8 +489,7 @@ mysql_status() {
         fi
 
         # Match a mysqld pid by the datadir, exclude position recovery
-        pid=$(ps -C mysqld -o pid= -o args= | awk -v v="${OCF_RESKEY_datadir}" \
-            '/datadir='$v'/ { if ($1 ~ !/wsrep-recover/) print $1}')
+        pid=$(ps -C mysqld -o pid= -o args= | grep "${OCF_RESKEY_datadir}" | awk '!/wsrep.recover/ {print $1}')
         if [ "${pid}" ] ; then
             dummy_test
             if [ $? -eq 0 ]; then
