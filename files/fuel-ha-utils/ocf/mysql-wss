@@ -38,6 +38,8 @@ OCF_RESKEY_test_passwd_default=""
 OCF_RESKEY_test_conf_default=""
 OCF_RESKEY_additional_parameters_default=""
 OCF_RESKEY_master_timeout_default="300"
+OCF_RESKEY_streamfmt_default="xbstream"
+OCF_RESKEY_transferfmt_default="socat"
 
 : ${HA_LOGTAG="ocf-mysql-wss"}
 : ${HA_LOGFACILITY="daemon"}
@@ -61,6 +63,8 @@ MYSQL_BINDIR="$(dirname ${OCF_RESKEY_binary})"
 
 : ${OCF_RESKEY_additional_parameters=${OCF_RESKEY_additional_parameters_default}}
 : ${OCF_RESKEY_master_timeout=${OCF_RESKEY_master_timeout_default}}
+: ${OCF_RESKEY_streamfmt=${OCF_RESKEY_streamfmt_default}}
+: ${OCF_RESKEY_transferfmt=${OCF_RESKEY_transferfmt_default}}
 
 #######################################################################
 # Convenience variables
@@ -192,6 +196,20 @@ meta_data() {
       </longdesc>
       <shortdesc lang="en">Galera master timeout</shortdesc>
       <content type="integer" default="${OCF_RESKEY_master_timeout_default}"/>
+    </parameter>
+    <parameter name="streamfmt" unique="0" required="0">
+      <longdesc lang="en">
+      The streamfmt setting for xtrabackup-v2 SST config
+      </longdesc>
+      <shortdesc lang="en">SST streamfmt</shortdesc>
+      <content type="string" default="${OCF_RESKEY_streamfmt_default}"/>
+    </parameter>
+    <parameter name="transferfmt" unique="0" required="0">
+      <longdesc lang="en">
+      The transferfmt setting for xtrabackup-v2 SST config
+      </longdesc>
+      <shortdesc lang="en">SST transferfmt</shortdesc>
+      <content type="string" default="${OCF_RESKEY_transferfmt_default}"/>
     </parameter>
   </parameters>
   <actions>
@@ -360,7 +378,7 @@ get_master() {
     local MASTER
 
     # Ensure the same nodes list to reach a consensus for the choosen master across all of the nodes
-    NODES=$(printf -- '%s\n' "${NODES}" | sort -u)
+    NODES=$(printf -- '%s\n' ${NODES} | sort -u)
     # Form a hash of keys as node names, values as GTID:SEQNO
     for NODE in $NODES; do
         GTID=$(get_node_gtid $NODE)
@@ -370,7 +388,7 @@ get_master() {
 
     # Find possible masters
     # Cut the seqnums off the stored GTID:SEQNO pairs, then find the most seen GTID for the nodes
-    MASTER_GTID=$(printf -- '%s\n' "${TMP[@]%:*}" | grep -vE "^0$" | sort | uniq -c | awk '{print $2}' | head -1)
+    MASTER_GTID=$(printf -- '%s\n' ${TMP[@]%:*} | grep -vE "^0$" | sort | uniq -c | awk '{print $2}' | head -1)
     ocf_log info "${LH} The most seen GTID is: ${MASTER_GTID}"
     for NODE in $NODES; do
         NODE_SCORE=`crm_simulate -Ls |  awk "/${OCF_RESOURCE_INSTANCE}/ && /clone_color/ && !/${OCF_RESOURCE_INSTANCE}:/ && /${NODE}/"  | sed  -r -e 's/.*score on (.*)/\1/' | awk -F ':' '{print $2}' | tr -d '[:space:]'`
@@ -463,15 +481,27 @@ mysql_validate() {
 check_if_sst() {
     local LH="${LL} check_if_sst():"
     local loglevel=${1:-'info'}
-    if [ -f "${OCF_RESKEY_datadir}/sst_in_progress" -a ! -f "${OCF_RESKEY_datadir}/ibdata1" ]; then
-        ocf_log $loglevel "${LH} SST is in progress"
-        return $OCF_SUCCESS
+    local pid
+    local pid2
+    local pid3
+    local pid4
+    # Match a mysqld pid by the datadir, exclude position recovery
+    pid=$(ps -C mysqld -o pid= -o args= | grep "${OCF_RESKEY_datadir}" | awk '!/wsrep.recover/ {print $1}')
+    if [ "${pid}" ] ; then
+        if [ $? -eq 0 ]; then
+            ocf_log info "${LH} MySQL process ${pid} found"
+            # Myslqd's running and may be blocked, check for signs of SST
+            pid2=$(ps -C ${OCF_RESKEY_streamfmt} -o pid= -o command= | awk '!/defunct/ {print $1}')
+            pid3=$(ps -C ${OCF_RESKEY_transferfmt} -o pid= -o command= | awk '!/defunct/ {print $1}')
+            pid4=$(ps -C innobackupex -o pid= -o command= | awk '!/defunct/ {print $1}')
+            if [ "${pid2}" -o "${pid3}" -o "${pid4}" ]; then
+                ocf_log $loglevel "${LH} SST is in progress"
+                return $OCF_SUCCESS
+            fi
+        fi
     fi
+    ocf_log $loglevel "${LH} No signs of SST found"
     return $OCF_ERR_GENERIC
-}
-
-dummy_test(){
-    $MYSQL $MYSQL_OPTIONS_TEST -s -N -e "select 1;" > /dev/null
 }
 
 mysql_status() {
@@ -483,22 +513,8 @@ mysql_status() {
 
     while [ $count -gt 0 ]; do
         if [ -f "$OCF_RESKEY_pid" ]; then
-            dummy_test
-            if [ $? -eq 0 ]; then
-                ocf_log info "${LH} MySQL PID found and looks healthy"
-                break
-            fi
-        fi
-
-        # Match a mysqld pid by the datadir, exclude position recovery
-        pid=$(ps -C mysqld -o pid= -o args= | awk -v v="${OCF_RESKEY_datadir}" \
-            '/datadir='$v'/ { if ($1 ~ !/wsrep-recover/) print $1}')
-        if [ "${pid}" ] ; then
-            dummy_test
-            if [ $? -eq 0 ]; then
-                ocf_log info "${LH} MySQL process ${pid} found and looks healthy"
-                return $OCF_SUCCESS
-            fi
+            ocf_log info "${LH} MySQL PID found"
+            break
         fi
 
         count=$(( count-1 ))
