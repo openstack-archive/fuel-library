@@ -32,6 +32,5 @@ end
 if puppetversion = ENV['PUPPET_GEM_VERSION']
   gem 'puppet', puppetversion, :require => false
 else
-  # TODO(aschultz): remove this version when 4 is supported
-  gem 'puppet', '~> 3.8', :require => false
+  gem 'puppet'
 end
