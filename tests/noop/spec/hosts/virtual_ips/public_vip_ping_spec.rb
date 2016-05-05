@@ -19,41 +19,47 @@ describe manifest do
       }
 
       it do
-        expect(subject).to contain_cluster__virtual_ip_ping('vip__public').with(
-                               :name => "vip__public",
-                               :host_list => ping_host,
-                           )
+        is_expected.to contain_cluster__virtual_ip_ping('vip__public').with(
+            :name => 'vip__public',
+            :host_list => ping_host,
+        )
       end
 
       it do
-        expect(subject).to contain_pcmk_resource('ping_vip__public').with(
-                               :name => "ping_vip__public",
-                               :ensure => "present",
-                               :primitive_class => "ocf",
-                               :primitive_provider => "pacemaker",
-                               :primitive_type => "ping",
-                               :parameters => {"host_list" => ping_host, "multiplier" => "1000", "dampen" => "30s", "timeout" => "3s"},
-                               :operations => {"monitor" => {"interval" => "20", "timeout" => "30"}},
-                               :complex_type => "clone",
-                               :before => ["Pcmk_location[loc_ping_vip__public]", "Service[ping_vip__public]"],
-                           )
+        is_expected.to contain_pcmk_resource('ping_vip__public').with(
+            :name => 'ping_vip__public',
+            :ensure => 'present',
+            :primitive_class => 'ocf',
+            :primitive_provider => 'pacemaker',
+            :primitive_type => 'ping',
+            :parameters => {'host_list' => ping_host, 'multiplier' => '1000', 'dampen' => '30s', 'timeout' => '3s'},
+            :operations => {'monitor' => {'interval' => '20', 'timeout' => '30'}},
+            :complex_type => 'clone',
+        )
       end
 
       it do
-        expect(subject).to contain_service('ping_vip__public').with(
-                               :name => "ping_vip__public",
-                               :ensure => "running",
-                               :enable => true,
-                               :provider => "pacemaker",
-                           )
+        is_expected.to contain_pcmk_resource('ping_vip__public').that_comes_before(%w(Pcmk_location[loc_ping_vip__public] Service[ping_vip__public]))
       end
 
       it do
-        expect(subject).to contain_pcmk_location('loc_ping_vip__public').with(
-                               :name => "loc_ping_vip__public",
-                               :primitive => "vip__public",
-                               :before => "Service[ping_vip__public]",
-                           )
+        is_expected.to contain_service('ping_vip__public').with(
+            :name => 'ping_vip__public',
+            :ensure => 'running',
+            :enable => true,
+            :provider => 'pacemaker',
+        )
+      end
+
+      it do
+        is_expected.to contain_pcmk_location('loc_ping_vip__public').with(
+            :name => 'loc_ping_vip__public',
+            :primitive => 'vip__public',
+        )
+      end
+
+      it do
+        is_expected.to contain_pcmk_location('loc_ping_vip__public').that_comes_before('Service[ping_vip__public]')
       end
 
     end
