@@ -1,10 +1,19 @@
 require 'yaml'
 require 'digest'
+require 'ipaddr'
 require 'puppetx/l23_network_scheme'
 require 'puppetx/l23_hash_tools'
 
 module Puppet::Parser::Functions
-  newfunction(:generate_vips) do |args|
+  newfunction(
+      :generate_vips,
+      type: :rvalue,
+      arity: -1,
+      doc: <<-eof
+Create Virtual IP Pacemaker resources from the networs scheme and metadata.
+Returns a hash that can be fed to the create_resources function.
+  eof
+  ) do |args|
     debug 'Call: generate_vips'
 
     network_metadata = args[0]
@@ -27,6 +36,8 @@ module Puppet::Parser::Functions
 
     debug "VIPS structure: #{vips.to_yaml.gsub('!ruby/sym ','')}"
 
+    resources = {}
+
     vips.each do |name, parameters|
 
       debug "Processing VIP: '#{name}' with parameters: #{parameters.inspect}"
@@ -35,7 +46,7 @@ module Puppet::Parser::Functions
       vip = {}
 
       if parameters['namespace']
-        vip['namespace'] = parameters['namespace']
+        vip['ns'] = parameters['namespace']
       else
         warn "Skipping vip: '#{name}' because the 'namespace' parameter is not defined! Such VIPs are not managed by Pacemaker and should be handled by plugin completely."
         next
@@ -85,8 +96,10 @@ module Puppet::Parser::Functions
       # gateway = function_get_network_role_property [network_role, 'gateway']
       # gateway_metric = function_get_network_role_property [network_role, 'gateway_metric']
 
+      gateway = nil
       gateway = network_scheme.fetch('endpoints', {}).fetch(vip['bridge'], {}).fetch('gateway', nil) unless vip['gateway']
 
+      gateway_metric = nil
       if gateway
         if name.include? 'vrouter'
           gateway_metric = '0'
@@ -95,11 +108,15 @@ module Puppet::Parser::Functions
         end
       end
 
+      iptables_rules = nil
       iptables_rules = parameters['vendor_specific']['iptables_rules'] if parameters['vendor_specific'] and parameters['vendor_specific']['iptables_rules']
+
       if iptables_rules
-         iptables_substitute_hash = {:INT => ns_veth,
-                                     :IP => parameters['ipaddr'],
-                                     :CIDR => "#{parameters['ipaddr']}/#{cidr_netmask}" }
+         iptables_substitute_hash = {
+             :INT => ns_veth,
+             :IP => parameters['ipaddr'],
+             :CIDR => "#{parameters['ipaddr']}/#{cidr_netmask}",
+         }
 
          vip['ns_iptables_start_rules'] = iptables_rules['ns_start'].join('; ')
          vip['ns_iptables_stop_rules'] = iptables_rules['ns_stop'].join('; ')
@@ -108,8 +125,18 @@ module Puppet::Parser::Functions
       end
 
       vip['colocation_before'] = 'vrouter' if name.include? 'vrouter_pub' and vips.keys.include? 'vrouter'
-      vip['gateway'] = gateway || 'none'
       vip['gateway_metric'] = gateway_metric || '0'
+
+      gateway = 'none' unless gateway
+
+      begin
+        gateway = IPAddr.new gateway unless %w(link none).include? gateway
+        gateway = gateway.to_s
+      rescue
+        gateway = 'none'
+      end
+
+      vip['gateway'] = gateway
 
       # skip vip without mandatory data fields
       unless vip['bridge'] and vip['base_veth'] and vip['ns_veth'] and vip['ip']
@@ -118,8 +145,9 @@ module Puppet::Parser::Functions
       end
 
       debug "Create VIP '#{name}': '#{vip.to_yaml.gsub('!ruby/sym ','')}'"
-      function_create_resources [ 'cluster::virtual_ip', { name => { 'vip' => vip } } ]
+      resources.store name, vip
     end
 
+    resources
   end
 end
