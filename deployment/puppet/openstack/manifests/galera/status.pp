@@ -59,7 +59,7 @@ class openstack::galera::status (
   mysql_user { "${status_user}@${status_allow}":
     ensure        => 'present',
     password_hash => mysql_password($status_password),
-    require       => [File["${::root_home}/.my.cnf"],Service['mysqld']],
+    require       => Anchor['mysql::server::end'],
   } ->
   mysql_grant { "${status_user}@${status_allow}/*.*":
     ensure     => 'present',
@@ -67,7 +67,6 @@ class openstack::galera::status (
     privileges => [ 'USAGE' ],
     table      => '*.*',
     user       => "${status_user}@${status_allow}",
-    before     => Anchor['mysql::server::end'],
   }
 
   file { '/etc/wsrepclustercheckrc':
@@ -75,7 +74,7 @@ class openstack::galera::status (
     owner   => 'nobody',
     group   => 'nogroup',
     mode    => '0400',
-    before  => Anchor['mysql::server::end'],
+    require => Anchor['mysql::server::end'],
   }
 
   augeas { 'galeracheck':
@@ -86,7 +85,7 @@ class openstack::galera::status (
       "set /files/etc/services/service-name[port = '${port}']/protocol tcp",
       "set /files/etc/services/service-name[port = '${port}']/#comment 'Galera Cluster Check'",
     ],
-    before  => Anchor['mysql::server::end'],
+    require => Anchor['mysql::server::end'],
   }
 
   $group = $::osfamily ? {
@@ -106,7 +105,7 @@ class openstack::galera::status (
     user       => 'nobody',
     group      => $group,
     flags      => 'IPv4',
-    require    => Augeas['galeracheck'],
-    before     => Anchor['mysql::server::end'],
+    require    => [ Augeas['galeracheck'],
+                    Anchor['mysql::server::end']],
   }
 }
