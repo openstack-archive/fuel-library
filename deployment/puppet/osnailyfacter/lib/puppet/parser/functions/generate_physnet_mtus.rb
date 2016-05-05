@@ -40,8 +40,13 @@ EOS
     return [] if physnet_bridge_map.empty?
 
     # Looking for MTUs
-    bridge_including_flow = { :'add-patch' => 'bridges',  :'add-port' => 'bridge' , :'add-bond' => 'bridge', :'add-port' => 'bridge' }
-    physnet_mtu_map = {}
+    bridge_including_flow = {
+        :'add-patch' => 'bridges',
+        :'add-port' => 'bridge',
+        :'add-bond' => 'bridge',
+    }
+
+   physnet_mtu_map = {}
     physnet_bridge_map.each do |net, br|
       mtu = nil
       if br['mtu']

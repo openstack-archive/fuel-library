@@ -1,6 +1,6 @@
-require 'puppetx/l23_ethtool_name_commands_mapping'
 require 'json'
-require File.join(File.dirname(__FILE__), 'interface_toolset')
+require_relative '../../puppetx/l23_ethtool_name_commands_mapping'
+require_relative 'interface_toolset'
 
 class Puppet::Provider::L2_base < Puppet::Provider::InterfaceToolset
 
