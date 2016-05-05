@@ -45,54 +45,54 @@ describe 'sanitize_bool_in_hash' do
 
   it 'should convert reccursive hashes' do
     expect(scope.function_sanitize_bool_in_hash([{
-      :bool_hash => {
-        :str => 'aaa',
-        :int => 123,
-        :array => [111,222,333],
-        :hash => {
-          :str => 'aaa',
-          :int => 123,
-          :array => [111,222,333],
-          :a_sbool => ['true', 'nil', 'false'],
-          :a_bool => [true, nil, false],
-          :hash => {
-            :str => 'aaa',
-            :int => 123,
-            :array => [111,222,333],
-            :a_sbool => ['true', 'nil', 'false'],
-            :a_bool => [true, nil, false],
-          },
-        },
-        :a_sbool => ['true', 'nil', 'false'],
-        :a_bool => [true, nil, false],
-      },
+      #:bool_hash => {
+      #  :str => 'aaa',
+      #  :int => 123,
+      #  :array => [111,222,333],
+      #  :hash => {
+      #    :str => 'aaa',
+      #    :int => 123,
+      #    :array => [111,222,333],
+      #    :a_sbool => ['true', 'nil', 'false'],
+      #    :a_bool => [true, nil, false],
+      #    :hash => {
+      #      :str => 'aaa',
+      #      :int => 123,
+      #      :array => [111,222,333],
+      #      :a_sbool => ['true', 'nil', 'false'],
+      #      :a_bool => [true, nil, false],
+      #    },
+      #  },
+      #  :a_sbool => ['true', 'nil', 'false'],
+      #  :a_bool => [true, nil, false],
+      #},
       :bool_hash => {
         :t => true,
         :f => false,
         :n => nil
       },
     }])).to eq({
-      :bool_hash => {
-        :str => 'aaa',
-        :int => 123,
-        :array => [111,222,333],
-        :hash => {
-          :str => 'aaa',
-          :int => 123,
-          :array => [111,222,333],
-          :a_sbool => [true, nil, false],
-          :a_bool => [true, nil, false],
-          :hash => {
-            :str => 'aaa',
-            :int => 123,
-            :array => [111,222,333],
-            :a_sbool => [true, nil, false],
-            :a_bool => [true, nil, false],
-          },
-        },
-        :a_sbool => [true, nil, false],
-        :a_bool => [true, nil, false],
-      },
+      #:bool_hash => {
+      #  :str => 'aaa',
+      #  :int => 123,
+      #  :array => [111,222,333],
+      #  :hash => {
+      #    :str => 'aaa',
+      #    :int => 123,
+      #    :array => [111,222,333],
+      #    :a_sbool => [true, nil, false],
+      #    :a_bool => [true, nil, false],
+      #    :hash => {
+      #      :str => 'aaa',
+      #      :int => 123,
+      #      :array => [111,222,333],
+      #      :a_sbool => [true, nil, false],
+      #      :a_bool => [true, nil, false],
+      #    },
+      #  },
+      #  :a_sbool => [true, nil, false],
+      #  :a_bool => [true, nil, false],
+      #},
       :bool_hash => {
         :t => true,
         :f => false,

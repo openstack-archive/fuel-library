@@ -34,7 +34,6 @@ describe manifest do
         should contain_openstack__ha__haproxy_service('glance-api').with(
           'order'                  => '080',
           'listen_port'            => 9292,
-          'require_service'        => 'glance-api',
 
           # common parameters
           'internal_virtual_ip'    => internal_virtual_ip,
@@ -55,7 +54,6 @@ describe manifest do
         should contain_openstack__ha__haproxy_service('glance-glare').with(
           'order'                  => '081',
           'listen_port'            => 9494,
-          'require_service'        => 'glance-glare',
 
           # common parameters
           'internal_virtual_ip'    => internal_virtual_ip,
