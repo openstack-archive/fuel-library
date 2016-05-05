@@ -36,10 +36,6 @@ if ! [ -d "$WORKSPACE" ] ; then
   exit 1
 fi
 
-if [ -z "$PUPPET_GEM_VERSION" ] ; then
-  export PUPPET_GEM_VERSION='~> 3.8.0'
-fi
-
 # Check for bundle and exit if failed
 bundle --version || exit 1
 

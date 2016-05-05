@@ -114,7 +114,7 @@ class openstack_tasks::heat::heat {
 
   #------------------------------
 
-  class heat::docker_resource (
+  class docker_resource (
     $enabled      = true,
     $package_name = 'heat-docker',
   ) {
@@ -137,7 +137,7 @@ class openstack_tasks::heat::heat {
       $docker_resource_package_name = 'heat-docker'
     }
 
-    class { 'heat::docker_resource' :
+    class { '::openstack_tasks::heat::heat::docker_resource' :
       package_name => $docker_resource_package_name,
     }
   }
