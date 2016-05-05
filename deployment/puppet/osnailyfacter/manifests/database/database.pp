@@ -261,7 +261,7 @@ class osnailyfacter::database::database {
       mysql_port            => $backend_port,
       root_password         => $mysql_root_password,
       create_root_user      => $primary_controller,
-      create_root_my_cnf    => true,
+      create_root_my_cnf    => $primary_controller,
       configure_repo        => false, # NOTE: repos should be managed via fuel
       configure_firewall    => false,
       validate_connection   => false,
