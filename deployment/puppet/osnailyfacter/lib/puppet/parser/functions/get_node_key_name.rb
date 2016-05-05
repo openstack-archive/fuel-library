@@ -4,7 +4,11 @@ Return a node key name.
 Key name is a immutable name, that used as key into network_metadata/nodes hash
 EOS
   ) do |args|
-    uid = function_hiera ['uid']
+    if respond_to? :call_function
+      uid = call_function 'hiera', 'uid'
+    else
+      uid = function_hiera ['uid']
+    end
     raise Puppet::ParseError, 'Node UID not found.' if uid.nil?
     "node-#{uid}"
   end
