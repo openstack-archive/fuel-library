@@ -94,7 +94,7 @@ mod 'vcsrepo',
 # Pull in puppetlabs-postgresql
 mod 'postgresql',
     :git => 'https://github.com/fuel-infra/puppetlabs-postgresql.git',
-    :ref => '4.0.0'
+    :ref => '4.1.0'
 
 # Pull in saz-rsyslog
 mod 'rsyslog',
@@ -146,7 +146,7 @@ mod 'corosync',
 # FIXME(bogdando) We need the 5.3.1-dc0964d. Use the 5.3.2 once released.
 mod 'rabbitmq',
     :git => 'https://github.com/fuel-infra/puppetlabs-rabbitmq.git',
-    :ref => '5.3.1-mos-rc1'
+    :ref => '5.4'
 
 # Pull in puppetlabs-mysql
 # FIXME(mmalchuk) 498b085 (3.6.3-rc1) is a fix for the 3.6.x branch
