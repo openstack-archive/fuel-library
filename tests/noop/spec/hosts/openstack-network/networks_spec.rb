@@ -6,7 +6,7 @@ manifest = 'openstack-network/networks.pp'
 
 describe manifest do
   shared_examples 'catalog' do
-    if (Noop.hiera('use_neutron') and Noop.hiera('primary_controller'))
+    if Noop.hiera('use_neutron') and Noop.hiera('primary_controller')
       context 'with Neutron' do
         neutron_config = Noop.hiera('neutron_config')
         nets = neutron_config['predefined_networks']
@@ -24,6 +24,7 @@ describe manifest do
           else
             network_type = 'vxlan'
           end
+
           if nets[private_net]['L2']['segment_id']
             segment_id = nets[private_net]['L2']['segment_id']
           else
@@ -84,7 +85,7 @@ describe manifest do
               'cidr'             => nets[floating_net]['L3']['subnet'],
               'network_name'     => floating_net,
               'gateway_ip'       => nets[floating_net]['L3']['gateway'],
-              'allocation_pools' => "start=#{floating_range[0]},end=#{floating_range[1]}",
+              'allocation_pools' => ["start=#{floating_range[0]},end=#{floating_range[1]}"],
               'enable_dhcp'      => 'false',
             )
           end
