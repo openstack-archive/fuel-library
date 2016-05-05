@@ -160,6 +160,14 @@ class openstack_tasks::glance::glance {
     image_cache_max_size   => $glance_image_cache_max_size,
   }
 
+  glance_api_config {
+    'keystone_authtoken/auth_type':    value => 'password';
+    'keystone_authtoken/auth_url':     value => $identity_uri;
+    'keystone_authtoken/username':     value => $glance_user;
+    'keystone_authtoken/password':     value => $glance_user_password;
+    'keystone_authtoken/project_name': value => $glance_tenant;
+  } ~> Service['glance-api']
+
   class { '::glance::glare::logging':
     use_syslog             => $use_syslog,
     use_stderr             => $use_stderr,
