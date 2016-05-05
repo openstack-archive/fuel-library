@@ -35,7 +35,7 @@ describe manifest do
     end
 
     let(:access_networks) do
-      ['240.0.0.0/255.255.0.0'] + other_networks.split(' ')
+      (['240.0.0.0/255.255.0.0'] + other_networks.split(' ')).uniq
     end
 
     let(:mysql_hash) do
@@ -226,7 +226,9 @@ describe manifest do
       provider = 'http'
     else
       url = 'http://' + Noop.hiera('service_endpoint').to_s + ':10000/;csv'
-      provider = Puppet::Type.type(:haproxy_backend_status).defaultprovider.name
+      Puppet::Type.typeloader.load :haproxy_backend_status unless Puppet::Type.typeloader.loaded? :haproxy_backend_status
+      type = Puppet::Type.type :haproxy_backend_status
+      provider = type.defaultprovider.name
     end
 
     it 'should configure haproxy backend' do

@@ -128,8 +128,13 @@ describe manifest do
     end
 
     it 'should configure osd disks' do
+      if Noop.puppet4?
+        args = Noop.nil2undef(osd_devices_hash)
+      else
+        args = osd_devices_hash
+      end
       should contain_class('ceph::osds').with(
-        'args' => osd_devices_hash,
+        'args' => args,
       )
     end
 

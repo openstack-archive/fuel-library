@@ -65,7 +65,7 @@ class fuel::astute(
     ensure => directory,
     owner  => 'root',
     group  => 'root',
-    mode   => 0755,
+    mode   => '0755',
   }
 
   # FIXME(dteselkin): use correct versions of rubygem packages
