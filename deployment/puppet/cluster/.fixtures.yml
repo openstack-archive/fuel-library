@@ -14,3 +14,4 @@ fixtures:
     apt: "#{source_dir}/../apt"
     staging: "#{source_dir}/../staging"
     oslo: "#{source_dir}/../oslo"
+    osnailyfacter: "#{source_dir}/../osnailyfacter"
