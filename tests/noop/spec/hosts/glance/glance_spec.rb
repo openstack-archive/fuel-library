@@ -104,6 +104,11 @@ describe manifest do
       should contain_glance_api_config('glance_store/os_region_name').with_value(region)
       should contain_glance_api_config('keystone_authtoken/signing_dir').with_value('/tmp/keystone-signing-glance')
       should contain_glance_api_config('keystone_authtoken/token_cache_time').with_value('-1')
+      should contain_glance_api_config('keystone_authtoken/auth_type').with_value('password')
+      should contain_glance_api_config('keystone_authtoken/auth_url').with_value(identity_uri)
+      should contain_glance_api_config('keystone_authtoken/username').with_value(glance_config.fetch('user', 'glance'))
+      should contain_glance_api_config('keystone_authtoken/password').with_value(glance_config.fetch('user_password'))
+      should contain_glance_api_config('keystone_authtoken/project_name').with_value(glance_config.fetch('project_name', 'services'))
     end
 
     it 'should configure glance glare config' do
