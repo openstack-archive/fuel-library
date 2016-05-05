@@ -198,15 +198,19 @@ describe 'function for formating allocation pools for neutron subnet resource' d
     end
 
     it "should exist" do
-      Puppet::Parser::Functions.function(:generate_physnet_mtus).should == "function_generate_physnet_mtus"
+      expect(Puppet::Parser::Functions.function(:generate_physnet_mtus)).to eq "function_generate_physnet_mtus"
     end
 
     it 'error if no arguments' do
-      lambda { @scope.function_generate_physnet_mtus([]) }.should raise_error(ArgumentError, 'generate_physnet_mtus(): wrong number of arguments (0; must be 3)')
+      expect do
+        @scope.function_generate_physnet_mtus([])
+      end.to raise_error(ArgumentError, 'generate_physnet_mtus(): wrong number of arguments (0; must be 3)')
     end
 
     it 'should require one argument' do
-      lambda { @scope.function_generate_physnet_mtus(['foo', 'wee', 'ee', 'rr']) }.should raise_error(ArgumentError, 'generate_physnet_mtus(): wrong number of arguments (4; must be 3)')
+      expect do
+        @scope.function_generate_physnet_mtus(['foo', 'wee', 'ee', 'rr'])
+      end.to raise_error(ArgumentError, 'generate_physnet_mtus(): wrong number of arguments (4; must be 3)')
     end
 
 

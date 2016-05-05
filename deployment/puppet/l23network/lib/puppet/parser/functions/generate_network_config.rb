@@ -277,8 +277,9 @@ Puppet::Parser::Functions::newfunction(:generate_network_config, :type => :rvalu
             next if k == :gateway and v.to_s.empty?
             k = k.to_s.tr('-','_').to_sym
             if k == :IP
+              v = nil if v == :undef
               if !(v.is_a?(Array) || ['none','dhcp',nil].include?(v))
-                raise(Puppet::ParseError, "generate_network_config(): IP field for endpoint '#{e_name}' must be array of IP addresses, 'dhcp' or 'none'.")
+                raise(Puppet::ParseError, "generate_network_config(): IP field for endpoint '#{e_name}' must be array of IP addresses, 'dhcp' or 'none'. Got: '#{v.inspect}'")
               elsif ['none','dhcp',''].include?(v.to_s)
                 # 'none' and 'dhcp' should be passed to resource not as list
                 endpoints[e_name][:ipaddr] = (v.to_s == 'dhcp'  ?  'dhcp'  :  'none')
