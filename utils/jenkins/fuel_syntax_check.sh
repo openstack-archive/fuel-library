@@ -41,10 +41,6 @@ export FUEL_LIBRARY_PATH=$(cd "${SCRIPT_PATH}/../.." && pwd -P)
 # put us in the library directory so our git and find functions work correctly
 cd $FUEL_LIBRARY_PATH
 
-if [ -z "$PUPPET_GEM_VERSION" ] ; then
-  export PUPPET_GEM_VERSION='~> 3.8.0'
-fi
-
 # Check for bundle and exit if failed
 bundle --version || exit 1
 
