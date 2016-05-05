@@ -231,7 +231,7 @@ validate_gtid() {
         return 1
     fi
 
-    echo $1 | grep -q -E '^\w{8}-\w{4}-\w{4}-\w{4}-\w{12}:([[:digit:]]+|-1)$'
+    echo $1 | grep -q -E '^\w{8}-\w{4}-\w{4}-\w{4}-\w{12}:([[:digit:]]|-1)'
     rc=$?
 
     if [ $rc -ne 0 ]; then
@@ -248,8 +248,6 @@ update_node_gtid() {
     local LH="${LL} update_node_gtid():"
     local status_loglevel="err"
     local GTID
-    local CLUSTER_ID
-    local COMMIT_ID
 
     # Set loglevel to info during probe
     if ocf_is_probe; then
@@ -268,7 +266,7 @@ update_node_gtid() {
     fi
 
     #Final try to recover
-    if [ -z "${GTID}" ]; then
+    if [ -z ${GTID} ]; then
         GTID=$(${OCF_RESKEY_binary} --wsrep-recover \
             --log-error=/dev/stdout 2>&1 | grep 'Recovered position' | awk '{print $NF}')
     fi
@@ -296,6 +294,7 @@ get_master_timeout() {
 #Get gtid attribute for $1 node, "0" means no GTID set or wrong format for GTID
 get_node_gtid() {
     local LH="${LL} get_node_gtid():"
+    local rc
     local GTID
 
     GTID=$(crm_attribute --quiet --node $1 --lifetime reboot --query \
@@ -335,30 +334,39 @@ check_if_reelection_needed() {
     return 0
 }
 
-get_master() {
-    local LH="${LL} get_master()"
+choose_master() {
+    local LH="${LL} choose_master():"
+    local NODES=$1
+    local -A TMP
+
+    for NODE in $NODES; do
+        NODE_ID=$(echo $NODE | md5sum | awk '{print $1}')
+        TMP[$NODE_ID]=$NODE
+    done
+
+    MASTER=$(printf -- '%s\n' "${!TMP[@]}" | sort | head -1)
+    if [ -z $MASTER ]
+    then
+        ocf_log err "${LH} No master picked."
+    fi
+    ocf_log info "${LH} Choosed master: ${TMP[$MASTER]}"
+    echo ${TMP[$MASTER]}
+}
+
+get_possible_masters() {
+    local LH="${LL} get_possible_masters()"
     local NODES=$*
     local POSSIBLE_MASTERS
     local -A TMP
     local MASTER_GTID
     local GTID
-    local NODE
-    local NODE_SCORE
-    local LATEST_SEQNO=-1
-    local SEQNO
-    local MASTER
 
-    # Form a hash of keys as node names, values as GTID:SEQNO
     for NODE in $NODES; do
         GTID=$(get_node_gtid $NODE)
-        # Cut the seqno off the GTID:SEQNO pairs
-        TMP[$NODE]=$GTID
+        TMP[$NODE]=$(echo $GTID|cut -d":" -f 2)
     done
 
-    # Find possible masters
-    # Cut the seqnums off the stored GTID:SEQNO pairs, then find the most seen GTID for the nodes
-    MASTER_GTID=$(printf -- '%s\n' "${TMP[@]%:*}" | sort | uniq -c | awk '{print $2}' | head -1)
-    ocf_log info "${LH} The most seen GTID is: ${MASTER_GTID}"
+    MASTER_GTID=$(printf -- '%s\n' "${TMP[@]}" | sort -r | head -1)
     for NODE in $NODES; do
         NODE_SCORE=`crm_simulate -Ls |  awk "/${OCF_RESOURCE_INSTANCE}/ && /clone_color/ && !/${OCF_RESOURCE_INSTANCE}:/ && /${NODE}/"  | sed  -r -e 's/.*score on (.*)/\1/' | awk -F ':' '{print $2}' | tr -d '[:space:]'`
         if [[ $NODE_SCORE =~ ^-?[0-9]+$ && $NODE_SCORE -le 0 || $NODE_SCORE = "-INFINITY" || -z $NODE_SCORE ]]
@@ -366,36 +374,27 @@ get_master() {
             ocf_log info "${LH} Skipping node $NODE as it is not eligible for running the resource. Its score is ${NODE_SCORE:-NULL}"
             continue
         fi
-        ocf_log info "${LH} Node's ${NODE} score: ${NODE_SCORE}, GTID/SEQNUM: ${TMP[$NODE]}"
-        # Filter node names with the most seen GTID as possible masters and find the latest SEQNO
-        if [ "${MASTER_GTID}" = "${TMP[$NODE]%:*}" ]; then
+        if [ $MASTER_GTID -eq ${TMP[$NODE]} ]; then
             POSSIBLE_MASTERS="$POSSIBLE_MASTERS $NODE"
-            SEQNO=${TMP[$NODE]#*:}
-            [ $SEQNO -gt $LATEST_SEQNO ] && LATEST_SEQNO=$SEQNO
         fi
     done
-    ocf_log info "${LH} Possible masters: $POSSIBLE_MASTERS"
 
-    # Cut the gtids off the stored GTID:SEQNO pairs, then
-    # filter the master, which is one who has the latest SEQNO from the possible masters
-    for NODE in $POSSIBLE_MASTERS; do
-        [ "${LATEST_SEQNO}" = "${TMP[$NODE]#*:}" ] && MASTER=$NODE
-    done
-    ocf_log info "${LH} Choosed master: ${MASTER} with GTID: ${TMP[$MASTER]}"
-    echo "$MASTER"
+    ocf_log info "${LH} Possible masters: $POSSIBLE_MASTERS"
+    echo $POSSIBLE_MASTERS
 }
 
 check_if_galera_pc() {
     local LH="${LL} check_if_galera_pc():"
     local NODES
-    local MASTER
+    local MASTERS
     local timeout=$(get_master_timeout)
 
     ocf_log info "${LH} Checking if Primary Component"
 
     while [ $timeout -gt 0 ]; do
         NODES=$(nodes_in_cluster_online)
-        MASTER=$(get_master "$NODES")
+        MASTERS=$(get_possible_masters "$NODES")
+        MASTER=$(choose_master "$MASTERS")
         if [ "$MASTER" = "$HOSTNAME" ]; then
             ocf_log info "${LH} I\'m Primary Component. Join me!"
             return 1
@@ -447,24 +446,18 @@ mysql_validate() {
     return $OCF_SUCCESS
 }
 
-check_if_sst() {
-    local LH="${LL} check_if_sst():"
-    local loglevel=${1:-'info'}
-    if [ -f "${OCF_RESKEY_datadir}/sst_in_progress" -a ! -f "${OCF_RESKEY_datadir}/ibdata1" ]; then
-        ocf_log $loglevel "${LH} SST is in progress"
-        return $OCF_SUCCESS
-    fi
-    return $OCF_ERR_GENERIC
-}
-
 mysql_status() {
     local LH="${LL} mysql_status():"
     local loglevel=${1:-'info'}
     local count=${2:-3}
     local sleeptime=${3:-2}
-    local pid
 
     while [ $count -gt 0 ]; do
+        if [ -f "${OCF_RESKEY_datadir}"/sst_in_progress ]; then
+            ocf_log $loglevel "${LH} SST is in progress"
+            return $OCF_SUCCESS
+        fi
+
         if [ -f "$OCF_RESKEY_pid" ]; then
             ocf_log info "${LH} MySQL PID found"
             break
@@ -492,7 +485,6 @@ mysql_status() {
 mysql_monitor() {
     local LH="${LL} mysql_monitor():"
     local rc
-    local rc2
     local status_loglevel="err"
     local WSREP_CONNECTED
     local WSREP_LOCAL_STATE_COMMENT
@@ -505,15 +497,6 @@ mysql_monitor() {
 
     mysql_status $status_loglevel
     rc=$?
-    check_if_sst
-    rc2=$?
-    if [ $rc2 -eq $OCF_SUCCESS -a $rc -ne $OCF_SUCCESS ] ; then
-       # The sst_in_progress file isn't removed if mysqld has died and shall be purged
-       ocf_log warn "${LH} found and purged a stale sst_in_progress file"
-       rm -f "${OCF_RESKEY_datadir}/sst_in_progress"
-    elif [ $rc2 -eq $OCF_SUCCESS ]; then
-       return $OCF_SUCCESS
-    fi
 
     if [ $rc -ne $OCF_SUCCESS ]; then
         return $rc
@@ -551,11 +534,6 @@ mysql_monitor() {
 mysql_start() {
     local LH="${LL} mysql_start():"
     local NODES
-    local socket_dir
-    local pid_dir
-    local rc
-    local dir
-    local mysql_extra_params
 
     if mysql_status info 1; then
         ocf_log info "${LH} MySQL already running"
@@ -622,13 +600,9 @@ mysql_start() {
         return $rc
     fi
 
-    # Spin waiting for the server to come up or exit, if SST's in progress
+    # Spin waiting for the server to come up.
     # Let the CRM/LRM time us out if required.
     while :; do
-        check_if_sst
-        rc=$?
-        [ $rc -eq $OCF_SUCCESS ] && break
-
         if mysql_status info 1; then
             break
         fi
@@ -636,7 +610,7 @@ mysql_start() {
     done
 
     ocf_log info "${LH} MySQL started"
-    [ $rc -ne $OCF_SUCCESS ] && update_node_gtid
+    update_node_gtid
     return $OCF_SUCCESS
 }
 
