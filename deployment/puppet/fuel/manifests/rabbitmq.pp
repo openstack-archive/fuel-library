@@ -48,7 +48,7 @@ class fuel::rabbitmq (
     ensure  => directory,
     owner   => 'rabbitmq',
     group   => 'rabbitmq',
-    mode    => 0755,
+    mode    => '0755',
     require => User['rabbitmq'],
     before  => Service["rabbitmq-server"],
   }
@@ -74,9 +74,9 @@ class fuel::rabbitmq (
 
   file { "/etc/rabbitmq/enabled_plugins":
     content => '[amqp_client,rabbitmq_stomp,rabbitmq_management].',
-    owner   => root,
-    group   => root,
-    mode    => 0644,
+    owner   => 'root',
+    group   => 'root',
+    mode    => '0644',
     require => Package["rabbitmq-server"],
     notify  => Service["rabbitmq-server"],
   }
