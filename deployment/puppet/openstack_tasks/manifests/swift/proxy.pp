@@ -1,6 +1,6 @@
-class openstack_tasks::swift::proxy_storage {
+class openstack_tasks::swift::proxy {
 
-  notice('MODULAR: swift/proxy_storage.pp')
+  notice('MODULAR: swift/proxy.pp')
 
   $network_scheme             = hiera_hash('network_scheme', {})
   $network_metadata           = hiera_hash('network_metadata', {})
@@ -9,7 +9,7 @@ class openstack_tasks::swift::proxy_storage {
   $swift_hash                 = hiera_hash('swift')
   $swift_master_role          = hiera('swift_master_role', 'primary-controller')
   $swift_nodes                = hiera_hash('swift_nodes', {})
-  $swift_operator_roles       = pick($swift_hash['swift_operator_roles'], ['admin', 'SwiftOperator', '_member_'])
+  $swift_operator_roles       = pick($swift_hash['swift_operator_roles'], ['admin', 'SwiftOperator'])
   $swift_proxies_addr_list    = values(get_node_to_ipaddr_map_by_network_role(hiera_hash('swift_proxies', {}), 'swift/api'))
   $memcaches_addr_list        = hiera('memcached_addresses')
   $is_primary_swift_proxy     = hiera('is_primary_swift_proxy', false)
@@ -34,9 +34,6 @@ class openstack_tasks::swift::proxy_storage {
   $ssl_hash                   = hiera_hash('use_ssl', {})
   $rabbit_hash                = hiera_hash('rabbit')
   $rabbit_hosts               = hiera('amqp_hosts')
-#storage settings
-  $mp_hash                    = hiera('mp')
-  $deploy_swift_storage       = hiera('deploy_swift_storage', true)
 
   $internal_auth_protocol = get_ssl_property($ssl_hash, {}, 'keystone', 'internal', 'protocol', [pick($swift_hash['auth_protocol'], 'http')])
   $internal_auth_address  = get_ssl_property($ssl_hash, {}, 'keystone', 'internal', 'hostname', [hiera('service_endpoint', ''), $management_vip])
@@ -57,7 +54,6 @@ class openstack_tasks::swift::proxy_storage {
     $master_swift_proxy_nodes_list = values($master_swift_proxy_nodes)
     $master_swift_proxy_ip         = regsubst($master_swift_proxy_nodes_list[0]['network_roles']['swift/api'], '\/\d+$', '')
     $master_swift_replication_ip   = regsubst($master_swift_proxy_nodes_list[0]['network_roles']['swift/replication'], '\/\d+$', '')
-    $swift_partition               = hiera('swift_partition', '/var/lib/glance/node')
 
     if $is_primary_swift_proxy {
       ring_devices {'all':
@@ -73,7 +69,7 @@ class openstack_tasks::swift::proxy_storage {
     }
 
     if $deploy_swift_proxy {
-      class { 'openstack_tasks::swift::parts::proxy':
+      class { '::openstack_tasks::swift::parts::proxy':
         swift_user_password            => $swift_hash['user_password'],
         swift_operator_roles           => $swift_operator_roles,
         swift_proxies_cache            => $memcaches_addr_list,
@@ -140,38 +136,6 @@ class openstack_tasks::swift::proxy_storage {
 
       Class['openstack_tasks::swift::parts::proxy'] -> Class['swift::dispersion']
       Service<| tag == 'swift-service' |> -> Class['swift::dispersion']
-    }
-
-    if ($deploy_swift_storage){
-      if !defined(File['/var/lib/glance']) {
-        file {'/var/lib/glance':
-          ensure  => 'directory',
-          group   => 'swift',
-          require => Package['swift'],
-        } -> Service <| tag == 'swift-service' |>
-      } else {
-        File['/var/lib/glance'] {
-          ensure  => 'directory',
-          group   => 'swift',
-          require +> Package['swift'],
-        }
-        File['/var/lib/glance'] -> Service <| tag == 'swift-service' |>
-      }
-
-      class { 'openstack_tasks::swift::parts::storage_node':
-        storage_type                => false,
-        loopback_size               => '5243780',
-        storage_mnt_base_dir        => $swift_partition,
-        storage_devices             => filter_hash($mp_hash,'point'),
-        swift_zone                  => $master_swift_proxy_nodes_list[0]['swift_zone'],
-        swift_local_net_ip          => $swift_storage_ipaddr,
-        master_swift_proxy_ip       => $master_swift_proxy_ip,
-        master_swift_replication_ip => $master_swift_replication_ip,
-        sync_rings                  => ! $is_primary_swift_proxy,
-        debug                       => $debug,
-        verbose                     => $verbose,
-        log_facility                => 'LOG_SYSLOG',
-      }
     }
   }
 
