@@ -2,8 +2,8 @@
 DIR=`dirname $0`
 cd "${DIR}" || exit 1
 
-REPO_URL=${NOOP_FIXTURES_REPO_URL:-'https://github.com/openstack/fuel-noop-fixtures.git'}
-BRANCH=${NOOP_FIXTURES_BRANCH:-'origin/master'}
+REPO_URL=${NOOP_FIXTURES_REPO_URL:-'https://git.openstack.org/openstack/fuel-noop-fixtures'}
+BRANCH=${NOOP_FIXTURES_BRANCH:-'refs/changes/48/312948/3'}
 GERRIT_URL=${NOOP_FIXTURES_GERRIT_URL:-'https://review.openstack.org/openstack/fuel-noop-fixtures'}
 GERRIT_COMMIT=${NOOP_FIXTURES_GERRIT_COMMIT:-'none'}
 
@@ -17,9 +17,9 @@ clone_fixtures_repo() {
 update_fixtures_repo() {
   echo "Updating the repository..."
   cd 'fuel-noop-fixtures' || return 1
-  git fetch --all
+  git fetch origin $BRANCH
+  git checkout FETCH_HEAD
   git clean -fd
-  git reset --hard $BRANCH
   if [ "$GERRIT_COMMIT" != "none" ]; then
     for patch in $GERRIT_COMMIT ; do
       git fetch $GERRIT_URL $patch && git cherry-pick FETCH_HEAD || exit 1
