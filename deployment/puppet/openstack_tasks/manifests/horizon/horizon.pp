@@ -115,7 +115,7 @@ class openstack_tasks::horizon::horizon {
   Concat[$::horizon::params::config_file] ~> Exec['refresh_horizon_django_cache']
 
   # Performance optimization for wsgi
-  if ($::memorysize_mb < 1200 or $::processorcount <= 3) {
+  if ( ($::memorysize_mb + 0) < 1200 or ($::processorcount + 0) <= 3) {
     $wsgi_processes = 2
     $wsgi_threads = 9
   } else {
