@@ -59,7 +59,7 @@ describe 'configure_default_route' do
   end
 
   it 'should expect 4 arguments' do
-    expect { scope.function_configure_default_route [] }.to raise_error
+    expect { scope.function_configure_default_route [] }.to raise_error Puppet::Error
   end
 
   it 'should configure default gateway to vrouter ip' do
