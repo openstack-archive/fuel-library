@@ -13,4 +13,8 @@ export SPEC_SPEC_DIR='spec/hosts'
 export SPEC_TASK_DIR='../../../deployment/puppet/osnailyfacter/modular'
 export SPEC_MODULE_PATH='../../../deployment/puppet'
 
+if [ -z "${PUPPET_GEM_VERSION}" ]; then
+  export PUPPET_GEM_VERSION='4.5.0'
+fi
+
 ./noop_tests.rb $@
