@@ -42,7 +42,7 @@ class openstack::logrotate (
   # We're  using after here to place these options above the include
   # /etc/logrotate.d as file_line does not have a before option.
   file_line { 'logrotate-tabooext':
-    line  => 'tabooext + .nodaily',
+    line  => 'tabooext + .nodaily upstart',
     match => '^tabooext',
     after => '^create',
   } ->
