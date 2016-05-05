@@ -359,6 +359,8 @@ get_master() {
     local SEQNO
     local MASTER
 
+    # Ensure the same nodes list to reach a consensus for the choosen master across all of the nodes
+    NODES=$(printf -- '%s\n' "${NODES}" | sort -u)
     # Form a hash of keys as node names, values as GTID:SEQNO
     for NODE in $NODES; do
         GTID=$(get_node_gtid $NODE)
