@@ -161,9 +161,7 @@ add_to_bridge() {
 }
 
 get_veth_pair() {
-  ip netns list | grep "$OCF_RESKEY_ns"
-
-  [[ $? != 0 ]] && ip netns add $OCF_RESKEY_ns && ip netns exec $OCF_RESKEY_ns ip link set up dev lo
+  ip netns list | grep -wq "$OCF_RESKEY_ns" && ip netns add $OCF_RESKEY_ns && ip netns exec $OCF_RESKEY_ns ip link set up dev lo
 
   ocf_run ip netns exec $OCF_RESKEY_ns ip link show $OCF_RESKEY_ns_interface 2>/dev/null
   rc=$?
