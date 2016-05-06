@@ -39,7 +39,7 @@ let(:network_metadata) {"""
       user_node_name: CNT21
       node_roles:
       - primary-controller
-      name: node-4
+      name: custom-node-4
     node-6:
       swift_zone: '6'
       uid: '6'
@@ -107,7 +107,7 @@ let(:network_metadata) {"""
     expect(scope.function_network_metadata_to_hosts([YAML.load(network_metadata)])).to eq({
       'node-6.domain.local' => {:ip => '10.88.0.8', :host_aliases => ['node-6']},
       'node-5.domain.local' => {:ip => '10.88.0.6', :host_aliases => ['node-5']},
-      'node-4.domain.local' => {:ip => '10.88.0.7', :host_aliases => ['node-4']},
+      'node-4.domain.local' => {:ip => '10.88.0.7', :host_aliases => ['custom-node-4']},
     })
   end
 
@@ -115,7 +115,7 @@ let(:network_metadata) {"""
     expect(scope.function_network_metadata_to_hosts([YAML.load(network_metadata), 'nova/migration', 'xxx-'])).to eq({
       'xxx-node-6.domain.local' => {:ip => '10.77.0.8', :host_aliases => ['xxx-node-6']},
       'xxx-node-5.domain.local' => {:ip => '10.77.0.6', :host_aliases => ['xxx-node-5']},
-      'xxx-node-4.domain.local' => {:ip => '10.77.0.7', :host_aliases => ['xxx-node-4']},
+      'xxx-node-4.domain.local' => {:ip => '10.77.0.7', :host_aliases => ['xxx-custom-node-4']},
     })
   end
 
