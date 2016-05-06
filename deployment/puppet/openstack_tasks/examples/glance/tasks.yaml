@@ -18,6 +18,7 @@
     - name: glance-db
     - name: glance-keystone
     - name: /(primary-)?rabbitmq/
+      role: self
   parameters:
     puppet_manifest: /etc/puppet/modules/openstack_tasks/examples/glance/glance.pp
     puppet_modules: /etc/puppet/modules
@@ -39,6 +40,7 @@
       $.get('database_vip'))
   cross-depends:
     - name: /(primary-)?database/
+      role: self
   parameters:
     puppet_manifest: /etc/puppet/modules/openstack_tasks/examples/glance/db.pp
     puppet_modules: /etc/puppet/modules
@@ -55,7 +57,8 @@
       changedAny($.glance, $.network_metadata.vips, $.public_ssl,
       $.get('use_ssl'), $.get('region', 'RegionOne'))
   cross-depends:
-    - name: keystone
+    - name: /(primary-)?keystone/
+      role: self
   parameters:
     puppet_manifest: /etc/puppet/modules/openstack_tasks/examples/glance/keystone.pp
     puppet_modules: /etc/puppet/modules
