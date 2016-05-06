@@ -35,6 +35,7 @@
       $.get('mysql_custom_setup_class'))
   cross-depends:
     - name: /(primary-)?database/
+      role: self
   parameters:
     puppet_manifest: /etc/puppet/modules/openstack_tasks/examples/openstack-cinder/db.pp
     puppet_modules: /etc/puppet/modules
@@ -47,6 +48,7 @@
   required_for: [openstack-cinder]
   cross-depends:
     - name: keystone
+      role: self
   requires: [primary-keystone, keystone]
   condition:
     yaql_exp: >
