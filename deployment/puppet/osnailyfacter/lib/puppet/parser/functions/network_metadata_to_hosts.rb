@@ -21,7 +21,7 @@ module Puppet::Parser::Functions
     prefix = args[2].to_s
     nodes.each do |name, props|
       fqdn = "#{prefix}#{props['fqdn']}"
-      hosts[fqdn]={:ip=>props['network_roles'][network_role],:host_aliases=>["#{prefix}#{name}"]}
+      hosts[fqdn]={:ip=>props['network_roles'][network_role],:host_aliases=>["#{prefix}#{props['name']}"]}
       notice("Generating host entry #{name} #{props['network_roles'][network_role]} #{props['fqdn']}")
     end
     return hosts
