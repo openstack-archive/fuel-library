@@ -549,21 +549,13 @@ mysql_monitor() {
         status_loglevel="info"
     fi
 
+    check_if_sst
+    rc=$?
+    [ $rc -eq $OCF_SUCCESS ] && return $rc
+
     mysql_status $status_loglevel
     rc=$?
-    check_if_sst
-    rc2=$?
-    if [ $rc2 -eq $OCF_SUCCESS -a $rc -ne $OCF_SUCCESS ] ; then
-       # The sst_in_progress file isn't removed if mysqld has died and shall be purged
-       ocf_log warn "${LH} found and purged a stale sst_in_progress file"
-       rm -f "${OCF_RESKEY_datadir}/sst_in_progress"
-    elif [ $rc2 -eq $OCF_SUCCESS ]; then
-       return $OCF_SUCCESS
-    fi
-
-    if [ $rc -ne $OCF_SUCCESS ]; then
-        return $rc
-    fi
+    [ $rc -eq $OCF_SUCCESS ] || return $rc
 
     update_node_gtid
 
