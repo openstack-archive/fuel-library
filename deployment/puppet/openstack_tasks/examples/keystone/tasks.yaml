@@ -38,6 +38,7 @@
   refresh_on: [keystone_config]
   cross-depends:
     - name: /(primary-)?rabbitmq/
+      role: self
     - name: keystone-db
     - name: memcached
   parameters:
@@ -60,6 +61,7 @@
   refresh_on: [keystone_config]
   cross-depends:
     - name: /(primary-)?rabbitmq/
+      role: self
     - name: keystone-db
     - name: primary-keystone
   parameters:
@@ -83,6 +85,7 @@
       $.get('database_vip'))
   cross-depends:
     - name: /(primary-)?database/
+      role: self
   parameters:
     puppet_manifest: /etc/puppet/modules/openstack_tasks/examples/keystone/db.pp
     puppet_modules: /etc/puppet/modules
