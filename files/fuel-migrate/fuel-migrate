@@ -465,7 +465,7 @@ EOF
 
     # refresh log on destination node
     rsync ${migrate_log} ${admin_net_ip}:${migrate_log}
-    ssh "${admin_net_ip}" rm -f /notready
+    ssh "${admin_net_ip}" "rm -f /notready; touch /tmp/migration-done"
     while true ; do sleep 3600 ; done
 
 else
@@ -496,7 +496,7 @@ else
 
     # trap unexpected exit
     trap "{ set +x ; flock -u $fd ; cecho \"ERROR: look at ${migrate_log}\"; tail ${migrate_log} >&6; exit ; }" EXIT
-
+    rm -f /tmp/migration-done
     max_worktime="${max_worktime:-7200}"
     fuel_astute="${fuel_astute:-/etc/fuel/astute.yaml}"
     nailgun_setting="${nailgun_setting:-/etc/nailgun/settings.yaml}"
@@ -528,7 +528,6 @@ else
     os_varlibdocker="${os_varlibdocker:-30%}"
     os_varlog="${os_varlog:-100%}"
     del_vm=${del_vm:-no}
-
     create_vm
     mark_dst_disk
     mk_lvs_fs
