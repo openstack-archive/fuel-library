@@ -184,7 +184,7 @@ exit $OCF_SUCCESS
 
 check_ns() {
   local LH="${LL} check_ns():"
-  local ns=`ip netns list | grep "$OCF_RESKEY_ns"`
+  local ns=`ip netns list | grep "$OCF_RESKEY_ns" | awk -F ' \(' '{print $1}'`
   ocf_log debug "${LH} recieved netns list: ${ns}"
   [[ $ns != $OCF_RESKEY_ns ]] && return $OCF_ERR_GENERIC
   return $OCF_SUCCESS
