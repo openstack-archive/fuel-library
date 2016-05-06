@@ -37,33 +37,25 @@ describe manifest do
           service_plugins.concat(['qos'])
         end
 
-        it {
-          verbose = openstack_network_hash['verbose']
-          verbose = Noop.hiera('verbose', true) if verbose.nil?
-          should contain_class('neutron').with('verbose' => verbose)
-        }
-
-        it {
-          debug = openstack_network_hash['debug']
-          debug = Noop.hiera('debug', true) if debug.nil?
-          should contain_class('neutron').with('debug' => debug)
-        }
-
         it { should contain_class('neutron').with('advertise_mtu' => 'true')}
         it { should contain_class('neutron').with('report_interval' => neutron_config['neutron_report_interval'])}
         it { should contain_class('neutron').with('dhcp_agents_per_network' => '2')}
         it { should contain_class('neutron').with('dhcp_lease_duration' => neutron_config['L3'].fetch('dhcp_lease_duration', '600'))}
         it { should contain_class('neutron').with('mac_generation_retries' => '32')}
         it { should contain_class('neutron').with('allow_overlapping_ips' => 'true')}
-        it { should contain_class('neutron').with('use_syslog' => Noop.hiera('use_syslog', true))}
-        it { should contain_class('neutron').with('use_stderr' => Noop.hiera('use_stderr', false))}
-        it { should contain_class('neutron').with('log_facility' => Noop.hiera('syslog_log_facility_neutron', 'LOG_LOCAL4'))}
         it { should contain_class('neutron').with('base_mac' => neutron_config['L2']['base_mac'])}
         it { should contain_class('neutron').with('core_plugin' => 'neutron.plugins.ml2.plugin.Ml2Plugin')}
 
         it { should contain_class('neutron').with('service_plugins' => service_plugins)}
 
         it { should contain_class('neutron').with('bind_host' => bind_host)}
+
+        it { should contain_class('neutron::logging').with('use_syslog' => Noop.hiera('use_syslog', true))}
+        it { should contain_class('neutron::logging').with('use_stderr' => Noop.hiera('use_stderr', false))}
+        it { should contain_class('neutron::logging').with('log_facility' => Noop.hiera('syslog_log_facility_neutron', 'LOG_LOCAL4'))}
+        it { should contain_class('neutron::logging').with('default_log_levels' => Noop.hiera('default_log_levels'))}
+        it { should contain_class('neutron::logging').with('verbose' => Noop.hiera('verbose', true))}
+        it { should contain_class('neutron::logging').with('debug' => Noop.hiera('debug', true))}
 
         it {
           segmentation_type = neutron_config['L2']['segmentation_type']
@@ -77,12 +69,6 @@ describe manifest do
           should contain_class('neutron').with('rabbit_password' => rabbit_hash['password'])
           should contain_class('neutron').with('rabbit_hosts' => Noop.hiera('amqp_hosts', '').split(','))
           should contain_class('neutron').with('rabbit_heartbeat_timeout_threshold' => 0)
-        end
-
-        default_log_levels_hash = Noop.hiera_hash 'default_log_levels'
-        default_log_levels = Noop.puppet_function 'join_keys_to_values',default_log_levels_hash,'='
-        it 'should configure default_log_levels' do
-          should contain_neutron_config('DEFAULT/default_log_levels').with_value(default_log_levels.sort.join(','))
         end
 
       end
@@ -99,10 +85,11 @@ describe manifest do
 
     kombu_compression = Noop.hiera 'kombu_compression', ''
 
-    if ['gzip', 'bz2'].include?(kombu_compression)
-      it 'should configure kombu compression' do
-        should contain_neutron_config('oslo_messaging_rabbit/kombu_compression').with(:value => kombu_compression)
+    it 'should configure kombu compression' do
+      if kombu_compression.empty?
+        kombu_compression = facts[:os_service_default]
       end
+      should contain_class('neutron').with('kombu_compression' => kombu_compression)
     end
 
   end

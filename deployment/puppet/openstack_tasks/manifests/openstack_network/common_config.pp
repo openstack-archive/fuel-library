@@ -49,7 +49,13 @@ class openstack_tasks::openstack_network::common_config {
     $amqp_user      = $rabbit_hash['user']
     $amqp_password  = $rabbit_hash['password']
 
-    $kombu_compression = hiera('kombu_compression', '')
+    # Force $::os_service_default for empty value to pass validation
+    # in puppet-oslo module
+    if ! hiera('kombu_compression', '') {
+      $kombu_compression = $::os_service_default
+    } else {
+      $kombu_compression = hiera('kombu_compression')
+    }
 
     $segmentation_type = try_get_value($neutron_config, 'L2/segmentation_type')
 
@@ -66,12 +72,7 @@ class openstack_tasks::openstack_network::common_config {
     $default_log_levels  = hiera_hash('default_log_levels')
 
     class { '::neutron' :
-      verbose                            => $verbose,
-      debug                              => $debug,
-      use_syslog                         => $use_syslog,
-      use_stderr                         => $use_stderr,
       lock_path                          => '/var/lib/neutron/lock',
-      log_facility                       => $log_facility,
       bind_host                          => $bind_host,
       base_mac                           => $base_mac,
       core_plugin                        => $core_plugin,
@@ -85,39 +86,20 @@ class openstack_tasks::openstack_network::common_config {
       rabbit_hosts                       => $amqp_hosts,
       rabbit_password                    => $amqp_password,
       rabbit_heartbeat_timeout_threshold => 0,
+      kombu_compression                  => $kombu_compression,
       network_device_mtu                 => $physical_net_mtu,
       advertise_mtu                      => true,
+      notification_driver                => $ceilometer_hash['notification_driver'],
+      manage_logging                     => false,
     }
 
-    # TODO (iberezovskiy): remove this workaround in N when neutron module
-    # will be switched to puppet-oslo usage for rabbit configuration
-    if $kombu_compression in ['gzip','bz2'] {
-      if !defined(Oslo::Messaging_rabbit['neutron_config']) and !defined(Neutron_config['oslo_messaging_rabbit/kombu_compression']) {
-        neutron_config { 'oslo_messaging_rabbit/kombu_compression': value => $kombu_compression; }
-      } else {
-        Neutron_config<| title == 'oslo_messaging_rabbit/kombu_compression' |> { value => $kombu_compression }
-      }
-    }
-
-    # TODO (skolekonov): remove this workaround in N when neutron module
-    # will be switched to puppet-oslo usage for rabbit configuration
-    if $default_log_levels {
-      if !defined(Oslo::Log['neutron_config']) and !defined(Neutron_config['DEFAULT/default_log_levels']) {
-        neutron_config {
-          'DEFAULT/default_log_levels' :
-            value => join(sort(join_keys_to_values($default_log_levels, '=')), ',');
-        }
-      } else {
-        Neutron_config<| title == 'DEFAULT/default_log_levels' |> { value => join(sort(join_keys_to_values($default_log_levels, '=')), ',') }
-      }
-    }
-
-    if $use_syslog {
-      neutron_config { 'DEFAULT/use_syslog_rfc_format': value => true; }
-    }
-
-    neutron_config {
-      'DEFAULT/notification_driver': value => $ceilometer_hash['notification_driver'];
+    class { '::neutron::logging':
+      verbose            => $verbose,
+      debug              => $debug,
+      use_syslog         => $use_syslog,
+      use_stderr         => $use_stderr,
+      log_facility       => $log_facility,
+      default_log_levels => $default_log_levels,
     }
 
   }
