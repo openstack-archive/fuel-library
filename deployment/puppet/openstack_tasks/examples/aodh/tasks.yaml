@@ -32,6 +32,7 @@
   requires: [primary-keystone, keystone]
   cross-depends:
     - name: keystone
+      role: self 
   condition:
     yaql_exp: >
       $.ceilometer.enabled and changedAny($.aodh, $.network_metadata.vips,
@@ -47,6 +48,7 @@
   groups: [primary-controller]
   cross-depends:
     - name: /(primary-)?database/
+      role: self
   required_for: [aodh]
   condition:
     yaql_exp: >
