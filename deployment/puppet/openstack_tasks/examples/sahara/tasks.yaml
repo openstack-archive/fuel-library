@@ -32,6 +32,7 @@
   groups: [primary-controller]
   cross-depends:
     - name: /(primary-)?database/
+      role: self
   required_for: [sahara]
   condition:
     yaql_exp: >
@@ -52,6 +53,7 @@
   requires: [primary-keystone, keystone]
   cross-depends:
     - name: keystone
+      role: self
   condition:
     yaql_exp: >
       $.sahara.enabled and changedAny($.sahara, $.public_ssl,

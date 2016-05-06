@@ -43,7 +43,7 @@
   condition:
     yaql_exp: >
       changedAny($.storage, $.debug, $.network_scheme, $.get('use_syslog'),
-      $.network_metadata.nodes.values.where(
+      $.network_metadata.nodes.values().where(
         ('primary-controller' in $.node_roles) or
         ('controller' in $.node_roles)),
       $.get('ceph_tuning_settings'), $.get('syslog_log_level_ceph'),
@@ -91,7 +91,8 @@
       changedAny($.storage, $.network_metadata.vips,
       $.get('region', 'RegionOne'), $.public_ssl, $.get('use_ssl'))
   cross-depends:
-    - name: keystone
+    - name: /(primary-)?keystone/
+      role: self 
   parameters:
     puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/ceph/radosgw_keystone.pp
     puppet_modules: /etc/puppet/modules
@@ -134,11 +135,13 @@
 - id: primary-mon-update
   type: puppet
   version: 2.1.0
-  groups: [primary-controller]
-  required_for: [deploy_end, controller_remaining_tasks]
+  groups: [post_deployment_start]
+  required_for: [post_deployment_end]
   requires: [primary-ceph-mon]
   cross-depends:
     - name: ceph-mon
+  cross-depended-by:
+    - name: ceph_create_pools
   parameters:
     puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/ceph/primary_mon_update.pp
     puppet_modules: /etc/puppet/modules
