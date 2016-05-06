@@ -9,7 +9,7 @@ class openstack_tasks::swift::proxy {
   $swift_hash                 = hiera_hash('swift')
   $swift_master_role          = hiera('swift_master_role', 'primary-controller')
   $swift_nodes                = hiera_hash('swift_nodes', {})
-  $swift_operator_roles       = pick($swift_hash['swift_operator_roles'], ['admin', 'SwiftOperator'])
+  $swift_operator_roles       = pick($swift_hash['swift_operator_roles'], ['admin', 'SwiftOperator', '_member_'])
   $swift_proxies_addr_list    = values(get_node_to_ipaddr_map_by_network_role(hiera_hash('swift_proxies', {}), 'swift/api'))
   $memcaches_addr_list        = hiera('memcached_addresses')
   $is_primary_swift_proxy     = hiera('is_primary_swift_proxy', false)
