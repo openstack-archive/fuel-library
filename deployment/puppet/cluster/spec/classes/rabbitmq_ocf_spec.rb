@@ -46,7 +46,8 @@ describe 'cluster::rabbitmq_ocf' do
       'interleave'      => 'true',
       'master-max'      => '1',
       'master-node-max' => '1',
-      'target-role'     => 'Master'
+      'target-role'     => 'Master',
+      'requires'        => 'nothing'
     }}
 
     let(:monitor) {{

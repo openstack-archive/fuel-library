@@ -63,11 +63,23 @@ class cluster::mysql (
     },
   }
 
+  $metadata        = {
+    'migration-threshold' => '10',
+    'failure-timeout'     => '30s',
+    'resource-stickiness' => '100',
+  }
+
+  $complex_metadata     = {
+    'requires'      => 'nothing',
+  }
+
   pacemaker::service { $service_name:
     primitive_class    => $primitive_class,
     primitive_provider => $primitive_provider,
     primitive_type     => $primitive_type,
     complex_type       => $complex_type,
+    complex_metadata   => $complex_metadata,
+    metadata           => $metadata,
     parameters         => $parameters,
     operations         => $operations,
     prefix             => true,
