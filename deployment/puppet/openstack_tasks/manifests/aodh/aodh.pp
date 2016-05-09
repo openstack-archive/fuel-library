@@ -180,7 +180,13 @@ class openstack_tasks::aodh::aodh {
   class { '::aodh::evaluator': }
   class { '::aodh::notifier': }
   class { '::aodh::listener': }
-  class { '::aodh::client': }
+
+  # TODO(mmalchuk): remove this workaraound when aodh::client is fixed
+  # to the: class { '::aodh::client': }
+  package { 'python-aodhclient':
+    ensure => 'present',
+    tag    => 'openstack',
+  }
 
   if $ha_mode {
     include ::cluster::aodh_evaluator
