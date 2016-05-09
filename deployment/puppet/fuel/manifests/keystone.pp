@@ -33,13 +33,15 @@ class fuel::keystone (
   class { '::keystone':
     # (TODO iberezovskiy): Set 'enable_bootstrap' to true when MOS packages will
     # be updated and 'keystone-manage bootstrap' command will be available
-    enable_bootstrap     => false,
-    admin_token          => $admin_token,
-    catalog_type         => 'sql',
-    database_connection  => "${db_engine}://${db_user}:${db_password}@${db_host}:${db_port}/${db_name}",
-    token_expiration     => 86400,
-    token_provider       => 'keystone.token.providers.uuid.Provider',
-    default_domain       => $keystone_domain,
+    enable_bootstrap    => false,
+    admin_token         => $admin_token,
+    catalog_type        => 'sql',
+    database_connection => "${db_engine}://${db_user}:${db_password}@${db_host}:${db_port}/${db_name}",
+    token_expiration    => 86400,
+    token_provider      => 'keystone.token.providers.uuid.Provider',
+    default_domain      => $keystone_domain,
+    admin_workers       => 5,
+    public_workers      => 5,
   }
 
   # FIXME(kozhukalov): Remove this hack and use enable_bootstrap instead
