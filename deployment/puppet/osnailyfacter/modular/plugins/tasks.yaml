@@ -2,8 +2,8 @@
   type: puppet
   version: 2.1.0
   groups: ['/.*/']
-  requires: [pre_deployment_start, configuration_symlink]
-  required_for: [pre_deployment_end]
+  requires: [configuration_symlink]
+  required_for: [pre_deployment_start]
   condition:
     yaql_exp: &have_plugins "changed($.plugins) and (len($.plugins) > 0)"
   parameters:
@@ -15,8 +15,8 @@
   type: puppet
   version: 2.1.0
   groups: ['/.*/']
-  requires: [pre_deployment_start, plugins_rsync]
-  required_for: [pre_deployment_end]
+  requires: [plugins_rsync]
+  required_for: [pre_deployment_start]
   condition:
     yaql_exp: *have_plugins
   parameters:
