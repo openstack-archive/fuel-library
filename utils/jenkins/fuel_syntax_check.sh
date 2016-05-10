@@ -43,7 +43,7 @@ export FUEL_LIBRARY_PATH=$(cd "${SCRIPT_PATH}/../.." && pwd -P)
 cd $FUEL_LIBRARY_PATH
 
 if [ -z "$PUPPET_GEM_VERSION" ] ; then
-  export PUPPET_GEM_VERSION='~> 3.4.0'
+  export PUPPET_GEM_VERSION='~> 3.8.7'
 fi
 
 # Check for bundle and exit if failed
