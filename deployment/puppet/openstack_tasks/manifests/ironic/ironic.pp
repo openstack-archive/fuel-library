@@ -57,6 +57,8 @@ class openstack_tasks::ironic::ironic {
   $admin_identity_protocol    = get_ssl_property($ssl_hash, {}, 'keystone', 'admin', 'protocol', 'http')
   $admin_identity_address     = get_ssl_property($ssl_hash, {}, 'keystone', 'admin', 'hostname', [$service_endpoint, $management_vip])
   $admin_identity_uri         = "${admin_identity_protocol}://${admin_identity_address}:35357"
+  $public_protocol            = get_ssl_property($ssl_hash, {}, 'ironic', 'public', 'protocol', 'http')
+  $public_address             = get_ssl_property($ssl_hash, {}, 'ironic', 'public', 'hostname', $public_vip)
 
   prepare_network_config(hiera_hash('network_scheme', {}))
 
@@ -99,5 +101,9 @@ class openstack_tasks::ironic::ironic {
     } else {
       Ironic_config<| title == 'oslo_messaging_rabbit/kombu_compression' |> { value => $kombu_compression }
     }
+  }
+
+  ironic_config {
+    'api/public_endpoint': value => "${public_protocol}://${public_address}:6385";
   }
 }
