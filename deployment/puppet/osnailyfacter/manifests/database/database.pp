@@ -287,17 +287,22 @@ class osnailyfacter::database::database {
       before => Class['::mysql::server::installdb'],
     }
 
-    $management_networks = get_routable_networks_for_network_role($network_scheme, 'mgmt/database', ' ')
-    # TODO(aschultz): switch to ::galera::status
-    class { '::openstack::galera::status':
-      status_user     => $status_user,
-      status_password => $status_password,
-      status_allow    => $galera_node_address,
-      backend_host    => $galera_node_address,
-      backend_port    => $backend_port,
-      backend_timeout => $backend_timeout,
-      only_from       => "127.0.0.1 240.0.0.2 ${management_networks}",
-    }
+   if $primary_controller {
+      $management_networks = get_routable_networks_for_network_role($network_scheme, 'mgmt/database', ' ')
+      # TODO(aschultz): switch to ::galera::status
+      class { '::openstack::galera::status':
+        status_user     => $status_user,
+        status_password => $status_password,
+        status_allow    => $galera_node_address,
+        backend_host    => $galera_node_address,
+        backend_port    => $backend_port,
+        backend_timeout => $backend_timeout,
+        only_from       => "127.0.0.1 240.0.0.2 ${management_networks}",
+      }
+      Class['::cluster::mysql'] -> Class['::openstack::galera::status'] -> ::Osnailyfacter::Wait_for_backend['mysql']
+    } else {
+      Class['::cluster::mysql'] -> ::Osnailyfacter::Wait_for_backend['mysql']
+   }
 
     # include our integration with pacemaker
     class { '::cluster::mysql':
@@ -347,10 +352,5 @@ class osnailyfacter::database::database {
         require          => Class['::osnailyfacter::mysql_access'],
       }
     }
-
-    Class['::cluster::mysql'] ->
-      Class['::openstack::galera::status'] ->
-        ::Osnailyfacter::Wait_for_backend['mysql']
   }
-
 }
