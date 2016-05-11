@@ -112,3 +112,18 @@
     puppet_modules: /etc/puppet/modules
     timeout: 1800
 
+- id: upload_murano_package
+  type: puppet
+  version: 2.1.0
+  role: [primary-controller]
+  requires: [upload_cirros]
+  required_for: [post_deployment_end]
+  condition:
+    yaql_exp: >
+      $.get('murano').enabled and changedAny($.murano_settings.murano_glance_artifacts_plugin)
+  cross-depends:
+    - name: upload_cirros
+  parameters:
+    puppet_manifest: /etc/puppet/modules/openstack_tasks/examples/murano/upload_murano_package.pp
+    puppet_modules: /etc/puppet/modules
+    timeout: 180
