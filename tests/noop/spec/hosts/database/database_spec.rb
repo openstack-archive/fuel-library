@@ -151,7 +151,11 @@ describe manifest do
     end
 
     it 'should have explicit ordering galera status and LB status' do
-      expect(graph).to ensure_transitive_dependency("Class[openstack::galera::status]", "Haproxy_backend_status[mysql]")
+      if primary_controller
+        expect(graph).to ensure_transitive_dependency("Class['::cluster::mysql']", "Class[openstack::galera::status]", "Haproxy_backend_status[mysql]")
+      else
+        expect(graph).to ensure_transitive_dependency("Class['::cluster::mysql']", "Haproxy_backend_status[mysql]")
+      end
     end
 
     it 'should setup the /root/.my.cnf' do
@@ -178,16 +182,20 @@ describe manifest do
       ).that_comes_before('Class[mysql::server::installdb]')
     end
 
-    it 'should configure galera check service' do
-      should contain_class('openstack::galera::status').with(
-        :status_user => 'clustercheck',
-        :status_password => status_database_password,
-        :status_allow => galera_node_address,
-        :backend_host => galera_node_address,
-        :backend_port => '3307',
-        :backend_timeout => '10',
-        :only_from => "127.0.0.1 240.0.0.2 #{management_networks}"
-      )
+    it 'should configure galera check service on primary controller' do
+      if primary_controller
+        should contain_class('openstack::galera::status').with(
+          :status_user => 'clustercheck',
+          :status_password => status_database_password,
+          :status_allow => galera_node_address,
+          :backend_host => galera_node_address,
+          :backend_port => '3307',
+          :backend_timeout => '10',
+          :only_from => "127.0.0.1 240.0.0.2 #{management_networks}"
+        )
+      else
+        should_not contain_class('openstack::galera::status')
+      end
     end
 
     it 'should configure pacemaker with mysql service' do
