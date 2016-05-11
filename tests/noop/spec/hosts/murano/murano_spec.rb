@@ -204,10 +204,6 @@ describe manifest do
       enable = (Noop.hiera_structure('murano/enabled') and Noop.hiera('role') == 'primary-controller')
 
       context 'on primary controller', :if => enable do
-        it 'should declare murano::application resource correctly' do
-          should contain_murano__application('io.murano')
-        end
-
         it 'should have explicit ordering between LB classes and particular actions' do
           expect(graph).to ensure_transitive_dependency("Haproxy_backend_status[keystone-public]",
                                                       "Haproxy_backend_status[murano-api]")
