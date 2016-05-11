@@ -24,7 +24,7 @@
 # Pull in puppetlabs-stdlib
 mod 'stdlib',
     :git => 'https://github.com/fuel-infra/puppetlabs-stdlib.git',
-    :ref => '4.9.0'
+    :ref => '4.12.0'
 
 # Pull in puppet-pacemaker modules
 mod 'pacemaker',
