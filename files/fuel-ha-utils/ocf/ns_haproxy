@@ -329,14 +329,14 @@ set_ns_routing() {
   }
 
   # create host-ns veth pair unless it's present
-  ip link | grep -q -w "${OCF_RESKEY_host_interface}:"
+  ip link | grep -q '^[[:digit:]]\+:[[:space:]]\+'"${OCF_RESKEY_host_interface}"'[@:]'
   if [ $? -gt 0 ]; then
     ocf_log debug "Creating host interface: ${OCF_RESKEY_host_interface} and namespace interface: ${OCF_RESKEY_namespace_interface}"
     ocf_run ip link add "${OCF_RESKEY_host_interface}" type veth peer name "${OCF_RESKEY_namespace_interface}"
   fi
 
   # move the ns part to the namespace
-  ip link | grep -q -w "${OCF_RESKEY_namespace_interface}:"
+  ip link | grep -q '^[[:digit:]]\+:[[:space:]]\+'"${OCF_RESKEY_namespace_interface}"'[@:]'
   if [ $? -eq 0 ]; then
     ocf_log debug "Moving interface: ${OCF_RESKEY_namespace_interface} to namespace: ${OCF_RESKEY_ns}"
     ocf_run ip link set dev "${OCF_RESKEY_namespace_interface}" netns "${OCF_RESKEY_ns}"
