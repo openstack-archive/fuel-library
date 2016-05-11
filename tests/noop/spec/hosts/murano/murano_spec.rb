@@ -197,35 +197,7 @@ describe manifest do
         it { should contain_concat__fragment('enable_glare').with_content(/MURANO_USE_GLARE = True/)}
       end
 
-      context 'on primary controller', :if => enable do
-        it 'should declare murano::application resource correctly' do
-          should contain_murano__application('io.murano')
-        end
-
-        it 'should have explicit ordering between LB classes and particular actions' do
-          expect(graph).to ensure_transitive_dependency("Haproxy_backend_status[keystone-public]",
-                                                      "Haproxy_backend_status[murano-api]")
-          expect(graph).to ensure_transitive_dependency("Haproxy_backend_status[keystone-admin]",
-                                                      "Haproxy_backend_status[murano-api]")
-          expect(graph).to ensure_transitive_dependency("Haproxy_backend_status[murano-api]",
-                                                      "Murano::Application[io.murano]")
-        end
-       # Test for non-haproxy backend
-        it {
-          if Noop.hiera('external_lb', false)
-            url = "#{admin_url}/v3"
-            provider = 'http'
-          else
-            url = 'http://' + Noop.hiera('service_endpoint').to_s + ':10000/;csv'
-            provider = Puppet::Type.type(:haproxy_backend_status).defaultprovider.name
-          end
-          should contain_haproxy_backend_status('keystone-admin').with(
-            :url      => url,
-            :provider => provider
-          )
-        }
-      end
-
+      # Test for non-haproxy backend
       it {
         if Noop.hiera('external_lb', false)
           url = murano_url
