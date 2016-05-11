@@ -98,6 +98,8 @@ class fuel::params {
 
   $nailgun_log_level             = "DEBUG"
 
+  $keystone_admin_workers        = '5'
+  $keystone_public_workers       = '5'
 
   $nailgun_host                  = '127.0.0.1'
   $nailgun_port                  = '8000'
