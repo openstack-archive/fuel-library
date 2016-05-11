@@ -178,16 +178,20 @@ describe manifest do
       ).that_comes_before('Class[mysql::server::installdb]')
     end
 
-    it 'should configure galera check service' do
-      should contain_class('openstack::galera::status').with(
-        :status_user => 'clustercheck',
-        :status_password => status_database_password,
-        :status_allow => galera_node_address,
-        :backend_host => galera_node_address,
-        :backend_port => '3307',
-        :backend_timeout => '10',
-        :only_from => "127.0.0.1 240.0.0.2 #{management_networks}"
-      )
+    it 'should configure galera check service on primary controller' do
+      if primary_controller
+        should contain_class('openstack::galera::status').with(
+          :status_user => 'clustercheck',
+          :status_password => status_database_password,
+          :status_allow => galera_node_address,
+          :backend_host => galera_node_address,
+          :backend_port => '3307',
+          :backend_timeout => '10',
+          :only_from => "127.0.0.1 240.0.0.2 #{management_networks}"
+        )
+      else
+        should_not contain_class('openstack::galera::status')
+      end
     end
 
     it 'should configure pacemaker with mysql service' do
