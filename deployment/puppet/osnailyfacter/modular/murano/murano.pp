@@ -180,20 +180,6 @@ if $murano_hash['enabled'] {
     lb_defaults => $lb_defaults
   }
 
-  if roles_include('primary-controller') {
-
-    $internal_auth_url  = "${internal_auth_protocol}://${internal_auth_address}:5000"
-    $admin_identity_url = "${admin_auth_protocol}://${admin_auth_address}:35357"
-
-    class {'::osnailyfacter::wait_for_keystone_backends':}
-    murano::application { 'io.murano' : }
-
-    Class['::osnailyfacter::wait_for_keystone_backends'] -> ::Osnailyfacter::Wait_for_backend['murano-api']
-    ::Osnailyfacter::Wait_for_backend['murano-api'] -> Murano::Application['io.murano']
-
-    Service['murano-api'] -> Murano::Application['io.murano']
-  }
-
   Firewall[$firewall_rule] -> Class['murano::api']
   Service['murano-api'] -> ::Osnailyfacter::Wait_for_backend['murano-api']
 }
