@@ -107,7 +107,7 @@ class osnailyfacter::globals::globals {
   $syslog_log_facility_ironic     = hiera('syslog_log_facility_ironic','LOG_LOCAL0')
   $syslog_log_facility_aodh       = hiera('syslog_log_facility_aodh','LOG_LOCAL0')
 
-  $kombu_compression              = hiera('kombu_compression', '')
+  $kombu_compression              = hiera('kombu_compression', $::os_service_default)
 
   $nova_report_interval           = hiera('nova_report_interval', 60)
   $nova_service_down_time         = hiera('nova_service_down_time', 180)
