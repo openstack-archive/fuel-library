@@ -141,6 +141,14 @@ describe manifest do
     let(:fallback_workers) { [[facts[:processorcount].to_i, 2].max, workers_max.to_i].min }
     let(:service_workers) { nova_hash.fetch('workers', fallback_workers) }
 
+    let(:ironic_hash) { Noop.hiera_hash 'ironic', {} }
+    let(:ironic_user) { Noop.puppet_function 'pick', ironic_hash['user'], 'admin' }
+    let(:ironic_password) { Noop.puppet_function 'pick', ironic_hash['password'], 'ironic' }
+    let(:ironic_tenant) { Noop.puppet_function 'pick', ironic_hash['tenant'], 'services' }
+    let(:ironic_endpoint_default) { Noop.hiera 'ironic_endpoint', management_vip }
+    let(:ironic_protocol) { Noop.puppet_function 'get_ssl_property',ssl_hash,{},'ironic','internal','protocol','http' }
+    let(:ironic_endpoint) { Noop.puppet_function 'get_ssl_property',ssl_hash,{},'ironic','internal','hostname', ironic_endpoint_default}
+
     # TODO All this stuff should be moved to shared examples controller* tests.
 
     it 'should declare correct workers for systems with 4 processess on 4 CPU & 32G system' do
@@ -407,6 +415,15 @@ describe manifest do
       it 'should declare nova::scheduler::filter class with scheduler_host_manager' do
         should contain_class('nova::scheduler::filter').with(
           'scheduler_host_manager' => 'nova.scheduler.ironic_host_manager.IronicHostManager',
+        )
+      end
+      it 'should declare nova::ironic::common class with ironic parameters' do
+        should contain_class('nova::ironic::common').with(
+          'admin_username'    => ironic_user,
+          'admin_password'    => ironic_password,
+          'admin_tenant_name' => ironic_tenant,
+          'admin_url'         => keystone_identity_uri,
+          'api_endpoint'      => "#{ironic_protocol}://#{ironic_endpoint}:6385/v1",
         )
       end
     end
