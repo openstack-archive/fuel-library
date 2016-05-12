@@ -21,6 +21,8 @@ describe manifest do
     network_metadata = Noop.hiera_structure('network_metadata/nodes')
     messaging_fqdn_prefix = Noop.hiera('node_name_prefix_for_messaging', 'messaging-')
 
+    deleted_nodes = Noop.hiera('deleted_nodes', [])
+
     it 'should create basic host entries' do
       network_metadata.each do |node, params|
         should contain_host(params['fqdn']).with({
@@ -39,7 +41,19 @@ describe manifest do
           :target => '/etc/hosts'
         })
       end
+    end
 
+    it 'should purge host entries for deleted nodes' do
+      deleted_nodes.each do |deleted|
+        should contain_host(deleted).with({
+          :ensure => :absent,
+          :target => '/etc/hosts'
+        })
+        should contain_host("#{messaging_fqdn_prefix}#{deleted}").with({
+          :ensure => :absent,
+          :target => '/etc/hosts'
+        })
+      end
     end
   end
   test_ubuntu_and_centos manifest
