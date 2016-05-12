@@ -26,7 +26,7 @@ class openstack_tasks::ceilometer::compute {
   $ceilometer_enabled         = $ceilometer_hash['enabled']
   $amqp_password              = $rabbit_hash['password']
   $amqp_user                  = $rabbit_hash['user']
-  $kombu_compression          = hiera('kombu_compression', '')
+  $kombu_compression          = hiera('kombu_compression', $::os_service_default)
   $ceilometer_metering_secret = $ceilometer_hash['metering_secret']
   $verbose                    = pick($ceilometer_hash['verbose'], hiera('verbose', true))
   $debug                      = pick($ceilometer_hash['debug'], hiera('debug', false))
@@ -58,19 +58,21 @@ class openstack_tasks::ceilometer::compute {
   if ($ceilometer_enabled) {
 
     class { '::ceilometer':
-      http_timeout               => $ceilometer_hash['http_timeout'],
-      event_time_to_live         => $ceilometer_hash['event_time_to_live'],
-      metering_time_to_live      => $ceilometer_hash['metering_time_to_live'],
-      alarm_history_time_to_live => $ceilometer_hash['alarm_history_time_to_live'],
-      rabbit_hosts               => split(hiera('amqp_hosts',''), ','),
-      rabbit_userid              => $amqp_user,
-      rabbit_password            => $amqp_password,
-      metering_secret            => $ceilometer_metering_secret,
-      verbose                    => $verbose,
-      debug                      => $debug,
-      use_syslog                 => $use_syslog,
-      use_stderr                 => $use_stderr,
-      log_facility               => $syslog_log_facility,
+      rabbit_heartbeat_timeout_threshold => 0,
+      http_timeout                       => $ceilometer_hash['http_timeout'],
+      event_time_to_live                 => $ceilometer_hash['event_time_to_live'],
+      metering_time_to_live              => $ceilometer_hash['metering_time_to_live'],
+      alarm_history_time_to_live         => $ceilometer_hash['alarm_history_time_to_live'],
+      rabbit_hosts                       => split(hiera('amqp_hosts',''), ','),
+      rabbit_userid                      => $amqp_user,
+      rabbit_password                    => $amqp_password,
+      metering_secret                    => $ceilometer_metering_secret,
+      verbose                            => $verbose,
+      debug                              => $debug,
+      use_syslog                         => $use_syslog,
+      use_stderr                         => $use_stderr,
+      log_facility                       => $syslog_log_facility,
+      kombu_compression                  => $kombu_compression,
     }
 
     class { '::ceilometer::agent::auth':
@@ -105,17 +107,5 @@ class openstack_tasks::ceilometer::compute {
       central_namespace => false,
       ipmi_namespace    => false
     }
-
-    # TODO (iberezovskiy): remove this workaround in N when ceilometer module
-    # will be switched to puppet-oslo usage for rabbit configuration
-    if $kombu_compression in ['gzip','bz2'] {
-      if !defined(Oslo::Messaging_rabbit['ceilometer_config']) and !defined(Ceilometer_config['oslo_messaging_rabbit/kombu_compression']) {
-        ceilometer_config { 'oslo_messaging_rabbit/kombu_compression': value => $kombu_compression; }
-      } else {
-        Ceilometer_config<| title == 'oslo_messaging_rabbit/kombu_compression' |> { value => $kombu_compression }
-      }
-    }
-
   }
-
 }

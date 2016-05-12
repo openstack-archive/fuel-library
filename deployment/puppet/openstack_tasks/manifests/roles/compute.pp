@@ -48,7 +48,7 @@ class openstack_tasks::roles::compute {
   $use_2m_huge_pages              = $allocated_hugepages['2M']
   $use_1g_huge_pages              = $allocated_hugepages['1G']
   $libvirt_type                   = hiera('libvirt_type', undef)
-  $kombu_compression              = hiera('kombu_compression', '')
+  $kombu_compression              = hiera('kombu_compression', $::os_service_default)
 
   $dpdk_config                    = hiera_hash('dpdk', {})
   $enable_dpdk                    = pick($dpdk_config['enabled'], false)
@@ -265,23 +265,25 @@ class openstack_tasks::roles::compute {
   $notify_on_state_change = 'vm_and_task_state'
 
   class { '::nova':
-    rpc_backend            => $queue_provider,
+    rpc_backend                        => $queue_provider,
     #FIXME(bogdando) we have to split amqp_hosts until all modules synced
-    rabbit_hosts           => split(hiera('amqp_hosts',''), ','),
-    rabbit_userid          => pick($rabbit_hash['user'], 'nova'),
-    rabbit_password        => $rabbit_hash['password'],
-    glance_api_servers     => $glance_api_servers,
-    debug                  => $debug,
-    use_syslog             => $use_syslog,
-    use_stderr             => $use_stderr,
-    log_facility           => $syslog_log_facility,
-    state_path             => $nova_hash_real['state_path'],
-    report_interval        => $nova_report_interval,
-    service_down_time      => $nova_service_down_time,
-    notify_on_state_change => $notify_on_state_change,
-    notification_driver    => $ceilometer_hash['notification_driver'],
-    memcached_servers      => $memcached_addresses,
-    cinder_catalog_info    => pick($nova_hash_real['cinder_catalog_info'], 'volumev2:cinderv2:internalURL'),
+    rabbit_hosts                       => split(hiera('amqp_hosts',''), ','),
+    rabbit_userid                      => pick($rabbit_hash['user'], 'nova'),
+    rabbit_password                    => $rabbit_hash['password'],
+    rabbit_heartbeat_timeout_threshold => 0,
+    glance_api_servers                 => $glance_api_servers,
+    debug                              => $debug,
+    use_syslog                         => $use_syslog,
+    use_stderr                         => $use_stderr,
+    log_facility                       => $syslog_log_facility,
+    state_path                         => $nova_hash_real['state_path'],
+    report_interval                    => $nova_report_interval,
+    service_down_time                  => $nova_service_down_time,
+    notify_on_state_change             => $notify_on_state_change,
+    notification_driver                => $ceilometer_hash['notification_driver'],
+    memcached_servers                  => $memcached_addresses,
+    cinder_catalog_info                => pick($nova_hash_real['cinder_catalog_info'], 'volumev2:cinderv2:internalURL'),
+    kombu_compression                  => $kombu_compression,
   }
 
   class { '::nova::availability_zone':
@@ -499,16 +501,6 @@ class openstack_tasks::roles::compute {
     group   => 'nova',
     mode    => '0600',
     content => "Host *\n  StrictHostKeyChecking no\n  UserKnownHostsFile=/dev/null\n",
-  }
-
-  # TODO (iberezovskiy): remove this workaround in N when nova module
-  # will be switched to puppet-oslo usage for rabbit configuration
-  if $kombu_compression in ['gzip','bz2'] {
-    if !defined(Oslo::Messaging_rabbit['nova_config']) and !defined(Nova_config['oslo_messaging_rabbit/kombu_compression']) {
-      nova_config { 'oslo_messaging_rabbit/kombu_compression': value => $kombu_compression; }
-    } else {
-      Nova_config<| title == 'oslo_messaging_rabbit/kombu_compression' |> { value => $kombu_compression }
-    }
   }
 
   # vim: set ts=2 sw=2 et :
