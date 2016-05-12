@@ -5,6 +5,7 @@ class fuel::nailgun::client (
   $keystone_user             = $::fuel::params::keystone_admin_user,
   $keystone_password         = $::fuel::params::keystone_admin_password,
   $keystone_tenant           = $::fuel::params::keystone_admin_tenant,
+  $auth_url                  = "http://$server_address:$server_port/keystone/v2.0",
   ) inherits fuel::params {
 
   ensure_packages(["python-fuelclient"])
