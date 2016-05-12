@@ -132,17 +132,17 @@ class openstack::logging (
 
     # Configure logging templates for rsyslog client side
     # Rabbitmq does not support syslogging, use imfile
-    ::rsyslog::imfile { "04-rabbitmq" :
-      file_name     => "/var/log/rabbitmq/rabbit@${rabbit_fqdn_prefix}${hostname}.log",
-      file_tag      => "rabbitmq",
-      file_facility => "syslog",
+    ::rsyslog::imfile { '04-rabbitmq' :
+      file_name     => "/var/log/rabbitmq/rabbit@${rabbit_fqdn_prefix}${::hostname}.log",
+      file_tag      => 'rabbitmq',
+      file_facility => 'syslog',
       file_severity => $rabbit_log_level,
     }
 
-    ::rsyslog::imfile { "04-rabbitmq-sasl" :
-      file_name     => "/var/log/rabbitmq/rabbit@${rabbit_fqdn_prefix}${hostname}-sasl.log",
-      file_tag      => "rabbitmq-sasl",
-      file_facility => "syslog",
+    ::rsyslog::imfile { '04-rabbitmq-sasl' :
+      file_name     => "/var/log/rabbitmq/rabbit@${rabbit_fqdn_prefix}${::hostname}-sasl.log",
+      file_tag      => 'rabbitmq-sasl',
+      file_facility => 'syslog',
       file_severity => $rabbit_log_level,
     }
 
@@ -153,24 +153,24 @@ class openstack::logging (
       file_severity => 'ERROR',
     }
 
-    ::rsyslog::imfile { "04-rabbitmq-startup_log" :
-      file_name     => "/var/log/rabbitmq/startup_log",
-      file_tag      => "rabbitmq-startup_log",
-      file_facility => "syslog",
+    ::rsyslog::imfile { '04-rabbitmq-startup_log' :
+      file_name     => '/var/log/rabbitmq/startup_log',
+      file_tag      => 'rabbitmq-startup_log',
+      file_facility => 'syslog',
       file_severity => $rabbit_log_level,
     }
 
-    ::rsyslog::imfile { "04-rabbitmq-shutdown_err" :
-      file_name     => "/var/log/rabbitmq/shutdown_err",
-      file_tag      => "rabbitmq-shutdown_err",
-      file_facility => "syslog",
-      file_severity => "ERROR",
+    ::rsyslog::imfile { '04-rabbitmq-shutdown_err' :
+      file_name     => '/var/log/rabbitmq/shutdown_err',
+      file_tag      => 'rabbitmq-shutdown_err',
+      file_facility => 'syslog',
+      file_severity => 'ERROR',
     }
 
-    ::rsyslog::imfile { "04-rabbitmq-shutdown_log" :
-      file_name     => "/var/log/rabbitmq/shutdown_log",
-      file_tag      => "rabbitmq-shutdown_log",
-      file_facility => "syslog",
+    ::rsyslog::imfile { '04-rabbitmq-shutdown_log' :
+      file_name     => '/var/log/rabbitmq/shutdown_log',
+      file_tag      => 'rabbitmq-shutdown_log',
+      file_facility => 'syslog',
       file_severity => $rabbit_log_level,
     }
 
@@ -303,31 +303,40 @@ class openstack::logging (
       content => template("${module_name}/62-mongod.conf.erb"),
     }
 
-    ::rsyslog::snippet { '80-swift':
-      content => template("${module_name}/80-swift.conf.erb"),
-    }
-
-    # Custom settings for rsyslog client to define remote logging and local
-    # options
-    ::rsyslog::snippet { '90-local':
-      content => template("${module_name}/90-local.conf.erb"),
-    }
-
-    ::rsyslog::snippet { '00-remote':
-      content => template("${module_name}/00-remote.conf.erb"),
-    }
-
     if $ironic_collector {
       ::rsyslog::snippet { '70-ironic':
         content => template("${module_name}/70-ironic.conf.erb"),
       }
     }
 
+    ::rsyslog::snippet { '80-swift':
+      content => template("${module_name}/80-swift.conf.erb"),
+    }
+
+    # Custom settings for rsyslog default system file
+    # WARNING: don't change the filename (same used in the syslog package)
+    ::rsyslog::snippet { '50-default':
+      content => template("${module_name}/50-default.conf.erb"),
+    }
+
+    # Custom settings for rsyslog client to define local logging
+    ::rsyslog::snippet { '90-local':
+      content => template("${module_name}/90-local.conf.erb"),
+    }
+
+    # Custom settings for rsyslog client to define remote logging
+    # WARNING: don't change the filename (same used in the fuel-agent)
+    ::rsyslog::snippet { '00-remote':
+      content => template("${module_name}/00-remote.conf.erb"),
+    }
+
+    # TODO(mmalchuk) local and remote settings should be moved from snippets
+    # into rsyslog::client class when it will be able to use $custom_config
+    # together with $custom_params options in upstream module.
+
+    # Custom settings for rsyslog configuration with minimal configuration.
     class { '::rsyslog::client':
-      log_remote                => $log_remote,
-      log_local                 => $log_local,
-      log_auth_local            => $log_auth_local,
-      high_precision_timestamps => $show_timezone,
+      log_remote  => false,
     }
 
     unless $escapenewline {
@@ -378,7 +387,7 @@ class openstack::logging (
     }
   }
 
-  Rsyslog::Snippet <| |> -> Service["$::rsyslog::params::service_name"]
+  Rsyslog::Snippet <| |> -> Service[$::rsyslog::params::service_name]
 
   # Configure log rotation
   class { '::openstack::logrotate':
