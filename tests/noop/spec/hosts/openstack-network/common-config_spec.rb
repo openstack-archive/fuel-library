@@ -71,23 +71,19 @@ describe manifest do
 
     end
 
-  end
-
-  # equal for Nova-network and Neutron
-  it 'should apply kernel tweaks for connections' do
-    should contain_sysctl__value('net.ipv4.neigh.default.gc_thresh1').with_value('4096')
-    should contain_sysctl__value('net.ipv4.neigh.default.gc_thresh2').with_value('8192')
-    should contain_sysctl__value('net.ipv4.neigh.default.gc_thresh3').with_value('16384')
-    should contain_sysctl__value('net.ipv4.ip_forward').with_value('1')
-  end
-
-  kombu_compression = Noop.hiera 'kombu_compression', ''
-
-  it 'should configure kombu compression' do
-    if kombu_compression.empty?
-      kombu_compression = facts[:os_service_default]
+    # equal for Nova-network and Neutron
+    it 'should apply kernel tweaks for connections' do
+      should contain_sysctl__value('net.ipv4.neigh.default.gc_thresh1').with_value('4096')
+      should contain_sysctl__value('net.ipv4.neigh.default.gc_thresh2').with_value('8192')
+      should contain_sysctl__value('net.ipv4.neigh.default.gc_thresh3').with_value('16384')
+      should contain_sysctl__value('net.ipv4.ip_forward').with_value('1')
     end
-    should contain_class('neutron').with('kombu_compression' => kombu_compression)
+
+    it 'should configure kombu compression' do
+      kombu_compression = Noop.hiera 'kombu_compression', facts[:os_service_default]
+      should contain_neutron_config('oslo_messaging_rabbit/kombu_compression').with(:value => kombu_compression)
+    end
+
   end
   test_ubuntu_and_centos manifest
 end
