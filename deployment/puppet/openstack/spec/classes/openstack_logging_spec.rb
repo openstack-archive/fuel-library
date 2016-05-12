@@ -56,6 +56,7 @@ describe 'openstack::logging' do
          '21-keystone-common-wsgi',
          '30-cinder',
          '40-glance',
+         '50-default',
          '50-neutron',
          '51-ceilometer',
          '53-aodh',
@@ -73,10 +74,7 @@ describe 'openstack::logging' do
            should contain_file("/etc/rsyslog.d/#{item}.conf")
         end
         should contain_class('rsyslog::client').with(
-          :log_remote                => p[:log_remote],
-          :log_local                 => p[:log_local],
-          :log_auth_local            => p[:log_auth_local],
-          :high_precision_timestamps => p[:show_timezone]
+          :log_remote => false
         )
         should contain_rsyslog__snippet('00-disable-EscapeControlCharactersOnReceive')
       end
