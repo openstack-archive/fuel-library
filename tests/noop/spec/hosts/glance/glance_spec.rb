@@ -32,7 +32,6 @@ describe manifest do
     default_log_levels_hash = Noop.hiera_hash 'default_log_levels'
     default_log_levels = Noop.puppet_function 'join_keys_to_values',default_log_levels_hash,'='
     primary_controller = Noop.hiera 'primary_controller'
-    kombu_compression = Noop.hiera 'kombu_compression', ''
     if glance_config && glance_config.has_key?('pipeline')
        pipeline = glance_config['pipeline']
     else
@@ -242,12 +241,11 @@ describe manifest do
         should contain_glance_registry_config('oslo_messaging_notifications/topics').with(:value => 'notifications')
       end
 
-    if ['gzip', 'bz2'].include?(kombu_compression)
-      it 'should configure kombu compression' do
-        should contain_glance_api_config('oslo_messaging_rabbit/kombu_compression').with(:value => kombu_compression)
-        should contain_glance_registry_config('oslo_messaging_rabbit/kombu_compression').with(:value => kombu_compression)
-        should contain_glance_glare_config('oslo_messaging_rabbit/kombu_compression').with(:value => kombu_compression)
-      end
+    it 'should configure kombu compression' do
+      kombu_compression = Noop.hiera 'kombu_compression', facts[:os_service_default]
+      should contain_glance_api_config('oslo_messaging_rabbit/kombu_compression').with(:value => kombu_compression)
+      should contain_glance_registry_config('oslo_messaging_rabbit/kombu_compression').with(:value => kombu_compression)
+      should contain_glance_glare_config('oslo_messaging_rabbit/kombu_compression').with(:value => kombu_compression)
     end
   end
 

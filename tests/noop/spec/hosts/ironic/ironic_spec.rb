@@ -19,7 +19,6 @@ if ironic_enabled
       admin_tenant = Noop.hiera_structure('ironic/tenant', 'services')
       admin_user = Noop.hiera_structure('ironic/auth_name', 'ironic')
       admin_password = Noop.hiera_structure('ironic/user_password', 'ironic')
-      kombu_compression = Noop.hiera 'kombu_compression', ''
 
       database_vip = Noop.hiera('database_vip')
       ironic_db_password = Noop.hiera_structure 'ironic/db_password', 'ironic'
@@ -76,10 +75,9 @@ if ironic_enabled
         )
       end
 
-      if ['gzip', 'bz2'].include?(kombu_compression)
-        it 'should configure kombu compression' do
-          should contain_ironic_config('oslo_messaging_rabbit/kombu_compression').with(:value => kombu_compression)
-        end
+      it 'should configure kombu compression' do
+        kombu_compression = Noop.hiera 'kombu_compression', facts[:os_service_default]
+        should contain_ironic_config('oslo_messaging_rabbit/kombu_compression').with(:value => kombu_compression)
       end
 
     end # end of shared_examples

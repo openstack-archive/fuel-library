@@ -24,7 +24,7 @@ class openstack_tasks::roles::ironic_conductor {
   $rabbit_hash                = hiera_hash('rabbit')
   $amqp_durable_queues        = pick($ironic_hash['amqp_durable_queues'], false)
   $storage_hash               = hiera('storage')
-  $kombu_compression          = hiera('kombu_compression', '')
+  $kombu_compression          = hiera('kombu_compression', $::os_service_default)
 
   $ironic_tenant              = pick($ironic_hash['tenant'],'services')
   $ironic_user                = pick($ironic_hash['auth_name'],'ironic')
@@ -75,6 +75,7 @@ class openstack_tasks::roles::ironic_conductor {
     database_connection  => $db_connection,
     database_max_retries => '-1',
     glance_api_servers   => $glance_api_servers,
+    kombu_compression    => $kombu_compression,
   }
 
   class { '::ironic::client': }
@@ -98,16 +99,6 @@ class openstack_tasks::roles::ironic_conductor {
     'glance/swift_endpoint_url':            value => "http://${baremetal_vip}:8080";
     'glance/temp_url_endpoint_type':        value => $temp_url_endpoint_type;
     'conductor/api_url':                    value => "http://${baremetal_vip}:6385";
-  }
-
-  # TODO (iberezovskiy): remove this workaround in N when ironic module
-  # will be switched to puppet-oslo usage for rabbit configuration
-  if $kombu_compression in ['gzip','bz2'] {
-    if !defined(Oslo::Messaging_rabbit['ironic_config']) and !defined(Ironic_config['oslo_messaging_rabbit/kombu_compression']) {
-      ironic_config { 'oslo_messaging_rabbit/kombu_compression': value => $kombu_compression; }
-    } else {
-      Ironic_config<| title == 'oslo_messaging_rabbit/kombu_compression' |> { value => $kombu_compression }
-    }
   }
 
   file { $tftp_root:
