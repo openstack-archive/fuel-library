@@ -55,7 +55,7 @@ class cluster::mysql (
     },
     'start'   => {
       'interval' => '0',
-      'timeout'  => '300'
+      'timeout'  => '330'
     },
     'stop'    => {
       'interval' => '0',
