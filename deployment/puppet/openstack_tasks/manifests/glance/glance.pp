@@ -27,7 +27,7 @@ class openstack_tasks::glance::glance {
                                 min(max($::processorcount, 2), $workers_max))
   $ironic_hash           = hiera_hash('ironic', {})
   $primary_controller    = hiera('primary_controller')
-  $kombu_compression     = hiera('kombu_compression', '')
+  $kombu_compression     = hiera('kombu_compression', $::os_service_default)
 
   $db_type      = 'mysql'
   $db_host      = pick($glance_hash['db_host'], $database_vip)
@@ -199,9 +199,6 @@ class openstack_tasks::glance::glance {
     'DEFAULT/scrubber_datadir': value => '/var/lib/glance/scrubber';
   }
 
-  # TODO (iberezovskiy): use glance::cache::logging class to setup
-  # these parameters after new sync for glance module
-  # (https://review.openstack.org/#/c/238096/)
   glance_cache_config {
     'DEFAULT/image_cache_dir':  value => '/var/lib/glance/image-cache/';
     'DEFAULT/os_region_name':   value => $region;
@@ -241,6 +238,7 @@ class openstack_tasks::glance::glance {
     rabbit_userid                      => $rabbit_userid,
     rabbit_hosts                       => $rabbit_hosts,
     notification_driver                => $ceilometer_hash['notification_driver'],
+    kombu_compression                  => $kombu_compression,
   }
 
   # syslog additional settings default/use_syslog_rfc_format = true
@@ -318,22 +316,8 @@ class openstack_tasks::glance::glance {
   class { '::glance::cache::pruner': } ->
   class { '::glance::cache::cleaner': }
 
-  # TODO (iberezovskiy): remove this workaround in N when glance module
-  # will be switched to puppet-oslo usage for rabbit configuration
   if $kombu_compression in ['gzip','bz2'] {
-    if !defined(Oslo::Messaging_rabbit['glance_api_config']) and !defined(Glance_api_config['oslo_messaging_rabbit/kombu_compression']) {
-      glance_api_config { 'oslo_messaging_rabbit/kombu_compression': value => $kombu_compression; }
-    } else {
-      Glance_api_config<| title == 'oslo_messaging_rabbit/kombu_compression' |> { value => $kombu_compression }
-    }
-
-    if !defined(Oslo::Messaging_rabbit['glance_registry_config']) and !defined(Glance_registry_config['oslo_messaging_rabbit/kombu_compression']) {
-      glance_registry_config { 'oslo_messaging_rabbit/kombu_compression': value => $kombu_compression; }
-    } else {
-      Glance_registry_config<| title == 'oslo_messaging_rabbit/kombu_compression' |> { value => $kombu_compression }
-    }
-
-    if !defined(Oslo::Messaging_rabbit['glance_registry_config']) and !defined(Glance_registry_config['oslo_messaging_rabbit/kombu_compression']) {
+    if !defined(Oslo::Messaging_rabbit['glance_glare_config']) and !defined(Glance_glare_config['oslo_messaging_rabbit/kombu_compression']) {
       glance_glare_config { 'oslo_messaging_rabbit/kombu_compression': value => $kombu_compression; }
     } else {
       Glance_glare_config<| title == 'oslo_messaging_rabbit/kombu_compression' |> { value => $kombu_compression }
