@@ -237,11 +237,9 @@ describe manifest do
         )
       }
 
-      kombu_compression = Noop.hiera 'kombu_compression', ''
-      if ['gzip', 'bz2'].include?(kombu_compression)
-        it 'should configure kombu compression' do
-          should contain_sahara_config('oslo_messaging_rabbit/kombu_compression').with(:value => kombu_compression)
-        end
+      kombu_compression = Noop.hiera 'kombu_compression', facts[:os_service_default]
+      it 'should configure kombu compression' do
+        should contain_sahara_config('oslo_messaging_rabbit/kombu_compression').with(:value => kombu_compression)
       end
     end
 

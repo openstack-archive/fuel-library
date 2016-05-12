@@ -17,7 +17,7 @@ class openstack_tasks::heat::heat {
   $public_vip               = hiera('public_vip')
   $management_vip           = hiera('management_vip')
   $primary_controller       = hiera('primary_controller')
-  $kombu_compression        = hiera('kombu_compression', '')
+  $kombu_compression        = hiera('kombu_compression', $::os_service_default)
 
   $public_auth_protocol     = get_ssl_property($ssl_hash, $public_ssl_hash, 'keystone', 'public', 'protocol', 'http')
   $public_auth_address      = get_ssl_property($ssl_hash, $public_ssl_hash, 'keystone', 'public', 'hostname', [$public_vip])
@@ -222,6 +222,8 @@ class openstack_tasks::heat::heat {
     database_max_pool_size => $max_pool_size,
     database_max_overflow  => $max_overflow,
     database_max_retries   => $max_retries,
+
+    kombu_compression      => $kombu_compression,
   }
 
   # Engine
@@ -263,14 +265,4 @@ class openstack_tasks::heat::heat {
   }
   # Client
   class { '::heat::client' :  }
-
-  # TODO (iberezovskiy): remove this workaround in N when heat module
-  # will be switched to puppet-oslo usage for rabbit configuration
-  if $kombu_compression in ['gzip','bz2'] {
-    if !defined(Oslo::Messaging_rabbit['heat_config']) and !defined(Heat_config['oslo_messaging_rabbit/kombu_compression']) {
-      heat_config { 'oslo_messaging_rabbit/kombu_compression': value => $kombu_compression; }
-    } else {
-      Heat_config<| title == 'oslo_messaging_rabbit/kombu_compression' |> { value => $kombu_compression }
-    }
-  }
 }

@@ -19,7 +19,7 @@ describe manifest do
     memcache_roles       = Noop.hiera 'memcache_roles'
     memcache_addresses   = Noop.hiera 'memcached_addresses', false
     memcache_server_port = Noop.hiera 'memcache_server_port', '11211'
-    kombu_compression    = Noop.hiera 'kombu_compression', ''
+    kombu_compression    = Noop.hiera 'kombu_compression', facts[:os_service_default]
 
     ironic_enabled       = Noop.hiera_structure 'ironic/enabled'
 
@@ -526,10 +526,8 @@ describe manifest do
       end
     end
 
-    if ['gzip', 'bz2'].include?(kombu_compression)
-      it 'should configure kombu compression' do
-        should contain_nova_config('oslo_messaging_rabbit/kombu_compression').with(:value => kombu_compression)
-      end
+    it 'should configure kombu compression' do
+      should contain_nova_config('oslo_messaging_rabbit/kombu_compression').with(:value => kombu_compression)
     end
   end
 
