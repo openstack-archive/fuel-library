@@ -43,7 +43,7 @@
   condition:
     yaql_exp: >
       changedAny($.storage, $.debug, $.network_scheme, $.get('use_syslog'),
-      $.network_metadata.nodes.values.where(
+      $.network_metadata.nodes.values().where(
         ('primary-controller' in $.node_roles) or
         ('controller' in $.node_roles)),
       $.get('ceph_tuning_settings'), $.get('syslog_log_level_ceph'),
