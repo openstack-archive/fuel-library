@@ -133,7 +133,7 @@ if !($storage_hash['images_ceph'] and $storage_hash['objects_ceph']) and !$stora
 
       class { 'openstack::swift::status':
         endpoint    => "${swift_internal_protocol}://${swift_internal_address}:${proxy_port}",
-        scan_target => "${internal_auth_protocol}://${internal_auth_address}:5000",
+        scan_target => "${internal_auth_address}:5000",
         only_from   => "127.0.0.1 240.0.0.2 ${storage_nets} ${mgmt_nets}",
         con_timeout => 5
       }
