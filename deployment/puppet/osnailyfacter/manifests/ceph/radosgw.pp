@@ -4,8 +4,8 @@ class osnailyfacter::ceph::radosgw {
 
   $gateway_name                     = 'radosgw.gateway'
   $storage_hash                     = hiera('storage', {})
-  $radosgw_key                      = pick($storage_hash['radosgw_key'], 'AQCTg71RsNIHORAAW+O6FCMZWBjmVfMIPk3MhQ==')
-  $fsid                             = pick($storage_hash['fsid'], '066F558C-6789-4A93-AAF1-5AF1BA01A3AD')
+  $radosgw_key                      = $storage_hash['radosgw_key']
+  $fsid                             = $storage_hash['fsid']
   $rgw_log_file                     = '/var/log/ceph/radosgw.log'
   $use_syslog                       = hiera('use_syslog', true)
   $rgw_large_pool_name              = '.rgw'
@@ -31,6 +31,14 @@ class osnailyfacter::ceph::radosgw {
   $mon_hosts       = join(keys($mon_address_map), ',')
 
   if $storage_hash['objects_ceph'] {
+
+    if empty($fsid) {
+      fail('Please provide fsid')
+    }
+    if empty($radosgw_key) {
+      fail('Please provide radosgw_key')
+    }
+
     ceph::key { "client.${gateway_name}":
       keyring_path => "/etc/ceph/client.${gateway_name}",
       secret       => $radosgw_key,
