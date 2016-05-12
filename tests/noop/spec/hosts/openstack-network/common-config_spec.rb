@@ -83,13 +83,10 @@ describe manifest do
       should contain_sysctl__value('net.ipv4.ip_forward').with_value('1')
     end
 
-    kombu_compression = Noop.hiera 'kombu_compression', ''
 
     it 'should configure kombu compression' do
-      if kombu_compression.empty?
-        kombu_compression = facts[:os_service_default]
-      end
-      should contain_class('neutron').with('kombu_compression' => kombu_compression)
+      kombu_compression = Noop.hiera 'kombu_compression', facts[:os_service_default]
+      should contain_neutron_config('oslo_messaging_rabbit/kombu_compression').with(:value => kombu_compression)
     end
 
   end

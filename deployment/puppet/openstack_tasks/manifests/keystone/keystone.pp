@@ -35,7 +35,7 @@ class openstack_tasks::keystone::keystone {
                                 min(max($::processorcount, 2), $workers_max))
   $default_log_levels    = hiera_hash('default_log_levels')
   $primary_controller    = hiera('primary_controller')
-  $kombu_compression     = hiera('kombu_compression', '')
+  $kombu_compression     = hiera('kombu_compression', $::os_service_default)
 
   $default_role = '_member_'
 
@@ -338,6 +338,7 @@ class openstack_tasks::keystone::keystone {
       memcache_pool_unused_timeout => '60',
       cache_memcache_servers       => $memcache_servers,
       policy_driver                => 'keystone.policy.backends.sql.Policy',
+      kombu_compression            => $kombu_compression,
     }
 
     Package<| title == 'keystone'|> ~> Service<| title == 'keystone'|>
@@ -386,16 +387,6 @@ class openstack_tasks::keystone::keystone {
       'composite:admin/use':                             value =>'egg:Paste#urlmap';
       'composite:admin//v2.0':                           value =>'admin_api';
       'composite:admin//':                               value =>'admin_version_api';
-    }
-
-    # TODO (iberezovskiy): remove this workaround in N when keystone module
-    # will be switched to puppet-oslo usage for rabbit configuration
-    if $kombu_compression in ['gzip','bz2'] {
-      if !defined(Oslo::Messaging_rabbit['keystone_config']) and !defined(Keystone_config['oslo_messaging_rabbit/kombu_compression']) {
-        keystone_config { 'oslo_messaging_rabbit/kombu_compression': value => $kombu_compression; }
-      } else {
-        Keystone_config<| title == 'oslo_messaging_rabbit/kombu_compression' |> { value => $kombu_compression }
-      }
     }
 
     class { '::keystone::endpoint':
