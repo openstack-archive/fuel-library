@@ -8,6 +8,10 @@ describe manifest do
   shared_examples 'catalog' do
     storage_hash = Noop.hiera 'storage'
 
+    let(:admin_key) do
+      Noop.hiera_structure 'storage/admin_key', 'AQCTg71RsNIHORAAW+O6FCMZWBjmVfMIPk3MhQ=='
+    end
+
     let(:mon_key) do
       Noop.hiera_structure 'storage/mon_key', 'AQDesGZSsC7KJBAAw+W/Z4eGSQGAIbxWjxjvfw=='
     end
@@ -104,6 +108,15 @@ describe manifest do
           'pg_num'  => compute_pool_pg_nums,
           'pgp_num' => compute_pool_pgp_nums,
         ).that_requires('ceph')
+      end
+
+      it 'should add admin key' do
+        should contain_ceph__key('client.admin').with(
+          'secret'  => admin_key,
+          'cap_mon' => 'allow *',
+          'cap_osd' => 'allow *',
+          'cap_mds' => 'allow',
+        )
       end
 
       it 'should configure ceph compute keys' do
