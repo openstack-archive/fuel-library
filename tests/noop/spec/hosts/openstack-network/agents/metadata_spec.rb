@@ -30,6 +30,7 @@ describe manifest do
       neutron_config           = Noop.hiera_hash('neutron_config')
       neutron_controller_roles = Noop.hiera('neutron_controller_nodes', ['controller', 'primary-controller'])
       neutron_compute_roles    = Noop.hiera('neutron_compute_nodes', ['compute'])
+      workers_max              = Noop.hiera 'workers_max'
       isolated_metadata        = neutron_config.fetch('metadata',{}).fetch('isolated_metadata', true)
       ha_agent                 = na_config.fetch('dhcp_agent_ha', true)
 
@@ -47,6 +48,10 @@ describe manifest do
               configuration_override.fetch('neutron_metadata_agent_config', {})
             end
 
+            let(:metadata_workers) do
+              neutron_config.fetch('workers', [facts[:processorcount].to_i/8+1, workers_max.to_i].min)
+            end
+
             it { should contain_class('neutron::agents::metadata').with(
               'debug' => Noop.hiera('debug', true)
             )}
@@ -61,6 +66,9 @@ describe manifest do
             )}
             it { should contain_class('neutron::agents::metadata').with(
               'shared_secret' => secret
+            )}
+            it { should contain_class('neutron::agents::metadata').with(
+              'metadata_workers' => metadata_workers
             )}
             it 'neutron metadata agent config should be modified by override_resources' do
               is_expected.to contain_override_resources('neutron_metadata_agent_config').with(:data => neutron_metadata_agent_config_override_resources)
@@ -82,6 +90,9 @@ describe manifest do
 
           let(:neutron_metadata_agent_config_override_resources) do
             configuration_override.fetch('neutron_metadata_agent_config', {})
+          end
+          let(:metadata_workers) do
+            neutron_config.fetch('workers', [[facts[:processorcount].to_i, 2].max, workers_max.to_i].min)
           end
 
           it 'neutron metadata agent config should be modified by override_resources' do
@@ -109,6 +120,9 @@ describe manifest do
           )}
           it { should contain_class('neutron::agents::metadata').with(
             'shared_secret' => secret
+          )}
+          it { should contain_class('neutron::agents::metadata').with(
+            'metadata_workers' => metadata_workers
           )}
           if ha_agent
             it { should contain_class('cluster::neutron::metadata').with(
