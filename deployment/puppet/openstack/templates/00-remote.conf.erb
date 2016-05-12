@@ -9,7 +9,9 @@ $Template RemoteLog, "<%%pri%>%timestamp% %hostname% %syslogtag%%msg:::sp-if-no-
 # Note: don't use %app-name% cuz it would be empty for some cases
 $ActionFileDefaultTemplate RemoteLog
 $WorkDirectory <%= scope.lookupvar('rsyslog::params::spool_dir') %>
+
 <% @rservers_real.each_with_index do |rserver, rservercount| -%>
+
 <% if ! ['localhost','127.0.0.1','::1'].include?(rserver['server']) -%>
 #Start remote server <%=rservercount %>
 $ActionQueueType LinkedList   # use asynchronous processing
@@ -26,7 +28,6 @@ $ActionQueueDequeueSlowdown 1000
 $ActionQueueWorkerThreads 2
 $ActionQueueDequeueBatchSize 128
 $ActionResumeRetryCount -1
-
 
 # Isolate sudo logs locally
 # match if "program name" is equal to "sudo"
