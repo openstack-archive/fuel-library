@@ -180,7 +180,13 @@ class openstack_tasks::aodh::aodh {
   class { '::aodh::evaluator': }
   class { '::aodh::notifier': }
   class { '::aodh::listener': }
-  class { '::aodh::client': }
+
+  # TODO(mmalchuk): this workaround should be removed when
+  # https://review.openstack.org/#/c/311762/ is merged
+  package { 'python-aodhclient':
+    ensure => 'present',
+    tag    => 'openstack',
+  }
 
   if $ha_mode {
     include ::cluster::aodh_evaluator
