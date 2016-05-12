@@ -40,7 +40,7 @@ class openstack_tasks::openstack_controller::openstack_controller {
   $ssl_hash                     = hiera_hash('use_ssl', {})
   $node_hash                    = hiera_hash('node_hash', {})
   $sahara_enabled               = pick($sahara_hash['enabled'], false)
-  $kombu_compression            = hiera('kombu_compression', '')
+  $kombu_compression            = hiera('kombu_compression', $::os_service_default)
 
   $internal_auth_protocol = get_ssl_property($ssl_hash, {}, 'keystone', 'internal', 'protocol', [$nova_hash['auth_protocol'], 'http'])
   $internal_auth_address  = get_ssl_property($ssl_hash, {}, 'keystone', 'internal', 'hostname', [$service_endpoint, $management_vip])
@@ -180,30 +180,32 @@ class openstack_tasks::openstack_controller::openstack_controller {
   #################################################################
 
   class { '::nova':
-    database_connection     => $db_connection,
-    api_database_connection => $api_db_connection,
-    rpc_backend             => $rpc_backend,
+    database_connection                => $db_connection,
+    api_database_connection            => $api_db_connection,
+    rpc_backend                        => $rpc_backend,
     #FIXME(bogdando) we have to split amqp_hosts until all modules synced
-    rabbit_hosts            => split($amqp_hosts, ','),
-    rabbit_userid           => $amqp_user,
-    rabbit_password         => $amqp_password,
-    image_service           => 'nova.image.glance.GlanceImageService',
-    glance_api_servers      => $glance_api_servers,
-    debug                   => $debug,
-    log_facility            => $syslog_log_facility_nova,
-    use_syslog              => $use_syslog,
-    use_stderr              => $use_stderr,
-    database_idle_timeout   => $idle_timeout,
-    report_interval         => $nova_report_interval,
-    service_down_time       => $nova_service_down_time,
-    notify_api_faults       => pick($nova_hash['notify_api_faults'], false),
-    notification_driver     => $ceilometer_hash['notification_driver'],
-    memcached_servers       => $memcached_addresses,
-    cinder_catalog_info     => pick($nova_hash['cinder_catalog_info'], 'volumev2:cinderv2:internalURL'),
-    database_max_pool_size  => $max_pool_size,
-    database_max_retries    => $max_retries,
-    database_max_overflow   => $max_overflow,
-    notify_on_state_change  => $notify_on_state_change,
+    rabbit_hosts                       => split($amqp_hosts, ','),
+    rabbit_userid                      => $amqp_user,
+    rabbit_password                    => $amqp_password,
+    rabbit_heartbeat_timeout_threshold => 0,
+    image_service                      => 'nova.image.glance.GlanceImageService',
+    glance_api_servers                 => $glance_api_servers,
+    debug                              => $debug,
+    log_facility                       => $syslog_log_facility_nova,
+    use_syslog                         => $use_syslog,
+    use_stderr                         => $use_stderr,
+    database_idle_timeout              => $idle_timeout,
+    report_interval                    => $nova_report_interval,
+    service_down_time                  => $nova_service_down_time,
+    notify_api_faults                  => pick($nova_hash['notify_api_faults'], false),
+    notification_driver                => $ceilometer_hash['notification_driver'],
+    notify_on_state_change             => $notify_on_state_change,
+    memcached_servers                  => $memcached_addresses,
+    cinder_catalog_info                => pick($nova_hash['cinder_catalog_info'], 'volumev2:cinderv2:internalURL'),
+    database_max_pool_size             => $max_pool_size,
+    database_max_retries               => $max_retries,
+    database_max_overflow              => $max_overflow,
+    kombu_compression                  => $kombu_compression,
   }
 
   # TODO(aschultz): this is being removed in M, do we need it?
@@ -418,16 +420,6 @@ class openstack_tasks::openstack_controller::openstack_controller {
 
   nova_config {
     'DEFAULT/teardown_unused_network_gateway': value => 'True'
-  }
-
-  # TODO (iberezovskiy): remove this workaround in N when nova module
-  # will be switched to puppet-oslo usage for rabbit configuration
-  if $kombu_compression in ['gzip','bz2'] {
-    if !defined(Oslo::Messaging_rabbit['nova_config']) and !defined(Nova_config['oslo_messaging_rabbit/kombu_compression']) {
-      nova_config { 'oslo_messaging_rabbit/kombu_compression': value => $kombu_compression; }
-    } else {
-      Nova_config<| title == 'oslo_messaging_rabbit/kombu_compression' |> { value => $kombu_compression }
-    }
   }
 
   $nova_scheduler_default_filters = [ 'RetryFilter', 'AvailabilityZoneFilter', 'RamFilter', 'CoreFilter', 'DiskFilter', 'ComputeFilter', 'ComputeCapabilitiesFilter', 'ImagePropertiesFilter', 'ServerGroupAntiAffinityFilter', 'ServerGroupAffinityFilter' ]

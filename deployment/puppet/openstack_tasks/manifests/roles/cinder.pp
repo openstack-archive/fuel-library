@@ -23,7 +23,7 @@ class openstack_tasks::roles::cinder {
   $syslog_log_facility_cinder = hiera('syslog_log_facility_cinder', 'LOG_LOCAL3')
   $syslog_log_facility_ceph   = hiera('syslog_log_facility_ceph','LOG_LOCAL0')
   $proxy_port                 = hiera('proxy_port', '8080')
-  $kombu_compression          = hiera('kombu_compression', '')
+  $kombu_compression          = hiera('kombu_compression', $::os_service_default)
 
   $keystone_user              = pick($cinder_hash['user'], 'cinder')
   $keystone_tenant            = pick($cinder_hash['tenant'], 'services')
@@ -186,7 +186,8 @@ class openstack_tasks::roles::cinder {
     database_max_retries   => $max_retries,
     database_max_overflow  => $max_overflow,
     control_exchange       => 'cinder',
-    host                   => hiera('fqdn')
+    host                   => hiera('fqdn'),
+    kombu_compression      => $kombu_compression,
   }
 
   if $manage_volumes {
@@ -292,16 +293,6 @@ class openstack_tasks::roles::cinder {
 
   class { 'cinder::ceilometer':
     notification_driver => $ceilometer_hash['notification_driver'],
-  }
-
-  # TODO (iberezovskiy): remove this workaround in N when cinder module
-  # will be switched to puppet-oslo usage for rabbit configuration
-  if $kombu_compression in ['gzip','bz2'] {
-    if !defined(Oslo::Messaging_rabbit['cinder_config']) and !defined(Cinder_config['oslo_messaging_rabbit/kombu_compression']) {
-      cinder_config { 'oslo_messaging_rabbit/kombu_compression': value => $kombu_compression; }
-    } else {
-      Cinder_config<| title == 'oslo_messaging_rabbit/kombu_compression' |> { value => $kombu_compression }
-    }
   }
 
   #################################################################

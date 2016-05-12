@@ -32,7 +32,7 @@ class openstack_tasks::sahara::sahara {
   $admin_identity_protocol    = get_ssl_property($ssl_hash, {}, 'keystone', 'admin', 'protocol', 'http')
   $admin_identity_address     = get_ssl_property($ssl_hash, {}, 'keystone', 'admin', 'hostname', [$service_endpoint, $management_vip])
   $admin_identity_uri         = "${admin_identity_protocol}://${admin_identity_address}:35357"
-  $kombu_compression          = hiera('kombu_compression', '')
+  $kombu_compression          = hiera('kombu_compression', $::os_service_default)
 
   #################################################################
 
@@ -111,7 +111,8 @@ class openstack_tasks::sahara::sahara {
       rabbit_password        => $rabbit_hash['password'],
       rabbit_ha_queues       => $rabbit_ha_queues,
       rabbit_port            => $amqp_port,
-      rabbit_hosts           => split($amqp_hosts, ',')
+      rabbit_hosts           => split($amqp_hosts, ','),
+      kombu_compression      => $kombu_compression,
     }
 
     if $public_ssl_hash['services'] {
@@ -192,16 +193,6 @@ class openstack_tasks::sahara::sahara {
 
     Firewall[$firewall_rule] -> Class['::sahara::service::api']
     Service['sahara-api'] -> ::Osnailyfacter::Wait_for_backend['sahara']
-
-    # TODO (iberezovskiy): remove this workaround in N when sahara module
-    # will be switched to puppet-oslo usage for rabbit configuration
-    if $kombu_compression in ['gzip','bz2'] {
-      if !defined(Oslo::Messaging_rabbit['sahara_config']) and !defined(Sahara_config['oslo_messaging_rabbit/kombu_compression']) {
-        sahara_config { 'oslo_messaging_rabbit/kombu_compression': value => $kombu_compression; }
-      } else {
-        Sahara_config<| title == 'oslo_messaging_rabbit/kombu_compression' |> { value => $kombu_compression }
-      }
-    }
   }
 
 }

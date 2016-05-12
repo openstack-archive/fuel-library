@@ -148,7 +148,6 @@ describe manifest do
     enable = Noop.hiera_structure('murano/enabled')
     default_log_levels_hash = Noop.hiera_hash 'default_log_levels'
     default_log_levels = Noop.puppet_function 'join_keys_to_values',default_log_levels_hash,'='
-    kombu_compression = Noop.hiera 'kombu_compression', ''
 
     context 'if murano is enabled', :if => enable do
 
@@ -224,10 +223,9 @@ describe manifest do
       it { should contain_concat__fragment('murano_dashboard_section').with_content(/METADATA_CACHE_DIR = '\/var\/cache\/murano-dashboard'/)}
       it { should_not contain_exec('django_syncdb') }
 
-      if ['gzip', 'bz2'].include?(kombu_compression)
-        it 'should configure kombu compression' do
-          should contain_murano_config('oslo_messaging_rabbit/kombu_compression').with(:value => kombu_compression)
-        end
+      it 'should configure kombu compression' do
+        kombu_compression = Noop.hiera 'kombu_compression', facts[:os_service_default]
+        should contain_murano_config('oslo_messaging_rabbit/kombu_compression').with(:value => kombu_compression)
       end
     end
   end # end of shared_examples
