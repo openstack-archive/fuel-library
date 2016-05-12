@@ -57,7 +57,6 @@ describe manifest do
     primary_controller = Noop.hiera 'primary_controller'
     service_endpoint = Noop.hiera 'service_endpoint'
     management_vip = Noop.hiera 'management_vip'
-    kombu_compression = Noop.hiera 'kombu_compression', ''
 
     let(:database_vip) { Noop.hiera('database_vip') }
     let(:nova_db_password) { Noop.hiera_structure 'nova/db_password', 'nova' }
@@ -293,10 +292,9 @@ describe manifest do
       )
     end
 
-    if ['gzip', 'bz2'].include?(kombu_compression)
-      it 'should configure kombu compression' do
-        should contain_nova_config('oslo_messaging_rabbit/kombu_compression').with(:value => kombu_compression)
-      end
+    it 'should configure kombu compression' do
+      kombu_compression = Noop.hiera 'kombu_compression', facts[:os_service_default]
+      should contain_nova_config('oslo_messaging_rabbit/kombu_compression').with(:value => kombu_compression)
     end
 
     it 'should configure keystone authtoken signing' do

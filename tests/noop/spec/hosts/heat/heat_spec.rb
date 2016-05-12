@@ -71,7 +71,6 @@ describe manifest do
     heat_db_password = Noop.hiera_structure 'heat/db_password', 'heat'
     heat_db_user = Noop.hiera_structure 'heat/db_user', 'heat'
     heat_db_name = Noop.hiera('heat_db_name', 'heat')
-    kombu_compression = Noop.hiera 'kombu_compression', ''
 
     it 'should install heat-docker package only after heat-engine' do
       if !facts.has_key?(:os_package_type) or facts[:os_package_type] != 'ubuntu'
@@ -205,10 +204,9 @@ describe manifest do
       should contain_heat_config('oslo_messaging_notifications/driver').with(:value => ceilometer_hash['notification_driver'])
     end
 
-    if ['gzip', 'bz2'].include?(kombu_compression)
-      it 'should configure kombu compression' do
-        should contain_heat_config('oslo_messaging_rabbit/kombu_compression').with(:value => kombu_compression)
-      end
+    it 'should configure kombu compression' do
+      kombu_compression = Noop.hiera 'kombu_compression', facts[:os_service_default]
+      should contain_heat_config('oslo_messaging_rabbit/kombu_compression').with(:value => kombu_compression)
     end
 
   end # end of shared_examples

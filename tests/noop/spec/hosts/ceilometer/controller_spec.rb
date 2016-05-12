@@ -192,10 +192,9 @@ describe manifest do
         should contain_ceilometer_config('oslo_messaging_rabbit/rabbit_use_ssl').with(:value => 'false')
       end
 
-      if ['gzip', 'bz2'].include?(kombu_compression)
-        it 'should configure kombu compression' do
-          should contain_ceilometer_config('oslo_messaging_rabbit/kombu_compression').with(:value => kombu_compression)
-        end
+      it 'should configure kombu compression' do
+        kombu_compression = Noop.hiera 'kombu_compression', facts[:os_service_default]
+        should contain_ceilometer_config('oslo_messaging_rabbit/kombu_compression').with(:value => kombu_compression)
       end
     end # end of ceilometer enabled
   end # end of shared_examples
