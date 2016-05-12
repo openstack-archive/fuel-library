@@ -45,6 +45,7 @@ class osnailyfacter::apache (
     server_signature => 'Off',
     trace_enable     => 'Off',
     log_formats      => $log_formats_mixed,
+    logroot_mode     => '0755',
   }
 
   apache::listen { $listen_ports: }
