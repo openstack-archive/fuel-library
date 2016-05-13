@@ -354,20 +354,20 @@
   type: upload_file
   role: master
   condition:
-    yaql_exp: 'changed($.network_metadata)'
+    yaql_exp: 'deleted($.network_metadata.nodes.keys())'
   requires: [upload_configuration]
   required_for: [pre_deployment_end]
   parameters:
     path: /etc/fuel/cluster/{CLUSTER_ID}/deleted_nodes.yaml
     data:
-      yaql_exp: '{"deleted_nodes" => deleted($.nodes.fqdn)}.toYaml()'
+      yaql_exp: '{"deleted_nodes" => $.network_metadata.nodes.values().fqdn}.toYaml()'
 
 - id: copy_deleted_nodes
   type: copy_files
   version: 2.1.0
   role: ['/.*/']
   condition:
-    yaql_exp: 'changed($.network_metadata)'
+    yaql_exp: 'deleted($.network_metadata.nodes.keys())'
   required_for: [pre_deployment_end]
   requires: [generate_deleted_nodes]
   cross-depends:
