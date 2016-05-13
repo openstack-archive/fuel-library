@@ -15,6 +15,8 @@ class openstack_tasks::horizon::horizon {
 
   $overview_days_range     = pick($horizon_hash['overview_days_range'], 1)
   $external_lb             = hiera('external_lb', false)
+  $repo_setup              = hiera_hash('repo_setup', {})
+  $repo_type               = pick_default($repo_setup['repo_type'], '')
 
   if $horizon_hash['secret_key'] {
     $secret_key = $horizon_hash['secret_key']
@@ -118,8 +120,10 @@ class openstack_tasks::horizon::horizon {
     api_versions          => {'identity' => 3},
   }
 
-  # Always run collectstatic&compress for MOS/UCA packages
-  Concat[$::horizon::params::config_file] ~> Exec['refresh_horizon_django_cache']
+  # Only run collectstatic&compress for MOS packages
+  if $repo_type != 'uca' { 
+    Concat[$::horizon::params::config_file] ~> Exec['refresh_horizon_django_cache']
+  }
 
   # Performance optimization for wsgi
   if ($::memorysize_mb < 1200 or $::processorcount <= 3) {
@@ -176,3 +180,4 @@ class openstack_tasks::horizon::horizon {
   }
 
 }
+
