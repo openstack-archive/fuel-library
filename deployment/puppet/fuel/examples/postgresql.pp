@@ -15,3 +15,11 @@ class { "fuel::postgresql":
   ostf_db_user         => $::fuel_settings['postgres']['ostf_user'],
   ostf_db_password     => $::fuel_settings['postgres']['ostf_password'],
 }
+
+postgresql::server::config_entry { 'log_statement':
+      value => 'all',
+}
+
+postgresql::server::config_entry { 'log_line_prefix':
+      value => '%t %c %x ',
+}
