@@ -217,8 +217,9 @@ describe manifest do
             qemu_hugepages_value    = 'rm KVM_HUGEPAGES'
           end
         else
-          qemu_hugepages_value    = 'set KVM_HUGEPAGES 1'
-          libvirt_hugetlbfs_mount = 'hugetlbfs_mount = "/run/hugepages/kvm"'
+          qemu_hugepages_value     = 'set KVM_HUGEPAGES 1'
+          libvirt_hugetlbfs_mount  = 'hugetlbfs_mount = "/run/hugepages/kvm"'
+          hugepages_1g_opts_ensure = 'absent'
         end
       else
         qemu_hugepages_value     = 'rm KVM_HUGEPAGES'

@@ -242,6 +242,10 @@ class openstack_tasks::roles::compute {
     } else {
       $qemu_hugepages_value     = 'rm KVM_HUGEPAGES'
       $libvirt_hugetlbfs_mount  = 'hugetlbfs_mount = ""'
+    }
+    # At this point $hugepages_1g_opts_ensure can be set to 'absent' or unset
+    # Make sure that it's set to 'absent' and avoid errors
+    if ! $hugepages_1g_opts_ensure {
       $hugepages_1g_opts_ensure = 'absent'
     }
     augeas { 'qemu_hugepages':
