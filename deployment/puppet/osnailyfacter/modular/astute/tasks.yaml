@@ -71,7 +71,7 @@
   version: 2.1.0
   role: ['/.*/']
   required_for: [post_deployment_end]
-  requires: [upload_nodes_info, copy_deleted_nodes]
+  requires: [upload_nodes_info]
   condition:
     yaql_exp: 'changed($.network_metadata)'
   parameters:
@@ -346,36 +346,5 @@
         dst: /var/lib/astute/ironic/ironic.pub
       - src: /var/lib/fuel/keys/{CLUSTER_ID}/ironic/ironic
         dst: /var/lib/astute/ironic/ironic
-    permissions: '0600'
-    dir_permissions: '0700'
-
-- id: generate_deleted_nodes
-  version: 2.1.0
-  type: upload_file
-  role: master
-  condition:
-    yaql_exp: 'changed($.network_metadata)'
-  requires: [upload_configuration]
-  required_for: [pre_deployment_end]
-  parameters:
-    path: /etc/fuel/cluster/{CLUSTER_ID}/deleted_nodes.yaml
-    data:
-      yaql_exp: '{"deleted_nodes" => deleted($.nodes.fqdn)}.toYaml()'
-
-- id: copy_deleted_nodes
-  type: copy_files
-  version: 2.1.0
-  role: ['/.*/']
-  condition:
-    yaql_exp: 'changed($.network_metadata)'
-  required_for: [pre_deployment_end]
-  requires: [generate_deleted_nodes]
-  cross-depends:
-      - name: generate_deleted_nodes
-        role: master
-  parameters:
-    files:
-      - src: /etc/fuel/cluster/{CLUSTER_ID}/deleted_nodes.yaml
-        dst: /etc/hiera/deleted_nodes.yaml
     permissions: '0600'
     dir_permissions: '0700'
