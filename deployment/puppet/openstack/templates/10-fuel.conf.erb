@@ -29,7 +29,8 @@
 "/var/log/syslog"
 "/var/log/user.log"
 "/var/log/upstart/*.log"
-"/var/log/remote/*.log"
+"/var/log/remote/[1-9]*/*.log"
+"/var/log/remote/[1-9]*/*/*.log"
 {
   # truncate file, do not delete & recreate
   copytruncate
