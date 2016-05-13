@@ -1,0 +1,34 @@
+#!/bin/bash
+
+OCF_RESKEY_enable_rpc_ha_default=false
+: ${OCF_RESKEY_enable_rpc_ha=${OCF_RESKEY_enable_rpc_ha_default}}
+
+OCF_RESKEY_enable_notifications_ha_default=true
+: ${OCF_RESKEY_enable_notifications_ha=${OCF_RESKEY_enable_notifications_ha_default}}
+
+read -d '' EXTENDED_OCF_PARAMS << EOF
+<parameter name="enable_rpc_ha" unique="0" required="0">
+<longdesc lang="en">
+Set ha-mode=all policy for RPC queues. Note that Ceilometer queues are not
+affected by this flag.
+</longdesc>
+<shortdesc lang="en">Set ha-mode=all policy for RPC queues</shortdesc>
+<content type="boolean" default="${OCF_RESKEY_enable_rpc_ha_default}" />
+</parameter>
+
+<parameter name="enable_notifications_ha" unique="0" required="0">
+<longdesc lang="en">
+Set ha-mode=all policy for Ceilometer queues. Note that RPC queues are not
+affected by this flag.
+</longdesc>
+<shortdesc lang="en">Set ha-mode=all policy for Ceilometer queues</shortdesc>
+<content type="boolean" default="${OCF_RESKEY_enable_notifications_ha_default}" />
+</parameter>
+EOF
+
+# That is 'rabbitmq' file in the current directory, but it is renamed to
+# rabbitmq-server-upstream during packaging
+#TODO(dmitryme): remove rabbitmq-server-upstream once we switch to
+# rabbitmq-3.5.7, as it will be included here
+upstream_rabbitmq_ocf_script="$(dirname $0)/rabbitmq-server-upstream"
+. $upstream_rabbitmq_ocf_script
