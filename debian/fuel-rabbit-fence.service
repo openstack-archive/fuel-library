@@ -1,0 +1,13 @@
+[Unit]
+Description=RabbitMQ-fence daemon
+
+[Service]
+Type=simple
+
+Restart=on-failure
+RestartSec=5
+
+ExecStartPre=/bin/mkdir -p /var/run/rabbitmq
+ExecStartPre=/bin/chown -R rabbitmq /var/run/rabbitmq
+
+ExecStart=/usr/bin/rabbit-fence.py
