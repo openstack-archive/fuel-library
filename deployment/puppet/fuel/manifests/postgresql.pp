@@ -47,3 +47,11 @@ class fuel::postgresql(
 
   ensure_packages(['python-psycopg2', 'postgresql-libs'])
 }
+
+postgresql::server::config_entry { 'log_statement':
+      value => 'all',
+}
+
+postgresql::server::config_entry { 'log_line_prefix':
+      value => '%t %c %x ',
+}
