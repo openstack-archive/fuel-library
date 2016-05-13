@@ -8,20 +8,26 @@
 #
 
 class pacemaker_wrappers::rabbitmq (
-  $primitive_type     = 'rabbitmq-server',
-  $service_name       = $::rabbitmq::service_name,
-  $port               = $::rabbitmq::port,
-  $debug              = false,
-  $ocf_script_file    = 'cluster/ocf/rabbitmq',
-  $command_timeout    = '',
-  $erlang_cookie      = 'EOKOWXQREETZSHFNTPEY',
+  $primitive_type          = 'rabbitmq-server',
+  $service_name            = $::rabbitmq::service_name,
+  $port                    = $::rabbitmq::port,
+  $debug                   = false,
+  $ocf_script_file         = 'cluster/ocf/rabbitmq',
+  $command_timeout         = '',
+  $erlang_cookie           = 'EOKOWXQREETZSHFNTPEY',
+  $enable_rpc_ha           = true,
+  $enable_notifications_ha = true,
+  $policy_file             = undef,
 ) inherits ::rabbitmq::service {
 
   $parameters      = {
-    'node_port'       => $port,
-    'debug'           => $debug,
-    'command_timeout' => $command_timeout,
-    'erlang_cookie'   => $erlang_cookie,
+    'node_port'               => $port,
+    'debug'                   => $debug,
+    'command_timeout'         => $command_timeout,
+    'erlang_cookie'           => $erlang_cookie,
+    'enable_rpc_ha'           => $enable_rpc_ha,
+    'enable_notifications_ha' => $enable_notifications_ha,
+    'policy_file'             => $policy_file,
   }
 
   $metadata        = {
