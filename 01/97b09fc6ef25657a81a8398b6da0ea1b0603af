@@ -1,0 +1,9 @@
+Code-Review+2: Sergii Golovatiuk <sgolovatiuk@mirantis.com>
+Verified-1: Fuel CI <fuel-ci-bot@mirantis.com>
+Workflow+1: Sergii Golovatiuk <sgolovatiuk@mirantis.com>
+Verified+2: Jenkins
+Submitted-by: Jenkins
+Submitted-at: Fri, 13 May 2016 09:23:46 +0000
+Reviewed-on: https://review.openstack.org/313273
+Project: openstack/fuel-library
+Branch: refs/heads/stable/mitaka
