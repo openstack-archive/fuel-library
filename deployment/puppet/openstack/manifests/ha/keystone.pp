@@ -48,18 +48,40 @@
 # [*server_names*]
 #   (required) Array. This is an array of server names for the haproxy service
 #
+# [*federation_enabled*]
+#   (Optional) If enabled, sticky sessions will be enabled for keystone sessions
+#   to properly support federation.
+#
 class openstack::ha::keystone (
   $internal_virtual_ip,
   $ipaddresses,
   $public_virtual_ip,
   $server_names,
-  $public_ssl        = false,
-  $public_ssl_path   = undef,
-  $internal_ssl      = false,
-  $internal_ssl_path = undef,
-  $admin_ssl         = false,
-  $admin_ssl_path    = undef,
+  $public_ssl         = false,
+  $public_ssl_path    = undef,
+  $internal_ssl       = false,
+  $internal_ssl_path  = undef,
+  $admin_ssl          = false,
+  $admin_ssl_path     = undef,
+  $federation_enabled = false,
 ) {
+
+  $base_options = {
+    'option'       => ['httpchk GET /v3', 'httplog', 'httpclose', 'forwardfor'],
+    'http-request' => 'set-header X-Forwarded-Proto https if { ssl_fc }',
+  }
+
+  if $federation_enabled {
+    # See LP#1527717
+    $session_options = {
+      'stick'       => ['on src'],
+      'stick-table' => ['type ip size 200k expire 2m'],
+    }
+  } else {
+    $session_options = { }
+  }
+
+  $config_options = merge($base_options, $session_options)
 
   # defaults for any haproxy_service within this class
   Openstack::Ha::Haproxy_service {
@@ -71,12 +93,7 @@ class openstack::ha::keystone (
     public_ssl_path        => $public_ssl_path,
     internal_ssl           => $internal_ssl,
     internal_ssl_path      => $internal_ssl_path,
-    haproxy_config_options => {
-      option         => ['httpchk GET /v3', 'httplog', 'httpclose', 'forwardfor'],
-      stick          => ['on src'],
-      stick-table    => ['type ip size 200k expire 2m'],
-      'http-request' => 'set-header X-Forwarded-Proto https if { ssl_fc }',
-    },
+    haproxy_config_options => $config_options,
     balancermember_options => 'check inter 10s fastinter 2s downinter 2s rise 30 fall 3',
   }
 
