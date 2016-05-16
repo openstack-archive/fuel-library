@@ -44,7 +44,6 @@ describe manifest do
     password = aodh_hash['user_password']
 
     debug = Noop.hiera 'debug'
-    verbose = Noop.hiera 'verbose'
     api_pecan_debug = aodh_hash.fetch('debug', debug)
 
     db_host = Noop.hiera 'database_vip'
@@ -66,7 +65,6 @@ describe manifest do
 
     it 'should configure "DEFAULT/" section ' do
       should contain_aodh_config('DEFAULT/debug').with(:value => debug)
-      should contain_aodh_config('DEFAULT/verbose').with(:value => verbose)
       should contain_aodh_config('DEFAULT/rpc_backend').with(:value => 'rabbit')
       should contain_aodh_config('oslo_messaging_notifications/topics').with(:value => 'notifications')
     end
