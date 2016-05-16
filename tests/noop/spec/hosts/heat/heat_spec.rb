@@ -39,19 +39,26 @@ describe manifest do
 
     let(:ceilometer_hash) { Noop.hiera_structure 'ceilometer' }
 
+    public_vip = Noop.hiera('public_vip')
     admin_auth_protocol = 'http'
     admin_auth_address = Noop.hiera('service_endpoint')
     if Noop.hiera_structure('use_ssl', false)
       public_auth_protocol = 'https'
       public_auth_address = Noop.hiera_structure('use_ssl/keystone_public_hostname')
+      public_heat_protocol = 'https'
+      public_heat_address = Noop.hiera_structure('use_ssl/heat_public_hostname')
       admin_auth_protocol = 'https'
       admin_auth_address = Noop.hiera_structure('use_ssl/keystone_admin_hostname')
     elsif Noop.hiera_structure('public_ssl/services')
       public_auth_protocol = 'https'
       public_auth_address = Noop.hiera_structure('public_ssl/hostname')
+      public_heat_protocol = 'https'
+      public_heat_address = Noop.hiera_structure('public_ssl/hostname')
     else
       public_auth_protocol = 'http'
-      public_auth_address = Noop.hiera('public_vip')
+      public_heat_protocol = 'http'
+      public_auth_address = public_vip
+      public_heat_address = public_vip
     end
 
     use_syslog = Noop.hiera 'use_syslog'
@@ -109,9 +116,10 @@ describe manifest do
 
     it 'should use auth_uri and identity_uri' do
       should contain_class('heat').with(
-        'auth_uri'      => "#{public_auth_protocol}://#{public_auth_address}:5000/v2.0/",
-        'identity_uri'  => "#{admin_auth_protocol}://#{admin_auth_address}:35357/",
-        'sync_db'       => primary_controller,
+        'auth_uri'         => "#{public_auth_protocol}://#{public_auth_address}:5000/v2.0/",
+        'identity_uri'     => "#{admin_auth_protocol}://#{admin_auth_address}:35357/",
+        'sync_db'          => primary_controller,
+        'heat_clients_url' => "#{public_heat_protocol}://#{public_vip}:8004/v1/%(tenant_id)s",
       )
     end
 
@@ -134,6 +142,12 @@ describe manifest do
       should contain_heat_config('cache/enabled').with_value('true')
       should contain_heat_config('cache/backend').with_value('oslo_cache.memcache_pool')
       should contain_heat_config('cache/memcache_servers').with_value("#{memcache_address}:11211")
+    end
+
+    it 'should configure urls for metadata, cloudwatch and waitcondition servers' do
+      should contain_heat_config('DEFAULT/heat_metadata_server_url').with_value("#{public_heat_protocol}://#{public_heat_address}:8000")
+      should contain_heat_config('DEFAULT/heat_waitcondition_server_url').with_value("#{public_heat_protocol}://#{public_heat_address}:8000/v1/waitcondition")
+      should contain_heat_config('DEFAULT/heat_watch_server_url').with_value("#{public_heat_protocol}://#{public_heat_address}:8003")
     end
 
     it 'should configure heat rpc response timeout' do
