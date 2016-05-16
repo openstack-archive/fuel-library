@@ -22,14 +22,17 @@ $internal_auth_address    = get_ssl_property($ssl_hash, {}, 'keystone', 'interna
 $admin_auth_protocol      = get_ssl_property($ssl_hash, {}, 'keystone', 'admin', 'protocol', 'http')
 $admin_auth_address       = get_ssl_property($ssl_hash, {}, 'keystone', 'admin', 'hostname', [$service_endpoint, $management_vip])
 
-$heat_protocol            = get_ssl_property($ssl_hash, {}, 'heat', 'internal', 'protocol', 'http')
-$heat_endpoint            = get_ssl_property($ssl_hash, {}, 'heat', 'internal', 'hostname', [hiera('heat_endpoint', ''), $management_vip])
+$heat_protocol            = get_ssl_property($ssl_hash, $public_ssl_hash, 'heat', 'public', 'protocol', 'http')
+$heat_endpoint            = get_ssl_property($ssl_hash, $public_ssl_hash, 'heat', 'public', 'hostname', [hiera('heat_endpoint', ''), $management_vip])
 $internal_ssl             = get_ssl_property($ssl_hash, {}, 'heat', 'internal', 'usage', false)
 
 $public_ssl               = get_ssl_property($ssl_hash, {}, 'heat', 'public', 'usage', false)
 
-$auth_uri = "${public_auth_protocol}://${public_auth_address}:5000/v2.0/"
-$identity_uri = "${admin_auth_protocol}://${admin_auth_address}:35357/"
+$auth_uri                 = "${public_auth_protocol}://${public_auth_address}:5000/v2.0/"
+$identity_uri             = "${admin_auth_protocol}://${admin_auth_address}:35357/"
+
+$api_bind_port            = '8004'
+$heat_clients_url         = "${heat_protocol}://${public_vip}:${api_bind_port}/v1/%(tenant_id)s"
 
 $debug                    = pick($heat_hash['debug'], hiera('debug', false))
 $verbose                  = pick($heat_hash['verbose'], hiera('verbose', true))
@@ -73,7 +76,7 @@ if $::operatingsystem == 'Ubuntu' {
 }
 
 class { 'openstack::heat' :
-  external_ip              => $management_vip,
+  external_ip              => $heat_endpoint,
   keystone_auth            => pick($heat_hash['keystone_auth'], true),
   api_bind_host            => $bind_address,
   api_cfn_bind_host        => $bind_address,
@@ -126,6 +129,11 @@ heat_config {
   'cache/enabled':          value => true;
   'cache/backend':          value => 'oslo_cache.memcache_pool';
   'cache/memcache_servers': value => "${memcache_address}:11211";
+}
+
+# Set heat_clients_url
+heat_config {
+  'clients_heat/url': value => $heat_clients_url;
 }
 
 #------------------------------
