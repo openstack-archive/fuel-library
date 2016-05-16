@@ -46,7 +46,7 @@
   condition:
     yaql_exp: 'changed($)'
   requires: [override_configuration]
-  required_for: [pre_deployment_end]
+  required_for: [pre_deployment_start]
   refresh_on: ['*']
   parameters:
     path: /etc/fuel/cluster/{CLUSTER_ID}/astute.yaml
@@ -61,7 +61,7 @@
   condition:
     yaql_exp: '$.uid in added($.nodes).uid'
   requires: [upload_configuration]
-  required_for: [pre_deployment_end]
+  required_for: [pre_deployment_start]
   parameters:
     cmd: ln -sf /etc/fuel/cluster/{CLUSTER_ID}/astute.yaml /etc/astute.yaml
     timeout: 180
@@ -143,8 +143,8 @@
   type: sync
   version: 2.0.0
   role: ['/.*/']
-  requires: [pre_deployment_start]
-  required_for: [pre_deployment_end]
+  requires: []
+  required_for: [pre_deployment_start]
   parameters:
     src: rsync://{MASTER_IP}:/puppet/{OPENSTACK_VERSION}/modules/
     dst: /etc/puppet/modules
@@ -264,8 +264,8 @@
   role: ['/.*/']
   condition:
     yaql_exp: '$.uid in added($.nodes).uid'
-  requires: [pre_deployment_start, rsync_core_puppet]
-  required_for: [pre_deployment_end]
+  requires: [rsync_core_puppet]
+  required_for: [pre_deployment_start]
   parameters:
     puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/hiera/hiera.pp
     puppet_modules: /etc/puppet/modules
@@ -279,7 +279,7 @@
   condition:
     yaql_exp: '$.uid in added($.nodes).uid'
   requires: [pre_hiera_config]
-  required_for: [pre_deployment_end]
+  required_for: [pre_deployment_start]
   parameters:
     puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/hiera/override_configuration.pp
     puppet_modules: /etc/puppet/modules
