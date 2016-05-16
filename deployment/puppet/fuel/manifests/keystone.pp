@@ -28,18 +28,18 @@ class fuel::keystone (
   ) inherits fuel::params {
 
   ensure_packages(['crontabs', 'os-client-config', 'python-tablib',
-                   'python-unicodecsv', 'rubygem-thread_safe'])
+                  'python-unicodecsv', 'rubygem-thread_safe'])
 
   class { '::keystone':
     # (TODO iberezovskiy): Set 'enable_bootstrap' to true when MOS packages will
     # be updated and 'keystone-manage bootstrap' command will be available
-    enable_bootstrap     => false,
-    admin_token          => $admin_token,
-    catalog_type         => 'sql',
-    database_connection  => "${db_engine}://${db_user}:${db_password}@${db_host}:${db_port}/${db_name}",
-    token_expiration     => 86400,
-    token_provider       => 'keystone.token.providers.uuid.Provider',
-    default_domain       => $keystone_domain,
+    enable_bootstrap    => false,
+    admin_token         => $admin_token,
+    catalog_type        => 'sql',
+    database_connection => "${db_engine}://${db_user}:${db_password}@${db_host}:${db_port}/${db_name}",
+    token_expiration    => 86400,
+    token_provider      => 'keystone.token.providers.uuid.Provider',
+    default_domain      => $keystone_domain,
   }
 
   # FIXME(kozhukalov): Remove this hack and use enable_bootstrap instead
@@ -83,11 +83,11 @@ class fuel::keystone (
 
   # Admin user
   keystone_user { $admin_user :
-    ensure          => present,
-    password        => $admin_password,
-    enabled         => 'True',
+    ensure           => present,
+    password         => $admin_password,
+    enabled          => 'True',
     replace_password => false,
-    domain          => $keystone_domain,
+    domain           => $keystone_domain,
   }
 
   # assigning role 'admin' to user 'admin' in tenant 'admin'
@@ -147,9 +147,9 @@ class fuel::keystone (
     ensure      => present,
     command     => 'keystone-manage token_flush',
     environment => 'PATH=/bin:/usr/bin:/usr/sbin',
-    user        => 'root',
+    user        => 'keystone',
     hour        => '1',
-    require     => Package['crontabs'],
+    require     => [ Package['crontabs'], Package['openstack-keystone'] ],
   }
 
 }
