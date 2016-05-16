@@ -56,7 +56,8 @@
   requires: [primary-database, database]
   condition:
     yaql_exp: >
-      changedAny($.heat, $.mysql, $.network_metadata.vips.management,
+      changedAny($.heat, $.mysql,
+      $.network_metadata.get('vips',{}).get('management'),
       $.get('database_vip'), $.get('mysql_custom_setup_class'))
   cross-depends:
     - name: /(primary-)?database/
