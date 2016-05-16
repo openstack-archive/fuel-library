@@ -18,9 +18,10 @@ def hiera
 end
 
 def nodes
-  nodes_array = hiera.lookup 'nodes', [], {}, nil, :array
-  raise 'Invalid nodes data!' unless nodes_array.is_a? Array
-  nodes_array
+  network_metadata = hiera.lookup 'network_metadata', {}, {}, nil, :hash
+  nodes_hash = network_metadata['nodes']
+  raise 'Invalid nodes data!' unless nodes_hash.is_a? Hash
+  nodes_hash
 end
 
 def corosync_roles
@@ -32,8 +33,8 @@ end
 
 def corosync_nodes_count
   return $corosync_nodes_count if $corosync_nodes_count
-  $corosync_nodes_count = nodes.select do |node|
-    corosync_roles.include? node['role']
+  $corosync_nodes_count = nodes.select do |key, node|
+    !(corosync_roles & node['node_roles']).empty?
   end.size
 end
 
