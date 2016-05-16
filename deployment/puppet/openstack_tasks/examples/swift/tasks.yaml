@@ -21,10 +21,16 @@
         $.get('memcache_server_port'), $.ceilometer.enabled, $.mp, $.get('swift_partition'), $.get('deploy_swift_storage')))
   cross-depends:
     - name: /(primary-)?rabbitmq/
+      role: self
     - name: /glance/
+      role: self
     - name: swift-keystone
     - name: memcached
+      role: self
+    - name: /(primary-)?swift-proxy/
+      role: primary-controller
     - name: ceilometer-controller
+      role: self
   parameters:
     puppet_manifest: /etc/puppet/modules/openstack_tasks/examples/swift/proxy_storage.pp
     puppet_modules: /etc/puppet/modules
@@ -71,6 +77,7 @@
         $.get('region', 'RegionOne'), $.public_ssl, $.get('use_ssl')))
   cross-depends:
     - name: keystone
+      role: self
   requires: [primary-keystone, keystone]
   parameters:
     puppet_manifest: /etc/puppet/modules/openstack_tasks/examples/swift/keystone.pp

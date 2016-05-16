@@ -28,6 +28,7 @@
   groups: [primary-controller]
   cross-depends:
     - name: /(primary-)?database/
+      role: self
   condition:
     yaql_exp: >
       $.ironic.enabled and changedAny($.ironic, $.mysql, $.get('database_vip'),
@@ -51,6 +52,7 @@
   requires: [primary-keystone, keystone]
   cross-depends:
     - name: keystone
+      role: self
   parameters:
     puppet_manifest: /etc/puppet/modules/openstack_tasks/examples/ironic/keystone.pp
     puppet_modules: /etc/puppet/modules
@@ -80,9 +82,13 @@
   refresh_on: [nova_config, nova_paste_api_ini]
   cross-depends:
    - name: /(primary-)?rabbitmq/
+     role: self
    - name: /(primary-)?openstack-controller/
+     role: self
    - name: ironic-api
+     role: self
    - name: memcached
+     role: self
   parameters:
     puppet_manifest: /etc/puppet/modules/openstack_tasks/examples/ironic/ironic-compute.pp
     puppet_modules: /etc/puppet/modules

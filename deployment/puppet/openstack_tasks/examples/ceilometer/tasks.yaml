@@ -65,6 +65,7 @@
   requires: [primary-keystone, keystone]
   cross-depends:
     - name: /(primary-)?keystone/
+      role: self
   parameters:
     puppet_manifest: /etc/puppet/modules/openstack_tasks/examples/ceilometer/keystone.pp
     puppet_modules: /etc/puppet/modules
