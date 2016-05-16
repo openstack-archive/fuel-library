@@ -26,8 +26,8 @@ class openstack_tasks::heat::heat {
   $admin_auth_protocol      = get_ssl_property($ssl_hash, {}, 'keystone', 'admin', 'protocol', 'http')
   $admin_auth_address       = get_ssl_property($ssl_hash, {}, 'keystone', 'admin', 'hostname', [$keystone_host, $management_vip])
 
-  $heat_protocol            = get_ssl_property($ssl_hash, {}, 'heat', 'public', 'protocol', 'http')
-  $heat_endpoint            = get_ssl_property($ssl_hash, {}, 'heat', 'public', 'hostname', [hiera('heat_endpoint', ''), $public_vip])
+  $heat_protocol            = get_ssl_property($ssl_hash, $public_ssl_hash, 'heat', 'public', 'protocol', 'http')
+  $heat_endpoint            = get_ssl_property($ssl_hash, $public_ssl_hash, 'heat', 'public', 'hostname', [hiera('heat_endpoint', ''), $public_vip])
   $public_ssl               = get_ssl_property($ssl_hash, {}, 'heat', 'public', 'usage', false)
 
   $auth_uri                 = "${public_auth_protocol}://${public_auth_address}:5000/v2.0/"
@@ -218,6 +218,7 @@ class openstack_tasks::heat::heat {
     max_template_size      => '5440000',
     max_json_body_size     => '10880000',
     notification_driver    => $ceilometer_hash['notification_driver'],
+    heat_clients_url       => "${heat_protocol}://${heat_endpoint}:${api_bind_port}/v1/%(tenant_id)s",
 
     database_max_pool_size => $max_pool_size,
     database_max_overflow  => $max_overflow,
