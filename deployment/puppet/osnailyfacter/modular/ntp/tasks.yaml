@@ -26,7 +26,7 @@
   required_for: [post_deployment_end]
   condition:
     yaql_exp: >
-      changedAny($.network_metadata.vips.management,
+      changedAny($.network_metadata.get('vips',{}).get('management'),
       $.get('ntp_servers'))
   parameters:
     puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/ntp/ntp-client.pp
