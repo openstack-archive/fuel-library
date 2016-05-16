@@ -69,6 +69,7 @@ class osnailyfacter::ssh(
       'RSAAuthentication'               => 'yes',
       'UsePrivilegeSeparation'          => 'yes',
       'StrictModes'                     => 'yes',
+      'AcceptEnv'                       => '',
     }
   }
 
