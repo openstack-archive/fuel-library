@@ -170,7 +170,6 @@ class neutron (
     'DEFAULT/agent_down_time':              value => $neutron_config['server']['agent_down_time'];
     'DEFAULT/firewall_driver':              value => 'neutron.agent.linux.iptables_firewall.OVSHybridIptablesFirewallDriver';
     'DEFAULT/state_path':                   value => '/var/lib/neutron';
-    'DEFAULT/kombu_reconnect_delay':        value => '5.0';
     'DEFAULT/lock_path':                    value => '/var/lib/neutron/lock';
     'agent/report_interval':                value => $neutron_config['server']['report_interval'];
     'agent/root_helper':                    value => $neutron_config['root_helper'];
