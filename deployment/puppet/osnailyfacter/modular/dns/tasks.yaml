@@ -35,7 +35,7 @@
   requires: [post_deployment_start]
   required_for: [ntp-client]
   condition:
-    yaql_exp: 'changed($.network_metadata.vips.vrouter.ipaddr)'
+    yaql_exp: "changed($.network_metadata.get('vips',{}).get('vrouter',{}).get('ipaddr'))"
   parameters:
     puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/dns/dns-client.pp
     puppet_modules: /etc/puppet/modules
