@@ -18,6 +18,6 @@ class osnailyfacter::hosts::hosts {
 
   create_resources(host, $host_hash)
   if !empty($deleted_nodes) {
-    create_resources(host, concat($deleted_nodes, $deleted_messaging_nodes), {ensure => absent})
+    ensure_resources(host, unique(concat($deleted_nodes, $deleted_messaging_nodes)), {ensure => absent})
   }
 }
