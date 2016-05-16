@@ -81,7 +81,6 @@ if $use_neutron {
     rabbit_user             => $amqp_user,
     rabbit_hosts            => $amqp_hosts,
     rabbit_password         => $amqp_password,
-    kombu_reconnect_delay   => '5.0',
     network_device_mtu      => $overlay_net_mtu,
     advertise_mtu           => true,
   }

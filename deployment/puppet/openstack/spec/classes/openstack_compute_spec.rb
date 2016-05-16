@@ -105,7 +105,6 @@ describe 'openstack::compute' do
           :rabbit_hosts      => [ params[:amqp_hosts] ],
           :rabbit_userid     => p[:amqp_user],
           :rabbit_password   => p[:amqp_password],
-          :kombu_reconnect_delay => '5.0',
           :image_service     => 'nova.image.glance.GlanceImageService',
           :glance_api_servers => p[:glance_api_servers],
           :verbose           => p[:verbose],

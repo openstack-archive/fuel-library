@@ -130,9 +130,6 @@ class openstack::cinder(
       class { '::cinder::logging':
         default_log_levels => $default_log_levels,
       }
-      cinder_config {
-        'DEFAULT/kombu_reconnect_delay': value => '5.0';
-      }
     }
     'qpid': {
       $rpc_backend = 'cinder.openstack.common.rpc.impl_qpid'
