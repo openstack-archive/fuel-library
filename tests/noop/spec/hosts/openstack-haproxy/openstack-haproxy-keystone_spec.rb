@@ -22,6 +22,24 @@ describe manifest do
       keystone_address_map.keys
     end
 
+    let(:keystone_hash) { Noop.hiera_hash('keystone') }
+
+    let(:config_options) do
+      options = {
+        'option' => ['httpchk GET /v3', 'httplog', 'httpclose', 'forwardfor'],
+        'http-request' => 'set-header X-Forwarded-Proto https if { ssl_fc }',
+      }
+      session_options = {
+        'stick' => ['on src'],
+        'stick-table' => ['type ip size 200k expire 2m'],
+      }
+
+      if keystone_hash['federation']
+        options.merge!(session_options)
+      end
+      options
+    end
+
     use_keystone = Noop.hiera_structure('keystone/enabled', true)
 
     if use_keystone and !Noop.hiera('external_lb', false)
@@ -34,12 +52,7 @@ describe manifest do
           'listen_port'            => 5000,
           'public'                 => true,
           'public_ssl'             => public_ssl_keystone,
-          'haproxy_config_options' => {
-            'option'       => ['httpchk GET /v3', 'httplog', 'httpclose', 'forwardfor'],
-            'stick'          => ['on src'],
-            'stick-table'    => ['type ip size 200k expire 2m'],
-            'http-request' => 'set-header X-Forwarded-Proto https if { ssl_fc }',
-          },
+          'haproxy_config_options' => config_options,
         )
       end
       it "should properly configure keystone haproxy admin without public" do
@@ -50,12 +63,7 @@ describe manifest do
           'server_names'           => server_names,
           'listen_port'            => 35357,
           'public'                 => false,
-          'haproxy_config_options' => {
-            'option'       => ['httpchk GET /v3', 'httplog', 'httpclose', 'forwardfor'],
-            'stick'          => ['on src'],
-            'stick-table'    => ['type ip size 200k expire 2m'],
-            'http-request' => 'set-header X-Forwarded-Proto https if { ssl_fc }',
-          },
+          'haproxy_config_options' => config_options,
         )
       end
     end
