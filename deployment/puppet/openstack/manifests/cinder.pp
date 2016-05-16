@@ -101,9 +101,6 @@ class openstack::cinder(
         database_idle_timeout => $idle_timeout,
         control_exchange      => 'cinder',
       }
-      cinder_config {
-        'DEFAULT/kombu_reconnect_delay': value => '5.0';
-      }
     }
     'qpid': {
       $rpc_backend = 'cinder.openstack.common.rpc.impl_qpid'
