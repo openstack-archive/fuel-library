@@ -152,7 +152,7 @@ class openstack_tasks::ceilometer::controller {
       'database/mongodb_replica_set' : ensure => absent;
     }
 
-    ceilometer_config { 'service_credentials/os_endpoint_type':
+    ceilometer_config { 'service_credentials/interface':
       value => 'internalURL'
     } ->
     Service<| title == 'ceilometer-polling'|>

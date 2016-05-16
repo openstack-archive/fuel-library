@@ -101,8 +101,8 @@ describe manifest do
         should contain_ceilometer_config('keystone_authtoken/identity_uri').with(:value => keystone_identity_uri)
       end
 
-      it 'should configure OS ENDPOINT TYPE for ceilometer' do
-        should contain_ceilometer_config('service_credentials/os_endpoint_type').with(:value => 'internalURL')
+      it 'should configure interface (ex. OS ENDPOINT TYPE) for ceilometer' do
+        should contain_ceilometer_config('service_credentials/interface').with(:value => 'internalURL')
       end
       event_ttl = ceilometer_hash['event_time_to_live'] ? (ceilometer_hash['event_time_to_live']) : ('604800')
       metering_ttl = ceilometer_hash['metering_time_to_live'] ? (ceilometer_hash['metering_time_to_live']) : ('604800')
