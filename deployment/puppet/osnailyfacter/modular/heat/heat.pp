@@ -22,14 +22,21 @@ $internal_auth_address    = get_ssl_property($ssl_hash, {}, 'keystone', 'interna
 $admin_auth_protocol      = get_ssl_property($ssl_hash, {}, 'keystone', 'admin', 'protocol', 'http')
 $admin_auth_address       = get_ssl_property($ssl_hash, {}, 'keystone', 'admin', 'hostname', [$service_endpoint, $management_vip])
 
-$heat_protocol            = get_ssl_property($ssl_hash, {}, 'heat', 'internal', 'protocol', 'http')
-$heat_endpoint            = get_ssl_property($ssl_hash, {}, 'heat', 'internal', 'hostname', [hiera('heat_endpoint', ''), $management_vip])
+$heat_protocol            = get_ssl_property($ssl_hash, $public_ssl_hash, 'heat', 'internal', 'protocol', 'http')
+$heat_endpoint            = get_ssl_property($ssl_hash, $public_ssl_hash, 'heat', 'internal', 'hostname', [hiera('heat_endpoint', ''), $management_vip])
 $internal_ssl             = get_ssl_property($ssl_hash, {}, 'heat', 'internal', 'usage', false)
 
 $public_ssl               = get_ssl_property($ssl_hash, {}, 'heat', 'public', 'usage', false)
 
 $auth_uri = "${public_auth_protocol}://${public_auth_address}:5000/v2.0/"
 $identity_uri = "${admin_auth_protocol}://${admin_auth_address}:35357/"
+
+$api_bind_port            = '8004'
+$api_cfn_bind_port        = '8000'
+$api_cloudwatch_bind_port = '8003'
+$metadata_server_url      = "${heat_protocol}://${heat_endpoint}:${api_cfn_bind_port}"
+$waitcondition_server_url = "${metadata_server_url}/v1/waitcondition"
+$watch_server_url         = "${heat_protocol}://${heat_endpoint}:${api_cloudwatch_bind_port}"
 
 $debug                    = pick($heat_hash['debug'], hiera('debug', false))
 $verbose                  = pick($heat_hash['verbose'], hiera('verbose', true))
