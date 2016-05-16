@@ -11,6 +11,11 @@ class osnailyfacter::hosts::hosts {
 
   $deleted_nodes = hiera('deleted_nodes', [])
   $deleted_messaging_nodes = prefix($deleted_nodes, $messaging_prefix)
+  $nodes_to_delete = unique(concat($deleted_nodes, $deleted_messaging_nodes))
+  # convert array of host to hash for create_resources
+  $nodes_to_delete_hash = $nodes_to_delete.reduce({}) |$cumulative, $host| {
+    merge($cumulative, { "${node}" => {} })
+  }
 
   Host {
       target => $hosts_file
@@ -18,6 +23,6 @@ class osnailyfacter::hosts::hosts {
 
   create_resources(host, $host_hash)
   if !empty($deleted_nodes) {
-    create_resources(host, concat($deleted_nodes, $deleted_messaging_nodes), {ensure => absent})
+    create_resources(host, $nodes_to_delete_hash, {ensure => absent})
   }
 }
