@@ -137,7 +137,7 @@ describe manifest do
       end
 
       it 'should configure auth url' do
-        should contain_ceilometer_config('service_credentials/os_auth_url').with(:value => keystone_auth_uri)
+        should contain_ceilometer_config('service_credentials/auth_url').with(:value => keystone_auth_uri)
       end
       ha_mode = Noop.puppet_function 'pick', ceilometer_hash['ha_mode'], 'true'
       if ha_mode
