@@ -49,17 +49,11 @@ class openstack_tasks::openstack_controller::keystone {
     configure_user        => $configure_user,
     configure_user_role   => $configure_user_role,
     service_name          => $service_name,
-    public_url            => "${public_base_url}/v2/%(tenant_id)s",
-    public_url_v3         => "${public_base_url}/v3",
-    internal_url          => "${internal_base_url}/v2/%(tenant_id)s",
-    internal_url_v3       => "${internal_base_url}/v3",
-    admin_url             => "${admin_base_url}/v2/%(tenant_id)s",
-    admin_url_v3          => "${admin_base_url}/v3",
+    public_url            => "${public_base_url}/v2.1",
+    internal_url          => "${internal_base_url}/v2.1",
+    admin_url             => "${admin_base_url}/v2.1",
     region                => $region,
     tenant                => $tenant,
-    ec2_public_url        => $ec2_public_url,
-    ec2_internal_url      => $ec2_internal_url,
-    ec2_admin_url         => $ec2_admin_url,
   }
 
 }
