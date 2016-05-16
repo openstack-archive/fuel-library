@@ -3,8 +3,9 @@ class osnailyfacter::ceph::ceph_compute {
   notice('MODULAR: ceph/ceph_compute.pp')
 
   $storage_hash         = hiera('storage', {})
-  $mon_key              = pick($storage_hash['mon_key'], 'AQDesGZSsC7KJBAAw+W/Z4eGSQGAIbxWjxjvfw==')
-  $fsid                 = pick($storage_hash['fsid'], '066F558C-6789-4A93-AAF1-5AF1BA01A3AD')
+  $admin_key            = $storage_hash['admin_key']
+  $mon_key              = $storage_hash['mon_key']
+  $fsid                 = $storage_hash['fsid']
   $cinder_pool          = 'volumes'
   $glance_pool          = 'images'
   $compute_user         = 'compute'
@@ -33,12 +34,17 @@ class osnailyfacter::ceph::ceph_compute {
     $storage_hash['objects_ceph'] or
     $storage_hash['ephemeral_ceph']
   ) {
-    $use_ceph = true
-  } else {
-    $use_ceph = false
-  }
 
-  if $use_ceph {
+    if empty($admin_key) {
+      fail('Please provide admin_key')
+    }
+    if empty($mon_key) {
+      fail('Please provide mon_key')
+    }
+    if empty($fsid) {
+      fail('Please provide fsid')
+    }
+
     class { '::ceph':
       fsid                => $fsid,
       mon_initial_members => $mon_hosts,
@@ -50,6 +56,13 @@ class osnailyfacter::ceph::ceph_compute {
     ceph::pool { $compute_pool:
       pg_num  => $compute_pool_pg_num,
       pgp_num => $compute_pool_pgp_num,
+    }
+
+    ceph::key { 'client.admin':
+      secret  => $admin_key,
+      cap_mon => 'allow *',
+      cap_osd => 'allow *',
+      cap_mds => 'allow',
     }
 
     ceph::key { "client.${compute_user}":

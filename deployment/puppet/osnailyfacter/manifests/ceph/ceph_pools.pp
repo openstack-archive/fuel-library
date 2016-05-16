@@ -3,14 +3,21 @@ class osnailyfacter::ceph::ceph_pools {
   notice('MODULAR: ceph/ceph_pools')
 
   $storage_hash       = hiera('storage', {})
-  $fsid               = pick($storage_hash['fsid'], '066F558C-6789-4A93-AAF1-5AF1BA01A3AD')
-  $mon_key            = pick($storage_hash['mon_key'], 'AQDesGZSsC7KJBAAw+W/Z4eGSQGAIbxWjxjvfw==')
+  $fsid               = $storage_hash['fsid']
+  $mon_key            = $storage_hash['mon_key']
   $cinder_user        = 'volumes'
   $cinder_pool        = 'volumes'
   $cinder_backup_user = 'backups'
   $cinder_backup_pool = 'backups'
   $glance_user        = 'images'
   $glance_pool        = 'images'
+
+  if empty($mon_key) {
+    fail('Please provide mon_key')
+  }
+  if empty($fsid) {
+    fail('Please provide fsid')
+  }
 
   class {'ceph':
     fsid => $fsid

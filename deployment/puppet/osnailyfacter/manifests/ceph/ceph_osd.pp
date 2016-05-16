@@ -4,9 +4,9 @@ class osnailyfacter::ceph::ceph_osd {
   notice('MODULAR: ceph-osd.pp')
 
   $storage_hash              = hiera('storage', {})
-  $admin_key                 = pick($storage_hash['admin_key'], 'AQCTg71RsNIHORAAW+O6FCMZWBjmVfMIPk3MhQ==')
-  $bootstrap_osd_key         = pick($storage_hash['bootstrap_osd_key'], 'AQABsWZSgEDmJhAAkAGSOOAJwrMHrM5Pz5On1A==')
-  $fsid                      = pick($storage_hash['fsid'], '066F558C-6789-4A93-AAF1-5AF1BA01A3AD')
+  $admin_key                 = $storage_hash['admin_key']
+  $bootstrap_osd_key         = $storage_hash['bootstrap_osd_key']
+  $fsid                      = $storage_hash['fsid']
   $osd_pool_default_size     = $storage_hash['osd_pool_size']
   $osd_pool_default_pg_num   = $storage_hash['pg_num']
   $osd_pool_default_pgp_num  = $storage_hash['pg_num']
@@ -32,6 +32,16 @@ class osnailyfacter::ceph::ceph_osd {
   $mon_address_map     = get_node_to_ipaddr_map_by_network_role(hiera_hash('ceph_monitor_nodes'), 'ceph/public')
   $mon_host            = join(values($mon_address_map), ',')
   $mon_initial_members = join(keys($mon_address_map), ',')
+
+  if empty($admin_key) {
+    fail('Please provide admin_key')
+  }
+  if empty($bootstrap_osd_key) {
+    fail('Please provide bootstrap_osd_key')
+  }
+  if empty($fsid) {
+    fail('Please provide fsid')
+  }
 
   class { '::ceph':
     fsid                      => $fsid,
