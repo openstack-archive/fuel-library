@@ -132,6 +132,7 @@ class { 'osnailyfacter::atop': }
 class { 'osnailyfacter::ssh':
   password_auth  => 'yes',
   listen_address => ['0.0.0.0'],
+  accept_env     => '# LANG LC_*',
 }
 
 class { 'fuel::iptables':
