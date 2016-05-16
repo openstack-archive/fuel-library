@@ -22,8 +22,8 @@ $internal_auth_address    = get_ssl_property($ssl_hash, {}, 'keystone', 'interna
 $admin_auth_protocol      = get_ssl_property($ssl_hash, {}, 'keystone', 'admin', 'protocol', 'http')
 $admin_auth_address       = get_ssl_property($ssl_hash, {}, 'keystone', 'admin', 'hostname', [$service_endpoint, $management_vip])
 
-$heat_protocol            = get_ssl_property($ssl_hash, {}, 'heat', 'internal', 'protocol', 'http')
-$heat_endpoint            = get_ssl_property($ssl_hash, {}, 'heat', 'internal', 'hostname', [hiera('heat_endpoint', ''), $management_vip])
+$heat_protocol            = get_ssl_property($ssl_hash, $public_ssl_hash, 'heat', 'internal', 'protocol', 'http')
+$heat_endpoint            = get_ssl_property($ssl_hash, $public_ssl_hash, 'heat', 'internal', 'hostname', [hiera('heat_endpoint', ''), $management_vip])
 $internal_ssl             = get_ssl_property($ssl_hash, {}, 'heat', 'internal', 'usage', false)
 
 $public_ssl               = get_ssl_property($ssl_hash, {}, 'heat', 'public', 'usage', false)
