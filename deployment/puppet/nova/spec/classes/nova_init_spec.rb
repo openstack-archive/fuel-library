@@ -252,16 +252,6 @@ describe 'nova' do
       end
     end
 
-    context 'with kombu_reconnect_delay set to 5.0' do
-      let :params do
-        { :kombu_reconnect_delay => '5.0' }
-      end
-
-      it 'configures rabbit' do
-        is_expected.to contain_nova_config('oslo_messaging_rabbit/kombu_reconnect_delay').with_value('5.0')
-      end
-    end
-
     context 'with rabbit_ha_queues set to true' do
       let :params do
         { :rabbit_ha_queues => 'true' }
