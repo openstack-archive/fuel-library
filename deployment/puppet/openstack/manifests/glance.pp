@@ -167,9 +167,6 @@ class openstack::glance (
   # but we pass it as a amqp_hosts string of 'node:port, node:port' in Fuel
   if !is_array($rabbit_hosts) {
     $rabbit_hosts_real = split($rabbit_hosts, ',')
-    glance_api_config {
-      'DEFAULT/kombu_reconnect_delay': value => 5.0;
-    }
   } else {
     $rabbit_hosts_real = $rabbit_hosts
   }
