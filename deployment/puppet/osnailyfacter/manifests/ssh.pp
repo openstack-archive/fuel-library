@@ -34,6 +34,7 @@ class osnailyfacter::ssh(
   $log_lvl        = 'VERBOSE',
   $password_auth  = 'no',
   $listen_address = [],
+  $accept_env     = 'LANG LC_*',
 ){
 
   case $::osfamily {
@@ -69,6 +70,7 @@ class osnailyfacter::ssh(
       'RSAAuthentication'               => 'yes',
       'UsePrivilegeSeparation'          => 'yes',
       'StrictModes'                     => 'yes',
+      'AcceptEnv'                       => $accept_env,
     }
   }
 
