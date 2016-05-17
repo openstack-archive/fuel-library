@@ -70,7 +70,12 @@ class osnailyfacter::globals::globals {
   $sahara_hash                    = hiera('sahara', {})
   $murano                         = merge({'rabbit' => {'vhost' => '/', 'port' => '55572'}},
                                           hiera('murano', {}))
-  $murano_glance_artifacts_plugin = hiera('murano_glance_artifacts_plugin', {})
+  $murano_settings                = hiera('murano_settings', {})
+  if has_key($murano_settings, 'murano_glance_artifacts_plugin') {
+    $murano_glance_artifacts_plugin = { 'enabled' => $murano_settings['murano_glance_artifacts_plugin'] }
+  } else {
+    $murano_glance_artifacts_plugin = {}
+  }
   $murano_hash                    = merge($murano, { 'plugins' => {'glance_artifacts_plugin' => $murano_glance_artifacts_plugin } })
   $heat_hash                      = hiera_hash('heat', {})
   $vcenter_hash                   = hiera('vcenter', {})
