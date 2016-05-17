@@ -289,7 +289,7 @@ unblock_client_access()
 
 check_ns() {
   local LH="${LL} check_ns():"
-  local ns=`ip netns list | grep "$OCF_RESKEY_ns"`
+  local ns=`ip netns list | awk "/${OCF_RESKEY_ns}/ {print \$1}"`
   ocf_log debug "${LH} recieved netns list: ${ns}"
   [ "${ns}" != "${OCF_RESKEY_ns}" ] && return $OCF_ERR_GENERIC
   return $OCF_SUCCESS
