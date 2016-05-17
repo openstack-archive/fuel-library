@@ -34,6 +34,7 @@ describe 'cobbler' do
 
       it 'configures with the default params' do
         should contain_class('cobbler')
+        should contain_class('cobbler::apache')
         should contain_class('cobbler::packages')
         should contain_class('cobbler::selinux')
         should contain_class('cobbler::iptables')
