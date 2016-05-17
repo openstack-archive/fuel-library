@@ -241,7 +241,7 @@ class openstack_tasks::openstack_network::server_config {
       region_name  => $region_name,
     }
 
-    # Stub for Nuetron package
+    # Stub for Neutron package
     package { 'neutron':
       name   => 'binutils',
       ensure => 'installed',
