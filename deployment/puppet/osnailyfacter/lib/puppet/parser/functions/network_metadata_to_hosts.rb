@@ -3,7 +3,7 @@
 #
 
 module Puppet::Parser::Functions
-  newfunction(:network_metadata_to_hosts, :type => :rvalue, :doc => <<-EOS
+  newfunction(:network_metadata_to_hosts, :type => :rvalue, :arity => -2, :doc => <<-EOS
               convert network_metadata hash to
               hash for puppet `host` create_resources call
 
@@ -11,20 +11,29 @@ module Puppet::Parser::Functions
     EOS
   ) do |args|
 
-    unless args.size == 1 or args.size == 3
-      raise(Puppet::ParseError, 'network_metadata_to_hosts(): Wrong number of arguments, need one or three')
-    end
+    required_opts = args[1] && (args[2] || false)
+
+    raise(
+      ArgumentError,
+      'network_metadata_to_hosts(): `network_role` and `node_prefix` opts are required'
+    ) if required_opts == false
+
+    nodes = args[0].fetch('nodes', {})
+    network_role = args[1] || 'mgmt/vip'
+    prefix = args[2] || ''
 
     hosts = Hash.new
-    nodes = args[0].fetch('nodes', {})
-    network_role = (args[1].to_s == ''  ?  'mgmt/vip'  :  args[1].to_s)
-    prefix = args[2].to_s
-    nodes.each do |name, props|
-      fqdn = "#{prefix}#{props['fqdn']}"
-      hosts[fqdn]={:ip=>props['network_roles'][network_role],:host_aliases=>["#{prefix}#{name}"]}
-      notice("Generating host entry #{name} #{props['network_roles'][network_role]} #{props['fqdn']}")
+
+    nodes.each_value do |node|
+      fqdn = "#{prefix}#{node['fqdn']}"
+      hosts[fqdn] = {
+        :ip           => node['network_roles'][network_role],
+        :host_aliases => ["#{prefix}#{node['name']}"]
+      }
+      notice("Generating host entry #{node['name']} #{node['network_roles'][network_role]} #{node['fqdn']}")
     end
-    return hosts
+
+    hosts
   end
 end
 
