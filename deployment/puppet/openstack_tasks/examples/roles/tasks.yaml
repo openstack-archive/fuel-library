@@ -160,7 +160,7 @@
       $.network_metadata.nodes.values().where(
         $.node_roles.any($.matches('(controller|rabbitmq)'))).network_roles.select(
           $.get('mgmt/messaging')),
-      $.get('amqp_hosts'), $.debug, $.get('use_syslog'),
+      $.get('amqp_hosts'), $.debug, $.get('verbose'), $.get('use_syslog'),
       $.get('syslog_log_facility_ironic'), $.rabbit, $.storage,
       $.get('kombu_compression'))
   cross-depends:
