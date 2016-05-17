@@ -136,7 +136,7 @@
       $.ironic.enabled and changedAny($.network_scheme, $.ironic,
       $.network_metadata.vips, $.get('database_vip'),
       $.get('neutron_endpoint'), $.get('glance_api_servers'),
-      $.get('amqp_hosts'), $.debug, $.verbose, $.get('use_syslog'),
+      $.get('amqp_hosts'), $.debug, $.get('verbose'), $.get('use_syslog'),
       $.get('syslog_log_facility_ironic'), $.rabbit, $.storage,
       $.get('kombu_compression'))
   cross-depends:
