@@ -106,9 +106,10 @@ describe manifest do
         should contain_ceilometer_config('notification/workers').with(:value => service_workers)
       end
 
-      it 'should configure auth url' do
-        should contain_ceilometer_config('service_credentials/os_auth_url').with(:value => keystone_auth_uri)
-      end
+      # TODO (degorenko): back this test when I8de5e42102fed2de6bea7bbdd788e86a88f0354c will be merged
+      # it 'should configure auth_url' do
+      #  should contain_ceilometer_config('service_credentials/auth_url').with(:value => keystone_auth_uri)
+      #end
       ha_mode = Noop.puppet_function 'pick', ceilometer_hash['ha_mode'], 'true'
       if ha_mode
         it { is_expected.to contain_class('ceilometer_ha::agent::central') }
