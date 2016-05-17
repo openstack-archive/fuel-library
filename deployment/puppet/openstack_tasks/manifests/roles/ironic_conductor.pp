@@ -19,7 +19,6 @@ class openstack_tasks::roles::ironic_conductor {
   $amqp_hosts                 = hiera('amqp_hosts')
   $rabbit_hosts               = split($amqp_hosts, ',')
   $debug                      = hiera('debug', false)
-  $verbose                    = hiera('verbose', true)
   $use_syslog                 = hiera('use_syslog', true)
   $syslog_log_facility_ironic = hiera('syslog_log_facility_ironic', 'LOG_USER')
   $rabbit_hash                = hiera_hash('rabbit')
@@ -64,7 +63,6 @@ class openstack_tasks::roles::ironic_conductor {
   }
 
   class { '::ironic':
-    verbose              => $verbose,
     debug                => $debug,
     enabled_drivers      => ['fuel_ssh', 'fuel_ipmitool', 'fake', 'fuel_libvirt'],
     rabbit_hosts         => $rabbit_hosts,
