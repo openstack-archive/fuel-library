@@ -174,7 +174,7 @@ describe manifest do
     it 'should configure keystone with paramters' do
       should contain_keystone_config('token/caching').with(:value => 'false')
       should contain_keystone_config('cache/enabled').with(:value => 'true')
-      should contain_keystone_config('cache/backend').with(:value => 'keystone.cache.memcache_pool')
+      should contain_keystone_config('cache/backend').with(:value => 'dogpile.cache.pylibmc')
       should contain_keystone_config('memcache/servers').with(:value => memcache_servers)
       should contain_keystone_config('cache/memcache_servers').with(:value => memcache_servers)
       should contain_keystone_config('cache/memcache_dead_retry').with(:value => '60')
