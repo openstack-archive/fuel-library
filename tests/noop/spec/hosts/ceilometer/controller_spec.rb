@@ -67,9 +67,10 @@ describe manifest do
         should contain_ceilometer_config('keystone_authtoken/identity_uri').with(:value => keystone_identity_uri)
       end
 
-      it 'should configure OS ENDPOINT TYPE for ceilometer' do
-        should contain_ceilometer_config('service_credentials/os_endpoint_type').with(:value => 'internalURL')
-      end
+      # TODO (degorenko): back this test when I8de5e42102fed2de6bea7bbdd788e86a88f0354c will be merged
+      # it 'should configure auth_url' do
+      #  should contain_ceilometer_config('service_credentials/auth_url').with(:value => keystone_auth_uri)
+      #end
       event_ttl = ceilometer_hash['event_time_to_live'] ? (ceilometer_hash['event_time_to_live']) : ('604800')
       metering_ttl = ceilometer_hash['metering_time_to_live'] ? (ceilometer_hash['metering_time_to_live']) : ('604800')
       http_timeout = ceilometer_hash['http_timeout'] ? (ceilometer_hash['http_timeout']) : ('600')
