@@ -1,7 +1,13 @@
 fixtures:
+  repositories:
+    stdlib: "git://github.com/puppetlabs/puppetlabs-stdlib.git"
+    concat:
+      repo: "git://github.com/puppetlabs/puppetlabs-concat.git"
+      branch: "1.2.x"
+    portage: "git://github.com/gentoo/puppet-portage.git"
   symlinks:
     cobbler: "#{source_dir}"
     openssl: "#{source_dir}/../openssl"
     inifile: "#{source_dir}/../inifile"
     firewall: "#{source_dir}/../firewall"
-    stdlib: "#{source_dir}/../stdlib"
+    apache: "#{source_dir}/../apache"
