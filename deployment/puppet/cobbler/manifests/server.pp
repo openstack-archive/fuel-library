@@ -47,10 +47,6 @@ class cobbler::server (
       $cobbler_service     = 'cobblerd'
       $cobbler_web_service = 'httpd'
       $dnsmasq_service     = 'dnsmasq'
-      $httpd_version = $::operatingsystemrelease ? {
-        /^7.*/  => '2.4',
-        default => '2.2'
-      }
 
       service { 'xinetd':
         ensure     => running,
@@ -74,7 +70,6 @@ class cobbler::server (
       $cobbler_web_service = 'apache2'
       $dnsmasq_service     = 'dnsmasq'
       $apache_ssl_module   = 'ssl'
-      $httpd_version       = '2.2'
 
     }
     default : {
@@ -120,25 +115,13 @@ class cobbler::server (
 
   #TODO(mattymo): refactor this into cobbler module and use OS-dependent
   #directories
-  file { ['/etc/httpd',
-          '/etc/httpd/conf/',
-          '/etc/httpd/conf.d/',
+  file { [
           '/var/lib/fuel',
           '/var/lib/fuel/keys',
           '/var/lib/fuel/keys/master',
           '/var/lib/fuel/keys/master/cobbler',
           ]:
     ensure => 'directory',
-  }
-  file { '/etc/httpd/conf.d/nailgun.conf':
-    content => template('cobbler/httpd_nailgun.conf.erb'),
-    owner   => 'root',
-    group   => 'root',
-    mode    => '0644',
-    require => [File['/etc/httpd'],
-                File['/etc/httpd/conf/'],
-                File['/etc/httpd/conf.d/']],
-    notify  => Service[$cobbler_web_service],
   }
   openssl::certificate::x509 { 'cobbler':
     ensure       => present,
@@ -158,36 +141,6 @@ class cobbler::server (
     notify       => Service[$cobbler_web_service],
   }
 
-  file { '/etc/httpd/conf.d/ssl.conf':
-    content => template("cobbler/httpd_ssl_${httpd_version}.conf.erb"),
-    owner   => 'root',
-    group   => 'root',
-    mode    => '0644',
-    require => [File['/etc/httpd'],
-                File['/etc/httpd/conf/'],
-                File['/etc/httpd/conf.d/']],
-    notify  => Service[$cobbler_web_service],
-  }
-  file { '/etc/httpd/conf/httpd.conf':
-    content => template("cobbler/httpd_${httpd_version}.conf.erb"),
-    owner   => 'root',
-    group   => 'root',
-    mode    => '0644',
-    require => [File['/etc/httpd'],
-                File['/etc/httpd/conf/'],
-                File['/etc/httpd/conf.d/']],
-    notify  => Service[$cobbler_web_service],
-  }
-
-  file { '/etc/httpd/conf.d/cobbler-tftp.conf':
-    content => template('cobbler/cobbler-tftp.conf.erb'),
-    owner   => 'root',
-    group   => 'root',
-    mode    => '0644',
-    require => File['/etc/httpd/conf.d/'],
-    notify  => Service[$cobbler_web_service],
-  }
-
   file_line { 'Change debug level in cobbler':
     require => Package[$cobbler::packages::cobbler_web_package],
     before  => Service[$cobbler_web_service],
@@ -197,11 +150,7 @@ class cobbler::server (
     match   => "^DEBUG.*$",
   }
 
-  service { $cobbler_web_service:
-    ensure     => running,
-    enable     => true,
-    hasrestart => true,
-    require    => Package[$cobbler::packages::cobbler_web_package],
+  class { 'cobbler::apache':
   }
 
   exec { 'wait_for_web_service':
