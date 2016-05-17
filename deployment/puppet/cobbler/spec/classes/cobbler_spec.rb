@@ -3,11 +3,11 @@ require 'spec_helper'
 describe 'cobbler' do
 
   let(:default_params) { {
-    :server => facts[:ipaddress],
-    :production => 'prod',
-    :domain_name => 'local',
-    :name_server => facts[:ipaddress],
-    :next_server => facts[:ipaddress],
+    :server       => facts[:ipaddress],
+    :production   => 'prod',
+    :domain_name  => 'local',
+    :name_server  => facts[:ipaddress],
+    :next_server  => facts[:ipaddress],
     :dns_upstream => '8.8.8.8',
     :dns_domain   => 'domain.tld',
     :dns_search   => 'domain.tld',
@@ -34,6 +34,7 @@ describe 'cobbler' do
 
       it 'configures with the default params' do
         should contain_class('cobbler')
+        should contain_class('cobbler::apache')
         should contain_class('cobbler::packages')
         should contain_class('cobbler::selinux')
         should contain_class('cobbler::iptables')
@@ -57,6 +58,7 @@ describe 'cobbler' do
     let :facts do
       @default_facts.merge({ :osfamily => 'Debian',
         :operatingsystem => 'Debian',
+        :operatingsystemrelease => '7',
       })
     end
 
@@ -67,7 +69,7 @@ describe 'cobbler' do
     let :facts do
       @default_facts.merge({ :osfamily => 'RedHat',
         :operatingsystem => 'RedHat',
-        :operatingsystemrelease => '7'
+        :operatingsystemrelease => '7.0',
       })
     end
 
