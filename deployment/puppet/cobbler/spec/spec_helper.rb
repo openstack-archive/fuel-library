@@ -8,6 +8,7 @@ RSpec.configure do |c|
     @default_facts = {
       :ipaddress => '10.0.0.1',
       :hostname  => 'hostname.example.com',
+      :concat_basedir => '/var/lib/puppet/concat',
     }
   end
 end
