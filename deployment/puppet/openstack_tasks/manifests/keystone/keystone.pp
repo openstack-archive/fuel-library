@@ -88,7 +88,7 @@ class openstack_tasks::keystone::keystone {
   $memcache_server_port   = hiera('memcache_server_port', '11211')
   $memcache_pool_maxsize  = '100'
   $memcache_servers       = suffix(hiera('memcached_addresses'), inline_template(':<%= @memcache_server_port %>'))
-  $cache_backend          = 'keystone.cache.memcache_pool'
+  $cache_backend          = pick($keystone_hash['cache_backend'], 'dogpile.cache.pylibmc')
   $token_caching          = false
   $token_driver           = 'keystone.token.persistence.backends.memcache_pool.Token'
   $token_provider = hiera('token_provider')
