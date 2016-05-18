@@ -1,7 +1,7 @@
-# == Class: openstack::galera::status
+# == Class: cluster::galera_status
 #
-# Configures a user and script that will check the status
-# of galera cluster, assumes mysql module is in catalog
+# Configures a script that will check the status
+# of galera cluster
 #
 # === Parameters:
 #
@@ -12,18 +12,6 @@
 # [*only_from*]
 # (optional) xinet.d only_from address for swiftcheck
 # Defaults to 127.0.0.1
-#
-# [*status_user*]
-# (optiona) The name of user to use for status checks
-# Defaults to false
-#
-# [*status_password*]
-# (optional) The password of the status check user
-# Defaults to false
-#
-# [*status_allow*]
-# (optional) The subnet to allow status checks from
-# Defaults to '%'
 #
 # [*port*]
 # (optional) Port for cluster check service
@@ -42,32 +30,14 @@
 #  Defaults to 10 seconds
 #
 
-class openstack::galera::status (
+class cluster::galera_status (
   $address         = '0.0.0.0',
   $only_from       = '127.0.0.1',
-  $status_user     = false,
-  $status_password = false,
-  $status_allow    = '%',
   $port            = '49000',
   $backend_host    = '127.0.0.1',
   $backend_port    = '3306',
   $backend_timeout = '10',
 ) {
-
-  validate_string($status_user, $status_password)
-
-  mysql_user { "${status_user}@${status_allow}":
-    ensure        => 'present',
-    password_hash => mysql_password($status_password),
-    require       => Anchor['mysql::server::end'],
-  } ->
-  mysql_grant { "${status_user}@${status_allow}/*.*":
-    ensure     => 'present',
-    options    => [ 'GRANT' ],
-    privileges => [ 'USAGE' ],
-    table      => '*.*',
-    user       => "${status_user}@${status_allow}",
-  }
 
   file { '/etc/wsrepclustercheckrc':
     content => template('openstack/galera_clustercheck.erb'),
