@@ -88,7 +88,7 @@ describe manifest do
       :default_pass                => rabbit_hash['password'],
       :config_cluster              => false,
       :version                     => version,
-      :node_ip_address             => rabbitmq_bind_ip_address,
+      :node_ip_address             => 'UNSET',
       :config_kernel_variables     => $config_kernel_variables,
       :config_management_variables => $config_management_variables,
       :config_variables            => $config_variables.merge(rabbit_config_variables),
