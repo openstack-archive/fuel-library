@@ -151,7 +151,7 @@ describe manifest do
     end
 
     it 'should have explicit ordering galera status and LB status' do
-      expect(graph).to ensure_transitive_dependency("Class[openstack::galera::status]", "Haproxy_backend_status[mysql]")
+      expect(graph).to ensure_transitive_dependency("Class[cluster::galera_status]", "Haproxy_backend_status[mysql]")
     end
 
     it 'should setup the /root/.my.cnf' do
@@ -178,11 +178,8 @@ describe manifest do
       ).that_comes_before('Class[mysql::server::installdb]')
     end
 
-    it 'should configure galera check service' do
-      should contain_class('openstack::galera::status').with(
-        :status_user => 'clustercheck',
-        :status_password => status_database_password,
-        :status_allow => galera_node_address,
+    it 'should configure galera status service' do
+      should contain_class('cluster::galera_status').with(
         :backend_host => galera_node_address,
         :backend_port => '3307',
         :backend_timeout => '10',
@@ -262,8 +259,17 @@ describe manifest do
         Noop.hiera('use_syslog', true) ? /"syslog"=>true/ : /"log-error"=>"\/\S+"/
       )
     end
-  end
 
+    it 'should configure galera grants service and proper flow' do
+      if primary_controller
+        should contain_class('cluster::galera_grants').with(
+          :status_user => 'clustercheck',
+          :status_password => status_database_password,
+          :status_allow => galera_node_address
+        )
+    end
+
+  end
   test_ubuntu_and_centos manifest
 end
 
