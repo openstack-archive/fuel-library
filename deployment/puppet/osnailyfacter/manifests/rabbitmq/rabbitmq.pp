@@ -108,7 +108,6 @@ class osnailyfacter::rabbitmq::rabbitmq {
 
     $config_management_variables_default ={
         'rates_mode' => 'none',
-        'listener'   => "[{port, ${management_port}}, {ip,\"${management_bind_ip_address}\"}]",
       }
 
     $config_management_variables_merged = merge($config_management_variables_default, $config_management_variables)
@@ -122,7 +121,10 @@ class osnailyfacter::rabbitmq::rabbitmq {
         'PID_FILE'            => $pid_file,
       }
     )
-    $environment_variables = merge($environment_variables_init,{'NODENAME' => "rabbit@${fqdn_prefix}${hostname}"})
+    $environment_variables = merge($environment_variables_init, {
+      'NODENAME'        => "rabbit@${fqdn_prefix}${::hostname}",
+      'NODE_IP_ADDRESS' => $rabbitmq_bind_ip_address,
+    })
 
     if ($enabled) {
       class { '::rabbitmq':
@@ -146,7 +148,7 @@ class osnailyfacter::rabbitmq::rabbitmq {
         #cluster_node_type          => 'disc',
         #cluster_partition_handling => $cluster_partition_handling,
         version                     => $version,
-        node_ip_address             => $rabbitmq_bind_ip_address,
+        node_ip_address             => $management_bind_ip_address,
         config_kernel_variables     => $config_kernel_variables_merged,
         config_management_variables => $config_management_variables_merged,
         config_variables            => $config_variables_merged,
