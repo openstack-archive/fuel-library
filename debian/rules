@@ -9,7 +9,8 @@ override_dh_fixperms:
 
 override_dh_install:
 	dh_install
-	mv debian/fuel-ha-utils/usr/lib/ocf/resource.d/fuel/rabbitmq debian/fuel-ha-utils/usr/lib/ocf/resource.d/fuel/rabbitmq-server
+	mv debian/fuel-ha-utils/usr/lib/ocf/resource.d/fuel/rabbitmq debian/fuel-ha-utils/usr/lib/ocf/resource.d/fuel/rabbitmq-server-upstream
+	mv debian/fuel-ha-utils/usr/lib/ocf/resource.d/fuel/rabbitmq-fuel debian/fuel-ha-utils/usr/lib/ocf/resource.d/fuel/rabbitmq-server
 	mv debian/fuel-ha-utils/usr/lib/ocf/resource.d/fuel/heat_engine_ubuntu debian/fuel-ha-utils/usr/lib/ocf/resource.d/fuel/heat-engine
 	mv debian/fuel-misc/usr/bin/logrotate debian/fuel-misc/usr/bin/fuel-logrotate
 	rm debian/fuel-ha-utils/usr/lib/ocf/resource.d/fuel/heat_engine_centos
