@@ -21,9 +21,6 @@ override_dh_fixperms:
 
 override_dh_install:
 	dh_install
-	#TODO(dmitryme): remove rabbitmq-server-upstream once we switch to rabbitmq-3.5.7, as it will be included here
-	mv debian/fuel-ha-utils/usr/lib/ocf/resource.d/fuel/rabbitmq debian/fuel-ha-utils/usr/lib/ocf/resource.d/fuel/rabbitmq-server-upstream
-	mv debian/fuel-ha-utils/usr/lib/ocf/resource.d/fuel/rabbitmq-fuel debian/fuel-ha-utils/usr/lib/ocf/resource.d/fuel/rabbitmq-server
 	mv debian/fuel-misc/usr/bin/logrotate debian/fuel-misc/usr/bin/fuel-logrotate
 
 	# Install fuel-library

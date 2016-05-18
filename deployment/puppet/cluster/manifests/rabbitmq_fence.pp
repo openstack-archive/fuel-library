@@ -77,7 +77,7 @@ class cluster::rabbitmq_fence(
     }
 
     #https://bugs.launchpad.net/ubuntu/+source/corosync/+bug/1437368
-    #FIXME(bogdando) remove these hacks once the corosync package issues resolved
+    #FIXME(bogdando) remove these hacks after switched to systemd service.units
     exec { 'fix_corosync_notifyd_init_args':
       command => 'sed -i s/DAEMON_ARGS=\"\"/DAEMON_ARGS=\"-d\"/ /etc/init.d/corosync-notifyd',
       onlyif  => 'grep \'DAEMON_ARGS=""\' /etc/init.d/corosync-notifyd',

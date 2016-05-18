@@ -319,7 +319,7 @@ class openstack_tasks::roles::compute {
   # NOTE(bogdando) deploy compute node with disabled nova-compute
   #   service #LP1398817. The orchestration will start and enable it back
   #   after the deployment is done.
-  # FIXME(bogdando) This should be changed once the host aggregates implemented, bp disable-new-computes
+  # NOTE(bogdando) This maybe be changed, if the host aggregates implemented, bp disable-new-computes
   class { '::nova::compute':
     enabled                       => false,
     vncserver_proxyclient_address => get_network_role_property('nova/api', 'ipaddr'),
