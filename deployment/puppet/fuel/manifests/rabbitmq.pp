@@ -141,20 +141,20 @@ class fuel::rabbitmq (
 
   # NOTE(bogdando) requires rabbitmq module >=4.0
   class { '::rabbitmq':
-    repos_ensure            => false,
-    package_provider        => 'yum',
-    package_source          => undef,
-    environment_variables   => $env_config,
-    service_ensure          => 'running',
-    delete_guest_user       => true,
-    config_cluster          => false,
-    cluster_nodes           => [],
-    config_stomp            => true,
-    stomp_port              => $stompport,
-    ssl                     => false,
-    node_ip_address         => $bind_ip,
-    tcp_keepalive           => true,
-    config_kernel_variables => {
+    repos_ensure                    => false,
+    package_provider                => 'yum',
+    package_source                  => undef,
+    environment_variables           => $env_config,
+    service_ensure                  => 'running',
+    delete_guest_user               => true,
+    config_cluster                  => false,
+    cluster_nodes                   => [],
+    config_stomp                    => true,
+    stomp_port                      => $stompport,
+    ssl                             => false,
+    node_ip_address                 => $bind_ip,
+    tcp_keepalive                   => true,
+    config_kernel_variables         => {
      'inet_dist_listen_min'         => '41055',
      'inet_dist_listen_max'         => '41055',
      'inet_default_connect_options' => '[{nodelay,true}]',
@@ -164,9 +164,9 @@ class fuel::rabbitmq (
       'default_vhost'               => '<<"">>',
       'default_permissions'         => '[<<".*">>, <<".*">>, <<".*">>]',
     },
-
+    admin_enable                    => false,
     config_management_variables     => $rabbitmq_management_variables,
-    require => User["rabbitmq"],
+    require                         => User["rabbitmq"],
   }
 
   # NOTE(bogdando) retries for the rabbitmqadmin curl command, unmerged MODULES-1650
