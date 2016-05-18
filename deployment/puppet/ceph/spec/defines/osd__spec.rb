@@ -24,7 +24,6 @@ describe 'ceph::osds::osd', :type => :define do
       'tries'     => 3,
       'logoutput' => true,
       'timeout'   => 0,
-      'onlyif'    => "ceph-disk list | fgrep -q -e '/dev/svv ceph data, prepared'",
     )
     }
   end
@@ -47,7 +46,6 @@ describe 'ceph::osds::osd', :type => :define do
       'tries'     => 3,
       'logoutput' => true,
       'timeout'   => 0,
-      'onlyif'    => "ceph-disk list | fgrep -q -e '/dev/sdd ceph data, prepared'",
       )
     }
   end
