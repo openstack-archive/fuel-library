@@ -61,11 +61,12 @@ class openstack_tasks::ceilometer::compute {
     }
 
     class { '::ceilometer::agent::auth':
-      auth_url         => $keystone_auth_uri,
-      auth_password    => $ceilometer_hash['user_password'],
-      auth_region      => $ceilometer_region,
-      auth_tenant_name => $ceilometer_hash['tenant'],
-      auth_user        => $ceilometer_hash['user'],
+      auth_url           => $keystone_auth_uri,
+      auth_password      => $ceilometer_hash['user_password'],
+      auth_region        => $ceilometer_region,
+      auth_tenant_name   => $ceilometer_hash['tenant'],
+      auth_user          => $ceilometer_hash['user'],
+      auth_endpoint_type => 'internalURL',
     }
 
     class { '::ceilometer::client': }
@@ -102,8 +103,6 @@ class openstack_tasks::ceilometer::compute {
       }
     }
 
-  ceilometer_config { 'service_credentials/os_endpoint_type': value => 'internalURL'} ->
-  Service<| title == 'ceilometer-polling'|>
   }
 
 }
