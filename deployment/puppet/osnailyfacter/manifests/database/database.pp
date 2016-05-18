@@ -290,9 +290,6 @@ class osnailyfacter::database::database {
     $management_networks = get_routable_networks_for_network_role($network_scheme, 'mgmt/database', ' ')
     # TODO(aschultz): switch to ::galera::status
     class { '::openstack::galera::status':
-      status_user     => $status_user,
-      status_password => $status_password,
-      status_allow    => $galera_node_address,
       backend_host    => $galera_node_address,
       backend_port    => $backend_port,
       backend_timeout => $backend_timeout,
@@ -346,11 +343,16 @@ class osnailyfacter::database::database {
         access_networks  => $access_networks,
         require          => Class['::osnailyfacter::mysql_access'],
       }
+
+      # We need to create user for galera cluster check
+      class { '::openstack::galera::grants':
+        status_user     => $status_user,
+        status_password => $status_password,
+        status_allow    => $galera_node_address,
+      }
+      Class['::cluster::mysql'] -> Class['::openstack::galera::grants'] -> Class['::openstack::galera::status'] -> ::Osnailyfacter::Wait_for_backend['mysql']
+    } else {
+      Class['::cluster::mysql'] -> Class['::openstack::galera::status'] -> ::Osnailyfacter::Wait_for_backend['mysql']
     }
-
-    Class['::cluster::mysql'] ->
-      Class['::openstack::galera::status'] ->
-        ::Osnailyfacter::Wait_for_backend['mysql']
   }
-
 }
