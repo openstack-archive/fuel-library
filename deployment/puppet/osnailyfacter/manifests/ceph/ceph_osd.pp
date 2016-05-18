@@ -1,6 +1,5 @@
 class osnailyfacter::ceph::ceph_osd {
 
-  # TODO(bogdando) add monit ceph-osd services monitoring, if required
   notice('MODULAR: ceph-osd.pp')
 
   $storage_hash              = hiera('storage', {})
@@ -87,11 +86,6 @@ class osnailyfacter::ceph::ceph_osd {
 
   class { '::ceph::osds':
     args => $osd_devices_hash,
-  } ->
-
-  service {'ceph-osd-all-starter':
-    ensure   => running,
-    provider => upstart,
   }
 
   if $ceph_tuning_settings != {} {
