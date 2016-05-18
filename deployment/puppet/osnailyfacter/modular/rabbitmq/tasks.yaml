@@ -5,7 +5,7 @@
   cross-depends:
     - name: primary-rabbitmq
   required_for: [deploy_end, openstack-controller, primary-openstack-controller, glance]
-  requires: [netconfig, cluster]
+  requires: [netconfig-controller, netconfig, cluster]
   condition:
     yaql_exp: &rabbitmq >
       changedAny($.network_scheme, $.get('queue_provider'),
@@ -33,7 +33,7 @@
   version: 2.1.0
   groups: [primary-controller]
   required_for: [deploy_end, openstack-controller, primary-openstack-controller, glance]
-  requires: [netconfig, primary-cluster]
+  requires: [netconfig-controller, netconfig, primary-cluster]
   condition:
     yaql_exp: *rabbitmq
   parameters:
