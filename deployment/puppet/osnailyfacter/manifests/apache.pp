@@ -49,16 +49,13 @@ class osnailyfacter::apache (
 
   apache::listen { $listen_ports: }
 
-  File {
-    ensure  => 'file',
-    owner   => 'root',
-    group   => 'root',
-  }
-
   # we need to override the logrotate file provided by apache to work around
   # wsgi issues on the restart caused by logrotate.
   # LP#1491576 and https://github.com/GrahamDumpleton/mod_wsgi/issues/81
   file { '/etc/logrotate.d/apache2':
+    ensure  => 'file',
+    owner   => 'root',
+    group   => 'root',
     mode    => '0644',
     content => template('osnailyfacter/apache2.logrotate.erb'),
     require => Package['httpd']
@@ -74,10 +71,15 @@ class osnailyfacter::apache (
 
   file { '/etc/logrotate.d/httpd-prerotate':
     ensure => 'directory',
+    owner  => 'root',
+    group  => 'root',
     mode   => '0755',
   }
 
   file { '/etc/logrotate.d/httpd-prerotate/apache2':
+    ensure  => 'file',
+    owner   => 'root',
+    group   => 'root',
     mode    => '0755',
     content => template('osnailyfacter/apache2.prerotate.erb'),
   }
