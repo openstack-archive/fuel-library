@@ -618,6 +618,9 @@ mysql_start() {
         chmod 755 "${pid_dir}"
     fi
 
+    # set user/group for datadir
+    chown -R $OCF_RESKEY_user:$OCF_RESKEY_group $OCF_RESKEY_datadir
+
     # Regardless of whether we just created the directory or it
     # already existed, check whether it is writable by the configured
     # user
