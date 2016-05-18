@@ -40,6 +40,8 @@ if $queue_provider == 'rabbitmq' {
   $cluster_partition_handling = hiera('rabbit_cluster_partition_handling', 'autoheal')
   $mnesia_table_loading_timeout = hiera('mnesia_table_loading_timeout', '10000')
   $rabbitmq_bind_ip_address   = hiera('rabbitmq_bind_ip_address','UNSET')
+  $enable_rpc_ha                = hiera('enable_rpc_ha', 'true')
+  $enable_notifications_ha      = hiera('enable_notifications_ha', 'true')
   # NOTE(bogdando) not a hash. Keep an indentation as is
   $rabbit_tcp_listen_options  = hiera('rabbit_tcp_listen_options',
     '[
@@ -129,6 +131,8 @@ if $queue_provider == 'rabbitmq' {
       debug                   => $debug,
       erlang_cookie           => $erlang_cookie,
       before                  => Class['nova::rabbitmq'],
+      enable_rpc_ha           => $enable_rpc_ha,
+      enable_notifications_ha => $enable_notifications_ha,
     }
   }
 }

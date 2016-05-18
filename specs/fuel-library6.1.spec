@@ -66,7 +66,9 @@ install -m 0755 %{files_source}/fuel-ha-utils/ocf/ocf-neutron-ovs-agent %{buildr
 install -m 0755 %{files_source}/fuel-ha-utils/ocf/ocf-neutron-metadata-agent %{buildroot}/usr/lib/ocf/resource.d/fuel/ocf-neutron-metadata-agent
 install -m 0755 %{files_source}/fuel-ha-utils/ocf/ocf-neutron-dhcp-agent %{buildroot}/usr/lib/ocf/resource.d/fuel/ocf-neutron-dhcp-agent
 install -m 0755 %{files_source}/fuel-ha-utils/ocf/ocf-neutron-l3-agent %{buildroot}/usr/lib/ocf/resource.d/fuel/ocf-neutron-l3-agent
-install -m 0755 %{files_source}/fuel-ha-utils/ocf/rabbitmq %{buildroot}/usr/lib/ocf/resource.d/fuel/rabbitmq-server
+install -m 0755 %{files_source}/fuel-ha-utils/ocf/rabbitmq %{buildroot}/usr/lib/ocf/resource.d/fuel/rabbitmq-server-upstream
+install -m 0755 %{files_source}/fuel-ha-utils/ocf/rabbitmq-fuel %{buildroot}/usr/lib/ocf/resource.d/fuel/rabbitmq-server
+install -m 0755 %{files_source}/fuel-ha-utils/ocf/set_rabbitmq_policy.sh %{buildroot}/usr/lib/ocf/resource.d/fuel/set_rabbitmq_policy.sh
 install -m 0755 %{files_source}/fuel-ha-utils/ocf/ns_IPaddr2 %{buildroot}/usr/lib/ocf/resource.d/fuel/ns_IPaddr2
 install -m 0755 %{files_source}/fuel-ha-utils/ocf/ceilometer-agent-central %{buildroot}/usr/lib/ocf/resource.d/fuel/ceilometer-agent-central
 install -m 0755 %{files_source}/fuel-ha-utils/ocf/ceilometer-alarm-evaluator %{buildroot}/usr/lib/ocf/resource.d/fuel/ceilometer-alarm-evaluator
