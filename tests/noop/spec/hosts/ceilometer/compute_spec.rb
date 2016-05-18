@@ -48,10 +48,9 @@ describe manifest do
         should contain_ceilometer_config('DEFAULT/default_log_levels').with_value(default_log_levels.sort.join(','))
       end
 
-      # TODO (degorenko): back this test when I8de5e42102fed2de6bea7bbdd788e86a88f0354c will be merged
-      # it 'should configure auth_url' do
-      #  should contain_ceilometer_config('service_credentials/auth_url').with(:value => keystone_auth_uri)
-      #end
+      it 'should configure auth_url' do
+        should contain_ceilometer_config('service_credentials/auth_url').with(:value => keystone_auth_uri)
+      end
 
       it 'contains class ceilometer::agent::polling' do
         should contain_class('ceilometer::agent::polling').with(
