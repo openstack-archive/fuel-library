@@ -75,7 +75,7 @@ describe manifest do
     })
 
     let (:params) do {
-      :admin_enable                => true,
+      :admin_enable                => false,
       :management_port             => management_port,
       :repos_ensure                => false,
       :package_provider            => $package_provider,
