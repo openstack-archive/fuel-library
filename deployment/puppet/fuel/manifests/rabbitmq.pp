@@ -152,7 +152,7 @@ class fuel::rabbitmq (
     config_stomp            => true,
     stomp_port              => $stompport,
     ssl                     => false,
-    node_ip_address         => $bind_ip,
+    node_ip_address         => $management_bind_ip,
     tcp_keepalive           => true,
     config_kernel_variables => {
      'inet_dist_listen_min'         => '41055',
@@ -164,7 +164,7 @@ class fuel::rabbitmq (
       'default_vhost'               => '<<"">>',
       'default_permissions'         => '[<<".*">>, <<".*">>, <<".*">>]',
     },
-
+    interface                       => $bind_ip,
     config_management_variables     => $rabbitmq_management_variables,
     require => User["rabbitmq"],
   }
