@@ -274,7 +274,9 @@ validate_gtid() {
     fi
 }
 
-#Get galera GTID from local mysql instance
+#Get galera GTID from local mysql instance.
+#If changed, update it in CIB, then return 0 and new GTID
+#If unchanged or bad vlue, return 1 and the current GTID from CIB
 update_node_gtid() {
     local LH="${LL} update_node_gtid():"
     local status_loglevel="err"
@@ -311,6 +313,8 @@ update_node_gtid() {
             return 0
         fi
     fi
+    echo "${GTID_current}"
+    return 1
 }
 
 get_master_timeout() {
@@ -362,6 +366,20 @@ check_if_reelection_needed() {
     fi
 
     return 0
+}
+
+# Return 0 and the pid, if running a new cluster as a seed node
+check_if_new_cluster() {
+    local pid
+    # Match a mysqld pid by the datadir and a new cluster sign, exclude position recovery
+    pid=$(ps -C mysqld -o pid= -o command= -o args= | \
+        grep -e "${OCF_RESKEY_datadir}.*wsrep-new-cluster" -e "wsrep-new-cluster.*${OCF_RESKEY_datadir}" | \
+        awk '!/wsrep.recover|defunct/ {print $1}')
+    if [ "${pid}" ]; then
+        echo "${pid}"
+        exit 0
+    fi
+    exit 1
 }
 
 get_master() {
@@ -417,24 +435,38 @@ get_master() {
     echo "$MASTER"
 }
 
+#Find the best master and return its GTID.
+#If the best master is this node, propose it as a prim, then return 1.
+#If another node is, check if *this* node is also running a new cluster and exit
+#with error for safety concerns
 check_if_galera_pc() {
     local LH="${LL} check_if_galera_pc():"
     local NODES
     local MASTER
     local timeout=$(get_master_timeout)
+    local GTID
+    local pid
 
     ocf_log info "${LH} Checking if Primary Component"
 
     while [ $timeout -gt 0 ]; do
         NODES=$(nodes_in_cluster_online)
         MASTER=$(get_master "$NODES")
+        GTID=$(get_node_gtid $MASTER)
         if [ "$MASTER" = "$HOSTNAME" ]; then
-            ocf_log info "${LH} I\'m Primary Component. Join me!"
+            ocf_log info "${LH} I\'m Primary Component. Join me! My GTID: ${GTID}"
+            echo "${GTID}"
             return 1
         fi
 
         if check_if_reelection_needed; then
-            ocf_log info "${LH} My neighbour is Primary Component"
+            ocf_log info "${LH} My neighbour is Primary Component with GTID: ${GTID}"
+            pid=$(check_if_new_cluster)
+            if [ "${pid}" ]; then
+                ocf_log err "${LH} But I'm running a new cluster, PID:${pid}, this is a split-brain!"
+                exit $OCF_ERR_GENERIC
+            fi
+            echo "${GTID}"
             return 0
         fi
 
@@ -544,6 +576,8 @@ mysql_monitor() {
     local WSREP_CONNECTED
     local WSREP_LOCAL_STATE_COMMENT
     local WSREP_READY
+    local MGTID
+    local GTID
 
     # Set loglevel to info during probe
     if ocf_is_probe; then
@@ -558,7 +592,7 @@ mysql_monitor() {
     rc=$?
     [ $rc -eq $OCF_SUCCESS ] || return $rc
 
-    update_node_gtid
+    GTID=$(update_node_gtid)
 
     WSREP_CONNECTED=$($MYSQL $MYSQL_OPTIONS_TEST -s -N \
         -e "SHOW STATUS LIKE 'wsrep_connected'" | awk '{print $NF}')
@@ -583,6 +617,13 @@ mysql_monitor() {
         return $OCF_ERR_GENERIC
     fi
 
+    # Check if this node is the master and is running the most recent GTID
+    MGTID=$(check_if_galera_pc)
+    rc=$?
+    if [ $rc -eq 1 -a "${MGTID}" != "${GTID}" ]; then
+        ocf_log err "${LH} I'm a master, and my GTID: ${GTID}, which was not expected"
+        return $OCF_ERR_GENERIC
+    fi
     ocf_log debug "${LH} MySQL monitor succeeded";
     return $OCF_SUCCESS
 }
