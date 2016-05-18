@@ -59,15 +59,15 @@ Puppet::Parser::Functions::newfunction(:get_network_role_property, :type => :rva
       return nil
   end
 
+  if mode == 'INTERFACE'
+    return interface.to_s
+  end
+
   # get endpoint configuration hash for interface
   ep = cfg[:endpoints][interface.to_sym()]
   if !ep
       Puppet::debug("get_network_role_property(...): Can't find interface '#{interface}' in endpoints for network_role '#{network_role}'.")
       return nil
-  end
-
-  if mode == 'INTERFACE'
-    return interface.to_s
   end
 
   case ep[:IP].class().to_s
