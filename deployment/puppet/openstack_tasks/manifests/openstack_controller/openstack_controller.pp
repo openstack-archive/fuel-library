@@ -166,7 +166,6 @@ class openstack_tasks::openstack_controller::openstack_controller {
 
   $nova_notify_on_state_change = 'vm_and_task_state'
 
-  # FIXME(bogdando) replace queue_provider for rpc_backend once all modules synced with upstream
   $rpc_backend   = 'nova.openstack.common.rpc.impl_kombu'
   $amqp_hosts    = hiera('amqp_hosts','')
   $amqp_user     = $rabbit_hash['user']

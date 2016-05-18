@@ -26,9 +26,5 @@ affected by this flag.
 </parameter>
 EOF
 
-# That is 'rabbitmq' file in the current directory, but it is renamed to
-# rabbitmq-server-upstream during packaging
-#TODO(dmitryme): remove rabbitmq-server-upstream once we switch to
-# rabbitmq-3.5.7, as it will be included here
-upstream_rabbitmq_ocf_script="$(dirname $0)/rabbitmq-server-upstream"
+upstream_rabbitmq_ocf_script="${OCF_ROOT}/resource.d/rabbitmq/rabbitmq-server-ha"
 . $upstream_rabbitmq_ocf_script

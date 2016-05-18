@@ -423,8 +423,4 @@ class openstack::logging (
   Sahara_config <| title == 'DEFAULT/log_config' |> { ensure => absent }
   Murano_config <| title == 'DEFAULT/log_config' |> { ensure => absent }
   # lint:endignore
-
-  #TODO(bogdando) if 4.1.1 -> 5.0 upgrade will be supported later
-  #  remove all existing rsyslog::imfile templates for Openstack
-  #  and notify rsyslog service
 }
