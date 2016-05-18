@@ -13,7 +13,7 @@ describe manifest do
     controllers = primary_controller_nodes + Noop.puppet_function('filter_nodes', nodes, 'role', 'controller')
     controller_internal_addresses = Noop.puppet_function('nodes_to_hash', controllers,'name','internal_address')
     controller_nodes = Noop.puppet_function('ipsort', controller_internal_addresses.values)
-    swift_operator_roles = storage_hash.fetch('swift_operator_roles', ['admin', 'SwiftOperator'])
+    swift_operator_roles = storage_hash.fetch('swift_operator_roles', ['admin', 'SwiftOperator', '_member_'])
     ring_part_power = swift_hash.fetch('ring_part_power', 10)
     ring_min_part_hours = Noop.hiera 'swift_ring_min_part_hours', 1
     memcached_servers = controller_nodes.map{ |n| n = n + ':11211' }
