@@ -154,9 +154,9 @@ class openstack_tasks::roles::compute {
       Service['libvirt']
 
       service { 'libvirt-guests':
+        ensure     => true,
         name       => 'libvirt-guests',
         enable     => false,
-        ensure     => true,
         hasstatus  => false,
         hasrestart => false,
       }
@@ -192,14 +192,14 @@ class openstack_tasks::roles::compute {
           ensure  => 'directory',
           owner   => 'root',
           group   => 'kvm',
-          mode    => '775',
+          mode    => '0775',
           require => Package[$libvirt_type_kvm],
         }
         exec { 'mount_hugetlbfs_1g':
-          command  => 'mount -t hugetlbfs hugetlbfs-kvm -o mode=775,gid=kvm,pagesize=1GB /mnt/hugepages_1GB',
-          unless   => 'grep -q /mnt/hugepages_1GB /proc/mounts',
-          path     => '/usr/sbin:/usr/bin:/sbin:/bin',
-          require  => File['/mnt/hugepages_1GB'],
+          command => 'mount -t hugetlbfs hugetlbfs-kvm -o mode=775,gid=kvm,pagesize=1GB /mnt/hugepages_1GB',
+          unless  => 'grep -q /mnt/hugepages_1GB /proc/mounts',
+          path    => '/usr/sbin:/usr/bin:/sbin:/bin',
+          require => File['/mnt/hugepages_1GB'],
         }
         if $use_2m_huge_pages {
           $libvirt_hugetlbfs_mount = 'hugetlbfs_mount = ["/run/hugepages/kvm", "/mnt/hugepages_1GB"]'
@@ -234,17 +234,17 @@ class openstack_tasks::roles::compute {
       notify  => Service['libvirt'],
     }
     file_line { 'libvirt_1g_hugepages_apparmor':
+      ensure  => $hugepages_1g_opts_ensure,
       path    => '/etc/apparmor.d/abstractions/libvirt-qemu',
       after   => 'owner "/run/hugepages/kvm/libvirt/qemu/',
       line    => '  owner "/mnt/hugepages_1GB/libvirt/qemu/**" rw,',
       require => Package[$::nova::params::libvirt_package_name],
       notify  => Exec['refresh_apparmor'],
-      ensure  => $hugepages_1g_opts_ensure,
     }
     file_line { '1g_hugepages_fstab':
+      ensure => $hugepages_1g_opts_ensure,
       path   => '/etc/fstab',
       line   => 'hugetlbfs-kvm /mnt/hugepages_1GB hugetlbfs mode=775,gid=kvm,pagesize=1GB 0 0',
-      ensure => $hugepages_1g_opts_ensure,
     }
 
     Augeas['qemu_hugepages'] ~> Service<| title == 'qemu-kvm'|>
@@ -263,14 +263,6 @@ class openstack_tasks::roles::compute {
   }
 
   $notify_on_state_change = 'vm_and_task_state'
-
-  if $debug {
-    class { '::nova::logging':
-      default_log_levels => {
-        'oslo.messaging' => 'DEBUG',
-      }
-    }
-  }
 
   class { '::nova':
     rpc_backend                        => $queue_provider,
@@ -431,7 +423,7 @@ class openstack_tasks::roles::compute {
         subscribe => Package[$libvirt_type_kvm],
       }
     }
-    default: { fail("Unsupported osfamily: ${osfamily}") }
+    default: { fail("Unsupported osfamily: ${::osfamily}") }
   }
 
   Service<| title == 'libvirt'|> ~> Service<| title == 'nova-compute'|>
@@ -467,6 +459,7 @@ class openstack_tasks::roles::compute {
         subscribe   => File_line['apparmor_libvirtd'],
       }
     }
+    default: { fail("Unsupported osfamily: ${::osfamily}") }
   }
 
   Package<| title == 'nova-compute'|> ~> Service<| title == 'nova-compute'|>
@@ -491,7 +484,7 @@ class openstack_tasks::roles::compute {
       $scp_package='openssh-clients'
       $multipath_tools_package='device-mapper-multipath'
     }
-    default: { fail("Unsupported osfamily: ${osfamily}") }
+    default: { fail("Unsupported osfamily: ${::osfamily}") }
   }
 
   ensure_packages([$scp_package, $multipath_tools_package])
