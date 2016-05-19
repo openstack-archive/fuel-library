@@ -48,7 +48,7 @@ class osnailyfacter::ceph::enable_rados {
 
   $rgw_protocol = get_ssl_property($ssl_hash, {}, 'radosgw', 'internal', 'protocol', 'http')
   $rgw_address  = get_ssl_property($ssl_hash, {}, 'radosgw', 'internal', 'hostname', [$service_endpoint, $management_vip])
-  $rgw_url = "${rgw_protocol}://${rgw_address}:8080"
+  $rgw_url = "${rgw_protocol}://${rgw_address}:8080/info"
 
   $lb_hash = {
     'object-storage' => {
