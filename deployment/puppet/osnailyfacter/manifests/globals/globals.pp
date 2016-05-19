@@ -120,6 +120,7 @@ class osnailyfacter::globals::globals {
 
   $horizon_address                = pick(get_network_role_property('horizon', 'ipaddr'), '127.0.0.1')
   $apache_api_proxy_address       = get_network_role_property('admin/pxe', 'ipaddr')
+  $keystone_api                   = hiera('keystone_api', 'v3')
   $keystone_api_address           = get_network_role_property('keystone/api', 'ipaddr')
   $ceilometer_api_address         = get_network_role_property('ceilometer/api', 'ipaddr')
 
