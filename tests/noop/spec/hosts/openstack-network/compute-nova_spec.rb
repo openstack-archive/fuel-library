@@ -99,17 +99,18 @@ describe manifest do
           :name     => 'libvirtd'
         )}
         it { expect(subject).to contain_service('libvirt').that_notifies('Exec[destroy_libvirt_default_network]') }
+        it { expect(subject).to contain_service('libvirt').that_notifies('Exec[undefine_libvirt_default_network]') }
         #
         it { expect(subject).to contain_exec('destroy_libvirt_default_network').with(
           :command => 'virsh net-destroy default',
-          :onlyif  => 'virsh net-info default | grep -qE "Active:.* yes"',
+          :onlyif  => "virsh net-list | grep -qE '^\s*default\s'",
           :tries   => 3,
         )}
         it { expect(subject).to contain_exec('destroy_libvirt_default_network').that_requires('Service[libvirt]')}
         #
         it { expect(subject).to contain_exec('undefine_libvirt_default_network').with(
           :command => 'virsh net-undefine default',
-          :onlyif  => 'virsh net-info default 2>&1 > /dev/null',
+          :onlyif  => "virsh net-list --all | grep -qE '^\s*default\s'",
           :tries   => 3,
         )}
         it { expect(subject).to contain_exec('undefine_libvirt_default_network').that_requires('Exec[destroy_libvirt_default_network]')}
