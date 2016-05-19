@@ -248,7 +248,8 @@ describe manifest do
         :sync_db_api => primary_controller,
         :fping_path => fping_path,
         :api_paste_config => '/etc/nova/api-paste.ini',
-        :default_floating_pool => default_floating_net
+        :default_floating_pool => default_floating_net,
+        :enable_proxy_headers_parsing => true,
       )
       if facts[:operatingsystem] == 'Ubuntu'
         should contain_tweaks__ubuntu_service_override('nova-api').with(
