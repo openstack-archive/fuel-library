@@ -229,27 +229,9 @@ describe manifest do
        )
      end
 
-     it 'should setup keystone_wsgi_admin file properly' do
-       case facts[:operatingsystem]
-       when 'CentOS'
-         should contain_file('keystone_wsgi_admin').with(
-           'ensure'  => 'link',
-           'path'    => "/var/www/cgi-bin/keystone/admin",
-           'target'  => '/usr/share/keystone/keystone.wsgi',
-           'owner'   => 'keystone',
-           'group'   => 'keystone',
-           'mode'    => '0644'
-         )
-       when 'Ubuntu'
-         should contain_file('keystone_wsgi_admin').with(
-           'ensure'  => 'file',
-           'path'    => "/usr/lib/cgi-bin/keystone/admin",
-           'source'  => '/usr/share/keystone/wsgi.py',
-           'owner'   => 'keystone',
-           'group'   => 'keystone',
-           'mode'    => '0644'
-         )
-       end
+     it 'should keystone::wsgi::apache should configure keystone_wsgi_admin and  keystone_wsgi_main files' do
+       should contain_file('keystone_wsgi_admin')
+       should contain_file('keystone_wsgi_main')
      end
 
      it 'should not run keystone service' do
