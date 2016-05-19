@@ -71,6 +71,7 @@ describe manifest do
       parameters = {
           :password_auth  => 'yes',
           :listen_address => ['0.0.0.0'],
+          'accept_env'     => '# LANG LC_*',
       }
       is_expected.to contain_class('osnailyfacter::ssh').with parameters
     end
