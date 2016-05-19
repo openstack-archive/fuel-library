@@ -172,8 +172,6 @@ class openstack_tasks::swift::parts::proxy (
       part_power     => $ring_part_power,
       replicas       => $ring_replicas,
       min_part_hours => $ring_min_part_hours,
-      require        => Class['swift'],
-      before         => [Class['::swift::proxy']],
     }
 
     # sets up an rsync db that can be used to sync the ring DB
@@ -193,8 +191,7 @@ class openstack_tasks::swift::parts::proxy (
     }
 
     # resource ordering
-    Swift::Ringbuilder::Rebalance <||> -> Service['swift-proxy-server']
-    Swift::Ringbuilder::Rebalance <||> -> Swift::Storage::Generic <| |>
+    Swift::Ringbuilder::Rebalance <||> -> Service <| tag == swift-service |>
     Swift::Ringbuilder::Create<||> ->
     Ring_devices<||> ~>
     Swift::Ringbuilder::Rebalance <||>
