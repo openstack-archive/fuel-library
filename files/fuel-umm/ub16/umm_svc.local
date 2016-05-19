@@ -1,0 +1,47 @@
+# if necessary switching to umm. umm.service will remove all items
+# form systemd-job queue except units are listed in allowed_list.
+# allowed_list should have last empty string.
+
+allowed_list="basic.target
+umm.service
+umm-tr.service
+umm-run.service
+network.target
+network.service
+NetworkManager.service
+ssh.service
+"
+
+cancel_job(){
+
+    if ! echo  "$allowed_list" | grep -q "^${2}$" ; then
+        if  [ ! x"$1" = x"No" ] ; then
+            systemctl cancel $1 || true
+        fi
+    fi
+}
+
+umm-run(){
+#   systemctl list-jobs --no-legend >>/var/log/umm.log
+    [ -x /bin/plymouth ] && /bin/plymouth quit || true
+    sleep 10
+    systemctl list-jobs --no-legend | while read JI ; do
+        cancel_job $JI
+
+# Calling of cancel_job looks like
+#
+#    cancel_job  1 graphical.target  start waiting
+#
+# because we don't use " so we have 4 params not one
+
+    done
+    systemctl start --no-block getty@tty2.service
+}
+
+umm-off(){
+    systemctl isolate default.target
+}
+
+umm-skip(){
+    exit 0
+}

@@ -17,7 +17,7 @@ network.service
 cancel_job(){
 
     if ! echo  "$allowed_list" | grep -q "$2" ; then
-        if  [[ "$1" != "No" ]] ; then
+        if  [ ! x"$1" = x"No" ] ; then
             systemctl cancel $1 || true
         fi
     fi
@@ -25,7 +25,7 @@ cancel_job(){
 
 umm-run(){
 #    systemctl list-jobs >/var/log/umm.log
-    [ -x /bin/plymouth quit] && /bin/plymouth quit || true
+    [ -x /bin/plymouth ] && /bin/plymouth quit || true
     sleep 10
     systemctl list-jobs | while read JI ; do
         cancel_job $JI

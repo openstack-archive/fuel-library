@@ -20,4 +20,4 @@ else
     systemctl disable umm-tr.service
     rm -f /etc/grub.d/55_umm
 fi
-grub2-mkconfig >/boot/grub2/grub.cfg
+grub-mkconfig >/boot/grub/grub.cfg
