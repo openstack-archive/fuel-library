@@ -275,6 +275,7 @@ class openstack_tasks::openstack_controller::openstack_controller {
     fping_path                           => $fping_path,
     api_paste_config                     => '/etc/nova/api-paste.ini',
     default_floating_pool                => $default_floating_net,
+    enable_proxy_headers_parsing         => true,
     require                              => Package['nova-common'],
   }
 
