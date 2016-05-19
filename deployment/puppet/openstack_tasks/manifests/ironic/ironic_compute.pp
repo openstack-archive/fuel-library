@@ -69,7 +69,6 @@ class openstack_tasks::ironic::ironic_compute {
   }
 
   class { '::nova':
-      install_utilities                  => false,
       ensure_package                     => installed,
       database_connection                => $db_connection,
       rpc_backend                        => 'nova.openstack.common.rpc.impl_kombu',

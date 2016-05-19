@@ -198,7 +198,6 @@ describe manifest do
 
     it 'should configure nova with the basics' do
       should contain_class('nova').with(
-        :install_utilities      => false,
         :rpc_backend            => 'nova.openstack.common.rpc.impl_kombu',
         :rabbit_hosts           => rabbit_hosts,
         :rabbit_userid          => rabbit_hash['user'],
