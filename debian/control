@@ -46,7 +46,7 @@ Description: Fuel RabbitMQ fencing utilitites
 
 Package: fuel-umm
 Architecture: all
-Depends: ${misc:Depends}, ${shlibs:Depends}, upstart
+Depends: ${misc:Depends}, ${shlibs:Depends}
 Description: Unified maintenance mode
  Packet provide posibility to put operation system in the state when it has only
  critical set of working services which are needed for basic network and disk

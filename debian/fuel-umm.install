@@ -1,3 +1,4 @@
 files/fuel-umm/root/* /
 files/fuel-umm/ub14/* /usr/lib/umm/
 files/fuel-umm/upstart/* /etc/init/
+files/fuel-umm/systemd/* /lib/systemd/system/
