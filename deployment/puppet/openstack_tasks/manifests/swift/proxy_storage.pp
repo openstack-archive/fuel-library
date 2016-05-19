@@ -172,6 +172,5 @@ class openstack_tasks::swift::proxy_storage {
         log_facility                => 'LOG_SYSLOG',
       }
     }
-
   }
 }
