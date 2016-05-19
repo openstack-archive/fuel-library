@@ -346,7 +346,7 @@ class Puppet::Provider::L23_stored_config_ubuntu < Puppet::Provider::L23_stored_
         'destination' => d[0],
         'gateway' =>     d[1]
       }
-      rv[name][:metric] = metric if metric > 0
+      rv[name]['metric'] = metric if metric > 0
     end
     return rv
   end

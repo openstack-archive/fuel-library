@@ -18,7 +18,7 @@ describe Puppet::Type.type(:l23_stored_config).provider(:lnx_ubuntu) do
   let(:resources) do
     resources = {}
     input_data.each do |name, res|
-      resources.store name, Puppet::Type.type(:l23_stored_config).new(res)
+      resources.store(name, Puppet::Type.type(:l23_stored_config).new(res))
     end
     resources
   end

@@ -176,7 +176,6 @@ define l23network::l3::ifconfig (
       ipaddr                => $ipaddr_list,
       gateway               => $def_gateway,
       gateway_metric        => $gateway_metric,
-##    $other_nets           = undef,
 #     dns_nameservers       => $dns_nameservers,
 #     dns_search            => $dns_search_string,
 #     dns_domain            => $dns_domain_string,
