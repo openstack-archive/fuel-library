@@ -65,11 +65,6 @@ Puppet::Type.newtype(:l3_route) do
       end
     end
 
-    newproperty(:interface) do
-      newvalues(/^[a-z_][0-9a-z\.\-\_]*[0-9a-z]$/)
-      desc "The interface name"
-    end
-
     newproperty(:vendor_specific) do
       desc "Hash of vendor specific properties"
       #defaultto {}  # no default value should be!!!
@@ -101,8 +96,5 @@ Puppet::Type.newtype(:l3_route) do
       desc "RO field, type of route"
     end
 
-    autorequire(:l2_port) do
-      [self[:interface]]
-    end
 end
 # vim: set ts=2 sw=2 et :
