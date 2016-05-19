@@ -609,7 +609,7 @@ function backup {
   #Sets backup_dir
   parse_backup_dir $1
   [[ $use_rsync -eq 1 ]] && ssh_copy_id
-  mkdir -p $SYSTEM_DIRS $backup_dir
+  mkdir -p $SYSTEM_DIRS $BACKUP_ROOT $backup_dir
   verify_disk_space "backup" "$fullbackup"
   if check_nailgun_tasks; then
     echo "There are currently running Fuel tasks. Please wait for them to \
@@ -665,7 +665,7 @@ function parse_backup_dir {
     backup_dir="${BACKUP_ROOT}/backup_${backup_id}"
     rsync_dest="$1"
   else
-    echo "Unrecognized backup destination. Valid options include:" 1>&2
+    echo "Unrecognized backup destination or path does not exist. Valid options include:" 1>&2
     echo "  (blank)           - backup to $BACKUP_ROOT" 1>&2
     echo "  /path/to/backup   - local backup directory" 1>&2
     echo "  user@server:/path - backup using rsync to server" 1>&2
@@ -983,17 +983,19 @@ function verify_disk_space {
     echo "Backup or restore operation not specified." 1>&2
     exit 1
   fi
-  fullbackup=1
-  if [[ "$2" != "$fullbackup" ]]; then
+  if [[ -z "$backup_dir" || "$use_sync" == "1" ]]; then
+    local backup_dir=$BACKUP_ROOT
+  fi
+  if [[ "$2" != 1 ]]; then
     #2gb free space required for light backup
     (( required  = 2 * 1024 * 1024 ))
-    spaceerror="Insufficient disk space to perform $1. At least 2gb must be free on ${BACKUP_ROOT} partition."
+    spaceerror="Insufficient disk space to perform $1. At least 2gb must be free on ${backup_dir} partition."
   else
      #11gb free space required to backup and restore
      (( required = 11 * 1024 * 1024 ))
-    spaceerror="Insufficient disk space to perform $1. At least 11gb must be free on ${BACKUP_ROOT} partition."
+    spaceerror="Insufficient disk space to perform $1. At least 11gb must be free on ${backup_dir} partition."
   fi
-  avail=$(df --output=avail ${BACKUP_ROOT} | tail -1)
+  avail=$(df --output=avail ${backup_dir} | tail -1)
   if (( avail < required )); then
     echo "$spaceerror" 1>&2
     exit 1
