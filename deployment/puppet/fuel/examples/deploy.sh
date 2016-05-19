@@ -23,6 +23,7 @@ rabbitmq
 mcollective
 astute
 keystone
+keystone_token_disable
 nailgun
 ostf
 nginx_repo
