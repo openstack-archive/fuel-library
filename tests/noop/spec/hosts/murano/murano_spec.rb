@@ -201,37 +201,7 @@ describe manifest do
       it { should contain_concat__fragment('murano_dashboard_section').with_content(/METADATA_CACHE_DIR = '\/var\/cache\/murano-dashboard'/)}
       it { should_not contain_exec('django_syncdb') }
 
-      enable = (Noop.hiera_structure('murano/enabled') and Noop.hiera('role') == 'primary-controller')
-
-      context 'on primary controller', :if => enable do
-        it 'should declare murano::application resource correctly' do
-          should contain_murano__application('io.murano')
-        end
-
-        it 'should have explicit ordering between LB classes and particular actions' do
-          expect(graph).to ensure_transitive_dependency("Haproxy_backend_status[keystone-public]",
-                                                      "Haproxy_backend_status[murano-api]")
-          expect(graph).to ensure_transitive_dependency("Haproxy_backend_status[keystone-admin]",
-                                                      "Haproxy_backend_status[murano-api]")
-          expect(graph).to ensure_transitive_dependency("Haproxy_backend_status[murano-api]",
-                                                      "Murano::Application[io.murano]")
-        end
        # Test for non-haproxy backend
-        it {
-          if Noop.hiera('external_lb', false)
-            url = admin_url
-            provider = 'http'
-          else
-            url = 'http://' + service_endpoint + ':10000/;csv'
-            provider = Puppet::Type.type(:haproxy_backend_status).defaultprovider.name
-          end
-          should contain_haproxy_backend_status('keystone-admin').with(
-            :url      => url,
-            :provider => provider
-          )
-        }
-      end
-
       it {
         if Noop.hiera('external_lb', false)
           url = murano_url
