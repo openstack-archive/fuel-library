@@ -43,7 +43,7 @@ class openstack_tasks::openstack_network::compute_nova {
 
     exec { 'destroy_libvirt_default_network':
       command => 'virsh net-destroy default',
-      onlyif  => 'virsh net-info default | grep -qE "Active:.* yes"',
+      onlyif  => "virsh net-list | grep -qE '^\s*default\s'",
       path    => [ '/bin', '/sbin', '/usr/bin', '/usr/sbin' ],
       tries   => 3,
       require => Service['libvirt'],
@@ -51,13 +51,14 @@ class openstack_tasks::openstack_network::compute_nova {
 
     exec { 'undefine_libvirt_default_network':
       command => 'virsh net-undefine default',
-      onlyif  => 'virsh net-info default 2>&1 > /dev/null',
+      onlyif  => "virsh net-list --all | grep -qE '^\s*default\s'",
       path    => [ '/bin', '/sbin', '/usr/bin', '/usr/sbin' ],
       tries   => 3,
       require => Exec['destroy_libvirt_default_network'],
     }
 
     Service['libvirt'] ~> Exec['destroy_libvirt_default_network']
+    Service['libvirt'] ~> Exec['undefine_libvirt_default_network']
 
     # script called by qemu needs to manipulate the tap device
     file_line { 'clear_emulator_capabilities':
