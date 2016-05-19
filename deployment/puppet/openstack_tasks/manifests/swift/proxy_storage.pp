@@ -138,6 +138,7 @@ class openstack_tasks::swift::proxy_storage {
         auth_version   =>  '2.0',
       }
 
+      # here is cycle dependency because of: https://review.openstack.org/#/c/317700/5/manifests/dispersion.pp@92
       Class['openstack::swift::proxy'] -> Class['swift::dispersion']
       Service<| tag == 'swift-service' |> -> Class['swift::dispersion']
     }
@@ -235,6 +236,7 @@ class openstack_tasks::swift::proxy_storage {
       'tempurl',
       'ratelimit',
       'formpost',
+      # upstream patch mistake: https://review.openstack.org/#/c/317700/5/manifests/proxy.pp@207
       'swift3',
       's3token',
       'authtoken',
@@ -391,8 +393,6 @@ class openstack_tasks::swift::proxy_storage {
         part_power     => $ring_part_power,
         replicas       => $ring_replicas,
         min_part_hours => $ring_min_part_hours,
-        require        => Class['swift'],
-        before         => [Class['::swift::proxy']],
       }
 
       # sets up an rsync db that can be used to sync the ring DB
@@ -412,8 +412,7 @@ class openstack_tasks::swift::proxy_storage {
       }
 
       # resource ordering
-      Swift::Ringbuilder::Rebalance <||> -> Service['swift-proxy-server']
-      Swift::Ringbuilder::Rebalance <||> -> Swift::Storage::Generic <| |>
+      Swift::Ringbuilder::Rebalance <||> -> Service <| tag == swift-service |>
       Swift::Ringbuilder::Create<||> ->
       Ring_devices<||> ~>
       Swift::Ringbuilder::Rebalance <||>
