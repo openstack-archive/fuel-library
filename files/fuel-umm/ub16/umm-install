@@ -1,0 +1,23 @@
+#!/bin/bash
+
+if [[ "$1" == "add" ]] ; then
+
+    systemctl enable umm-br.service
+    systemctl enable umm-run.service
+    systemctl enable umm.service
+    systemctl enable umm-tr.service
+
+    cat >/etc/grub.d/55_umm << "EOF"
+if [ -f /etc/grub.d/10_linux ] ; then
+        /etc/grub.d/10_linux | sed -n -e '/menuentry.*{/,/}/p' |  sed -e "s/menuentry\s*'[^']*' /menuentry 'Unified maintenance mode (UMM)' /" -e 's/\(^\s*linux\s.*\)/\1 umm/'  -e '/}/,$d'; echo '}'
+fi
+EOF
+    chmod +x /etc/grub.d/55_umm
+else
+    systemctl disable umm-br.service
+    systemctl disable umm-run.service
+    systemctl disable umm.service
+    systemctl disable umm-tr.service
+    rm -f /etc/grub.d/55_umm
+fi
+grub-mkconfig >/boot/grub/grub.cfg

@@ -5,7 +5,7 @@ Requires=local-fs.target umm.service
 
 [Service]
 ExecStart=/usr/lib/umm/umm_svc timer
-Type=oneshot
+Type=simple
 TimeoutSec=0
 RemainAfterExit=yes
 
