@@ -25,6 +25,7 @@ class osnailyfacter::openstack_haproxy::openstack_haproxy_keystone {
     $ipaddresses          = hiera_array('keystone_ipaddresses', values($keystone_address_map))
     $public_virtual_ip    = pick(hiera('public_service_endpoint', undef), hiera('public_vip'))
     $internal_virtual_ip  = pick(hiera('service_endpoint', undef), hiera('management_vip'))
+    $keystone_federation  = pick($keystone_hash['federation'], false)
 
     # configure keystone ha proxy
     class { '::openstack::ha::keystone':
@@ -38,6 +39,7 @@ class osnailyfacter::openstack_haproxy::openstack_haproxy_keystone {
       internal_ssl_path   => $internal_ssl_path,
       admin_ssl           => $admin_ssl,
       admin_ssl_path      => $admin_ssl_path,
+      federation_enabled  => $keystone_federation,
     }
   }
 
