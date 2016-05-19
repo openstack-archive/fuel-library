@@ -1,17 +1,11 @@
 allowed_list="basic.target
-firewalld.service
-microcode.service
 umm.service
 umm-tr.service
 umm-run.service
 network.target
-NetworkManager.service
-sshd.service
-sshd-keygen.service
-systemd-readahead-done.timer
-systemd-update-utmp-runlevel.service
-dbus.service
 network.service
+NetworkManager.service
+ssh.service
 "
 
 cancel_job(){
@@ -24,10 +18,10 @@ cancel_job(){
 }
 
 umm-run(){
-#    systemctl list-jobs >/var/log/umm.log
+#    systemctl list-jobs --no-legend >/var/log/umm.log
     [ -x /bin/plymouth ] && /bin/plymouth quit || true
     sleep 10
-    systemctl list-jobs | while read JI ; do
+    systemctl list-jobs --no-legend | while read JI ; do
         cancel_job $JI
     done
     systemctl start --no-block getty@tty2.service
