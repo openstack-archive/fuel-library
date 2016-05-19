@@ -8,7 +8,7 @@ class osnailyfacter::astute::service_token_off {
 
   $keystone_params_hash = hiera_hash('keystone', {})
 
-  if $keystone_params_hash['service_token_off'] {
+  if str2bool($keystone_params_hash['service_token_off']) {
 
     include ::keystone::params
     include ::tweaks::apache_wrappers
