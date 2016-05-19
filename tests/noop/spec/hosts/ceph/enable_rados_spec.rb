@@ -47,7 +47,7 @@ describe manifest do
         management_vip = Noop.hiera('management_vip', '')
         rgw_protocol = Noop.puppet_function 'get_ssl_property', ssl_hash, {}, 'radosgw', 'internal', 'protocol', 'http'
         rgw_address = Noop.puppet_function 'get_ssl_property', ssl_hash, {}, 'radosgw', 'internal', 'hostname', [service_endpoint, management_vip]
-        rgw_url = "#{rgw_protocol}://#{rgw_address}:8080"
+        rgw_url = "#{rgw_protocol}://#{rgw_address}:8080/info"
 
         should contain_haproxy_backend_status('object-storage').with(
           :url      => rgw_url,
