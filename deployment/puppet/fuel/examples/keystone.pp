@@ -2,6 +2,8 @@ notice('MODULAR: keystone.pp')
 
 $fuel_settings = parseyaml($astute_settings_yaml)
 
+Class['fuel::keystone'] -> Class['osnailyfacter::astute::service_token_off']
+
 class { 'fuel::keystone':
   admin_token       => $::fuel_settings['keystone']['admin_token'],
   host              => $::fuel_settings['ADMIN_NETWORK']['ipaddress'],
@@ -28,3 +30,5 @@ fuel::systemd {['openstack-keystone']:
   config_name => 'restart.conf',
   require => Class["fuel::keystone"],
 }
+
+class { 'osnailyfacter::astute::service_token_off': }
