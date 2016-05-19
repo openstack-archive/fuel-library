@@ -303,7 +303,7 @@ class openstack_tasks::glance::glance {
       }
     }
     'vmware': {
-      if ! empty($glance_vcenter_ca_file['content']) {
+      if ! empty($glance_vcenter_ca_file) {
         $vcenter_ca_filename = $glance_vcenter_ca_file['name']
         $vcenter_ca_filepath = "/etc/glance/${glance_vcenter_ca_filename}"
 
