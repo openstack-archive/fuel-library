@@ -245,13 +245,12 @@ class openstack_tasks::glance::glance {
   }
 
   class { '::glance::notify::rabbitmq':
-    rabbit_heartbeat_timeout_threshold => 0,
-    rabbit_notification_exchange       => 'glance',
-    rabbit_notification_topic          => 'notifications',
-    rabbit_password                    => $rabbit_password,
-    rabbit_userid                      => $rabbit_userid,
-    rabbit_hosts                       => $rabbit_hosts,
-    notification_driver                => $ceilometer_hash['notification_driver'],
+    rabbit_notification_exchange => 'glance',
+    rabbit_notification_topic    => 'notifications',
+    rabbit_password              => $rabbit_password,
+    rabbit_userid                => $rabbit_userid,
+    rabbit_hosts                 => $rabbit_hosts,
+    notification_driver          => $ceilometer_hash['notification_driver'],
   }
 
   # syslog additional settings default/use_syslog_rfc_format = true
