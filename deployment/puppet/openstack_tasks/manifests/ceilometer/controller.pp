@@ -144,6 +144,7 @@ class openstack_tasks::ceilometer::controller {
       auth_region      => $ceilometer_region,
       auth_tenant_name => $ceilometer_hash['tenant'],
       auth_user        => $ceilometer_hash['user'],
+      auth_type        => 'password',
     }
 
     class { '::ceilometer::client': }

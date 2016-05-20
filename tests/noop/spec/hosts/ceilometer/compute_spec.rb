@@ -52,6 +52,10 @@ describe manifest do
         should contain_ceilometer_config('service_credentials/auth_url').with(:value => keystone_auth_uri)
       end
 
+      it 'should configure auth type' do
+        should contain_ceilometer_config('service_credentials/auth_type').with(:value => 'password')
+      end
+
       it 'contains class ceilometer::agent::polling' do
         should contain_class('ceilometer::agent::polling').with(
           'central_namespace' => 'false',

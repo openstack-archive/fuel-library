@@ -67,11 +67,10 @@ class openstack_tasks::ceilometer::compute {
       auth_tenant_name   => $ceilometer_hash['tenant'],
       auth_user          => $ceilometer_hash['user'],
       auth_endpoint_type => 'internalURL',
+      auth_type          => 'password',
     }
 
     class { '::ceilometer::client': }
-
-
 
     if ($use_syslog) {
       ceilometer_config {
