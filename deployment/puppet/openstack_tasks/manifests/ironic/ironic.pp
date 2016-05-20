@@ -100,4 +100,11 @@ class openstack_tasks::ironic::ironic {
       Ironic_config<| title == 'oslo_messaging_rabbit/kombu_compression' |> { value => $kombu_compression }
     }
   }
+
+  if !defined(Ironic_config['oslo_messaging_rabbit/heartbeat_timeout_threshold']) {
+    ironic_config { 'oslo_messaging_rabbit/heartbeat_timeout_threshold': value => 60; }
+  }
+  if !defined(Ironic_config['oslo_messaging_rabbit/heartbeat_rate']) {
+    ironic_config { 'oslo_messaging_rabbit/heartbeat_rate': value => 2; }
+  }
 }

@@ -97,18 +97,19 @@ class openstack_tasks::aodh::aodh {
   #################################################################
 
   class { '::aodh':
-    debug                      => $debug,
-    verbose                    => $verbose,
-    notification_topics        => $notification_topics,
-    rpc_backend                => $rpc_backend,
-    rabbit_userid              => $rabbit_userid,
-    rabbit_password            => $rabbit_password,
-    rabbit_hosts               => $rabbit_hosts,
-    rabbit_port                => $rabbit_port,
-    rabbit_virtual_host        => $rabbit_virtual_host,
-    rabbit_ha_queues           => $rabbit_ha_queues,
-    database_connection        => $database_connection,
-    alarm_history_time_to_live => $alarm_history_ttl,
+    debug                              => $debug,
+    verbose                            => $verbose,
+    notification_topics                => $notification_topics,
+    rpc_backend                        => $rpc_backend,
+    rabbit_userid                      => $rabbit_userid,
+    rabbit_password                    => $rabbit_password,
+    rabbit_hosts                       => $rabbit_hosts,
+    rabbit_port                        => $rabbit_port,
+    rabbit_virtual_host                => $rabbit_virtual_host,
+    rabbit_ha_queues                   => $rabbit_ha_queues,
+    database_connection                => $database_connection,
+    alarm_history_time_to_live         => $alarm_history_ttl,
+    rabbit_heartbeat_timeout_threshold => 60,
   }
 
   class { '::aodh::auth':

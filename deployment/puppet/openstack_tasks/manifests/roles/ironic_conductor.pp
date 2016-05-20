@@ -102,6 +102,13 @@ class openstack_tasks::roles::ironic_conductor {
     'conductor/api_url':                    value => "http://${baremetal_vip}:6385";
   }
 
+  if !defined(Ironic_config['oslo_messaging_rabbit/heartbeat_timeout_threshold']) {
+    ironic_config { 'oslo_messaging_rabbit/heartbeat_timeout_threshold': value => 60; }
+  }
+  if !defined(Ironic_config['oslo_messaging_rabbit/heartbeat_rate']) {
+    ironic_config { 'oslo_messaging_rabbit/heartbeat_rate': value => 2; }
+  }
+
   # TODO (iberezovskiy): remove this workaround in N when ironic module
   # will be switched to puppet-oslo usage for rabbit configuration
   if $kombu_compression in ['gzip','bz2'] {

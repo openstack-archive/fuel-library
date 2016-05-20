@@ -175,23 +175,24 @@ class openstack_tasks::roles::cinder {
   }
 
   class { '::cinder':
-    rpc_backend            => $rpc_backend,
-    rabbit_hosts           => split(hiera('amqp_hosts',''), ','),
-    rabbit_userid          => $rabbit_hash['user'],
-    rabbit_password        => $rabbit_hash['password'],
-    rabbit_ha_queues       => hiera('rabbit_ha_queues', false),
-    database_connection    => $db_connection,
-    verbose                => $verbose,
-    use_syslog             => $use_syslog,
-    use_stderr             => $use_stderr,
-    log_facility           => hiera('syslog_log_facility_cinder', 'LOG_LOCAL3'),
-    debug                  => $debug,
-    database_idle_timeout  => $idle_timeout,
-    database_max_pool_size => $max_pool_size,
-    database_max_retries   => $max_retries,
-    database_max_overflow  => $max_overflow,
-    control_exchange       => 'cinder',
-    host                   => hiera('fqdn')
+    rpc_backend                        => $rpc_backend,
+    rabbit_hosts                       => split(hiera('amqp_hosts',''), ','),
+    rabbit_userid                      => $rabbit_hash['user'],
+    rabbit_password                    => $rabbit_hash['password'],
+    rabbit_ha_queues                   => hiera('rabbit_ha_queues', false),
+    database_connection                => $db_connection,
+    verbose                            => $verbose,
+    use_syslog                         => $use_syslog,
+    use_stderr                         => $use_stderr,
+    log_facility                       => hiera('syslog_log_facility_cinder', 'LOG_LOCAL3'),
+    debug                              => $debug,
+    database_idle_timeout              => $idle_timeout,
+    database_max_pool_size             => $max_pool_size,
+    database_max_retries               => $max_retries,
+    database_max_overflow              => $max_overflow,
+    control_exchange                   => 'cinder',
+    host                               => hiera('fqdn')
+    rabbit_heartbeat_timeout_threshold => 60,
   }
 
   if $manage_volumes {

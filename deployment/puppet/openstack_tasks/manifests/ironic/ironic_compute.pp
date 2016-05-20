@@ -69,25 +69,26 @@ class openstack_tasks::ironic::ironic_compute {
   }
 
   class { '::nova':
-      install_utilities      => false,
-      ensure_package         => installed,
-      database_connection    => $db_connection,
-      rpc_backend            => 'nova.openstack.common.rpc.impl_kombu',
-      #FIXME(bogdando) we have to split amqp_hosts until all modules synced
-      rabbit_hosts           => split($amqp_hosts, ','),
-      rabbit_userid          => $rabbit_hash['user'],
-      rabbit_password        => $rabbit_hash['password'],
-      image_service          => 'nova.image.glance.GlanceImageService',
-      glance_api_servers     => $glance_api_servers,
-      verbose                => $verbose,
-      debug                  => $debug,
-      use_syslog             => $use_syslog,
-      log_facility           => $syslog_log_facility_nova,
-      state_path             => $nova_hash['state_path'],
-      report_interval        => $nova_report_interval,
-      service_down_time      => $nova_service_down_time,
-      notify_on_state_change => $notify_on_state_change,
-      memcached_servers      => $memcached_addresses,
+    install_utilities                  => false,
+    ensure_package                     => installed,
+    database_connection                => $db_connection,
+    rpc_backend                        => 'nova.openstack.common.rpc.impl_kombu',
+    #FIXME(bogdando) we have to split amqp_hosts until all modules synced
+    rabbit_hosts                       => split($amqp_hosts, ','),
+    rabbit_userid                      => $rabbit_hash['user'],
+    rabbit_password                    => $rabbit_hash['password'],
+    image_service                      => 'nova.image.glance.GlanceImageService',
+    glance_api_servers                 => $glance_api_servers,
+    verbose                            => $verbose,
+    debug                              => $debug,
+    use_syslog                         => $use_syslog,
+    log_facility                       => $syslog_log_facility_nova,
+    state_path                         => $nova_hash['state_path'],
+    report_interval                    => $nova_report_interval,
+    service_down_time                  => $nova_service_down_time,
+    notify_on_state_change             => $notify_on_state_change,
+    memcached_servers                  => $memcached_addresses,
+    rabbit_heartbeat_timeout_threshold => 60,
   }
 
   class { '::nova::compute':
@@ -148,5 +149,13 @@ class openstack_tasks::ironic::ironic_compute {
     content => "[DEFAULT]\nhost=ironic-compute",
     require => Package['nova-compute'],
   } ~> Service['p_nova_compute_ironic']
+
+  if !defined(Ironic_config['oslo_messaging_rabbit/heartbeat_timeout_threshold']) {
+    ironic_config { 'oslo_messaging_rabbit/heartbeat_timeout_threshold': value => 60; }
+  }
+  if !defined(Ironic_config['oslo_messaging_rabbit/heartbeat_rate']) {
+    ironic_config { 'oslo_messaging_rabbit/heartbeat_rate': value => 2; }
+  }
+
 
 }
