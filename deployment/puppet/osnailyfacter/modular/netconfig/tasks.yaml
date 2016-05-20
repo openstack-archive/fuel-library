@@ -32,7 +32,8 @@
       $.get('set_rps'), $.get('run_ping_checker'),
       $.network_metadata.vips.get('management'),
       $.network_scheme.endpoints.values().where(
-        $.get('gateway') != null).gateway)
+        $.get('gateway') != null).gateway) and
+      not (('controller' in $.roles) or ('primary-controller' in $.roles))
   parameters:
     puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/netconfig/netconfig.pp
     puppet_modules: /etc/puppet/modules
