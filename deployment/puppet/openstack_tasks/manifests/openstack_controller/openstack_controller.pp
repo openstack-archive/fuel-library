@@ -180,7 +180,6 @@ class openstack_tasks::openstack_controller::openstack_controller {
   #################################################################
 
   class { '::nova':
-    install_utilities                   => false,
     database_connection                 => $db_connection,
     api_database_connection             => $api_db_connection,
     rpc_backend                         => $rpc_backend,
