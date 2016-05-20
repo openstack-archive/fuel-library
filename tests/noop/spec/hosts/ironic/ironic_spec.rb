@@ -86,6 +86,10 @@ if ironic_enabled
         end
       end
 
+      it 'should enable RabbitMQ heartbeats' do
+        should contain_ironic_config('oslo_messaging_rabbit/heartbeat_timeout_threshold').with(:value => '<SERVICE DEFAULT>')
+      end
+
     end # end of shared_examples
     test_ubuntu_and_centos manifest
   end

@@ -161,6 +161,10 @@ describe manifest do
           should contain_ceilometer_config('oslo_messaging_rabbit/kombu_compression').with(:value => kombu_compression)
         end
       end
+
+      it 'should enable RabbitMQ heartbeats' do
+        should contain_ceilometer_config('oslo_messaging_rabbit/heartbeat_timeout_threshold').with(:value => '<SERVICE DEFAULT>')
+      end
     end # end of ceilometer enabled
   end # end of shared_examples
 
