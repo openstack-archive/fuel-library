@@ -8,7 +8,8 @@ class osnailyfacter::netconfig::netconfig {
   $fw_admin_role          = 'fw-admin'
   $public_br              = 'br-ex'
 
-  if has_key($loaded_network_scheme['endpoints'], $public_br)
+  if (has_key($loaded_network_scheme['endpoints'], $public_br)
+      or !is_ip_address($management_vrouter_vip))
      # TODO: (alex_didenko) remove roles_include condition when role based
      # deployment is deprecated. For now we need this because mongo roles
      # are deployed before controllers, so there are no VIPs configured yet
