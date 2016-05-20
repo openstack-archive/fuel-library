@@ -265,24 +265,23 @@ class openstack_tasks::roles::compute {
   $notify_on_state_change = 'vm_and_task_state'
 
   class { '::nova':
-    rpc_backend                        => $queue_provider,
+    rpc_backend            => $queue_provider,
     #FIXME(bogdando) we have to split amqp_hosts until all modules synced
-    rabbit_hosts                       => split(hiera('amqp_hosts',''), ','),
-    rabbit_userid                      => pick($rabbit_hash['user'], 'nova'),
-    rabbit_password                    => $rabbit_hash['password'],
-    rabbit_heartbeat_timeout_threshold => 0,
-    glance_api_servers                 => $glance_api_servers,
-    debug                              => $debug,
-    use_syslog                         => $use_syslog,
-    use_stderr                         => $use_stderr,
-    log_facility                       => $syslog_log_facility,
-    state_path                         => $nova_hash_real['state_path'],
-    report_interval                    => $nova_report_interval,
-    service_down_time                  => $nova_service_down_time,
-    notify_on_state_change             => $notify_on_state_change,
-    notification_driver                => $ceilometer_hash['notification_driver'],
-    memcached_servers                  => $memcached_addresses,
-    cinder_catalog_info                => pick($nova_hash_real['cinder_catalog_info'], 'volumev2:cinderv2:internalURL'),
+    rabbit_hosts           => split(hiera('amqp_hosts',''), ','),
+    rabbit_userid          => pick($rabbit_hash['user'], 'nova'),
+    rabbit_password        => $rabbit_hash['password'],
+    glance_api_servers     => $glance_api_servers,
+    debug                  => $debug,
+    use_syslog             => $use_syslog,
+    use_stderr             => $use_stderr,
+    log_facility           => $syslog_log_facility,
+    state_path             => $nova_hash_real['state_path'],
+    report_interval        => $nova_report_interval,
+    service_down_time      => $nova_service_down_time,
+    notify_on_state_change => $notify_on_state_change,
+    notification_driver    => $ceilometer_hash['notification_driver'],
+    memcached_servers      => $memcached_addresses,
+    cinder_catalog_info    => pick($nova_hash_real['cinder_catalog_info'], 'volumev2:cinderv2:internalURL'),
   }
 
   class { '::nova::availability_zone':
