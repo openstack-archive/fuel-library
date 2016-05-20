@@ -19,7 +19,7 @@ class openstack_tasks::roles::ironic_conductor {
   $amqp_hosts                 = hiera('amqp_hosts')
   $rabbit_hosts               = split($amqp_hosts, ',')
   $debug                      = hiera('debug', false)
-  $verbose                    = hiera('verbose', true)
+  $verbose                    = hiera('verbose', undef)
   $use_syslog                 = hiera('use_syslog', true)
   $syslog_log_facility_ironic = hiera('syslog_log_facility_ironic', 'LOG_USER')
   $rabbit_hash                = hiera_hash('rabbit')
@@ -61,6 +61,10 @@ class openstack_tasks::roles::ironic_conductor {
 
   package { 'ironic-fa-deploy':
     ensure => 'present',
+  }
+
+  if $verbose {
+    warning('The $verbose is deprecated and will be removed in a future release')
   }
 
   class { '::ironic':
