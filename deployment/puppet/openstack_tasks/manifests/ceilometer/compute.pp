@@ -44,7 +44,6 @@ class openstack_tasks::ceilometer::compute {
   if ($ceilometer_enabled) {
 
     class { '::ceilometer':
-      rabbit_heartbeat_timeout_threshold => 0,
       http_timeout                       => $ceilometer_hash['http_timeout'],
       event_time_to_live                 => $ceilometer_hash['event_time_to_live'],
       metering_time_to_live              => $ceilometer_hash['metering_time_to_live'],

@@ -189,7 +189,6 @@ describe manifest do
       it 'should properly configure rabbit queue' do
         should contain_ceilometer_config('DEFAULT/rpc_backend').with(:value => 'rabbit')
         should contain_ceilometer_config('oslo_messaging_rabbit/rabbit_virtual_host').with(:value => '/')
-        should contain_ceilometer_config('oslo_messaging_rabbit/heartbeat_timeout_threshold').with(:value => '0')
         should contain_ceilometer_config('oslo_messaging_rabbit/rabbit_use_ssl').with(:value => 'false')
       end
 

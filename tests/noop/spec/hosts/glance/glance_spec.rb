@@ -234,8 +234,6 @@ describe manifest do
         should contain_glance_api_config('DEFAULT/rpc_backend').with(:value => 'rabbit')
         should contain_glance_registry_config('DEFAULT/rpc_backend').with(:value => 'rabbit')
 
-        should contain_glance_api_config('oslo_messaging_rabbit/heartbeat_timeout_threshold').with(:value => '0')
-        should contain_glance_registry_config('oslo_messaging_rabbit/heartbeat_timeout_threshold').with(:value => '0')
         should contain_glance_api_config('oslo_messaging_rabbit/default_notification_exchange').with(:value => 'glance')
         should contain_glance_registry_config('oslo_messaging_rabbit/default_notification_exchange').with(:value => 'glance')
         should contain_glance_api_config('oslo_messaging_notifications/topics').with(:value => 'notifications')

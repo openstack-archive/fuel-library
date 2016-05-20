@@ -77,7 +77,6 @@ class openstack_tasks::ironic::ironic_compute {
       rabbit_hosts                       => split($amqp_hosts, ','),
       rabbit_userid                      => $rabbit_hash['user'],
       rabbit_password                    => $rabbit_hash['password'],
-      rabbit_heartbeat_timeout_threshold => 0,
       image_service                      => 'nova.image.glance.GlanceImageService',
       glance_api_servers                 => $glance_api_servers,
       verbose                            => $verbose,

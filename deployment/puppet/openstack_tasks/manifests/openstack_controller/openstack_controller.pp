@@ -188,7 +188,6 @@ class openstack_tasks::openstack_controller::openstack_controller {
     rabbit_hosts                        => split($amqp_hosts, ','),
     rabbit_userid                       => $amqp_user,
     rabbit_password                     => $amqp_password,
-    rabbit_heartbeat_timeout_threshold => 0,
     image_service                       => 'nova.image.glance.GlanceImageService',
     glance_api_servers                  => $glance_api_servers,
     debug                               => $debug,

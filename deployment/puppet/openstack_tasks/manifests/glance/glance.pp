@@ -245,7 +245,6 @@ class openstack_tasks::glance::glance {
   }
 
   class { '::glance::notify::rabbitmq':
-    rabbit_heartbeat_timeout_threshold => 0,
     rabbit_notification_exchange       => 'glance',
     rabbit_notification_topic          => 'notifications',
     rabbit_password                    => $rabbit_password,
