@@ -230,6 +230,10 @@ describe manifest do
         should contain_glance_glare_config('oslo_messaging_rabbit/kombu_compression').with(:value => kombu_compression)
       end
     end
+    it 'should enable RabbitMQ heartbeats' do
+      should contain_glance_api_config('oslo_messaging_rabbit/heartbeat_timeout_threshold').with(:value => '<SERVICE DEFAULT>')
+      should contain_glance_registry_config('oslo_messaging_rabbit/heartbeat_timeout_threshold').with(:value => '<SERVICE DEFAULT>')
+    end
   end
 
   test_ubuntu_and_centos manifest

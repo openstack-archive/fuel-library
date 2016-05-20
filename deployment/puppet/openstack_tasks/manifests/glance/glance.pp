@@ -245,10 +245,11 @@ class openstack_tasks::glance::glance {
   }
 
   class { '::glance::notify::rabbitmq':
-    rabbit_password       => $rabbit_password,
-    rabbit_userid         => $rabbit_userid,
-    rabbit_hosts          => $rabbit_hosts,
-    notification_driver   => $ceilometer_hash['notification_driver'],
+    rabbit_password                    => $rabbit_password,
+    rabbit_userid                      => $rabbit_userid,
+    rabbit_hosts                       => $rabbit_hosts,
+    notification_driver                => $ceilometer_hash['notification_driver'],
+    rabbit_heartbeat_timeout_threshold => $::os_service_default,
   }
 
   # syslog additional settings default/use_syslog_rfc_format = true
@@ -364,4 +365,12 @@ class openstack_tasks::glance::glance {
       Glance_glare_config<| title == 'oslo_messaging_rabbit/kombu_compression' |> { value => $kombu_compression }
     }
   }
+
+  if !defined(Glance_registry_config['oslo_messaging_rabbit/heartbeat_timeout_threshold']) {
+    glance_registry_config { 'oslo_messaging_rabbit/heartbeat_timeout_threshold': value => $::os_service_default; }
+  }
+  if !defined(Glance_registry_config['oslo_messaging_rabbit/heartbeat_rate']) {
+    glance_registry_config { 'oslo_messaging_rabbit/heartbeat_rate': value => $::os_service_default; }
+  }
+
 }
