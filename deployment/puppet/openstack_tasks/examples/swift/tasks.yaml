@@ -1,7 +1,7 @@
-- id: swift-proxy_storage
+- id: primary-swift-proxy_storage
   type: puppet
   version: 2.1.0
-  groups: [primary-controller, controller]
+  groups: [primary-controller]
   required_for: [deploy_end, controller_remaining_tasks]
   requires: [openstack-controller, primary-rabbitmq, rabbitmq, memcached]
   condition:
@@ -21,16 +21,34 @@
         $.get('memcache_server_port'), $.ceilometer.enabled, $.mp, $.get('swift_partition'), $.get('deploy_swift_storage')))
   cross-depends:
     - name: /(primary-)?rabbitmq/
-      role: self
     - name: /glance/
-      role: self
     - name: swift-keystone
     - name: memcached
-      role: self
-    - name: /(primary-)?swift-proxy/
-      role: primary-controller
     - name: ceilometer-controller
-      role: self
+  parameters:
+    puppet_manifest: /etc/puppet/modules/openstack_tasks/examples/swift/proxy_storage.pp
+    puppet_modules: /etc/puppet/modules
+    timeout: 3600
+  test_pre:
+    cmd: ruby /etc/puppet/modules/openstack_tasks/examples/swift/swift_pre.rb
+  test_post:
+    cmd: ruby /etc/puppet/modules/openstack_tasks/examples/swift/swift_post.rb
+
+- id: swift-proxy_storage
+  type: puppet
+  version: 2.1.0
+  groups: [controller]
+  required_for: [deploy_end, controller_remaining_tasks]
+  requires: [openstack-controller, primary-rabbitmq, rabbitmq, memcached]
+  condition:
+    yaql_exp: *swift_enabled
+  cross-depends:
+    - name: /(primary-)?rabbitmq/
+    - name: primary-swift-proxy_storage
+    - name: /glance/
+    - name: swift-keystone
+    - name: memcached
+    - name: ceilometer-controller
   parameters:
     puppet_manifest: /etc/puppet/modules/openstack_tasks/examples/swift/proxy_storage.pp
     puppet_modules: /etc/puppet/modules
