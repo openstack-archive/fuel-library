@@ -180,5 +180,5 @@
   parameters:
     puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/ceph/updatedb.pp
     puppet_modules: /etc/puppet/modules
-    timeout: 60
+    timeout: 120
     cwd: /
