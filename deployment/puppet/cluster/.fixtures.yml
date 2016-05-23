@@ -13,4 +13,5 @@ fixtures:
     rabbitmq: "#{source_dir}/../rabbitmq"
     apt: "#{source_dir}/../apt"
     staging: "#{source_dir}/../staging"
+    xinetd: "#{source_dir}/../xinetd"
     oslo: "#{source_dir}/../oslo"
