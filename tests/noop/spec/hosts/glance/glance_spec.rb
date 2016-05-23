@@ -218,7 +218,11 @@ describe manifest do
       end
       let :params do { :glance_backend => 'swift', } end
       it 'should declare swift backend' do
-        should contain_class('glance::backend::swift').with('swift_store_region' => region)
+        should contain_class('glance::backend::swift').with(
+          'swift_store_region'       => region,
+          'swift_store_auth_version' => '3',
+          'swift_store_auth_address' => "#{auth_uri}/v3",
+        )
       end
       it 'should configure show_image_direct_url' do
         should contain_glance_api_config('DEFAULT/show_image_direct_url').with_value(show_image_direct_url)
