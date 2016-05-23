@@ -5,7 +5,7 @@
   requires: [configuration_symlink]
   required_for: [pre_deployment_start]
   condition:
-    yaql_exp: &have_plugins "changed($.plugins) and (len($.plugins) > 0)"
+    yaql_exp: &have_plugins "len($.plugins) > 0"
   parameters:
     puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/plugins/plugins_rsync.pp
     puppet_modules: /etc/puppet/modules
