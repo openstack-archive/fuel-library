@@ -53,6 +53,20 @@ describe manifest do
         'tenant'           => tenant,
       )
     end
+
+    it 'should contain legacy nova endpoint' do
+      should contain_keystone__resource__service_identity('nova_legacy').with(
+        'configure_user'      => false,
+        'configure_user_role' => false,
+        'service_type'        => 'compute_legacy',
+        'service_description' => 'Openstack Compute Legacy Service',
+        'service_name'        => 'compute_legacy',
+        'public_url'          => "#{public_base_url}/v2/%(tenant_id)s",
+        'internal_url'        => "#{internal_base_url}/v2/%(tenant_id)s",
+        'admin_url'           => "#{admin_base_url}/v2/%(tenant_id)s",
+        'tenant'              => tenant,
+      )
+    end
   end
 
   test_ubuntu_and_centos manifest
