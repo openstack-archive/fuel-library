@@ -69,25 +69,24 @@ class openstack_tasks::ironic::ironic_compute {
   }
 
   class { '::nova':
-      ensure_package                     => installed,
-      database_connection                => $db_connection,
-      rpc_backend                        => 'nova.openstack.common.rpc.impl_kombu',
+      ensure_package         => installed,
+      database_connection    => $db_connection,
+      rpc_backend            => 'nova.openstack.common.rpc.impl_kombu',
       #FIXME(bogdando) we have to split amqp_hosts until all modules synced
-      rabbit_hosts                       => split($amqp_hosts, ','),
-      rabbit_userid                      => $rabbit_hash['user'],
-      rabbit_password                    => $rabbit_hash['password'],
-      rabbit_heartbeat_timeout_threshold => 0,
-      image_service                      => 'nova.image.glance.GlanceImageService',
-      glance_api_servers                 => $glance_api_servers,
-      verbose                            => $verbose,
-      debug                              => $debug,
-      use_syslog                         => $use_syslog,
-      log_facility                       => $syslog_log_facility_nova,
-      state_path                         => $nova_hash['state_path'],
-      report_interval                    => $nova_report_interval,
-      service_down_time                  => $nova_service_down_time,
-      notify_on_state_change             => $notify_on_state_change,
-      memcached_servers                  => $memcached_addresses,
+      rabbit_hosts           => split($amqp_hosts, ','),
+      rabbit_userid          => $rabbit_hash['user'],
+      rabbit_password        => $rabbit_hash['password'],
+      image_service          => 'nova.image.glance.GlanceImageService',
+      glance_api_servers     => $glance_api_servers,
+      verbose                => $verbose,
+      debug                  => $debug,
+      use_syslog             => $use_syslog,
+      log_facility           => $syslog_log_facility_nova,
+      state_path             => $nova_hash['state_path'],
+      report_interval        => $nova_report_interval,
+      service_down_time      => $nova_service_down_time,
+      notify_on_state_change => $notify_on_state_change,
+      memcached_servers      => $memcached_addresses,
   }
 
   class { '::nova::compute':

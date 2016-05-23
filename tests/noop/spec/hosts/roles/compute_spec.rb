@@ -303,10 +303,6 @@ describe manifest do
       configuration_override.fetch('nova_paste_api_ini', {})
     end
 
-    it 'nova config should have proper queue settings' do
-      should contain_nova_config('oslo_messaging_rabbit/heartbeat_timeout_threshold').with(:value => '0')
-    end
-
     # Nova.config options
     it 'nova config should have proper live_migration_flag' do
       should contain_nova_config('libvirt/live_migration_flag').with(

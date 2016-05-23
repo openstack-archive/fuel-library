@@ -163,10 +163,6 @@ describe manifest do
       should contain_nova_config('DEFAULT/default_log_levels').with_value(default_log_levels.sort.join(','))
     end
 
-    it 'nova config should have proper queue settings' do
-      should contain_nova_config('oslo_messaging_rabbit/heartbeat_timeout_threshold').with(:value => '0')
-    end
-
     # Nova config options
     it 'nova config should have use_stderr set to false' do
       should contain_nova_config('DEFAULT/use_stderr').with(
