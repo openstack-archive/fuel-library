@@ -386,7 +386,7 @@ Puppet::Type.newtype(:l23_stored_config) do
 
 
   def generate
-    # if_type = :ethernet is the same as if_type = nil
+    # if_type == :ethernet is the same as if_type == nil
     if (!([:absent, :none, :nil, :undef] & self[:bridge]).any? and ([:ethernet, :bond, :vport, :patch].include? self[:if_type] or self[:if_type].nil?))
       self[:bridge].each do |bridge|
         br = self.catalog.resource('L23_stored_config', bridge)
@@ -403,11 +403,11 @@ Puppet::Type.newtype(:l23_stored_config) do
     # find routes, that should be applied while this interface UP
     if !['', 'none', 'absent'].include?(self[:ipaddr].to_s.downcase)
       l3_routes = self.catalog.resources.reject{|nnn| nnn.ref.split('[')[0]!='L3_route'}
-      my_network = IPAddr.new(self[:ipaddr].to_s.downcase) # only primary IP ADDR use !!!
+      my_networks = [IPAddr.new(self[:ipaddr].to_s.downcase)]
+      my_networks += self[:ipaddr_aliases].reject{|a| ['', 'none', 'dhcp', 'absent'].include? a.to_s.downcase}.map{|c| IPAddr.new(c.to_s.downcase)}
       my_route = {}
       l3_routes.each do |rou|
-        if my_network.include? rou[:gateway]
-          #self[:routes] = {} if self[:routes].nil?
+        if my_networks.map{|n| n.include? rou[:gateway]}.include? true
           my_route[rou[:name]] = {
             :gateway     => rou[:gateway],
             :destination => rou[:destination]
