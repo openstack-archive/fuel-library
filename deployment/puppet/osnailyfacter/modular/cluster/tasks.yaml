@@ -52,3 +52,17 @@
     timeout: 600
   test_post:
     cmd: ruby /etc/puppet/modules/osnailyfacter/modular/cluster/health_post.rb
+
+- id: cluster_mm
+  type: shell
+  version: 2.1.0
+  groups: [primary-controller, controller]
+  requires: [primary-cluster, cluster]
+  required_for: [deploy_end]
+  condition:
+    yaql_exp: "$.status = 'ready' and changedAny($.network_metadata.nodes.keys(), $.get('corosync_roles'))"
+  cross-depended-by:
+    - name: /(primary-)?(database|rabbitmq)/
+  parameters:
+    cmd: crm node maintenance
+    timeout: 120
