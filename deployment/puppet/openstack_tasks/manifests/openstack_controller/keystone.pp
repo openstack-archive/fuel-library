@@ -22,11 +22,6 @@ class openstack_tasks::openstack_controller::keystone {
   $internal_base_url = "${internal_protocol}://${internal_address}:${compute_port}"
   $admin_base_url    = "${admin_protocol}://${admin_address}:${compute_port}"
 
-  $ec2_port         = '8773'
-  $ec2_public_url   = "${public_protocol}://${public_address}:${ec2_port}/services/Cloud"
-  $ec2_internal_url = "${internal_protocol}://${internal_address}:${ec2_port}/services/Cloud"
-  $ec2_admin_url    = "${admin_protocol}://${admin_address}:${ec2_port}/services/Admin"
-
   $region              = pick($nova_hash['region'], hiera('region', 'RegionOne'))
 
   $password            = $nova_hash['user_password']
@@ -45,7 +40,6 @@ class openstack_tasks::openstack_controller::keystone {
     password              => $password,
     auth_name             => $auth_name,
     configure_endpoint    => $configure_endpoint,
-    configure_endpoint_v3 => $configure_endpoint,
     configure_user        => $configure_user,
     configure_user_role   => $configure_user_role,
     service_name          => $service_name,
@@ -54,6 +48,21 @@ class openstack_tasks::openstack_controller::keystone {
     admin_url             => "${admin_base_url}/v2.1",
     region                => $region,
     tenant                => $tenant,
+  }
+
+  # support compute (v2) legacy endpoint
+  keystone::resource::service_identity { "nova_legacy":
+    configure_user      => false,
+    configure_user_role => false,
+    configure_endpoint  => $configure_endpoint,
+    service_type        => 'compute_legacy',
+    service_description => 'Openstack Compute Legacy Service',
+    service_name        => 'compute_legacy',
+    region              => $region,
+    auth_name           => "${auth_name}_legacy",
+    public_url          => "${public_base_url}/v2/%(tenant_id)s",
+    admin_url           => "${admin_base_url}/v2/%(tenant_id)s",
+    internal_url        => "${internal_base_url}/v2/%(tenant_id)s",
   }
 
 }
