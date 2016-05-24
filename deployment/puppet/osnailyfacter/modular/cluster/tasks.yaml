@@ -11,7 +11,7 @@
   parameters:
     puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/cluster/cluster.pp
     puppet_modules: /etc/puppet/modules
-    timeout: 3600
+    timeout: 300
   test_post:
     cmd: ruby /etc/puppet/modules/osnailyfacter/modular/cluster/cluster_post.rb
 
@@ -28,7 +28,7 @@
   parameters:
     puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/cluster/cluster.pp
     puppet_modules: /etc/puppet/modules
-    timeout: 3600
+    timeout: 300
   test_post:
     cmd: ruby /etc/puppet/modules/osnailyfacter/modular/cluster/cluster_post.rb
 

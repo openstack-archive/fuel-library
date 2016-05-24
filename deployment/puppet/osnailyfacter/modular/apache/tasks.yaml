@@ -9,6 +9,6 @@
   parameters:
     puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/apache/apache.pp
     puppet_modules: /etc/puppet/modules
-    timeout: 1200
+    timeout: 300
   test_post:
     cmd: ruby /etc/puppet/modules/osnailyfacter/modular/apache/apache_post.rb

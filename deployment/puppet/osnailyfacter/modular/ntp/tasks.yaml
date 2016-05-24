@@ -9,7 +9,7 @@
   parameters:
     puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/ntp/ntp-server.pp
     puppet_modules: /etc/puppet/modules
-    timeout: 3600
+    timeout: 300
     cwd: /
   test_post:
     cmd: ruby /etc/puppet/modules/osnailyfacter/modular/ntp/ntp_post.rb
@@ -31,7 +31,7 @@
   parameters:
     puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/ntp/ntp-client.pp
     puppet_modules: /etc/puppet/modules
-    timeout: 3600
+    timeout: 300
     cwd: /
   test_post:
     cmd: ruby /etc/puppet/modules/osnailyfacter/modular/ntp/ntp_post.rb

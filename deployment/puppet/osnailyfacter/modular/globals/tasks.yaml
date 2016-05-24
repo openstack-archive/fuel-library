@@ -11,7 +11,7 @@
   parameters:
     puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/globals/globals.pp
     puppet_modules: /etc/puppet/modules
-    timeout: 3600
+    timeout: 120
   test_pre:
     cmd: python /etc/puppet/modules/osnailyfacter/modular/globals/globals_pre.py
   test_post:

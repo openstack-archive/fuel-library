@@ -9,4 +9,4 @@
   parameters:
     puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/cgroups/cgroups.pp
     puppet_modules: /etc/puppet/modules
-    timeout: 3600
+    timeout: 120
