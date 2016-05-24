@@ -9,6 +9,11 @@ class nailgun::nginx-repo(
     mode   => '0644',
   }
 
+  file { "${repo_root}/index.html":
+      ensure  => present,
+          content => '',
+  }
+
   file { "${repo_root}/error.html":
     content => template('nailgun/nginx_nailgun_repo.error.html.erb'),
   }
