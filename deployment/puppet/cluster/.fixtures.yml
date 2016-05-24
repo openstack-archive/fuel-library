@@ -15,3 +15,8 @@ fixtures:
     staging: "#{source_dir}/../staging"
     xinetd: "#{source_dir}/../xinetd"
     oslo: "#{source_dir}/../oslo"
+    concat: "#{source_dir}/../concat"
+    haproxy: "#{source_dir}/../haproxy"
+    rsyslog: "#{source_dir}/../rsyslog"
+    sysctl: "#{source_dir}/../sysctl"
+    tweaks: "#{source_dir}/../tweaks"

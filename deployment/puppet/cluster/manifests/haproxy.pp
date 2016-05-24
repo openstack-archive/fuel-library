@@ -44,6 +44,10 @@
 #   (optional) Array of addresses to allow stats calls
 #   Defaults to ['127.0.0.1']
 #
+# [*cipher_list*]
+#   (optional) Array of ciphers to use for ssl termination
+#   Defaults to ['ALL']
+#
 class cluster::haproxy (
   $haproxy_maxconn              = '4000',
   $haproxy_bufsize              = '16384',
@@ -56,6 +60,7 @@ class cluster::haproxy (
   $colocate_haproxy             = false,
   $stats_ipaddresses            = ['127.0.0.1'],
   $spread_checks                = '3',
+  $cipher_list                  = ['ALL'],
 ) {
   include ::concat::setup
   include ::haproxy::params
@@ -65,21 +70,29 @@ class cluster::haproxy (
     name => $::haproxy::params::package_name,
   }
 
+  $ciphers = join(any2array($cipher_list),':')
+
   #NOTE(bogdando) we want defaults w/o chroot
   #  and this override looks the only possible if
   #  upstream manifests must be kept intact
   $global_options   = {
-    'log'                       => '/dev/log local0',
-    'pidfile'                   => '/var/run/haproxy.pid',
-    'maxconn'                   => $haproxy_maxconn,
-    'user'                      => 'haproxy',
-    'group'                     => 'haproxy',
-    'daemon'                    => '',
-    'stats'                     => 'socket /var/lib/haproxy/stats',
-    'spread-checks'             => $spread_checks,
-    'tune.bufsize'              => $haproxy_bufsize,
-    'tune.maxrewrite'           => $haproxy_maxrewrite,
-    'tune.ssl.default-dh-param' => $haproxy_ssl_default_dh_param,
+    'log'                        => '/dev/log local0',
+    'pidfile'                    => '/var/run/haproxy.pid',
+    'maxconn'                    => $haproxy_maxconn,
+    'user'                       => 'haproxy',
+    'group'                      => 'haproxy',
+    'daemon'                     => '',
+    'stats'                      => 'socket /var/lib/haproxy/stats',
+    'spread-checks'              => $spread_checks,
+    'tune.bufsize'               => $haproxy_bufsize,
+    'tune.maxrewrite'            => $haproxy_maxrewrite,
+    'tune.ssl.default-dh-param'  => $haproxy_ssl_default_dh_param,
+    'ssl-default-bind-ciphers'   => $ciphers,
+    'ssl-default-server-ciphers' => $ciphers,
+    # TODO(aschultz): these options were added in haproxy 1.5.7+, uncomment
+    # when we upgrade our haproxy
+    #'ssl-default-bind-options'   => 'no-sslv3 no-tls-tickets',
+    #'ssl-default-server-options' => 'no-sslv3 no-tls-tickets',
   }
 
   $defaults_options = {
