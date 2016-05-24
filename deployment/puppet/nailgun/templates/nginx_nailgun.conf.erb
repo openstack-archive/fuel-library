@@ -17,9 +17,9 @@ server {
     gzip on;
     gzip_min_length 1000;
     gzip_types text/plain application/json;
+    autoindex off;
 
     location /static {
-        autoindex on;
         alias <%= @staticdir %>;
     }
 

@@ -8,6 +8,7 @@ server {
 
     charset utf-8;
     client_max_body_size 2M;
+    autoindex off;
 
     error_page 500 501 502 503 504 = /error.html;
     error_page 403 =200 /index.html;
@@ -19,8 +20,9 @@ server {
     }
 
     location / {
-        autoindex on;
         root <%= @repo_root %>;
+        error_page 403 =200 /index.html;
+        location /index.html { internal; }
     }
 
     location ~ /\.ht {
