@@ -18,10 +18,19 @@ class osnailyfacter::netconfig::netconfig {
      or roles_include(['primary-mongo', 'mongo']) {
     $network_scheme = $loaded_network_scheme
   } else {
-    $network_scheme = configure_default_route($loaded_network_scheme,
+    $new_network_scheme = configure_default_route($loaded_network_scheme,
                                               $management_vrouter_vip,
                                               $fw_admin_role,
                                               $management_role)
+    # TODO: (alex_didenko) remove this conditional and refactor function
+    # configure_default_route() to return existing network_scheme instead of
+    # empty hash. We can do this when we deprecate role-based deployment.
+    # Meanwhile returning empty hash is still needed for post deployment
+    # configure_default_route task for mongo roles.
+    $network_scheme = empty($new_network_scheme) ? {
+      default => $loaded_network_scheme,
+      false   => $new_network_scheme
+    }
   }
 
   prepare_network_config($network_scheme)
