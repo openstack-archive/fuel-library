@@ -2,8 +2,8 @@
   type: puppet
   version: 2.1.0
   groups: [primary-controller, controller,
-           cinder, cinder-block-device, cinder-vmware, compute, ceph-osd,
-           primary-mongo, mongo, virt, ironic]
+           cinder, cinder-block-device, cinder-vmware, compute, compute-vmware,
+           ceph-osd, primary-mongo, mongo, virt, ironic]
   required_for: [deploy_end]
   requires: [hiera]
   condition:
