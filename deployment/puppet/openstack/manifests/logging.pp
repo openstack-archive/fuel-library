@@ -247,10 +247,6 @@ class openstack::logging (
       content => template("${module_name}/20-keystone.conf.erb"),
     }
 
-    ::rsyslog::snippet { '21-keystone-common-wsgi':
-      content => template("${module_name}/21-keystone-common-wsgi.conf.erb"),
-    }
-
     ::rsyslog::snippet { '30-cinder':
       content => template("${module_name}/30-cinder.conf.erb"),
     }

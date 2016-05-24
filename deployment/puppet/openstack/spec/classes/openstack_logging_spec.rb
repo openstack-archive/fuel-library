@@ -53,7 +53,6 @@ describe 'openstack::logging' do
         should contain_rsyslog__imfile('61-mco_agent_debug')
         ['10-nova',
          '20-keystone',
-         '21-keystone-common-wsgi',
          '30-cinder',
          '40-glance',
          '50-default',
