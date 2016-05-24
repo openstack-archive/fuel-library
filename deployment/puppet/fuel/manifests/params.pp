@@ -1,8 +1,8 @@
 class fuel::params {
 
-  $db_engine                = "postgresql"
-  $db_host                  = "127.0.0.1"
-  $db_port                  = "5432"
+  $db_engine                = 'postgresql'
+  $db_host                  = '127.0.0.1'
+  $db_port                  = '5432'
 
   $nailgun_db_name          = 'nailgun'
   $nailgun_db_user          = 'nailgun'
@@ -33,6 +33,7 @@ class fuel::params {
   $keystone_monitord_tenant   = 'services'
 
   $keystone_admin_token       = 'admin'
+  $keystone_token_expiration  = '86400'
 
   # network interface configuration timeout (in seconds)
   $bootstrap_ethdevice_timeout   = '120'
@@ -53,9 +54,9 @@ class fuel::params {
   $cobbler_password              = 'cobbler'
   $centos_repos = [
     {
-    "id" => "nailgun",
-    "name" => "Nailgun",
-    "url"  => "\$tree"
+    'id'   => 'nailgun',
+    'name' => 'Nailgun',
+    'url'  => "\$tree"
     }
   ]
 
@@ -63,9 +64,9 @@ class fuel::params {
   $dns_upstream                  = '8.8.8.8'
   $dns_domain                    = 'domain.tld'
   $dns_search                    = 'domain.tld'
-  $dhcp_interface                = "eth0"
-  $admin_interface               = "eth0"
-  $admin_network                 = "10.20.0.*"
+  $dhcp_interface                = 'eth0'
+  $admin_interface               = 'eth0'
+  $admin_network                 = '10.20.0.*'
   $extra_networks                = undef
 
   $nailgun_api_url               = "http://${::ipaddress}:8000/api"
@@ -88,15 +89,15 @@ class fuel::params {
     'fuel-bootstrap-cli',
   ]
 
-  $keystone_ostf_user            = "ostf"
-  $keystone_ostf_password        = "ostf"
+  $keystone_ostf_user            = 'ostf'
+  $keystone_ostf_password        = 'ostf'
 
-  $puppet_master_hostname        = "${hostname}.${domain}"
+  $puppet_master_hostname        = "${::hostname}.${::domain}"
 
-  $repo_root                     = "/var/www/nailgun"
+  $repo_root                     = '/var/www/nailgun'
   $repo_port                     = '8080'
 
-  $nailgun_log_level             = "DEBUG"
+  $nailgun_log_level             = 'DEBUG'
 
 
   $nailgun_host                  = '127.0.0.1'
@@ -106,7 +107,7 @@ class fuel::params {
 
   $ostf_host                     = '127.0.0.1'
   $ostf_port                     = '8777'
-  $ostf_db_user                  = "ostf"
-  $ostf_db_password              = "ostf"
-  $ostf_db_name                  = "ostf"
+  $ostf_db_user                  = 'ostf'
+  $ostf_db_password              = 'ostf'
+  $ostf_db_name                  = 'ostf'
 }
