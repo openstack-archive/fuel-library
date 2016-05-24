@@ -139,7 +139,7 @@ exit $OCF_SUCCESS
 }
 
 check_ns() {
-  local ns=`ip netns list | awk "/${OCF_RESKEY_ns}/ {print \$1}"`
+  local ns=$(ip netns list | awk "/${OCF_RESKEY_ns}/ {print \$1}")
   [ $ns != $OCF_RESKEY_ns ] && return $OCF_ERR_GENERIC
   return $OCF_SUCCESS
 }
