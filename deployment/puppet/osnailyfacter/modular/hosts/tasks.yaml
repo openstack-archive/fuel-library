@@ -9,7 +9,7 @@
   parameters:
     puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/hosts/hosts.pp
     puppet_modules: /etc/puppet/modules
-    timeout: 3600
+    timeout: 60
   test_pre:
     cmd: ruby /etc/puppet/modules/osnailyfacter/modular/hosts/hosts_pre.rb
   test_post:

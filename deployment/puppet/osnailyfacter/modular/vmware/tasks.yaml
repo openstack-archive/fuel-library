@@ -9,7 +9,7 @@
   parameters:
     puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/vmware/vcenter.pp
     puppet_modules: /etc/puppet/modules
-    timeout: 3600
+    timeout: 300
 
 - id: top-role-cinder-vmware
   type: puppet
@@ -22,7 +22,7 @@
   parameters:
     puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/vmware/cinder-vmware.pp
     puppet_modules: /etc/puppet/modules
-    timeout: 3600
+    timeout: 300
   test_pre:
     cmd: ruby /etc/puppet/modules/osnailyfacter/modular/vmware/cinder-vmware_pre.rb
   test_post:

@@ -13,7 +13,7 @@
   parameters:
     puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/ssl/ssl_keys_saving.pp
     puppet_modules: /etc/puppet/modules
-    timeout: 3600
+    timeout: 60
   test_pre:
     cmd: ruby /etc/puppet/modules/osnailyfacter/modular/ssl/ssl_keys_saving_pre.rb
 
@@ -31,7 +31,7 @@
   parameters:
     puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/ssl/ssl_add_trust_chain.pp
     puppet_modules: /etc/puppet/modules
-    timeout: 3600
+    timeout: 60
   test_pre:
     cmd: ruby /etc/puppet/modules/osnailyfacter/modular/ssl/ssl_keys_saving_pre.rb
 
@@ -46,4 +46,4 @@
   parameters:
     puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/ssl/ssl_dns_setup.pp
     puppet_modules: /etc/puppet/modules
-    timeout: 3600
+    timeout: 60
