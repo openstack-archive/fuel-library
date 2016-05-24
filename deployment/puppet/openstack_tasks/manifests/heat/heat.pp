@@ -221,6 +221,8 @@ class openstack_tasks::heat::heat {
     database_max_pool_size => $max_pool_size,
     database_max_overflow  => $max_overflow,
     database_max_retries   => $max_retries,
+
+    rabbit_heartbeat_timeout_threshold => $::os_service_default,
   }
 
   # Engine

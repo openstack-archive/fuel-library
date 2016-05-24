@@ -194,6 +194,13 @@ class openstack_tasks::sahara::sahara {
     Firewall[$firewall_rule] -> Class['::sahara::service::api']
     Service['sahara-api'] -> ::Osnailyfacter::Wait_for_backend['sahara']
 
+    if !defined(Sahara_config['oslo_messaging_rabbit/heartbeat_timeout_threshold']) {
+      sahara_config { 'oslo_messaging_rabbit/heartbeat_timeout_threshold': value => $::os_service_default; }
+    }
+    if !defined(Sahara_config['oslo_messaging_rabbit/heartbeat_rate']) {
+      sahara_config { 'oslo_messaging_rabbit/heartbeat_rate': value => $::os_service_default; }
+    }
+
     # TODO (iberezovskiy): remove this workaround in N when sahara module
     # will be switched to puppet-oslo usage for rabbit configuration
     if $kombu_compression in ['gzip','bz2'] {

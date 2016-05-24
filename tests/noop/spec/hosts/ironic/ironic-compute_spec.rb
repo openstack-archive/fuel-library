@@ -110,6 +110,10 @@ describe manifest do
           :database_connection => "mysql://#{nova_db_user}:#{nova_db_password}@#{database_vip}/#{nova_db_name}#{extra_params}"
         )
       end
+
+      it 'should enable RabbitMQ heartbeats' do
+        should contain_ironic_config('oslo_messaging_rabbit/heartbeat_timeout_threshold').with(:value => '<SERVICE DEFAULT>')
+      end
     end
   end
 

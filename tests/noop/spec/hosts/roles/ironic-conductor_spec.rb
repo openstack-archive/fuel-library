@@ -66,6 +66,10 @@ describe manifest do
         ).that_requires('Package[syslinux]')
       end
 
+    it 'should enable RabbitMQ heartbeats' do
+      should contain_ironic_config('oslo_messaging_rabbit/heartbeat_timeout_threshold').with(:value => '<SERVICE DEFAULT>')
+    end
+
     end #end of ironic_enabled
   end #end of catalog
 

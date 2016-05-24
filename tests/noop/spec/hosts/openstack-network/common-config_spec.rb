@@ -104,6 +104,11 @@ describe manifest do
       end
     end
 
+    # Disable Heartbeats for Neutron
+    it 'should enable RabbitMQ heartbeats' do
+      should contain_neutron_config('oslo_messaging_rabbit/heartbeat_timeout_threshold').with(:value => '0')
+    end
+
   end
   test_ubuntu_and_centos manifest
 end

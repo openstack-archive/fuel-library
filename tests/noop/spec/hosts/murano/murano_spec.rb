@@ -217,6 +217,10 @@ describe manifest do
           should contain_murano_config('oslo_messaging_rabbit/kombu_compression').with(:value => kombu_compression)
         end
       end
+
+      it 'should enable RabbitMQ heartbeats' do
+        should contain_murano_config('oslo_messaging_rabbit/heartbeat_timeout_threshold').with(:value => '<SERVICE DEFAULT>')
+      end
     end
   end # end of shared_examples
 
