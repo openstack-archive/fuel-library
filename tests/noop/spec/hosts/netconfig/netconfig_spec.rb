@@ -80,6 +80,10 @@ describe manifest do
         should contain_class('l23network::l2::dpdk').with('use_dpdk' => false)
       end
     end
+
+    not_in_group_with_vip = network_scheme['endpoints']['br-mgmt']['IP'].find{
+      |ipnet| IPAddr.new(ipnet).include?(IPAddr.new(mgmt_vrouter_vip))}.nil?
+
     if network_scheme['endpoints'].has_key?('br-ex')
       it { should contain_l23network__l3__ifconfig('br-ex').with(
         'gateway' => network_scheme['endpoints']['br-ex']['gateway']
@@ -88,9 +92,13 @@ describe manifest do
       it { should contain_l23network__l3__ifconfig('br-fw-admin').with(
         'gateway' => network_scheme['endpoints']['br-fw-admin']['gateway']
       )}
-    else
+    elsif !not_in_group_with_vip
       it { should contain_l23network__l3__ifconfig('br-mgmt').with(
         'gateway' => mgmt_vrouter_vip
+      )}
+    else
+      it { should contain_l23network__l3__ifconfig('br-fw-admin').with(
+        'gateway' => network_scheme['endpoints']['br-fw-admin']['gateway']
       )}
     end
   end
