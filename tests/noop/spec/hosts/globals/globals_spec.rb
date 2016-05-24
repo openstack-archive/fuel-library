@@ -5,6 +5,7 @@
 # ROLE: ironic
 # ROLE: controller
 # ROLE: compute
+# ROLE: compute-vmware
 # ROLE: cinder-vmware
 # ROLE: cinder-block-device
 # ROLE: cinder
