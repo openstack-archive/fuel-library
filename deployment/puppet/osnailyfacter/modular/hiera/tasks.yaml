@@ -2,7 +2,7 @@
   type: puppet
   version: 2.1.0
   groups: [primary-controller, controller, cinder, cinder-block-device,
-    cinder-vmware, compute, ceph-osd, primary-mongo, mongo, virt, ironic]
+    cinder-vmware, compute, compute-vmware, ceph-osd, primary-mongo, mongo, virt, ironic]
   requires: [deploy_start, rsync_core_puppet]
   required_for: [setup_repositories]
   condition:
