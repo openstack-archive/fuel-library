@@ -1,3 +1,45 @@
+DEFAULT_MTU ||= 1500
+
+def get_mtu_for_bridge(br_name, network_scheme, inspected_bridges)
+  mtu = nil
+  # in this chain patch should be last, because ports and bonds has highest priority
+  {'add-port' => 'bridge' , 'add-bond' => 'bridge', 'add-patch' => 'bridges'}.each do |x , v|
+    transf = network_scheme['transformations'].select do |trans|
+      trans['action']==x and trans.has_key?(v) and (trans[v]==br_name or trans[v].include?(br_name))
+    end
+    if transf.empty?
+      next
+    elsif transf.size >2
+      raise("bridge #{br_name} can not be included into more then one element, elements: #{transf}")
+    else
+      transf = transf[0]
+      debug("Transformation #{transf} has bridge #{br_name}")
+    end
+    if transf['action'] == 'add-patch'
+      debug("Bridge #{br_name} is in a patch #{transf}!")
+      next_br_name = transf['bridges'].select{ |x| x!=br_name }[0]
+      if ! inspected_bridges.include?(br_name)
+        debug("Looking mtu for bridge #{next_br_name}")
+        inspected_bridges << br_name
+        mtu = get_mtu_for_bridge(next_br_name, network_scheme, inspected_bridges)
+      else
+        next
+      end
+    elsif !transf['mtu'].nil?
+      # this section into elsif, because patch MTU shouldn't affect result (MTU 65000 for example)
+      mtu = transf['mtu']
+    elsif transf['action']=='add-port' and !network_scheme['interfaces'].fetch(transf['name'],{}).fetch('mtu',nil).nil?
+      mtu = network_scheme['interfaces'][transf['name']]['mtu']
+    end
+    if !mtu.nil?
+      debug("And has mtu: #{mtu}")
+      break
+    end
+  end
+  mtu ||= DEFAULT_MTU
+  return mtu
+end
+
 Puppet::Parser::Functions::newfunction(:generate_physnet_mtus, :type => :rvalue, :doc => <<-EOS
 This function gets neutron_config, network_scheme, flags and formats physnet to vlan ranges according to flags.
 EOS
@@ -40,38 +82,15 @@ EOS
     return [] if physnet_bridge_map.empty?
 
     # Looking for MTUs
-    bridge_including_flow = { :'add-patch' => 'bridges',  :'add-port' => 'bridge' , :'add-bond' => 'bridge', :'add-port' => 'bridge' }
     physnet_mtu_map = {}
     physnet_bridge_map.each do |net, br|
       mtu = nil
       if br['mtu']
         mtu = br['mtu']
       else
-        br = br['name']
-        bridge_including_flow.each do |x , v|
-          bridge_included = network_scheme['transformations'].select { |a| a['action'] == x.to_s and a.has_key?(v) and (a[v] == br or a[v].include?(br)) }
-          if bridge_included.empty?
-            next
-          elsif bridge_included.size >2
-            raise("bridge #{br} can not be included into more then one element, elements: #{bridge_included}")
-          else
-            bridge_included = bridge_included[0]
-            debug("Transformation #{bridge_included} has bridge #{br}")
-          end
-          if bridge_included['action'] == 'add-patch'
-            debug("Bridge #{br} is in a patch #{bridge_included}!")
-            br = bridge_included['bridges'].select{ |x| x!=br }[0]
-            debug("Looking mtu for bridge #{br}")
-	    next
-          elsif bridge_included['mtu']
-            mtu = bridge_included['mtu']
-            debug("And has mtu: #{mtu}")
-            break
-          end
-        end
-        mtu = 1500 unless mtu
-        physnet_mtu_map[net] = mtu
+        mtu = get_mtu_for_bridge(br['name'], network_scheme, [])
       end
+      physnet_mtu_map[net] = mtu
     end
 
     debug("Formatng the output")
