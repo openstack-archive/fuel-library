@@ -10,6 +10,10 @@ server {
     client_max_body_size 2M;
     autoindex off;
 
+    if ( $request_method !~ ^(GET|HEAD)$ ) {
+        return 444;
+    } 
+
     error_page 500 501 502 503 504 = /error.html;
     error_page 403 =200 /index.html;
     error_page 404 =404 /index.html;

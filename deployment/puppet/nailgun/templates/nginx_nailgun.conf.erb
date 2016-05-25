@@ -9,39 +9,62 @@ server {
     charset utf-8;
     client_max_body_size 10M;
 
-    location = /favicon.ico {
-        log_not_found off;
-        access_log off;
-    }
-
     gzip on;
     gzip_min_length 1000;
     gzip_types text/plain application/json;
     autoindex off;
 
+    location = /favicon.ico {
+        if ( $request_method !~ ^(GET|HEAD)$ ) {
+            return 444;
+        }
+        log_not_found off;
+        access_log off;
+    }
+
     location /static {
+        if ( $request_method !~ ^(GET|HEAD)$ ) {
+            return 444;
+        }
         alias <%= @staticdir %>;
     }
 
     location /dump {
+        if ( $request_method !~ ^(GET|HEAD)$ ) {
+            return 444;
+        }
         alias <%= @logdumpdir %>;
     }
 
     location ~ ^/ostf/(.*) {
-        proxy_pass http://<%= @ostf_host %>:8777/v1/$1;
+        set $proxy_path $1;
+        if ( $request_method !~ ^(GET|POST|PUT|PATCH|DELETE)$ ) {
+            return 444;
+        }
+        proxy_pass http://<%= @ostf_host %>:8777/v1/$proxy_path;
         proxy_buffering off;
     }
 
     location ~ ^/keystone/(.*) {
-        proxy_pass http://<%= @keystone_host %>:5000/$1;
+        set $proxy_path $1;
+        if ( $request_method !~ ^(GET|POST|PUT|PATCH|DELETE)$ ) {
+            return 444;
+        }
+        proxy_pass http://<%= @keystone_host %>:5000/$proxy_path;
         proxy_buffering off;
     }
 
     location / {
+        if ( $request_method !~ ^(GET|HEAD|POST)$ ) {
+            return 444;
+        }
         root <%= @staticdir %>;
     }
 
     location /api {
+        if ( $request_method !~ ^(GET|POST|PUT|PATCH|DELETE)$ ) {
+            return 444;
+        }
         include uwsgi_params;
         uwsgi_pass <%= @nailgun_host %>:8001; 
         client_max_body_size 100m;
