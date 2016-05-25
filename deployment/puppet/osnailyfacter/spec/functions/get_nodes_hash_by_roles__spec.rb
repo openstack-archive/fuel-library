@@ -40,27 +40,27 @@ end
 
     it 'should return nodes hash for "controller" role' do
       rv = scope.function_get_nodes_hash_by_roles([network_metadata, ['controller']])
-      rv.keys.sort.should == ['node-55']
+      expect(rv.keys.sort).to eq ['node-55']
     end
 
     it 'should return nodes hash for "mongo" role' do
       rv = scope.function_get_nodes_hash_by_roles([network_metadata, ['mongo']])
-      rv.keys.sort.should == ['node-55', 'node-77']
+      expect(rv.keys.sort).to eq ['node-55', 'node-77']
     end
 
     it 'should return nodes hash for "cinder" role' do
       rv = scope.function_get_nodes_hash_by_roles([network_metadata, ['cinder']])
-      rv.keys.sort.should == ['node-55', 'node-66', 'node-77']
+      expect(rv.keys.sort).to eq ['node-55', 'node-66', 'node-77']
     end
 
     it 'should return nodes hash for "controller"+"xxx" role' do
       rv = scope.function_get_nodes_hash_by_roles([network_metadata, ['controller', 'xxx']])
-      rv.keys.sort.should == ['node-55', 'node-66', 'node-77']
+      expect(rv.keys.sort).to eq ['node-55', 'node-66', 'node-77']
     end
 
     it 'should return nodes hash for "controller"+"yyy" role' do
       rv = scope.function_get_nodes_hash_by_roles([network_metadata, ['controller', 'yyy']])
-      rv.keys.sort.should == ['node-55', 'node-66']
+      expect(rv.keys.sort).to eq ['node-55', 'node-66']
     end
 
     it 'should raise Puppet::ParseError if 1st argument not a Hash' do
