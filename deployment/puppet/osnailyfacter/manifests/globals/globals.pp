@@ -134,7 +134,13 @@ class osnailyfacter::globals::globals {
   if ($storage_hash['volumes_ceph'] or $storage_hash['images_ceph'] or $storage_hash['objects_ceph']) {
     # Ceph is enabled
     # Define Ceph tuning settings
-    $storage_tuning_settings = hiera($storage_hash['tuning_settings'], {})
+    $tuning_settings = $storage_hash['tuning_settings']
+    if $tuning_settings {
+      $storage_tuning_settings = hiera($tuning_settings, {})
+    } else {
+      $storage_tuning_settings = {}
+    }
+
     $ceph_tuning_settings = {
       'max_open_files'                       => pick($storage_tuning_settings['max_open_files'], '131072'),
       'osd_mkfs_type'                        => pick($storage_tuning_settings['osd_mkfs_type'], 'xfs'),
