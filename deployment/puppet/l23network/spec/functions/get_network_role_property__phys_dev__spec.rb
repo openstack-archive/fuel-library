@@ -1,6 +1,6 @@
 require 'spec_helper'
 require 'yaml'
-require 'puppetx/l23_hash_tools'
+require_relative '../../lib/puppetx/l23_hash_tools'
 
 describe Puppet::Parser::Functions.function(:get_network_role_property) do
 let(:network_scheme) do

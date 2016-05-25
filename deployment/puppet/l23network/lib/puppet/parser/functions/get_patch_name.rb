@@ -1,10 +1,5 @@
-begin
-  require 'puppetx/l23_utils'
-rescue LoadError => e
-  rb_file = File.join(File.dirname(__FILE__),'..','..','..','puppetx','l23_utils.rb')
-  load rb_file if File.exists?(rb_file) or raise e
-end
-#
+require_relative '../../../puppetx/l23_utils'
+
 module Puppet::Parser::Functions
   newfunction(:get_patch_name, :type => :rvalue) do |arguments|
     if !arguments.is_a? Array or arguments.size != 1 or arguments[0].size != 2
