@@ -10,6 +10,10 @@ server {
     client_max_body_size 2M;
     autoindex off;
 
+    if ( $request_method !~ ^(GET|HEAD)$ ) {
+        return 444;
+    }
+
     location / {
         root <%= @repo_root %>;
         error_page 403 =200 /index.html;
