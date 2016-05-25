@@ -446,7 +446,6 @@ describe 'l23network::l2::bond', :type => :define do
         'ensure'                => 'present',
         'bridge'                => 'br-bond-ovs',
         'if_type'               => 'bond',
-        'bond_lacp'             => 'off',
         'bond_mode'             => 'balance-tcp',
         'bond_lacp'             => 'active',
         'bond_lacp_rate'        => 'fast',
