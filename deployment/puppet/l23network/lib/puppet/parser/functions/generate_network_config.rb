@@ -353,10 +353,11 @@ Puppet::Parser::Functions::newfunction(:generate_network_config, :type => :rvalu
         action = t[:action].to_sym()
       end
 
+      #debug("TXX: '#{t[:name]}' =>  '#{t.to_yaml.gsub('!ruby/sym ','')}'.")
+      trans = L23network.sanitize_transformation(t)
+
       if action != :noop
 
-        #debug("TXX: '#{t[:name]}' =>  '#{t.to_yaml.gsub('!ruby/sym ','')}'.")
-        trans = L23network.sanitize_transformation(t)
         #debug("TTT: '#{trans[:name]}' =>  '#{trans.to_yaml.gsub('!ruby/sym ','')}'.")
 
         # merge interface properties with transformations and vendor_specific
