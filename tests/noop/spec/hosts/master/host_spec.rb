@@ -299,6 +299,7 @@ describe manifest do
           :direct_repo_addresses => [ fuel_settings['ADMIN_NETWORK']['ipaddress'], '127.0.0.1' ],
           :bootstrap_cli_package => 'fuel-bootstrap-cli',
           :config_path => '/etc/fuel-bootstrap-cli/fuel_bootstrap_cli.yaml',
+          :config_wgetrc => true,
       }
       is_expected.to contain_class('fuel::bootstrap_cli').with parameters
     end
@@ -309,6 +310,7 @@ describe manifest do
         'Password complexity',
         'Enable only SSHv2 connections from the master node',
         'Turn off sudo requiretty',
+        'Add robust wgetrc settings',
     ].each do |augeas|
       it { is_expected.to contain_augeas augeas }
     end

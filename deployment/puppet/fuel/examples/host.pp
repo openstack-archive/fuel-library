@@ -169,6 +169,7 @@ class { 'fuel::bootstrap_cli':
   direct_repo_addresses => [ $::fuel_settings['ADMIN_NETWORK']['ipaddress'], '127.0.0.1' ],
   bootstrap_cli_package => 'fuel-bootstrap-cli',
   config_path           => '/etc/fuel-bootstrap-cli/fuel_bootstrap_cli.yaml',
+  config_wgetrc         => true,
 }
 
 augeas { 'Remove ssh_config SendEnv defaults':
