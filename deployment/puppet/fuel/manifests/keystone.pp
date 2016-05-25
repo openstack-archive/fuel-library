@@ -12,6 +12,7 @@ class fuel::keystone (
   $db_password       = $::fuel::params::keystone_db_password,
 
   $admin_token       = $::fuel::params::keystone_admin_token,
+  $token_expiration  = $::fuel::params::keystone_token_expiration,
 
   $admin_user        = $::fuel::params::keystone_admin_user,
   $admin_password    = $::fuel::params::keystone_admin_password,
@@ -37,7 +38,7 @@ class fuel::keystone (
     admin_token         => $admin_token,
     catalog_type        => 'sql',
     database_connection => "${db_engine}://${db_user}:${db_password}@${db_host}:${db_port}/${db_name}",
-    token_expiration    => 86400,
+    token_expiration    => $token_expiration,
     token_provider      => 'keystone.token.providers.uuid.Provider',
     default_domain      => $keystone_domain,
   }
