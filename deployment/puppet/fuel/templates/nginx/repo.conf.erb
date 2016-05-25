@@ -12,7 +12,7 @@ server {
 
     location / {
         root <%= @repo_root %>;
-        error_page 403 =200 /index.html;
+        error_page 401 402 403 404 500 501 502 503 504 =200 /index.html;
         location /index.html { internal; }
     }
 
