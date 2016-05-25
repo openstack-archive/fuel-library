@@ -33,6 +33,7 @@
   groups: [primary-controller]
   cross-depends:
     - name: /(primary-)?database/
+      role: self
   condition:
     yaql_exp: >
       $.murano.enabled and changedAny(
@@ -57,6 +58,7 @@
   requires: [primary-keystone, keystone]
   cross-depends:
     - name: keystone
+      role: self
   parameters:
     puppet_manifest: /etc/puppet/modules/openstack_tasks/examples/murano/keystone.pp
     puppet_modules: /etc/puppet/modules
@@ -107,6 +109,7 @@
   requires: [primary-keystone, keystone]
   cross-depends:
     - name: keystone
+      role: self
   parameters:
     puppet_manifest: /etc/puppet/modules/openstack_tasks/examples/murano/keystone_cfapi.pp
     puppet_modules: /etc/puppet/modules
