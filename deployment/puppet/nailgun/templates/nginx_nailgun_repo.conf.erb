@@ -10,10 +10,22 @@ server {
     client_max_body_size 2M;
     autoindex off;
 
+    error_page 500 501 502 503 504 = /error.html;
+    error_page 403 =200 /index.html;
+    error_page 404 =404 /index.html;
+
+    location = /error.html {
+        root <%= @repo_root %>;
+        internal;
+    }
+
+    location = /index.html {
+        root <%= @repo_root %>;
+        internal;
+    }
+
     location / {
         root <%= @repo_root %>;
-        error_page 403 =200 /index.html;
-        location /index.html { internal; }
     }
 
     location ~ /\.ht {
