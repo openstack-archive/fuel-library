@@ -4,6 +4,8 @@ $fuel_settings = parseyaml($astute_settings_yaml)
 
 class { 'fuel::keystone':
   admin_token       => $::fuel_settings['keystone']['admin_token'],
+  token_expiration  => pick($::fuel_settings['keystone']['token_expiration'], 21600),
+
   host              => $::fuel_settings['ADMIN_NETWORK']['ipaddress'],
   db_host           => $::fuel_settings['ADMIN_NETWORK']['ipaddress'],
   db_name           => $::fuel_settings['postgres']['keystone_dbname'],
@@ -23,8 +25,8 @@ class { 'fuel::keystone':
 }
 
 fuel::systemd {['openstack-keystone']:
-  start => true,
+  start         => true,
   template_path => 'fuel/systemd/restart_template.erb',
-  config_name => 'restart.conf',
-  require => Class["fuel::keystone"],
+  config_name   => 'restart.conf',
+  require       => Class['fuel::keystone'],
 }
