@@ -38,6 +38,15 @@ http {
     #prevent from clickjacking attacks
     add_header X-Frame-Options SAMEORIGIN;
 
+    #prevents from MIME-sniffing a response away from the declared content-type
+    add_header X-Content-Type nosniff;
+
+    #enables the XSS filter built into most recent web browsers
+    add_header X-XSS-Protection "1; mode=block";
+
+    #enforces the HSTS Policy (for a 6 months and include subdomains)
+    add_header Strict-Transport-Security "max-age=15768000; includeSubDomains";
+
     # Load config files from the /etc/nginx/conf.d directory
     # The default server is in conf.d/default.conf
     include /etc/nginx/conf.d/*.conf;
