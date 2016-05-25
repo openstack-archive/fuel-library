@@ -95,5 +95,26 @@ module L23network
     end
     return rv
   end
+
+  def self.override_transformations(network_scheme)
+    org_tranformations = network_scheme.fetch(:transformations,[])
+    transformations = org_tranformations.reject{|x| x[:action]=='override'}
+    org_tranformations.select{|x| x[:action]=='override'}.each do |ov|
+      next if ov[:override].nil?
+      tr_index = transformations.index{|x| x[:name]==ov[:override]}
+      next if tr_index.nil?
+      ov.reject{|k,v| [:override, :action].include? k}.each do |k,v|
+        if k == :'override-action' and v.to_s!=''
+          transformations[tr_index][:action] = v
+        elsif v == ''
+          transformations[tr_index].delete(k)
+        else
+          transformations[tr_index][k] = v
+        end
+      end
+    end
+    network_scheme[:transformations] = transformations
+    return network_scheme
+  end
 end
 # vim: set ts=2 sw=2 et :
