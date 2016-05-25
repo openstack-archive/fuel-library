@@ -92,7 +92,7 @@ class openstack_tasks::keystone::keystone {
   $token_caching          = false
   $token_driver           = 'keystone.token.persistence.backends.memcache_pool.Token'
   $token_provider = hiera('token_provider')
-  $revoke_driver = 'keystone.contrib.revoke.backends.sql.Revoke'
+  $revoke_driver = 'keystone.revoke.backends.dummy.Revoke'
 
   $public_url   = "${public_protocol}://${public_address}:${public_port}"
   $admin_url    = "${admin_protocol}://${admin_address}:${admin_port}"

@@ -76,7 +76,7 @@ describe manifest do
 
     let(:admin_url) { "#{admin_auth_protocol}://#{admin_auth_address}:35357" }
 
-    revoke_driver = 'keystone.contrib.revoke.backends.sql.Revoke'
+    revoke_driver = 'keystone.revoke.backends.dummy.Revoke'
     database_idle_timeout = '3600'
     ceilometer_hash = Noop.hiera_hash 'ceilometer', { 'enabled' => false }
     murano_hash = Noop.hiera_hash 'murano', { 'enabled' => false }
