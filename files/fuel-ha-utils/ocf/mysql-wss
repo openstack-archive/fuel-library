@@ -743,8 +743,13 @@ mysql_cleanup() {
 mysql_stop() {
     local LH="${LL} mysql_stop():"
     local shutdown_timeout
+    local rc
 
-    if [ ! -f $OCF_RESKEY_pid ]; then
+    # if there is no pid AND no SST found, consider it not running
+    # otherwise it may be running an SST and shall be stopped
+    check_if_sst
+    rc=$?
+    if [ $rc -ne $OCF_SUCCESS -a ! -f $OCF_RESKEY_pid ]; then
         ocf_log info "${LH} MySQL is not running"
         return $OCF_SUCCESS
     fi
@@ -754,7 +759,7 @@ mysql_stop() {
         shutdown_timeout=$(( ($OCF_RESKEY_CRM_meta_timeout/1000)-5 ))
     fi
 
-    proc_stop "${OCF_RESKEY_pid_file}" "mysqld" SIGTERM ${shutdown_timeout}
+    proc_stop "${OCF_RESKEY_pid_file}" "mysqld.*${OCF_RESKEY_datadir}" SIGTERM 5 $(( $shutdown_timeout/5 ))
     mysql_cleanup
     return $OCF_SUCCESS
 }
