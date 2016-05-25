@@ -290,7 +290,8 @@ class openstack_tasks::glance::glance {
         swift_store_key                     => $glance_user_password,
         swift_store_create_container_on_put => 'True',
         swift_store_large_object_size       => $swift_store_large_object_size,
-        swift_store_auth_address            => "${auth_uri}/v2.0/",
+        swift_store_auth_address            => "${auth_uri}/v3",
+        swift_store_auth_version            => '3',
         swift_store_region                  => $region,
         glare_enabled                       => true,
       }
