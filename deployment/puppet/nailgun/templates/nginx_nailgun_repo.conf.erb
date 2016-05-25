@@ -9,6 +9,15 @@ server {
     charset utf-8;
     client_max_body_size 2M;
 
+    error_page 500 501 502 503 504 = /error.html;
+    error_page 403 =200 /index.html;
+    error_page 404 =404 /index.html;
+
+    location = /error.html {
+        root <%= @repo_root %>;
+        internal;
+    }
+
     location / {
         autoindex on;
         root <%= @repo_root %>;
