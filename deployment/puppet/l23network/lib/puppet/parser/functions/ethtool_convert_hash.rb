@@ -1,7 +1,3 @@
-#
-# ethtool_convert_hash.rb
-#
-
 module Puppet::Parser::Functions
   newfunction(:ethtool_convert_hash, :type => :rvalue, :doc => <<-EOS
 This function get hash of ethtool rules and sanitize it.

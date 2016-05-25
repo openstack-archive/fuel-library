@@ -1,6 +1,5 @@
 require 'spec_helper'
-
-require File.join File.dirname(__FILE__), '../../../../lib/puppet/provider/l2_base.rb'
+require_relative '../../../../lib/puppet/provider/l2_base'
 
 provider_class = Puppet::Provider::L2_base
 

@@ -1,4 +1,4 @@
-require 'puppetx/l23_network_scheme'
+require_relative '../../../puppetx/l23_network_scheme'
 
 Puppet::Parser::Functions::newfunction(:get_dpdk_interfaces, :type => :rvalue, :doc => <<-EOS
     This function gets list of interfaces and returns bus_info addresses and
