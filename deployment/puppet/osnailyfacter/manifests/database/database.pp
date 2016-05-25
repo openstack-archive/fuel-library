@@ -127,7 +127,7 @@ class osnailyfacter::database::database {
     }
 
     $wsrep_group_comm_port = '4567'
-    if $::memorysize_mb < 4000 {
+    if ($::memorysize_mb + 0) < 4000 {
       $mysql_performance_schema = 'off'
     } else {
       $mysql_performance_schema = 'on'
