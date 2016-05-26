@@ -6,11 +6,12 @@ class cluster::ceilometer_central (
 ) {
   include ceilometer::agent::central
 
-  pacemaker::service { $::ceilometer::params::agent_central_service_name :
-    primitive_type  => 'ceilometer-agent-central',
-    metadata        => { 'resource-stickiness' => '1' },
-    parameters      => { 'user' => 'ceilometer' },
-    operations      => {
+  pacemaker::new::wrapper { $::ceilometer::params::agent_central_service_name :
+    primitive_type     => 'ceilometer-agent-central',
+    primitive_provider => 'fuel',
+    metadata           => { 'resource-stickiness' => '1' },
+    parameters         => { 'user' => 'ceilometer' },
+    operations         => {
       'monitor' => {
         'interval' => '20',
         'timeout'  => '30',

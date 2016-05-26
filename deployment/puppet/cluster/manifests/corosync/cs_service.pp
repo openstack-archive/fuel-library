@@ -24,7 +24,7 @@ define cluster::corosync::cs_service (
   }
 
   if $primary {
-    pcmk_resource { "p_${service_true_title}":
+    pacemaker_resource { $service_true_title :
       ensure             => 'present',
       primitive_class    => 'ocf',
       primitive_provider => 'fuel',
@@ -49,18 +49,21 @@ define cluster::corosync::cs_service (
         }
       }
     }
-    Pcmk_resource["p_${service_true_title}"] -> Service<| title == $service_true_title |>
+
+    Pacemaker_resource[$service_true_title] ->
+    Service<| title == $service_true_title |>
   }
   if ! $package_name {
     warning('Cluster::corosync::cs_service: Without package definition can\'t protect service for autostart correctly.')
   } else {
-    tweaks::ubuntu_service_override { "${service_name}":
+    tweaks::ubuntu_service_override { $service_name :
       package_name => $package_name,
-    } -> Service<| title=="${service_true_title}" |>
+    } ->
+    Service <| title == $service_true_title |>
   }
 
-  Service<| title=="${service_true_title}" |> {
+  Service <| title == $service_true_title |> {
     name     => $service_name,
-    provider => 'pacemaker',
+    provider => 'pacemaker_xml',
   }
 }

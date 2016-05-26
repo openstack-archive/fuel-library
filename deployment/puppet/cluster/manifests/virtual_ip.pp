@@ -62,7 +62,11 @@
 #   The name of the OCF script to use.
 #   Default: ns_IPaddr2
 #
-# [*use_pcmk_prefix*]
+# [*primitive_provider*]
+#   The provider of the OCF script to use.
+#   Default: fuel
+#
+# [*use_pacemaker_prefix*]
 #   Should the 'p_' prefix be added to
 #   the primitive name.
 #   Default: false
@@ -115,6 +119,7 @@ define cluster::virtual_ip (
   $ns_iptables_stop_rules  = undef,
   $also_check_interfaces   = undef,
   $primitive_type          = 'ns_IPaddr2',
+  $primitive_provider      = 'fuel',
   $use_pcmk_prefix         = false,
   $vip_prefix              = 'vip__',
   $additional_parameters   = { },
@@ -177,12 +182,13 @@ define cluster::virtual_ip (
     enable => true,
   }
 
-  pacemaker::service { $vip_name :
-    primitive_type => $primitive_type,
-    parameters     => $parameters,
-    metadata       => $metadata,
-    operations     => $operations,
-    prefix         => $use_pcmk_prefix,
+  pacemaker::new::wrapper { $vip_name :
+    primitive_type     => $primitive_type,
+    primitive_provider => $primitive_provider,
+    parameters         => $parameters,
+    metadata           => $metadata,
+    operations         => $operations,
+    prefix             => $use_pcmk_prefix,
   }
 
   # I'am running before this other vip
@@ -190,17 +196,17 @@ define cluster::virtual_ip (
   if $colocation_before {
     $colocation_before_vip_name = "${vip_prefix}${colocation_before}"
     $colocation_before_constraint_name = "${colocation_before_vip_name}${colocation_separator}${vip_name}"
-    pcmk_colocation { $colocation_before_constraint_name :
+    pacemaker_colocation { $colocation_before_constraint_name :
       ensure => $colocation_ensure,
       score  => $colocation_score,
       first  => $vip_name,
       second => $colocation_before_vip_name,
     }
 
-    Pcmk_resource <| title == $vip_name |> -> Pcmk_resource <| title == $colocation_before_vip_name |>
+    Pacemaker_resource <| title == $vip_name |> -> Pacemaker_resource <| title == $colocation_before_vip_name |>
     Service <| title == $vip_name |> -> Service <| title == $colocation_before_vip_name |>
-    Service <| title == $colocation_before_vip_name |> -> Pcmk_colocation[$colocation_before_constraint_name]
-    Service <| title == $vip_name |> -> Pcmk_colocation[$colocation_before_constraint_name]
+    Service <| title == $colocation_before_vip_name |> -> Pacemaker_colocation[$colocation_before_constraint_name]
+    Service <| title == $vip_name |> -> Pacemaker_colocation[$colocation_before_constraint_name]
   }
 
   # I'm running after this other vip
@@ -208,17 +214,17 @@ define cluster::virtual_ip (
   if $colocation_after {
     $colocation_after_vip_name = "${vip_prefix}${colocation_after}"
     $colocation_after_constraint_name = "${vip_name}${colocation_separator}${colocation_after_vip_name}"
-    pcmk_colocation { $colocation_after_constraint_name :
+    pacemaker_colocation { $colocation_after_constraint_name :
       ensure => $colocation_ensure,
       score  => $colocation_score,
       first  => $colocation_after_vip_name,
       second => $vip_name,
     }
 
-    Pcmk_resource <| title == $colocation_after_vip_name |> -> Pcmk_resource <| title == $vip_name |>
+    Pacemaker_resource <| title == $colocation_after_vip_name |> -> Pacemaker_resource <| title == $vip_name |>
     Service <| title == $colocation_after_vip_name |> -> Service <| title == $vip_name |>
-    Service <| title == $colocation_after_vip_name |> -> Pcmk_colocation[$colocation_after_constraint_name]
-    Service <| title == $vip_name |> -> Pcmk_colocation[$colocation_after_constraint_name]
+    Service <| title == $colocation_after_vip_name |> -> Pacemaker_colocation[$colocation_after_constraint_name]
+    Service <| title == $vip_name |> -> Pacemaker_colocation[$colocation_after_constraint_name]
   }
 
 }

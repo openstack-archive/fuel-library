@@ -16,7 +16,7 @@ describe 'cluster::heat_engine' do
       }
 
       it 'configures a heat engine pacemaker service' do
-        should contain_pacemaker__service(platform_params[:engine_service_name]).with(
+        should contain_pacemaker__new__wrapper(platform_params[:engine_service_name]).with(
           :primitive_type => 'heat-engine',
           :metadata       => {
             'resource-stickiness' => '1',

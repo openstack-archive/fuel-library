@@ -10,10 +10,9 @@
 # This class requires that ::heat::engine be included in the catalog prior to
 # the inclusion of this class.
 #
-class cluster::heat_engine {
-  include ::heat::params
-
-  $primitive_type  = 'heat-engine'
+class cluster::heat_engine inherits ::heat::params {
+  $primitive_type = 'heat-engine'
+  $primitive_provider = 'fuel'
 
   # migration-threshold is number of tries to
   # start resource on each controller node
@@ -41,12 +40,13 @@ class cluster::heat_engine {
     'interleave' => true,
   }
 
-  pacemaker::service { $::heat::params::engine_service_name :
-    primitive_type   => $primitive_type,
-    metadata         => $metadata,
-    complex_type     => 'clone',
-    complex_metadata => $ms_metadata,
-    operations       => $operations,
+  pacemaker::new::wrapper { $engine_service_name :
+    primitive_type     => $primitive_type,
+    primitive_provider => $primitive_provider,
+    metadata           => $metadata,
+    complex_type       => 'clone',
+    complex_metadata   => $ms_metadata,
+    operations         => $operations,
   }
 
 }

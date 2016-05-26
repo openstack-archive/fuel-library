@@ -105,6 +105,7 @@
 #
 class cluster::rabbitmq_ocf (
   $primitive_type          = 'rabbitmq-server',
+  $primitive_provider      = 'fuel',
   $service_name            = $::rabbitmq::service_name,
   $port                    = $::rabbitmq::port,
   $host_ip                 = '127.0.0.1',
@@ -173,7 +174,7 @@ class cluster::rabbitmq_ocf (
       'interval' => $mon_interval,
       'timeout'  => $mon_timeout
     },
-    'monitor:Master' => { # name:role
+    'monitor:Master' => {
       'role' => 'Master',
       'interval' => $master_mon_interval,
       'timeout'  => $mon_timeout
@@ -206,14 +207,15 @@ class cluster::rabbitmq_ocf (
     },
   }
 
-  pacemaker::service { $service_name :
+  pacemaker::new::wrapper { $service_name :
     primitive_type      => $primitive_type,
+    primitive_provider  => $primitive_provider,
     complex_type        => 'master',
     complex_metadata    => $complex_metadata,
     metadata            => $metadata,
     operations          => $operations,
     parameters          => $parameters,
-    #    ocf_script_file     => $ocf_script_file,
   }
+
   Service[$service_name] -> Rabbitmq_user <||>
 }
