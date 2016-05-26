@@ -34,14 +34,14 @@ class cluster::ntp_ocf inherits ntp::params {
     },
   }
 
-  pcmk_colocation { 'ntp-with-vrouter-ns' :
+  pacemaker_colocation { 'ntp-with-vrouter-ns' :
     ensure     => 'present',
     score      => 'INFINITY',
     first      => 'clone_p_vrouter',
     second     => "clone_p_${service_name}",
   }
 
-  pacemaker::service { $service_name :
+  pacemaker::new::wrapper { $service_name :
     primitive_type      => $primitive_type,
     parameters          => $parameters,
     metadata            => $metadata,
@@ -51,8 +51,8 @@ class cluster::ntp_ocf inherits ntp::params {
     prefix              => true,
   }
 
-  Pcmk_resource["p_${service_name}"] ->
-  Pcmk_colocation['ntp-with-vrouter-ns'] ->
+  Pacemaker_resource["p_${service_name}"] ->
+  Pacemaker_colocation['ntp-with-vrouter-ns'] ->
   Service['ntp']
 
   if ! defined(Service[$service_name]) {

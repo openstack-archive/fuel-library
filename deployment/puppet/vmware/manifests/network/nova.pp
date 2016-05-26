@@ -79,7 +79,7 @@ class vmware::network::nova (
     }
   }
 
-  pacemaker::service { $service_name :
+  pacemaker::new::wrapper { $service_name :
     prefix             => false,
     primitive_class    => $primitive_class,
     primitive_provider => $primitive_provider,
@@ -119,7 +119,7 @@ class vmware::network::nova (
   Service['nova-network']->
   File[$nova_network_config_dir]->
   File[$nova_network_config_ha]->
-  Pcmk_resource[$service_name]->
+  Pacemaker_resource[$service_name]->
   Service[$service_name]->
   Anchor['vcenter-nova-network-end']
 }

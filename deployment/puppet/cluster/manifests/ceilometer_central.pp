@@ -6,7 +6,7 @@ class cluster::ceilometer_central (
 ) {
   include ceilometer::agent::central
 
-  pacemaker::service { $::ceilometer::params::agent_central_service_name :
+  pacemaker::new::wrapper { $::ceilometer::params::agent_central_service_name :
     primitive_type  => 'ceilometer-agent-central',
     metadata        => { 'resource-stickiness' => '1' },
     parameters      => { 'user' => 'ceilometer' },
