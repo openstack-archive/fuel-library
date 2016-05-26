@@ -8,35 +8,34 @@ manifest = 'cluster/cluster.pp'
 describe manifest do
   shared_examples 'catalog' do
 
-    cluster_recheck_interval = Noop.hiera('cluster_recheck_interval', '190s')
+    let(:network_metadata) do
+      Noop.hiera_hash('network_metadata')
+    end
 
-    it { should contain_class('cluster').with({
-      'cluster_recheck_interval' => cluster_recheck_interval,
-      })
-    }
-    it { should contain_pcmk_nodes('pacemaker') }
-    it { should contain_service('corosync').that_comes_before('Pcmk_nodes[pacemaker]') }
-    it { should contain_service('corosync').with({
-         'subscribe' => 'File[/etc/corosync/service.d]',
-         'require'   => 'File[/etc/corosync/corosync.conf]',
-         })
-    }
+    let(:corosync_roles) do
+      Noop.hiera('corosync_roles')
+    end
 
-    it do
-      if (facts[:operatingsystem] == 'Ubuntu')
-        should contain_file('/etc/corosync/uidgid.d/pacemaker').that_requires('File[/etc/corosync/corosync.conf]')
-      elsif
-        should_not contain_file('/etc/corosync/uidgid.d/pacemaker')
-      end
+    let(:corosync_nodes) do
+      nodes = Noop.puppet_function 'get_nodes_hash_by_roles', network_metadata, corosync_roles
+      Noop.puppet_function 'corosync_nodes', nodes, 'mgmt/corosync'
+    end
+
+    let(:cluster_recheck_interval) do
+      Noop.hiera('cluster_recheck_interval', '190s')
     end
 
     it do
-      if (facts[:operatingsystem] == 'Ubuntu')
-        should contain_file('/etc/corosync/uidgid.d/pacemaker').that_comes_before('Service[corosync]')
-      end
+      parameters = {
+          'cluster_recheck_interval' => cluster_recheck_interval,
+          'cluster_nodes' => corosync_nodes,
+
+      }
+      is_expected.to contain_class('cluster').with(parameters)
     end
+
+
 
   end
   test_ubuntu_and_centos manifest
 end
-
