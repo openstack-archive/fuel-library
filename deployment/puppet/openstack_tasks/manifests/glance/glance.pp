@@ -107,7 +107,9 @@ class openstack_tasks::glance::glance {
     $show_image_direct_url = pick($glance_hash['show_image_direct_url'], false)
   }
 
-  if $murano_plugins and $murano_plugins['glance_artifacts_plugin'] and $murano_plugins['glance_artifacts_plugin']['enabled'] {
+  # NOTE(aschultz): UCA does not have the glance artifacts plugin package
+  # we can remove the os_package_type once UCA provides the package
+  if $murano_plugins and $murano_plugins['glance_artifacts_plugin'] and $murano_plugins['glance_artifacts_plugin']['enabled'] and ($::os_package_type == 'debian') {
     package {'murano-glance-artifacts-plugin':
       ensure  => installed,
     }
