@@ -31,7 +31,7 @@ class cluster::dns_ocf {
     },
   }
 
-  pacemaker::service { $service_name :
+  pacemaker::new::wrapper { $service_name :
     primitive_class    => $primitive_class,
     primitive_provider => $primitive_provider,
     primitive_type     => $primitive_type,
@@ -43,15 +43,15 @@ class cluster::dns_ocf {
     prefix             => false,
   }
 
-  pcmk_colocation { 'dns-with-vrouter-ns' :
+  pacemaker_colocation { 'dns-with-vrouter-ns' :
     ensure => 'present',
     score  => 'INFINITY',
     first  => "clone_p_vrouter",
     second => "clone_${service_name}",
   }
 
-  Pcmk_resource[$service_name] ->
-  Pcmk_colocation['dns-with-vrouter-ns'] ->
+  Pacemaker_resource[$service_name] ->
+  Pacemaker_colocation['dns-with-vrouter-ns'] ->
   Service[$service_name]
 
   service { $service_name:

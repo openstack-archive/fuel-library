@@ -34,7 +34,7 @@ class cluster::haproxy_ocf (
     },
   }
 
-  pacemaker::service { $service_name :
+  ::pacemaker::new::wrapper { $service_name :
     primitive_type   => $primitive_type,
     parameters       => $parameters,
     metadata         => $metadata,
@@ -45,24 +45,24 @@ class cluster::haproxy_ocf (
   }
 
   if $colocate_haproxy {
-    pcmk_colocation { 'vip_public-with-haproxy':
+    pacemaker_colocation { 'vip_public-with-haproxy':
       ensure     => 'present',
       score      => 'INFINITY',
       first      => "clone_${service_name}",
       second     => "vip__public",
     }
-    Service[$service_name] -> Pcmk_colocation['vip_public-with-haproxy']
+    Service[$service_name] -> Pacemaker_colocation['vip_public-with-haproxy']
 
-    pcmk_colocation { 'vip_management-with-haproxy':
+    pacemaker_colocation { 'vip_management-with-haproxy':
       ensure     => 'present',
       score      => 'INFINITY',
       first      => "clone_${service_name}",
       second     => 'vip__management',
     }
-    Service[$service_name] -> Pcmk_colocation['vip_management-with-haproxy']
+    Service[$service_name] -> Pacemaker_colocation['vip_management-with-haproxy']
   }
 
-  Pcmk_resource[$service_name] ->
+  Pacemaker_resource[$service_name] ->
   Service[$service_name]
 }
 

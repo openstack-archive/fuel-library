@@ -88,7 +88,7 @@ define vmware::compute::ha(
       }
     }
 
-    pacemaker::service { $primitive_name :
+    pacemaker::new::wrapper { $primitive_name :
       prefix => false,
       primitive_class => $primitive_class,
       primitive_provider => $primitive_provider,
@@ -105,7 +105,7 @@ define vmware::compute::ha(
 
     File["${nova_conf_dir}"]->
     File["${nova_compute_conf}"]->
-    Pcmk_resource[$primitive_name]->
+    Pacemaker_resource[$primitive_name]->
     Service[$primitive_name]
   }
 }
