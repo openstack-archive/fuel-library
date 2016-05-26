@@ -26,7 +26,7 @@ describe manifest do
       end
 
       it do
-        is_expected.to contain_pcmk_resource('ping_vip__public').with(
+        is_expected.to contain_pacemaker_resource('ping_vip__public').with(
             :name => 'ping_vip__public',
             :ensure => 'present',
             :primitive_class => 'ocf',
@@ -39,7 +39,7 @@ describe manifest do
       end
 
       it do
-        is_expected.to contain_pcmk_resource('ping_vip__public').that_comes_before(%w(Pcmk_location[loc_ping_vip__public] Service[ping_vip__public]))
+        is_expected.to contain_pacemaker_resource('ping_vip__public').that_comes_before(%w(Pacemaker_location[loc_ping_vip__public] Service[ping_vip__public]))
       end
 
       it do
@@ -52,14 +52,14 @@ describe manifest do
       end
 
       it do
-        is_expected.to contain_pcmk_location('loc_ping_vip__public').with(
+        is_expected.to contain_pacemaker_location('loc_ping_vip__public').with(
             :name => 'loc_ping_vip__public',
             :primitive => 'vip__public',
         )
       end
 
       it do
-        is_expected.to contain_pcmk_location('loc_ping_vip__public').that_comes_before('Service[ping_vip__public]')
+        is_expected.to contain_pacemaker_location('loc_ping_vip__public').that_comes_before('Service[ping_vip__public]')
       end
 
     end

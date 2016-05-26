@@ -28,7 +28,7 @@ describe 'vmware::compute::ha' do
       end
 
       xit 'should create service p_nova_compute_vmware_vCenter-prod' do
-        should contain_pcmk_resource('p_nova_compute_vmware_vCenter-prod').with({
+        should contain_pacemaker_resource('p_nova_compute_vmware_vCenter-prod').with({
                                                                                     'primitive_class' => 'ocf',
                                                                                     'primitive_provider' => 'fuel',
                                                                                 })
@@ -39,7 +39,7 @@ describe 'vmware::compute::ha' do
       end
 
       xit 'should apply configuration file before corosync resource' do
-        should contain_file('/etc/nova/nova-compute.d/vmware-vCenter_prod.conf').that_comes_before('Pcmk_resource[p_nova_compute_vmware_vCenter-prod]')
+        should contain_file('/etc/nova/nova-compute.d/vmware-vCenter_prod.conf').that_comes_before('Pacemaker_resource[p_nova_compute_vmware_vCenter-prod]')
       end
 
     end

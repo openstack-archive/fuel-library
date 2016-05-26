@@ -117,7 +117,7 @@ class openstack_tasks::ironic::ironic_compute {
     neutron_admin_auth_url => "${admin_identity_uri}/v3",
   }
 
-  pcmk_resource { 'p_nova_compute_ironic':
+  pacemaker_resource { 'p_nova_compute_ironic':
     ensure             => 'present',
     primitive_class    => 'ocf',
     primitive_provider => 'fuel',
