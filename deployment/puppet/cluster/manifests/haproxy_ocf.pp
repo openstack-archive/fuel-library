@@ -8,19 +8,24 @@ class cluster::haproxy_ocf (
   $colocate_haproxy = true,
 ) inherits cluster::haproxy {
   $primitive_type  = 'ns_haproxy'
+  $primitive_provider = 'fuel'
   $complex_type    = 'clone'
+
   $complex_metadata     = {
     'interleave' => true,
   }
+
   $metadata        = {
     'migration-threshold' => '3',
     'failure-timeout'     => '120',
   }
+
   $parameters      = {
     'ns'             => 'haproxy',
     'debug'          => $debug,
     'other_networks' => $other_networks,
   }
+
   $operations      = {
     'monitor' => {
       'interval' => '30',
@@ -34,35 +39,35 @@ class cluster::haproxy_ocf (
     },
   }
 
-  pacemaker::service { $service_name :
-    primitive_type   => $primitive_type,
-    parameters       => $parameters,
-    metadata         => $metadata,
-    operations       => $operations,
-    complex_metadata => $complex_metadata,
-    complex_type     => $complex_type,
-    prefix           => false,
+  ::pacemaker::new::wrapper { $service_name :
+    primitive_type     => $primitive_type,
+    primitive_provider => $primitive_provider,
+    parameters         => $parameters,
+    metadata           => $metadata,
+    operations         => $operations,
+    complex_metadata   => $complex_metadata,
+    complex_type       => $complex_type,
   }
 
   if $colocate_haproxy {
-    pcmk_colocation { 'vip_public-with-haproxy':
+    pacemaker_colocation { 'vip_public-with-haproxy':
       ensure     => 'present',
       score      => 'INFINITY',
-      first      => "clone_${service_name}",
+      first      => "${service_name}-clone",
       second     => "vip__public",
     }
-    Service[$service_name] -> Pcmk_colocation['vip_public-with-haproxy']
+    Service[$service_name] -> Pacemaker_colocation['vip_public-with-haproxy']
 
-    pcmk_colocation { 'vip_management-with-haproxy':
+    pacemaker_colocation { 'vip_management-with-haproxy':
       ensure     => 'present',
       score      => 'INFINITY',
-      first      => "clone_${service_name}",
+      first      => "${service_name}-clone",
       second     => 'vip__management',
     }
-    Service[$service_name] -> Pcmk_colocation['vip_management-with-haproxy']
+    Service[$service_name] -> Pacemaker_colocation['vip_management-with-haproxy']
   }
 
-  Pcmk_resource[$service_name] ->
+  Pacemaker_resource[$service_name] ->
   Service[$service_name]
 }
 

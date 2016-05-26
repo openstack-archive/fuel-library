@@ -5,9 +5,9 @@ define cluster::virtual_ip_ping (
   $service_name  = "ping_${vip_name}"
   $location_name = "loc_ping_${vip_name}"
 
-  $primitive_class    = 'ocf'
   $primitive_provider = 'pacemaker'
   $primitive_type     = 'ping'
+
   $parameters         = {
     'host_list'  => $host_list,
     'multiplier' => '1000',
@@ -27,9 +27,7 @@ define cluster::virtual_ip_ping (
     enable   => true,
   }
 
-  pacemaker::service { $service_name :
-    prefix             => false,
-    primitive_class    => $primitive_class,
+  pacemaker::new::wrapper { $service_name :
     primitive_provider => $primitive_provider,
     primitive_type     => $primitive_type,
     parameters         => $parameters,
@@ -37,7 +35,7 @@ define cluster::virtual_ip_ping (
     complex_type       => $complex_type,
   }
 
-  pcmk_location { $location_name :
+  pacemaker_location { $location_name :
     primitive => $vip_name,
     rules     => [
       {
@@ -57,7 +55,7 @@ define cluster::virtual_ip_ping (
     ],
   }
 
-  Pcmk_resource[$service_name] ->
-  Pcmk_location[$location_name] ->
+  Pacemaker_resource[$service_name] ->
+  Pacemaker_location[$location_name] ->
   Service[$service_name]
 }

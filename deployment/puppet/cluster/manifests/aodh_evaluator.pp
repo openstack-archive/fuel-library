@@ -33,15 +33,18 @@ class cluster::aodh_evaluator {
   }
 
   $primitive_type = 'aodh-evaluator'
+  $primitive_provider = 'fuel'
+
   $parameters = { 'user' => 'aodh' }
 
-  pacemaker::service { $service_name :
+  pacemaker::new::wrapper { $service_name :
     primitive_type     => $primitive_type,
+    primitive_provider => $primitive_provider,
     metadata           => $metadata,
     parameters         => $parameters,
-    operations         => $operations
+    operations         => $operations,
   }
 
-  Pcmk_resource["p_${service_name}"] ->
+  Pacemaker_resource[$service_name] ->
   Service[$service_name]
 }
