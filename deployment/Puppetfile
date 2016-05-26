@@ -28,8 +28,8 @@ mod 'stdlib',
 
 # Pull in puppet-pacemaker modules
 mod 'pacemaker',
-    :git => 'https://github.com/fuel-infra/puppet-pacemaker.git',
-    :ref => '1.0.6'
+    :git => 'https://github.com/openstack/puppet-pacemaker.git',
+    :ref => 'master'
 
 # Pull in puppetlabs-concat
 mod 'concat',
@@ -136,17 +136,11 @@ mod 'mcollective',
     :git => 'https://github.com/fuel-infra/puppet-mcollective.git',
     :ref => 'v2.1.1'
 
-# Pull in puppet-corosync
-# FIXME(bogdando) We need the 0.8.0-29201ff. Use the 0.9.0 once released.
-mod 'corosync',
-    :git => 'https://github.com/fuel-infra/puppet-corosync.git',
-    :ref => '0.8.0-mos-rc3'
-
 # Pull in puppetlabs-rabbitmq
 # FIXME(bogdando) We need the 5.3.1-dc0964d. Use the 5.3.2 once released.
 mod 'rabbitmq',
-    :git => 'https://github.com/fuel-infra/puppetlabs-rabbitmq.git',
-    :ref => '5.3.1-mos-rc1'
+    :git => 'https://github.com/puppetlabs/puppetlabs-rabbitmq',
+    :ref => '5.4.0'
 
 # Pull in puppetlabs-mysql
 # FIXME(mmalchuk) 498b085 (3.6.3-rc1) is a fix for the 3.6.x branch

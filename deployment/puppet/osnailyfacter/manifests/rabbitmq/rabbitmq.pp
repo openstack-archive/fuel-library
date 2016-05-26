@@ -101,6 +101,7 @@ class osnailyfacter::rabbitmq::rabbitmq {
         'listener'   => "[{port, ${management_port}}, {ip,\"${management_bind_ip_address}\"}]",
       }
     )
+
     # NOTE(bogdando) to get the limit for threads, the max amount of worker processess will be doubled
     $thread_pool_calc = min($workers_max*2,max(12*$physicalprocessorcount,30))
 
