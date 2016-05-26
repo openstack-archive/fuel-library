@@ -33,7 +33,7 @@ class cluster::sysinfo (
   $monitor_ensure   = 'present',
 ) {
 
-  pcmk_resource { "sysinfo_${::fqdn}" :
+  pacemaker_resource { "sysinfo_${::fqdn}" :
     ensure                 => $monitor_ensure,
     primitive_class        => 'ocf',
     primitive_provider     => 'pacemaker',
@@ -47,12 +47,12 @@ class cluster::sysinfo (
   }
 
   # Have service migrate if health turns red from the failed disk check
-  pcmk_property { 'node-health-strategy':
+  pacemaker_property { 'node-health-strategy':
     ensure   => $monitor_ensure,
     value    => 'migrate-on-red',
   }
 
-  pcmk_location { "sysinfo-on-${::fqdn}":
+  pacemaker_location { "sysinfo-on-${::fqdn}":
     ensure    => $monitor_ensure,
     primitive => "sysinfo_${::fqdn}",
     node      => $::fqdn,

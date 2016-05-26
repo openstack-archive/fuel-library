@@ -6,19 +6,23 @@ describe 'cluster::ntp_ocf' do
 
     it 'configures with the default params' do
       should contain_class('cluster::ntp_ocf')
-      should contain_pcmk_resource('p_ntp').with_before(["Pcmk_colocation[ntp-with-vrouter-ns]", "Service[ntp]"]) 
-      should contain_pcmk_colocation('ntp-with-vrouter-ns').with(
+      should contain_pacemaker_resource('ntp').
+          that_comes_before(['Pacemaker_colocation[ntp-with-vrouter-ns]', 'Service[ntp]'])
+      should contain_pacemaker_colocation('ntp-with-vrouter-ns').with(
         :ensure => 'present',
         :score  => 'INFINITY',
-        :first  => 'clone_p_vrouter', 
-        :second => 'clone_p_ntp')
+        :first  => 'vrouter-clone',
+        :second => 'ntp-clone',
+      )
     end
   end
 
   context 'on Debian platforms' do
     let :facts do
-      { :osfamily => 'Debian',
-        :operatingsystem => 'Debian', }
+      {
+          :osfamily => 'Debian',
+          :operatingsystem => 'Debian',
+      }
     end
 
     it_configures 'ntp_ocf configuration'
