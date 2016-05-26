@@ -1,60 +1,103 @@
 # == Class: cluster
 #
-# Module for configuring cluster resources.
+# This module installs and configures the Pacemaker cluster services
 #
 class cluster (
-    $internal_address         = '127.0.0.1',
-    $quorum_members           = ['localhost'],
-    $quorum_members_ids       = undef,
-    $unicast_addresses        = ['127.0.0.1'],
-    $cluster_recheck_interval = '190s',
+  $cluster_nodes,
+  $cluster_rrp_nodes        = undef,
+
+  $no_quorum_policy         = 'ignore',
+  $stonith_enabled          = false,
+  $start_failure_is_fatal   = false,
+  $symmetric_cluster        = false,
+  $cluster_recheck_interval = '60',
+
+  $cluster_user             = 'hacluster',
+  $cluster_group            = 'haclient',
 ) {
 
-    #todo: move half of openstack::corosync
-    #to this module, another half -- to Neutron
+  anchor { 'cluster-start': }
+  anchor { 'cluster-end': }
 
-    case $::osfamily {
-      'Debian' : {
-        $packages = ['crmsh', 'pcs']
-      }
-      'RedHat' : {
-        # pcs will be installed by the corosync automatically
-        $packages = ['crmsh']
-      }
-      default: {}
+  $package_list = [
+    'pacemaker-mgmt',
+    'pacemaker',
+    'corosync',
+    'pacemaker-cli-utils',
+    'resource-agents',
+    'crmsh',
+    'pcs',
+  ]
+
+  class { 'pacemaker::new' :
+    firewall_corosync_manage => false,
+    firewall_pcsd_manage     => false,
+    pcsd_mode                => false,
+    cluster_auth_enabled     => false,
+    cluster_nodes            => $cluster_nodes,
+    cluster_rrp_nodes        => $cluster_rrp_nodes,
+    cluster_name             => 'fuel',
+    cluster_user             => $cluster_user,
+    cluster_group            => $cluster_group,
+    plugin_version           => '1',
+    log_file_path            => '/var/log/corosync.log',
+    package_list             => $package_list,
+  }
+
+  Pacemaker_property {
+    ensure => 'present',
+  }
+
+  pacemaker_property {
+    'no-quorum-policy'         : value => $no_quorum_policy;
+    'stonith-enabled'          : value => $stonith_enabled;
+    'start-failure-is-fatal'   : value => $start_failure_is_fatal;
+    'symmetric-cluster'        : value => $symmetric_cluster;
+    'cluster-recheck-interval' : value => $cluster_recheck_interval;
+  }
+
+  File {
+    owner => 'root',
+    group => 'root',
+    mode  => '0644',
+  }
+
+  file { 'ocf-fuel-path' :
+    ensure  => 'directory',
+    path    => '/usr/lib/ocf/resource.d/fuel',
+    recurse => true,
+    mode    => '0755',
+  }
+
+  file { 'limits_conf' :
+    ensure  => 'present',
+    path    => '/etc/security/limits.conf',
+    source  => 'puppet:///modules/openstack/limits.conf',
+    replace => true,
+  }
+
+  # Sometimes during first start pacemaker can not connect to corosync
+  # via IPC due to pacemaker and corosync processes are run under different users
+  if $::operatingsystem == 'Ubuntu' {
+    file { 'pcmk_uid_gid' :
+      path    => '/etc/corosync/uidgid.d/pacemaker',
+      content => "uidgid {\n  uid: ${cluster_user}\n  gid: ${cluster_group}\n}",
     }
 
-    if defined(Stage['corosync_setup']) {
-      class { 'openstack::corosync':
-        bind_address             => $internal_address,
-        stage                    => 'corosync_setup',
-        quorum_members           => $quorum_members,
-        quorum_members_ids       => $quorum_members_ids,
-        unicast_addresses        => $unicast_addresses,
-        packages                 => $packages,
-        cluster_recheck_interval => $cluster_recheck_interval,
-      }
-    } else {
-      class { 'openstack::corosync':
-        bind_address             => $internal_address,
-        quorum_members           => $quorum_members,
-        quorum_members_ids       => $quorum_members_ids,
-        unicast_addresses        => $unicast_addresses,
-        packages                 => $packages,
-        cluster_recheck_interval => $cluster_recheck_interval,
-      }
-    }
+    File['pcmk_uid_gid'] ->
+    Class['pacemaker::new::service']
+  }
 
-    File<| title == '/etc/corosync/corosync.conf' |> -> Service['corosync']
+  # pcmk_nodes { 'pacemaker' :
+  #   nodes               => $corosync_nodes,
+  #   add_pacemaker_nodes => false,
+  # }
 
-    file { 'ocf-fuel-path':
-      ensure  => directory,
-      path    =>'/usr/lib/ocf/resource.d/fuel',
-      recurse => true,
-      owner   => 'root',
-      group   => 'root',
-    }
-    Package['corosync'] -> File['ocf-fuel-path']
-    Package<| title == 'pacemaker' |> -> File['ocf-fuel-path']
+  Anchor['cluster-start'] ->
+  File['ocf-fuel-path'] ->
+  File['limits_conf'] ->
+  Class['pacemaker::new'] ->
+  Pacemaker_property <||> ->
+  Anchor['cluster-end']
 
 }
