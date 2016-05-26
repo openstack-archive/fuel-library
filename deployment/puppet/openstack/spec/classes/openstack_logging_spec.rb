@@ -132,6 +132,7 @@ describe 'openstack::logging' do
         :operatingsystem => 'RedHat',
         :hostname => 'hostname.example.com',
         :rsyslog_version => '5.8.10',
+        :operatingsystemmajrelease => '7.0',
       }
     end
 

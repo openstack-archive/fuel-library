@@ -3,7 +3,7 @@ class cluster::conntrackd_ocf (
   $bind_address,
   $mgmt_bridge,
 ) {
-  $service_name = 'p_conntrackd'
+  $service_name = 'conntrackd'
 
   case $operatingsystem {
     'Centos': { $conntrackd_package = 'conntrack-tools' }
@@ -23,17 +23,19 @@ class cluster::conntrackd_ocf (
     enable   => true,
   }
 
-  $primitive_class    = 'ocf'
-  $primitive_provider = 'fuel'
   $primitive_type     = 'ns_conntrackd'
+  $primitive_provider = 'fuel'
+  $complex_type       = 'master'
+
   $metadata           = {
     'migration-threshold' => 'INFINITY',
     'failure-timeout'     => '180s'
   }
+
   $parameters = {
     'bridge' => $mgmt_bridge,
   }
-  $complex_type       = 'master'
+
   $complex_metadata   = {
     'notify'          => 'true',
     'ordered'         => 'false',
@@ -43,6 +45,7 @@ class cluster::conntrackd_ocf (
     'master-node-max' => '1',
     'target-role'     => 'Master'
   }
+
   $operations         = {
     'monitor'  => {
       'interval' => '30',
@@ -55,11 +58,9 @@ class cluster::conntrackd_ocf (
     },
   }
 
-  pacemaker::service { $service_name :
-    prefix             => false,
-    primitive_class    => $primitive_class,
-    primitive_provider => $primitive_provider,
+  pacemaker::new::wrapper { $service_name :
     primitive_type     => $primitive_type,
+    primitive_provider => $primitive_provider,
     metadata           => $metadata,
     parameters         => $parameters,
     complex_type       => $complex_type,
@@ -67,15 +68,15 @@ class cluster::conntrackd_ocf (
     operations         => $operations,
   }
 
-  pcmk_colocation { "conntrackd-with-${vrouter_name}-vip":
+  pacemaker_colocation { "conntrackd-with-${vrouter_name}-vip":
     first  => "vip__vrouter_${vrouter_name}",
-    second => 'master_p_conntrackd:Master',
+    second => 'conntrackd-master:Master',
   }
 
   File['/etc/conntrackd/conntrackd.conf'] ->
-  Pcmk_resource[$service_name] ->
+  Pacemaker_resource[$service_name] ->
   Service[$service_name] ->
-  Pcmk_colocation["conntrackd-with-${vrouter_name}-vip"]
+  Pacemaker_colocation["conntrackd-with-${vrouter_name}-vip"]
 
   # Workaround to ensure log is rotated properly
   file { '/etc/logrotate.d/conntrackd':
