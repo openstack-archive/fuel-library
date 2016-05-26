@@ -124,6 +124,22 @@ describe manifest do
 
     murano_glance_artifacts_plugin = Noop.hiera_hash('murano_glance_artifacts_plugin', {})
 
+    let(:packages_service) do
+      if murano_glance_artifacts_plugin and murano_glance_artifacts_plugin['enabled'] and facts[:os_package_type] == 'debian'
+        'glance'
+      else
+        'murano'
+      end
+    end
+
+    let(:enable_glare) do
+      if murano_glance_artifacts_plugin and murano_glance_artifacts_plugin['enabled'] and facts[:os_package_type] == 'debian'
+        true
+      else
+        false
+      end
+    end
+
     #############################################################################
 
     enable = Noop.hiera_structure('murano/enabled')
@@ -148,6 +164,7 @@ describe manifest do
                    'identity_uri'        => "#{admin_auth_protocol}://#{admin_auth_address}:35357/",
                    'notification_driver' => 'messagingv2',
                    'use_neutron'         => use_neutron,
+                   'packages_service'    => packages_service,
                    'rabbit_os_user'      => rabbit_os_user,
                    'rabbit_os_password'  => rabbit_os_password,
                    'rabbit_os_port'      => amqp_port,
@@ -190,6 +207,7 @@ describe manifest do
                    'api_url'  => nil,
                    'repo_url' => repository_url,
                    'sync_db'  => false,
+                   'enable_glare' => enable_glare
                )
       end
 

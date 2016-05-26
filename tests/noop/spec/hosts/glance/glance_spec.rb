@@ -165,7 +165,7 @@ describe manifest do
       should contain_glance_glare_config('DEFAULT/default_log_levels').with_value(default_log_levels.sort.join(','))
     end
 
-    if murano_glance_artifacts_plugin and murano_glance_artifacts_plugin['enabled']
+    if murano_glance_artifacts_plugin and murano_glance_artifacts_plugin['enabled'] and facts[:os_package_type] == 'debian'
       it 'should install murano-glance-artifacts-plugin package' do
         should contain_package('murano-glance-artifacts-plugin').with(:ensure  => 'installed')
       end
