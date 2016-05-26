@@ -19,9 +19,7 @@ class vmware::network::nova (
   $amqp_port = '5673',
   $nova_network_config = '/etc/nova/nova.conf',
   $nova_network_config_dir = '/etc/nova/nova-network.d'
-) {
-  include nova::params
-
+) inherits ::nova::params {
   $nova_network_config_ha = "${nova_network_config_dir}/nova-network-ha.conf"
 
   if ! defined(File[$nova_network_config_dir]) {
@@ -51,9 +49,8 @@ class vmware::network::nova (
   $region = hiera('region', 'RegionOne')
 
   $service_name       = 'p_vcenter_nova_network'
-  $primitive_class    = 'ocf'
-  $primitive_provider = 'fuel'
   $primitive_type     = 'nova-network'
+  $primitive_provider = 'fuel'
   $metadata           = {
     'resource-stickiness' => '1'
   }
@@ -79,14 +76,13 @@ class vmware::network::nova (
     }
   }
 
-  pacemaker::service { $service_name :
-    prefix             => false,
-    primitive_class    => $primitive_class,
-    primitive_provider => $primitive_provider,
+  pacemaker::new::wrapper { $service_name :
     primitive_type     => $primitive_type,
+    primitive_provider => $primitive_provider,
     metadata           => $metadata,
     parameters         => $parameters,
     operations         => $operations,
+    prefix             => false,
   }
 
   if ($::operatingsystem == 'Ubuntu') {
@@ -119,7 +115,7 @@ class vmware::network::nova (
   Service['nova-network']->
   File[$nova_network_config_dir]->
   File[$nova_network_config_ha]->
-  Pcmk_resource[$service_name]->
+  Pacemaker_resource[$service_name]->
   Service[$service_name]->
   Anchor['vcenter-nova-network-end']
 }

@@ -4,7 +4,8 @@
 #
 class cluster::ntp_ocf inherits ntp::params {
   $primitive_type = 'ns_ntp'
-  $complex_type   = 'clone'
+  $primitive_provider = 'fuel'
+  $complex_type = 'clone'
 
   $complex_metadata = {
     'interleave' => 'true',
@@ -34,25 +35,25 @@ class cluster::ntp_ocf inherits ntp::params {
     },
   }
 
-  pcmk_colocation { 'ntp-with-vrouter-ns' :
-    ensure     => 'present',
-    score      => 'INFINITY',
-    first      => 'clone_p_vrouter',
-    second     => "clone_p_${service_name}",
+  pacemaker_colocation { 'ntp-with-vrouter-ns' :
+    ensure => 'present',
+    score  => 'INFINITY',
+    first  => 'vrouter-clone',
+    second => "${service_name}-clone",
   }
 
-  pacemaker::service { $service_name :
-    primitive_type      => $primitive_type,
-    parameters          => $parameters,
-    metadata            => $metadata,
-    operations          => $operations,
-    complex_metadata    => $complex_metadata,
-    complex_type        => $complex_type,
-    prefix              => true,
+  pacemaker::new::wrapper { $service_name :
+    primitive_type     => $primitive_type,
+    primitive_provider => $primitive_provider,
+    parameters         => $parameters,
+    metadata           => $metadata,
+    operations         => $operations,
+    complex_metadata   => $complex_metadata,
+    complex_type       => $complex_type,
   }
 
-  Pcmk_resource["p_${service_name}"] ->
-  Pcmk_colocation['ntp-with-vrouter-ns'] ->
+  Pacemaker_resource[$service_name] ->
+  Pacemaker_colocation['ntp-with-vrouter-ns'] ->
   Service['ntp']
 
   if ! defined(Service[$service_name]) {
@@ -62,7 +63,7 @@ class cluster::ntp_ocf inherits ntp::params {
       ensure     => 'running',
       hasstatus  => true,
       hasrestart => true,
-      provider   => 'pacemaker',
     }
   }
+
 }
