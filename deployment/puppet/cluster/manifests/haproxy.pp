@@ -102,7 +102,7 @@ class cluster::haproxy (
     ],
   }
 
-  $service_name = 'p_haproxy'
+  $service_name = 'haproxy'
 
   class { 'haproxy::base':
     global_options    => $global_options,

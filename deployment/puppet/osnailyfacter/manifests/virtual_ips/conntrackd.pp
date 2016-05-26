@@ -10,14 +10,14 @@ class osnailyfacter::virtual_ips::conntrackd {
 
   # If VIP has namespace set to 'false' or 'undef' then we do not configure
   # it under corosync cluster. So we should not configure colocation with it.
-  if $network_metadata['vips']["vrouter_${vrouter_name}"]['namespace'] {
-    # CONNTRACKD for CentOS 6 doesn't work under namespaces
-    if $::operatingsystem == 'Ubuntu' {
-      class { '::cluster::conntrackd_ocf' :
-        vrouter_name => $vrouter_name,
-        bind_address => $bind_address,
-        mgmt_bridge  => $mgmt_bridge,
-      }
+  $namespace = fetch_value($network_metadata, "vips/vrouter_${vrouter_name}/namespace", undef)
+
+  # CONNTRACKD for CentOS 6 doesn't work under namespaces
+  if $namespace and $::operatingsystem == 'Ubuntu' {
+    class { '::cluster::conntrackd_ocf' :
+      vrouter_name => $vrouter_name,
+      bind_address => $bind_address,
+      mgmt_bridge  => $mgmt_bridge,
     }
   }
 }

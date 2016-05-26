@@ -3,21 +3,24 @@
 # Configure OCF service for DNS managed by corosync/pacemaker
 #
 class cluster::dns_ocf {
-  $service_name       = 'p_dns'
-  $primitive_class    = 'ocf'
+  $service_name       = 'dns'
   $primitive_provider = 'fuel'
   $primitive_type     = 'ns_dns'
   $complex_type       = 'clone'
+
   $complex_metadata   = {
     'interleave' => 'true',
   }
+
   $metadata           = {
     'migration-threshold' => '3',
     'failure-timeout'     => '120',
   }
+
   $parameters         = {
     'ns' => 'vrouter',
   }
+
   $operations         = {
     'monitor' => {
       'interval' => '20',
@@ -31,27 +34,25 @@ class cluster::dns_ocf {
     },
   }
 
-  pacemaker::service { $service_name :
-    primitive_class    => $primitive_class,
-    primitive_provider => $primitive_provider,
+  pacemaker::new::wrapper { $service_name :
     primitive_type     => $primitive_type,
+    primitive_provider => $primitive_provider,
     complex_type       => $complex_type,
     complex_metadata   => $complex_metadata,
     metadata           => $metadata,
     parameters         => $parameters,
     operations         => $operations,
-    prefix             => false,
   }
 
-  pcmk_colocation { 'dns-with-vrouter-ns' :
+  pacemaker_colocation { 'dns-with-vrouter-ns' :
     ensure => 'present',
     score  => 'INFINITY',
-    first  => "clone_p_vrouter",
-    second => "clone_${service_name}",
+    first  => "vrouter-clone",
+    second => "${service_name}-clone",
   }
 
-  Pcmk_resource[$service_name] ->
-  Pcmk_colocation['dns-with-vrouter-ns'] ->
+  Pacemaker_resource[$service_name] ->
+  Pacemaker_colocation['dns-with-vrouter-ns'] ->
   Service[$service_name]
 
   service { $service_name:
