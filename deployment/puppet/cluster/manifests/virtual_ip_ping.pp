@@ -27,7 +27,7 @@ define cluster::virtual_ip_ping (
     enable   => true,
   }
 
-  pacemaker::service { $service_name :
+  pacemaker::new::wrapper { $service_name :
     prefix             => false,
     primitive_class    => $primitive_class,
     primitive_provider => $primitive_provider,
@@ -37,7 +37,7 @@ define cluster::virtual_ip_ping (
     complex_type       => $complex_type,
   }
 
-  pcmk_location { $location_name :
+  pacemaker_location { $location_name :
     primitive => $vip_name,
     rules     => [
       {
@@ -57,7 +57,7 @@ define cluster::virtual_ip_ping (
     ],
   }
 
-  Pcmk_resource[$service_name] ->
-  Pcmk_location[$location_name] ->
+  Pacemaker_resource[$service_name] ->
+  Pacemaker_location[$location_name] ->
   Service[$service_name]
 }

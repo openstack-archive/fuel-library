@@ -39,10 +39,9 @@ class cluster::vrouter_ocf (
     enable     => true,
     hasstatus  => true,
     hasrestart => true,
-    provider   => 'pacemaker',
   }
 
-  pacemaker::service { $service_name :
+  pacemaker::new::wrapper { $service_name :
     primitive_type      => $primitive_type,
     parameters          => $parameters,
     metadata            => $metadata,

@@ -73,7 +73,7 @@ class cluster::mysql (
     'requires'      => 'nothing',
   }
 
-  pacemaker::service { $service_name:
+  pacemaker::new::wrapper { $service_name:
     primitive_class    => $primitive_class,
     primitive_provider => $primitive_provider,
     primitive_type     => $primitive_type,

@@ -41,7 +41,7 @@ class cluster::heat_engine {
     'interleave' => true,
   }
 
-  pacemaker::service { $::heat::params::engine_service_name :
+  pacemaker::new::wrapper { $::heat::params::engine_service_name :
     primitive_type   => $primitive_type,
     metadata         => $metadata,
     complex_type     => 'clone',
