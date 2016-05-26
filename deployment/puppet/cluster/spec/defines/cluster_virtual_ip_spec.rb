@@ -55,7 +55,7 @@ describe 'cluster::virtual_ip', type: :define do
         }
     }
 
-    it { is_expected.to contain_pcmk_resource('vip__my_ip').with(resource_parameters) }
+    it { is_expected.to contain_pacemaker_resource('vip__my_ip').with(resource_parameters) }
 
   end
 

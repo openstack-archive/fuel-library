@@ -55,7 +55,7 @@ class cluster::conntrackd_ocf (
     },
   }
 
-  pacemaker::service { $service_name :
+  pacemaker::new::wrapper { $service_name :
     prefix             => false,
     primitive_class    => $primitive_class,
     primitive_provider => $primitive_provider,
@@ -67,15 +67,15 @@ class cluster::conntrackd_ocf (
     operations         => $operations,
   }
 
-  pcmk_colocation { "conntrackd-with-${vrouter_name}-vip":
+  pacemaker_colocation { "conntrackd-with-${vrouter_name}-vip":
     first  => "vip__vrouter_${vrouter_name}",
     second => 'master_p_conntrackd:Master',
   }
 
   File['/etc/conntrackd/conntrackd.conf'] ->
-  Pcmk_resource[$service_name] ->
+  Pacemaker_resource[$service_name] ->
   Service[$service_name] ->
-  Pcmk_colocation["conntrackd-with-${vrouter_name}-vip"]
+  Pacemaker_colocation["conntrackd-with-${vrouter_name}-vip"]
 
   # Workaround to ensure log is rotated properly
   file { '/etc/logrotate.d/conntrackd':

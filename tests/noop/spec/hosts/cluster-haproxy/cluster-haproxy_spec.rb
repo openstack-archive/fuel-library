@@ -33,13 +33,13 @@ describe manifest do
 
       if Noop.hiera('colocate_haproxy', true)
         it "should contain management vip colocation with haproxy" do
-          expect(subject).to contain_pcmk_colocation('vip_management-with-haproxy').with(
+          expect(subject).to contain_pacemaker_colocation('vip_management-with-haproxy').with(
             'first'  => 'clone_p_haproxy',
             'second' => 'vip__management',
           )
         end
         it "should contain public vip colocation with haproxy" do
-          expect(subject).to contain_pcmk_colocation('vip_public-with-haproxy').with(
+          expect(subject).to contain_pacemaker_colocation('vip_public-with-haproxy').with(
             'first'  => 'clone_p_haproxy',
             'second' => 'vip__public',
           )

@@ -206,7 +206,7 @@ class cluster::rabbitmq_ocf (
     },
   }
 
-  pacemaker::service { $service_name :
+  pacemaker::new::wrapper { $service_name :
     primitive_type      => $primitive_type,
     complex_type        => 'master',
     complex_metadata    => $complex_metadata,

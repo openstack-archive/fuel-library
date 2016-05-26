@@ -14,8 +14,8 @@ describe manifest do
       'cluster_recheck_interval' => cluster_recheck_interval,
       })
     }
-    it { should contain_pcmk_nodes('pacemaker') }
-    it { should contain_service('corosync').that_comes_before('Pcmk_nodes[pacemaker]') }
+    it { should contain_pacemaker_nodes('pacemaker') }
+    it { should contain_service('corosync').that_comes_before('Pacemaker_nodes[pacemaker]') }
     it { should contain_service('corosync').with({
          'subscribe' => 'File[/etc/corosync/service.d]',
          'require'   => 'File[/etc/corosync/corosync.conf]',
