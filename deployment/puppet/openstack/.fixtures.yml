@@ -25,7 +25,6 @@ fixtures:
     rsyslog: "#{source_dir}/../rsyslog"
     mysql: "#{source_dir}/../mysql"
     tweaks: "#{source_dir}/../tweaks"
-    corosync: "#{source_dir}/../corosync"
     pacemaker: "#{source_dir}/../pacemaker"
     haproxy: "#{source_dir}/../haproxy"
     ceilometer_ha: "#{source_dir}/../ceilometer_ha"
