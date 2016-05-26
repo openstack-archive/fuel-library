@@ -30,9 +30,8 @@ class cluster::mysql (
   $mysql_socket = '/var/run/mysqld/mysqld.sock',
 ) {
   $service_name       = 'mysqld'
-  $primitive_class    = 'ocf'
-  $primitive_provider = 'fuel'
   $primitive_type     = 'mysql-wss'
+  $primitive_provider = 'fuel'
   $complex_type       = 'clone'
 
   $user_conf = '/etc/mysql/user.cnf'
@@ -73,16 +72,14 @@ class cluster::mysql (
     'requires'      => 'nothing',
   }
 
-  pacemaker::service { $service_name:
-    primitive_class    => $primitive_class,
-    primitive_provider => $primitive_provider,
+  pacemaker::new::wrapper { $service_name:
     primitive_type     => $primitive_type,
+    primitive_provider => $primitive_provider,
     complex_type       => $complex_type,
     complex_metadata   => $complex_metadata,
     metadata           => $metadata,
     parameters         => $parameters,
     operations         => $operations,
-    prefix             => true,
   }
 
   # NOTE(aschultz): strings must contain single quotes only, see the

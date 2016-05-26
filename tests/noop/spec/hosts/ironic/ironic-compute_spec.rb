@@ -78,7 +78,7 @@ describe manifest do
       end
 
       it 'nova-compute should manages by pacemaker, and should be disabled as system service' do
-        expect(subject).to contain_pcmk_resource('p_nova_compute_ironic').with(
+        expect(subject).to contain_pacemaker_resource('p_nova_compute_ironic').with(
                              :name               => "p_nova_compute_ironic",
                              :ensure             => "present",
                              :primitive_class    => "ocf",
@@ -94,7 +94,7 @@ describe manifest do
                              :name     => "p_nova_compute_ironic",
                              :ensure   => "running",
                              :enable   => true,
-                             :provider => "pacemaker",
+                             :provider => "pacemaker_xml",
                              )
         expect(subject).to contain_service('nova-compute').with(
                              :name     => "nova-compute",
