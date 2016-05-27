@@ -52,12 +52,17 @@ class cluster::rabbitmq_fence(
     enable     => true,
   } ->
 
+  # TODO(dmburmistrov): this should be removed after
+  # fixing dependencies for package fuel-rabbit-fence
+  # (only for Ubuntu Xenial 16.04)
+  package { 'corosync-notifyd': } ->
+
+  package { 'fuel-rabbit-fence': } ->
   service { 'corosync-notifyd':
     ensure     => running,
     enable     => true,
   } ->
 
-  package { 'fuel-rabbit-fence': } ->
   service { 'rabbit-fence':
     name    => $service_name,
     enable  => $enabled,
