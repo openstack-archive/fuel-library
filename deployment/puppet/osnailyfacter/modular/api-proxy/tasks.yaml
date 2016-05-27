@@ -11,6 +11,6 @@
   parameters:
     puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/api-proxy/api-proxy.pp
     puppet_modules: /etc/puppet/modules
-    timeout: 3600
+    timeout: 300
   test_post:
     cmd: ruby /etc/puppet/modules/osnailyfacter/modular/api-proxy/api-proxy_post.rb

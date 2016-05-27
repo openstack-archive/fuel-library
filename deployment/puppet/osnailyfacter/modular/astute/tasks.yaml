@@ -77,7 +77,7 @@
   parameters:
     puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/hosts/hosts.pp
     puppet_modules: /etc/puppet/modules
-    timeout: 3600
+    timeout: 120
     cwd: /
 
 - id: vcenter_compute_zones_create
@@ -121,7 +121,7 @@
   parameters:
     puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/virtual_ips/public_vip_ping.pp
     puppet_modules: /etc/puppet/modules
-    timeout: 3600
+    timeout: 120
     cwd: /
 
 - id: configure_default_route
@@ -136,7 +136,7 @@
   parameters:
     puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/netconfig/configure_default_route.pp
     puppet_modules: /etc/puppet/modules
-    timeout: 3600
+    timeout: 120
     cwd: /
 
 #PRE DEPLOYMENT
@@ -270,7 +270,7 @@
   parameters:
     puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/hiera/hiera.pp
     puppet_modules: /etc/puppet/modules
-    timeout: 3600
+    timeout: 120
     cwd: /
 
 - id: override_configuration

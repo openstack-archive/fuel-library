@@ -35,7 +35,7 @@
   parameters:
     puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/ceph/mon.pp
     puppet_modules: /etc/puppet/modules
-    timeout: 3600
+    timeout: 180
 
 - id: ceph-mon
   type: puppet
@@ -50,7 +50,7 @@
   parameters:
     puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/ceph/mon.pp
     puppet_modules: /etc/puppet/modules
-    timeout: 3600
+    timeout: 300
 
 - id: primary-mon-update
   type: puppet
@@ -65,7 +65,7 @@
   parameters:
     puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/ceph/primary_mon_update.pp
     puppet_modules: /etc/puppet/modules
-    timeout: 3600
+    timeout: 300
 
 - id: ceph-radosgw
   version: 2.1.0
@@ -129,7 +129,7 @@
   parameters:
     puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/ceph/ceph_compute.pp
     puppet_modules: /etc/puppet/modules
-    timeout: 3600
+    timeout: 300
     cwd: /
   test_post:
     cmd: ruby /etc/puppet/modules/osnailyfacter/modular/ceph/ceph_compute_post.rb
@@ -154,7 +154,7 @@
   parameters:
     puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/ceph/ceph_pools.pp
     puppet_modules: /etc/puppet/modules
-    timeout: 3600
+    timeout: 300
     cwd: /
 
 - id: ceph_ready_check

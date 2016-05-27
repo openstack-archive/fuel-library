@@ -13,7 +13,7 @@
   parameters:
     puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/netconfig/netconfig.pp
     puppet_modules: /etc/puppet/modules
-    timeout: 3600
+    timeout: 300
   test_pre:
     cmd: ruby /etc/puppet/modules/osnailyfacter/modular/netconfig/netconfig_pre.rb
   test_post:
@@ -30,7 +30,7 @@
   parameters:
     puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/netconfig/connectivity_tests.pp
     puppet_modules: /etc/puppet/modules
-    timeout: 3600
+    timeout: 120
     cwd: /
 
 - id: sriov_iommu_check
