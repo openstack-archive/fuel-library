@@ -23,8 +23,15 @@ class cluster::rabbitmq_fence(
       $service_name      = 'rabbit-fence'
     }
     'Debian': {
-      $packages          = [ 'python-gobject', 'python-gobject-2',
-                            'python-dbus', 'python-daemon' ]
+      if ($::operatingsystemrelease =~ /^16.*/) {
+        $packages_xenial = ['corosync-notifyd']
+      } else {
+        $packages_xenial = []
+      }
+      $packages          = concat(
+                            [ 'python-gobject', 'python-gobject-2',
+                              'python-dbus', 'python-daemon' ],
+                            $packages_xenial)
       $dbus_service_name = 'dbus'
       $service_name      = 'fuel-rabbit-fence'
     }
