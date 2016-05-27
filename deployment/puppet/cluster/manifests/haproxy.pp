@@ -57,7 +57,6 @@ class cluster::haproxy (
   $stats_ipaddresses            = ['127.0.0.1'],
   $spread_checks                = '3',
 ) {
-  include ::concat::setup
   include ::haproxy::params
   include ::rsyslog::params
 
