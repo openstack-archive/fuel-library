@@ -52,12 +52,14 @@ class cluster::rabbitmq_fence(
     enable => true,
   } ->
 
+  # This package brings all necessary packages for services.
+  # So it is installed first.
+  package { 'fuel-rabbit-fence': } ->
+
   service { 'corosync-notifyd':
     ensure => running,
     enable => true,
   } ->
-
-  package { 'fuel-rabbit-fence': } ->
 
   file { '/etc/rabbitmq/node_name_prefix_for_messaging':
     ensure  => file,
@@ -76,7 +78,7 @@ class cluster::rabbitmq_fence(
     require => Package['rabbitmq-server'],
   }
 
-  if $::osfamily == 'Debian' {
+  if $::osfamily == 'Debian' and $::operatingsystemrelease =~ /^14/ {
     Exec {
       path   => [ '/bin', '/usr/bin' ],
       before => Service['corosync-notifyd'],

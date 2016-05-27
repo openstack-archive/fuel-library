@@ -47,7 +47,7 @@ Description: Misc Fuel library scripts
 
 Package: fuel-rabbit-fence
 Architecture: all
-Depends: ${misc:Depends}, ${shlibs:Depends}, dbus, python-gobject-2, python-gobject, python-dbus, python-daemon, rabbitmq-server
+Depends: ${misc:Depends}, ${shlibs:Depends}, dbus, python-gobject-2, python-gobject, python-dbus, python-daemon, rabbitmq-server, corosync-notifyd
 Description: Fuel RabbitMQ fencing utilitites
  .
 
