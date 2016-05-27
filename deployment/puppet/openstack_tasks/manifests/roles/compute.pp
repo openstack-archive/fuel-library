@@ -347,6 +347,15 @@ class openstack_tasks::roles::compute {
     }
   }
 
+  # Explicitly disable file injection by the means of nbd and libguestfs:
+  # the former is known to have reliability problems, while the latter does not
+  # work out of box on Ubuntu. Neither works with Ceph ephemerals. The solution
+  # here is to use config drive + cloud-init instead. This allows us to unify
+  # settings for Ubuntu vs CentOS, as well as Ceph vs file ephemerals.
+  # See LP #1467860 , LP #1556819 and LP #1467579 for details.
+  $libvirt_inject_partition = '-2'
+  $force_config_drive = true
+
   # NOTE(bogdando) deploy compute node with disabled nova-compute
   #   service #LP1398817. The orchestration will start and enable it back
   #   after the deployment is done.
@@ -357,7 +366,7 @@ class openstack_tasks::roles::compute {
     vncproxy_protocol             => $vncproxy_protocol,
     vncproxy_host                 => $vncproxy_host,
     vncproxy_port                 => $nova_hash_real['vncproxy_port'],
-    force_config_drive            => $nova_hash_real['force_config_drive'],
+    force_config_drive            => $force_config_drive,
     pci_passthrough               => nic_whitelist_to_json(get_nic_passthrough_whitelist('sriov')),
     network_device_mtu            => $network_device_mtu,
     instance_usage_audit          => $instance_usage_audit,
@@ -380,26 +389,9 @@ class openstack_tasks::roles::compute {
     }
   }
 
-  # The default value for inject_partition is -2, so it will be disabled
-  # when we use Ceph for ephemeral storage or for Cinder. We only need to
-  # modify the libvirt_disk_cachemodes in that case.
   if ($storage_hash['ephemeral_ceph'] or $storage_hash['volumes_ceph']) {
     $disk_cachemodes = ['"network=writeback,block=none"']
-    $libvirt_inject_partition = '-2'
   } else {
-    if $::osfamily == 'RedHat' {
-      $libvirt_inject_partition = '-1'
-    } else {
-      # Enable module by default on each compute node
-      k_mod {'nbd':
-        ensure => 'present'
-      }
-      file_line {'nbd_on_boot':
-        path => '/etc/modules',
-        line => 'nbd',
-      }
-      $libvirt_inject_partition = '1'
-    }
     $disk_cachemodes = ['"file=directsync,block=none"']
   }
 
