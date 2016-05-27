@@ -350,8 +350,13 @@ class osnailyfacter::database::database {
         status_password => $status_password,
         status_allow    => $galera_node_address,
       }
-      Class['::cluster::mysql'] -> Class['::cluster::galera_grants'] -> Class['::cluster::galera_status']
+      Class['::cluster::mysql'] ->
+        Class['::cluster::galera_grants'] ->
+          Class['::cluster::galera_status'] ->
+            ::Osnailyfacter::Wait_for_backend['mysql']
     }
-    Class['::cluster::mysql'] -> Class['::cluster::galera_status'] -> ::Osnailyfacter::Wait_for_backend['mysql']
+    Class['::cluster::mysql'] ->
+      Class['::cluster::galera_status'] ->
+        ::Osnailyfacter::Wait_for_backend['mysql']
   }
 }
