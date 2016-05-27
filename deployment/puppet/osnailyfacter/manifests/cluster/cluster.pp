@@ -48,11 +48,14 @@ class osnailyfacter::cluster::cluster {
     $pacemaker_run_uid = 'hacluster'
     $pacemaker_run_gid = 'haclient'
 
+    file {'/etc/corosync/uidgid.d/': ensure => directory }
+
     file {'/etc/corosync/uidgid.d/pacemaker':
-      content =>"uidgid {
+      content => "uidgid {
    uid: ${pacemaker_run_uid}
    gid: ${pacemaker_run_gid}
-}"
+}",
+      require => File['/etc/corosync/uidgid.d/']
     }
 
     File['/etc/corosync/corosync.conf'] -> File['/etc/corosync/uidgid.d/pacemaker'] -> Service <| title == 'corosync' |>
