@@ -52,12 +52,12 @@ class cluster::rabbitmq_fence(
     enable     => true,
   } ->
 
+  package { 'fuel-rabbit-fence': } ->
   service { 'corosync-notifyd':
     ensure     => running,
     enable     => true,
   } ->
 
-  package { 'fuel-rabbit-fence': } ->
   service { 'rabbit-fence':
     name    => $service_name,
     enable  => $enabled,
