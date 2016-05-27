@@ -343,15 +343,19 @@ class osnailyfacter::database::database {
         access_networks  => $access_networks,
         require          => Class['::osnailyfacter::mysql_access'],
       }
-
       # We need to create user for galera cluster check
       class { '::cluster::galera_grants':
         status_user     => $status_user,
         status_password => $status_password,
         status_allow    => $galera_node_address,
       }
-      Class['::cluster::mysql'] -> Class['::cluster::galera_grants'] -> Class['::cluster::galera_status']
+      Class['::cluster::mysql'] ->
+        Class['::cluster::galera_grants'] ->
+          Class['::cluster::galera_status'] ->
+            ::Osnailyfacter::Wait_for_backend['mysql']
     }
-    Class['::cluster::mysql'] -> Class['::cluster::galera_status'] -> ::Osnailyfacter::Wait_for_backend['mysql']
+    Class['::cluster::mysql'] ->
+      Class['::cluster::galera_status'] ->
+        ::Osnailyfacter::Wait_for_backend['mysql']
   }
 }
