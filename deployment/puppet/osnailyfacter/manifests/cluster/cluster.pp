@@ -48,6 +48,8 @@ class osnailyfacter::cluster::cluster {
     $pacemaker_run_uid = 'hacluster'
     $pacemaker_run_gid = 'haclient'
 
+    file {'/etc/corosync/uidgid.d/': ensure => directory }
+
     file {'/etc/corosync/uidgid.d/pacemaker':
       content =>"uidgid {
    uid: ${pacemaker_run_uid}
