@@ -5,3 +5,5 @@ fixtures:
     inifile: "#{source_dir}/../inifile"
     firewall: "#{source_dir}/../firewall"
     stdlib: "#{source_dir}/../stdlib"
+    apache: "#{source_dir}/../apache"
+    concat: "#{source_dir}/../concat"
