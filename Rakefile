@@ -354,3 +354,98 @@ namespace :syntax do
     fail unless status
   end
 end
+
+def noop(options = {})
+  require_relative 'tests/noop/fuel-noop-fixtures/noop_tests'
+
+  ENV['SPEC_ROOT_DIR'] = 'tests/noop/fuel-noop-fixtures'
+  ENV['SPEC_DEPLOYMENT_DIR'] = 'deployment'
+  ENV['SPEC_HIERA_DIR'] = 'tests/noop/fuel-noop-fixtures/hiera'
+  ENV['SPEC_FACTS_DIR'] = 'tests/noop/fuel-noop-fixtures/facts'
+  ENV['SPEC_REPORTS_DIR'] = 'tests/noop/fuel-noop-fixtures/reports'
+  ENV['SPEC_SPEC_DIR'] = 'tests/noop/spec/hosts'
+  ENV['SPEC_TASK_DIR'] = 'deployment/puppet/osnailyfacter/modular'
+  ENV['SPEC_MODULE_PATH'] = 'deployment/puppet'
+
+  ARGV.shift
+  ARGV.shift if ARGV.first == '--'
+
+  ENV['SPEC_TASK_DEBUG'] = 'yes'
+
+  manager = Noop::Manager.new
+  manager.main options
+end
+
+# options can be passed like this:
+# rake noop:run:all -- -s apache/apache -y neut_tun.ceph.murano.sahara.ceil-controller
+
+desc 'Prepare the Noop environment and run all tests'
+task :noop => %w(noop:setup noop:run:all noop:show:failed)
+
+namespace :noop do
+
+  desc 'Prepare the Noop tests environment'
+  task :setup do
+    system 'tests/noop/setup_and_diagnostics.sh'
+  end
+
+  desc 'Run Noop tests self-check'
+  task :test do
+    noop(self_check: true)
+  end
+
+  namespace :run do
+    desc 'Run all Noop test'
+    task :all do
+      noop(parallel_run: 'auto', debug: true)
+    end
+
+    desc 'Run all Noop tests in the foreground'
+    task :foreground do
+      noop(parallel_run: 0, debug: true)
+    end
+
+    desc 'Run only failed tasks'
+    task :failed do
+      noop(run_failed_tasks: true, debug: true)
+    end
+  end
+
+  namespace :show do
+    desc 'Show all task manifests'
+    task :tasks do
+      noop(list_tasks: true)
+    end
+
+    desc 'Show all Hiera files'
+    task :hiera do
+      noop(list_hiera: true)
+    end
+
+    desc 'Show all facts files'
+    task :facts do
+      noop(list_facts: true)
+    end
+
+    desc 'Show all spec files'
+    task :specs do
+      noop(list_specs: true)
+    end
+
+    desc 'Show the tasks list'
+    task :all do
+      noop(pretend: true)
+    end
+
+    desc 'Show previous reports'
+    task :reports do
+      noop(load_saved_reports: true)
+    end
+
+    desc 'Show failed tasks'
+    task :failed do
+      noop(load_saved_reports: true, report_only_failed: true, report_only_tasks: true)
+    end
+  end
+
+end
