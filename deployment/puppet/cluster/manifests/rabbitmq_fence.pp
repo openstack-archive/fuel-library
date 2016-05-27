@@ -52,12 +52,12 @@ class cluster::rabbitmq_fence(
     enable     => true,
   } ->
 
+  package { 'fuel-rabbit-fence': } ->
   service { 'corosync-notifyd':
     ensure     => running,
     enable     => true,
   } ->
 
-  package { 'fuel-rabbit-fence': } ->
   service { 'rabbit-fence':
     name    => $service_name,
     enable  => $enabled,
@@ -66,6 +66,8 @@ class cluster::rabbitmq_fence(
   }
 
   if $::osfamily == 'Debian' {
+    Package['fuel-rabbit-fence'] -> Exec<|tag == 'fence-corosync-sed'|>
+
     Exec {
       path    => [ '/bin', '/usr/bin' ],
       before  => Service['corosync-notifyd'],
@@ -73,7 +75,8 @@ class cluster::rabbitmq_fence(
 
     exec { 'enable_corosync_notifyd':
       command => 'sed -i s/START=no/START=yes/ /etc/default/corosync-notifyd',
-      unless  => 'grep START=yes /etc/default/corosync-notifyd',
+      unless  => 'grep START=yes /etc/default/corosync-notifyd || dpkg -l | grep corosync-notifyd',
+      tag     => 'fence-corosync-sed',
     }
 
     #https://bugs.launchpad.net/ubuntu/+source/corosync/+bug/1437368
@@ -81,12 +84,14 @@ class cluster::rabbitmq_fence(
     exec { 'fix_corosync_notifyd_init_args':
       command => 'sed -i s/DAEMON_ARGS=\"\"/DAEMON_ARGS=\"-d\"/ /etc/init.d/corosync-notifyd',
       onlyif  => 'grep \'DAEMON_ARGS=""\' /etc/init.d/corosync-notifyd',
+      tag     => 'fence-corosync-sed',
     }
 
     #https://bugs.launchpad.net/ubuntu/+source/corosync/+bug/1437359
     exec { 'fix_corosync_notifyd_init_pidfile':
       command => 'sed -i \'/PIDFILE=\/var\/run\/corosync.pid/d\' /etc/init.d/corosync-notifyd',
       onlyif  => 'grep \'PIDFILE=/var/run/corosync.pid\' /etc/init.d/corosync-notifyd',
+      tag     => 'fence-corosync-sed',
     }
   }
 }
