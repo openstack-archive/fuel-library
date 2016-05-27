@@ -60,7 +60,7 @@ class osnailyfacter::rabbitmq::rabbitmq {
       $rabbit_levels = '[{connection,info}]'
     }
 
-    $cluster_partition_handling   = hiera('rabbit_cluster_partition_handling', 'autoheal')
+    $cluster_partition_handling   = hiera('rabbit_cluster_partition_handling', 'ignore')
     $mnesia_table_loading_timeout = hiera('mnesia_table_loading_timeout', '10000')
     $rabbitmq_bind_ip_address     = pick(get_network_role_property('mgmt/messaging', 'ipaddr'), 'UNSET')
     $management_bind_ip_address   = hiera('management_bind_ip_address', '127.0.0.1')
