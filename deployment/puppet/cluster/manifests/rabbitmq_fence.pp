@@ -71,6 +71,8 @@ class cluster::rabbitmq_fence(
       before  => Service['corosync-notifyd'],
     }
 
+    file { ['/etc/default/corosync-notifyd', '/etc/init.d/corosync-notifyd']: ensure => present }
+
     exec { 'enable_corosync_notifyd':
       command => 'sed -i s/START=no/START=yes/ /etc/default/corosync-notifyd',
       unless  => 'grep START=yes /etc/default/corosync-notifyd',
