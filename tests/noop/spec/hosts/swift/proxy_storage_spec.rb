@@ -17,11 +17,13 @@ describe manifest do
     memcached_addresses = Noop.hiera 'memcached_addresses'
     memcached_port      = Noop.hiera 'memcache_server_port', '11211'
     memcached_servers   = memcached_addresses.map{ |n| n = n + ':' + memcached_port }
+    management_vip = Noop.hiera('management_vip')
 
     swift_operator_roles = storage_hash.fetch('swift_operator_roles', ['admin', 'SwiftOperator', '_member_'])
     ring_part_power = swift_hash.fetch('ring_part_power', 10)
     ring_min_part_hours = Noop.hiera 'swift_ring_min_part_hours', 1
-    deploy_swift_proxy = Noop.hiera('deploy_swift_proxy')
+    deploy_swift_proxy = Noop.hiera('deploy_swift_proxy', true)
+    deploy_swift_storage = Noop.hiera('deploy_swift_storage', true)
     swift_proxies_num  = (Noop.hiera('swift_proxies')).size
     rabbit_hosts       = Noop.hiera('amqp_hosts')
     rabbit_user        = Noop.hiera_structure('rabbit/user', 'nova')
@@ -48,7 +50,9 @@ describe manifest do
       Noop.puppet_function 'has_ip_in_network', internal_virtual_ip, api_net
     }
 
-    let(:ssl_hash) { Noop.hiera_hash 'use_ssl' }
+    let(:ssl_hash) { Noop.hiera_hash 'use_ssl', {} }
+
+    let(:public_ssl_hash) { Noop.hiera_hash 'public_ssl', {} }
 
     let(:internal_auth_protocol) { Noop.puppet_function 'get_ssl_property',ssl_hash,{},'keystone','internal','protocol','http' }
 
@@ -66,6 +70,8 @@ describe manifest do
     let(:swift_api_ipaddr) { Noop.puppet_function 'get_network_role_property', 'swift/api', 'ipaddr' }
     let(:swift_internal_protocol) { Noop.puppet_function 'get_ssl_property',ssl_hash,{},'swift','internal','protocol','http' }
     let(:swift_interal_address) { Noop.puppet_function 'get_ssl_property',ssl_hash,{},'swift','internal','hostname',[swift_api_ipaddr, management_vip] }
+    let(:swift_public_protocol) { Noop.puppet_function 'get_ssl_property',ssl_hash,public_ssl_hash,'swift','public','protocol','http' }
+    let(:swift_public_address) { Noop.puppet_function 'get_ssl_property',ssl_hash,public_ssl_hash,'swift','public','hostname',[Noop.hiera('public_vip')] }
 
     # Swift
     if !(storage_hash['images_ceph'] and storage_hash['objects_ceph']) and !storage_hash['images_vcenter']
@@ -145,61 +151,75 @@ describe manifest do
           'group'  => 'swift',
         )
       end
-    end
 
-    if deploy_swift_proxy
-      it 'should configure proxy workers' do
-        fallback_workers = [[facts[:processorcount].to_i, 2].max, workers_max.to_i].min
-        workers = swift_hash.fetch('workers', fallback_workers)
-        should contain_class('swift::proxy').with(
-          'workers' => workers)
-      end
+      if deploy_swift_proxy
+        it 'should configure proxy workers' do
+          fallback_workers = [[facts[:processorcount].to_i, 2].max, workers_max.to_i].min
+          workers = swift_hash.fetch('workers', fallback_workers)
+          should contain_class('swift::proxy').with(
+            'workers' => workers)
+        end
 
-      it 'should declare swift::proxy class with 4 processess on 4 CPU & 32G system' do
-        should contain_class('swift::proxy').with(
-          'workers' => '4',
-        )
-      end
+        it 'should declare swift::proxy class with 4 processess on 4 CPU & 32G system' do
+          should contain_class('swift::proxy').with(
+            'workers' => '4',
+          )
+        end
 
-      it 'should contain rabbit params' do
-        should contain_class('openstack::swift::proxy').with(
-          :rabbit_user     => rabbit_user,
-          :rabbit_password => rabbit_password,
-          :rabbit_hosts    => rabbit_hosts.split(', '),
-        )
-      end
+        it 'should contain rabbit params' do
+          should contain_class('openstack_tasks::swift::parts::proxy').with(
+            :rabbit_user     => rabbit_user,
+            :rabbit_password => rabbit_password,
+            :rabbit_hosts    => rabbit_hosts.split(', '),
+          )
+        end
 
-      it 'should configure health check service correctly' do
-        if !bind_to_one
-          should_not contain_class('openstack::swift:status').with(
-            :endpoint    => "#{swift_internal_protocol}://#{swift_internal_address}:#{proxy_port}",
-            :scan_target => "#{internal_auth_address}:5000",
-            :only_from   => "127.0.0.1 240.0.0.2 #{storage_nets} #{mgmt_nets}",
-            :con_timeout => 5
-          ).that_comes_before('Class[swift::dispersion]')
-        else
-          should_not contain_class('openstack::swift:status')
+        it 'should configure health check service correctly' do
+          if !bind_to_one
+            should_not contain_class('openstack_tasks::swift:::parts::status').with(
+              :endpoint    => "#{swift_internal_protocol}://#{swift_internal_address}:#{proxy_port}",
+              :scan_target => "#{internal_auth_address}:5000",
+              :only_from   => "127.0.0.1 240.0.0.2 #{storage_nets} #{mgmt_nets}",
+              :con_timeout => 5
+            ).that_comes_before('Class[swift::dispersion]')
+          else
+            should_not contain_class('openstack_tasks::swift::parts:status')
+          end
+        end
+
+        it 'should contain valid auth uris' do
+          should contain_class('swift::proxy::authtoken').with(
+            'auth_uri'     => auth_uri,
+            'identity_uri' => identity_uri,
+          )
+        end
+
+        it 'should contain container_sync class' do
+          should contain_class('swift::proxy::container_sync')
+        end
+
+        if role == 'primary-controller'
+          it 'should contain swift backups section in rsync conf' do
+            should contain_rsync__server__module('swift_backups').with(
+              'path'            => '/etc/swift/backups',
+              'lock_file'       => '/var/lock/swift_backups.lock',
+              'uid'             => 'swift',
+              'gid'             => 'swift',
+              'incoming_chmod'  => false,
+              'outgoing_chmod'  => false,
+              'max_connections' => '5',
+              'read_only'       => true,
+            )
+          end
         end
       end
 
-      it 'should contain valid auth uris' do
-        should contain_class('swift::proxy::authtoken').with(
-          'auth_uri'     => auth_uri,
-          'identity_uri' => identity_uri,
-        )
-      end
-
-      it 'should contain swift backups section in rsync conf' do
-        should contain rsync__server__module('swift_backups').with(
-          'path'            => '/etc/swift/backups',
-          'lock_file'       => '/var/lock/swift_backups.lock',
-          'uid'             => 'swift',
-          'gid'             => 'swift',
-          'incoming_chmod'  => false,
-          'outgoing_chmod'  => false,
-          'max_connections' => '5',
-          'read_only'       => true,
-        )
+      if deploy_swift_proxy or deploy_swift_storage
+        realm1_key = Noop.hiera('swift_realm1_key', 'realm1key')
+        it 'should contain swift_container-sync-realms config' do
+          should contain_swift_container_sync_realms_config('realm1/key').with_value(realm1_key)
+          should contain_swift_container_sync_realms_config('realm1/cluster_name1').with_value("#{swift_public_protocol}://#{swift_public_address}:8080/v1")
+        end
       end
     end
   end
