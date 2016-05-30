@@ -303,6 +303,7 @@ neutron_ovs_agent_start() {
     # Spin waiting for the server to come up.
     # Let the CRM/LRM time us out if required
     while true; do
+        sleep 3
         neutron_ovs_agent_monitor
         rc=$?
         [ $rc -eq $OCF_SUCCESS ] && break
@@ -310,7 +311,6 @@ neutron_ovs_agent_start() {
             ocf_log err "OpenStack (${OCF_RESKEY_binary}) start failed"
             exit $OCF_ERR_GENERIC
         fi
-        sleep 3
     done
 
     ocf_log info "OpenStack OVS agent (${OCF_RESKEY_binary}) started"
