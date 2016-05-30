@@ -201,6 +201,12 @@ describe manifest do
     end
 
     it 'should configure nova with the basics' do
+      facts[:processorcount] = 10
+      max_pool_size = Noop.hiera 'max_pool_size', [facts[:processorcount] * 5 + 0, 30 + 0].min
+      max_overflow = Noop.hiera 'max_overflow', [facts[:processorcount] * 5 + 0, 60 + 0].min
+      idle_timeout = Noop.hiera 'idle_timeout', '3600'
+      max_retries = Noop.hiera 'max_retries', '-1'
+
       should contain_class('nova').with(
         :rpc_backend            => 'nova.openstack.common.rpc.impl_kombu',
         :rabbit_hosts           => rabbit_hosts,
@@ -212,16 +218,16 @@ describe manifest do
         :log_facility           => syslog_log_facility_nova,
         :use_syslog             => use_syslog,
         :use_stderr             => use_stderr,
-        :database_idle_timeout  => '3600',
+        :database_idle_timeout  => idle_timeout,
         :report_interval        => nova_report_interval,
         :service_down_time      => nova_service_down_time,
         :notify_api_faults      => notify_api_faults,
         :notification_driver    => ceilometer_hash['notification_driver'],
-        :notify_on_state_change => 'vm_and_task_state',
         :cinder_catalog_info    => cinder_catalog_info,
-        :database_max_pool_size => 20,
-        :database_max_retries   => '-1',
-        :database_max_overflow  => 20
+        :database_max_pool_size => max_pool_size,
+        :database_max_retries   => max_retries,
+        :database_max_overflow  => max_overflow,
+        :notify_on_state_change => 'vm_and_task_state',
       )
     end
 
@@ -423,7 +429,7 @@ describe manifest do
           'admin_username'    => ironic_user,
           'admin_password'    => ironic_password,
           'admin_tenant_name' => ironic_tenant,
-          'admin_url'         => keystone_identity_uri,
+          'admin_url'         => "#{keystone_identity_uri}/v2.0",
           'api_endpoint'      => "#{ironic_protocol}://#{ironic_endpoint}:6385/v1",
         )
       end

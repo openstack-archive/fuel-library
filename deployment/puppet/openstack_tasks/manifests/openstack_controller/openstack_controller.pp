@@ -131,16 +131,18 @@ class openstack_tasks::openstack_controller::openstack_controller {
   })
 
   # SQLAlchemy backend configuration
-  $max_pool_size = min($::processorcount * 5 + 0, 30 + 0)
-  $max_overflow = min($::processorcount * 5 + 0, 60 + 0)
-  $max_retries = '-1'
-  $idle_timeout = '3600'
+  $max_pool_size = hiera('max_pool_size', min($::processorcount * 5 + 0, 30 + 0))
+  $max_overflow = hiera('max_overflow', min($::processorcount * 5 + 0, 60 + 0))
+  $idle_timeout = hiera('idle_timeout', '3600')
+  $max_retries = hiera('max_retries', '-1')
 
   if hiera('nova_quota') {
     $nova_quota_driver = 'nova.quota.DbQuotaDriver'
   } else {
     $nova_quota_driver = 'nova.quota.NoopQuotaDriver'
   }
+
+  $notify_on_state_change = 'vm_and_task_state'
 
   if hiera('use_vcenter', false) or hiera('libvirt_type') == 'vcenter' {
     $multi_host = false
@@ -163,8 +165,6 @@ class openstack_tasks::openstack_controller::openstack_controller {
   }
 
   $memcached_addresses =  suffix($memcached_server, inline_template(":<%= @memcached_port %>"))
-
-  $nova_notify_on_state_change = 'vm_and_task_state'
 
   $rpc_backend   = 'nova.openstack.common.rpc.impl_kombu'
   $amqp_hosts    = hiera('amqp_hosts','')
@@ -198,12 +198,12 @@ class openstack_tasks::openstack_controller::openstack_controller {
     service_down_time       => $nova_service_down_time,
     notify_api_faults       => pick($nova_hash['notify_api_faults'], false),
     notification_driver     => $ceilometer_hash['notification_driver'],
-    notify_on_state_change  => $nova_notify_on_state_change,
     memcached_servers       => $memcached_addresses,
     cinder_catalog_info     => pick($nova_hash['cinder_catalog_info'], 'volumev2:cinderv2:internalURL'),
     database_max_pool_size  => $max_pool_size,
     database_max_retries    => $max_retries,
     database_max_overflow   => $max_overflow,
+    notify_on_state_change  => $notify_on_state_change,
   }
 
   # TODO(aschultz): this is being removed in M, do we need it?
@@ -441,7 +441,7 @@ class openstack_tasks::openstack_controller::openstack_controller {
     class { '::nova::ironic::common':
       admin_username    => pick($ironic_hash['auth_name'],'ironic'),
       admin_password    => pick($ironic_hash['user_password'],'ironic'),
-      admin_url         => $keystone_identity_uri,
+      admin_url         => "${keystone_identity_uri}/v2.0",
       admin_tenant_name => pick($ironic_hash['tenant'],'services'),
       api_endpoint      => "${ironic_protocol}://${ironic_endpoint}:6385/v1",
     }
