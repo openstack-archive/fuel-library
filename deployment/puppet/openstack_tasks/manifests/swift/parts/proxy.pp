@@ -12,6 +12,7 @@ class openstack_tasks::swift::parts::proxy (
     'crossdomain',
     'healthcheck',
     'cache',
+    'container_sync',
     'bulk',
     'tempurl',
     'ratelimit',
@@ -119,7 +120,7 @@ class openstack_tasks::swift::parts::proxy (
   class { ['::swift::proxy::catch_errors', '::swift::proxy::crossdomain', '::swift::proxy::healthcheck',
     '::swift::proxy::bulk', '::swift::proxy::tempurl', '::swift::proxy::formpost', '::swift::proxy::swift3',
     '::swift::proxy::staticweb', '::swift::proxy::container_quotas', '::swift::proxy::account_quotas',
-    '::swift::proxy::slo',]:
+    '::swift::proxy::slo', '::swift::proxy::container_sync']:
   }
 
   $cache_addresses = join(suffix($swift_proxies_cache, ":${cache_server_port}"), ',')
