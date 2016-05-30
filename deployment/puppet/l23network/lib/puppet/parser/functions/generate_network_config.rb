@@ -41,6 +41,16 @@ module L23network
     return rv
   end
 
+  def self.is_ib_interface(name)
+    # whether interface with name is Infiniband interface?
+    return name =~ /^ib\d+\.80\d+$/
+  end
+
+  def self.is_subinterface(name)
+    # whether transformation should operate with subinterface?
+    return (name =~ /\.\d+$/) && !L23network.is_ib_interface(name)
+  end
+
   def self.sanitize_transformation(trans)
     action = trans[:action].to_s.downcase()
     # Setup defaults
@@ -154,7 +164,7 @@ Puppet::Parser::Functions::newfunction(:generate_network_config, :type => :rvalu
         resource = res_factory[:ifconfig]
         debug("generate_network_config(): Endpoint '#{endpoint_name}' will be created with properties: \n#{endpoints[endpoint_name].to_yaml.gsub('!ruby/sym ','')}")
         # collect properties for creating endpoint resource
-        endpoints[endpoint_name].each_pair do |k,v|
+        endpoints[endpoint_name].each do |k,v|
           if k.to_s.downcase == 'routes'
             # for routes we should create additional resource, not a property of ifconfig
             next if ! v.is_a?(Array)
@@ -256,7 +266,7 @@ Puppet::Parser::Functions::newfunction(:generate_network_config, :type => :rvalu
       born_ports << int_name
       # add some of 1st level interface properties to it's config
       ports_properties[int_name] ||= {}
-      if ! int_properties.nil?
+      if int_properties.is_a? Hash
         int_properties.each do |k,v|
           if v.to_s != ''
             k = k.to_s.tr('-','_').to_sym
@@ -310,7 +320,7 @@ Puppet::Parser::Functions::newfunction(:generate_network_config, :type => :rvalu
     debug("generate_network_config(): precheck transformations")
     tmp = []
     config_hash[:transformations].each do |t|
-      if (t[:action].match(/add-(port|bond)/) && t[:name].match(/\.\d+$/))
+      if (t[:action].match(/add-(port|bond)/) && L23network.is_subinterface(t[:name]))
         # we found vlan subinterface, but main interface for one didn't defined
         # earlier. We should configure main interface as unaddressed interface
         # wich has state UP to prevent fails in network configuration
@@ -418,13 +428,18 @@ Puppet::Parser::Functions::newfunction(:generate_network_config, :type => :rvalu
           end
         end
 
+        if L23network.is_ib_interface(trans[:name])
+          # Infiniband device is not vlan, but name looks like vlan subinterface
+          resource_properties[:vlan_dev] = false
+        end
+
         resource_properties['require'] = [correct_requirement_name(previous)] if previous
         resource_properties = L23network.correct_ethtool_set(resource_properties)
         function_create_resources([resource, {
           "#{trans[:name]}" => resource_properties
         }])
         resources_created << "#{t[:action].strip()}(#{trans[:name]})"
-        born_ports.insert(-1, trans[:name].to_sym()) if action != :patch
+        born_ports << trans[:name].to_sym() if action != :patch
         previous = "#{resource}[#{trans[:name]}]"
       end
 
@@ -447,6 +462,18 @@ Puppet::Parser::Functions::newfunction(:generate_network_config, :type => :rvalu
       if ! born_ports.include? endpoint_name
         raise(Puppet::ParseError, "generate_network_config(): Endpoint '#{endpoint_name}' not found in interfaces or transformations result.")
       end
+
+      if L23network.is_ib_interface(endpoint_name) and !resources_created.include?("add-port(#{endpoint_name})")
+        # Infiniband device should be created as port if does not created early
+        ib_resource_properties = { :vlan_dev => false }
+        ib_resource_properties['require'] = [correct_requirement_name(previous)] if previous
+        function_create_resources(['l23network::l2::port', {
+            "#{endpoint_name}" => ib_resource_properties
+        }])
+        previous = "L23network::L2::Port[#{endpoint_name}]"
+        resources_created <<  "add-port(#{endpoint_name})"
+      end
+
       previous = create_l3_ifconfig_resource(endpoints, endpoint_name, previous)
       resources_created <<  "endpoint(#{endpoint_name})"
     end

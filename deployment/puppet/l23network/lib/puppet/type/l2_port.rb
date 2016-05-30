@@ -105,7 +105,7 @@ Puppet::Type.newtype(:l2_port) do
         min_vid = 1
         max_vid = 4094
         if ! (value.to_s == 'absent' or (min_vid .. max_vid).include?(value.to_i))
-          raise ArgumentError, "'#{value}' is not a valid 802.1q NALN_ID (must be a integer value in range (#{min_vid} .. #{max_vid})"
+          raise ArgumentError, "'#{value}' is not a valid 802.1q VLAN_ID (must be a integer value in range (#{min_vid} .. #{max_vid})"
         end
       end
       munge do |val|
