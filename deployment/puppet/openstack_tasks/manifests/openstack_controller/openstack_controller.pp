@@ -142,6 +142,8 @@ class openstack_tasks::openstack_controller::openstack_controller {
     $nova_quota_driver = 'nova.quota.NoopQuotaDriver'
   }
 
+  $notify_on_state_change = 'vm_and_task_state'
+
   if hiera('use_vcenter', false) or hiera('libvirt_type') == 'vcenter' {
     $multi_host = false
   } else {
@@ -163,8 +165,6 @@ class openstack_tasks::openstack_controller::openstack_controller {
   }
 
   $memcached_addresses =  suffix($memcached_server, inline_template(":<%= @memcached_port %>"))
-
-  $nova_notify_on_state_change = 'vm_and_task_state'
 
   $rpc_backend   = 'nova.openstack.common.rpc.impl_kombu'
   $amqp_hosts    = hiera('amqp_hosts','')
@@ -198,12 +198,12 @@ class openstack_tasks::openstack_controller::openstack_controller {
     service_down_time       => $nova_service_down_time,
     notify_api_faults       => pick($nova_hash['notify_api_faults'], false),
     notification_driver     => $ceilometer_hash['notification_driver'],
-    notify_on_state_change  => $nova_notify_on_state_change,
     memcached_servers       => $memcached_addresses,
     cinder_catalog_info     => pick($nova_hash['cinder_catalog_info'], 'volumev2:cinderv2:internalURL'),
     database_max_pool_size  => $max_pool_size,
     database_max_retries    => $max_retries,
     database_max_overflow   => $max_overflow,
+    notify_on_state_change  => $notify_on_state_change,
   }
 
   # TODO(aschultz): this is being removed in M, do we need it?

@@ -217,11 +217,11 @@ describe manifest do
         :service_down_time      => nova_service_down_time,
         :notify_api_faults      => notify_api_faults,
         :notification_driver    => ceilometer_hash['notification_driver'],
-        :notify_on_state_change => 'vm_and_task_state',
         :cinder_catalog_info    => cinder_catalog_info,
         :database_max_pool_size => 20,
         :database_max_retries   => '-1',
-        :database_max_overflow  => 20
+        :database_max_overflow  => 20,
+        :notify_on_state_change => 'vm_and_task_state',
       )
     end
 
