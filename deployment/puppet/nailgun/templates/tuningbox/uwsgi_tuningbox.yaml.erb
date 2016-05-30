@@ -1,0 +1,9 @@
+uwsgi:
+  http-socket: :<%= @http_port %>
+  https-socket: :<%= @https_port %>,<%= @ssl_keys_dir %><%= @app_name %>.crt,<%= @ssl_keys_dir %><%= @app_name %>.key
+  plugin: python
+  module: <%= @app_module %>
+  pythonpath: <%= @app_path %>
+  env: <%= @env_settings_var %>=<%= @config_file_path %>
+  logto: <%= @log_path %>
+  pidfile: <%= @pid_path %>
