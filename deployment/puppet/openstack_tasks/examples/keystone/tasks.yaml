@@ -7,7 +7,7 @@
   condition:
     yaql_exp: &keystone_changed >
       changedAny($.configuration, $.network_scheme, $.network_metadata,
-      $.keystone, $.get('verbose'), $.debug, $.quantum, $.get('use_syslog'),
+      $.keystone, $.get('verbose'), $.debug, $.quantum,
       $.get('use_stderr'), $.access, $.get('database_vip'), $.glance, $.nova,
       $.cinder, $.ceilometer, $.get('syslog_log_facility_keystone'), $.rabbit,
       $.quantum_settings.keystone, $.get('default_log_levels'),

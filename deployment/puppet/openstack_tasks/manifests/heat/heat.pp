@@ -44,7 +44,6 @@ class openstack_tasks::heat::heat {
   $debug                    = pick($heat_hash['debug'], hiera('debug', false))
   $verbose                  = pick($heat_hash['verbose'], hiera('verbose', true))
   $use_stderr               = hiera('use_stderr', false)
-  $use_syslog               = hiera('use_syslog', true)
   $syslog_log_facility      = hiera('syslog_log_facility_heat')
   $deployment_mode          = hiera('deployment_mode')
   $bind_host                = get_network_role_property('heat/api', 'ipaddr')
@@ -181,13 +180,6 @@ class openstack_tasks::heat::heat {
   |> ->
   Service<| title == 'heat-api-cfn' or title == 'heat-api-cloudwatch' |>
 
-  # Syslog configuration
-  if $use_syslog {
-    heat_config {
-      'DEFAULT/use_syslog_rfc_format': value => true;
-    }
-  }
-
   # Common configuration, logging and RPC
   class { '::heat':
     auth_uri               => $auth_uri,
@@ -211,7 +203,6 @@ class openstack_tasks::heat::heat {
     log_dir                => '/var/log/heat',
     verbose                => $verbose,
     debug                  => $debug,
-    use_syslog             => $use_syslog,
     use_stderr             => $use_stderr,
     log_facility           => $syslog_log_facility,
 

@@ -11,7 +11,7 @@
       $.get('idle_timeout'), $.network_metadata.vips, $.public_ssl,
       $.get('use_ssl'), ('primary-controller' in $.roles),
       $.get('kombu_compression'), $.get('heat_endpoint'), $.debug,
-      $.get('verbose'), $.get('use_stderr'), $.get('use_syslog'),
+      $.get('verbose'), $.get('use_stderr'),
       $.get('syslog_log_facility_heat'), $.deployment_mode,
       $.get('region', 'RegionOne'), $.get('external_lb'),
       $.get('database_vip'), $.get('heat_db_name'), $.get('amqp_hosts'),

@@ -16,7 +16,6 @@ class openstack_tasks::keystone::keystone {
   $verbose               = pick($keystone_hash['verbose'], hiera('verbose', true))
   $debug                 = pick($keystone_hash['debug'], hiera('debug', false))
   $use_neutron           = hiera('use_neutron', false)
-  $use_syslog            = hiera('use_syslog', true)
   $use_stderr            = hiera('use_stderr', false)
   $access_hash           = hiera_hash('access', {})
   $management_vip        = hiera('management_vip')
@@ -316,7 +315,6 @@ class openstack_tasks::keystone::keystone {
       admin_bind_host              => $local_address_for_bind,
       admin_workers                => $service_workers,
       public_workers               => $service_workers,
-      use_syslog                   => $use_syslog,
       use_stderr                   => $use_stderr,
       database_idle_timeout        => $database_idle_timeout,
       sync_db                      => $primary_controller,
@@ -349,12 +347,6 @@ class openstack_tasks::keystone::keystone {
     Package<| title == 'keystone'|> ~> Service<| title == 'keystone'|>
     if !defined(Service['keystone']) {
       notify{ "Module ${module_name} cannot notify service keystone on package update": }
-    }
-
-    if $use_syslog {
-      keystone_config {
-        'DEFAULT/use_syslog_rfc_format':  value  => true;
-      }
     }
 
     # FIXME(mattymo): After LP#1528258 is closed, this can be removed. It will

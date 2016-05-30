@@ -50,7 +50,6 @@ describe manifest do
 
         it { should contain_class('neutron').with('bind_host' => bind_host)}
 
-        it { should contain_class('neutron::logging').with('use_syslog' => Noop.hiera('use_syslog', true))}
         it { should contain_class('neutron::logging').with('use_stderr' => Noop.hiera('use_stderr', false))}
         it { should contain_class('neutron::logging').with('log_facility' => Noop.hiera('syslog_log_facility_neutron', 'LOG_LOCAL4'))}
         it { should contain_class('neutron::logging').with('default_log_levels' => Noop.hiera('default_log_levels'))}

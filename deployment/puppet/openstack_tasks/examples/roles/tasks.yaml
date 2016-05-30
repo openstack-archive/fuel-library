@@ -25,7 +25,7 @@
       $.get('nova_report_interval', 60), $.get('nova_service_down_time', 180),
       $.get('novanetwork_parameters', {}), $.get('nova_custom', {}), $.rabbit,
       $.cinder, $.ceilometer,
-      $.get('use_syslog', true), $.get('use_stderr', false),
+      $.get('use_stderr', false),
       $.get('syslog_log_facility_nova', ''),
       $.network_metadata.nodes.get(concat('node-', $.uid)), $.libvirt_type,
       $.get('kombu_compression', ''), $.dpdk, $.get('glance_api_servers', ''),
@@ -63,7 +63,7 @@
       changedAny($.cinder, $.get('cinder_volume_group'),
       $.network_metadata.nodes.get(concat("node-", $.uid)).network_roles.get('cinder/iscsi'),
       $.network_metadata.vips, $.debug, $.node_volumes, $.storage, $.rabbit, $.ceilometer,
-      $.get('use_stderr'), $.get('use_syslog'), $.get('syslog_log_facility_cinder'),
+      $.get('use_stderr'), $.get('syslog_log_facility_cinder'),
       $.get('syslog_log_facility_ceph'), $.get('proxy_port'), $.get('kombu_compression'),
       $.get('use_ssl'), $.get('service_endpoint'), $.get('glance_api_servers'))
   parameters:
@@ -82,7 +82,7 @@
       changedAny($.cinder, $.get('cinder_volume_group'),
       $.network_metadata.nodes.get(concat("node-", $.uid)).network_roles.get('cinder/iscsi'),
       $.network_metadata.vips, $.debug, $.node_volumes, $.storage, $.rabbit, $.ceilometer,
-      $.get('use_stderr'), $.get('use_syslog'), $.get('syslog_log_facility_cinder'),
+      $.get('use_stderr'), $.get('syslog_log_facility_cinder'),
       $.get('syslog_log_facility_ceph'), $.get('proxy_port'), $.get('kombu_compression'),
       $.get('use_ssl'), $.get('service_endpoint'), $.get('glance_api_servers'))
   parameters:
@@ -136,7 +136,7 @@
       $.ironic.enabled and changedAny($.network_scheme, $.ironic,
       $.network_metadata.vips, $.get('database_vip'),
       $.get('neutron_endpoint'), $.get('glance_api_servers'),
-      $.get('amqp_hosts'), $.debug, $.get('use_syslog'),
+      $.get('amqp_hosts'), $.debug,
       $.get('syslog_log_facility_ironic'), $.rabbit, $.storage,
       $.get('kombu_compression'))
   cross-depends:

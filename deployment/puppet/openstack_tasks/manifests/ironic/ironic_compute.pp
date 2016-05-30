@@ -18,7 +18,6 @@ class openstack_tasks::ironic::ironic_compute {
   $glance_api_servers             = hiera('glance_api_servers', "${management_vip}:9292")
   $debug                          = hiera('debug', false)
   $verbose                        = hiera('verbose', true)
-  $use_syslog                     = hiera('use_syslog', true)
   $syslog_log_facility_ironic     = hiera('syslog_log_facility_ironic', 'LOG_LOCAL0')
   $syslog_log_facility_nova       = hiera('syslog_log_facility_nova', 'LOG_LOCAL6')
   $amqp_hosts                     = hiera('amqp_hosts')
@@ -80,7 +79,6 @@ class openstack_tasks::ironic::ironic_compute {
       glance_api_servers     => $glance_api_servers,
       verbose                => $verbose,
       debug                  => $debug,
-      use_syslog             => $use_syslog,
       log_facility           => $syslog_log_facility_nova,
       state_path             => $nova_hash['state_path'],
       report_interval        => $nova_report_interval,

@@ -36,7 +36,6 @@ class openstack_tasks::roles::compute {
   $access_hash                    = hiera_hash('access', {})
   $syslog_hash                    = hiera_hash('syslog', {})
   $base_syslog_hash               = hiera_hash('base_syslog', {})
-  $use_syslog                     = hiera('use_syslog', true)
   $use_stderr                     = hiera('use_stderr', false)
   $syslog_log_facility            = hiera('syslog_log_facility_nova','LOG_LOCAL6')
   $config_drive_format            = pick($compute_hash['config_drive_format'], 'vfat')
@@ -272,7 +271,6 @@ class openstack_tasks::roles::compute {
     rabbit_password        => $rabbit_hash['password'],
     glance_api_servers     => $glance_api_servers,
     debug                  => $debug,
-    use_syslog             => $use_syslog,
     use_stderr             => $use_stderr,
     log_facility           => $syslog_log_facility,
     state_path             => $nova_hash_real['state_path'],
@@ -341,12 +339,6 @@ class openstack_tasks::roles::compute {
     'libvirt/live_migration_flag':  value => 'VIR_MIGRATE_UNDEFINE_SOURCE,VIR_MIGRATE_PEER2PEER,VIR_MIGRATE_LIVE,VIR_MIGRATE_PERSIST_DEST';
     'libvirt/block_migration_flag': value => 'VIR_MIGRATE_UNDEFINE_SOURCE,VIR_MIGRATE_PEER2PEER,VIR_MIGRATE_LIVE,VIR_MIGRATE_NON_SHARED_INC';
     'DEFAULT/connection_type':      value => 'libvirt';
-  }
-
-  if $use_syslog {
-    nova_config {
-      'DEFAULT/use_syslog_rfc_format':  value => true;
-    }
   }
 
   if ($storage_hash['ephemeral_ceph'] or $storage_hash['volumes_ceph']) {

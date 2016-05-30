@@ -8,8 +8,7 @@
     yaql_exp: >
       changedAny($.network_scheme, $.network_metadata, $.glance,
       $.get('verbose'), $.debug, $.get('database_vip'), $.storage,
-      $.get('use_syslog'), $.get('use_stderr'),
-      $.get('syslog_log_facility_glance'), $.rabbit,
+      $.get('use_stderr'), $.get('syslog_log_facility_glance'), $.rabbit,
       $.get('max_pool_size'), $.get('max_overflow'), $.ceilometer,
       $.get('region', 'RegionOne'), $.ironic,
       ('primary-controller' in $.roles), $.get('kombu_compression'),
