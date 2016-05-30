@@ -38,10 +38,6 @@ class osnailyfacter::logging::logging {
       }
     }
 
-    if roles_include(['ironic']) {
-      $ironic_collector = true
-    }
-
     class { '::openstack::logging':
       role               => 'client',
       show_timezone      => true,
@@ -63,7 +59,6 @@ class osnailyfacter::logging::logging {
       # Rabbit doesn't support syslog directly
       rabbit_log_level   => 'NOTICE',
       debug              => $debug,
-      ironic_collector   => $ironic_collector,
     }
 
     class { '::cluster::haproxy::rsyslog': }

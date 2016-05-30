@@ -22,7 +22,6 @@ class openstack_tasks::openstack_controller::openstack_controller {
   prepare_network_config($network_scheme)
 
   $primary_controller           = hiera('primary_controller')
-  $use_syslog                   = hiera('use_syslog', true)
   $use_stderr                   = hiera('use_stderr', false)
   $syslog_log_facility_nova     = hiera('syslog_log_facility_nova','LOG_LOCAL6')
   $management_vip               = hiera('management_vip')
@@ -191,7 +190,6 @@ class openstack_tasks::openstack_controller::openstack_controller {
     glance_api_servers      => $glance_api_servers,
     debug                   => $debug,
     log_facility            => $syslog_log_facility_nova,
-    use_syslog              => $use_syslog,
     use_stderr              => $use_stderr,
     database_idle_timeout   => $idle_timeout,
     report_interval         => $nova_report_interval,
@@ -204,13 +202,6 @@ class openstack_tasks::openstack_controller::openstack_controller {
     database_max_pool_size  => $max_pool_size,
     database_max_retries    => $max_retries,
     database_max_overflow   => $max_overflow,
-  }
-
-  # TODO(aschultz): this is being removed in M, do we need it?
-  if $use_syslog {
-    nova_config {
-      'DEFAULT/use_syslog_rfc_format':  value => true;
-    }
   }
 
   class { '::nova::quota':

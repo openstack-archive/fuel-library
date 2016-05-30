@@ -313,11 +313,6 @@ describe manifest do
         'value' => 'volumev2:cinderv2:internalURL'
       )
     end
-    it 'nova config should have proper use_syslog_rfc_format' do
-      should contain_nova_config('DEFAULT/use_syslog_rfc_format').with(
-        'value' => 'true',
-      )
-    end
     it 'nova config should have proper connection_type' do
       should contain_nova_config('DEFAULT/connection_type').with(
         'value' => 'libvirt',

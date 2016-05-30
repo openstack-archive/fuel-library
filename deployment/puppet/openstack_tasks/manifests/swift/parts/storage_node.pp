@@ -34,7 +34,6 @@ class openstack_tasks::swift::parts::storage_node (
   $cinder_rate_limits         = false,
   $db_host                    = '127.0.0.1',
   $service_endpoint           = '127.0.0.1',
-  $use_syslog                 = false,
   $syslog_log_facility_cinder = 'LOG_LOCAL3',
   $debug                      = false,
   $verbose                    = true,
