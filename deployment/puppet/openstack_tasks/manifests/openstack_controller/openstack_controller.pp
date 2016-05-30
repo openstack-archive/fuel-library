@@ -439,7 +439,17 @@ class openstack_tasks::openstack_controller::openstack_controller {
   $nova_scheduler_filters         = unique(concat(pick($nova_config_hash['default_filters'], $nova_scheduler_default_filters), $sahara_filters, $sriov_filters, $huge_pages_filters, $cpu_pinning_filters))
 
   if $ironic_hash['enabled'] {
-    $scheduler_host_manager = 'nova.scheduler.ironic_host_manager.IronicHostManager'
+    $scheduler_host_manager  = 'nova.scheduler.ironic_host_manager.IronicHostManager'
+    $ironic_endpoint_default = hiera('ironic_endpoint', $management_vip)
+    $ironic_protocol         = get_ssl_property($ssl_hash, {}, 'ironic', 'internal', 'protocol', 'http')
+    $ironic_endpoint         = get_ssl_property($ssl_hash, {}, 'ironic', 'internal', 'hostname', $ironic_endpoint_default)
+    class { '::nova::ironic::common':
+      admin_username    => pick($ironic_hash['auth_name'],'ironic'),
+      admin_password    => pick($ironic_hash['user_password'],'ironic'),
+      admin_url         => $keystone_identity_uri,
+      admin_tenant_name => pick($ironic_hash['tenant'],'services'),
+      api_endpoint      => "${ironic_protocol}://${ironic_endpoint}:6385/v1",
+    }
   }
 
   class { '::nova::scheduler::filter':
