@@ -126,6 +126,13 @@ case $production {
       address   => $::fuel_settings['ADMIN_NETWORK']['ipaddress'],
     }
 
+    # Tuningbox
+    class { 'nailgun::tuningbox::auth':
+      auth_name => $::fuel_settings['keystone']['tuningbox_user'],
+      password  => $::fuel_settings['keystone']['tuningbox_password'],
+      address   => $::fuel_settings['ADMIN_NETWORK']['ipaddress'],
+    }
+
     package { 'crontabs':
       ensure => latest,
     }

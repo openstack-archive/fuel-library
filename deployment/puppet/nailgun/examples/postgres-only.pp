@@ -67,3 +67,15 @@ postgresql::server::db { $ostf_dbname:
   grant    => 'all',
   require  => Class['::postgresql::server'],
 }
+
+# tuningbox db and grants
+$tuningbox_dbname   = $::fuel_settings['postgres']['tuningbox_dbname']
+$tuningbox_dbuser   = $::fuel_settings['postgres']['tuningbox_user']
+$tuningbox_dbpass   = $::fuel_settings['postgres']['tuningbox_password']
+
+postgresql::server::db { $tuningbox_dbname:
+  user     => $tuningbox_dbuser,
+  password => $tuningbox_dbpass,
+  grant    => 'all',
+  require  => Class['::postgresql::server'],
+}
