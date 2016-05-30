@@ -1,0 +1,12 @@
+LOG_LEVEL = '<%= @log_level %>'
+
+SQLALCHEMY_DATABASE_URI = <%= @database_connection %>
+
+AUTH = {
+    'auth_host': '<%= @keystone_host %>',
+    'auth_protocol': 'http',
+    'auth_version': 'v2.0',
+    'admin_user': '<%= @keystone_user %>',
+    'admin_password': '<%= @keystone_pass %>',
+    'admin_tenant_name': '<%= @tenant %>'
+}

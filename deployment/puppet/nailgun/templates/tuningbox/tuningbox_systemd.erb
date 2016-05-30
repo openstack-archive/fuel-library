@@ -1,0 +1,12 @@
+[Unit]
+Name=Tunigbox service
+ConditionPathExists=<%= @uwsgi_config_path %>
+
+[Service]
+ExecStart=/usr/sbin/uwsgi -y <%= @uwsgi_config_path %>
+ExecReload=/usr/sbin/uwsgi --reload <%= @pid_path %>
+ExecStop=/usr/sbin/uwsgi --stop <%= @pid_path %>
+ExecStopPost=/usr/bin/rm -f <%= @pid_path %>
+
+[Install]
+WantedBy=multi-user.target
