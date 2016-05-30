@@ -185,11 +185,11 @@ describe manifest do
 
   it 'ensures that cinder have proper volume_backend_name' do
     if cinder and storage['volumes_lvm']
-      should contain_cinder__backend__iscsi('DEFAULT').with(
+      should contain_cinder__backend__iscsi(volume_backend_name['volumes_lvm']).with(
         'volume_backend_name' => volume_backend_name['volumes_lvm']
       )
     elsif storage['volumes_ceph']
-      should contain_cinder__backend__rbd('DEFAULT').with(
+      should contain_cinder__backend__rbd(volume_backend_name['volumes_ceph']).with(
        'volume_backend_name' => volume_backend_name['volumes_ceph']
       )
     else
@@ -226,8 +226,10 @@ describe manifest do
   it {
     if manage_volumes
       is_expected.to contain_class('cinder::volume')
+      is_expected.to contain_class('cinder::backends')
     else
       is_expected.to_not contain_class('cinder::volume')
+      is_expected.to_not contain_class('cinder::backends')
     end
   }
 
