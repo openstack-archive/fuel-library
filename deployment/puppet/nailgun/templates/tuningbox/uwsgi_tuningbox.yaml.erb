@@ -1,0 +1,9 @@
+uwsgi:
+  socket: :<%= @port %>
+  protocol: http
+  plugin: python
+  module: <%= @app_module %>
+  pythonpath: <%= @app_path %>
+  env: <%= @env_settings_var %>=<%= @config_file_path %>
+  logto: <%= @log_path %>
+  pidfile: <%= @pid_path %>
