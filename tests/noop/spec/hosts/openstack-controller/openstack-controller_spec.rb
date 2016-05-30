@@ -221,7 +221,8 @@ describe manifest do
         :cinder_catalog_info    => cinder_catalog_info,
         :database_max_pool_size => 20,
         :database_max_retries   => '-1',
-        :database_max_overflow  => 20
+        :database_max_overflow  => 20,
+        :notify_on_state_change => 'vm_and_task_state',
       )
     end
 

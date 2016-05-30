@@ -15,6 +15,11 @@ describe manifest do
   end
 
   shared_examples 'catalog' do
+
+    let(:nova_hash) do
+      Noop.hiera_structure 'nova'
+    end
+
     ironic_user_password = Noop.hiera_structure 'ironic/user_password'
     ironic_enabled = Noop.hiera_structure 'ironic/enabled'
 
@@ -27,6 +32,19 @@ describe manifest do
     nova_db_password = Noop.hiera_structure 'nova/db_password', 'nova'
     nova_db_user = Noop.hiera_structure 'nova/db_user', 'nova'
     nova_db_name = Noop.hiera_structure 'nova/db_name', 'nova'
+
+    use_stderr = Noop.hiera 'use_stderr', false
+
+    max_pool_size = [facts[:processorcount] * 5 + 0, 30 + 0].min
+    max_overflow = [facts[:processorcount] * 5 + 0, 60 + 0].min
+    idle_timeout = '3600'
+    max_retries = '-1'
+
+    if $nova_hash['notification_driver']
+      nova_notification_driver = $nova_hash['notification_driver']
+    else
+      nova_notification_driver = []
+    end
 
     let(:memcache_nodes) do
       Noop.puppet_function 'get_nodes_hash_by_roles', network_metadata, memcache_roles
@@ -49,6 +67,11 @@ describe manifest do
     let(:admin_auth_protocol) { Noop.puppet_function 'get_ssl_property',ssl_hash,{},'keystone', 'admin','protocol','http' }
     let(:admin_auth_address) { Noop.puppet_function 'get_ssl_property',ssl_hash,{},'keystone','admin', 'hostname', [Noop.hiera('service_endpoint', Noop.hiera('management_vip'))]}
     let(:admin_uri) { "#{admin_auth_protocol}://#{admin_auth_address}:35357" }
+
+    let(:glance_endpoint_default) { Noop.hiera 'glance_endpoint', Noop.hiera('management_vip') }
+    let(:glance_protocol) { Noop.puppet_function 'get_ssl_property',ssl_hash,{},'glance','internal','protocol','http' }
+    let(:glance_endpoint) { Noop.puppet_function 'get_ssl_property',ssl_hash,{},'glance','internal','hostname', glance_endpoint_default}
+    let(:glance_api_servers) { Noop.hiera 'glance_api_servers', "#{glance_protocol}://#{glance_endpoint}:9292" }
 
     if ironic_enabled
       it 'nova config should have correct ironic settings' do
@@ -110,7 +133,18 @@ describe manifest do
           extra_params = '?charset=utf8'
         end
         should contain_class('nova').with(
-          :database_connection => "mysql://#{nova_db_user}:#{nova_db_password}@#{database_vip}/#{nova_db_name}#{extra_params}"
+          :database_connection    => "mysql://#{nova_db_user}:#{nova_db_password}@#{database_vip}/#{nova_db_name}#{extra_params}",
+          :cinder_catalog_info    => Noop.puppet_function('pick', nova_hash['cinder_catalog_info'], 'volumev2:cinderv2:internalURL'),
+          :use_stderr             => use_stderr,
+          :notification_driver    => nova_notification_driver,
+          :glance_api_servers     => glance_api_servers,
+          :database_max_overflow  => max_overflow,
+          :database_idle_timeout  => idle_timeout,
+          :database_max_retries   => max_retries,
+          :database_max_pool_size => max_pool_size,
+        )
+        should contain_class('nova::compute').with(
+          :allow_resize_to_same_host => Noop.puppet_function('pick', nova_hash['allow_resize_to_same_host'], true)
         )
       end
     end
