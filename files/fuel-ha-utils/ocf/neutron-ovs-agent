@@ -299,6 +299,7 @@ neutron_ovs_agent_start() {
         --config-file=$OCF_RESKEY_plugin_config --log-file=$OCF_RESKEY_log_file $OCF_RESKEY_additional_parameters \
         >> /dev/null"' 2>&1 & echo \$! > $OCF_RESKEY_pid'
     ocf_log debug "Create pid file: ${OCF_RESKEY_pid} with content $(cat ${OCF_RESKEY_pid})"
+    sleep 5
 
     # Spin waiting for the server to come up.
     # Let the CRM/LRM time us out if required
