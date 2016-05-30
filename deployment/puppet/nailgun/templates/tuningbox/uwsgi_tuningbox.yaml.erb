@@ -1,0 +1,8 @@
+uwsgi:
+  socket: :<%= @port %>
+  protocol: http
+  module: <%= @app_module %>
+  pythonpath: <%= @app_path %>
+  env: TUNINGBOX_SETTINGS=<%= @config_file_path %>
+  logto: <%= @log_path %>
+  pid: <%= @pid_path %>
