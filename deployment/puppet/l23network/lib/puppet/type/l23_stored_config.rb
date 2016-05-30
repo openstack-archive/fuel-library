@@ -130,7 +130,7 @@ Puppet::Type.newtype(:l23_stored_config) do
       min_vid = 0
       max_vid = 4094
       if ! (val.to_s == 'absent' or (min_vid .. max_vid).include?(val.to_i))
-        raise ArgumentError, "'#{val}' is not a valid 802.1q NALN_ID (must be a integer value in range (#{min_vid} .. #{max_vid})"
+        raise ArgumentError, "'#{val}' is not a valid 802.1q VLAN_ID (must be a integer value in range (#{min_vid} .. #{max_vid})"
       end
     end
     munge do |val|
