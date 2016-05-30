@@ -142,6 +142,8 @@ class openstack_tasks::openstack_controller::openstack_controller {
     $nova_quota_driver = 'nova.quota.NoopQuotaDriver'
   }
 
+  $notify_on_state_change = 'vm_and_task_state'
+
   if hiera('use_vcenter', false) or hiera('libvirt_type') == 'vcenter' {
     $multi_host = false
   } else {
@@ -204,6 +206,7 @@ class openstack_tasks::openstack_controller::openstack_controller {
     database_max_pool_size  => $max_pool_size,
     database_max_retries    => $max_retries,
     database_max_overflow   => $max_overflow,
+    notify_on_state_change  => $notify_on_state_change,
   }
 
   # TODO(aschultz): this is being removed in M, do we need it?
