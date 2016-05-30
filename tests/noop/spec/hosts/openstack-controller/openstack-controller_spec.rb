@@ -110,7 +110,6 @@ describe manifest do
       Noop.puppet_function 'pick', openstack_controller_hash['debug'], global_debug
     end
     let(:syslog_log_facility_nova) { Noop.hiera 'syslog_log_facility_nova', 'LOG_LOCAL6' }
-    let(:use_syslog) { Noop.hiera 'use_syslog', true }
     let(:use_stderr) { Noop.hiera 'use_stderr', false }
     let(:nova_report_interval) { Noop.hiera 'nova_report_interval', '60' }
     let(:nova_service_down_time) { Noop.hiera 'nova_service_down_time', '180' }
@@ -210,7 +209,6 @@ describe manifest do
         :glance_api_servers     => glance_api_servers,
         :debug                  => debug,
         :log_facility           => syslog_log_facility_nova,
-        :use_syslog             => use_syslog,
         :use_stderr             => use_stderr,
         :database_idle_timeout  => '3600',
         :report_interval        => nova_report_interval,

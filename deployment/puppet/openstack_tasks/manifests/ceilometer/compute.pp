@@ -2,7 +2,6 @@ class openstack_tasks::ceilometer::compute {
 
   notice('MODULAR: ceilometer/compute.pp')
 
-  $use_syslog               = hiera('use_syslog', true)
   $use_stderr               = hiera('use_stderr', false)
   $syslog_log_facility      = hiera('syslog_log_facility_ceilometer', 'LOG_LOCAL0')
   $rabbit_hash              = hiera_hash('rabbit')
@@ -54,7 +53,6 @@ class openstack_tasks::ceilometer::compute {
       metering_secret            => $ceilometer_metering_secret,
       verbose                    => $verbose,
       debug                      => $debug,
-      use_syslog                 => $use_syslog,
       use_stderr                 => $use_stderr,
       log_facility               => $syslog_log_facility,
     }
@@ -69,14 +67,6 @@ class openstack_tasks::ceilometer::compute {
     }
 
     class { '::ceilometer::client': }
-
-
-
-    if ($use_syslog) {
-      ceilometer_config {
-        'DEFAULT/use_syslog_rfc_format': value => true;
-      }
-    }
 
     if $::operatingsystem == 'Ubuntu' and $::ceilometer::params::libvirt_group {
       # Our libvirt-bin deb package (1.2.9 version) creates 'libvirt' group on Ubuntu

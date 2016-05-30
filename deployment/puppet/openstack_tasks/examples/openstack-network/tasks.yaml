@@ -60,7 +60,7 @@
     yaql_exp: >
       changedAny($.get('openstack_network'), $.get('verbose'), $.debug,
       $.quantum_settings, $.neutron_advanced_configuration, $.rabbit,
-      $.ceilometer, $.network_scheme, $.get('use_syslog'),
+      $.ceilometer, $.network_scheme,
       $.get('use_stderr'), $.get('syslog_log_facility_neutron'),
       $.get('amqp_hosts'), $.get('kombu_compression'))
   parameters:

@@ -19,7 +19,6 @@ class openstack_tasks::roles::ironic_conductor {
   $amqp_hosts                 = hiera('amqp_hosts')
   $rabbit_hosts               = split($amqp_hosts, ',')
   $debug                      = hiera('debug', false)
-  $use_syslog                 = hiera('use_syslog', true)
   $syslog_log_facility_ironic = hiera('syslog_log_facility_ironic', 'LOG_USER')
   $rabbit_hash                = hiera_hash('rabbit')
   $amqp_durable_queues        = pick($ironic_hash['amqp_durable_queues'], false)
@@ -70,7 +69,6 @@ class openstack_tasks::roles::ironic_conductor {
     rabbit_password      => $rabbit_hash['password'],
     amqp_durable_queues  => $amqp_durable_queues,
     control_exchange     => 'ironic',
-    use_syslog           => $use_syslog,
     log_facility         => $syslog_log_facility_ironic,
     database_connection  => $db_connection,
     database_max_retries => '-1',

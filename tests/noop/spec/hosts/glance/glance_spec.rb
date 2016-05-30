@@ -25,7 +25,6 @@ describe manifest do
     max_pool_size = Noop.hiera('max_pool_size')
     max_overflow = Noop.hiera('max_overflow')
     max_retries = '-1'
-    use_syslog = Noop.hiera('use_syslog', 'true')
     use_stderr = Noop.hiera('use_stderr', 'false')
     region = Noop.hiera('region', 'RegionOne')
     ironic_enabled = Noop.hiera_structure('ironic/enabled', false)
@@ -131,7 +130,6 @@ describe manifest do
     end
 
     it 'should configure glance cache config' do
-      should contain_glance_cache_config('DEFAULT/use_syslog').with_value(use_syslog)
       should contain_glance_cache_config('DEFAULT/image_cache_dir').with_value('/var/lib/glance/image-cache/')
       should contain_glance_cache_config('DEFAULT/log_file').with_value('/var/log/glance/cache.log')
       should contain_glance_cache_config('DEFAULT/image_cache_stall_time').with_value('86400')
@@ -150,15 +148,6 @@ describe manifest do
       should contain_glance_registry_config('database/max_retries').with_value(max_retries)
       should contain_glance_registry_config('glance_store/os_region_name').with_value(region)
       should contain_glance_registry_config('keystone_authtoken/signing_dir').with_value('/tmp/keystone-signing-glance')
-    end
-
-    if use_syslog
-      it 'should configure rfc format' do
-        should contain_glance_api_config('DEFAULT/use_syslog_rfc_format').with_value('true')
-        should contain_glance_cache_config('DEFAULT/use_syslog_rfc_format').with_value('true')
-        should contain_glance_registry_config('DEFAULT/use_syslog_rfc_format').with_value('true')
-        should contain_glance_glare_config('DEFAULT/use_syslog_rfc_format').with_value('true')
-      end
     end
 
     it 'should configure default_log_levels' do

@@ -61,7 +61,6 @@ describe manifest do
       public_heat_address = public_vip
     end
 
-    use_syslog = Noop.hiera 'use_syslog'
     default_log_levels_hash = Noop.hiera_hash 'default_log_levels'
     default_log_levels = Noop.puppet_function 'join_keys_to_values',default_log_levels_hash,'='
     primary_controller = Noop.hiera 'primary_controller'
@@ -152,10 +151,6 @@ describe manifest do
 
     it 'should configure heat rpc response timeout' do
       should contain_heat_config('DEFAULT/rpc_response_timeout').with_value('600')
-    end
-
-    it 'should configure syslog rfc format for heat' do
-      should contain_heat_config('DEFAULT/use_syslog_rfc_format').with(:value => use_syslog)
     end
 
     it 'should disable use_stderr for heat' do
