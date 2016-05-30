@@ -1,3 +1,50 @@
+- id: hiera_default_route
+  type: puppet
+  version: 2.1.0
+  groups: [primary-controller, controller, cinder, cinder-block-device,
+           cinder-vmware, compute, compute-vmware, ceph-osd, primary-mongo,
+           mongo, virt, ironic]
+  # We need to execute this task before netconfig on all nodes except mongo.
+  # Mongo nodes will configure routing via admin network and update it later
+  # with configure_default_route task
+  cross-depended-by:
+    yaql_exp: >
+      switch(
+        (
+          ('mongo' in $.roles) or ('primary-mongo' in $.roles)
+          ) => [
+            {name=>'configure_default_route',role=>'self'}
+          ],
+        true => [
+          {name=>'netconfig',role=>'self'}
+        ]
+      )
+  # On mongo nodes this task should be executed after netconfig in order
+  # to not break default route by setting it to not yet existent mgmt VIP
+  cross-depends:
+    yaql_exp: >
+      switch(
+        (
+          ('mongo' in $.roles) or ('primary-mongo' in $.roles)
+          ) => [
+            {name=>'netconfig',role=>'self'},
+            {name=>'post_deployment_start',role=>'self'}
+          ],
+        true => [
+          {name=>'tools',role=>'self'}
+        ]
+      )
+  condition:
+    yaql_exp: >
+      changedAny($.network_scheme, $.dpdk, $.get('use_ovs'), $.get('set_rps'),
+      $.get('set_rps'), $.get('run_ping_checker'),
+      $.network_scheme.endpoints.values().where(
+        $.get('gateway') != null).gateway)
+  parameters:
+    puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/netconfig/hiera_default_route.pp
+    puppet_modules: /etc/puppet/modules
+    timeout: 120
+
 - id: netconfig
   type: puppet
   version: 2.1.0
@@ -18,6 +65,18 @@
     cmd: ruby /etc/puppet/modules/osnailyfacter/modular/netconfig/netconfig_pre.rb
   test_post:
     cmd: ruby /etc/puppet/modules/osnailyfacter/modular/netconfig/netconfig_post.rb
+  # Run netconfig task on all nodes (except controllers and mongo) after virtual_ips.
+  # Thus we make sure that our default gateway (mgmt VIP) is up before configuring
+  # routing on nodes.
+  cross-depends:
+    yaql_exp: >
+      switch(
+        (
+          $.roles.any($.matches('(primary-)?(controller|mongo)'))
+          or ($.network_metadata.get('vips',{}).get('management') = null)
+        ) => [],
+        true => [{name =>'virtual_ips'}]
+      )
 
 - id: connectivity_tests
   type: puppet
