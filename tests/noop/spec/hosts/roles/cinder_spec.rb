@@ -28,6 +28,7 @@ describe manifest do
   cinder_db_user = Noop.hiera_structure 'cinder/db_user', 'cinder'
   cinder_db_name = Noop.hiera_structure 'cinder/db_name', 'cinder'
   cinder = Noop.puppet_function 'roles_include', 'cinder'
+  cinder_block_device = Noop.puppet_function 'roles_include', 'cinder-block-device'
   hostname = Noop.hiera('fqdn')
 
   let(:manage_volumes) do
@@ -76,7 +77,7 @@ describe manifest do
     should contain_cinder_config('DEFAULT/use_stderr').with(:value => 'false')
   end
 
-  if storage_hash['volumes_block_device']
+  if storage_hash['volumes_block_device'] and cinder_block_device
     disks_metadata = Noop.hiera('node_volumes')
 
     let (:disks_list) do
@@ -93,7 +94,7 @@ describe manifest do
       should contain_cinder_config('BDD-backend/iscsi_ip_address').with(:value => iscsi_bind_host)
       should contain_cinder_config('BDD-backend/volume_group').with(:value => 'cinder')
       should contain_cinder_config('BDD-backend/volumes_dir').with(:value => '/var/lib/cinder/volumes')
-      should contain_cinder_config('BDD-backend/available_devices').with(:value => disks_list)
+      should contain_cinder_config('BDD-backend/available_devices').with(:value => disks_list.join(','))
     end
   end
 
