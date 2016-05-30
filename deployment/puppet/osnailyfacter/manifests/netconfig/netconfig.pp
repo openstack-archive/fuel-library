@@ -3,6 +3,7 @@ class osnailyfacter::netconfig::netconfig {
   notice('MODULAR: netconfig/netconfig.pp')
 
   $network_scheme = hiera_hash('network_scheme', {})
+
   prepare_network_config($network_scheme)
 
   if ( $::l23_os =~ /(?i:centos6)/ and $::kernelmajversion == '3.10' ) {
