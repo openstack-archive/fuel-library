@@ -16,6 +16,7 @@ class openstack_tasks::swift::proxy_storage {
   $proxy_port                 = hiera('proxy_port', '8080')
   $storage_hash               = hiera_hash('storage')
   $management_vip             = hiera('management_vip')
+  $public_ssl_hash            = hiera_hash('public_ssl')
   $swift_api_ipaddr           = get_network_role_property('swift/api', 'ipaddr')
   $swift_storage_ipaddr       = get_network_role_property('swift/replication', 'ipaddr')
   $debug                      = pick($swift_hash['debug'], hiera('debug', false))
@@ -24,6 +25,7 @@ class openstack_tasks::swift::proxy_storage {
   $ring_part_power            = pick($swift_hash['ring_part_power'], 10)
   $ring_min_part_hours        = hiera('swift_ring_min_part_hours', 1)
   $deploy_swift_proxy         = hiera('deploy_swift_proxy', true)
+  $swift_realm1key            = hiera('swift_realm_key', 'realm1key')
 #Keystone settings
   $keystone_user              = pick($swift_hash['user'], 'swift')
   $keystone_password          = pick($swift_hash['user_password'], 'passsword')
@@ -45,8 +47,10 @@ class openstack_tasks::swift::proxy_storage {
   $auth_uri     = "${internal_auth_protocol}://${internal_auth_address}:5000/"
   $identity_uri = "${admin_auth_protocol}://${admin_auth_address}:35357/"
 
-  $swift_internal_protocol    = get_ssl_property($ssl_hash, {}, 'swift', 'internal', 'protocol', 'http')
-  $swift_internal_address    = get_ssl_property($ssl_hash, {}, 'swift', 'internal', 'hostname', [$swift_api_ipaddr, $management_vip])
+  $swift_internal_protocol = get_ssl_property($ssl_hash, {}, 'swift', 'internal', 'protocol', 'http')
+  $swift_internal_address  = get_ssl_property($ssl_hash, {}, 'swift', 'internal', 'hostname', [$swift_api_ipaddr, $management_vip])
+  $swift_public_protocol   = get_ssl_property($ssl_hash, $public_ssl_hash, 'swift', 'public', 'protocol', 'http')
+  $swift_public_address    = get_ssl_property($ssl_hash, $public_ssl_hash, 'swift', 'public', 'hostname', [hiera('swift_endpoint', ''), $public_vip])
 
   $swift_proxies_num = size(hiera('swift_proxies'))
 
@@ -170,6 +174,16 @@ class openstack_tasks::swift::proxy_storage {
         debug                       => $debug,
         verbose                     => $verbose,
         log_facility                => 'LOG_SYSLOG',
+      }
+    }
+
+    # swift_container_sync_realms file specifying
+    # the allowable clusters and their information.
+    # Changes in this file don't require restart services.
+    if $deploy_swift_storage or $deploy_swift_proxy {
+      swift_container_sync_realms_config {
+        'realm1/key':           value => $swift_realm1key,
+        'realm1/cluster_name1': value => "${swift_public_protocol}://${swift_public_address}:8080/v1",
       }
     }
 
