@@ -93,6 +93,13 @@ class openstack_tasks::keystone::keystone {
   $token_driver           = 'keystone.token.persistence.backends.memcache_pool.Token'
   $token_provider = hiera('token_provider')
   $revoke_driver = 'keystone.contrib.revoke.backends.sql.Revoke'
+  # TODO(degorenko): uncomment this block when branches for 10.0 will be prepared
+  # because dummy.Revoke driver is MOS specific
+  # if $::os_package_type == 'debian' {
+  #   $revoke_driver = 'keystone.revoke.backends.dummy.Revoke'
+  # } else {
+  #   $revoke_driver = 'keystone.contrib.revoke.backends.sql.Revoke'
+  # }
 
   $public_url   = "${public_protocol}://${public_address}:${public_port}"
   $admin_url    = "${admin_protocol}://${admin_address}:${admin_port}"

@@ -76,6 +76,16 @@ describe manifest do
 
     let(:admin_url) { "#{admin_auth_protocol}://#{admin_auth_address}:35357" }
 
+    # TODO(degorenko): uncomment this block when branches for 10.0 will be prepared
+    # because dummy.Revoke driver is MOS specific
+    #let(:revoke_driver) do
+    #  if facts[:os_package_type] == 'debian'
+    #    'keystone.revoke.backends.dummy.Revoke'
+    #  else
+    #    'keystone.contrib.revoke.backends.sql.Revoke'
+    #  end
+    #end
+
     revoke_driver = 'keystone.contrib.revoke.backends.sql.Revoke'
     database_idle_timeout = '3600'
     ceilometer_hash = Noop.hiera_hash 'ceilometer', { 'enabled' => false }
