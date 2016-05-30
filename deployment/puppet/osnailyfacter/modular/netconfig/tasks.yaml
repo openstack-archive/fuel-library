@@ -18,6 +18,16 @@
     cmd: ruby /etc/puppet/modules/osnailyfacter/modular/netconfig/netconfig_pre.rb
   test_post:
     cmd: ruby /etc/puppet/modules/osnailyfacter/modular/netconfig/netconfig_post.rb
+  cross-depends:
+    yaql_exp: >
+      switch(
+        (
+          ('controller' in $.roles) or ('primary-controller' in $.roles)
+          or ('mongo' in $.roles) or ('primary-mongo' in $.roles)
+          or ($.network_metadata.get('vips',{}).get('management') = null)
+        ) => [],
+        true => [{name =>'virtual_ips'}]
+      )
 
 - id: connectivity_tests
   type: puppet

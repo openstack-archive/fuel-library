@@ -2,7 +2,37 @@ class osnailyfacter::netconfig::netconfig {
 
   notice('MODULAR: netconfig/netconfig.pp')
 
-  $network_scheme = hiera_hash('network_scheme', {})
+  $loaded_network_scheme  = hiera_hash('network_scheme', {})
+  $management_vrouter_vip = hiera('management_vrouter_vip')
+  $management_role        = 'management'
+  $fw_admin_role          = 'fw-admin'
+  $public_br              = 'br-ex'
+
+  if (has_key($loaded_network_scheme['endpoints'], $public_br)
+      or !is_ip_address($management_vrouter_vip))
+     # TODO: (alex_didenko) remove roles_include condition when role based
+     # deployment is deprecated. For now we need this because mongo roles
+     # are deployed before controllers, so there are no VIPs configured yet
+     # to setup routing to. Post-deployment task 'configure_default_route'
+     # will re-configure default gateway for mongo roles.
+     or roles_include(['primary-mongo', 'mongo']) {
+    $network_scheme = $loaded_network_scheme
+  } else {
+    $new_network_scheme = configure_default_route($loaded_network_scheme,
+                                              $management_vrouter_vip,
+                                              $fw_admin_role,
+                                              $management_role)
+    # TODO: (alex_didenko) remove this conditional and refactor function
+    # configure_default_route() to return existing network_scheme instead of
+    # empty hash. We can do this when we deprecate role-based deployment.
+    # Meanwhile returning empty hash is still needed for post deployment
+    # configure_default_route task for mongo roles.
+    $network_scheme = empty($new_network_scheme) ? {
+      default => $loaded_network_scheme,
+      false   => $new_network_scheme
+    }
+  }
+
   prepare_network_config($network_scheme)
 
   if ( $::l23_os =~ /(?i:centos6)/ and $::kernelmajversion == '3.10' ) {
