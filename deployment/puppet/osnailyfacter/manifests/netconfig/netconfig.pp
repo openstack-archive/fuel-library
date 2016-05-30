@@ -15,7 +15,7 @@ class osnailyfacter::netconfig::netconfig {
     use_ovs                      => hiera('use_ovs', false),
     use_ovs_dkms_datapath_module => $::l23_os ? {
                                       /(?i:redhat7|centos7)/ => false,
-                                      default                => true
+                                      default                => false
                                     },
     ovs_datapath_package_name    => $ovs_datapath_package_name,
     use_dpdk                     => pick($dpdk_options['enabled'], false),
