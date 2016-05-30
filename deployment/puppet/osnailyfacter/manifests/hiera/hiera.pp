@@ -16,6 +16,7 @@ class osnailyfacter::hiera::hiera {
     'override/configuration/%{::fqdn}',
     'override/configuration/role',
     'override/configuration/cluster',
+    'override/configuration/default_route',
     'class/%{calling_class}',
     'module/%{calling_module}',
     'deleted_nodes',
