@@ -16,7 +16,6 @@ class openstack_tasks::ceilometer::controller {
   $ceilometer_hash          = hiera_hash('ceilometer', $default_ceilometer_hash)
   $verbose                  = pick($ceilometer_hash['verbose'], hiera('verbose', true))
   $debug                    = pick($ceilometer_hash['debug'], hiera('debug', false))
-  $use_syslog               = hiera('use_syslog', true)
   $use_stderr               = hiera('use_stderr', false)
   $syslog_log_facility      = hiera('syslog_log_facility_ceilometer', 'LOG_LOCAL0')
   $storage_hash             = hiera('storage')
@@ -131,7 +130,6 @@ class openstack_tasks::ceilometer::controller {
       metering_secret            => $ceilometer_metering_secret,
       verbose                    => $verbose,
       debug                      => $debug,
-      use_syslog                 => $use_syslog,
       use_stderr                 => $use_stderr,
       log_facility               => $syslog_log_facility,
     }
@@ -216,12 +214,6 @@ class openstack_tasks::ceilometer::controller {
     if ($swift_rados_backend) {
       ceilometer_config {
         'DEFAULT/swift_rados_backend' : value => true;
-      }
-    }
-
-    if ($use_syslog) {
-      ceilometer_config {
-        'DEFAULT/use_syslog_rfc_format': value => true;
       }
     }
 

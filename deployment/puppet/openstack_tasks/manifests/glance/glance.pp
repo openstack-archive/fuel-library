@@ -14,7 +14,6 @@ class openstack_tasks::glance::glance {
   $database_vip          = hiera('database_vip')
   $service_endpoint      = hiera('service_endpoint')
   $storage_hash          = hiera('storage')
-  $use_syslog            = hiera('use_syslog', true)
   $use_stderr            = hiera('use_stderr', false)
   $syslog_log_facility   = hiera('syslog_log_facility_glance')
   $rabbit_hash           = hiera_hash('rabbit', {})
@@ -141,7 +140,6 @@ class openstack_tasks::glance::glance {
     enabled                => $enabled,
     workers                => $service_workers,
     registry_host          => $glance_endpoint,
-    use_syslog             => $use_syslog,
     use_stderr             => $use_stderr,
     log_facility           => $syslog_log_facility,
     database_idle_timeout  => $idle_timeout,
@@ -172,7 +170,6 @@ class openstack_tasks::glance::glance {
   }
 
   class { '::glance::glare::logging':
-    use_syslog             => $use_syslog,
     use_stderr             => $use_stderr,
     log_facility           => $syslog_log_facility,
     verbose                => $verbose,
@@ -234,7 +231,6 @@ class openstack_tasks::glance::glance {
     database_max_retries   => $max_retries,
     database_max_overflow  => $max_overflow,
     enabled                => $enabled,
-    use_syslog             => $use_syslog,
     use_stderr             => $use_stderr,
     log_facility           => $syslog_log_facility,
     database_idle_timeout  => $idle_timeout,
@@ -251,22 +247,6 @@ class openstack_tasks::glance::glance {
     rabbit_userid                => $rabbit_userid,
     rabbit_hosts                 => $rabbit_hosts,
     notification_driver          => $ceilometer_hash['notification_driver'],
-  }
-
-  # syslog additional settings default/use_syslog_rfc_format = true
-  if $use_syslog {
-    glance_api_config {
-      'DEFAULT/use_syslog_rfc_format': value => true;
-    }
-    glance_glare_config {
-      'DEFAULT/use_syslog_rfc_format': value => true;
-    }
-    glance_cache_config {
-      'DEFAULT/use_syslog_rfc_format': value => true;
-    }
-    glance_registry_config {
-      'DEFAULT/use_syslog_rfc_format': value => true;
-    }
   }
 
   # Configure file storage backend

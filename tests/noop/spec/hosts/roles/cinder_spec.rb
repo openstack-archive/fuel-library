@@ -77,6 +77,7 @@ describe manifest do
   end
 
   if storage_hash['volumes_block_device']
+    require 'pry'
     disks_metadata = Noop.hiera('node_volumes')
 
     let (:disks_list) do
@@ -88,6 +89,7 @@ describe manifest do
     end
 
     it 'should contain proper config file for cinder' do
+      binding.pry
       should contain_cinder_config('BDD-backend/iscsi_helper').with(:value => 'tgtadm')
       should contain_cinder_config('BDD-backend/volume_driver').with(:value => 'cinder.volume.drivers.block_device.BlockDeviceDriver')
       should contain_cinder_config('BDD-backend/iscsi_ip_address').with(:value => iscsi_bind_host)

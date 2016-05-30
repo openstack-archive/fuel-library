@@ -8,7 +8,7 @@
       $.rabbit, $.ceilometer, $.quantum_settings, $.network_metadata.vips,
       $.get('database_vip'), $.get('region', 'RegionOne'), $.quantum,
       $.network_metadata, $.get('syslog_log_facility_murano'), $.debug,
-      $.get('verbose'), $.get('default_log_levels'), $.get('use_syslog'),
+      $.get('verbose'), $.get('default_log_levels'),
       $.get('use_stderr'), $.get('rabbit_ha_queues'), $.get('amqp_port'),
       $.get('amqp_hosts'), $.external_dns, $.public_ssl, $.get('use_ssl'),
       ('primary-controller' in $.roles), $.get('kombu_compression'),

@@ -19,7 +19,6 @@ class openstack_tasks::roles::cinder {
   $rabbit_hash                = hiera_hash('rabbit', {})
   $ceilometer_hash            = hiera_hash('ceilometer', {})
   $use_stderr                 = hiera('use_stderr', false)
-  $use_syslog                 = hiera('use_syslog', true)
   $syslog_log_facility_cinder = hiera('syslog_log_facility_cinder', 'LOG_LOCAL3')
   $syslog_log_facility_ceph   = hiera('syslog_log_facility_ceph','LOG_LOCAL0')
   $proxy_port                 = hiera('proxy_port', '8080')
@@ -134,7 +133,6 @@ class openstack_tasks::roles::cinder {
       osd_pool_default_pgp_num => $storage_hash['pg_num'],
       cluster_network          => $ceph_cluster_network,
       public_network           => $ceph_public_network,
-      use_syslog               => $use_syslog,
       syslog_log_facility      => $syslog_log_facility_ceph,
       ephemeral_ceph           => $storage_hash['ephemeral_ceph']
     }
@@ -177,7 +175,6 @@ class openstack_tasks::roles::cinder {
     rabbit_ha_queues       => hiera('rabbit_ha_queues', false),
     database_connection    => $db_connection,
     verbose                => $verbose,
-    use_syslog             => $use_syslog,
     use_stderr             => $use_stderr,
     log_facility           => hiera('syslog_log_facility_cinder', 'LOG_LOCAL3'),
     debug                  => $debug,
@@ -281,12 +278,6 @@ class openstack_tasks::roles::cinder {
           available_devices   => $physical_volumes,
         }
       }
-    }
-  }
-
-  if $use_syslog {
-    cinder_config {
-      'DEFAULT/use_syslog_rfc_format': value => true;
     }
   }
 

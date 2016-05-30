@@ -34,10 +34,6 @@ class openstack_tasks::openstack_network::common_config {
     $debug        = pick($openstack_network_hash['debug'], hiera('debug', true))
     # TODO(aschultz): LP#1499620 - neutron in UCA liberty fails to start with
     # syslog enabled.
-    $use_syslog = $::os_package_type ? {
-      'ubuntu' => false,
-      default  => hiera('use_syslog', true)
-    }
     $use_stderr   = hiera('use_stderr', false)
     $log_facility = hiera('syslog_log_facility_neutron', 'LOG_LOCAL4')
 
@@ -96,7 +92,6 @@ class openstack_tasks::openstack_network::common_config {
     class { '::neutron::logging':
       verbose            => $verbose,
       debug              => $debug,
-      use_syslog         => $use_syslog,
       use_stderr         => $use_stderr,
       log_facility       => $log_facility,
       default_log_levels => $default_log_levels,

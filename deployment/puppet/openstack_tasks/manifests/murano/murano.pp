@@ -19,7 +19,6 @@ class openstack_tasks::murano::murano {
   $debug                      = pick($murano_hash['debug'], hiera('debug', false))
   $verbose                    = pick($murano_hash['verbose'], hiera('verbose', true))
   $default_log_levels         = hiera_hash('default_log_levels')
-  $use_syslog                 = hiera('use_syslog', true)
   $use_stderr                 = hiera('use_stderr', false)
   $rabbit_ha_queues           = hiera('rabbit_ha_queues')
   $amqp_port                  = hiera('amqp_port')
@@ -108,7 +107,6 @@ class openstack_tasks::murano::murano {
     class { '::murano' :
       verbose             => $verbose,
       debug               => $debug,
-      use_syslog          => $use_syslog,
       use_stderr          => $use_stderr,
       log_facility        => $syslog_log_facility_murano,
       database_connection => $db_connection,

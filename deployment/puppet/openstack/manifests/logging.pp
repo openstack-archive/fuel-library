@@ -107,7 +107,6 @@ class openstack::logging (
     $production         = 'prod',
     $escapenewline      = false,
     $debug              = false,
-    $ironic_collector   = false,
 ) {
 
   validate_re($proto, 'tcp|udp|both')
@@ -181,48 +180,6 @@ class openstack::logging (
       file_severity => 'ERROR',
     }
 
-    ::rsyslog::imfile { '11-horizon_access':
-      file_name     => '/var/log/apache2/horizon_access.log',
-      file_tag      => 'horizon_access',
-      file_facility => 'syslog',
-      file_severity => 'INFO',
-    }
-
-    ::rsyslog::imfile { '11-horizon_error':
-      file_name     => '/var/log/apache2/horizon_error.log',
-      file_tag      => 'horizon_error',
-      file_facility => 'syslog',
-      file_severity => 'ERROR',
-    }
-
-    ::rsyslog::imfile { '12-keystone_wsgi_admin_access':
-      file_name     => '/var/log/apache2/keystone_wsgi_admin_access.log',
-      file_tag      => 'keystone_wsgi_admin_access',
-      file_facility => 'syslog',
-      file_severity => 'INFO',
-    }
-
-    ::rsyslog::imfile { '12-keystone_wsgi_admin_error':
-      file_name     => '/var/log/apache2/keystone_wsgi_admin_error.log',
-      file_tag      => 'keystone_wsgi_admin_error',
-      file_facility => 'syslog',
-      file_severity => 'ERROR',
-    }
-
-    ::rsyslog::imfile { '13-keystone_wsgi_main_access':
-      file_name     => '/var/log/apache2/keystone_wsgi_main_access.log',
-      file_tag      => 'keystone_wsgi_main_access',
-      file_facility => 'syslog',
-      file_severity => 'INFO',
-    }
-
-    ::rsyslog::imfile { '13-keystone_wsgi_main_error':
-      file_name     => '/var/log/apache2/keystone_wsgi_main_error.log',
-      file_tag      => 'keystone_wsgi_main_error',
-      file_facility => 'syslog',
-      file_severity => 'ERROR',
-    }
-
     # mco does not support syslog also, hence use imfile
     ::rsyslog::imfile { '61-mco_agent_debug' :
       file_name     => '/var/log/mcollective.log',
@@ -238,49 +195,8 @@ class openstack::logging (
       file_severity => 'INFO',
     }
 
-    # OS syslog configs for rsyslog client
-    ::rsyslog::snippet { '10-nova':
-      content => template("${module_name}/10-nova.conf.erb"),
-    }
-
-    ::rsyslog::snippet { '20-keystone':
-      content => template("${module_name}/20-keystone.conf.erb"),
-    }
-
-    ::rsyslog::snippet { '30-cinder':
-      content => template("${module_name}/30-cinder.conf.erb"),
-    }
-
-    ::rsyslog::snippet { '40-glance':
-      content => template("${module_name}/40-glance.conf.erb"),
-    }
-
-    ::rsyslog::snippet { '50-neutron':
-      content => template("${module_name}/50-neutron.conf.erb"),
-    }
-
-    ::rsyslog::snippet { '51-ceilometer':
-      content => template("${module_name}/51-ceilometer.conf.erb"),
-    }
-
-    ::rsyslog::snippet { '53-aodh':
-      content => template("${module_name}/53-aodh.conf.erb"),
-    }
-
-    ::rsyslog::snippet { '55-murano':
-      content => template("${module_name}/55-murano.conf.erb"),
-    }
-
-    ::rsyslog::snippet { '54-heat':
-      content => template("${module_name}/54-heat.conf.erb"),
-    }
-
     ::rsyslog::snippet { '02-ha':
       content => template("${module_name}/02-ha.conf.erb"),
-    }
-
-    ::rsyslog::snippet { '03-dashboard':
-      content => template("${module_name}/03-dashboard.conf.erb"),
     }
 
     ::rsyslog::snippet { '04-mysql':
@@ -297,16 +213,6 @@ class openstack::logging (
 
     ::rsyslog::snippet { '62-mongod':
       content => template("${module_name}/62-mongod.conf.erb"),
-    }
-
-    if $ironic_collector {
-      ::rsyslog::snippet { '70-ironic':
-        content => template("${module_name}/70-ironic.conf.erb"),
-      }
-    }
-
-    ::rsyslog::snippet { '80-swift':
-      content => template("${module_name}/80-swift.conf.erb"),
     }
 
     # Custom settings for rsyslog default system file
@@ -395,28 +301,4 @@ class openstack::logging (
     maxsize  => $maxsize,
     debug    => $debug,
   }
-
-  # Deprecated stuff handling section
-  # Use this section to ensure the absence of the deprecated config
-  # options for an Openstack services, or any other custom for Fuel
-  # changes what should be removed forcibly.
-  # (only if it couldn't be done in the synced upstream modules as well)
-
-  # Ensure all OS services logging reconfiguration for deleted log_configs
-  # (log_config was deprecated and should be removed from existing configs)
-  # lint:ignore:80chars
-  Ceilometer_config <| title == 'DEFAULT/log_config' |> { ensure => absent }
-  Cinder_config <| title == 'DEFAULT/log_config' |> { ensure => absent }
-  Glance_api_config <| title == 'DEFAULT/log_config' |> { ensure => absent }
-  Glance_registry_config <| title == 'DEFAULT/log_config' |> { ensure => absent }
-  Heat_config <| title == 'DEFAULT/log_config' |> { ensure => absent }
-  Keystone_config <| title == 'DEFAULT/log_config' |> { ensure => absent }
-  Neutron_dhcp_agent_config <| title == 'DEFAULT/log_config' |> { ensure => absent }
-  Neutron_l3_agent_config <| title == 'DEFAULT/log_config' |> { ensure => absent }
-  Neutron_metadata_agent_config <| title == 'DEFAULT/log_config' |> { ensure => absent }
-  Neutron_config <| title == 'DEFAULT/log_config' |> { ensure => absent }
-  Nova_config <| title == 'DEFAULT/log_config' |> { ensure => absent }
-  Sahara_config <| title == 'DEFAULT/log_config' |> { ensure => absent }
-  Murano_config <| title == 'DEFAULT/log_config' |> { ensure => absent }
-  # lint:endignore
 }
