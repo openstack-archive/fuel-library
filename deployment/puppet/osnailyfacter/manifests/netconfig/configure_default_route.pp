@@ -20,11 +20,10 @@ class osnailyfacter::netconfig::configure_default_route {
     ovs_datapath_package_name    => $ovs_datapath_package_name,
   }
 
-  $new_network_scheme = configure_default_route($network_scheme, $management_vrouter_vip, $fw_admin_role, $management_role )
-  notice ($new_network_scheme)
+  notice ($network_scheme)
 
-  if !empty($new_network_scheme) {
-    prepare_network_config($new_network_scheme)
+  if !empty($network_scheme) {
+    prepare_network_config($network_scheme)
     $sdn = generate_network_config()
     notify {'SDN': message => $sdn }
   }

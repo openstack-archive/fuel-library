@@ -23,6 +23,9 @@ describe manifest do
     set_rps          = Noop.hiera 'set_rps', true
     dpdk_config      = Noop.hiera_hash 'dpdk', {}
     enable_dpdk      = dpdk_config.fetch 'enabled', false
+    mgmt_vrouter_vip = Noop.hiera 'management_vrouter_vip'
+    roles            = Noop.hiera 'roles', []
+    mongo_roles      = ['primary-mongo', 'mongo']
 
     it { should contain_class('l23network').with('use_ovs' => use_neutron) }
     it { should contain_sysctl__value('net.ipv4.conf.all.arp_accept').with('value' => '1') }
@@ -77,6 +80,7 @@ describe manifest do
         should contain_class('l23network::l2::dpdk').with('use_dpdk' => false)
       end
     end
+
   end
 
   test_ubuntu_and_centos manifest

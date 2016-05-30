@@ -1,3 +1,43 @@
+- id: hiera_default_route
+  type: puppet
+  version: 2.1.0
+  groups: [primary-controller, controller, cinder, cinder-block-device, cinder-vmware, compute, ceph-osd, primary-mongo, mongo, virt, ironic]
+  cross-depended-by:
+    yaql_exp: >
+      switch(
+        (
+          ('mongo' in $.roles) or ('primary-mongo' in $.roles)
+          ) => [
+            {name=>'configure_default_route',role=>'self'}
+          ],
+        true => [
+          {name=>'netconfig',role=>'self'}
+        ]
+      )
+  cross-depends:
+    yaql_exp: >
+      switch(
+        (
+          ('mongo' in $.roles) or ('primary-mongo' in $.roles)
+          ) => [
+            {name=>'netconfig',role=>'self'},
+            {name=>'post_deployment_start',role=>'self'}
+          ],
+        true => [
+          {name=>'tools',role=>'self'}
+        ]
+      )
+  condition:
+    yaql_exp: >
+      changedAny($.network_scheme, $.dpdk, $.get('use_ovs'), $.get('set_rps'),
+      $.get('set_rps'), $.get('run_ping_checker'),
+      $.network_scheme.endpoints.values().where(
+        $.get('gateway') != null).gateway)
+  parameters:
+    puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/netconfig/hiera_default_route.pp
+    puppet_modules: /etc/puppet/modules
+    timeout: 120
+
 - id: netconfig
   type: puppet
   version: 2.1.0
@@ -18,6 +58,16 @@
     cmd: ruby /etc/puppet/modules/osnailyfacter/modular/netconfig/netconfig_pre.rb
   test_post:
     cmd: ruby /etc/puppet/modules/osnailyfacter/modular/netconfig/netconfig_post.rb
+  cross-depends:
+    yaql_exp: >
+      switch(
+        (
+          ('controller' in $.roles) or ('primary-controller' in $.roles)
+          or ('mongo' in $.roles) or ('primary-mongo' in $.roles)
+          or ($.network_metadata.get('vips',{}).get('management') = null)
+        ) => [],
+        true => [{name =>'virtual_ips'}]
+      )
 
 - id: connectivity_tests
   type: puppet
