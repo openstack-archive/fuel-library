@@ -22,6 +22,7 @@ describe manifest do
     ring_part_power = swift_hash.fetch('ring_part_power', 10)
     ring_min_part_hours = Noop.hiera 'swift_ring_min_part_hours', 1
     deploy_swift_proxy = Noop.hiera('deploy_swift_proxy')
+    deploy_swift_storage = Noop.hiera('deploy_swift_storage')
     swift_proxies_num  = (Noop.hiera('swift_proxies')).size
     rabbit_hosts       = Noop.hiera('amqp_hosts')
     rabbit_user        = Noop.hiera_structure('rabbit/user', 'nova')
@@ -50,6 +51,8 @@ describe manifest do
 
     let(:ssl_hash) { Noop.hiera_hash 'use_ssl' }
 
+    let(:public_ssl_hash) { Noop.hiera_hash 'public_ssl' }
+
     let(:internal_auth_protocol) { Noop.puppet_function 'get_ssl_property',ssl_hash,{},'keystone','internal','protocol','http' }
 
     let(:internal_auth_address) { Noop.puppet_function 'get_ssl_property',ssl_hash,{},'keystone','internal','hostname',[Noop.hiera('service_endpoint', ''), management_vip] }
@@ -66,6 +69,8 @@ describe manifest do
     let(:swift_api_ipaddr) { Noop.puppet_function 'get_network_role_property', 'swift/api', 'ipaddr' }
     let(:swift_internal_protocol) { Noop.puppet_function 'get_ssl_property',ssl_hash,{},'swift','internal','protocol','http' }
     let(:swift_interal_address) { Noop.puppet_function 'get_ssl_property',ssl_hash,{},'swift','internal','hostname',[swift_api_ipaddr, management_vip] }
+    let(:swift_public_protocol) { Noop.puppet_function 'get_ssl_property',ssl_hash,public_ssl_hash,'swift','public','protocol','http' }
+    let(:swift_public_address) { Noop.puppet_function 'get_ssl_property',ssl_hash,public_ssl_hash,'swift','public','hostname',[Noop.hiera('swift_endpoint', ''), public_vip] }
 
     # Swift
     if !(storage_hash['images_ceph'] and storage_hash['objects_ceph']) and !storage_hash['images_vcenter']
@@ -189,6 +194,10 @@ describe manifest do
         )
       end
 
+      it 'should contain container_sync class' do
+        should contain_class('swift::proxy::container_sync')
+      end
+
       it 'should contain swift backups section in rsync conf' do
         should contain rsync__server__module('swift_backups').with(
           'path'            => '/etc/swift/backups',
@@ -200,6 +209,15 @@ describe manifest do
           'max_connections' => '5',
           'read_only'       => true,
         )
+      end
+    end
+
+    if deploy_swift_proxy or deploy_swift_storage
+      realm1_key = Noop.hiera('swift_realm1_key', 'realm1key')
+      cluster_name1_endpoint = "#{swift_public_protocol}://#{swift_public_address}:8080/v1"
+      it 'should contain swift_container-sync-realms config' do
+        should contain_swift_container_sync_realms_config('realm1/key').with_value(realm1_key)
+        should contain_swift_container_sync_realms_config('realm1/cluster_name1').with_value(cluster_name1_endpoint)
       end
     end
   end
