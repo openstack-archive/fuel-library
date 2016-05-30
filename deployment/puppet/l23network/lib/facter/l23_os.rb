@@ -7,7 +7,12 @@ Facter.add(:l23_os) do
     case Facter.value(:operatingsystem)
       when /(?i)ubuntu/
         #todo: separate upstart and systemd based
-        'ubuntu'
+        case Facter.value(:operatingsystemmajrelease)
+          when /16.04/
+            'xenial'
+          else
+            'ubuntu'
+        end
       when /(?i)centos/
         case Facter.value(:operatingsystemmajrelease)
           when /6/
