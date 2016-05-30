@@ -15,10 +15,10 @@ class openstack_tasks::ironic::ironic_compute {
   $service_endpoint               = hiera('service_endpoint')
   $neutron_endpoint               = hiera('neutron_endpoint', $management_vip)
   $ironic_endpoint                = hiera('ironic_endpoint', $management_vip)
-  $glance_api_servers             = hiera('glance_api_servers', "${management_vip}:9292")
   $debug                          = hiera('debug', false)
   $verbose                        = hiera('verbose', true)
   $use_syslog                     = hiera('use_syslog', true)
+  $use_stderr                     = hiera('use_stderr', false)
   $syslog_log_facility_ironic     = hiera('syslog_log_facility_ironic', 'LOG_LOCAL0')
   $syslog_log_facility_nova       = hiera('syslog_log_facility_nova', 'LOG_LOCAL6')
   $amqp_hosts                     = hiera('amqp_hosts')
@@ -36,6 +36,11 @@ class openstack_tasks::ironic::ironic_compute {
   $db_user                        = pick($nova_hash['db_user'], 'nova')
   $db_name                        = pick($nova_hash['db_name'], 'nova')
   $db_password                    = pick($nova_hash['db_password'], 'nova')
+
+  $max_pool_size = hiera('max_pool_size', min($::processorcount * 5 + 0, 30 + 0))
+  $max_overflow = hiera('max_overflow', min($::processorcount * 5 + 0, 60 + 0))
+  $idle_timeout = hiera('idle_timeout', '3600')
+  $max_retries = hiera('max_retries', '-1')
 
   $max_concurrent_builds          = pick($ironic_hash['max_concurrent_builds'], 50)
   # LP#1526938 - python-mysqldb supports this, python-pymysql does not
@@ -63,6 +68,17 @@ class openstack_tasks::ironic::ironic_compute {
   $admin_identity_address         = get_ssl_property($ssl_hash, {}, 'keystone', 'admin', 'hostname', [$service_endpoint, $management_vip])
   $admin_identity_uri             = "${admin_identity_protocol}://${admin_identity_address}:35357"
 
+  $glance_endpoint_default      = hiera('glance_endpoint', $management_vip)
+  $glance_protocol              = get_ssl_property($ssl_hash, {}, 'glance', 'internal', 'protocol', 'http')
+  $glance_endpoint              = get_ssl_property($ssl_hash, {}, 'glance', 'internal', 'hostname', $glance_endpoint_default)
+  $glance_api_servers           = hiera('glance_api_servers', "${glance_protocol}://${glance_endpoint}:9292")
+
+  if $nova_hash['notification_driver'] {
+    $nova_notification_driver = $nova_hash['notification_driver']
+  } else {
+    $nova_notification_driver = []
+  }
+
   ####### Disable upstart startup on install #######
   tweaks::ubuntu_service_override { 'nova-compute':
     package_name => 'nova-compute',
@@ -81,6 +97,13 @@ class openstack_tasks::ironic::ironic_compute {
       verbose                => $verbose,
       debug                  => $debug,
       use_syslog             => $use_syslog,
+      use_stderr             => $use_stderr,
+      notification_driver    => $nova_notification_driver,
+      cinder_catalog_info    => pick($nova_hash['cinder_catalog_info'], 'volumev2:cinderv2:internalURL'),
+      database_max_overflow  => $max_overflow,
+      database_idle_timeout  => $idle_timeout,
+      database_max_retries   => $max_retries,
+      database_max_pool_size => $max_pool_size,
       log_facility           => $syslog_log_facility_nova,
       state_path             => $nova_hash['state_path'],
       report_interval        => $nova_report_interval,
@@ -100,6 +123,7 @@ class openstack_tasks::ironic::ironic_compute {
     default_schedule_zone     => $nova_hash['default_schedule_zone'],
     reserved_host_memory      => '0',
     compute_manager           => 'ironic.nova.compute.manager.ClusteredComputeManager',
+    allow_resize_to_same_host => pick($nova_hash['allow_resize_to_same_host'], true)
   }
 
   class { '::nova::compute::ironic':
