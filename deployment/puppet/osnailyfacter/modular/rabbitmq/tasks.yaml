@@ -20,11 +20,16 @@
       $.get('rabbit_config_kernel_variables'),
       $.get('rabbit_config_variables'),
       $.get('rabbit_config_management_variables'),
-      $.get('rabbit_environment_variables'))
+      $.get('rabbit_environment_variables'), $.configuration.get('rabbitmq'))
   parameters:
     puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/rabbitmq/rabbitmq.pp
     puppet_modules: /etc/puppet/modules
     timeout: 900
+    strategy:
+      type: parallel
+      amount:
+        yaql_exp: &rabbitmq_strategy >
+          switch($.get('deployed_before', {}).get('value') => 1, true => 3)
   test_post:
     cmd: ruby /etc/puppet/modules/osnailyfacter/modular/rabbitmq/rabbitmq_post.rb
 
@@ -40,5 +45,9 @@
     puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/rabbitmq/rabbitmq.pp
     puppet_modules: /etc/puppet/modules
     timeout: 900
+    strategy:
+      type: parallel
+      amount:
+        yaql_exp: *rabbitmq_strategy
   test_post:
     cmd: ruby /etc/puppet/modules/osnailyfacter/modular/rabbitmq/rabbitmq_post.rb

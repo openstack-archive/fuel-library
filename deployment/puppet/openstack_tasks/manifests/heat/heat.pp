@@ -54,6 +54,20 @@ class openstack_tasks::heat::heat {
   $region                   = hiera('region', 'RegionOne')
   $external_lb              = hiera('external_lb', false)
 
+  $override_configuration = hiera_hash('configuration', {})
+
+  # override heat.conf options
+  override_resources { 'heat_config':
+    data => $override_configuration['heat']
+  }
+  # override heat api paste options
+  override_resources { 'heat_api_paste_ini':
+    data => $override_configuration['heat_api_paste_ini']
+  }
+
+  Override_resources <||> ~> Service <| tag == 'heat-service' |>
+
+
   $db_type     = 'mysql'
   $db_host     = pick($heat_hash['db_host'], hiera('database_vip'))
   $db_user     = pick($heat_hash['db_user'], 'heat')
