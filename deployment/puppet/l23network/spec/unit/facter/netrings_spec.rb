@@ -5,6 +5,10 @@ describe 'netrings', :type => :fact do
 
   before { Facter.clear }
 
+  subject do
+    Facter.fact(:netrings)
+  end
+
   let(:e1000g0_output) do
 %q(Ring parameters for e1000g0:
 Pre-set maximums:
@@ -26,26 +30,28 @@ TX:            256)
 
   context 'with two interfaces' do
     before :each do
+      puppet_debug_override()
       Facter::Util::Resolution.stubs(:exec).with('uname -s').returns('Linux')
       Facter::Util::IP.stubs(:get_interfaces).returns(%w(e1000g0 nge0))
       Facter::Util::Resolution.stubs(:exec).with("ethtool -g e1000g0 2>/dev/null").returns(e1000g0_output)
       Facter::Util::Resolution.stubs(:exec).with("ethtool -g nge0 2>/dev/null").returns(nge0_output)
+      Facter.fact(:kernel).stubs(:value).returns('Linux')
     end
 
-      it 'should return info only for one' do
-        expect(Facter.fact(:netrings).value).to eq({
-      'e1000g0' => {
-        'maximums' => {
-          'RX' => '4096',
-          'TX' => '4096'
-        },
-        'current' => {
-          'RX' => '256',
-          'TX' => '256'
+    it 'should return info only for one' do
+      expect(subject.value).to eq({
+        'e1000g0' => {
+          'maximums' => {
+            'RX' => '4096',
+            'TX' => '4096'
+          },
+          'current' => {
+            'RX' => '256',
+            'TX' => '256'
+          }
         }
-      }
-    })
-      end
+      })
+    end
   end
 
 end
