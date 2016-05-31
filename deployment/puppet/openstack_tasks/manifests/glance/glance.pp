@@ -322,12 +322,13 @@ class openstack_tasks::glance::glance {
         $vcenter_ca_filepath = undef
       }
 
+      $glance_vcenter_datastores = "${glance_vcenter_datacenter}:${glance_vcenter_datastore}"
+
       class { '::glance::backend::vsphere':
           vcenter_host            => $glance_vcenter_host,
           vcenter_user            => $glance_vcenter_user,
           vcenter_password        => $glance_vcenter_password,
-          vcenter_datacenter      => $glance_vcenter_datacenter,
-          vcenter_datastore       => $glance_vcenter_datastore,
+          vcenter_datastores      => $glance_vcenter_datastores,
           vcenter_image_dir       => $glance_vcenter_image_dir,
           vcenter_api_retry_count => $glance_vcenter_api_retry_count,
           vcenter_ca_file         => $vcenter_ca_filepath,
