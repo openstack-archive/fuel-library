@@ -2,7 +2,7 @@
   type: puppet
   version: 2.1.0
   groups: [controller]
-  required_for: [openstack-controller, primary-openstack-controller]
+  required_for: [deploy_end, openstack-controller, primary-openstack-controller]
   requires: [deploy_start, openstack-haproxy]
   condition:
     yaql_exp: &db >
@@ -28,7 +28,7 @@
   type: puppet
   version: 2.1.0
   groups: [primary-controller]
-  required_for: [openstack-controller, primary-openstack-controller]
+  required_for: [deploy_end, openstack-controller, primary-openstack-controller]
   requires: [deploy_start, openstack-haproxy]
   condition:
     yaql_exp: *db
