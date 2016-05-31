@@ -31,7 +31,7 @@ describe manifest do
         expect(subject).to contain_file('/etc/rsyslog.d/haproxy.conf')
       end
 
-      if Noop.hiera('colocate_haproxy', true)
+      if Noop.hiera('colocate_haproxy', false)
         it "should contain management vip colocation with haproxy" do
           expect(subject).to contain_pcmk_colocation('vip_management-with-haproxy').with(
             'first'  => 'clone_p_haproxy',

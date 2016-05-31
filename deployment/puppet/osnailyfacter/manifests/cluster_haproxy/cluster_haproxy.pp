@@ -10,7 +10,7 @@ class osnailyfacter::cluster_haproxy::cluster_haproxy {
   $haproxy_hash       = hiera_hash('haproxy', {})
   $external_lb        = hiera('external_lb', false)
   #FIXME(mattymo): Move colocations to a separate task
-  $colocate_haproxy   = hiera('colocate_haproxy', true)
+  $colocate_haproxy   = hiera('colocate_haproxy', false)
 
   if !$external_lb {
     #FIXME(mattymo): Replace with only VIPs for roles assigned to this node
