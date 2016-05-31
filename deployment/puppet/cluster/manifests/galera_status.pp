@@ -64,7 +64,7 @@ class cluster::galera_status (
     default  => 'nobody',
   }
 
-  include ::xinetd
+  contain ::xinetd
   xinetd::service { 'galeracheck':
     bind       => $address,
     port       => $port,
