@@ -47,10 +47,11 @@ describe manifest do
 
     it 'class nova::keystone::auth should  contain correct *_url' do
       should contain_class('nova::keystone::auth').with(
-        'public_url'       => "#{public_base_url}/v2.1",
-        'internal_url'     => "#{internal_base_url}/v2.1",
-        'admin_url'        => "#{admin_base_url}/v2.1",
-        'tenant'           => tenant,
+        'public_url'            => "#{public_base_url}/v2.1",
+        'internal_url'          => "#{internal_base_url}/v2.1",
+        'admin_url'             => "#{admin_base_url}/v2.1",
+        'tenant'                => tenant,
+        'configure_endpoint_v3' => false,
       )
     end
 
