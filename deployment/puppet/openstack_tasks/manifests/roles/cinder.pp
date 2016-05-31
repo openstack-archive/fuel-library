@@ -28,17 +28,25 @@ class openstack_tasks::roles::cinder {
   $keystone_user              = pick($cinder_hash['user'], 'cinder')
   $keystone_tenant            = pick($cinder_hash['tenant'], 'services')
 
-  $db_type      = 'mysql'
+  $db_type      = hiera('cinder_db_type', 'mysql+pymysql')
   $db_host      = pick($cinder_hash['db_host'], hiera('database_vip'))
   $db_user      = pick($cinder_hash['db_user'], 'cinder')
   $db_password  = $cinder_hash[db_password]
   $db_name      = pick($cinder_hash['db_name'], 'cinder')
-  # LP#1526938 - python-mysqldb supports this, python-pymysql does not
-  if $::os_package_type == 'debian' {
-    $extra_params = { 'charset' => 'utf8', 'read_timeout' => 60 }
-  } else {
-    $extra_params = { 'charset' => 'utf8' }
+
+  # LP#1526938 - python-mysqldb supports read_timeout, python-pymysql does not
+  case $db_type {
+    /^mysql\+pymysql$/: {
+      $extra_params = { 'charset' => 'utf8' }
+    }
+    /^mysql$/: {
+      $extra_params = { 'charset' => 'utf8', 'read_timeout' => 60 }
+    }
+    default: {
+      $extra_params = { }
+    }
   }
+
   $db_connection = os_database_connection({
     'dialect'  => $db_type,
     'host'     => $db_host,

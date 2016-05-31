@@ -23,6 +23,7 @@ describe manifest do
   ceilometer_hash = Noop.hiera_structure 'ceilometer'
   workers_max = Noop.hiera 'workers_max'
   rabbit_ha_queues = Noop.hiera('rabbit_ha_queues')
+  cinder_db_type = Noop.hiera 'cinder_db_type', 'mysql+pymysql'
   cinder_user = Noop.hiera_structure('cinder/user', "cinder")
   cinder_user_password = Noop.hiera_structure('cinder/user_password')
   cinder_tenant = Noop.hiera_structure('cinder/tenant', "services")
@@ -67,13 +68,15 @@ describe manifest do
   end
 
   it 'should configure the database connection string' do
-    if facts[:os_package_type] == 'debian'
+    if cinder_db_type =~ /^mysql\+pymysql$/
+      extra_params = '?charset=utf8'
+    elsif cinder_db_type =~ /^mysql$/
       extra_params = '?charset=utf8&read_timeout=60'
     else
-      extra_params = '?charset=utf8'
+      extra_params = ''
     end
     should contain_class('cinder').with(
-      :database_connection => "mysql://#{cinder_db_user}:#{cinder_db_password}@#{database_vip}/#{cinder_db_name}#{extra_params}"
+      :database_connection => "#{cinder_db_type}://#{cinder_db_user}:#{cinder_db_password}@#{database_vip}/#{cinder_db_name}#{extra_params}"
     )
   end
 
