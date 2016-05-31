@@ -2,8 +2,8 @@
   type: puppet
   version: 2.1.0
   groups: [controller]
-  required_for: [openstack-controller, primary-openstack-controller]
   requires: [deploy_start, openstack-haproxy]
+  required_for: [deploy_end, openstack-controller]
   condition:
     yaql_exp: &db >
       changedAny($.network_scheme, $.network_metadata, $.get('use_syslog'),
@@ -28,8 +28,8 @@
   type: puppet
   version: 2.1.0
   groups: [primary-controller]
-  required_for: [openstack-controller, primary-openstack-controller]
   requires: [deploy_start, openstack-haproxy]
+  required_for: [deploy_end, primary-openstack-controller]
   condition:
     yaql_exp: *db
   parameters:
