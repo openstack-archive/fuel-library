@@ -28,6 +28,7 @@
   type: group
   role: [primary-controller]
   requires: [deploy_start]
+  fault_tolerance: 1
   required_for: [deploy_end]
   parameters:
     strategy:
@@ -38,6 +39,7 @@
   role: [controller]
   requires: [primary-controller]
   required_for: [deploy_end]
+  fault_tolerance: 1
   parameters:
     strategy:
       type: parallel
@@ -48,6 +50,7 @@
   role: [cinder]
   requires: [controller]
   required_for: [deploy_end]
+  fault_tolerance: "2%"
   parameters:
     strategy:
       type: parallel
@@ -57,6 +60,7 @@
   role: [cinder-block-device]
   requires: [compute]
   required_for: [deploy_end]
+  fault_tolerance: "2%"
   parameters:
     strategy:
       type: parallel
@@ -75,6 +79,7 @@
   role: [compute]
   requires: [controller]
   required_for: [deploy_end]
+  fault_tolerance: "2%"
   parameters:
     strategy:
       type: parallel
@@ -94,6 +99,7 @@
   role: [mongo]
   requires: [primary-mongo]
   required_for: [deploy_end, primary-controller, controller]
+  fault_tolerance: 1
   parameters:
     strategy:
       type: parallel
@@ -103,6 +109,7 @@
   role: [primary-mongo]
   requires: [deploy_start]
   required_for: [deploy_end, primary-controller, controller]
+  fault_tolerance: 1
   parameters:
     strategy:
       type: one_by_one
@@ -112,6 +119,7 @@
   role: [ceph-osd]
   requires: [controller]
   required_for: [deploy_end]
+  fault_tolerance: 1
   parameters:
     strategy:
       type: parallel
