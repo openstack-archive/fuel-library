@@ -20,11 +20,11 @@ require 'spec_helper'
 
     before :each do
       if params[:bind_to_one]
-        @http_check = 'httpchk'
-        @balancermember_options = "check port 49001 #{bm_opt_tail}"
-      else
         @http_check = 'httpchk HEAD /healthcheck HTTP/1.0'
         @balancermember_options = "check #{bm_opt_tail}"
+      else
+        @http_check = 'httpchk'
+        @balancermember_options = "check port 49001 #{bm_opt_tail}"
       end
     end
 
@@ -38,7 +38,7 @@ require 'spec_helper'
             :server_names         => ['node-1', 'node-2'],
             :public_ssl           => true,
             :public_ssl_path      => '/var/lib/fuel/haproxy/public_swift.pem',
-            :bind_to_one          => true,
+            :bind_to_one          => false,
         }
       end
 
@@ -72,6 +72,7 @@ require 'spec_helper'
             :ipaddresses          => ['127.0.0.2', '127.0.0.3'],
             :public_virtual_ip    => '192.168.0.1',
             :server_names         => ['node-1', 'node-2'],
+            :bind_to_one          => true,
         }
       end
 

@@ -22,6 +22,7 @@ describe manifest do
     rabbit_user        = Noop.hiera_structure('rabbit/user', 'nova')
     rabbit_password    = Noop.hiera_structure('rabbit/password')
     network_scheme     = Noop.hiera 'network_scheme'
+    internal_virtual_ip = Noop.hiera_structure('network_metadata/vips/management/ipaddr')
 
     let (:storage_nets){
         Noop.puppet_function 'get_routable_networks_for_network_role', network_scheme, 'swift/replication', ' '
@@ -32,9 +33,8 @@ describe manifest do
     }
 
     let (:bind_to_one) {
-      api_ip = Noop.puppet_function 'get_network_role_property', 'swift/api', 'ipaddr'
-      storage_ip = Noop.puppet_function 'get_network_role_property', 'swift/replication', 'ipaddr'
-      api_ip == storage_ip
+      api_net = Noop.puppet_function 'get_network_role_property', 'swift/api', 'network'
+      Noop.puppet_function 'has_ip_in_network', internal_virtual_ip, api_net
     }
 
     let(:ssl_hash) { Noop.hiera_hash 'use_ssl' }
@@ -50,6 +50,11 @@ describe manifest do
     let(:auth_uri) { "#{internal_auth_protocol}://#{internal_auth_address}:5000/" }
 
     let(:identity_uri) { "#{admin_auth_protocol}://#{admin_auth_address}:35357/" }
+
+    let(:proxy_port) { Noop.hiera 'proxy_port', '8080' }
+    let(:swift_api_ipaddr) { Noop.puppet_function 'get_network_role_property', 'swift/api', 'ipaddr' }
+    let(:swift_internal_protocol) { Noop.puppet_function 'get_ssl_property',ssl_hash,{},'swift','internal','protocol','http' }
+    let(:swift_interal_address) { Noop.puppet_function 'get_ssl_property',ssl_hash,{},'swift','internal','hostname',[swift_api_ipaddr, management_vip] }
 
     # Swift
     if !(storage_hash['images_ceph'] and storage_hash['objects_ceph']) and !storage_hash['images_vcenter']
@@ -103,64 +108,6 @@ describe manifest do
         )
       end
 
-      if Noop.hiera('use_ssl', false)
-        context 'with enabled internal TLS for keystone' do
-          keystone_endpoint = Noop.hiera_structure 'use_ssl/keystone_internal_hostname'
-          it 'should declare swift::dispersion' do
-            if bind_to_one
-              should contain_class('swift::dispersion').with(
-                'auth_url' => "https://#{keystone_endpoint}:5000/v2.0/"
-              ).that_requires('Class[openstack::swift::status]')
-            else
-              should contain_class('swift::dispersion').with(
-                'auth_url' => "https://#{keystone_endpoint}:5000/v2.0/"
-              ).that_requires('Class[openstack::swift::proxy]')
-            end
-          end
-        end
-
-        context 'with enabled internal TLS for swift' do
-          swift_endpoint = Noop.hiera_structure 'use_ssl/swift_internal_hostname'
-            it {
-              if bind_to_one
-                should contain_class('openstack::swift::status').with(
-                  'endpoint'  => "https://#{swift_endpoint}:8080",
-                  'only_from' => "127.0.0.1 240.0.0.2 #{storage_nets} #{mgmt_nets}",
-                ).that_comes_before('Class[swift::dispersion]')
-              else
-                should_not contain_class('openstack::swift::status')
-              end
-            }
-        end
-      else
-        keystone_endpoint = Noop.hiera 'service_endpoint'
-        context 'with disabled internal TLS for keystone' do
-          it 'should declare swift::dispersion' do
-            if bind_to_one
-            should contain_class('swift::dispersion').with(
-              'auth_url' => "http://#{keystone_endpoint}:5000/v2.0/"
-            ).that_requires('Class[openstack::swift::status]')
-            else
-            should contain_class('swift::dispersion').with(
-              'auth_url' => "http://#{keystone_endpoint}:5000/v2.0/"
-            ).that_requires('Class[openstack::swift::proxy]')
-            end
-          end
-        end
-
-        context 'with disabled internal TLS for swift' do
-          it {
-            if bind_to_one
-            should contain_class('openstack::swift::status').with(
-              'only_from' => "127.0.0.1 240.0.0.2 #{storage_nets} #{mgmt_nets}",
-            ).that_comes_before('Class[swift::dispersion]')
-            else
-              should_not contain_class('openstack::swift::status')
-            end
-          }
-        end
-      end
-
       it 'should configure swift on separate partition' do
         should contain_file(swift_partition).with(
           'ensure' => 'directory',
@@ -202,6 +149,19 @@ describe manifest do
           :rabbit_password => rabbit_password,
           :rabbit_hosts    => rabbit_hosts.split(', '),
         )
+      end
+
+      it 'should configure health check service correctly' do
+        if !bind_to_one
+          should_not contain_class('openstack::swift:status').with(
+            :endpoint    => "#{swift_internal_protocol}://#{swift_internal_address}:#{proxy_port}",
+            :scan_target => "#{internal_auth_address}:5000",
+            :only_from   => "127.0.0.1 240.0.0.2 #{storage_nets} #{mgmt_nets}",
+            :con_timeout => 5
+          ).that_comes_before('Class[swift::dispersion]')
+        else
+          should_not contain_class('openstack::swift:status')
+        end
       end
 
       it 'should contain valid auth uris' do

@@ -37,10 +37,15 @@ if ($use_swift and !$external_lb) {
 
   prepare_network_config(hiera_hash('network_scheme', {}))
 
-  # Check proxy and storage daemons binds on the same ip address
-  $swift_api_ipaddr     = get_network_role_property('swift/api', 'ipaddr')
-  $swift_storage_ipaddr = get_network_role_property('swift/replication', 'ipaddr')
-  $bind_to_one          = ($swift_api_ipaddr == $swift_storage_ipaddr)
+  # Check swift proxy and internal VIP are from the same IP network. If no then it's possible
+  # to get network failure, so proxy couldn't access Keystone via VIP. In such cases swift
+  # health check returns OK, but all requests forwarded from HAproxy fail, see LP#1459772
+  # In order to detect such bad swift backends we enable a service which checks Keystone
+  # availability from swift node. HAProxy monitors that service to get proper backend status.
+  # NOTE: this is the same logic in the swift proxy task so if this is updated
+  # then it must be updated overthere as well. See LP#1548275
+  $swift_api_network     = get_network_role_property('swift/api', 'network')
+  $bind_to_one           = has_ip_in_network($internal_virtual_ip, $swift_api_network)
 
   # configure swift ha proxy
   class { '::openstack::ha::swift':
