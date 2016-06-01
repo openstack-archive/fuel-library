@@ -2,7 +2,7 @@ Source: fuel-library10.0
 Section: admin
 Priority: optional
 Maintainer: Mirantis Product <product@mirantis.com>
-Build-Depends: debhelper (>= 7), python-all, librarian-puppet-simple
+Build-Depends: debhelper (>= 7), python-all, librarian-puppet-simple, ruby-thor
 Standards-Version: 3.9.2
 
 Package: fuel-library10.0
