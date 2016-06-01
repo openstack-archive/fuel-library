@@ -2,7 +2,13 @@ Source: fuel-library10.0
 Section: admin
 Priority: optional
 Maintainer: Mirantis Product <product@mirantis.com>
-Build-Depends: debhelper (>= 7), python-all, librarian-puppet-simple
+Build-Depends: debhelper (>= 9),
+               python-all,
+               librarian-puppet-simple,
+# TODO(sgolovatiuk): ruby-thor should be removed
+# when https://bugs.launchpad.net/ubuntu/+source/librarian-puppet-simple/+bug/1588246
+# is merged (librarian-puppet-simple 0.0.5-2)
+               ruby-thor
 Standards-Version: 3.9.2
 
 Package: fuel-library10.0
