@@ -25,7 +25,7 @@ class l23network::params {
       $network_manager_name       = 'network-manager'
       $extra_tools                = 'iputils-arping'
       $ovs_core_mask              = 0x1
-      $ovs_socket_mem             = 256
+      $ovs_socket_mem             = [256]
       $ovs_memory_channels        = 2
     }
     /(?i)redhat|centos|oraclelinux/: {
@@ -52,7 +52,7 @@ class l23network::params {
       $network_manager_name       = 'NetworkManager'
       $extra_tools                = 'iputils'
       $ovs_core_mask              = 0x1
-      $ovs_socket_mem             = 256
+      $ovs_socket_mem             = [256]
       $ovs_memory_channels        = 2
     }
     /(?i)darwin/: {

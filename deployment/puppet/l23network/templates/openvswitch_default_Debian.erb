@@ -1,6 +1,6 @@
 /etc/init.d/dpdk start
 
-export DPDK_OPTS="--dpdk -c <%= @ovs_core_mask %> -n <%= @ovs_memory_channels %> --socket-mem <%= @ovs_socket_mem %>"
+export DPDK_OPTS="--dpdk -c <%= @ovs_core_mask %> -n <%= @ovs_memory_channels %> --socket-mem <%= @ovs_socket_mem.join(',') %>"
 
 # LP 1546565
 umask 0000
