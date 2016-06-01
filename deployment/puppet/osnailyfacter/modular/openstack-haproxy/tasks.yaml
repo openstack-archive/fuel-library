@@ -21,9 +21,9 @@
     yaql_exp: >
       changedAny($.horizon, $.public_ssl, $.get('use_ssl'),
       $.get('external_lb'),
-      (len($.network_metadata.nodes.values().where(
+      $.network_metadata.nodes.values().where(
         ('controller' in $.node_roles) or
-        ('primary-controller' in $.node_roles)))),
+        ('primary-controller' in $.node_roles)),
       $.network_metadata.vips)
   cross-depends:
     - name: /(primary-)?cluster-haproxy/
@@ -47,9 +47,9 @@
     yaql_exp: >
       changedAny($.keystone, $.public_ssl, $.get('use_ssl'),
       $.get('external_lb'),
-      (len($.network_metadata.nodes.values().where(
+      $.network_metadata.nodes.values().where(
         ('controller' in $.node_roles) or
-        ('primary-controller' in $.node_roles)))),
+        ('primary-controller' in $.node_roles)),
       $.get('keystone_names'), $.get('keystone_ipaddresses'),
       $.get('public_service_endpoint'), $.network_metadata.vips)
   cross-depends:
@@ -73,9 +73,9 @@
   condition:
     yaql_exp: >
       changedAny($.nova, $.public_ssl, $.get('use_ssl'), $.get('external_lb'),
-      (len($.network_metadata.nodes.values().where(
+      $.network_metadata.nodes.values().where(
         ('controller' in $.node_roles) or
-        ('primary-controller' in $.node_roles)))),
+        ('primary-controller' in $.node_roles)),
       $.network_metadata.vips)
   cross-depends:
     - name: /(primary-)?cluster-haproxy/
@@ -99,9 +99,9 @@
     yaql_exp: >
       $.heat.enabled and changedAny($.heat, $.public_ssl, $.get('use_ssl'),
       $.get('external_lb'), $.get('heat_roles'),
-      (len($.network_metadata.nodes.values().where(
+      $.network_metadata.nodes.values().where(
         ('controller' in $.node_roles) or
-        ('primary-controller' in $.node_roles)))),
+        ('primary-controller' in $.node_roles)),
       $.network_metadata.vips)
   cross-depends:
     - name: /(primary-)?cluster-haproxy/
@@ -124,9 +124,9 @@
   condition:
     yaql_exp: >
       changedAny($.glance, $.public_ssl, $.get('use_ssl'),
-      (len($.network_metadata.nodes.values().where(
+      $.network_metadata.nodes.values().where(
         ('controller' in $.node_roles) or
-        ('primary-controller' in $.node_roles)))),
+        ('primary-controller' in $.node_roles)),
       $.network_metadata.vips)
   cross-depends:
     - name: /(primary-)?cluster-haproxy/
@@ -150,9 +150,9 @@
     yaql_exp: >
       changedAny($.cinder, $.public_ssl, $.get('use_ssl'),
       $.get('external_lb'),
-      len($.network_metadata.nodes.values().where(
+      $.network_metadata.nodes.values().where(
         ('controller' in $.node_roles) or
-        ('primary-controller' in $.node_roles))),
+        ('primary-controller' in $.node_roles)),
       $.network_metadata.vips)
   cross-depends:
     - name: /(primary-)?cluster-haproxy/
@@ -176,9 +176,9 @@
     yaql_exp: >
       changedAny($.quantum, $.public_ssl, $.get('use_ssl'),
       $.get('external_lb'),
-      (len($.network_metadata.nodes.values().where(
+      $.network_metadata.nodes.values().where(
         ('controller' in $.node_roles) or
-        ('primary-controller' in $.node_roles)))),
+        ('primary-controller' in $.node_roles)),
       $.get('neutron_names'), $.get('neutron_ipaddresses'),
       $.network_metadata.vips)
   cross-depends:
@@ -226,9 +226,9 @@
   condition:
     yaql_exp: >
       changedAny($.storage, $.get('swift_proxy_roles'),
-      len($.network_metadata.nodes.values().where(
+      $.network_metadata.nodes.values().where(
         ('controller' in $.node_roles) or
-        ('primary-controller' in $.node_roles))),
+        ('primary-controller' in $.node_roles)),
       $.public_ssl, $.get('use_ssl'), $.get('external_lb'),
       $.get('swift_server_names'), $.get('swift_ipaddresses'),
       $.network_metadata.vips, $.ironic, $.network_scheme,
@@ -255,9 +255,9 @@
     yaql_exp: >
       changedAny($.storage, $.public_ssl, $.get('use_ssl'),
       $.get('external_lb'),
-      len($.network_metadata.nodes.values().where(
+      $.network_metadata.nodes.values().where(
         ('controller' in $.node_roles) or
-        ('primary-controller' in $.node_roles))),
+        ('primary-controller' in $.node_roles)),
       $.network_metadata.vips, $.ironic)
   cross-depends:
     - name: /(primary-)?cluster-haproxy/
@@ -281,9 +281,9 @@
     yaql_exp: >
       $.ceilometer.enabled and changedAny($.ceilometer, $.public_ssl,
       $.get('use_ssl'), $.get('external_lb'),
-      len($.network_metadata.nodes.values().where(
+      $.network_metadata.nodes.values().where(
         ('controller' in $.node_roles) or
-        ('primary-controller' in $.node_roles))),
+        ('primary-controller' in $.node_roles)),
       $.network_metadata.vips)
   cross-depends:
     - name: /(primary-)?cluster-haproxy/
@@ -307,9 +307,9 @@
     yaql_exp: >
       changedAny($.ceilometer, $.public_ssl, $.get('use_ssl'),
       $.get('external_lb'),
-      len($.network_metadata.nodes.values().where(
+      $.network_metadata.nodes.values().where(
         ('controller' in $.node_roles) or
-        ('primary-controller' in $.node_roles))),
+        ('primary-controller' in $.node_roles)),
       $.network_metadata.vips)
   cross-depends:
     - name: /(primary-)?cluster-haproxy/
@@ -333,9 +333,9 @@
     yaql_exp: >
       $.sahara.enabled and changedAny($.sahara, $.public_ssl,
       $.get('use_ssl'), $.get('external_lb'), $.get('sahara_roles'),
-      len($.network_metadata.nodes.values().where(
+      $.network_metadata.nodes.values().where(
         ('controller' in $.node_roles) or
-        ('primary-controller' in $.node_roles))),
+        ('primary-controller' in $.node_roles)),
       $.network_metadata.vips)
   cross-depends:
     - name: /(primary-)?cluster-haproxy/
