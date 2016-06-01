@@ -35,7 +35,7 @@
 #
 
 define l23network::l2::bond (
-  $ensure                  = present,
+  $ensure                  = 'present',
   $bond                    = $name,
   $use_ovs                 = $::l23network::use_ovs,
   $interfaces              = undef,
@@ -49,7 +49,6 @@ define l23network::l2::bond (
   $monolith_bond_providers = undef,
   $provider                = undef,
 ) {
-  include ::stdlib
   include ::l23network::params
 
   $actual_monolith_bond_providers = $monolith_bond_providers ? {
@@ -206,7 +205,7 @@ define l23network::l2::bond (
     }
   }
 
-  if (! defined(L23network::L2::Bridge[$bridge]) and $provider == 'ovs') {
+  if $bridge and (! defined(L23network::L2::Bridge[$bridge]) and $provider == 'ovs') {
     l23network::l2::bridge { $bridge:
       ensure   => 'present',
       provider => $provider,
@@ -267,14 +266,14 @@ define l23network::l2::bond (
   if $::l23_os =~ /(?i:redhat|centos|oraclelinux)/ {
     if $delay_while_up {
       file {"${::l23network::params::interfaces_dir}/interface-up-script-${bond}":
-        ensure  => present,
+        ensure  => 'present',
         owner   => 'root',
         mode    => '0755',
         content => template('l23network/centos_post_up.erb'),
       } -> L23_stored_config <| title == $bond |>
     } else {
       file {"${::l23network::params::interfaces_dir}/interface-up-script-${bond}":
-        ensure  => absent,
+        ensure  => 'absent',
       } -> L23_stored_config <| title == $bond |>
     }
   }
