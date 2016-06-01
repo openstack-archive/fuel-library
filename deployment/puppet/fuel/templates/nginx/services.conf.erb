@@ -13,7 +13,7 @@ server {
     ssl_certificate /var/lib/fuel/keys/master/nginx/nginx.crt;
     ssl_certificate_key /var/lib/fuel/keys/master/nginx/nginx.key;
     ssl_protocols       TLSv1 TLSv1.1 TLSv1.2;
-    ssl_ciphers         HIGH:!aNULL:!MD5;
+    ssl_ciphers         HIGH:!aNULL:!MD5:!kEDH;
 <%- end -%>
 
     server_name localhost;
