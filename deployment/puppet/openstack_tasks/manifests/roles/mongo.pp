@@ -46,6 +46,20 @@ class openstack_tasks::roles::mongo {
     before  => Service['mongodb'],
   }
 
+  $user   = $::mongodb::server::user
+  $group  = $::mongodb::server::group
+  $dbpath = pick($mongo_hash['dbpath'], '/var/lib/mongo/mongodb')
+
+  #TODO(mmalchuk) should be fixes in the File[$dbpath] resource in upstream
+  #               exec used only to set permissions more quickly
+  exec { 'dbpath set permissions':
+    command     => "chown -R ${user}:${group} ${dbpath}",
+    path        => ['/usr/bin', '/bin'],
+    refreshonly => true,
+    subscribe   => File[$dbpath],
+    before      => Service['mongodb']
+  }
+
   class { '::mongodb::globals':
     version => '2.6.10',
   } ->
@@ -68,7 +82,7 @@ class openstack_tasks::roles::mongo {
     fork            => pick($mongo_hash['fork'], false),
     profile         => pick($mongo_hash['profile'], '1'),
     oplog_size      => $oplog_size,
-    dbpath          => pick($mongo_hash['dbpath'], '/var/lib/mongo/mongodb'),
+    dbpath          => $dbpath,
     create_admin    => true,
     admin_password  => $ceilometer_hash['db_password'],
     store_creds     => true,
