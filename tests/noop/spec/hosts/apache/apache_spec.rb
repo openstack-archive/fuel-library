@@ -29,10 +29,7 @@ describe manifest do
     end
 
     it {
-      should contain_service('httpd').with(
-           'hasrestart' => nil,
-           'restart'    => nil,
-      )
+      should contain_service('httpd')
     }
 
     it 'should contain apache2 logrotate overrides' do
