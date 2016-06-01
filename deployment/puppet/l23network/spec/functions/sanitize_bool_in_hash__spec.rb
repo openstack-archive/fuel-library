@@ -4,7 +4,7 @@ describe 'sanitize_bool_in_hash' do
   let(:scope) { PuppetlabsSpec::PuppetInternals.scope }
 
   it 'should exist' do
-    Puppet::Parser::Functions.function('sanitize_bool_in_hash').should == 'function_sanitize_bool_in_hash'
+    expect(Puppet::Parser::Functions.function('sanitize_bool_in_hash')).to eq 'function_sanitize_bool_in_hash'
   end
 
   it 'should convert string-boolean values to boolean' do
@@ -45,54 +45,54 @@ describe 'sanitize_bool_in_hash' do
 
   it 'should convert reccursive hashes' do
     expect(scope.function_sanitize_bool_in_hash([{
-      :bool_hash => {
-        :str => 'aaa',
-        :int => 123,
-        :array => [111,222,333],
-        :hash => {
-          :str => 'aaa',
-          :int => 123,
-          :array => [111,222,333],
-          :a_sbool => ['true', 'nil', 'false'],
-          :a_bool => [true, nil, false],
-          :hash => {
-            :str => 'aaa',
-            :int => 123,
-            :array => [111,222,333],
-            :a_sbool => ['true', 'nil', 'false'],
-            :a_bool => [true, nil, false],
-          },
-        },
-        :a_sbool => ['true', 'nil', 'false'],
-        :a_bool => [true, nil, false],
-      },
+      #:bool_hash => {
+      #  :str => 'aaa',
+      #  :int => 123,
+      #  :array => [111,222,333],
+      #  :hash => {
+      #    :str => 'aaa',
+      #    :int => 123,
+      #    :array => [111,222,333],
+      #    :a_sbool => ['true', 'nil', 'false'],
+      #    :a_bool => [true, nil, false],
+      #    :hash => {
+      #      :str => 'aaa',
+      #      :int => 123,
+      #      :array => [111,222,333],
+      #      :a_sbool => ['true', 'nil', 'false'],
+      #      :a_bool => [true, nil, false],
+      #    },
+      #  },
+      #  :a_sbool => ['true', 'nil', 'false'],
+      #  :a_bool => [true, nil, false],
+      #},
       :bool_hash => {
         :t => true,
         :f => false,
         :n => nil
       },
     }])).to eq({
-      :bool_hash => {
-        :str => 'aaa',
-        :int => 123,
-        :array => [111,222,333],
-        :hash => {
-          :str => 'aaa',
-          :int => 123,
-          :array => [111,222,333],
-          :a_sbool => [true, nil, false],
-          :a_bool => [true, nil, false],
-          :hash => {
-            :str => 'aaa',
-            :int => 123,
-            :array => [111,222,333],
-            :a_sbool => [true, nil, false],
-            :a_bool => [true, nil, false],
-          },
-        },
-        :a_sbool => [true, nil, false],
-        :a_bool => [true, nil, false],
-      },
+      #:bool_hash => {
+      #  :str => 'aaa',
+      #  :int => 123,
+      #  :array => [111,222,333],
+      #  :hash => {
+      #    :str => 'aaa',
+      #    :int => 123,
+      #    :array => [111,222,333],
+      #    :a_sbool => [true, nil, false],
+      #    :a_bool => [true, nil, false],
+      #    :hash => {
+      #      :str => 'aaa',
+      #      :int => 123,
+      #      :array => [111,222,333],
+      #      :a_sbool => [true, nil, false],
+      #      :a_bool => [true, nil, false],
+      #    },
+      #  },
+      #  :a_sbool => [true, nil, false],
+      #  :a_bool => [true, nil, false],
+      #},
       :bool_hash => {
         :t => true,
         :f => false,
@@ -144,9 +144,9 @@ describe 'sanitize_bool_in_hash' do
   end
 
   it 'should throw an error' do
-    lambda {
+    expect do
      scope.function_sanitize_bool_in_hash(['xxx'])
-    }.should(raise_error(Puppet::ParseError))
+    end.to raise_error(Puppet::ParseError)
   end
 
 end
