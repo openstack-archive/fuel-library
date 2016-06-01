@@ -15,7 +15,14 @@ class osnailyfacter::fuel_pkgs::setup_repositories {
   }
 
   if $::osfamily == 'Debian' {
-    include ::apt
+    $update_hash = {
+      timeout => '600',
+      tries   => '3',
+    }
+
+    class { '::apt' :
+      update => $update_hash,
+    }
 
     $repositories = generate_apt_sources($repos)
     $pins         = generate_apt_pins($repos)
