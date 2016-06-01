@@ -29,6 +29,14 @@ let(:network_scheme) do
         bus_info: "0000:02:00.1"
 eof
 end
+let(:drivers) do
+  [
+    ["0000:01:00.0", "igb_uio"],
+    ["0000:01:00.1", "igb_uio"],
+    ["0000:02:00.0", "tg3"],
+    ["0000:02:00.1", "tg3"]
+  ]
+end
 
   let(:scope) { PuppetlabsSpec::PuppetInternals.scope }
 
@@ -51,7 +59,7 @@ end
     end
 
     it 'should return dpdk driver list' do
-      should run.with_params().and_return([["0000:01:00.0", "igb_uio"], ["0000:01:00.1", "igb_uio"]])
+      should run.with_params().and_return(drivers)
     end
   end
 end

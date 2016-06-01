@@ -14,7 +14,10 @@ Puppet::Parser::Functions::newfunction(:get_dpdk_interfaces, :type => :rvalue, :
     vendor_specific = if_data[:vendor_specific] || {}
     bus_info = vendor_specific[:bus_info]
     dpdk_driver = vendor_specific[:dpdk_driver]
-    dpdk_interfaces[bus_info] = dpdk_driver if bus_info && dpdk_driver
+    driver = vendor_specific[:driver]
+    if bus_info && driver
+      dpdk_interfaces[bus_info] = dpdk_driver || driver
+    end
   end
   dpdk_interfaces.sort
 end
