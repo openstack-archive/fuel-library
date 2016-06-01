@@ -30,6 +30,7 @@ if ironic_enabled
       management_vip = Noop.hiera 'management_vip'
       public_vip = Noop.hiera 'public_vip'
       let(:ssl_hash) { Noop.hiera_hash 'use_ssl', {} }
+      let(:public_ssl_hash) { Noop.hiera_hash 'public_ssl', {} }
       let(:internal_auth_protocol) { Noop.puppet_function 'get_ssl_property',ssl_hash,{},'keystone','internal','protocol','http' }
       let(:internal_auth_address) { Noop.puppet_function 'get_ssl_property',ssl_hash,{},'keystone','internal','hostname',[service_endpoint, management_vip] }
       let(:internal_auth_url) do
@@ -40,8 +41,8 @@ if ironic_enabled
       let(:admin_auth_uri) do
           "#{admin_auth_protocol}://#{admin_auth_address}:35357"
       end
-      let(:public_protocol) { Noop.puppet_function 'get_ssl_property',ssl_hash,{},'ironic','admin','protocol','http' }
-      let(:public_address) { Noop.puppet_function 'get_ssl_property',ssl_hash,{},'ironic','admin','hostname', public_vip }
+      let(:public_protocol) { Noop.puppet_function 'get_ssl_property',ssl_hash,public_ssl_hash,'ironic','admin','protocol','http' }
+      let(:public_address) { Noop.puppet_function 'get_ssl_property',ssl_hash,public_ssl_hash,'ironic','admin','hostname', public_vip }
 
       it 'should configure default_log_levels' do
         should contain_ironic_config('DEFAULT/default_log_levels').with_value(default_log_levels.sort.join(','))
