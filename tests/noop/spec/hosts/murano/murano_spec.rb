@@ -126,8 +126,12 @@ describe manifest do
 
     let(:default_dns) { Noop.hiera_structure('external_dns/dns_list') }
 
-    murano_glance_artifacts_plugin = Noop.hiera_hash('murano_glance_artifacts_plugin', {})
-
+    murano_plugins = Noop.hiera_structure('murano/plugins', {})
+    if murano_plugins.has_key? 'glance_artifacts_plugin'
+      murano_glance_artifacts_plugin = murano_plugins['glance_artifacts_plugin']
+    else
+      murano_glance_artifacts_plugin = false
+    end
     let(:packages_service) do
       if murano_glance_artifacts_plugin and murano_glance_artifacts_plugin['enabled'] and facts[:os_package_type] == 'debian'
         'glance'
