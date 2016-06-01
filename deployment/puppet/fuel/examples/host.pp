@@ -28,7 +28,7 @@ ensure_packages(["sudo", "ami-creator", "python-daemon", "httpd",
                  "iptables", "crontabs", "cronie-anacron",
                  "rsyslog", "rsync", "screen", "acpid",
                  "fuel-migrate", "dhcp", "yum-plugin-priorities",
-                 "fuel-notify"])
+                 "fuel-notify", "rubygem-inifile"])
 
 Class['openstack::logrotate'] ->
 Class['fuel::bootstrap_cli']
