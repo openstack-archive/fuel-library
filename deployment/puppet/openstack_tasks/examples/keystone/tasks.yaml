@@ -106,3 +106,49 @@
     puppet_manifest: /etc/puppet/modules/openstack_tasks/examples/keystone/workloads_collector_add.pp
     puppet_modules: /etc/puppet/modules
     timeout: 1800
+
+- id: generate_changed_admin_user
+  version: 2.1.0
+  type: upload_file
+  role: master
+  condition:
+    yaql_exp: &changed_username >
+      changed($.access.user)
+  requires: [upload_configuration]
+  required_for: [pre_deployment_end]
+  parameters:
+    path: /etc/fuel/cluster/{CLUSTER_ID}/old_admin_user.yaml
+    data:
+      yaql_exp: '{"old_access" => old($).get("access", {})}.toYaml()'
+
+- id: copy_changed_admin_user
+  type: copy_files
+  version: 2.1.0
+  role: ['/.*/']
+  condition:
+    yaql_exp: *changed_username
+  required_for: [pre_deployment_end]
+  requires: [generate_changed_admin_user]
+  cross-depends:
+      - name: generate_changed_admin_user
+        role: master
+  parameters:
+    files:
+      - src: /etc/fuel/cluster/{CLUSTER_ID}/old_admin_user.yaml
+        dst: /etc/hiera/old_admin_user.yaml
+    permissions: '0600'
+    dir_permissions: '0700'
+
+- id: delete_old_admin_user
+  version: 2.1.0
+  type: puppet
+  role: [primary-controller]
+  condition:
+    yaql_exp: *changed_username
+  requires: [post_deployment_start, primary-keystone]
+  required_for: [post_deployment_end]
+  parameters:
+    puppet_manifest: /etc/puppet/modules/openstack_tasks/examples/keystone/purge_old_admin.pp
+    puppet_modules: /etc/puppet/modules
+    timeout: 180
+    cwd: /
