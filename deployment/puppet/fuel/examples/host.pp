@@ -30,6 +30,11 @@ ensure_packages(["sudo", "ami-creator", "python-daemon", "httpd",
                  "fuel-migrate", "dhcp", "yum-plugin-priorities",
                  "fuel-notify"])
 
+package { 'inifile':
+  ensure   => 'installed',
+  provider => 'gem',
+}
+
 Class['openstack::logrotate'] ->
 Class['fuel::bootstrap_cli']
 
