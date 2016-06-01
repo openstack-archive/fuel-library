@@ -30,8 +30,8 @@ describe manifest do
 
     it {
       should contain_service('httpd').with(
-           'hasrestart' => nil,
-           'restart'    => nil,
+           'hasrestart' => undef,
+           'restart'    => undef,
       )
     }
 
