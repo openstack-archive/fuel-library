@@ -205,9 +205,6 @@
       $.get('external_lb'), $.get('database_nodes'), $.get('mysqld_names'),
       $.get('mysqld_ipaddresses'), $.network_metadata.vips,
       $.get('database_vip'), ('primary-controller' in $.roles))
-  cross-depends:
-    - name: /(primary-)?cluster-haproxy/
-      role: self
   parameters:
     puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/openstack-haproxy/openstack-haproxy-mysqld.pp
     puppet_modules: /etc/puppet/modules

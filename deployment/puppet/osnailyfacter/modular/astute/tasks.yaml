@@ -139,6 +139,18 @@
     timeout: 120
     cwd: /
 
+- id: cluster_mm_off
+  type: shell
+  version: 2.1.0
+  role: [primary-controller, controller]
+  condition:
+    yaql_exp: "changedAny($.network_metadata.nodes.keys(), $.get('corosync_roles'))"
+  requires: [post_deployment_start]
+  required_for: [enable_quorum]
+  parameters:
+    cmd: crm node ready
+    timeout: 120
+
 #PRE DEPLOYMENT
 - id: rsync_core_puppet
   type: sync
