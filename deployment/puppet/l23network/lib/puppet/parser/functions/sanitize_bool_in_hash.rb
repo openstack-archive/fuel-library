@@ -1,9 +1,4 @@
-begin
-  require 'puppetx/l23_hash_tools'
-rescue LoadError => e
-  rb_file = File.join(File.dirname(__FILE__),'..','..','..','puppetx','l23_hash_tools.rb')
-  load rb_file if File.exists?(rb_file) or raise e
-end
+require_relative '../../../puppetx/l23_hash_tools'
 
 module Puppet::Parser::Functions
   newfunction(:sanitize_bool_in_hash, :type => :rvalue, :doc => <<-EOS
