@@ -12,7 +12,7 @@
 #   http://openvswitch.org/cgi-bin/ovsman.cgi?page=utilities%2Fovs-vsctl.8
 #
 define l23network::l2::bridge (
-  $ensure          = present,
+  $ensure          = 'present',
   $use_ovs         = $::l23network::use_ovs,
   $mtu             = undef,
   $stp             = undef,
@@ -23,7 +23,6 @@ define l23network::l2::bridge (
   $vendor_specific = {},
   $provider        = undef,
 ) {
-  include ::stdlib
   include ::l23network::params
 
   if ! defined (L2_bridge[$name]) {
@@ -72,14 +71,14 @@ define l23network::l2::bridge (
   if $::l23_os =~ /(?i:redhat|centos|oraclelinux)/ {
     if $delay_while_up {
       file {"${::l23network::params::interfaces_dir}/interface-up-script-${name}":
-        ensure  => present,
+        ensure  => 'present',
         owner   => 'root',
         mode    => '0755',
         content => template('l23network/centos_post_up.erb'),
       } -> L23_stored_config <| title == $name |>
     } else {
       file {"${::l23network::params::interfaces_dir}/interface-up-script-${name}":
-        ensure  => absent,
+        ensure  => 'absent',
       } -> L23_stored_config <| title == $name |>
     }
   }
