@@ -64,10 +64,7 @@ class l23network (
   $disable_hotplug              = true,
   $network_manager              = false,
   $dpdk_options                 = {},
-){
-
-  include ::stdlib
-  include ::l23network::params
+) inherits ::l23network::params {
 
   class { '::l23network::l2':
     ensure_package               => $ensure_package,

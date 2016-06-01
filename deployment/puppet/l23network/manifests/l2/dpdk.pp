@@ -25,7 +25,7 @@
 #
 class l23network::l2::dpdk (
   $use_dpdk                    = false,
-  $install_dpdk                = $use_dpdk,
+  $install_dpdk                = undef,
   $ovs_core_mask               = $::l23network::params::ovs_core_mask,
   $ovs_pmd_core_mask           = undef,
   $ovs_socket_mem              = $::l23network::params::ovs_socket_mem,
@@ -38,9 +38,7 @@ class l23network::l2::dpdk (
   $ovs_default_file            = $::l23network::params::ovs_default_file,
   $install_ovs                 = true,
   $ensure_package              = 'present',
-){
-  include ::stdlib
-  include ::l23network::params
+) inherits ::l23network::params {
 
   if $use_dpdk {
 
@@ -49,14 +47,14 @@ class l23network::l2::dpdk (
       $dpdk_interfaces = get_dpdk_interfaces()
 
       file {$dpdk_dir:
-        ensure => directory,
+        ensure => 'directory',
       } ->
       file {$dpdk_conf_file:
-        ensure => present,
+        ensure => 'present',
         source => 'puppet:///modules/l23network/dpdk.conf',
       } ->
       file {$dpdk_interfaces_file:
-        ensure  => present,
+        ensure  => 'present',
         content => template('l23network/dpdk_interfaces.erb'),
       }
       File[$dpdk_interfaces_file] ~> Service['dpdk']
@@ -91,7 +89,7 @@ class l23network::l2::dpdk (
     # Configure OpenVSwitch to use DPDK
     if $ovs_default_file {
       file {$ovs_default_file:
-        ensure  => present,
+        ensure  => 'present',
         content => template('l23network/openvswitch_default_Debian.erb'),
       } ~> Service['openvswitch-service']
     }
@@ -125,13 +123,13 @@ class l23network::l2::dpdk (
     # Install ifupdown scripts
     if $::l23_os =~ /(?i)ubuntu/ {
       file {'/etc/network/if-pre-up.d/ovsdpdk':
-        ensure => present,
+        ensure => 'present',
         owner  => 'root',
         mode   => '0755',
         source => 'puppet:///modules/l23network/debian_ovsdpdk',
       } ->
       file {'/etc/network/if-post-down.d/ovsdpdk':
-        ensure => present,
+        ensure => 'present',
         owner  => 'root',
         mode   => '0755',
         source => 'puppet:///modules/l23network/debian_ovsdpdk',

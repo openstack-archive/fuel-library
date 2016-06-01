@@ -29,7 +29,7 @@
 #   Must be true or false.
 #
 define l23network::l2::port (
-  $ensure                = present,
+  $ensure                = 'present',
   $use_ovs               = $::l23network::use_ovs,
   $port                  = $name,
   $if_type               = undef,
@@ -52,7 +52,6 @@ define l23network::l2::port (
 # $trunks                = [],
 ) {
 
-  include ::stdlib
   include ::l23network::params
 
   # Detect VLAN mode configuration
@@ -123,14 +122,14 @@ define l23network::l2::port (
     # the device is treated as an Ethernet device
     # https://access.redhat.com/documentation/en-US/Red_Hat_Enterprise_Linux/6/html/Deployment_Guide/s2-networkscripts-interfaces_network-bridge.html
 
-    if $provider =~ /ovs/ {
+    if $provider and $provider =~ /ovs/ {
       $real_if_type = 'ethernet'
     } else {
       $real_if_type = $if_type
     }
 
     # Merge offloading data with rings rx/tx
-    $netrings_maximums = try_get_value($::netrings, "${port_name}/maximums", undef)
+    $netrings_maximums = try_get_value($::netrings, "${port_name}/maximums")
     if $netrings_maximums {
       $ethtool_opts = deep_merge({ 'rings' => $netrings_maximums }, $ethtool)
     } else {

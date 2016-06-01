@@ -40,10 +40,7 @@ class l23network::l2 (
   $ovs_datapath_package_name    = $::l23network::params::ovs_datapath_package_name,
   $ovs_common_package_name      = $::l23network::params::ovs_common_package_name,
   $dpdk_options                 = {},
-){
-
-  include ::stdlib
-  include ::l23network::params
+) inherits ::l23network::params {
 
   if $use_ovs {
     $ovs_mod_ensure = present
