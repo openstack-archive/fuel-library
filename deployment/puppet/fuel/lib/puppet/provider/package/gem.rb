@@ -75,8 +75,6 @@ Puppet::Type.type(:package).provide :gem, :parent => Puppet::Provider::Package d
   def install(useversion = true)
     command = [command(:gemcmd), "install"]
     command << "-v" << resource[:ensure] if (! resource[:ensure].is_a? Symbol) and useversion
-    # Always include dependencies
-    command << "--include-dependencies"
 
     command << "--no-rdoc" << "--no-ri"
 
