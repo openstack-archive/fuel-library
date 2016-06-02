@@ -31,10 +31,9 @@ define ceph::osds::osd () {
     tries     => 3,
     logoutput => true,
     timeout   => 0,
-    onlyif    => "ceph-disk list | fgrep -q -e '${data_device_name} ceph data, prepared'",
   }
 
   Exec <| title == 'ceph-deploy gatherkeys' |> ->
-    Exec["ceph-deploy osd prepare ${deploy_device_name}"] ->
+    Exec["ceph-deploy osd prepare ${deploy_device_name}"] ~>
       Exec["ceph-deploy osd activate ${deploy_device_name}"]
 }
