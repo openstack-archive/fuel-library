@@ -126,6 +126,8 @@
 <% globals.store "ironic_api_nodes", @ironic_api_nodes -%>
 <% globals.store "workers_max", @workers_max -%>
 <% globals.store "kombu_compression", @kombu_compression -%>
+<% globals.store "user_admin_role", @user_admin_role -%>
+<% globals.store "user_admin_domain", @user_admin_domain -%>
 <% # If we have no VIPs with 'haproxy' namespace, then we're using external LB
 if @vips.select{|key, hash| hash['namespace'] == 'haproxy' }.length == 0
   globals.store "external_lb", true
