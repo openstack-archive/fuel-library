@@ -9,16 +9,11 @@ class osnailyfacter::database::database {
   $primary_controller       = hiera('primary_controller')
   $mysql_hash               = hiera_hash('mysql', {})
   $debug                    = pick($mysql_hash['debug'], hiera('debug', false))
-  $management_vip           = hiera('management_vip')
-  $database_vip             = hiera('database_vip', $management_vip)
 
   $mgmt_iface = get_network_role_property('mgmt/database', 'interface')
   $direct_networks = split(direct_networks($network_scheme['endpoints'], $mgmt_iface, 'netmask'), ' ')
   # localhost is covered by mysql::server so we use this for detached db
   $access_networks = flatten(['240.0.0.0/255.255.0.0', $direct_networks])
-
-  $haproxy_stats_port   = '10000'
-  $haproxy_stats_url    = "http://${database_vip}:${haproxy_stats_port}/;csv"
 
   $mysql_root_password       = $mysql_hash['root_password']
   $enabled                   = pick($mysql_hash['enabled'], true)
@@ -42,14 +37,19 @@ class osnailyfacter::database::database {
   $backend_port             = '3307'
   $backend_timeout          = '10'
 
-  $external_lb = hiera('external_lb', false)
-
   $configuration = hiera_hash('configuration', {})
   $mysql_user_defined_configuration = pick($configuration['mysql'], {})
   #############################################################################
   validate_string($status_password)
   validate_string($mysql_root_password)
   validate_string($status_password)
+
+  # NOTE(aschultz): wait for backend is outside of the $enabled so that in the
+  # case of detached-db, the database task on the controllers simply waits
+  # until the database is up on the other systems. This will prevent the
+  # various tasks from the primary controller from continuing until the database
+  # is available.
+  include ::osnailyfacter::database::database_backend_wait
 
   if $enabled {
 
@@ -304,26 +304,6 @@ class osnailyfacter::database::database {
       mysql_password => $status_password,
       mysql_config   => '/etc/mysql/my.cnf',
       mysql_socket   => $mysql_socket,
-    }
-
-    $lb_defaults = { 'provider' => 'haproxy', 'url' => $haproxy_stats_url }
-
-    if $external_lb {
-      $lb_backend_provider = 'http'
-      $lb_url = "http://${database_vip}:49000"
-    }
-
-    $lb_hash = {
-      mysql      => {
-        name     => 'mysqld',
-        provider => $lb_backend_provider,
-        url      => $lb_url
-      }
-    }
-
-    ::osnailyfacter::wait_for_backend {'mysql':
-      lb_hash     => $lb_hash,
-      lb_defaults => $lb_defaults
     }
 
     # this overrides /root/.my.cnf created by mysql::server::root_password
