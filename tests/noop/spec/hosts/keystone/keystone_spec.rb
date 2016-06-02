@@ -112,6 +112,11 @@ describe manifest do
     service_user_name = service_user_hash['name'] || 'fuel'
     service_user_homedir = service_user_hash['homedir'] || '/var/lib/fuel'
 
+    user_admin_role   = Noop.hiera('user_admin_role')
+    user_admin_domain = Noop.hiera('user_admin_domain')
+    access_hash       = Noop.hiera_hash('access', {})
+    admin_user        = access_hash['user']
+
     primary_controller = Noop.hiera('primary_controller')
 
     let(:storage_hash) {  Noop.hiera_hash 'storage', {} }
@@ -352,6 +357,10 @@ describe manifest do
                                                       "Class[keystone::roles::admin]")
         expect(graph).to ensure_transitive_dependency("Haproxy_backend_status[keystone-public]",
                                                       "Keystone_role[_member_]")
+      end
+
+      it 'should add admin role to admin user' do
+        should contain_keystone_user_role("#{admin_user}@::#{user_admin_domain}").with('ensure' => 'present','roles' => user_admin_role)
       end
     end
 
