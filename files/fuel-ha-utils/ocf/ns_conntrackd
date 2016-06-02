@@ -134,7 +134,7 @@ meta_expect()
 {
         local what=$1 whatvar=OCF_RESKEY_CRM_meta_${1//-/_} op=$2 expect=$3
         local val=${!whatvar}
-        if [[ -n $val ]]; then
+        if [ -n "$val" ]; then
                 # [, not [[, or it won't work ;)
                 [ $val $op $expect ] && return
         fi
@@ -154,7 +154,7 @@ conntrackd_set_master_score() {
 
 add_to_bridge() {
   brctl show $OCF_RESKEY_bridge | grep $OCF_RESKEY_host_interface
-  if [[ $rc != 0 ]] ; then
+  if [ "$rc" -ne 0 ]; then
     ocf_run brctl addif $OCF_RESKEY_bridge $OCF_RESKEY_host_interface
     ocf_run ifconfig $OCF_RESKEY_host_interface 0.0.0.0
   fi
@@ -170,7 +170,7 @@ get_veth_pair() {
   rc=$?
 
   # create pair (tail's can't be alone) and attach tail to the net.namespace
-  if [[ $rc != 0 ]] ; then
+  if [ "$rc" -ne 0 ]; then
     local last_octet=$(ifconfig $OCF_RESKEY_bridge 2>/dev/null|awk '/inet addr:/ {print $2}'|sed 's/addr://' | awk -F. '{print $NF}')
     local bridge_mtu=$(cat /sys/class/net/${OCF_RESKEY_bridge}/mtu)
 
