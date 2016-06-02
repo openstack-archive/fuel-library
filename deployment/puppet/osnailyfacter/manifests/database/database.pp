@@ -15,7 +15,7 @@ class osnailyfacter::database::database {
   $mgmt_iface = get_network_role_property('mgmt/database', 'interface')
   $direct_networks = split(direct_networks($network_scheme['endpoints'], $mgmt_iface, 'netmask'), ' ')
   # localhost is covered by mysql::server so we use this for detached db
-  $access_networks = flatten(['240.0.0.0/255.255.0.0', $direct_networks])
+  $access_networks = unique(flatten(['240.0.0.0/255.255.0.0', $direct_networks]))
 
   $haproxy_stats_port   = '10000'
   $haproxy_stats_url    = "http://${database_vip}:${haproxy_stats_port}/;csv"
@@ -127,7 +127,7 @@ class osnailyfacter::database::database {
     }
 
     $wsrep_group_comm_port = '4567'
-    if $::memorysize_mb < 4000 {
+    if ($::memorysize_mb + 0) < 4000 {
       $mysql_performance_schema = 'off'
     } else {
       $mysql_performance_schema = 'on'
