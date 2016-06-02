@@ -65,7 +65,7 @@ describe 'the corosync_nodes function' do
   it 'should raise an error if there is less than 1 arguments' do
     expect {
       scope.function_corosync_nodes([])
-    }.to raise_error
+    }.to raise_error StandardError
   end
 
   it 'should return corosync_nodes hash' do
