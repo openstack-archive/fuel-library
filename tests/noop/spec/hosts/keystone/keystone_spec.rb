@@ -332,6 +332,11 @@ describe manifest do
         expect(graph).to ensure_transitive_dependency("Haproxy_backend_status[keystone-public]",
                                                       "Keystone_role[_member_]")
       end
+
+      it 'should add admin role to admin user' do
+        should contain_keystone_user_role('admin@::Default').with('ensure' => 'present')
+        should contain_keystone_user_role('admin@::Default').with('roles' => 'admin')
+      end
     end
 
     it 'should have explicit ordering between LB classes and particular actions' do
