@@ -43,6 +43,14 @@ describe manifest do
     glance_db_password = Noop.hiera_structure 'glance/db_password', 'glance'
     glance_db_user = Noop.hiera_structure 'glance/db_user', 'glance'
     glance_db_name = Noop.hiera_structure 'glance/db_name', 'glance'
+    #vCenter
+    glance_vc_host = Noop.hiera_structure 'glance/vc_host', '172.16.0.254'
+    glance_vc_user = Noop.hiera_structure 'glance/vc_user', 'administrator@vsphere.local'
+    glance_vc_password = Noop.hiera_structure 'glance/vc_password', 'Qwer!1234'
+    glance_vc_datacenter = Noop.hiera_structure 'glance/vc_datacenter', 'Datacenter'
+    glance_vc_datastore = Noop.hiera_structure 'glance/vc_datastore', 'nfs'
+    glance_vc_image_dir = Noop.hiera_structure 'glance/vc_image_dir'
+    glance_vc_ca_file = Noop.hiera_structure 'glance/vc_ca_file', {'content' => 'RSA', 'name' => 'vcenter-ca.pem'}
 
     let(:ceilometer_hash) { Noop.hiera_structure 'ceilometer' }
 
@@ -197,25 +205,59 @@ describe manifest do
       else
         show_image_direct_url = true
       end
-      let :params do { :glance_backend => 'vmware',
-                       :glance_vcenter_datacenter => 'Datacenter',
-                       :glance_vcenter_datastore  => 'nfs',
-                       :glance_vcenter_ca_file => { 'name' => 'vcenter-ca.pem', 'content' => 'RSA'} } end
+      let :params do { :glance_backend => 'vmware', } end
       it 'should declare vmware backend' do
+        should contain_class('glance::backend::vsphere').with(:vcenter_host => glance_vc_host)
+        should contain_class('glance::backend::vsphere').with(:vcenter_user => glance_vc_user)
+        should contain_class('glance::backend::vsphere').with(:vcenter_password => glance_vc_password)
+        should contain_class('glance::backend::vsphere').with(:vcenter_datastores => "#{glance_vc_datacenter}:#{glance_vc_datastore}")
+        should contain_class('glance::backend::vsphere').with(:vcenter_image_dir => glance_vc_image_dir)
+        should contain_class('glance::backend::vsphere').with(:vcenter_api_retry_count => '20')
+        should contain_class('glance::backend::vsphere').with(:vcenter_ca_file => "/etc/glance/#{glance_vc_ca_file['name']}")
         should contain_class('glance::backend::vsphere').with(:glare_enabled => true)
+      end
+      it 'should configure vmware_server_host setting' do
+        should contain_glance_api_config('glance_store/vmware_server_host').with_value(glance_vc_host)
+        should contain_glance_glare_config('glance_store/vmware_server_host').with_value(glance_vc_host)
+      end
+      it 'should configure vmware_server_username setting' do
+        should contain_glance_api_config('glance_store/vmware_server_username').with_value(glance_vc_user)
+        should contain_glance_glare_config('glance_store/vmware_server_username').with_value(glance_vc_user)
+      end
+      it 'should configure vmware_server_password setting' do
+        should contain_glance_api_config('glance_store/vmware_server_password').with_value(glance_vc_password)
+        should contain_glance_glare_config('glance_store/vmware_server_password').with_value(glance_vc_password)
+      end
+      it 'should configure vmware_datastores setting' do
+        should contain_glance_api_config('glance_store/vmware_datastores').with_value("#{glance_vc_datacenter}:#{glance_vc_datastore}")
+        should contain_glance_glare_config('glance_store/vmware_datastores').with_value("#{glance_vc_datacenter}:#{glance_vc_datastore}")
+      end
+      it 'should configure vmware_store_image_dir setting' do
+        should contain_glance_api_config('glance_store/vmware_store_image_dir').with_value(glance_vc_image_dir)
+        should contain_glance_glare_config('glance_store/vmware_store_image_dir').with_value(glance_vc_image_dir)
+      end
+      it 'should configure vmware_api_retry_count setting' do
+        should contain_glance_api_config('glance_store/vmware_api_retry_count').with_value('20')
+        should contain_glance_glare_config('glance_store/vmware_api_retry_count').with_value('20')
+      end
+      it 'should configure vmware_insecure setting' do
+        should contain_glance_api_config('glance_store/vmware_insecure').with_value('True')
+        should contain_glance_glare_config('glance_store/vmware_insecure').with_value('True')
+      end
+      it 'should configure vmware_ca_file setting' do
+        should contain_glance_api_config('glance_store/vmware_ca_file').with_value("/etc/glance/#{glance_vc_ca_file['name']}")
+        should contain_glance_glare_config('glance_store/vmware_ca_file').with_value("/etc/glance/#{glance_vc_ca_file['name']}")
+      end
+      it 'should configure default_store setting' do
+        should contain_glance_api_config('glance_store/default_store').with_value('vsphere')
+        should contain_glance_glare_config('glance_store/default_store').with_value('vsphere')
+      end
+      it 'should configure stores setting' do
+        should contain_glance_api_config('glance_store/stores').with_value('glance.store.vmware_datastore.Store,glance.store.http.Store')
+        should contain_glance_glare_config('glance_store/stores').with_value('glance.store.vmware_datastore.Store,glance.store.http.Store')
       end
       it 'should configure show_image_direct_url' do
         should contain_glance_api_config('DEFAULT/show_image_direct_url').with_value(show_image_direct_url)
-      end
-      it 'should configure vmware_ca_file setting' do
-        should contain_glance_api_config('glance_store/vmware_ca_file').with_value('vcenter-ca.pem')
-      end
-      it 'should contain CA certificate for vCenter server' do
-        should contain_file('/etc/glance/vcenter-ca.pem').with_content('RSA')
-      end
-      it 'should contain datastores for vCenter' do
-        should contain_glance_api_config('glance_store/vmware_datastores').with_value('Datacenter:nfs')
-        should contain_glance_glare_config('glance_store/vmware_datastores').with_value('Datacenter:nfs')
       end
     else
       if glance_config && glance_config.has_key?('show_image_direct_url')
