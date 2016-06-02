@@ -20,7 +20,7 @@
         ('primary-controller' in $.node_roles)))),
       $.get('token_provider'), $.get('max_pool_size'), $.get('max_overflow'),
       $.murano_settings, $.murano, $.get('external_lb'), $.operator_user,
-      $.service_user, $.get('apache_ports'))
+      $.service_user, $.get('apache_ports'), $.get('user_admin_role'), $.get('user_admin_domain'))
   refresh_on: [keystone_config]
   parameters:
     puppet_manifest: /etc/puppet/modules/openstack_tasks/examples/keystone/openrc_delete.pp
