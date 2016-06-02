@@ -34,6 +34,10 @@ class openstack::workloads_collector(
       enabled         => $enabled,
     }
 
+    keystone_tenant { $workloads_tenant:
+      ensure => present,
+    }
+
     keystone_user_role { "$workloads_username@$workloads_tenant":
       ensure => present,
       roles  => ['admin'],
