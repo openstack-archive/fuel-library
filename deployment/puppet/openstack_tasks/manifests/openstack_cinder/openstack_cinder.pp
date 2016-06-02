@@ -203,9 +203,10 @@ class openstack_tasks::openstack_cinder::openstack_cinder {
 
     class { 'cinder::volume': }
 
-    class { 'cinder::backends':
-      enabled_backends => [$volume_backend_name],
-    }
+    #TODO(degorenko) should be enabled back when we have a new packages
+    # class { 'cinder::backends':
+    #   enabled_backends => [$volume_backend_name],
+    # }
 
     # TODO(xarses): figure out if this is used anymore, it was a param, but
     # we don't set it, and it's only used my mlnx
@@ -219,7 +220,7 @@ class openstack_tasks::openstack_cinder::openstack_cinder {
 
     case $manage_volumes {
       true, 'iscsi': {
-        cinder::backend::iscsi { $volume_backend_name:
+        cinder::backend::iscsi { 'DEFAULT':
           iscsi_ip_address    => $iscsi_bind_host,
           volume_group        => $volume_group,
           volume_backend_name => $volume_backend_name,
@@ -239,10 +240,10 @@ class openstack_tasks::openstack_cinder::openstack_cinder {
       'ceph': {
         if defined(Class['::ceph']) {
           Ceph::Pool<| title == $::ceph::cinder_pool |> ->
-          Cinder::Backend::Rbd[$volume_backend_name]
+          Cinder::Backend::Rbd['DEFAULT']
         }
 
-        cinder::backend::rbd { $volume_backend_name:
+        cinder::backend::rbd { 'DEFAULT':
           rbd_pool            => $rbd_pool,
           rbd_user            => $rbd_user,
           rbd_secret_uuid     => $rbd_secret_uuid,
