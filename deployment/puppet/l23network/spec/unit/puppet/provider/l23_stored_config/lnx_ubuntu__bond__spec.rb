@@ -1,7 +1,7 @@
 require 'spec_helper'
 require 'yaml'
 
-describe Puppet::Type.type(:l23_stored_config).provider(:lnx_ubuntu) do
+describe Puppet::Type.type(:l23_stored_config).provider(:lnx_ubuntu14) do
 
   let(:input_data) do
     {
@@ -21,7 +21,7 @@ describe Puppet::Type.type(:l23_stored_config).provider(:lnx_ubuntu) do
         :bond_updelay          => '111',
         :bond_downdelay        => '222',
         :bond_ad_select        => '2',
-        :provider              => "lnx_ubuntu",
+        :provider              => 'lnx_ubuntu14',
       },
     }
   end
@@ -56,7 +56,7 @@ describe Puppet::Type.type(:l23_stored_config).provider(:lnx_ubuntu) do
   end
 
   def fixture_path
-    File.join(PROJECT_ROOT, 'spec', 'fixtures', 'provider', 'l23_stored_config', 'lnx_ubuntu__spec')
+    File.join(PROJECT_ROOT, 'spec', 'fixtures', 'provider', 'l23_stored_config', 'lnx_ubuntu14__spec')
   end
 
   def fixture_file(file)

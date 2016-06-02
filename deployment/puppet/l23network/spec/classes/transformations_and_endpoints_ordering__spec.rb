@@ -32,7 +32,7 @@ end
         :osfamily => 'Debian',
         :operatingsystem => 'Ubuntu',
         :kernel => 'Linux',
-        :l23_os => 'ubuntu',
+        :l23_os => 'ubuntu14',
         :l3_fqdn_hostname => 'stupid_hostname',
       }
     }
@@ -130,7 +130,7 @@ end
         :osfamily => 'Debian',
         :operatingsystem => 'Ubuntu',
         :kernel => 'Linux',
-        :l23_os => 'ubuntu',
+        :l23_os => 'ubuntu14',
         :l3_fqdn_hostname => 'stupid_hostname',
       }
     }
@@ -226,7 +226,7 @@ end
         :osfamily => 'Debian',
         :operatingsystem => 'Ubuntu',
         :kernel => 'Linux',
-        :l23_os => 'ubuntu',
+        :l23_os => 'ubuntu14',
         :l3_fqdn_hostname => 'stupid_hostname',
       }
     }

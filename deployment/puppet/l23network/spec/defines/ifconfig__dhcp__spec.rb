@@ -6,7 +6,7 @@ describe 'l23network::l3::ifconfig', :type => :define do
     let(:facts) { {
       :osfamily => 'Debian',
       :operatingsystem => 'Ubuntu',
-      :l23_os => 'ubuntu',
+      :l23_os => 'ubuntu14',
       :kernel => 'Linux',
       :netrings => {
         'eth4' => {

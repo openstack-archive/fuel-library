@@ -35,7 +35,7 @@ end
         :osfamily => 'Debian',
         :operatingsystem => 'Ubuntu',
         :kernel => 'Linux',
-        :l23_os => 'ubuntu',
+        :l23_os => 'ubuntu14',
         :l3_fqdn_hostname => 'stupid_hostname',
       }
     }
@@ -55,7 +55,7 @@ end
     it do
       should contain_l23_stored_config('br-ovs').with({
         'ensure'       => 'present',
-        'provider'     => 'ovs_ubuntu'
+        'provider'     => 'ovs_ubuntu14'
       })
     end
 
@@ -63,7 +63,7 @@ end
       should contain_l23_stored_config('br1').with({
         'ensure'         => 'present',
         'ipaddr'         => '192.168.88.2/24',
-        'provider'       => 'lnx_ubuntu'
+        'provider'       => 'lnx_ubuntu14'
       })
     end
 
@@ -108,7 +108,7 @@ end
         'ensure'         => 'present',
         'if_type'        => 'vport',
         'bridge'         => ["br-ovs", "br1"],
-        'provider'       => 'ovs_ubuntu'
+        'provider'       => 'ovs_ubuntu14'
       })
     end
   end

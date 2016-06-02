@@ -1,12 +1,12 @@
 require 'spec_helper'
 
-describe Puppet::Type.type(:l23_stored_config).provider(:lnx_ubuntu) do
+describe Puppet::Type.type(:l23_stored_config).provider(:lnx_ubuntu14) do
 
   let(:input_data) do
     {
       :eth1 => {
                  :name     => "eth1",
-                 :provider => "lnx_ubuntu",
+                 :provider => 'lnx_ubuntu14',
                  :if_type  => "ethernet",
                  :bridge   => "br-storage",
                },
@@ -15,7 +15,7 @@ describe Puppet::Type.type(:l23_stored_config).provider(:lnx_ubuntu) do
                  :onboot   => "yes",
                  :if_type  => "bridge",
                  :ipaddr   => "192.168.88.6/24",
-                 :provider => "lnx_ubuntu",
+                 :provider => 'lnx_ubuntu14',
                }
     }
   end

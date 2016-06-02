@@ -1,12 +1,12 @@
 require 'spec_helper'
 
-describe Puppet::Type.type(:l23_stored_config).provider(:lnx_ubuntu) do
+describe Puppet::Type.type(:l23_stored_config).provider(:lnx_ubuntu14) do
 
   let(:input_data) do
     {
       :eth1 => {
                  :name     => "eth1",
-                 :provider => "lnx_ubuntu",
+                 :provider => 'lnx_ubuntu14',
                  :if_type  => "ethernet",
                  :ethtool  => { 'rings' => {'RX' => '2048', 'TX' => '2048'} },
                },
@@ -43,7 +43,7 @@ describe Puppet::Type.type(:l23_stored_config).provider(:lnx_ubuntu) do
   end
 
   def fixture_path
-    File.join(PROJECT_ROOT, 'spec', 'fixtures', 'provider', 'l23_stored_config', 'lnx_ubuntu__spec')
+    File.join(PROJECT_ROOT, 'spec', 'fixtures', 'provider', 'l23_stored_config', 'lnx_ubuntu14__spec')
   end
 
   def fixture_file(file)

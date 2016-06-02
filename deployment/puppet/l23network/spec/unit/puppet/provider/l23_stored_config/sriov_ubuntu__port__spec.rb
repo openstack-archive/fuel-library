@@ -3,12 +3,12 @@ require 'spec_helper'
 resources_map =     {
       :'p2p4' => {
                  :name     => 'p2p4',
-                 :provider => 'sriov_ubuntu',
+                 :provider => 'sriov_ubuntu14',
                  :sriov_numvfs => 7
                },
 }
 
-describe Puppet::Type.type(:l23_stored_config).provider(:sriov_ubuntu) do
+describe Puppet::Type.type(:l23_stored_config).provider(:sriov_ubuntu14) do
 
   let(:input_data) { resources_map}
 
@@ -42,7 +42,7 @@ describe Puppet::Type.type(:l23_stored_config).provider(:sriov_ubuntu) do
   end
 
   def fixture_path
-    File.join(PROJECT_ROOT, 'spec', 'fixtures', 'provider', 'l23_stored_config', 'ubuntu_ports')
+    File.join(PROJECT_ROOT, 'spec', 'fixtures', 'provider', 'l23_stored_config', 'ubuntu14_ports')
   end
 
   def fixture_file(file)
@@ -73,7 +73,7 @@ describe Puppet::Type.type(:l23_stored_config).provider(:sriov_ubuntu) do
     it { expect(res[:onboot]).to eq true }
     it { expect(res[:name]).to eq 'p2p4' }
     it { expect(res[:sriov_numvfs]).to eq 7 }
-    it { expect(res[:provider]).to eq :sriov_ubuntu }
+    it { expect(res[:provider]).to eq :sriov_ubuntu14 }
   end
 
 end

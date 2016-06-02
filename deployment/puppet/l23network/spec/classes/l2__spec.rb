@@ -151,7 +151,7 @@ describe 'l23network::l2' do
 
   context 'Ubuntu' do
     let (:facts) do
-      { :l23_os           => 'ubuntu',
+      { :l23_os => 'ubuntu14',
         :l3_fqdn_hostname => 'my_name',
       }
     end

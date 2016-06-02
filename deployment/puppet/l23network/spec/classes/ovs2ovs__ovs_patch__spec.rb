@@ -35,7 +35,7 @@ end
         :osfamily => 'Debian',
         :operatingsystem => 'Ubuntu',
         :kernel => 'Linux',
-        :l23_os => 'ubuntu',
+        :l23_os => 'ubuntu14',
         :l3_fqdn_hostname => 'stupid_hostname',
       }
     }
@@ -63,14 +63,14 @@ end
     it do
       should contain_l23_stored_config('br-ovs1').with({
         'ensure'   => 'present',
-        'provider' => 'ovs_ubuntu',
+        'provider' => 'ovs_ubuntu14',
       })
     end
 
     it do
       should contain_l23_stored_config('br-ovs2').with({
         'ensure'   => 'present',
-        'provider' => 'ovs_ubuntu'
+        'provider' => 'ovs_ubuntu14'
       })
     end
 
@@ -155,7 +155,7 @@ end
         :osfamily => 'Debian',
         :operatingsystem => 'Ubuntu',
         :kernel => 'Linux',
-        :l23_os => 'ubuntu',
+        :l23_os => 'ubuntu14',
         :l3_fqdn_hostname => 'stupid_hostname',
       }
     }
