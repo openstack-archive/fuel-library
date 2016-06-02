@@ -229,7 +229,8 @@ describe manifest do
       provider = Puppet::Type.type(:haproxy_backend_status).defaultprovider.name
     end
 
-    it 'should configure haproxy backend' do
+    it 'should wait for mysql backend to be ready' do
+      should contain_class('osnailyfacter::database::database_backend_wait')
       should contain_haproxy_backend_status('mysql').with(
         :url      => url,
         :provider => provider
