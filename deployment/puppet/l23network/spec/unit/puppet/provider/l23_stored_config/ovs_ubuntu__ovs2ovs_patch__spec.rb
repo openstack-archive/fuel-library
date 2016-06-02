@@ -6,7 +6,7 @@ resources_map =     {
                  :onboot   => "yes",
                  :if_type  => "bridge",
                  :bridge_ports => ['p_33470efd-0'],
-                 :provider     => "ovs_ubuntu",
+                 :provider     => 'ovs_ubuntu14',
                },
       :'br-ovs2' => {
                  :name     => "br-ovs2",
@@ -15,7 +15,7 @@ resources_map =     {
                  :if_type  => "bridge",
                  :ipaddr   => "192.168.88.2/24",
                  :bridge_ports => ['p_33470efd-0'],
-                 :provider     => "lnx_ubuntu",
+                 :provider     => 'lnx_ubuntu14',
                },
       :'p_33470efd-0' => {
                  :name     => "p_33470efd-0",
@@ -23,7 +23,7 @@ resources_map =     {
                  :bridge   => "br-ovs1",
                  :vlan_id  => '100',
                  :jacks    => 'p_33470efd-1',
-                 :provider => "ovs_ubuntu",
+                 :provider => 'ovs_ubuntu14',
                },
       :'p_33470efd-1' => {
                  :name     => "p_33470efd-1",
@@ -31,13 +31,13 @@ resources_map =     {
                  :bridge   => "br-ovs2",
                  :vlan_id  => '200',
                  :jacks    => 'p_33470efd-0',
-                 :provider => "ovs_ubuntu",
+                 :provider => 'ovs_ubuntu14',
                },
 
 }
 
 # This test is functional continue of .spec/classes/ovs2ovs_patch__spec.rb
-describe Puppet::Type.type(:l23_stored_config).provider(:ovs_ubuntu) do
+describe Puppet::Type.type(:l23_stored_config).provider(:ovs_ubuntu14) do
 
   let(:input_data) { resources_map}
 
@@ -71,7 +71,7 @@ describe Puppet::Type.type(:l23_stored_config).provider(:ovs_ubuntu) do
   end
 
   def fixture_path
-    File.join(PROJECT_ROOT, 'spec', 'fixtures', 'provider', 'l23_stored_config', 'ovs_ubuntu__ovs2ovs_patch__spec')
+    File.join(PROJECT_ROOT, 'spec', 'fixtures', 'provider', 'l23_stored_config', 'ovs_ubuntu14__ovs2ovs_patch__spec')
   end
 
   def fixture_file(file)

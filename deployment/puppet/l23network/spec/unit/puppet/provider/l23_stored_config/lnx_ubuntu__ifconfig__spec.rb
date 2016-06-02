@@ -1,7 +1,7 @@
 require 'spec_helper'
 require 'yaml'
 
-describe Puppet::Type.type(:l23_stored_config).provider(:lnx_ubuntu) do
+describe Puppet::Type.type(:l23_stored_config).provider(:lnx_ubuntu14) do
 
   let(:input_data) do
     {
@@ -10,7 +10,7 @@ describe Puppet::Type.type(:l23_stored_config).provider(:lnx_ubuntu) do
                  :method         => 'static',
                  :ipaddr         => '169.254.0.1/24',
                  :delay_while_up => '25',
-                 :provider       => 'lnx_ubuntu',
+                 :provider       => 'lnx_ubuntu14',
                },
     }
   end
@@ -45,7 +45,7 @@ describe Puppet::Type.type(:l23_stored_config).provider(:lnx_ubuntu) do
   end
 
   def fixture_path
-    File.join(PROJECT_ROOT, 'spec', 'fixtures', 'provider', 'l23_stored_config', 'lnx_ubuntu__spec')
+    File.join(PROJECT_ROOT, 'spec', 'fixtures', 'provider', 'l23_stored_config', 'lnx_ubuntu14__spec')
   end
 
   def fixture_file(file)
@@ -78,7 +78,7 @@ describe Puppet::Type.type(:l23_stored_config).provider(:lnx_ubuntu) do
   end
 end
 
-describe Puppet::Type.type(:l23_stored_config).provider(:ovs_ubuntu) do
+describe Puppet::Type.type(:l23_stored_config).provider(:ovs_ubuntu14) do
 
   let(:input_data) do
     {
@@ -86,7 +86,7 @@ describe Puppet::Type.type(:l23_stored_config).provider(:ovs_ubuntu) do
                  :name           => 'eth1',
                  :method         => 'static',
                  :ipaddr         => '169.254.0.1/24',
-                 :provider       => 'ovs_ubuntu',
+                 :provider       => 'ovs_ubuntu14',
                },
     }
   end
@@ -134,7 +134,7 @@ describe Puppet::Type.type(:l23_stored_config).provider(:ovs_ubuntu) do
 end
 
 ### multiple IP per interface
-describe Puppet::Type.type(:l23_stored_config).provider(:lnx_ubuntu) do
+describe Puppet::Type.type(:l23_stored_config).provider(:lnx_ubuntu14) do
 
   let(:input_data) do
     {
@@ -143,7 +143,7 @@ describe Puppet::Type.type(:l23_stored_config).provider(:lnx_ubuntu) do
                  :method         => "static",
                  :ipaddr         => "169.254.0.1/24",
                  :ipaddr_aliases => ['192.168.1.1/24','192.168.2.2/25','192.168.3.3/26'],
-                 :provider       => "lnx_ubuntu",
+                 :provider       => 'lnx_ubuntu14',
                },
     }
   end
@@ -178,7 +178,7 @@ describe Puppet::Type.type(:l23_stored_config).provider(:lnx_ubuntu) do
   end
 
   def fixture_path
-    File.join(PROJECT_ROOT, 'spec', 'fixtures', 'provider', 'l23_stored_config', 'lnx_ubuntu__spec')
+    File.join(PROJECT_ROOT, 'spec', 'fixtures', 'provider', 'l23_stored_config', 'lnx_ubuntu14__spec')
   end
 
   def fixture_file(file)

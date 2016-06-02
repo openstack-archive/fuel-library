@@ -8,7 +8,7 @@ resources_map =     {
         :if_type  => "bridge",
         :ipaddr   => "192.168.88.2/24",
         :bridge_ports => ['p_33470efd-0'], # in real cases this value doesn't pass directly to stored_config,
-        :provider     => "lnx_ubuntu",     # but filled in generate() method of type
+        :provider     => 'lnx_ubuntu14',     # but filled in generate() method of type
       },
       :'br2' => {
         :name     => "br2",
@@ -17,21 +17,21 @@ resources_map =     {
         :if_type  => "bridge",
         :ipaddr   => "192.168.99.2/24",
         :bridge_ports => ['p_33470efd-1'], # in real cases this value doesn't pass directly to stored_config,
-        :provider     => "lnx_ubuntu",     # but filled in generate() method of type
+        :provider     => 'lnx_ubuntu14',     # but filled in generate() method of type
       },
       :'p_33470efd-0' => {
         :name     => 'p_33470efd-0',
         :if_type  => 'patch',
         :bridge   => ["br1"],
         :jacks    => ['p_33470efd-0', 'p_33470efd-1'],
-        :provider => "lnx_ubuntu",
+        :provider => 'lnx_ubuntu14',
       },
       :'p_33470efd-1' => {
         :name     => "p_33470efd-1",
         :if_type  => 'patch',
         :bridge   => ["br2"],
         :jacks    => ['p_33470efd-0', 'p_33470efd-1'],
-        :provider => "lnx_ubuntu",
+        :provider => 'lnx_ubuntu14',
       },
       :'p_33470efd-1_mtu' => {
         :name     => "p_33470efd-1",
@@ -39,13 +39,13 @@ resources_map =     {
         :mtu      => 1700,
         :bridge   => ["br2"],
         :jacks    => ['p_33470efd-0', 'p_33470efd-1'],
-        :provider => "lnx_ubuntu",
+        :provider => 'lnx_ubuntu14',
       },
 
 }
 
 # This test is functional continue of .spec/classes/ovs2lnx_patch__spec.rb
-describe Puppet::Type.type(:l23_stored_config).provider(:lnx_ubuntu) do
+describe Puppet::Type.type(:l23_stored_config).provider(:lnx_ubuntu14) do
 
   let(:input_data) { resources_map}
 
@@ -79,7 +79,7 @@ describe Puppet::Type.type(:l23_stored_config).provider(:lnx_ubuntu) do
   end
 
   def fixture_path
-    File.join(PROJECT_ROOT, 'spec', 'fixtures', 'provider', 'l23_stored_config', 'lnx_ubuntu__lnx2lnx_patch__spec')
+    File.join(PROJECT_ROOT, 'spec', 'fixtures', 'provider', 'l23_stored_config', 'lnx_ubuntu14__lnx2lnx_patch__spec')
   end
 
   def fixture_file(file)

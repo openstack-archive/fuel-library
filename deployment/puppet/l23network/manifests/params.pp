@@ -4,7 +4,7 @@ class l23network::params {
   $monolith_bond_providers = ['ovs']
 
   case $::l23_os {
-    /(?i)ubuntu/: {
+    /(?i)ubuntu14/: {
       $interfaces_dir             = '/etc/network/interfaces.d'
       $interfaces_file            = '/etc/network/interfaces'
       $ovs_service_name           = 'openvswitch-switch'

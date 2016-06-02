@@ -6,11 +6,11 @@ resources_map =     {
                  :if_type  => 'ethernet',
                  :bridge   => 'br-ovs1',
                  :vlan_id  => '100',
-                 :provider => 'ovs_ubuntu',
+                 :provider => 'ovs_ubuntu14',
                },
 }
 
-describe Puppet::Type.type(:l23_stored_config).provider(:ovs_ubuntu) do
+describe Puppet::Type.type(:l23_stored_config).provider(:ovs_ubuntu14) do
 
   let(:input_data) { resources_map}
 
@@ -44,7 +44,7 @@ describe Puppet::Type.type(:l23_stored_config).provider(:ovs_ubuntu) do
   end
 
   def fixture_path
-    File.join(PROJECT_ROOT, 'spec', 'fixtures', 'provider', 'l23_stored_config', 'ubuntu_ports')
+    File.join(PROJECT_ROOT, 'spec', 'fixtures', 'provider', 'l23_stored_config', 'ubuntu14_ports')
   end
 
   def fixture_file(file)

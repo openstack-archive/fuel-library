@@ -48,7 +48,7 @@ end
 
 #Ubuntu
 
-describe Puppet::Type.type(:l23_stored_config).provider(:lnx_ubuntu) do
+describe Puppet::Type.type(:l23_stored_config).provider(:lnx_ubuntu14) do
 
   before(:each) do
     puppet_debug_override()
@@ -70,7 +70,7 @@ describe Puppet::Type.type(:l23_stored_config).provider(:lnx_ubuntu) do
 
 end
 
-describe Puppet::Type.type(:l23_stored_config).provider(:ovs_ubuntu) do
+describe Puppet::Type.type(:l23_stored_config).provider(:ovs_ubuntu14) do
 
   before(:each) do
     puppet_debug_override()

@@ -13,7 +13,7 @@ describe Puppet::Type.type(:l23_stored_config) do
         :method   => "static",
         :ipaddr   => "169.254.1.3/24",
         :ipaddr_aliases => ["169.254.2.3/24", "169.254.3.3/24"],
-        :provider => "lnx_ubuntu",
+        :provider => 'lnx_ubuntu14',
         :ensure   => :present
     )
     catalog.add_resource(stored_config)

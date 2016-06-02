@@ -6,8 +6,12 @@ Facter.add(:l23_os) do
   setcode do
     case Facter.value(:operatingsystem)
       when /(?i)ubuntu/
-        #todo: separate upstart and systemd based
-        'ubuntu'
+        case Facter.value(:operatingsystemmajrelease)
+          when /^16\./
+            'ubuntu16'
+          else
+            'ubuntu14'
+        end
       when /(?i)centos/
         case Facter.value(:operatingsystemmajrelease)
           when /6/

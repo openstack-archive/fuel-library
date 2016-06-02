@@ -4,7 +4,7 @@ resources_map =     {
       :'p2p2' => {
                  :name     => 'p2p2',
                  :if_type  => 'ethernet',
-                 :provider => 'lnx_ubuntu',
+                 :provider => 'lnx_ubuntu14',
                },
       :'p2p3' => {
                  :name     => 'p2p3',
@@ -12,12 +12,12 @@ resources_map =     {
                   'offload' => {
                     'generic-receive-offload'      => false,
                     'generic-segmentation-offload' => false }},
-                 :provider => 'lnx_ubuntu',
+                 :provider => 'lnx_ubuntu14',
                },
 
 }
 
-describe Puppet::Type.type(:l23_stored_config).provider(:lnx_ubuntu) do
+describe Puppet::Type.type(:l23_stored_config).provider(:lnx_ubuntu14) do
 
   let(:input_data) { resources_map}
 
@@ -51,7 +51,7 @@ describe Puppet::Type.type(:l23_stored_config).provider(:lnx_ubuntu) do
   end
 
   def fixture_path
-    File.join(PROJECT_ROOT, 'spec', 'fixtures', 'provider', 'l23_stored_config', 'ubuntu_ports')
+    File.join(PROJECT_ROOT, 'spec', 'fixtures', 'provider', 'l23_stored_config', 'ubuntu14_ports')
   end
 
   def fixture_file(file)

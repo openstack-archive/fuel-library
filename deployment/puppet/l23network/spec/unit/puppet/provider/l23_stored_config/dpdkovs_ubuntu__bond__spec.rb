@@ -1,6 +1,6 @@
 require 'spec_helper'
 
-describe Puppet::Type.type(:l23_stored_config).provider(:dpdkovs_ubuntu) do
+describe Puppet::Type.type(:l23_stored_config).provider(:dpdkovs_ubuntu14) do
   let(:input_data) {
     {
       :bond_lacp => {
@@ -20,7 +20,7 @@ describe Puppet::Type.type(:l23_stored_config).provider(:dpdkovs_ubuntu) do
                 :bond_updelay     => '111',
                 :bond_downdelay   => '222',
                 :bond_ad_select   => '2',   # unused for OVS
-                :provider         => 'dpdkovs_ubuntu',
+                :provider         => 'dpdkovs_ubuntu14',
                },
     }
   }
@@ -62,7 +62,7 @@ describe Puppet::Type.type(:l23_stored_config).provider(:dpdkovs_ubuntu) do
   end
 
   def fixture_path
-    File.join(PROJECT_ROOT, 'spec', 'fixtures', 'provider', 'l23_stored_config', 'dpdkovs_ubuntu__spec')
+    File.join(PROJECT_ROOT, 'spec', 'fixtures', 'provider', 'l23_stored_config', 'dpdkovs_ubuntu14__spec')
   end
 
   def fixture_file(file)

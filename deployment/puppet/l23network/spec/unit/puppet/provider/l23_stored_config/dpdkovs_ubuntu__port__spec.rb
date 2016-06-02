@@ -1,13 +1,13 @@
 require 'spec_helper'
 
-describe Puppet::Type.type(:l23_stored_config).provider(:dpdkovs_ubuntu) do
+describe Puppet::Type.type(:l23_stored_config).provider(:dpdkovs_ubuntu14) do
   let(:input_data) {
     {
       :'enp1s0f0' => {
                  :name     => 'enp1s0f0',
                  :if_type  => 'ethernet',
                  :bridge   => 'br-prv',
-                 :provider => 'dpdkovs_ubuntu',
+                 :provider => 'dpdkovs_ubuntu14',
                },
     }
   }
@@ -48,7 +48,7 @@ describe Puppet::Type.type(:l23_stored_config).provider(:dpdkovs_ubuntu) do
   end
 
   def fixture_path
-    File.join(PROJECT_ROOT, 'spec', 'fixtures', 'provider', 'l23_stored_config', 'dpdkovs_ubuntu__spec')
+    File.join(PROJECT_ROOT, 'spec', 'fixtures', 'provider', 'l23_stored_config', 'dpdkovs_ubuntu14__spec')
   end
 
   def fixture_file(file)
