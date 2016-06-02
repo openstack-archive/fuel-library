@@ -92,6 +92,9 @@ class osnailyfacter::globals::globals {
   $keystone_hash                  = merge({'service_token_off' => $service_token_off},
                                           hiera_hash('keystone', {}))
 
+  $user_admin_role                = hiera('user_admin_role','admin')
+  $user_admin_domain              = hiera('user_admin_domain','Default')
+
   $dns_nameservers                = hiera('dns_nameservers', [])
   $use_neutron                    = hiera('quantum', false)
   $use_ovs                        = hiera('use_ovs', $use_neutron)
