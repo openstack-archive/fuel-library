@@ -25,6 +25,17 @@ describe 'l23network', :type => :class do
     it { should contain_anchor('l23network::l2::init').that_requires('Package[vlan]') }
     it { should contain_anchor('l23network::l2::init').that_requires('Package[ifenslave]') }
     it { should contain_anchor('l23network::l2::init').that_requires('Package[ethtool]') }
+    it { should contain_class('l23network::l2').with({
+                                'install_ovs'      => false,
+                                'install_brtool'   => true,
+                                'install_dpdk'     => false,
+                                'modprobe_bridge'  => true,
+                                'install_bondtool' => true,
+                                'modprobe_bonding' => true,
+                                'install_vlantool' => true,
+                                'modprobe_8021q'   => true,
+                                'install_ethtool'  => true,
+    }) }
 
   end
 
@@ -122,6 +133,19 @@ describe 'l23network', :type => :class do
     it do
       should contain_enable_hotplug('global').that_requires('Disable_hotplug[global]')
     end
+
+    it { should contain_class('l23network::l2').with({
+                                'install_ovs'      => true,
+                                'install_brtool'   => true,
+                                'install_dpdk'     => false,
+                                'modprobe_bridge'  => true,
+                                'install_bondtool' => true,
+                                'modprobe_bonding' => true,
+                                'install_vlantool' => true,
+                                'modprobe_8021q'   => true,
+                                'install_ethtool'  => true,
+    }) }
+
 
   end
 
