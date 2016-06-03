@@ -40,8 +40,6 @@ describe manifest do
       end
     end
 
-    let(:cache_backend) { Noop.puppet_function 'pick', keystone_hash['cache_backend'], 'dogpile.cache.pylibmc' }
-
     let(:configuration_override) do
       Noop.hiera_structure 'configuration'
     end
@@ -210,7 +208,7 @@ describe manifest do
     it 'should configure keystone with paramters' do
       should contain_keystone_config('token/caching').with(:value => 'false')
       should contain_keystone_config('cache/enabled').with(:value => 'true')
-      should contain_keystone_config('cache/backend').with(:value => cache_backend)
+      should contain_keystone_config('cache/backend').with(:value => 'keystone.cache.memcache_pool')
       should contain_keystone_config('memcache/servers').with(:value => memcache_servers)
       should contain_keystone_config('cache/memcache_servers').with(:value => memcache_servers)
       should contain_keystone_config('cache/memcache_dead_retry').with(:value => '60')
@@ -219,12 +217,6 @@ describe manifest do
       should contain_keystone_config('cache/memcache_pool_unused_timeout').with(:value => '60')
       should contain_keystone_config('memcache/dead_retry').with(:value => '60')
       should contain_keystone_config('memcache/socket_timeout').with(:value => '1')
-    end
-
-    it 'should install packages for cache backend' do
-      if cache_backend =~ /pylibmc/
-        should contain_package('python-pylibmc').with('ensure' => 'present')
-      end
     end
 
     it 'should configure revoke_driver for keystone' do
