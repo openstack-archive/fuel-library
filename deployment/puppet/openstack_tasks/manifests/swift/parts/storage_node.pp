@@ -52,9 +52,9 @@ class openstack_tasks::swift::parts::storage_node (
 ) {
   if !defined(Class['swift']) {
     class { 'swift':
-      swift_hash_suffix => $swift_hash_suffix,
-      package_ensure    => $package_ensure,
-      max_header_size   => $swift_max_header_size,
+      swift_hash_path_suffix => $swift_hash_suffix,
+      package_ensure         => $package_ensure,
+      max_header_size        => $swift_max_header_size,
     }
   }
 
