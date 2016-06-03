@@ -39,8 +39,8 @@ end
         :l3_fqdn_hostname => 'stupid_hostname',
         :netrings => {
           'eth1' => {
-              'maximums' => {'RX'=>'4096', 'TX'=>'4096'},
-              'current' => {'RX'=>'256', 'TX'=>'256'}
+            'maximums' => {'RX'=>'4096', 'TX'=>'4096'},
+            'current' => {'RX'=>'256', 'TX'=>'256'}
           },
           'eth2' => {
             'maximums' => {'RX'=>'4096', 'TX'=>'4096'},
@@ -85,8 +85,12 @@ end
                 'generic-receive-offload'      => false,
                 'generic-segmentation-offload' => false
               }
-            }.merge({'rings' => facts[:netrings][iface]['maximums']})
+          }.merge!({'rings' => facts[:netrings][iface]['maximums']})
         })
+      end
+    end
+    ['eth2', 'eth3'].each do |iface|
+      it do
         should contain_l23_stored_config(iface).with({
           'ensure'  => 'present',
           'mtu'     => 9000,
@@ -96,7 +100,7 @@ end
                 'generic-receive-offload'      => false,
                 'generic-segmentation-offload' => false
               }
-            }.merge({'rings' => facts[:netrings][iface]['maximums']})
+          }.merge({'rings' => facts[:netrings][iface]['maximums']})
         })
       end
     end
