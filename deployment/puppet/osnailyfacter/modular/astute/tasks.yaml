@@ -59,7 +59,7 @@
   version: 2.1.0
   role: ['/.*/']
   condition:
-    yaql_exp: '$.uid in added($.network_metadata.nodes.values()).uid'
+    yaql_exp: 'changed($.status)'
   requires: [upload_configuration]
   required_for: [pre_deployment_start]
   parameters:
