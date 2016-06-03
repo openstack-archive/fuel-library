@@ -435,12 +435,6 @@ describe manifest do
       end
     end
 
-    if storage_hash['volumes_ceph']
-      it 'should install open-iscsi if ceph is used as cinder backend' do
-        should contain_package('open-iscsi').with('ensure' => 'present')
-      end
-    end
-
     let(:compute_nodes) { Noop.puppet_function 'get_nodes_hash_by_roles', network_metadata, ['compute'] }
     let(:huge_pages_nodes) { Noop.puppet_function 'filter_nodes_with_enabled_option', compute_nodes, 'nova_hugepages_enabled' }
     let(:cpu_pinning_nodes) { Noop.puppet_function 'filter_nodes_with_enabled_option', compute_nodes, 'nova_cpu_pinning_enabled' }

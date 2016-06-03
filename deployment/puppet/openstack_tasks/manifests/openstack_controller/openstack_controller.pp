@@ -461,10 +461,4 @@ class openstack_tasks::openstack_controller::openstack_controller {
     'DEFAULT/ram_weight_multiplier':        value => '1.0'
   }
 
-  if $storage_hash['volumes_ceph'] {
-    package { 'open-iscsi':
-      ensure => present,
-    }
-  }
-
 }
