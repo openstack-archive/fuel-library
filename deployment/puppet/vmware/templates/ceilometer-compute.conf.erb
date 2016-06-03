@@ -3,6 +3,7 @@ host=<%= @availability_zone_name %>-<%= @service_name %>
 hypervisor_inspector=<%= scope.lookupvar('vmware::ceilometer::hypervisor_inspector') %>
 default_log_levels=<%= scope.lookupvar('vmware::ceilometer::default_log_levels') %>
 log_file=ceilometer-agent-compute-vmware-<%= @availability_zone_name %>-<%= @service_name %>.log
+force_config_drive=False
 
 [vmware]
 host_ip=<%= @vc_host %>
