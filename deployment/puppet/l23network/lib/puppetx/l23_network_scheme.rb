@@ -116,5 +116,11 @@ module L23network
     network_scheme[:transformations] = transformations
     return network_scheme
   end
+
+  def self.remove_empty_members(network_scheme)
+    network_scheme[:endpoints] = network_scheme[:endpoints].is_a?(Hash)  ?  network_scheme[:endpoints].reject{|k,v| !v.is_a?(Hash)}  :  {}
+    network_scheme[:interfaces] = network_scheme[:interfaces].is_a?(Hash)  ?  network_scheme[:interfaces].reject{|k,v| !v.is_a?(Hash)}  :  {}
+    return network_scheme
+  end
 end
 # vim: set ts=2 sw=2 et :

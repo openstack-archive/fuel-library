@@ -26,6 +26,7 @@ module Puppet::Parser::Functions
     Puppet::Parser::Functions.autoloader.loadall
     rv = L23network.sanitize_bool_in_hash(L23network.sanitize_keys_in_hash(cfg_hash))
     rv = L23network.override_transformations(rv)
+    rv = L23network.remove_empty_members(rv)
     L23network::Scheme.set_config(lookupvar('l3_fqdn_hostname'), rv)
     return true
   end
