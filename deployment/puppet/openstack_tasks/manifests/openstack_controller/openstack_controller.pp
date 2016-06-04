@@ -204,6 +204,9 @@ class openstack_tasks::openstack_controller::openstack_controller {
     database_max_retries    => $max_retries,
     database_max_overflow   => $max_overflow,
     notify_on_state_change  => $notify_on_state_change,
+    cache_enabled           => true,
+    cache_backend           => 'oslo_cache.memcache_pool',
+    cache_memcache_servers  => $memcached_servers,
   }
 
   # TODO(aschultz): this is being removed in M, do we need it?
