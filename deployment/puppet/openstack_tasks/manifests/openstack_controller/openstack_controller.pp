@@ -221,6 +221,16 @@ class openstack_tasks::openstack_controller::openstack_controller {
     }
   }
 
+  if pick($nova_hash['use_cache'], true) {
+    class { '::nova::cache':
+      enabled          => true,
+      backend          => 'oslo_cache.memcache_pool',
+      memcache_servers => $memcached_addresses,
+    }
+  }
+
+  ensure_packages($pymemcache_package_name)
+
   class { '::nova::quota':
     quota_instances                   => pick($nova_hash['quota_instances'], 100),
     quota_cores                       => pick($nova_hash['quota_cores'], 100),
@@ -284,13 +294,7 @@ class openstack_tasks::openstack_controller::openstack_controller {
     require                              => Package['nova-common'],
   }
 
-  # From legacy init.pp
-  if !defined(Package[$pymemcache_package_name]) {
-    package { $pymemcache_package_name:
-      ensure => present,
-    } ->
-    Nova::Generic_service <| title == 'api' |>
-  }
+  Package[$pymemcache_package_name] -> Nova::Generic_service <| title == 'api' |>
 
   nova_config {
     'DEFAULT/allow_resize_to_same_host':  value => pick($nova_hash['allow_resize_to_same_host'], true);
