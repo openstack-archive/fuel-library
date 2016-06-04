@@ -23,6 +23,7 @@ describe manifest do
     workers_max          = Noop.hiera 'workers_max'
     network_metadata     = Noop.hiera_hash('network_metadata')
 
+    use_cache            = Noop.hiera_structure 'nova/use_cache', true
     let(:memcached_servers) { Noop.hiera 'memcached_servers' }
 
     let(:memcached_port) { Noop.hiera 'memcached_server_port', '11211' }
@@ -215,6 +216,20 @@ describe manifest do
         :notify_on_state_change => 'vm_and_task_state',
         :memcached_servers      => memcached_authtoken_server,
       )
+    end
+
+    if use_cache
+      it 'should configure nova::cache' do
+        should contain_nova_config('cache/backend').with(
+          'value' => 'oslo_cache.memcache_pool',
+        )
+        should contain_nova_config('cache/enabled').with(
+          'value' => true,
+        )
+        should contain_nova_config('cache/memcache_servers').with(
+          'value' => memcached_servers.join(','),
+        )
+      end
     end
 
     it 'should configure the nova database connection string' do
