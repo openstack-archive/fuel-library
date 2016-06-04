@@ -1,0 +1,9 @@
+Code-Review+2: Alex Schultz <aschultz@mirantis.com>
+Verified+1: Fuel CI <fuel-ci-bot@mirantis.com>
+Workflow+1: Vladimir Kuklin <vkuklin@mirantis.com>
+Verified+2: Jenkins
+Submitted-by: Jenkins
+Submitted-at: Sat, 04 Jun 2016 10:05:18 +0000
+Reviewed-on: https://review.openstack.org/325233
+Project: openstack/fuel-library
+Branch: refs/heads/stable/mitaka
