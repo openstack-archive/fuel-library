@@ -37,6 +37,7 @@ describe manifest do
     memcache_roles       = Noop.hiera 'memcache_roles'
     memcache_addresses   = Noop.hiera 'memcached_addresses', false
     memcache_server_port = Noop.hiera 'memcache_server_port', '11211'
+    use_cache            = Noop.hiera_structure 'nova/use_cache', true
     let(:memcache_nodes) do
       Noop.puppet_function 'get_nodes_hash_by_roles', network_metadata, memcache_roles
     end
@@ -229,6 +230,20 @@ describe manifest do
         :database_max_overflow  => max_overflow,
         :notify_on_state_change => 'vm_and_task_state',
       )
+    end
+
+    if use_cache
+      it 'should configure nova::cache' do
+        should contain_nova_config('cache/backend').with(
+          'value' => 'oslo_cache.memcache_pool',
+        )
+        should contain_nova_config('cache/enabled').with(
+          'value' => true,
+        )
+        should contain_nova_config('cache/memcache_servers').with(
+          'value' => memcache_servers,
+        )
+      end
     end
 
     it 'should configure the nova database connection string' do
