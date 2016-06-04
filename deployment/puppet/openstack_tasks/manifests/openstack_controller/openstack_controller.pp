@@ -221,6 +221,22 @@ class openstack_tasks::openstack_controller::openstack_controller {
     }
   }
 
+  if pick($nova_hash['use_cache'], true) {
+    class { '::nova::cache':
+      enabled          => true,
+      backend          => 'oslo_cache.memcache_pool',
+      memcache_servers => $memcached_addresses,
+    }
+  }
+
+  # From legacy init.pp
+  if !defined(Package[$pymemcache_package_name]) {
+    package { $pymemcache_package_name:
+      ensure => present,
+    } ->
+    Nova::Generic_service <| title == 'api' |>
+  }
+
   class { '::nova::quota':
     quota_instances                   => pick($nova_hash['quota_instances'], 100),
     quota_cores                       => pick($nova_hash['quota_cores'], 100),
@@ -282,14 +298,6 @@ class openstack_tasks::openstack_controller::openstack_controller {
     default_floating_pool                => $default_floating_net,
     secure_proxy_ssl_header              => 'HTTP_X_FORWARDED_PROTO',
     require                              => Package['nova-common'],
-  }
-
-  # From legacy init.pp
-  if !defined(Package[$pymemcache_package_name]) {
-    package { $pymemcache_package_name:
-      ensure => present,
-    } ->
-    Nova::Generic_service <| title == 'api' |>
   }
 
   nova_config {
