@@ -221,6 +221,14 @@ class openstack_tasks::openstack_controller::openstack_controller {
     }
   }
 
+  if pick($nova_hash['use_cache'], true) {
+    class { '::nova::cache':
+      enabled          => true,
+      backend          => 'oslo_cache.memcache_pool',
+      memcache_servers => $memcached_addresses,
+    }
+  }
+
   class { '::nova::quota':
     quota_instances                   => pick($nova_hash['quota_instances'], 100),
     quota_cores                       => pick($nova_hash['quota_cores'], 100),
