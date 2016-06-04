@@ -11,6 +11,11 @@ describe manifest do
       should contain_class('osnailyfacter::apache').with(
         :purge_configs => false,
         :listen_ports  => Noop.hiera_array('apache_ports', ['0.0.0.0:80']),
+        :log_formats   => {
+          'combined'  => '%h %l %u %{%d/%b/%Y:%T}t.%{msec_frac}t \"%r\" %>s %b \"%{Referer}i\" \"%{User-Agent}i\"',
+          'common'    => '%h %l %u %{%d/%b/%Y:%T}t.%{msec_frac}t \"%r\" %>s %b',
+          'forwarded' =>  '%{X-Forwarded-For}i %l %u %{%d/%b/%Y:%T}t.%{msec_frac}t \"%r\" %s %b \"%{Referer}i\" \"%{User-agent}i\"'
+        }
       )
     end
 
