@@ -228,6 +228,9 @@ describe manifest do
         :database_max_retries   => max_retries,
         :database_max_overflow  => max_overflow,
         :notify_on_state_change => 'vm_and_task_state',
+        :cache_enabled          => true,
+        :cache_backend          => 'oslo_cache.memcache_pool',
+        :cache_memcache_servers => memcache_servers,
       )
     end
 
