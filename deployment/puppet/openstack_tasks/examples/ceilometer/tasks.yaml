@@ -18,7 +18,10 @@
         ('mongo' in $.node_roles)),
       ('primary-controller' in $.roles), $.get('kombu_compression'),
       $.get('service_endpoint'), $.get('use_ssl'), $.get('workers_max'),
-      $.network_scheme, $.mongo, $.external_mongo, $.get('amqp_hosts'),
+      $.network_scheme, $.mongo, $.external_mongo,
+      $.network_metadata.nodes.values().where(
+        $.node_roles.any($.matches('controller'))).network_roles.select(
+          $.get('mgmt/messaging')), $.get('amqp_hosts'),
       $.configuration.get('ceilometer'), $.configuration.get('ceilometer_api_paste_ini'))
   parameters:
     puppet_manifest: /etc/puppet/modules/openstack_tasks/examples/ceilometer/controller.pp
@@ -43,7 +46,10 @@
       $.get('use_stderr'), $.get('syslog_log_facility_ceilometer'),
       $.rabbit, $.network_metadata.vips, $.get('service_endpoint'),
       $.get('region', 'RegionOne'), $.ceilometer, $.get('verbose'),
-      $.debug, $.get('use_ssl'), $.get('amqp_hosts'))
+      $.debug, $.get('use_ssl'),
+      $.network_metadata.nodes.values().where(
+        $.node_roles.any($.matches('controller'))).network_roles.select(
+          $.get('mgmt/messaging')), $.get('amqp_hosts'))
   parameters:
     puppet_manifest: /etc/puppet/modules/openstack_tasks/examples/ceilometer/compute.pp
     puppet_modules: /etc/puppet/modules

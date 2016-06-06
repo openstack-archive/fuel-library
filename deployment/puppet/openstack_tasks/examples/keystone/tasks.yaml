@@ -15,9 +15,9 @@
       $.get('region'), $.public_ssl, $.get('use_ssl'),
       $.get('memcache_server_port'), $.get('memcached_addresses'),
       $.get('memcache_roles'),
-      (len($.network_metadata.nodes.values().where(
+      $.network_metadata.nodes.values().where(
         ('controller' in $.node_roles) or
-        ('primary-controller' in $.node_roles)))),
+        ('primary-controller' in $.node_roles)),
       $.get('token_provider'), $.get('max_pool_size'), $.get('max_overflow'),
       $.murano_settings, $.murano, $.get('external_lb'), $.operator_user,
       $.service_user, $.get('apache_ports'))

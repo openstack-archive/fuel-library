@@ -9,6 +9,9 @@
       $.get('neutron_endpoint'), $.debug, $.get('verbose'), $.network_metadata,
       $.get('glance_api_servers'), $.get('default_log_levels'),
       $.get('use_syslog'), $.get('syslog_log_facility_ironic'), $.rabbit,
+      $.network_metadata.nodes.values().where(
+        $.node_roles.any($.matches('controller'))).network_roles.select(
+          $.get('mgmt/messaging')),
       $.get('amqp_hosts'), $.get('amqp_port'), $.quantum_settings,
       ('primary-controller' in $.roles), $.get('kombu_compression'),
       $.get('use_ssl'), $.network_scheme)
@@ -69,13 +72,17 @@
       $.get('neutron_endpoint'), $.get('ironic_endpoint'),
       $.get('glance_api_servers'), $.debug, $.get('verbose'),
       $.get('use_syslog'), $.get('syslog_log_facility_ironic'),
-      $.get('syslog_log_facility_nova'), $.get('amqp_hosts'), $.rabbit,
+      $.get('syslog_log_facility_nova'),
+      $.network_metadata.nodes.values().where(
+        $.node_roles.any($.matches('controller'))).network_roles.select(
+          $.get('mgmt/messaging')),
+      $.get('amqp_hosts'), $.rabbit,
       $.get('nova_report_interval', '60'),
       $.get('nova_service_down_time', '180'), $.quantum_settings,
       $.get('memcached_addresses'),
-      (len($.network_metadata.nodes.values().where(
+      $.network_metadata.nodes.values().where(
         ('controller' in $.node_roles) or
-        ('primary-controller' in $.node_roles)))),
+        ('primary-controller' in $.node_roles)),
       $.get('memcache_server_port'), $.get('use_ssl'))
   required_for: [deploy_end]
   requires: [primary-openstack-controller, openstack-controller, ironic-api]
