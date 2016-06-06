@@ -234,4 +234,55 @@ validate_port()
         return 0
     fi
 }
+
+###########################################################
+# Check network namespace existance. NS name is global $OCF_RESKEY_ns
+#
+# Globals:
+#   OCF_RESKEY_ns
+#   OCF_SUCCESS
+#   OCF_ERR_GENERIC
+# Arguments:
+#
+# Returns:
+#   OCF_SUCCESS - if namespace exists
+#   OCF_ERR_GENERIC - if network namespace is not configured
+###########################################################
+check_ns() {
+    local LH="${LL} check_ns():"
+    local ns=$(ip netns list | awk "/${OCF_RESKEY_ns}/ {print \$1}")
+    ocf_log debug "${LH} recieved netns list: ${ns}"
+    [ "${ns}" != "${OCF_RESKEY_ns}" ] && return "${OCF_ERR_GENERIC}"
+    return "${OCF_SUCCESS}"
+}
+
+###########################################################
+# Ensure network namespace. NS name is global $OCF_RESKEY_ns
+#
+# Globals:
+#   OCF_RESKEY_ns
+#   RUN_IN_NS
+#   OCF_SUCCESS
+#   OCF_ERR_GENERIC
+# Arguments:
+#
+# Returns:
+#   OCF_SUCCESS - if namespace is ensured (exists or created)
+#   OCF_ERR_GENERIC - if netns is absend and can't be created
+###########################################################
+ensure_ns()
+{
+    local rc
+    local LH="${LL} get_ns():"
+
+    check_ns && return "${OCF_SUCCESS}"
+
+    ( set -e
+      ocf_run ip netns add "${OCF_RESKEY_ns}"
+      ocf_run "${RUN_IN_NS}" /sbin/sysctl -w net.ipv4.ip_nonlocal_bind=1
+      ocf_run "${RUN_IN_NS}" ip link set up dev lo
+    ) || return "${OCF_ERR_GENERIC}"
+    ocf_log debug "${LH} added netns ${OCF_RESKEY_ns} and set up lo"
+    return "${OCF_SUCCESS}"
+}
 # vim: set ts=4 sw=4 tw=0 et :

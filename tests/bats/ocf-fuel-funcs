@@ -162,3 +162,43 @@ trap 'rm -rf $TMPFILE' EXIT INT HUP
   run validate_port aaa1
   [ $status -eq 1 ]
 }
+
+@test "Check check_ns(): with simple 'ip netns list' output" {
+  export OCF_RESKEY_ns=haproxy
+  ip() {
+    [ "$1" = 'netns' ] && [ "$2" = 'list' ] && echo -e 'testns\nhaproxy'
+  }
+
+  run check_ns
+  [ $status -eq 0 ]
+}
+
+@test "Check check_ns(): with extended 'ip netns list' output" {
+  export OCF_RESKEY_ns=haproxy
+  ip() {
+    [ "$1" = 'netns' ] && [ "$2" = 'list' ] && echo -e 'testns (id: 1)\nhaproxy (id: 0)'
+  }
+
+  run check_ns
+  [ $status -eq 0 ]
+}
+
+@test "Check check_ns(): without configured netns" {
+  export OCF_RESKEY_ns=haproxy
+  ip() {
+    [ "$1" = 'netns' ] && [ "$2" = 'list' ] && echo -e 'testns'
+  }
+
+  run check_ns
+  [ $status -eq 1 ]
+}
+
+@test "Check ensure_ns(): simple test" {
+  export OCF_RESKEY_ns=haproxy
+  ip() {
+    [ "$1" = 'netns' ] && [ "$2" = 'list' ] && echo -e 'testns (id: 1)\nhaproxy (id: 0)'
+  }
+
+  run ensure_ns
+  [ $status -eq 0 ]
+}

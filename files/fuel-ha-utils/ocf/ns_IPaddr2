@@ -24,6 +24,8 @@ OCF_RESKEY_other_networks_default=""  #  can be "", or list of networks in CIDR 
 : ${OCF_RESKEY_also_check_interfaces=${OCF_RESKEY_also_check_interfaces_default}}
 : ${OCF_RESKEY_other_networks=${OCF_RESKEY_other_networks_default}}
 
+. "${OCF_FUEL_FUNCTIONS_DIR}/ocf-fuel-funcs"
+
 FAMILY='inet'
 RUN_IN_NS="ip netns exec $OCF_RESKEY_ns "
 SH="/bin/bash"
@@ -319,19 +321,6 @@ remove_from_bridge() {
 #######################################################################
 
 
-check_ns() {
-  local ns=$(ip netns list | awk "/${OCF_RESKEY_ns}/ {print \$1}")
-  [[ "$ns" != "$OCF_RESKEY_ns" ]] && return $OCF_ERR_GENERIC
-  return $OCF_SUCCESS
-}
-
-get_ns() {
-  local rc
-  check_ns || ocf_run ip netns add $OCF_RESKEY_ns
-  ocf_run $RUN_IN_NS ip link set up dev lo || return $OCF_ERR_GENERIC
-  return $OCF_SUCCESS
-}
-
 get_or_create_veth_pair() {
   local rc
   local rc1
@@ -374,7 +363,7 @@ ip_prepare() {
   [[ $? != 0 ]] && return $OCF_ERR_GENERIC
 
   # create or get existing network namespace
-  get_ns || return $OCF_ERR_GENERIC
+  ensure_ns || return $OCF_ERR_GENERIC
 
   # create or get existing pair of veth interfaces
   get_or_create_veth_pair || return $OCF_ERR_GENERIC

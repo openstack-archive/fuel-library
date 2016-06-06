@@ -55,6 +55,8 @@ OCF_RESKEY_route_metric_default="10000"
 : ${OCF_FUNCTIONS_DIR=${OCF_ROOT}/resource.d/heartbeat}
 . ${OCF_FUNCTIONS_DIR}/.ocf-shellfuncs
 
+. "${OCF_FUEL_FUNCTIONS_DIR}/ocf-fuel-funcs"
+
 USAGE="Usage: $0 {start|stop|restart|status|monitor|validate-all|meta-data}";
 
 RUN_IN_NS="ip netns exec $OCF_RESKEY_ns "
@@ -182,27 +184,6 @@ END
 exit $OCF_SUCCESS
 }
 
-check_ns() {
-  local LH="${LL} check_ns():"
-  local ns=$(ip netns list | awk "/${OCF_RESKEY_ns}/ {print \$1}")
-  ocf_log debug "${LH} recieved netns list: ${ns}"
-  [[ $ns != $OCF_RESKEY_ns ]] && return $OCF_ERR_GENERIC
-  return $OCF_SUCCESS
-}
-
-get_ns() {
-  local rc
-  local LH="${LL} get_ns():"
-  check_ns && return $OCF_SUCCESS
-
-  ocf_run ip netns add $OCF_RESKEY_ns
-  rc=$?
-  ocf_run $RUN_IN_NS ip link set up dev lo
-  ocf_log debug "${LH} added netns ${OCF_RESKEY_ns} and set up lo"
-
-  return $rc
-}
-
 set_ns_routing() {
   nsip() {
     ip netns exec "${OCF_RESKEY_ns}" ip ${@}
@@ -277,13 +258,13 @@ set_ns_routing() {
 }
 
 vrouter_status() {
-  get_ns || return $OCF_NOT_RUNNING
+  ensure_ns || return $OCF_NOT_RUNNING
   set_ns_routing
 }
 
 vrouter_start()
 {
-  get_ns
+  ensure_ns
   set_ns_routing
         return $OCF_SUCCESS
 }
@@ -301,7 +282,7 @@ vrouter_monitor()
 
 vrouter_validate_all()
 {
-  get_ns
+  ensure_ns
   return $OCF_SUCCESS
 }
 
