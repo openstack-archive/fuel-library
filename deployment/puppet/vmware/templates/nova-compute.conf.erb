@@ -3,6 +3,7 @@ compute_driver=vmwareapi.VMwareVCDriver
 log_file=nova-compute-vmware-<%= @availability_zone_name %>-<%= @service_name %>.log
 host=<%= @availability_zone_name %>-<%= @service_name %>
 reserved_host_memory_mb = 0
+force_config_drive=False
 
 [vmware]
 
