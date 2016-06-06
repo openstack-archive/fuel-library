@@ -62,6 +62,9 @@
       $.quantum_settings, $.neutron_advanced_configuration, $.rabbit,
       $.ceilometer, $.network_scheme, $.get('use_syslog'),
       $.get('use_stderr'), $.get('syslog_log_facility_neutron'),
+      $.network_metadata.nodes.values().where(
+        $.node_roles.any($.matches('controller'))).network_roles.select(
+          $.get('mgmt/messaging')),
       $.get('amqp_hosts'), $.get('kombu_compression'))
   parameters:
     puppet_manifest: /etc/puppet/modules/openstack_tasks/examples/openstack-network/common-config.pp
