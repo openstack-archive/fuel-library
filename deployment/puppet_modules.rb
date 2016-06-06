@@ -377,7 +377,8 @@ module PuppetModules
       cmd += " --puppetfile=#{file_path}"
       cmd += ' --verbose' if options[:verbose]
       cmd = 'bundle exec ' + cmd if options[:bundler]
-      run_inside_directory dir_path_root, cmd
+      success = run_inside_directory dir_path_root, cmd
+      error "librarian-puppet command failed" unless success
     end
   end
 
@@ -503,7 +504,7 @@ module PuppetModules
     module_names.each do |module_name|
       module_path = dir_path_puppet + Pathname.new(module_name)
       head = git_head module_path
-      next unless head
+      error "#{module_name} is not currently checked out" unless head
       module_versions.store module_name, head
     end
     module_versions
