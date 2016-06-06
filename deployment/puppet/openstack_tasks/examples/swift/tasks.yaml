@@ -12,13 +12,17 @@
         $.get('swift_master_role', 'primary-controller'),
         $.get('swift_object_roles'), ('primary-controller' in $.roles),
         $.get('swift_proxy_roles'), $.get('memcached_addresses'),
-        (len($.network_metadata.nodes.values().where(
+        $.network_metadata.nodes.values().where(
           ('controller' in $.node_roles) or
-          ('primary-controller' in $.node_roles)))),
+          ('primary-controller' in $.node_roles)),
         $.get('proxy_port'), $.storage, $.debug, $.get('verbose'),
         $.get('swift_ring_min_part_hours'), $.get('deploy_swift_proxy'),
-        $.get('use_ssl'), $.rabbit, $.get('amqp_hosts'),
-        $.get('memcache_server_port'), $.ceilometer.enabled, $.mp, $.get('swift_partition'), $.get('deploy_swift_storage')))
+        $.get('use_ssl'), $.rabbit,
+        $.network_metadata.nodes.values().where(
+          $.node_roles.any($.matches('controller'))).network_roles.select(
+            $.get('mgmt/messaging')), $.get('amqp_hosts'),
+        $.get('memcache_server_port'), $.ceilometer.enabled, $.mp,
+        $.get('swift_partition'), $.get('deploy_swift_storage')))
   cross-depends:
     - name: /(primary-)?rabbitmq/
       role: self
@@ -50,7 +54,7 @@
     yaql_exp: >
       ((not $.storage.objects_ceph or not $.storage.images_ceph) and
         not $.storage.images_vcenter) and
-      (changedAny($.storage, $.get('swift_master_role'),
+      (changedAny($.storage, $.get('swift_master_role', 'primary-controller'),
         $.get('swift_ring_min_part_hours'),('primary-controller' in $.roles)))
   cross-depends:
     - name: /(primary-)?swift-proxy/

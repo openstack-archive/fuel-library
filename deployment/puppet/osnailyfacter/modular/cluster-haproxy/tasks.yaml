@@ -6,7 +6,7 @@
   requires: [deploy_start, virtual_ips, primary-cluster]
   condition:
     yaql_exp: &cluster_haproxy >
-      changedAny($.network_scheme, $.network_metadata.vips,
+      changedAny($.network_scheme, $.network_metadata,
       $.get('database_vip'), ('primary-controller' in $.roles),
       $.get('haproxy'), $.get('external_lb'), $.get('colocate_haproxy'),
       $.debug, $.configuration.get('haproxy'))

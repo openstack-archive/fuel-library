@@ -66,9 +66,9 @@
     yaql_exp: &ceph_radosgw >
       changedAny($.storage, $.keystone, $.network_metadata.vips,
       $.get('external_lb'),
-      (len($.network_metadata.nodes.values().where(
+      $.network_metadata.nodes.values().where(
         ('controller' in $.node_roles) or
-        ('primary-controller' in $.node_roles)))),
+        ('primary-controller' in $.node_roles)),
       $.get('use_ssl'), ('primary-controller' in $.roles), $.network_scheme,
       $.get('apache_ports'), $.get('use_syslog'),
       $.get('syslog_log_facility_ceph'), $.get('syslog_log_level_ceph'))
@@ -128,9 +128,9 @@
     yaql_exp: &ceph_mon >
       changedAny($.storage, $.quantum, $.network_metadata,
       $.get('use_syslog'), $.get('syslog_log_facility_ceph'), $.keystone,
-      (len($.network_metadata.nodes.values().where(
+      $.network_metadata.nodes.values().where(
         ('controller' in $.node_roles) or
-        ('primary-controller' in $.node_roles)))),
+        ('primary-controller' in $.node_roles)),
       $.network_scheme, $.get('syslog_log_level_ceph'))
   parameters:
     puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/ceph/mon.pp
@@ -171,9 +171,8 @@
       (changedAny($.storage, $.quantum, $.network_metadata.vips,
        $.get('use_syslog'), $.get('syslog_log_facility_ceph'), $.keystone,
        $.network_scheme,
-       (len(
         $.network_metadata.nodes.values().flatten().node_roles.flatten().where(
-          $ = 'controller' or $ = 'primary-controller')))))
+          $ = 'controller' or $ = 'primary-controller')))
   parameters:
     puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/ceph/ceph_compute.pp
     puppet_modules: /etc/puppet/modules

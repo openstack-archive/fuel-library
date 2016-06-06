@@ -8,9 +8,9 @@
     yaql_exp: >
       changedAny($.network_scheme, $.horizon, $.get('memcached_addresses'),
       $.get('memcache_roles'),
-      (len($.network_metadata.nodes.values().where(
+      $.network_metadata.nodes.values().where(
         ('controller' in $.node_roles) or
-        ('primary-controller' in $.node_roles)))),
+        ('primary-controller' in $.node_roles)),
       $.storage, $.neutron_advanced_configuration, $.public_ssl,
       $.get('horizon_use_ssl'), $.get('external_lb'), $.get('use_ssl'),
       $.nova_quota, $.debug, $.get('verbose'), $.get('apache_ports'))

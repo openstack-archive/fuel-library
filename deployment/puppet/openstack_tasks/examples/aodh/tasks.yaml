@@ -10,7 +10,11 @@
   condition:
     yaql_exp: >
       $.ceilometer.enabled and changedAny($.get('rabbit_ha_queues'),
-      $.rabbit, $.get('amqp_hosts'), $.get('amqp_port'),
+      $.rabbit,
+      $.network_metadata.nodes.values().where(
+        $.node_roles.any($.matches('controller'))).network_roles.select(
+          $.get('mgmt/messaging')),
+      $.get('amqp_hosts'), $.get('amqp_port'),
       $.get('kombu_compression'), $.network_scheme, $.aodh,
       $.get('region', 'RegionOne'), $.debug, $.get('verbose'),
       $.get('database_vip'), $.get('external_lb'), $.network_metadata.vips,
