@@ -247,6 +247,15 @@ class openstack_tasks::openstack_network::server_config {
       ensure => 'installed',
     }
 
+   $ironic_settings_hash         = hiera_hash('ironic_settings', {})
+   $ironic_provision_network = try_get_value($ironic_settings_hash, 'ironic_provision_network', false)
+   if $ironic_provision_network {
+       package {'networking-generic-switch':
+         name => 'networking-generic-switch',
+         ensure => 'installed',
+       }
+   }
+
   }
 
 }
