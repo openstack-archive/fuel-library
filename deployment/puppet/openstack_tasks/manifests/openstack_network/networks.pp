@@ -89,10 +89,19 @@ class openstack_tasks::openstack_network::networks {
       $baremetal_router_external = try_get_value($nets, 'baremetal/L2/router_ext')
       $baremetal_shared          = try_get_value($nets, 'baremetal/shared', false)
 
+      $ironic_settings         = hiera('ironic_settings', {})
+      ironic_provision_network = try_get_value($ironic_settings, 'ironic_provision_network', false)
+
+      if $ironic_provision_network {
+          $baremetal_provider_network_type = 'vlan'
+      } else {
+          $baremetal_provider_network_type = 'flat'
+      }
+
       neutron_network { 'baremetal' :
         ensure                    => 'present',
         provider_physical_network => $baremetal_physnet,
-        provider_network_type     => 'flat',
+        provider_network_type     => $baremetal_provider_network_type,
         provider_segmentation_id  => $baremetal_segment_id,
         router_external           => $baremetal_router_external,
         tenant_name               => $tenant_name,
