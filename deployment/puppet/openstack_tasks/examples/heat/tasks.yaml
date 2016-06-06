@@ -14,7 +14,10 @@
       $.get('verbose'), $.get('use_stderr'), $.get('use_syslog'),
       $.get('syslog_log_facility_heat'), $.deployment_mode,
       $.get('region', 'RegionOne'), $.get('external_lb'),
-      $.get('database_vip'), $.get('heat_db_name'), $.get('amqp_hosts'),
+      $.get('database_vip'), $.get('heat_db_name'),
+      $.network_metadata.nodes.values().where(
+        $.node_roles.any($.matches('controller'))).network_roles.select(
+          $.get('mgmt/messaging')), $.get('amqp_hosts'),
       $.configuration.get('heat'), $.configuration.get('heat_api_paste_ini'),
       $.get('heat_ha_engine'))
   cross-depends:
