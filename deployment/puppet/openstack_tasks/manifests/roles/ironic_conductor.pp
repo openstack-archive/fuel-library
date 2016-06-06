@@ -79,7 +79,18 @@ class openstack_tasks::roles::ironic_conductor {
 
   class { '::ironic::client': }
 
-  class { '::ironic::conductor': }
+  $ironic_settings=hiera_hash('ironic_settings', {})
+  if $ironic_settings['ironic_provision_network'] {
+    $provision_network_uuid = openstack_resource_id_getter("network show baremetal")
+  } else {
+    $provision_network_uuid = undef
+  }
+
+  class { '::ironic::conductor':
+    cleaning_network_uuid     => $provision_network_uuid,
+    provisioning_network_uuid => $provision_network_uuid
+  }
+
 
   class { '::ironic::drivers::pxe':
     tftp_server      => $baremetal_address,
