@@ -8,9 +8,9 @@
     yaql_exp:
       changedAny($.storage, $.ceph_tuning_settings, $.get('use_ssl'),
       $.get('use_syslog'), $.network_scheme,
-      (len($.network_metadata.nodes.values().where(
+      $.network_metadata.nodes.values().where(
         ('controller' in $.node_roles) or
-        ('primary-controller' in $.node_roles)))),
+        ('primary-controller' in $.node_roles)),
       ('primary-controller' in $.roles))
   cross-depends:
     - name: /(primary-)?ceph-mon/
@@ -30,8 +30,8 @@
       ($.storage.objects_ceph or $.storage.images_ceph or
        $.storage.volumes_ceph or $.storage.ephemeral_ceph) and
       changedAny($.storage, $.get('use_syslog'), $.network_scheme,
-      (len($.network_metadata.nodes.values().where(
-       $.node_roles.any($.matches('(primary-)?controller'))))))
+      $.network_metadata.nodes.values().where(
+       $.node_roles.any($.matches('(primary-)?controller'))))
   parameters:
     puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/ceph/mon.pp
     puppet_modules: /etc/puppet/modules
@@ -77,9 +77,9 @@
     yaql_exp:
       $.storage.objects_ceph and
       changedAny($.storage, $.get('use_syslog'), $.keystone, $.network_metadata.vips, $.get('use_ssl'),
-      (len($.network_metadata.nodes.values().where(
+      $.network_metadata.nodes.values().where(
         ('controller' in $.node_roles) or
-        ('primary-controller' in $.node_roles)))),
+        ('primary-controller' in $.node_roles)),
       ('primary-controller' in $.roles), $.network_scheme, $.get('apache_ports'))
   parameters:
     puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/ceph/radosgw.pp
@@ -123,9 +123,8 @@
       (changedAny($.storage, $.quantum, $.network_metadata.vips,
        $.get('use_syslog'), $.get('syslog_log_facility_ceph'), $.keystone,
        $.network_scheme,
-       (len(
-        $.network_metadata.nodes.values().flatten().node_roles.flatten().where(
-          $ = 'controller' or $ = 'primary-controller')))))
+       $.network_metadata.nodes.values().flatten().node_roles.flatten().where(
+         $ = 'controller' or $ = 'primary-controller')))
   parameters:
     puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/ceph/ceph_compute.pp
     puppet_modules: /etc/puppet/modules
