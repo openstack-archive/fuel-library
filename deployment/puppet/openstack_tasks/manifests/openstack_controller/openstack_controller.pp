@@ -127,16 +127,18 @@ class openstack_tasks::openstack_controller::openstack_controller {
   })
 
   # SQLAlchemy backend configuration
-  $max_pool_size = min($::processorcount * 5 + 0, 30 + 0)
-  $max_overflow = min($::processorcount * 5 + 0, 60 + 0)
-  $max_retries = '-1'
-  $idle_timeout = '3600'
+  $max_pool_size = hiera('max_pool_size', min($::processorcount * 5 + 0, 30 + 0))
+  $max_overflow = hiera('max_overflow', min($::processorcount * 5 + 0, 60 + 0))
+  $idle_timeout = hiera('idle_timeout', '3600')
+  $max_retries = hiera('max_retries', '-1')
 
   if hiera('nova_quota') {
     $nova_quota_driver = 'nova.quota.DbQuotaDriver'
   } else {
     $nova_quota_driver = 'nova.quota.NoopQuotaDriver'
   }
+
+  $notify_on_state_change = 'vm_and_task_state'
 
   if hiera('use_vcenter', false) or hiera('libvirt_type') == 'vcenter' {
     $multi_host = false
@@ -209,6 +211,7 @@ class openstack_tasks::openstack_controller::openstack_controller {
     database_max_retries               => $max_retries,
     database_max_overflow              => $max_overflow,
     rabbit_heartbeat_timeout_threshold => $::os_service_default,
+    notify_on_state_change             => $notify_on_state_change,
   }
 
   # TODO(aschultz): this is being removed in M, do we need it?
@@ -446,7 +449,7 @@ class openstack_tasks::openstack_controller::openstack_controller {
     class { '::nova::ironic::common':
       admin_username    => pick($ironic_hash['auth_name'],'ironic'),
       admin_password    => pick($ironic_hash['user_password'],'ironic'),
-      admin_url         => $keystone_identity_uri,
+      admin_url         => "${keystone_identity_uri}v2.0",
       admin_tenant_name => pick($ironic_hash['tenant'],'services'),
       api_endpoint      => "${ironic_protocol}://${ironic_endpoint}:6385/v1",
     }
