@@ -40,3 +40,7 @@ task_graph.png
 .librarian
 tests/noop/coverage/
 tests/noop/spec/fixtures/
+
+# Files created by releasenotes build
+releasenotes/build
+.tox
