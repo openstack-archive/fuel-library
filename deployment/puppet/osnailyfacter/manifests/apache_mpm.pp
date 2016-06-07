@@ -2,13 +2,13 @@
 class osnailyfacter::apache_mpm {
 
   # Performance optimization for Apache mpm
-  if $::memorysize_mb < 4100 {
+  if ($::memorysize_mb + 0) < 4100 {
     $maxclients = 100
   } else {
     $maxclients = inline_template('<%= Integer(@memorysize_mb.to_i / 10) %>')
   }
 
-  if $::processorcount <= 2 {
+  if ($::processorcount + 0) <= 2 {
     $startservers = 2
   } else {
     $startservers = $::processorcount
