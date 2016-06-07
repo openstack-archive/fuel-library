@@ -2,8 +2,8 @@ source 'https://rubygems.org'
 
 group :development, :test do
   gem 'puppetlabs_spec_helper',               :require => 'false'
-  gem 'rspec', '~>3.3',                       :require => 'false'
-  gem 'rspec-puppet', '~> 2.2.0',             :require => 'false'
+  gem 'rspec',                                :require => 'false'
+  gem 'rspec-puppet',                         :require => 'false'
   gem 'librarian-puppet-simple',              :require => 'false'
   gem 'metadata-json-lint',                   :require => 'false'
   gem 'mime-types', '2.6.2',                  :require => 'false' # 3.0+ requires ruby 2.0
@@ -32,6 +32,5 @@ end
 if puppetversion = ENV['PUPPET_GEM_VERSION']
   gem 'puppet', puppetversion, :require => false
 else
-  # TODO(aschultz): remove this version when 4 is supported
-  gem 'puppet', '~> 3.8', :require => false
+  gem 'puppet'
 end
