@@ -47,9 +47,11 @@ class osnailyfacter::mysql_access (
     }
 
     File["${db_host}-mysql-access"] ->
-      File <| path == $default_file_path |>
+    File <| path == $default_file_path |>
 
     # Ensure .my.cnf exists even if mysql on this node is disabled
-    ensure_resource(file, $default_file_path)
+    # TODO: ensuring the default file is present is required for the external db configurations
+    # TODO: but it causes duplicate declaration errors on the controller. Some solution should be found.
+    # ensure_resource(file, $default_file_path)
   }
 }
