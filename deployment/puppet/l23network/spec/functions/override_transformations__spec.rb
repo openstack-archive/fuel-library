@@ -10,7 +10,7 @@ describe 'override_transformations' do
   end
 
   it 'should exist' do
-    Puppet::Parser::Functions.function('override_transformations').should == 'function_override_transformations'
+    expect(Puppet::Parser::Functions.function('override_transformations')).to eq 'function_override_transformations'
   end
 
   it 'should has ability to override existing fields and add new' do
@@ -125,4 +125,3 @@ describe 'override_transformations' do
   end
 
 end
-# vim: set ts=2 sw=2 et :

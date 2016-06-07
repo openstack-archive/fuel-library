@@ -36,4 +36,3 @@ describe 'get_route_resource_name' do
 
   end
 end
-# vim: set ts=2 sw=2 et
