@@ -39,7 +39,8 @@ EOS
     debug("Formatng the output")
     result = []
     physnet_bridge_map.each do |net, vr|
-      record = vr ?  ":#{vr}" : ''
+      record = ''
+      record += ":#{vr}" if vr and not vr == :undef
       result << "#{net}"+ record
     end
     debug("Format is done, value is: #{result}")
