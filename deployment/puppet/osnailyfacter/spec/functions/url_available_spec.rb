@@ -1,21 +1,20 @@
 require 'spec_helper'
 
-describe 'the structure function' do
-  let(:scope) { PuppetlabsSpec::PuppetInternals.scope }
+describe 'url_available' do
 
   let(:valid_urls) do
-    [
-      "http://archive.ubuntu.com/ubuntu/",
-      "http://mirror.fuel-infra.org/mos/ubuntu/",
-      "http://apt.postgresql.org/pub/repos/apt/"
-    ]
+    %w(
+    http://archive.ubuntu.com/ubuntu/
+    http://mirror.fuel-infra.org/mos/ubuntu/
+    http://apt.postgresql.org/pub/repos/apt/
+    )
   end
 
   let(:invalid_urls) do
-    [
-      "http://invalid-url.ubuntu.com/ubuntu/",
-      "http://mirror.fuel-infra.org/invalid-url"
-    ]
+    %w(
+    http://invalid-url.ubuntu.com/ubuntu/
+    http://mirror.fuel-infra.org/invalid-url
+    )
   end
 
   before(:each) do
@@ -25,26 +24,26 @@ describe 'the structure function' do
   end
 
   it 'should exist' do
-    expect(Puppet::Parser::Functions.function('url_available')).to eq 'function_url_available'
+    is_expected.not_to be_nil
   end
 
   context 'with single values' do
     it 'should be able to process a single value' do
-      expect(scope.function_url_available([valid_urls[0]])).to be true
+      is_expected.to run.with_params(valid_urls[0]).and_return(true)
     end
 
     it 'should throw exception on invalid url' do
-      expect{ scope.function_url_available([invalid_urls[0]]) }.to raise_error(Puppet::Error)
+      is_expected.to run.with_params(invalid_urls[0]).and_raise_error(Puppet::Error)
     end
   end
 
   context 'with multiple values' do
     it 'should be able to process an array of values' do
-      expect(scope.function_url_available([valid_urls])).to be true
+      is_expected.to run.with_params(valid_urls).and_return(true)
     end
 
     it 'should throw exception on invalid urls' do
-      expect{ scope.function_url_available([invalid_urls]) }.to raise_error(Puppet::Error)
+      is_expected.to run.with_params(invalid_urls).and_raise_error(Puppet::Error)
     end
   end
 end
