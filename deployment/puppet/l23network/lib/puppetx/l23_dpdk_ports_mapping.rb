@@ -1,4 +1,4 @@
-require 'puppetx/l23_network_scheme'
+require_relative 'l23_network_scheme'
 
 module L23network
   def self.get_dpdk_ports_mapping()
