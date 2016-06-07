@@ -1,7 +1,3 @@
-#
-# array_or_string_to_array.rb
-#
-
 module Puppet::Parser::Functions
   newfunction(:array_or_string_to_array, :type => :rvalue, :doc => <<-EOS
 This function get array or string with separator (comma, colon or space).
