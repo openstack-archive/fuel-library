@@ -196,7 +196,7 @@ end
 
     it do
       should contain_l3_ifconfig('br-xx').with({
-        'ipaddr' => '192.168.101.3/24',
+        'ipaddr' => ['192.168.101.3/24'],
       })
     end
 
