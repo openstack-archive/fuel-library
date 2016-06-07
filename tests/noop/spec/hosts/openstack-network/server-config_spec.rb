@@ -217,7 +217,7 @@ describe manifest do
           end
 
           network_vlan_ranges = []
-          tunnel_id_ranges = neutron_config.fetch('L2',{}).fetch('tunnel_id_ranges')
+          tunnel_id_ranges = [neutron_config.fetch('L2',{}).fetch('tunnel_id_ranges')]
           should contain_class('neutron::plugins::ml2').with(
           'path_mtu' => path_mtu,)
         end
