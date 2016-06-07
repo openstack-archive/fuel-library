@@ -1,5 +1,5 @@
-require 'puppetx/l23_utils'
 require 'yaml'
+require_relative '../../puppetx/l23_utils'
 
 class Puppet::Provider::InterfaceToolset < Puppet::Provider
 

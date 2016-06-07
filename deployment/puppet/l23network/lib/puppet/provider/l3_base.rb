@@ -1,4 +1,4 @@
-require File.join(File.dirname(__FILE__), 'interface_toolset')
+require_relative 'interface_toolset'
 
 class Puppet::Provider::L3_base < Puppet::Provider::InterfaceToolset
 
