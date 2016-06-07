@@ -46,6 +46,7 @@ describe manifest do
         extension_drivers = ['port_security']
         segmentation_type = neutron_config.fetch('L2',{}).fetch('segmentation_type')
         pnets = neutron_config.fetch('L2',{}).fetch('phys_nets',{})
+        path_mtu = neutron_config.fetch('L2',{}).fetch('path_mtu', nil)
         role = Noop.hiera('role')
         adv_neutron_config = Noop.hiera_hash('neutron_advanced_configuration')
         dvr = adv_neutron_config.fetch('neutron_dvr', false)
@@ -311,11 +312,18 @@ describe manifest do
           'physical_network_mtus' => physical_network_mtus,
         )}
         it { should contain_class('neutron::plugins::ml2').with(
-          'path_mtu' => physical_net_mtu,
-        )}
-        it { should contain_class('neutron::plugins::ml2').with(
           'extension_drivers' => extension_drivers,
         )}
+
+        if path_mtu {
+          it { should contain_class('neutron::plugins::ml2').with(
+            'path_mtu' => path_mtu,
+          )}
+        } else {
+          it { should contain_class('neutron::plugins::ml2').with(
+            'path_mtu' => physical_net_mtu,
+          )}
+        }
 
         it 'neutron config should be modified by override_resources' do
           is_expected.to contain_override_resources('neutron_config').with(:data => neutron_config_override_resources)
