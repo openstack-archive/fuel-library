@@ -1,10 +1,5 @@
-begin
-  require 'puppetx/l23_utils'
-rescue LoadError => e
-  rb_file = File.join(File.dirname(__FILE__),'..','..','..','puppetx','l23_utils.rb')
-  load rb_file if File.exists?(rb_file) or raise e
-end
-#
+require_relative '../../../puppetx/l23_utils'
+
 module Puppet::Parser::Functions
   newfunction(:get_pair_of_jack_names, :type => :rvalue) do |arguments|
     # arguments[0] -- is a bridges list of two elements
