@@ -1,6 +1,6 @@
 require 'spec_helper'
 
-describe 'the structure function' do
+describe 'url_available' do
   let(:scope) { PuppetlabsSpec::PuppetInternals.scope }
 
   let(:valid_urls) do
