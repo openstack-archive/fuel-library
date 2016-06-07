@@ -183,6 +183,7 @@ describe manifest do
       provider = 'http'
     else
       url = 'http://' + Noop.hiera('service_endpoint').to_s + ':10000/;csv'
+      Puppet::Type.typeloader.load :haproxy_backend_status unless Puppet::Type.typeloader.loaded? :haproxy_backend_status
       provider = Puppet::Type.type(:haproxy_backend_status).defaultprovider.name
     end
 
