@@ -47,11 +47,7 @@ class openstack_tasks::openstack_network::common_config {
 
   # Force $::os_service_default for empty value to pass validation
   # in puppet-oslo module
-  if ! hiera('kombu_compression', '') {
-    $kombu_compression = $::os_service_default
-  } else {
-    $kombu_compression = hiera('kombu_compression')
-  }
+  $kombu_compression = hiera('kombu_compression', $::os_service_default)
 
   $segmentation_type = try_get_value($neutron_config, 'L2/segmentation_type')
 
