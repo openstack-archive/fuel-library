@@ -94,7 +94,7 @@ mod 'vcsrepo',
 # Pull in puppetlabs-postgresql
 mod 'postgresql',
     :git => 'https://github.com/fuel-infra/puppetlabs-postgresql.git',
-    :ref => '4.0.0'
+    :ref => '4.1.0'
 
 # Pull in saz-rsyslog
 mod 'rsyslog',
