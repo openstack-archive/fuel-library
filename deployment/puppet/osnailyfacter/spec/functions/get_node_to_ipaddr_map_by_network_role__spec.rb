@@ -1,7 +1,7 @@
 require 'spec_helper'
 require 'yaml'
 
-describe Puppet::Parser::Functions.function(:get_node_to_ipaddr_map_by_network_role) do
+describe 'get_node_to_ipaddr_map_by_network_role' do
 let(:network_metadata) do
 YAML.load("
 ---
@@ -51,21 +51,12 @@ YAML.load("
 ")
 end
 
-  let(:scope) { PuppetlabsSpec::PuppetInternals.scope }
-
-  subject do
-    function_name = Puppet::Parser::Functions.function(:get_node_to_ipaddr_map_by_network_role)
-    scope.method(function_name)
-  end
-
-  context "get_node_to_ipaddr_map_by_network_role($nodes_hash, 'role') usage" do
-
     it 'should exist' do
-      subject == Puppet::Parser::Functions.function(:get_node_to_ipaddr_map_by_network_role)
+      is_expected.not_to be_nil
     end
 
     it 'should return nodes to IP map for "nova/api" role from network_metadata hash' do
-      should run.with_params(network_metadata, 'nova/api').and_return({
+      is_expected.to run.with_params(network_metadata, 'nova/api').and_return({
         'node-55' => '192.168.1.55',
         'node-66' => '192.168.1.66',
         'node-77' => '192.168.1.77'
@@ -73,7 +64,7 @@ end
     end
 
     it 'should return nodes to IP map for "nova/api" role from nodes_hash' do
-      should run.with_params(nodes_hash, 'nova/api').and_return({
+      is_expected.to run.with_params(nodes_hash, 'nova/api').and_return({
         'node-55' => '192.168.1.5',
         'node-66' => '192.168.1.6',
         'node-77' => '192.168.1.7'
@@ -81,31 +72,29 @@ end
     end
 
     it 'should return nodes to IP map for "neutron/api" role from network_metadata hash' do
-      should run.with_params(network_metadata, 'neutron/api').and_return({
+      is_expected.to run.with_params(network_metadata, 'neutron/api').and_return({
         'node-55' => '192.168.3.55',
         'node-66' => '192.168.3.66'
       })
     end
 
     it 'should return nodes to IP map for "neutron/api" role from nodes_hash' do
-      should run.with_params(nodes_hash, 'neutron/api').and_return({
+      is_expected.to run.with_params(nodes_hash, 'neutron/api').and_return({
         'node-55' => '192.168.3.5',
         'node-66' => '192.168.3.6'
       })
     end
 
     it 'should return {} if 1st argument has wrong format' do
-      should run.with_params({:a=>1, :b=>2}, 'xxx/yyy').and_return({})
+      is_expected.to run.with_params({:a=>1, :b=>2}, 'xxx/yyy').and_return({})
     end
 
     it 'should raise Puppet::ParseError if 1st argument not a Hash' do
-      should run.with_params('xxx', 'yyy').and_raise_error(Puppet::ParseError)
+      is_expected.to run.with_params('xxx', 'yyy').and_raise_error(Puppet::ParseError)
     end
 
     it 'should raise Puppet::ParseError if 2nd argument not an string' do
-      should run.with_params(network_metadata, ['cinder/api',]).and_raise_error(Puppet::ParseError)
+      is_expected.to run.with_params(network_metadata, ['cinder/api',]).and_raise_error(Puppet::ParseError)
     end
-
-  end
 
 end
