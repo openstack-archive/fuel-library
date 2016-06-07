@@ -48,7 +48,7 @@ describe 'l23network::examples::run_network_scheme', :type => :class do
     })}
     it { is_expected.to contain_l23network__l3__ifconfig('ib2.8001') }
     it { is_expected.to contain_l23network__l3__ifconfig('ib2.8001').with({
-        'ipaddr' => '192.168.101.3/24',
+        'ipaddr' => ['192.168.101.3/24'],
     })}
     it { is_expected.to contain_l23_stored_config('ib2.8001').with({
         'vlan_dev'  => nil,
@@ -102,7 +102,7 @@ describe 'l23network::examples::run_network_scheme', :type => :class do
     })}
     it { is_expected.to contain_l23network__l3__ifconfig('ib2.8001') }
     it { is_expected.to contain_l23network__l3__ifconfig('ib2.8001').with({
-        'ipaddr' => '192.168.101.3/24',
+        'ipaddr' => ['192.168.101.3/24'],
     })}
     it { is_expected.to contain_l23_stored_config('ib2.8001').with({
         'vlan_dev'  => nil,
