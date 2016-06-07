@@ -1,9 +1,10 @@
 require 'spec_helper'
 require 'yaml'
 
-describe 'the roles_include function' do
+describe 'roles_include' do
 
-let(:network_metadata) {"""
+  let(:network_metadata) do
+    <<-eof
 ---
   nodes:
     node-5:
@@ -58,51 +59,35 @@ let(:network_metadata) {"""
       - compute
       - cinder
       name: node-6
-"""}
-
-  let(:scope) { PuppetlabsSpec::PuppetInternals.scope }
+    eof
+  end
 
   before(:each) do
-    puppet_debug_override()
+    puppet_debug_override
   end
 
   before(:each) do
     scope.stubs(:function_hiera_hash).with(['network_metadata']).returns(YAML.load(network_metadata))
+    scope.stubs(:call_function).with('hiera_hash', 'network_metadata').returns(YAML.load(network_metadata))
   end
 
   before(:each) do
     scope.stubs(:function_get_node_key_name).with([]).returns('node-4')
+    scope.stubs(:call_function).with('get_node_key_name').returns('node-4')
   end
 
   it 'should exist' do
-    expect(
-        Puppet::Parser::Functions.function('roles_include')
-    ).to eq('function_roles_include')
+    is_expected.not_to be_nil
   end
 
-  it 'should raise an error if there is less than 1 arguments' do
-    expect {
-      scope.function_roles_include([])
-    }.to raise_error /Wrong number of arguments/
-  end
+  it { is_expected.to run.with_params().and_raise_error(ArgumentError) }
 
+  it { is_expected.to run.with_params('controller').and_return(true) }
 
-  it 'should be able to find a matching role' do
-    expect(
-        scope.function_roles_include [ 'controller' ]
-    ).to eq true
-    expect(
-        scope.function_roles_include [ %w(controller primary-controller) ]
-    ).to eq true
-  end
+  it { is_expected.to run.with_params(%w(controller primary-controller)).and_return(true) }
 
-  it 'should be able to find a non-matching role' do
-    expect(
-        scope.function_roles_include [ 'compute' ]
-    ).to eq false
-    expect(
-        scope.function_roles_include [ %w(compute cinder) ]
-    ).to eq false
-  end
+  it { is_expected.to run.with_params('compute').and_return(false) }
+
+  it { is_expected.to run.with_params(%w(compute cinder)).and_return(false) }
 
 end
