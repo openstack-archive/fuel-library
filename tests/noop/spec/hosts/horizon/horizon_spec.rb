@@ -93,7 +93,7 @@ describe manifest do
           'headers'           => ["set X-XSS-Protection \"1; mode=block\"", "set X-Content-Type-Options nosniff", "always append X-Frame-Options SAMEORIGIN"],
           'options'           => '-Indexes',
           'setenvif'          => 'X-Forwarded-Proto https HTTPS=1',
-          'access_log_format' => '%{X-Forwarded-For}i %l %u %t \"%r\" %>s %b %D \"%{Referer}i\" \"%{User-Agent}i\"'
+          'access_log_format' => '%{X-Forwarded-For}i %l %u %{%d/%b/%Y:%T}t.%{msec_frac}t \"%r\" %>s %b %D \"%{Referer}i\" \"%{User-Agent}i\"'
         }
       )
     end

@@ -258,6 +258,12 @@ describe manifest do
        )
      end
 
+     it 'should declare keystone::wsgi::apache class with access_log_format set' do
+       should contain_class('keystone::wsgi::apache').with(
+         'access_log_format' => '%{X-Forwarded-For}i %l %u %{%d/%b/%Y:%T}t.%{msec_frac}t \"%r\" %>s %b %D \"%{Referer}i\" \"%{User-Agent}i\"'
+       )
+     end
+
      it 'keystone::wsgi::apache should configure keystone_wsgi_admin and keystone_wsgi_main files' do
        should contain_file('keystone_wsgi_admin')
        should contain_file('keystone_wsgi_main')

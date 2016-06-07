@@ -168,7 +168,7 @@ class openstack_tasks::keystone::keystone {
     workers               => min($::processorcount, 6),
     ssl                   => $ssl,
     vhost_custom_fragment => $vhost_limit_request_field_size,
-    access_log_format     => '%{X-Forwarded-For}i %l %u %t \"%r\" %>s %b %D \"%{Referer}i\" \"%{User-Agent}i\"',
+    access_log_format     => '%{X-Forwarded-For}i %l %u %{%d/%b/%Y:%T}t.%{msec_frac}t \"%r\" %>s %b %D \"%{Referer}i\" \"%{User-Agent}i\"',
 
     # ports and host should be set for ip_based vhost
     public_port           => $public_port,
