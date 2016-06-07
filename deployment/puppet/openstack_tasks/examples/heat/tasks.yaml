@@ -61,7 +61,8 @@
       $.network_metadata.get('vips',{}).get('management'),
       $.get('database_vip'), $.get('mysql_custom_setup_class'))
   cross-depends:
-    - name: /(primary-)?database/
+    - name: primary-database
+    - name: database
       role: self
   parameters:
     puppet_manifest: /etc/puppet/modules/openstack_tasks/examples/heat/db.pp
