@@ -28,7 +28,7 @@
   type: group
   role: [primary-controller]
   requires: [deploy_start]
-  fault_tolerance: 1
+  fault_tolerance: 0
   required_for: [deploy_end]
   parameters:
     strategy:
@@ -109,7 +109,7 @@
   role: [primary-mongo]
   requires: [deploy_start]
   required_for: [deploy_end, primary-controller, controller]
-  fault_tolerance: 1
+  fault_tolerance: 0
   parameters:
     strategy:
       type: one_by_one
@@ -119,7 +119,6 @@
   role: [ceph-osd]
   requires: [controller]
   required_for: [deploy_end]
-  fault_tolerance: 1
   parameters:
     strategy:
       type: parallel
