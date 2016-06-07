@@ -1,5 +1,5 @@
-require File.join(File.dirname(__FILE__), '..','..','..','puppet/provider/ovs_base')
-require 'puppetx/l23_dpdk_ports_mapping'
+require_relative '../ovs_base'
+require_relative '../../../puppetx/l23_dpdk_ports_mapping'
 
 Puppet::Type.type(:l2_port).provide(:dpdkovs, :parent => Puppet::Provider::Ovs_base) do
   commands   :vsctl       => 'ovs-vsctl',
