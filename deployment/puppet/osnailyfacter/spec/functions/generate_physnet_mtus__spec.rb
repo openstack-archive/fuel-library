@@ -2,20 +2,11 @@ require 'puppet'
 require 'yaml'
 require 'spec_helper'
 
-describe 'function for formating allocation pools for neutron subnet resource' do
-
-  def setup_scope
-    @compiler = Puppet::Parser::Compiler.new(Puppet::Node.new("floppy", :environment => 'production'))
-    @scope = Puppet::Parser::Scope.new(@compiler)
-    @topscope = @topscope
-    @scope.parent = @topscope
-    Puppet::Parser::Functions.function(:generate_physnet_mtus)
-  end
+describe 'generate_physnet_mtus' do
 
   describe 'basic tests' do
 
     before :each do
-      setup_scope
       puppet_debug_override
     end
 
@@ -137,7 +128,6 @@ describe 'function for formating allocation pools for neutron subnet resource' d
         endpoints: {}
       ''')
     end
-
 
     let :network_scheme_mtu_on_bond do
       YAML.load('''
@@ -408,17 +398,16 @@ describe 'function for formating allocation pools for neutron subnet resource' d
     end
 
     it "should exist" do
-      Puppet::Parser::Functions.function(:generate_physnet_mtus).should == "function_generate_physnet_mtus"
+      is_expected.not.to be_nil
     end
 
     it 'error if no arguments' do
-      lambda { @scope.function_generate_physnet_mtus([]) }.should raise_error(ArgumentError, 'generate_physnet_mtus(): wrong number of arguments (0; must be 3)')
+      is_expected.to run.with_params().and_raise ArgumentError
     end
 
     it 'should require one argument' do
-      lambda { @scope.function_generate_physnet_mtus(['foo', 'wee', 'ee', 'rr']) }.should raise_error(ArgumentError, 'generate_physnet_mtus(): wrong number of arguments (4; must be 3)')
+      is_expected.to run.with_params('foo', 'wee', 'ee', 'rr').and_raise ArgumentError
     end
-
 
     it 'should be able to return floating and tenant nets to mtu map' do
       expect(@scope.function_generate_physnet_mtus([neutron_config, network_scheme, { 'do_floating' => true, 'do_tenant' => true, 'do_provider' => false }])).to eq(["physnet1:35000", "physnet2:1500"])
