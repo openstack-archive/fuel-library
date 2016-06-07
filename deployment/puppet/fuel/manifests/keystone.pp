@@ -169,7 +169,7 @@ class fuel::keystone (
     environment => 'PATH=/bin:/usr/bin:/usr/sbin',
     user        => 'keystone',
     hour        => '1',
-    require     => [ Package['crontabs'], Package['openstack-keystone'] ],
+    require     => [ Package['crontabs'], Package['keystone'] ],
   }
 
 }
