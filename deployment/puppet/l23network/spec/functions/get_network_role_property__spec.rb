@@ -51,7 +51,7 @@ describe Puppet::Parser::Functions.function(:get_network_role_property) do
     end
 
     it 'should raise for non-existing role name' do
-      subject.call(['not_exist', 'interface']).should == nil
+      expect(subject.call(['not_exist', 'interface'])).to be_nil
     end
 
     it 'should return ip address for "management" network role' do

@@ -53,7 +53,7 @@
 #
 
 define l23network::l3::ifconfig (
-    $ensure          = present,
+    $ensure          = 'present',
     $interface       = $name,
     $ipaddr          = undef,
     $gateway         = undef,

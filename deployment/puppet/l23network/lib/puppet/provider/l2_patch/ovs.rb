@@ -1,5 +1,5 @@
-require 'puppetx/l23_utils'
-require File.join(File.dirname(__FILE__), '..','..','..','puppet/provider/ovs_base')
+require_relative '../ovs_base'
+require_relative '../../../puppetx/l23_utils'
 
 Puppet::Type.type(:l2_patch).provide(:ovs, :parent => Puppet::Provider::Ovs_base) do
   commands   :vsctl       => 'ovs-vsctl',
