@@ -17,6 +17,16 @@ RSpec.configure do |c|
   c.manifest_dir = File.join(fixture_path, 'manifests')
   c.mock_with(:mocha)
   c.alias_it_should_behave_like_to :it_configures, 'configures'
+
+  # Function fqdn_rand was changed in Puppet 4.4.0, yielding different results
+  # for identical input before and after the change
+  # Spec tests for function amqp_hosts break, unless there is a different output check
+  # for Puppet befor and after 4.4.0
+  if Puppet.version < '4.4.0'
+    c.before(:all) { @ampq_host_value = '192.168.0.3:5673, 192.168.0.1:5673, 192.168.0.2:5673' }
+  else
+    c.before(:all) { @ampq_host_value = '192.168.0.1:5673, 192.168.0.2:5673, 192.168.0.3:5673' }
+  end
 end
 
 def puppet_debug_override
