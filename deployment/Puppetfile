@@ -28,8 +28,9 @@ mod 'stdlib',
 
 # Pull in puppet-pacemaker modules
 mod 'pacemaker',
-    :git => 'https://github.com/fuel-infra/puppet-pacemaker.git',
-    :ref => '1.0.6'
+    :git => 'https://github.com/openstack/puppet-pacemaker.git',
+    :ref => 'master'
+    # yes, there should be a tag
 
 # Pull in puppetlabs-concat
 mod 'concat',
@@ -135,12 +136,6 @@ mod 'datacat',
 mod 'mcollective',
     :git => 'https://github.com/fuel-infra/puppet-mcollective.git',
     :ref => 'v2.1.1'
-
-# Pull in puppet-corosync
-# FIXME(bogdando) We need the 0.8.0-29201ff. Use the 0.9.0 once released.
-mod 'corosync',
-    :git => 'https://github.com/fuel-infra/puppet-corosync.git',
-    :ref => '0.8.0-mos-rc3'
 
 # Pull in puppetlabs-rabbitmq
 mod 'rabbitmq',
