@@ -119,9 +119,13 @@ describe 'cluster::rabbitmq_ocf' do
       'policy_file'              => params[:policy_file],
     }}
 
+    before(:each) do
+      puppet_debug_override
+    end
+
     it 'configures with the default params' do
       should contain_class('cluster::rabbitmq_ocf')
-      should contain_pacemaker__service(params[:service_name]).with(
+      should contain_pacemaker__new__wrapper(params[:service_name]).with(
         :primitive_type   => params[:primitive_type],
         :complex_type     => 'master',
         :complex_metadata => complex_metadata,
