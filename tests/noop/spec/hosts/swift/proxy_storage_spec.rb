@@ -176,7 +176,7 @@ describe manifest do
 
         it 'should configure health check service correctly' do
           if !bind_to_one
-            should_not contain_class('openstack_tasks::swift:::partsstatus').with(
+            should_not contain_class('openstack_tasks::swift:::parts::status').with(
               :endpoint    => "#{swift_internal_protocol}://#{swift_internal_address}:#{proxy_port}",
               :scan_target => "#{internal_auth_address}:5000",
               :only_from   => "127.0.0.1 240.0.0.2 #{storage_nets} #{mgmt_nets}",
@@ -198,9 +198,9 @@ describe manifest do
           should contain_class('swift::proxy::container_sync')
         end
 
-        if role == 'primary-controller'
+        if Noop.hiera 'is_primary_swift_proxy'
           it 'should contain swift backups section in rsync conf' do
-            should contain rsync__server__module('swift_backups').with(
+            should contain_rsync__server__module('swift_backups').with(
               'path'            => '/etc/swift/backups',
               'lock_file'       => '/var/lock/swift_backups.lock',
               'uid'             => 'swift',
