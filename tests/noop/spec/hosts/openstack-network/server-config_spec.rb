@@ -278,7 +278,7 @@ describe manifest do
           'firewall_driver' => 'neutron.agent.linux.iptables_firewall.OVSHybridIptablesFirewallDriver',
         )}
         it { should contain_class('neutron::plugins::ml2').with(
-          'flat_networks' => '*',
+          'flat_networks' => ['*'],
         )}
         it { should contain_class('neutron::plugins::ml2').with(
           'type_drivers' => ['local', 'flat', 'vlan', 'gre', 'vxlan'],
