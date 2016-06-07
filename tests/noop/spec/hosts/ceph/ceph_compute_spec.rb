@@ -107,7 +107,7 @@ describe manifest do
         should contain_ceph__pool(compute_pool).with(
           'pg_num'  => compute_pool_pg_nums,
           'pgp_num' => compute_pool_pgp_nums,
-        ).that_requires('ceph')
+        ).that_requires('Class[ceph]')
       end
 
       it 'should add admin key' do
