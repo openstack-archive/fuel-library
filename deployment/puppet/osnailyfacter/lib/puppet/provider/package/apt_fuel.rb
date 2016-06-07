@@ -40,6 +40,7 @@ Puppet::Type.type(:package).provide :apt_fuel, :parent => :apt, :source => :apt 
   # needs to have sufficient privileges.
   # @return [true,false]
   def locked?
+    debug 'Call: locked?'
     status = open(lock_file, 'w') do |lock|
       flock_struct = [Fcntl::F_RDLCK, 0, 0, 0, 0].pack('ssqqi')
       lock.fcntl Fcntl::F_GETLK, flock_struct
@@ -58,6 +59,7 @@ Puppet::Type.type(:package).provide :apt_fuel, :parent => :apt, :source => :apt 
   # Wait for the lock file to be unlocked
   # and the ``dpkg`` not being currently active.
   def wait_for_lock
+    debug 'Call: wait_for_lock'
     Timeout::timeout(timeout, Puppet::Error) do
       while locked? do
         debug "#{lock_file} is locked, retrying..."
@@ -67,22 +69,24 @@ Puppet::Type.type(:package).provide :apt_fuel, :parent => :apt, :source => :apt 
   end
 
   def install
+    debug 'Call: install'
     (1..retry_count).each do |try|
       begin
         wait_for_lock
         super
-        info "Attempt #{try} of #{retry_count} was successful!" if try > 1
+        info "Attempt '#{try}' of '#{retry_count}' was successful!" if try > 1
         break
       rescue Puppet::ExecutionFailure => exception
-        warning "Attempt #{try} of #{retry_count} have failed: #{exception.message}"
+        warning "Attempt '#{try}' of '#{retry_count}' have failed: #{exception.message}"
         raise exception if try == retry_count
         sleep retry_sleep
-        update
+        apt_get_update
       end
     end
   end
 
-  def update
+  def apt_get_update
+    debug 'Call: apt_get_update'
     wait_for_lock
     Timeout::timeout(timeout, Puppet::Error) do
       aptget '-q', '-y', :update
@@ -90,11 +94,13 @@ Puppet::Type.type(:package).provide :apt_fuel, :parent => :apt, :source => :apt 
   end
 
   def uninstall
+    debug 'Call: uninstall'
     wait_for_lock
     super
   end
 
   def purge
+    debug 'Call: purge'
     wait_for_lock
     super
   end
