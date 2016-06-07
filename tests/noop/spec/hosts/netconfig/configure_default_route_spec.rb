@@ -1,10 +1,5 @@
 # ROLE: primary-mongo
 # ROLE: mongo
-# ROLE: compute-vmware
-# ROLE: compute
-# ROLE: cinder-vmware
-# ROLE: cinder
-# ROLE: ceph-osd
 
 require 'spec_helper'
 require 'shared-examples'
