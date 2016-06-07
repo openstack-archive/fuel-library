@@ -19,6 +19,7 @@ describe manifest do
         it "should define osnailyfacter::generate_vms::vm_config #{vm}" do
           should contain_osnailyfacter__generate_vms__vm_config(vm['id']).with(
             'template_dir' => template_dir,
+            'details'      => vm,
             'before'       => 'Exec[generate_vms]',
             'require'      => "File[#{template_dir}]",
           )
