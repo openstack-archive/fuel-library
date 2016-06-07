@@ -43,8 +43,8 @@ describe Puppet::Type.type(:install_ssh_keys).provider(:ssh) do
 
   it 'creates new resource' do
     provider.create
-    File.read(@id_rsa).should == "private\n"
-    File.read(@id_rsa_pub).should == "public\n"
+    expect(File.read(@id_rsa)).to eq "private\n"
+    expect(File.read(@id_rsa_pub)).to eq "public\n"
     authkeys = File.read(@authorized_keys)
     keys = authkeys.split("\n")
     expect(keys).to include 'public'
