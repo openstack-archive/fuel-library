@@ -39,6 +39,9 @@ class openstack_tasks::keystone::keystone {
 
   $default_role = '_member_'
 
+  $user_admin_role   = hiera('user_admin_role')
+  $user_admin_domain = hiera('user_admin_domain')
+
   $db_type     = 'mysql'
   $db_host     = pick($keystone_hash['db_host'], $database_vip)
   $db_password = $keystone_hash['db_password']
@@ -189,9 +192,16 @@ class openstack_tasks::keystone::keystone {
       admin_tenant => $admin_tenant,
     }
 
+    #assign 'admin' role for 'admin' user in 'Default' domain
+    keystone_user_role { "${admin_user}@::${user_admin_domain}":
+      ensure         => present,
+      roles          => any2array($user_admin_role),
+    }
+
     Exec <| title == 'keystone-manage db_sync' |> ->
     Keystone_role["$default_role"] ->
     Class['::keystone::roles::admin'] ->
+    Keystone_user_role["${admin_user}@::${user_admin_domain}"] ->
     Osnailyfacter::Credentials_file <||>
 
     Class['::osnailyfacter::wait_for_keystone_backends'] -> Keystone_role["$default_role"]
