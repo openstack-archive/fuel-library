@@ -39,11 +39,13 @@ class osnailyfacter::generate_vms::generate_vms {
       ensure  => 'directory',
     }
 
-    ::osnailyfacter::generate_vms::vm_config { $vms:
+    $vm_config_hash = vm_config_hash($vms)
+    $vm_defaults = {
       template_dir => $template_dir,
       before       => Exec['generate_vms'],
       require      => File[$template_dir],
     }
+    create_resources('osnailyfacter::generate_vms::vm_config', $vm_config_hash, $vm_defaults)
 
     exec { 'generate_vms':
       command => "/usr/bin/generate_vms.sh ${libvirt_dir} ${template_dir}",
