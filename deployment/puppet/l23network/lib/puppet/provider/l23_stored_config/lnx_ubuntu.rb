@@ -1,5 +1,5 @@
-require 'puppetx/filemapper'
-require File.join(File.dirname(__FILE__), '..','..','..','puppet/provider/l23_stored_config_ubuntu')
+require_relative '../../../puppetx/filemapper_loader'
+require_relative '../l23_stored_config_ubuntu'
 
 Puppet::Type.type(:l23_stored_config).provide(:lnx_ubuntu, :parent => Puppet::Provider::L23_stored_config_ubuntu) do
 

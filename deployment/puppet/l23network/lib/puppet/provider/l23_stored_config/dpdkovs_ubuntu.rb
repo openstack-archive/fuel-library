@@ -1,6 +1,6 @@
-require 'puppetx/filemapper'
-require 'puppetx/l23_dpdk_ports_mapping'
-require File.join(File.dirname(__FILE__), '..','..','..','puppet/provider/l23_stored_config_ubuntu')
+require_relative '../../../puppetx/filemapper_loader'
+require_relative '../../../puppetx/l23_dpdk_ports_mapping'
+require_relative '../l23_stored_config_ubuntu'
 
 Puppet::Type.type(:l23_stored_config).provide(:dpdkovs_ubuntu, :parent => Puppet::Provider::L23_stored_config_ubuntu) do
 

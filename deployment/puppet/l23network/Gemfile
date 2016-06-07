@@ -12,7 +12,7 @@ end
 if puppetversion = ENV['PUPPET_GEM_VERSION']
   gem 'puppet', puppetversion, :require => false
 else
-  gem 'puppet', '<4.0',        :require => false
+  gem 'puppet', :require => false
 end
 
 # vim:ft=ruby

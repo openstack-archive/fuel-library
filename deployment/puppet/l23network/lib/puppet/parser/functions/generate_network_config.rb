@@ -5,18 +5,8 @@ require 'puppet/parser'
 require 'puppet/parser/templatewrapper'
 require 'puppet/resource/type_collection_helper'
 require 'puppet/util/methodhelper'
-begin
-  require 'puppetx/l23_utils'
-rescue LoadError => e
-  rb_file = File.join(File.dirname(__FILE__),'..','..','..','puppetx','l23_utils.rb')
-  load rb_file if File.exists?(rb_file) or raise e
-end
-begin
-  require 'puppetx/l23_network_scheme'
-rescue LoadError => e
-  rb_file = File.join(File.dirname(__FILE__),'..','..','..','puppetx','l23_network_scheme.rb')
-  load rb_file if File.exists?(rb_file) or raise e
-end
+require_relative '../../../puppetx/l23_utils'
+require_relative '../../../puppetx/l23_network_scheme'
 
 module L23network
   def self.default_offload_set
@@ -287,8 +277,9 @@ Puppet::Parser::Functions::newfunction(:generate_network_config, :type => :rvalu
             next if k == :gateway and v.to_s.empty?
             k = k.to_s.tr('-','_').to_sym
             if k == :IP
+              v = nil if v == :undef
               if !(v.is_a?(Array) || ['none','dhcp',nil].include?(v))
-                raise(Puppet::ParseError, "generate_network_config(): IP field for endpoint '#{e_name}' must be array of IP addresses, 'dhcp' or 'none'.")
+                raise(Puppet::ParseError, "generate_network_config(): IP field for endpoint '#{e_name}' must be array of IP addresses, 'dhcp' or 'none'. Got: '#{v.inspect}'")
               elsif ['none','dhcp',''].include?(v.to_s)
                 # 'none' and 'dhcp' should be passed to resource not as list
                 endpoints[e_name][:ipaddr] = (v.to_s == 'dhcp'  ?  'dhcp'  :  'none')
