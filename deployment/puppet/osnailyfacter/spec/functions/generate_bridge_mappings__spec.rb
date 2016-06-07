@@ -142,15 +142,15 @@ describe 'function for formating allocation pools for neutron subnet resource' d
     end
 
     it "should exist" do
-      Puppet::Parser::Functions.function(:generate_bridge_mappings).should == "function_generate_bridge_mappings"
+      expect(Puppet::Parser::Functions.function(:generate_bridge_mappings)).to eq "function_generate_bridge_mappings"
     end
 
     it 'error if no arguments' do
-      lambda { @scope.function_generate_bridge_mappings([]) }.should raise_error(ArgumentError, 'generate_bridge_mappings(): wrong number of arguments (0; must be 3)')
+      expect(lambda { @scope.function_generate_bridge_mappings([]) }).to raise_error(ArgumentError, 'generate_bridge_mappings(): wrong number of arguments (0; must be 3)')
     end
 
     it 'should require one argument' do
-      lambda { @scope.function_generate_bridge_mappings(['foo', 'wee', 'ee', 'rr']) }.should raise_error(ArgumentError, 'generate_bridge_mappings(): wrong number of arguments (4; must be 3)')
+      expect(lambda { @scope.function_generate_bridge_mappings(['foo', 'wee', 'ee', 'rr']) }).to raise_error(ArgumentError, 'generate_bridge_mappings(): wrong number of arguments (4; must be 3)')
     end
 
 
