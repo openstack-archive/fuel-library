@@ -13,6 +13,7 @@ group :development, :test do
   gem 'puppet-lint-variable_contains_upcase', :require => 'false'
   gem 'puppet-lint-numericvariable',          :require => 'false'
   gem 'json',                                 :require => 'false'
+  gem 'rspec-puppet-facts',                   :require => 'false'
 end
 
 if puppetversion = ENV['PUPPET_GEM_VERSION']
