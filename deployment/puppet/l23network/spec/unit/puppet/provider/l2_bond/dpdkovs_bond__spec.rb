@@ -11,7 +11,6 @@ describe Puppet::Type.type(:l2_bond).provider(:dpdkovs) do
 
   let(:resource) {
     Puppet::Type.type(:l2_bond).new(
-      :provider => :dpdkovs,
       :name     => 'bond0',
       :bridge   => 'br-prv',
       :slaves   => ['enp1s0f0', 'enp1s0f1'],
