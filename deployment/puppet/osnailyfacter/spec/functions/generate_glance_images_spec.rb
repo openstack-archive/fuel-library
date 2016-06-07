@@ -1,11 +1,6 @@
 require 'spec_helper'
 
 describe 'generate_glance_images' do
-  let(:scope) { PuppetlabsSpec::PuppetInternals.scope }
-
-  let(:subject) {
-    Puppet::Parser::Functions.function(:generate_glance_images)
-  }
 
   let(:input) {
     [
@@ -64,18 +59,18 @@ describe 'generate_glance_images' do
   }
 
   it 'should exist' do
-    expect(subject).to eq 'function_generate_glance_images'
+    is_expected.not_to be_nil
   end
 
   it 'should expect 1 argument' do
-    expect { scope.function_generate_glance_images([]) }.to raise_error(ArgumentError)
+    is_expected.to run.with_params().and_raise_error ArgumentError
   end
 
   it 'should expect array as given argument' do
-    expect { scope.function_generate_glance_images(['foobar']) }.to raise_error(Puppet::ParseError)
+    is_expected.to run.with_params('foobar').and_raise_error Puppet::ParseError
   end
 
   it 'should return glance compatible hash' do
-    expect(scope.function_generate_glance_images([input])).to eq(output)
+    is_expected.to run.with_params(input).and_return(output)
   end
 end
