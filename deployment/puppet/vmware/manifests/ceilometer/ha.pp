@@ -33,11 +33,11 @@ define vmware::ceilometer::ha (
       }
     }
 
-    $primitive_name = "p_ceilometer_agent_compute_vmware_${availability_zone_name}_${service_name}"
+    $primitive_name = "ceilometer_agent_compute_vmware_${availability_zone_name}_${service_name}"
 
-    $primitive_class    = 'ocf'
-    $primitive_provider = 'fuel'
     $primitive_type     = 'ceilometer-agent-compute'
+    $primitive_provider = 'fuel'
+
     $metadata           = {
       'target-role' => 'stopped',
       'resource-stickiness' => '1'
@@ -62,14 +62,13 @@ define vmware::ceilometer::ha (
       }
     }
 
-    pacemaker::service { $primitive_name :
-      prefix             => false,
-      primitive_class    => $primitive_class,
-      primitive_provider => $primitive_provider,
+    pacemaker::new::wrapper { $primitive_name :
       primitive_type     => $primitive_type,
+      primitive_provider => $primitive_provider,
       metadata           => $metadata,
       parameters         => $parameters,
       operations         => $operations,
+      prefix             => false,
     }
 
     service { $primitive_name :
@@ -77,9 +76,9 @@ define vmware::ceilometer::ha (
       enable => true,
     }
 
-    File["${ceilometer_conf_dir}"]->
-    File["${ceilometer_compute_conf}"]->
-    Pcmk_resource[$primitive_name]->
+    File[$ceilometer_conf_dir] ->
+    File[$ceilometer_compute_conf] ->
+    Pacemaker_resource[$primitive_name] ->
     Service[$primitive_name]
   }
 
