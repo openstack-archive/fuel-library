@@ -133,7 +133,7 @@ describe manifest do
       host_uuid = facts[:libvirt_uuid]
       should contain_augeas('libvirt-conf-uuid').with(
         'context' => '/files/etc/libvirt/libvirtd.conf',
-        'changes' => "set host_uuid #{host_uuid}"
+        'changes' => ["set host_uuid #{host_uuid}"],
       ).that_notifies('Service[libvirt]')
     end
 
@@ -213,14 +213,14 @@ describe manifest do
           'path'    => '/etc/libvirt/qemu.conf',
           'line'    => libvirt_hugetlbfs_mount,
           'match'   => '^hugetlbfs_mount =.*$',
-          'require' => 'Package[libvirt-bin]',
+          'require' => 'Package[libvirt]',
         ).that_notifies('Service[libvirt]')
 
         should contain_file_line('libvirt_1g_hugepages_apparmor').with(
           'path'    => '/etc/apparmor.d/abstractions/libvirt-qemu',
           'after'   => 'owner "/run/hugepages/kvm/libvirt/qemu/',
           'line'    => '  owner "/mnt/hugepages_1GB/libvirt/qemu/**" rw,',
-          'require' => 'Package[libvirt-bin]',
+          'require' => 'Package[libvirt]',
           'ensure'  => hugepages_1g_opts_ensure,
         ).that_notifies('Exec[refresh_apparmor]')
 
