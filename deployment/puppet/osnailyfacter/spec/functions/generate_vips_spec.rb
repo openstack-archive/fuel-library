@@ -1,5 +1,6 @@
 require 'puppet'
 require 'spec_helper'
+require 'yaml'
 
 describe 'generate_vips' do
 
@@ -148,26 +149,25 @@ describe 'generate_vips' do
     it 'should require not empty network_scheme' do
       is_expected.to run.with_params({}, 'bb', 'test_role').and_raise_error(Puppet::ParseError, /Missing or incorrect network_scheme /)
     end
+
+  end
+
+  before(:each) do
+    scope.stubs(:function_prepare_network_config)
+    scope.stubs(:function_get_network_role_property).with(['public/vip', 'interface']).returns('br-ex')
+    scope.stubs(:function_get_network_role_property).with(['public/vip', 'netmask']).returns('255.255.255.0')
+    scope.stubs(:function_get_network_role_property).with(['public/vip', 'gateway']).returns('10.109.1.1')
+    scope.stubs(:function_get_network_role_property).with(['public/vip', 'gateway_metric']).returns('0')
+    scope.stubs(:function_get_network_role_property).with(['mgmt/vip', 'interface']).returns('br-mgmt')
+    scope.stubs(:function_get_network_role_property).with(['mgmt/vip', 'netmask']).returns('255.255.255.0')
+    scope.stubs(:function_get_network_role_property).with(['mgmt/vip', 'gateway']).returns('')
+    scope.stubs(:function_get_network_role_property).with(['mgmt/vip', 'gateway_metric']).returns('0')
   end
 
   describe 'when creating native types' do
 
     it 'should generate data for cluster::virtual_ip resources' do
-      Puppet::Parser::Functions.autoloader.load :generate_vips
-      puppet_scope = PuppetlabsSpec::PuppetInternals.scope
-
-      puppet_scope.stubs(:function_prepare_network_config)
-      puppet_scope.stubs(:function_get_network_role_property).with(['public/vip', 'interface']).returns('br-ex')
-      puppet_scope.stubs(:function_get_network_role_property).with(['public/vip', 'netmask']).returns('255.255.255.0')
-      puppet_scope.stubs(:function_get_network_role_property).with(['public/vip', 'gateway']).returns('10.109.1.1')
-      puppet_scope.stubs(:function_get_network_role_property).with(['public/vip', 'gateway_metric']).returns('0')
-      puppet_scope.stubs(:function_get_network_role_property).with(['mgmt/vip', 'interface']).returns('br-mgmt')
-      puppet_scope.stubs(:function_get_network_role_property).with(['mgmt/vip', 'netmask']).returns('255.255.255.0')
-      puppet_scope.stubs(:function_get_network_role_property).with(['mgmt/vip', 'gateway']).returns('')
-      puppet_scope.stubs(:function_get_network_role_property).with(['mgmt/vip', 'gateway_metric']).returns('0')
-      expect(
-          puppet_scope.function_generate_vips [network_metadata, network_scheme, 'primary-controller']
-      ).to eq generated_data
+      is_expected.to run.with_params(network_metadata, network_scheme, 'primary-controller').and_return(generated_data)
     end
 
   end

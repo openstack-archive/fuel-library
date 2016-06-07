@@ -1,20 +1,11 @@
 require 'puppet'
 require 'spec_helper'
 
-describe 'function for formating allocation pools for neutron subnet resource' do
-
-  def setup_scope
-    @compiler = Puppet::Parser::Compiler.new(Puppet::Node.new("floppy", :environment => 'production'))
-    @scope = Puppet::Parser::Scope.new(@compiler)
-    @topscope = @topscope
-    @scope.parent = @topscope
-    Puppet::Parser::Functions.function(:generate_physnet_vlan_ranges)
-  end
+describe 'generate_physnet_vlan_ranges' do
 
   describe 'basic tests' do
 
     before :each do
-      setup_scope
       puppet_debug_override
     end
 
@@ -142,29 +133,30 @@ describe 'function for formating allocation pools for neutron subnet resource' d
     end
 
     it "should exist" do
-      Puppet::Parser::Functions.function(:generate_physnet_vlan_ranges).should == "function_generate_physnet_vlan_ranges"
+      expect(Puppet::Parser::Functions.function(:generate_physnet_vlan_ranges)).to eq "function_generate_physnet_vlan_ranges"
     end
 
     it 'error if no arguments' do
-      lambda { @scope.function_generate_physnet_vlan_ranges([]) }.should raise_error(ArgumentError, 'generate_physnet_vlan_ranges(): wrong number of arguments (0; must be 3)')
+      is_expected.to run.with_params().and_raise_error(ArgumentError, 'generate_physnet_vlan_ranges(): wrong number of arguments (0; must be 3)')
+ 
     end
 
     it 'should require one argument' do
-      lambda { @scope.function_generate_physnet_vlan_ranges(['foo', 'wee', 'ee', 'rr']) }.should raise_error(ArgumentError, 'generate_physnet_vlan_ranges(): wrong number of arguments (4; must be 3)')
+      is_expected.to run.with_params('foo', 'wee', 'ee', 'rr').and_raise_error(ArgumentError, 'generate_physnet_vlan_ranges(): wrong number of arguments (4; must be 3)')
     end
 
 
     it 'should be able to return floating and tenant nets to bridge map' do
-      expect(@scope.function_generate_physnet_vlan_ranges([neutron_config, network_scheme, { 'do_floating' => true, 'do_tenant' => true, 'do_provider' => false }])).to eq(["physnet1:1000:1030", "physnet2"])
+      is_expected.to run.with_params(neutron_config, network_scheme, { 'do_floating' => true, 'do_tenant' => true, 'do_provider' => false }).and_return(["physnet1:1000:1030", "physnet2"])
     end
 
 
     it 'should be able to return only floating nets to bridge map' do
-      expect(@scope.function_generate_physnet_vlan_ranges([neutron_config, network_scheme, { 'do_floating' => true, 'do_tenant' => false, 'do_provider' => false }])).to eq(["physnet2"])
+      is_expected.to run.with_params(neutron_config, network_scheme, { 'do_floating' => true, 'do_tenant' => false, 'do_provider' => false }).and_return(["physnet2"])
     end
 
     it 'should be able to return only tenant nets to bridge map' do
-      expect(@scope.function_generate_physnet_vlan_ranges([neutron_config, network_scheme, { 'do_floating' => false, 'do_tenant' => true, 'do_provider' => false }])).to eq(["physnet1:1000:1030"])
+      is_expected.to run.with_params(neutron_config, network_scheme, { 'do_floating' => false, 'do_tenant' => true, 'do_provider' => false }).and_return(["physnet1:1000:1030"])
     end
 
   end
