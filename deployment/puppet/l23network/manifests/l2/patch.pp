@@ -16,14 +16,12 @@
 define l23network::l2::patch (
   $bridges,
   $use_ovs         = $::l23network::use_ovs,
-  $ensure          = present,
+  $ensure          = 'present',
   $mtu             = 65000,
   $vlan_ids        = undef,
   $vendor_specific = undef,
   $provider        = undef,
 ) {
-
-  include ::stdlib
   include ::l23network::params
 
   # Architecture limitation.
