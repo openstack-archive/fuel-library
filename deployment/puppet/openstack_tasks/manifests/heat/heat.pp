@@ -126,23 +126,6 @@ class openstack_tasks::heat::heat {
     'cache/memcache_servers': value => "${memcache_address}:11211";
   }
 
-  #------------------------------
-
-  class heat::docker_resource (
-    $enabled      = true,
-    $package_name = 'heat-docker',
-  ) {
-    if $enabled {
-      package { 'heat-docker':
-        ensure  => installed,
-        name    => $package_name,
-        require => Package['heat-engine'],
-      }
-
-      Package['heat-docker'] ~> Service<| title == 'heat-engine' |>
-    }
-  }
-
   # TODO(aschultz): ubuntu does not have a heat docker package
   if !$::os_package_type or $::os_package_type != 'ubuntu' {
     if $::osfamily == 'RedHat' {
@@ -151,7 +134,7 @@ class openstack_tasks::heat::heat {
       $docker_resource_package_name = 'heat-docker'
     }
 
-    class { 'heat::docker_resource' :
+    class { '::openstack_tasks::heat::docker_resource' :
       package_name => $docker_resource_package_name,
     }
   }
