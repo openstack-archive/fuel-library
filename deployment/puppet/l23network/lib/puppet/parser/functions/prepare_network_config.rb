@@ -1,15 +1,5 @@
-begin
-  require 'puppetx/l23_network_scheme'
-rescue LoadError => e
-  rb_file = File.join(File.dirname(__FILE__),'..','..','..','puppetx','l23_network_scheme.rb')
-  load rb_file if File.exists?(rb_file) or raise e
-end
-begin
-  require 'puppetx/l23_hash_tools'
-rescue LoadError => e
-  rb_file = File.join(File.dirname(__FILE__),'..','..','..','puppetx','l23_hash_tools.rb')
-  load rb_file if File.exists?(rb_file) or raise e
-end
+require_relative '../../../puppetx/l23_network_scheme'
+require_relative '../../../puppetx/l23_hash_tools'
 
 module Puppet::Parser::Functions
   newfunction(:prepare_network_config, :doc => <<-EOS
