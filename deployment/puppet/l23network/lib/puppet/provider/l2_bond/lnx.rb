@@ -2,7 +2,7 @@
 # INspired by: https://www.kernel.org/doc/Documentation/networking/bonding.txt
 #
 
-require File.join(File.dirname(__FILE__), '..','..','..','puppet/provider/lnx_base')
+require_relative '../lnx_base'
 
 Puppet::Type.type(:l2_bond).provide(:lnx, :parent => Puppet::Provider::Lnx_base) do
   defaultfor :kernel    => :linux

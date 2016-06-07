@@ -17,3 +17,4 @@ fixtures:
     stdlib: "#{source_dir}/../stdlib"
     sysctl: "#{source_dir}/../sysctl"
     filemapper: "#{source_dir}/../filemapper"
+    osnailyfacter: "#{source_dir}/../osnailyfacter"
