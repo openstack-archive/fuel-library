@@ -1,5 +1,5 @@
 # Configure apache MPM
-class osnailyfacter::apache_mpm {
+class osnailyfacter::apache_mpm inherits ::osnailyfacter::apache {
 
   # Performance optimization for Apache mpm
   if ($::memorysize_mb + 0) < 4100 {

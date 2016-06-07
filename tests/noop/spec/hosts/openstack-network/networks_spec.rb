@@ -84,7 +84,7 @@ describe manifest do
               'cidr'             => nets[floating_net]['L3']['subnet'],
               'network_name'     => floating_net,
               'gateway_ip'       => nets[floating_net]['L3']['gateway'],
-              'allocation_pools' => "start=#{floating_range[0]},end=#{floating_range[1]}",
+              'allocation_pools' => ["start=#{floating_range[0]},end=#{floating_range[1]}"],
               'enable_dhcp'      => 'false',
             )
           end
