@@ -37,9 +37,8 @@ describe manifest do
       }
     end
 
-    it {
-      should contain_class('cluster::haproxy::rsyslog')
-    }
+    it { is_expected.to contain_service('rsyslog') }
+
   end
   test_ubuntu_and_centos manifest
 end
