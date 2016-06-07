@@ -31,7 +31,8 @@
   required_for: [aodh]
   requires: [primary-keystone, keystone]
   cross-depends:
-    - name: keystone
+    - name: primary-database
+    - name: database
       role: self
   condition:
     yaql_exp: >
