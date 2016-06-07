@@ -4,8 +4,8 @@ group :development, :test do
   gem 'rake',                    :require => false
   gem 'fakefs',                  :require => false
   gem 'pry',                     :require => false
-  gem 'rspec', '~>3.3',          :require => false
-  gem 'rspec-puppet', '~>2.1.0', :require => false
+  gem 'rspec',                   :require => false
+  gem 'rspec-puppet',            :require => false
   gem 'puppetlabs_spec_helper',  :require => false
   gem 'puppet-lint',             :require => false
   gem 'webmock', '1.22.6',       :require => false
