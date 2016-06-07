@@ -1,9 +1,8 @@
 require 'spec_helper'
 
-describe 'the corosync_nodes function' do
-  let(:scope) { PuppetlabsSpec::PuppetInternals.scope }
-
+describe 'corosync_nodes' do
   let(:network_role) { 'mgmt/corosync' }
+
   let(:nodes) do
     {
         'node-1' => {
@@ -57,21 +56,15 @@ describe 'the corosync_nodes function' do
   end
 
   it 'should exist' do
-    expect(
-        Puppet::Parser::Functions.function('corosync_nodes')
-    ).to eq('function_corosync_nodes')
+    is_expected.not_to be_nil
   end
 
   it 'should raise an error if there is less than 1 arguments' do
-    expect {
-      scope.function_corosync_nodes([])
-    }.to raise_error
+    is_expected.to run.with_params([]).and_raise_error(Puppet::ParseError)
   end
 
   it 'should return corosync_nodes hash' do
-    expect(
-        scope.function_corosync_nodes([nodes, network_role])
-    ).to eq corosync_nodes_hash
+    is_expected.to run.with_params(nodes, network_role).and_return(corosync_nodes_hash)
   end
 
 end

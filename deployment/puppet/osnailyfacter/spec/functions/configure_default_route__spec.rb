@@ -1,11 +1,6 @@
 require 'spec_helper'
 
 describe 'configure_default_route' do
-  let(:scope) { PuppetlabsSpec::PuppetInternals.scope }
-
-  let(:subject) do
-    Puppet::Parser::Functions.function(:configure_default_route)
-  end
 
   let(:network_scheme) do
     {:provider => "lnx",
@@ -51,15 +46,15 @@ describe 'configure_default_route' do
   let(:fw_admin_int) { 'fw-admin' }
 
   before(:each) do
-    puppet_debug_override()
+    puppet_debug_override
   end
 
   it 'should exist' do
-    expect(subject).to eq 'function_configure_default_route'
+    is_expected.not_to be_nil
   end
 
   it 'should expect 4 arguments' do
-    expect { scope.function_configure_default_route [] }.to raise_error
+    is_expected.to run.with_params().and_raise_error(Puppet::Error)
   end
 
   it 'should configure default gateway to vrouter ip' do
