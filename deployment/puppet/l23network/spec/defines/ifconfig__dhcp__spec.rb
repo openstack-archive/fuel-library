@@ -54,7 +54,7 @@ describe 'l23network::l3::ifconfig', :type => :define do
     it do
       should contain_l3_ifconfig('eth4').with({
         'ensure'  => 'present',
-        'ipaddr'  => 'dhcp',
+        'ipaddr'  => ['dhcp'],
         'gateway' => nil,
       }).that_requires('L23_stored_config[eth4]')
     end
@@ -163,4 +163,3 @@ end
 #     should rv.without_content(/NETMASK=/)
 #   end
 # end
-# vim: set ts=2 sw=2 et

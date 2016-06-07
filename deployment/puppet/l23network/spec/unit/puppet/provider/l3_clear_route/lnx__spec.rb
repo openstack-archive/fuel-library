@@ -31,20 +31,19 @@ describe provider_class do
                     {:interface=>"p2p222", :destination=>"172.18.128.0/25", :metric=>0, :gateway=>nil},
                     {:interface=>"virbr0", :destination=>"192.168.122.0/24", :metric=>0, :gateway=>nil}]
 
-    before(:each) do
-      puppet_debug_override()
-      provider.class.stubs(:get_routes).with().returns(get_routes_res)
-    end
-
-    it 'Delete existing default route' do
-      provider.class.stubs(:iproute).with(['--force', 'route', 'delete', name, 'via', '172.18.128.1', 'dev', 'p2p22']).returns(0)
-      provider.destroy
-    end
-
-    it 'Route is deleted by hotplug system during destroy executing' do
-      provider.class.stubs(:iproute).with(['--force', 'route', 'delete', name, 'via', '172.18.128.1', 'dev', 'p2p22']).raises("Command 'ip --force route delete default via 172.18.128.1 dev p2p22' has been failed with exit_code=1:\nRTNETLINK answers: No such process")
-      provider.destroy
-    end
-
+  before(:each) do
+    puppet_debug_override()
+    provider.class.stubs(:get_routes).with().returns(get_routes_res)
   end
-# vim: set ts=2 sw=2 et
+
+  it 'Delete existing default route' do
+    provider.class.stubs(:iproute).with(['--force', 'route', 'delete', name, 'via', '172.18.128.1', 'dev', 'p2p22']).returns(0)
+    provider.destroy
+  end
+
+  it 'Route is deleted by hotplug system during destroy executing' do
+    provider.class.stubs(:iproute).with(['--force', 'route', 'delete', name, 'via', '172.18.128.1', 'dev', 'p2p22']).raises("Command 'ip --force route delete default via 172.18.128.1 dev p2p22' has been failed with exit_code=1:\nRTNETLINK answers: No such process")
+    provider.destroy
+  end
+
+end

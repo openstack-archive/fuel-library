@@ -27,4 +27,3 @@ describe Puppet::Type.type(:l2_bond) do
 
   end
 end
-# vim: set ts=2 sw=2 et

@@ -42,4 +42,3 @@ describe 'get_pair_of_jack_names' do
 
   end
 end
-# vim: set ts=2 sw=2 et

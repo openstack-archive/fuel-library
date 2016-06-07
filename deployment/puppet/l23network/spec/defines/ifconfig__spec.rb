@@ -54,7 +54,7 @@ describe 'l23network::l3::ifconfig', :type => :define do
     it do
       should contain_l3_ifconfig('eth4').with({
         'ensure'  => 'present',
-        'ipaddr'  => 'none',
+        'ipaddr'  => ['none'],
         'gateway' => nil,
       })
     end
@@ -102,7 +102,7 @@ describe 'l23network::l3::ifconfig', :type => :define do
     it do
       should contain_l3_ifconfig('eth4').with({
         'ensure'         => 'present',
-        'ipaddr'         => '10.20.20.2/24',
+        'ipaddr'         => ['10.20.20.2/24'],
         'gateway'        => '10.20.20.1',
         'gateway_metric' => nil,
       })
@@ -152,7 +152,7 @@ describe 'l23network::l3::ifconfig', :type => :define do
     it do
       should contain_l3_ifconfig('eth4').with({
         'ensure'         => 'present',
-        'ipaddr'         => '10.20.30.2/24',
+        'ipaddr'         => ['10.20.30.2/24'],
         'gateway'        => '10.20.30.1',
         'gateway_metric' => 321,
       })
@@ -318,4 +318,3 @@ describe 'l23network::l3::ifconfig', :type => :define do
   end
 
 end
-# vim: set ts=2 sw=2 et

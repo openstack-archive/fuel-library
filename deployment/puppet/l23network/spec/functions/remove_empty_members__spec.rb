@@ -9,7 +9,7 @@ describe 'remove empty interfaces and endpoints' do
   end
 
   it 'should exist' do
-    Puppet::Parser::Functions.function('remove_empty_members').should == 'function_remove_empty_members'
+    expect(Puppet::Parser::Functions.function('remove_empty_members')).to eq 'function_remove_empty_members'
   end
 
   it 'should has ability to remove empty keys from config hashes' do
@@ -41,4 +41,3 @@ describe 'remove empty interfaces and endpoints' do
   end
 
 end
-# vim: set ts=2 sw=2 et :
