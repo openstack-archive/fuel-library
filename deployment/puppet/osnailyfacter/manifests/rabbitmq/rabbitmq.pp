@@ -186,6 +186,7 @@ class osnailyfacter::rabbitmq::rabbitmq {
         provider             => 'rabbitmqctl',
       }
 
+      $virtual_host = '/'
       rabbitmq_vhost { $virtual_host:
         provider => 'rabbitmqctl',
       }
