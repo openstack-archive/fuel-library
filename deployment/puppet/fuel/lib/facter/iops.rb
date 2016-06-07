@@ -7,6 +7,7 @@ Facter.add('iops') do
   confine :kernel => :linux
   str = Facter::Util::Resolution.exec("iostat | grep -v 'dm-'" \
                                       " | awk '{print $2}'")
+  next unless str
   iops = 0
   str.split("\n").each do |iops_val|
     iops = iops + iops_val.to_f
