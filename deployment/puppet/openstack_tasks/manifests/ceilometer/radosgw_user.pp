@@ -17,7 +17,7 @@ class openstack_tasks::ceilometer::radosgw_user {
     service { $::ceilometer::params::agent_central_service_name:
       ensure   => 'running',
       enable   => true,
-      provider => 'pacemaker',
+      provider => 'pacemaker_xml',
     }
   }
 
