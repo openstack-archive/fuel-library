@@ -19,6 +19,7 @@ describe manifest do
     it 'should set up NTP' do
       management_vrouter_vip = Noop.hiera('management_vrouter_vip')
       servers = Noop.hiera('ntp_servers', management_vrouter_vip)
+      servers = [servers] unless servers.is_a? Array
 
       unless is_ntp_server
         should contain_class('ntp').with(
