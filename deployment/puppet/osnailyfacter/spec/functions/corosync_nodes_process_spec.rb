@@ -1,7 +1,6 @@
 require 'spec_helper'
 
-describe 'the corosync_nodes process function' do
-  let(:scope) { PuppetlabsSpec::PuppetInternals.scope }
+describe 'corosync_nodes_process' do
 
   let(:corosync_nodes) do
     {
@@ -28,15 +27,11 @@ describe 'the corosync_nodes process function' do
   end
 
   it 'should exist' do
-    expect(
-        Puppet::Parser::Functions.function('corosync_nodes_process')
-    ).to eq('function_corosync_nodes_process')
+    is_expected.not_to be_nil
   end
 
   it 'should return processed corosync_nodes hash' do
-    expect(
-        scope.function_corosync_nodes_process([corosync_nodes])
-    ).to eq corosync_nodes_processed
+    is_expected.to run.with_params(corosync_nodes).and_return(corosync_nodes_processed)
   end
 
 end
