@@ -16,3 +16,4 @@ fixtures:
     xinetd: "#{source_dir}/../xinetd"
     oslo: "#{source_dir}/../oslo"
     osnailyfacter: "#{source_dir}/../osnailyfacter"
+    keystone: "#{source_dir}/../keystone"
