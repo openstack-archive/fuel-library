@@ -76,11 +76,11 @@ vmware_host_ip=1.2.3.4
 
 # Password for authenticating with VMware vCenter server. (string value)
 #vmware_host_password = <None>
-vmware_host_password=
+vmware_host_password=password
 
 # Username for authenticating with VMware vCenter server. (string value)
 #vmware_host_username = <None>
-vmware_host_username=administrator@vsphere.local
+vmware_host_username=user
 
 # Optional string specifying the VMware vCenter server version. The driver
 # attempts to retrieve the version from VMware vCenter server. Set this
