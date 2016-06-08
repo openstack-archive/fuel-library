@@ -204,6 +204,9 @@
       changedAny($.mysql, $.get('custom_mysql_setup_class', 'galera'),
       $.get('external_lb'), $.get('database_nodes'), $.get('mysqld_names'),
       $.get('mysqld_ipaddresses'), $.network_metadata.vips,
+      $.network_metadata.nodes.values().where(
+        ('controller' in $.node_roles) or
+        ('primary-controller' in $.node_roles)),
       $.get('database_vip'), ('primary-controller' in $.roles))
   cross-depends:
     - name: /(primary-)?cluster-haproxy/
