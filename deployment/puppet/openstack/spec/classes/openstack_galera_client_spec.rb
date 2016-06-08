@@ -76,27 +76,11 @@ describe 'openstack::galera::client' do
 
   end
 
-  context 'on Debian platforms' do
-    let :facts do
-      {
-        :osfamily        => 'Debian',
-        :operatingsystem => 'Debian',
-      }
+  on_supported_os(supported_os: supported_os).each do |os, facts|
+    context "on #{os}" do
+      let(:facts) { facts }
+      it_configures 'openstack::galera::client config'
     end
-
-    it_configures 'openstack::galera::client config'
-  end
-
-  context 'on RedHat platforms' do
-    let :facts do
-      {
-        :osfamily        => 'RedHat',
-        :operatingsystem => 'RedHat',
-        :operatingsystemmajrelease => '7',
-      }
-    end
-
-    it_configures 'openstack::galera::client config'
   end
 
 end
