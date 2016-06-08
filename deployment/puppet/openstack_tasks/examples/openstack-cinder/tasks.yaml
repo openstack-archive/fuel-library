@@ -13,6 +13,9 @@
       $.get('kombu_compression'), $.get('keystone_endpoint'),
       $.get('glance_endpoint'), $.get('glance_api_servers'),
       $.get('use_syslog'), $.get('use_stderr'), $.get('verbose'), $.debug,
+      $.network_metadata.nodes.values().where(
+        $.node_roles.any($.matches('controller'))).network_roles.select(
+          $.get('mgmt/messaging')),
       $.get('amqp_hosts'), $.get('syslog_log_facility_cinder'),
       $.get('cinder_rate_limits'), $.get('keystone_api', 'v3'),
       $.configuration.get('cinder_api_paste_ini'), $.configuration.get('cinder') )

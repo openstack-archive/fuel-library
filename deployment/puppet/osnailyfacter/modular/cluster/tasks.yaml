@@ -42,7 +42,9 @@
     yaql_exp: >
       changedAny($.get('corosync_roles'), $.get('corosync_disks'),
       $.get('corosync_min_disk_space'), $.get('corosync_disk_unit'),
-      $.get('corosync_disk_monitor_interval'))
+      $.get('corosync_disk_monitor_interval'),
+      $.get('cluster_recheck_interval', '190s'), $.network_metadata,
+      $.network_scheme)
   parameters:
     puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/cluster/health.pp
     puppet_modules: /etc/puppet/modules

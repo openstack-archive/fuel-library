@@ -17,6 +17,9 @@
       $.get('memcached_addresses'), $.get('memcache_server_port'),
       $.get('openstack_controller'), $.get('external_lb'), $.quantum_settings,
       $.get('database_vip'), $.nova_quota, $.use_vcenter, $.libvirt_type,
+      $.network_metadata.nodes.values().where(
+        $.node_roles.any($.matches('controller'))).network_roles.select(
+          $.get('mgmt/messaging')),
       $.get('amqp_hosts'), $.debug, $.use_cow_images, $.get('nova_endpoint'))
   cross-depends:
     - name: /(primary-)?rabbitmq/

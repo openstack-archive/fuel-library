@@ -5,7 +5,7 @@
   required_for: [keystone, primary-keystone]
   requires: [netconfig]
   condition:
-    yaql_exp: "$.uid in added($.network_metadata.nodes.values().uid)"
+    yaql_exp: "changed($)"
   parameters:
     puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/apache/apache.pp
     puppet_modules: /etc/puppet/modules

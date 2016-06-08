@@ -33,11 +33,15 @@
       $.get('block_device_allocate_retries_interval', 3),
       $.get('queue_provider', 'rabbit'), $.quantum_settings,
       $.get('memcached_addresses', ''), $.get('memcache_roles', ''),
-      len($.network_metadata.nodes.values().where(
-        $.network_roles.get('mgmt/memcache') != null)),
-      $.get('memcache_server_port'), $.get('amqp_hosts', ''),
-      len($.network_metadata.nodes.values().where(
-        $.network_roles.get('mgmt/messaging') != null)),
+      $.network_metadata.nodes.values().where(
+        $.network_roles.get('mgmt/memcache') != null),
+      $.get('memcache_server_port'),
+      $.network_metadata.nodes.values().where(
+        $.node_roles.any($.matches('controller'))).network_roles.select(
+          $.get('mgmt/messaging')),
+      $.get('amqp_hosts'),
+      $.network_metadata.nodes.values().where(
+        $.network_roles.get('mgmt/messaging') != null),
       $.resume_guests_state_on_host_boot, $.use_cow_images)
   cross-depends:
     - name: keystone
@@ -65,7 +69,11 @@
       $.network_metadata.vips, $.debug, $.node_volumes, $.storage, $.rabbit, $.ceilometer,
       $.get('use_stderr'), $.get('use_syslog'), $.get('syslog_log_facility_cinder'),
       $.get('syslog_log_facility_ceph'), $.get('proxy_port'), $.get('kombu_compression'),
-      $.get('use_ssl'), $.get('service_endpoint'), $.get('glance_api_servers'))
+      $.get('use_ssl'), $.get('service_endpoint'), $.get('glance_api_servers'),
+      $.get('amqp_hosts'),
+      $.network_metadata.nodes.values().where(
+        $.node_roles.any($.matches('controller'))).network_roles.select(
+          $.get('mgmt/messaging')))
   parameters:
     puppet_manifest: /etc/puppet/modules/openstack_tasks/examples/roles/cinder.pp
     puppet_modules: /etc/puppet/modules
@@ -136,6 +144,9 @@
       $.ironic.enabled and changedAny($.network_scheme, $.ironic,
       $.network_metadata.vips, $.get('database_vip'),
       $.get('neutron_endpoint'), $.get('glance_api_servers'),
+      $.network_metadata.nodes.values().where(
+        $.node_roles.any($.matches('controller'))).network_roles.select(
+          $.get('mgmt/messaging')),
       $.get('amqp_hosts'), $.debug, $.get('use_syslog'),
       $.get('syslog_log_facility_ironic'), $.rabbit, $.storage,
       $.get('kombu_compression'))

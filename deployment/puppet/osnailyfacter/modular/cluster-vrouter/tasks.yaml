@@ -5,7 +5,7 @@
   required_for: [virtual_ips]
   requires: [primary-cluster, cluster]
   condition:
-    yaql_exp: "changed($.network_scheme)"
+    yaql_exp: "changedAny($.network_scheme, $.network_metadata)"
   parameters:
     puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/cluster-vrouter/cluster-vrouter.pp
     puppet_modules: /etc/puppet/modules
