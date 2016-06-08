@@ -24,7 +24,7 @@ class openstack_tasks::openstack_cinder::openstack_cinder {
   $kombu_compression      = hiera('kombu_compression', $::os_service_default)
   $memcached_servers      = hiera('memcached_servers')
 
-  $db_type                = 'mysql'
+  $db_type                = pick($cinder_hash['db_type'], 'mysql+pymysql')
   $db_host                = pick($cinder_hash['db_host'], hiera('database_vip'))
   $db_user                = pick($cinder_hash['db_user'], 'cinder')
   $db_password            = $cinder_hash[db_password]

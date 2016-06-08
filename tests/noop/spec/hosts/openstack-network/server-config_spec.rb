@@ -56,12 +56,12 @@ describe manifest do
 
       it 'Configure database options for neutron::server' do
         sync_db     = Noop.hiera('primary_controller')
-        db_type     = 'mysql'
+        db_type     = neutron_config.fetch('database', {}).fetch('type', 'mysql+pymysql')
         db_password = neutron_config.fetch('database', {}).fetch('passwd')
         db_user     = neutron_config.fetch('database', {}).fetch('user', 'neutron')
         db_name     = neutron_config.fetch('database', {}).fetch('name', 'neutron')
         db_host     = neutron_config.fetch('database', {}).fetch('host', database_vip)
-        
+
         if facts[:os_package_type] == 'debian'
           extra_params = { 'charset' => 'utf8', 'read_timeout' => 60 }
         else

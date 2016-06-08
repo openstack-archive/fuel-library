@@ -40,7 +40,7 @@ class openstack_tasks::keystone::keystone {
   $user_admin_role   = hiera('user_admin_role')
   $user_admin_domain = hiera('user_admin_domain')
 
-  $db_type     = 'mysql'
+  $db_type     = pick($keystone_hash['db_type'], 'mysql+pymysql')
   $db_host     = pick($keystone_hash['db_host'], $database_vip)
   $db_password = $keystone_hash['db_password']
   $db_name     = pick($keystone_hash['db_name'], 'keystone')
