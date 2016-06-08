@@ -190,6 +190,7 @@ class openstack_tasks::openstack_network::server_config {
       sriov_agent_required      => $use_sriov,
       enable_security_group     => true,
       firewall_driver           => 'neutron.agent.linux.iptables_firewall.OVSHybridIptablesFirewallDriver',
+      ml2_server_package        => 'neutron-plugin-ml2',
     }
 
     class { '::neutron::server':
