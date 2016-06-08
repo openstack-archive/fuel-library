@@ -99,7 +99,7 @@ class openstack_tasks::openstack_controller::openstack_controller {
     $enable_cpu_pinning = false
   }
 
-  $db_type     = 'mysql'
+  $db_type     = pick($nova_hash['db_type'], 'mysql+pymysql')
   $db_host     = pick($nova_hash['db_host'], hiera('database_vip'))
   $db_user     = pick($nova_hash['db_user'], 'nova')
   $db_password = $nova_hash['db_password']
