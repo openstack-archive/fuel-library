@@ -31,7 +31,7 @@ class openstack_tasks::aodh::aodh {
 
   $database_vip = hiera('database_vip')
 
-  $db_type          = pick($aodh_hash['db_type'], 'mysql')
+  $db_type          = pick($aodh_hash['db_type'], 'mysql+pymysql')
   $db_name          = pick($aodh_hash['db_name'], 'aodh')
   $db_user          = pick($aodh_hash['db_user'], 'aodh')
   $db_password      = $aodh_hash['db_password']

@@ -55,6 +55,7 @@ describe manifest do
     let(:amqp_hosts) { Noop.hiera('amqp_hosts') }
     let(:public_ssl) { Noop.hiera_structure('public_ssl/services') }
 
+    let(:db_type) { Noop.hiera_structure('murano/db_type', 'mysql+pymysql') }
     let(:db_user) { Noop.hiera_structure('murano/db_user', 'murano') }
     let(:db_name) { Noop.hiera_structure('murano/db_name', 'murano') }
     let(:db_host) { Noop.hiera_structure('murano/db_host', service_endpoint) }
@@ -75,7 +76,7 @@ describe manifest do
       else
         extra_params = '?charset=utf8'
       end
-      "mysql://#{db_user}:#{db_password}@#{db_host}/#{db_name}#{extra_params}"
+      "#{db_type}://#{db_user}:#{db_password}@#{db_host}/#{db_name}#{extra_params}"
     end
 
     let(:ssl_hash) { Noop.hiera_hash 'use_ssl', {} }
