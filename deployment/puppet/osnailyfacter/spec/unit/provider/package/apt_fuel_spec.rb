@@ -19,7 +19,7 @@ describe Puppet::Type.type(:package).provider(:apt_fuel) do
     puppet_debug_override
     subject.stubs(:lock_sleep).returns(0)
     subject.stubs(:retry_sleep).returns(0)
-    subject.stubs(:default_lock_timeout).returns(1)
+    subject.stubs(:timeout).returns(300)
   end
 
   it 'should exist' do
@@ -40,11 +40,12 @@ describe Puppet::Type.type(:package).provider(:apt_fuel) do
 
   it 'should fail if lock timeout is exceeded' do
     subject.stubs(:lock_sleep).returns(2)
-    subject.stubs(:locked?).returns(true, false)
+    subject.stubs(:timeout).returns(1)
+    subject.stubs(:locked?).returns(true, true, false)
     subject.stubs(:aptget).returns(true)
     expect do
       subject.install
-    end.to raise_error Puppet::Error
+    end.to raise_error Timeout::Error
   end
 
   it 'should retry the failed installation attempts' do
