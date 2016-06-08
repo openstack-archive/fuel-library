@@ -28,7 +28,7 @@ class openstack_tasks::ironic::ironic {
 
   $memcached_servers          = hiera('memcached_servers')
 
-  $db_type                    = 'mysql'
+  $db_type                    = pick($ironic_hash['db_type'], 'mysql+pymysql')
   $db_host                    = pick($ironic_hash['db_host'], $database_vip)
   $db_user                    = pick($ironic_hash['db_user'], 'ironic')
   $db_name                    = pick($ironic_hash['db_name'], 'ironic')

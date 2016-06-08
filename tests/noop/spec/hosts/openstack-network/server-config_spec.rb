@@ -56,7 +56,7 @@ describe manifest do
 
       it 'Configure database options for neutron::server' do
         sync_db     = Noop.hiera('primary_controller')
-        db_type     = 'mysql'
+        db_type     = neutron_config.fetch('database', {}).fetch('type', 'mysql+pymysql')
         db_password = neutron_config.fetch('database', {}).fetch('passwd')
         db_user     = neutron_config.fetch('database', {}).fetch('user', 'neutron')
         db_name     = neutron_config.fetch('database', {}).fetch('name', 'neutron')
