@@ -96,7 +96,7 @@ describe manifest do
             extra_params = '?charset=utf8'
         end
 
-        db_connection = "mysql://#{glance_db_user}:#{glance_db_password}@#{database_vip}/#{glance_db_name}#{extra_params}"
+        db_connection = "mysql+pymysql://#{glance_db_user}:#{glance_db_password}@#{database_vip}/#{glance_db_name}#{extra_params}"
         should contain_class('glance::api').with(:database_connection => db_connection)
         should contain_class('glance::registry').with(:database_connection => db_connection)
         should contain_class('glance::glare::db').with(:database_connection => db_connection)

@@ -29,7 +29,7 @@ class openstack_tasks::ironic::ironic_compute {
   $ironic_username                = pick($ironic_hash['auth_name'],'ironic')
   $ironic_user_password           = pick($ironic_hash['user_password'],'ironic')
 
-  $db_type                        = 'mysql'
+  $db_type                        = 'mysql+pymysql'
   $db_host                        = pick($nova_hash['db_host'], $database_vip)
   $db_user                        = pick($nova_hash['db_user'], 'nova')
   $db_name                        = pick($nova_hash['db_name'], 'nova')

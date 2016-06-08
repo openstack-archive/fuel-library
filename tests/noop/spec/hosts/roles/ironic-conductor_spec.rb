@@ -40,7 +40,7 @@ describe manifest do
           extra_params = '?charset=utf8'
         end
         should contain_class('ironic').with(
-          :database_connection => "mysql://#{ironic_db_user}:#{ironic_db_password}@#{database_vip}/#{ironic_db_name}#{extra_params}"
+          :database_connection => "mysql+pymysql://#{ironic_db_user}:#{ironic_db_password}@#{database_vip}/#{ironic_db_name}#{extra_params}"
         )
       end
 

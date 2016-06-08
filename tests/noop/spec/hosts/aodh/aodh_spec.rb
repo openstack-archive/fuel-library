@@ -116,7 +116,7 @@ describe manifest do
         db_params = '?charset=utf8'
       end
 
-      should contain_aodh_config('database/connection').with(:value => "mysql://#{db_user}:#{db_password}@#{db_host}/#{db_name}#{db_params}")
+      should contain_aodh_config('database/connection').with(:value => "mysql+pymysql://#{db_user}:#{db_password}@#{db_host}/#{db_name}#{db_params}")
     end
 
     it 'should configure alarm ttl' do

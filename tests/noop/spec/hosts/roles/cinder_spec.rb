@@ -50,7 +50,7 @@ describe manifest do
       extra_params = '?charset=utf8'
     end
     should contain_class('cinder').with(
-      :database_connection => "mysql://#{cinder_db_user}:#{cinder_db_password}@#{database_vip}/#{cinder_db_name}#{extra_params}"
+      :database_connection => "mysql+pymysql://#{cinder_db_user}:#{cinder_db_password}@#{database_vip}/#{cinder_db_name}#{extra_params}"
     )
   end
 

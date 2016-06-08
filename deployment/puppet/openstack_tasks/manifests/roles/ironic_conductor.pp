@@ -31,7 +31,7 @@ class openstack_tasks::roles::ironic_conductor {
   $ironic_user_password       = pick($ironic_hash['user_password'],'ironic')
   $ironic_swift_tempurl_key   = pick($ironic_hash['swift_tempurl_key'],'ironic')
 
-  $db_type                    = 'mysql'
+  $db_type                    = 'mysql+pymysql'
   $db_host                    = pick($ironic_hash['db_host'], $database_vip)
   $db_user                    = pick($ironic_hash['db_user'], 'ironic')
   $db_name                    = pick($ironic_hash['db_name'], 'ironic')
