@@ -238,8 +238,8 @@ describe manifest do
         extra_params = '?charset=utf8'
       end
       should contain_class('nova').with(
-        :database_connection => "mysql://#{nova_db_user}:#{nova_db_password}@#{database_vip}/#{nova_db_name}#{extra_params}",
-        :api_database_connection => "mysql://#{api_db_user}:#{api_db_password}@#{database_vip}/#{api_db_name}#{extra_params}"
+        :database_connection => "mysql+pymysql://#{nova_db_user}:#{nova_db_password}@#{database_vip}/#{nova_db_name}#{extra_params}",
+        :api_database_connection => "mysql+pymysql://#{api_db_user}:#{api_db_password}@#{database_vip}/#{api_db_name}#{extra_params}"
       )
     end
 

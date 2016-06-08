@@ -42,7 +42,7 @@ class openstack_tasks::roles::ironic_conductor {
   $admin_identity_address     = get_ssl_property($ssl_hash, {}, 'keystone', 'admin', 'hostname', [$service_endpoint, $management_vip])
   $admin_identity_uri         = "${admin_identity_protocol}://${admin_identity_address}:35357"
 
-  $db_type                    = 'mysql'
+  $db_type                    = 'mysql+pymysql'
   $db_host                    = pick($ironic_hash['db_host'], $database_vip)
   $db_user                    = pick($ironic_hash['db_user'], 'ironic')
   $db_name                    = pick($ironic_hash['db_name'], 'ironic')

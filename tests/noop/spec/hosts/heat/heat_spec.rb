@@ -98,7 +98,7 @@ describe manifest do
         extra_params = '?charset=utf8'
       end
       should contain_class('heat').with(
-        :database_connection => "mysql://#{heat_db_user}:#{heat_db_password}@#{database_vip}/#{heat_db_name}#{extra_params}"
+        :database_connection => "mysql+pymysql://#{heat_db_user}:#{heat_db_password}@#{database_vip}/#{heat_db_name}#{extra_params}"
       )
     end
 

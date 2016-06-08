@@ -120,7 +120,7 @@ describe manifest do
             extra_params = '?charset=utf8'
         end
         should contain_class('keystone').with(
-          :database_connection => "mysql://#{keystone_db_user}:#{keystone_db_password}@#{database_vip}/#{keystone_db_name}#{extra_params}"
+          :database_connection => "mysql+pymysql://#{keystone_db_user}:#{keystone_db_password}@#{database_vip}/#{keystone_db_name}#{extra_params}"
 
         )
     end
