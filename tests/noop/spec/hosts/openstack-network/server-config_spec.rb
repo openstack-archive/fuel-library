@@ -41,6 +41,7 @@ describe manifest do
         adv_neutron_config = Noop.hiera_hash('neutron_advanced_configuration')
         dvr = adv_neutron_config.fetch('neutron_dvr', false)
         pci_vendor_devs = neutron_config.fetch('supported_pci_vendor_devs', false)
+        db_type     = neutron_config.fetch('database', {}).fetch('type', 'mysql+pymysql')
         if role == 'compute' and !dvr
           do_floating = false
         else
@@ -100,7 +101,7 @@ describe manifest do
           else
             extra_params = '?charset=utf8'
           end
-          db_connection = "mysql://#{db_user}:#{db_password}@#{db_host}/#{db_name}#{extra_params}"
+          db_connection = "$#{db_type}://#{db_user}:#{db_password}@#{db_host}/#{db_name}#{extra_params}"
 
           should contain_class('neutron::server').with(
             'sync_db'                 => sync_db,
