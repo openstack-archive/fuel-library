@@ -89,7 +89,7 @@ install -m 0755 %{files_source}/fuel-ha-utils/ocf/neutron-metadata-agent %{build
 install -m 0755 %{files_source}/fuel-ha-utils/ocf/neutron-dhcp-agent %{buildroot}/usr/lib/ocf/resource.d/fuel/neutron-dhcp-agent
 install -m 0755 %{files_source}/fuel-ha-utils/ocf/neutron-l3-agent %{buildroot}/usr/lib/ocf/resource.d/fuel/neutron-l3-agent
 install -m 0755 %{files_source}/fuel-ha-utils/ocf/rabbitmq-server %{buildroot}/usr/lib/ocf/resource.d/fuel/rabbitmq-server
-install -m 0755 %{files_source}/fuel-ha-utils/policy/set_rabbitmq_policy.sh %{buildroot}/usr/sbin/set_rabbitmq_policy
+install -m 0755 %{files_source}/fuel-ha-utils/policy/set_rabbitmq_policy %{buildroot}/usr/sbin/set_rabbitmq_policy
 install -m 0755 %{files_source}/fuel-ha-utils/ocf/ns_IPaddr2 %{buildroot}/usr/lib/ocf/resource.d/fuel/ns_IPaddr2
 install -m 0755 %{files_source}/fuel-ha-utils/ocf/ceilometer-agent-central %{buildroot}/usr/lib/ocf/resource.d/fuel/ceilometer-agent-central
 install -m 0755 %{files_source}/fuel-ha-utils/ocf/ceilometer-alarm-evaluator %{buildroot}/usr/lib/ocf/resource.d/fuel/ceilometer-alarm-evaluator
