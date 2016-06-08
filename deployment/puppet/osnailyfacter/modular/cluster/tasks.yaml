@@ -42,7 +42,9 @@
     yaql_exp: >
       changedAny($.get('corosync_roles'), $.get('corosync_disks'),
       $.get('corosync_min_disk_space'), $.get('corosync_disk_unit'),
-      $.get('corosync_disk_monitor_interval'))
+      $.get('corosync_disk_monitor_interval'),
+      $.get('cluster_recheck_interval', '190s'), $.network_metadata,
+      $.network_scheme)
   cross-depends:
     - name: /(primary-)?cluster/
       role: self

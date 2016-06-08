@@ -10,7 +10,10 @@
       $.get('database_vip'), $.quantum_settings, $.quantum, $.network_scheme,
       $.get('syslog_log_facility_sahara'), $.debug, $.get('verbose'),
       $.get('default_log_levels'), $.get('use_syslog'), $.get('use_stderr'),
-      $.get('rabbit_ha_queues'), $.get('amqp_port'), $.get('amqp_hosts'),
+      $.get('rabbit_ha_queues'), $.get('amqp_port'),
+      $.network_metadata.nodes.values().where(
+        $.node_roles.any($.matches('controller'))).network_roles.select(
+          $.get('mgmt/messaging')), $.get('amqp_hosts'),
       $.get('external_lb'), $.get('use_ssl'), $.get('kombu_compression'))
   required_for: [deploy_end, controller_remaining_tasks]
   requires: [openstack-network-end, horizon]
