@@ -68,16 +68,14 @@ class openstack_tasks::heat::heat {
 
   $storage_hash = hiera_hash('storage', {})
 
-  $db_type     = 'mysql'
+  $db_type     = pick($heat_hash['db_type'], 'mysql+pymysql')
   $db_host     = pick($heat_hash['db_host'], hiera('database_vip'))
   $db_user     = pick($heat_hash['db_user'], 'heat')
   $db_password = $heat_hash['db_password']
   $db_name     = hiera('heat_db_name', 'heat')
-  # LP#1526938 - python-mysqldb supports this, python-pymysql does not
-  if $::os_package_type == 'debian' {
-    $extra_params = { 'charset' => 'utf8', 'read_timeout' => 60 }
-  } else {
-    $extra_params = { 'charset' => 'utf8' }
+  case $db_type {
+    'mysql': { $extra_params = { 'charset' => 'utf8', 'read_timeout' => 60 }}
+    'mysql+pymysql': { $extra_params = { 'charset' => 'utf8' }}
   }
   $db_connection = os_database_connection({
     'dialect'  => $db_type,

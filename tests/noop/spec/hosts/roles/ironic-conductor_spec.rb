@@ -13,6 +13,7 @@ describe manifest do
     amqp_durable_queues = Noop.hiera_structure 'ironic/amqp_durable_queues', 'false'
 
     database_vip = Noop.hiera('database_vip')
+    ironic_db_type = Noop.hiera_structure 'ironic/db_type', 'mysql+pymysql'
     ironic_db_password = Noop.hiera_structure 'ironic/db_password', 'ironic'
     ironic_db_user = Noop.hiera_structure 'ironic/db_user', 'ironic'
     ironic_db_name = Noop.hiera_structure 'ironic/db_name', 'ironic'
@@ -34,13 +35,9 @@ describe manifest do
       end
 
       it 'should configure the database connection string' do
-        if facts[:os_package_type] == 'debian'
-          extra_params = '?charset=utf8&read_timeout=60'
-        else
-          extra_params = '?charset=utf8'
-        end
+        extra_params = '?charset=utf8'
         should contain_class('ironic').with(
-          :database_connection => "mysql://#{ironic_db_user}:#{ironic_db_password}@#{database_vip}/#{ironic_db_name}#{extra_params}",
+          :database_connection => "#{ironic_db_type}://#{ironic_db_user}:#{ironic_db_password}@#{database_vip}/#{ironic_db_name}#{extra_params}",
           :sync_db => false
         )
       end

@@ -104,12 +104,8 @@ describe manifest do
           db_user     = neutron_config.fetch('database', {}).fetch('user', 'neutron')
           db_name     = neutron_config.fetch('database', {}).fetch('name', 'neutron')
           db_host     = neutron_config.fetch('database', {}).fetch('host', database_vip)
-          if facts[:os_package_type] == 'debian'
-            extra_params = '?charset=utf8&read_timeout=60'
-          else
-            extra_params = '?charset=utf8'
-          end
-          db_connection = "mysql://#{db_user}:#{db_password}@#{db_host}/#{db_name}#{extra_params}"
+          extra_params = '?charset=utf8'
+          db_connection = "mysql+pymysql://#{db_user}:#{db_password}@#{db_host}/#{db_name}#{extra_params}"
 
           should contain_class('neutron::server').with(
             'sync_db'                 => sync_db,

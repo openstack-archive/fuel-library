@@ -99,7 +99,7 @@ class openstack_tasks::openstack_controller::openstack_controller {
     $enable_cpu_pinning = false
   }
 
-  $db_type     = 'mysql'
+  $db_type     = pick($nova_hash['db_type'], 'mysql+pymysql')
   $db_host     = pick($nova_hash['db_host'], hiera('database_vip'))
   $db_user     = pick($nova_hash['db_user'], 'nova')
   $db_password = $nova_hash['db_password']
@@ -107,11 +107,9 @@ class openstack_tasks::openstack_controller::openstack_controller {
   $api_db_user     = pick($nova_hash['api_db_user'], 'nova_api')
   $api_db_password = pick($nova_hash['api_db_password'], $nova_hash['db_password'])
   $api_db_name     = pick($nova_hash['api_db_name'], 'nova_api')
-  # LP#1526938 - python-mysqldb supports this, python-pymysql does not
-  if $::os_package_type == 'debian' {
-    $extra_params = { 'charset' => 'utf8', 'read_timeout' => 60 }
-  } else {
-    $extra_params = { 'charset' => 'utf8' }
+  case $db_type {
+    'mysql': { $extra_params = { 'charset' => 'utf8', 'read_timeout' => 60 }}
+    'mysql+pymysql': { $extra_params = { 'charset' => 'utf8' }}
   }
   $db_connection = os_database_connection({
     'dialect'  => $db_type,

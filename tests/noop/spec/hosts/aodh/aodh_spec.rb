@@ -48,6 +48,7 @@ describe manifest do
     api_pecan_debug = aodh_hash.fetch('debug', debug)
 
     db_host = Noop.hiera 'database_vip'
+    db_type = Noop.hiera_structure 'aodh/db_type', 'mysql+pymysql'
     db_name = aodh_hash.fetch('db_name', 'aodh')
     db_user = aodh_hash.fetch('db_user', 'aodh')
     db_password = aodh_hash['db_password']
@@ -111,13 +112,9 @@ describe manifest do
     end
 
     it 'should properly build connection string' do
-      if facts[:os_package_type] == 'debian'
-        db_params = '?charset=utf8&read_timeout=60'
-      else
-        db_params = '?charset=utf8'
-      end
+      db_params = '?charset=utf8'
 
-      should contain_aodh_config('database/connection').with(:value => "mysql://#{db_user}:#{db_password}@#{db_host}/#{db_name}#{db_params}")
+      should contain_aodh_config('database/connection').with(:value => "#{db_type}://#{db_user}:#{db_password}@#{db_host}/#{db_name}#{db_params}")
     end
 
     it 'should configure alarm ttl' do

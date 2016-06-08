@@ -55,16 +55,14 @@ class openstack_tasks::murano::murano {
     $murano_user    = pick($murano_hash['user'], 'murano')
     $tenant         = pick($murano_hash['tenant'], 'services')
 
-    $db_type        = 'mysql'
+    $db_type        = pick($murano_hash['db_type'], 'mysql+pymysql')
     $db_user        = pick($murano_hash['db_user'], 'murano')
     $db_name        = pick($murano_hash['db_name'], 'murano')
     $db_password    = pick($murano_hash['db_password'])
     $db_host        = pick($murano_hash['db_host'], $database_ip)
-    # LP#1526938 - python-mysqldb supports this, python-pymysql does not
-    if $::os_package_type == 'debian' {
-      $extra_params = { 'charset' => 'utf8', 'read_timeout' => 60 }
-    } else {
-      $extra_params = { 'charset' => 'utf8' }
+    case $db_type {
+      'mysql': { $extra_params = { 'charset' => 'utf8', 'read_timeout' => 60 }}
+      'mysql+pymysql': { $extra_params = { 'charset' => 'utf8' }}
     }
     $db_connection = os_database_connection({
       'dialect'  => $db_type,
