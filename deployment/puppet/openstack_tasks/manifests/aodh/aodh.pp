@@ -32,7 +32,7 @@ class openstack_tasks::aodh::aodh {
 
   $database_vip = hiera('database_vip')
 
-  $db_type          = pick($aodh_hash['db_type'], 'mysql')
+  $db_type          = pick($aodh_hash['db_type'], 'mysql+pymysql')
   $db_name          = pick($aodh_hash['db_name'], 'aodh')
   $db_user          = pick($aodh_hash['db_user'], 'aodh')
   $db_password      = $aodh_hash['db_password']
@@ -41,10 +41,9 @@ class openstack_tasks::aodh::aodh {
   $db_charset       = pick($aodh_hash['db_charset'], 'utf8')
   $db_allowed_hosts = pick($aodh_hash['db_allowed_hosts'], '%')
 
-  if $::os_package_type == 'debian' {
-      $extra_params = { 'charset' => 'utf8', 'read_timeout' => 60 }
-    } else {
-      $extra_params = { 'charset' => 'utf8' }
+  case $db_type {
+    'mysql': { $extra_params = { 'charset' => 'utf8', 'read_timeout' => 60 }}
+    'mysql+pymysql': { $extra_params = { 'charset' => 'utf8' }}
   }
   $database_connection = os_database_connection({
     'dialect'  => $db_type,

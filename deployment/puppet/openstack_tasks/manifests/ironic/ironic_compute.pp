@@ -29,7 +29,7 @@ class openstack_tasks::ironic::ironic_compute {
   $ironic_username                = pick($ironic_hash['auth_name'],'ironic')
   $ironic_user_password           = pick($ironic_hash['user_password'],'ironic')
 
-  $db_type                        = 'mysql'
+  $db_type                        = pick($nova_hash['db_type'], 'mysql+pymysql')
   $db_host                        = pick($nova_hash['db_host'], $database_vip)
   $db_user                        = pick($nova_hash['db_user'], 'nova')
   $db_name                        = pick($nova_hash['db_name'], 'nova')
@@ -41,11 +41,9 @@ class openstack_tasks::ironic::ironic_compute {
   $max_retries = hiera('max_retries', '-1')
 
   $max_concurrent_builds          = pick($ironic_hash['max_concurrent_builds'], 50)
-  # LP#1526938 - python-mysqldb supports this, python-pymysql does not
-  if $::os_package_type == 'debian' {
-    $extra_params = { 'charset' => 'utf8', 'read_timeout' => 60 }
-  } else {
-    $extra_params = { 'charset' => 'utf8' }
+  case $db_type {
+    'mysql': { $extra_params = { 'charset' => 'utf8', 'read_timeout' => 60 }}
+    'mysql+pymysql': { $extra_params = { 'charset' => 'utf8' }}
   }
   $db_connection = os_database_connection({
     'dialect'  => $db_type,

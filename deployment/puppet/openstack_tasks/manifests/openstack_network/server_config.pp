@@ -34,16 +34,14 @@ class openstack_tasks::openstack_network::server_config {
     $primary_controller               = roles_include($neutron_primary_controller_roles)
     $compute                          = roles_include($neutron_compute_roles)
 
-    $db_type     = 'mysql'
+    $db_type     = 'mysql+pymysql'
     $db_password = $neutron_config['database']['passwd']
     $db_user     = try_get_value($neutron_config, 'database/user', 'neutron')
     $db_name     = try_get_value($neutron_config, 'database/name', 'neutron')
     $db_host     = try_get_value($neutron_config, 'database/host', $database_vip)
-    # LP#1526938 - python-mysqldb supports this, python-pymysql does not
-    if $::os_package_type == 'debian' {
-      $extra_params = { 'charset' => 'utf8', 'read_timeout' => 60 }
-    } else {
-      $extra_params = { 'charset' => 'utf8' }
+    case $db_type {
+      'mysql': { $extra_params = { 'charset' => 'utf8', 'read_timeout' => 60 }}
+      'mysql+pymysql': { $extra_params = { 'charset' => 'utf8' }}
     }
     $db_connection = os_database_connection({
       'dialect'  => $db_type,

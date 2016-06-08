@@ -42,16 +42,14 @@ class openstack_tasks::keystone::keystone {
   $user_admin_role   = hiera('user_admin_role')
   $user_admin_domain = hiera('user_admin_domain')
 
-  $db_type     = 'mysql'
+  $db_type     = pick($keystone_hash['db_type'], 'mysql+pymysql')
   $db_host     = pick($keystone_hash['db_host'], $database_vip)
   $db_password = $keystone_hash['db_password']
   $db_name     = pick($keystone_hash['db_name'], 'keystone')
   $db_user     = pick($keystone_hash['db_user'], 'keystone')
-  # LP#1526938 - python-mysqldb supports this, python-pymysql does not
-  if $::os_package_type == 'debian' {
-    $extra_params = { 'charset' => 'utf8', 'read_timeout' => 60 }
-  } else {
-    $extra_params = { 'charset' => 'utf8' }
+  case $db_type {
+    'mysql': { $extra_params = { 'charset' => 'utf8', 'read_timeout' => 60 }}
+    'mysql+pymysql': { $extra_params = { 'charset' => 'utf8' }}
   }
   $db_connection = os_database_connection({
     'dialect'  => $db_type,
