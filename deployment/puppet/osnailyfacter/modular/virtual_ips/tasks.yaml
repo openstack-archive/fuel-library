@@ -7,7 +7,7 @@
   condition:
     yaql_exp: "changedAny($.network_metadata, $.network_scheme, $.roles)"
   cross-depends:
-    - name: /(primary-)?cluster$/
+    - name: /^(primary-)?cluster$/
       role: self
   parameters:
     puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/virtual_ips/virtual_ips.pp

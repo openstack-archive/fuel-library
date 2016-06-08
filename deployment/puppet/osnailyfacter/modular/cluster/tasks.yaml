@@ -21,6 +21,7 @@
   groups: [controller]
   cross-depends:
     - name: primary-cluster
+      role: primary-controller
   required_for: [deploy_end]
   requires: [hosts, firewall, deploy_start]
   condition:

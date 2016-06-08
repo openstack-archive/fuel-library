@@ -65,17 +65,23 @@
     cmd: ruby /etc/puppet/modules/osnailyfacter/modular/netconfig/netconfig_pre.rb
   test_post:
     cmd: ruby /etc/puppet/modules/osnailyfacter/modular/netconfig/netconfig_post.rb
-  # Run netconfig task on all nodes (except controllers and mongo) after virtual_ips.
-  # Thus we make sure that our default gateway (mgmt VIP) is up before configuring
+  # Run netconfig task on all nodes (except mongo and vrouter VIP roles) after virtual_ips.
+  # Thus we make sure that our default gateway (vrouter VIP) is up before configuring
   # routing on nodes.
   cross-depends:
     yaql_exp: >
       switch(
         (
-          $.roles.any($.matches('(primary-)?(controller|mongo)'))
-          or ($.network_metadata.get('vips',{}).get('management') = null)
+          $.roles.any($.matches('(primary-)?(mongo)'))
+          or ($.network_metadata.get('vips',{}).get('vrouter',{}).get('ipaddr') = null)
+          or (
+            len($.roles.toSet().intersect($.network_metadata.get('vips',{}).get('vrouter',{}).get('node_roles').toSet())) > 0
+          )
         ) => [],
-        true => [{name =>'virtual_ips'}]
+        true => [{
+          name => 'virtual_ips',
+          role => $.network_metadata.get('vips',{}).get('vrouter',{}).get('node_roles')
+        }]
       )
 
 - id: connectivity_tests
