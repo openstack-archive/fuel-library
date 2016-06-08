@@ -357,13 +357,16 @@ class openstack_tasks::roles::compute {
 
   # Configure libvirt for nova-compute
   class { '::nova::compute::libvirt':
+    libvirt_service_name                       => 'libvirt-bin',  # ubuntu 16.04 (upstream package)
+    virtlock_service_name                      => 'virtlockd',  # ubuntu 16.04 (upstream package)
+    virtlog_service_name                       => 'virtlogd',  # ubuntu 16.04 (upstream package)
     libvirt_virt_type                          => $libvirt_type,
     libvirt_cpu_mode                           => $libvirt_cpu_mode,
     libvirt_disk_cachemodes                    => $disk_cachemodes,
     libvirt_inject_partition                   => $libvirt_inject_partition,
     vncserver_listen                           => '0.0.0.0',
     remove_unused_original_minimum_age_seconds => pick($nova_hash_real['remove_unused_original_minimum_age_seconds'], '86400'),
-    libvirt_service_name                       => $::nova::params::libvirt_service_name,
+###    libvirt_service_name                       => $::nova::params::libvirt_service_name,
   }
 
   class { '::nova::migration::libvirt':
