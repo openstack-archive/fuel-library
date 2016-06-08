@@ -71,7 +71,7 @@ describe manifest do
       else
         extra_params = '?charset=utf8'
       end
-      "mysql://#{db_user}:#{db_password}@#{db_host}/#{db_name}#{extra_params}"
+      "mysql+pymysql://#{db_user}:#{db_password}@#{db_host}/#{db_name}#{extra_params}"
     end
 
     let(:ssl_hash) { Noop.hiera_hash 'use_ssl', {} }

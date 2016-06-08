@@ -316,7 +316,7 @@ class osnailyfacter::globals::globals {
   # TODO(aschultz): I don't think this is used so it should probably be
   # deprecated and removed.
   $sql_connection = os_database_connection({
-    'dialect'  => 'mysql',
+    'dialect'  => 'mysql+pymysql',
     'host'     => $database_vip,
     'database' => 'nova',
     'username' => 'nova',

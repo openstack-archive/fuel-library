@@ -110,7 +110,7 @@ describe manifest do
         else
           extra_params = '?charset=utf8'
         end
-        sql_connection = "mysql://#{db_user}:#{db_password}@#{db_host}/#{db_name}#{extra_params}"
+        sql_connection = "mysql+pymysql://#{db_user}:#{db_password}@#{db_host}/#{db_name}#{extra_params}"
 
         should contain_class('sahara').with(
                    'auth_uri'               => auth_url,

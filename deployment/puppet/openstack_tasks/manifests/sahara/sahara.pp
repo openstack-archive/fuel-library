@@ -56,7 +56,7 @@ class openstack_tasks::sahara::sahara {
     $max_retries     = '-1'
     $idle_timeout    = '3600'
 
-    $db_type         = 'mysql'
+    $db_type         = 'mysql+pymysql'
     $db_user         = pick($sahara_hash['db_user'], 'sahara')
     $db_name         = pick($sahara_hash['db_name'], 'sahara')
     $db_password     = pick($sahara_hash['db_password'])

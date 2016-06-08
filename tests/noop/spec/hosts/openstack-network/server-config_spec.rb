@@ -109,7 +109,7 @@ describe manifest do
           else
             extra_params = '?charset=utf8'
           end
-          db_connection = "mysql://#{db_user}:#{db_password}@#{db_host}/#{db_name}#{extra_params}"
+          db_connection = "mysql+pymysql://#{db_user}:#{db_password}@#{db_host}/#{db_name}#{extra_params}"
 
           should contain_class('neutron::server').with(
             'sync_db'                 => sync_db,
