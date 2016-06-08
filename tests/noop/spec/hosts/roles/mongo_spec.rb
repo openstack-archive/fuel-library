@@ -22,6 +22,7 @@ describe manifest do
     mongo_params = Noop.hiera_structure 'mongo'
     profile = Noop.hiera('mongo/profile', '1')
     directoryperdb = Noop.hiera('mongo/directoryperdb', true)
+    mongodb_master = facts[:mongodb_is_master]
     keyfile = '/etc/mongodb.key'
 
     it 'should configure MongoDB only with replica set' do
@@ -30,7 +31,7 @@ describe manifest do
 
     it 'should configure MongoDB with authentication enabled' do
       should contain_class('mongodb::server').with('auth' => 'true')
-      should contain_class('mongodb::server').with('create_admin' => 'true')
+      should contain_class('mongodb::server').with('create_admin' => mongodb_master)
       should contain_class('mongodb::server').with('store_creds' => 'true')
       should contain_file("#{facts[:root_home]}/.mongorc.js").with('ensure' => 'present')
     end
