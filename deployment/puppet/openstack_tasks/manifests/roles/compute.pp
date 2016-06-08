@@ -357,6 +357,9 @@ class openstack_tasks::roles::compute {
 
   # Configure libvirt for nova-compute
   class { '::nova::compute::libvirt':
+    libvirt_service_name                       => 'libvirt-bin',  # ubuntu 16.04 (upstream package)
+    virtlock_service_name                      => 'virtlockd',  # ubuntu 16.04 (upstream package)
+    virtlog_service_name                       => 'virtlogd',  # ubuntu 16.04 (upstream package)
     libvirt_virt_type                          => $libvirt_type,
     libvirt_cpu_mode                           => $libvirt_cpu_mode,
     libvirt_disk_cachemodes                    => $disk_cachemodes,
