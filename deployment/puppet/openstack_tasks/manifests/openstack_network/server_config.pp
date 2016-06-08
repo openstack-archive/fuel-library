@@ -28,7 +28,7 @@ class openstack_tasks::openstack_network::server_config {
   $primary_controller               = roles_include($neutron_primary_controller_roles)
   $compute                          = roles_include($neutron_compute_roles)
 
-  $db_type     = 'mysql'
+  $db_type     = try_get_value($neutron_config, 'database/type', 'mysql+pymysql')
   $db_password = $neutron_config['database']['passwd']
   $db_user     = dig($neutron_config, ['database', 'user'], 'neutron')
   $db_name     = dig($neutron_config, ['database', 'name'], 'neutron')

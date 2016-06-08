@@ -265,7 +265,7 @@ The openstack::compute class deploys the following services:
       fixed_range         => '10.0.0.0/24',
       network_manager     => 'nova.network.manager.FlatDHCPManager',
       multi_host          => false,
-      database_connection => 'mysql://nova:nova_db_passwd@192.168.101.10/nova',
+      database_connection => 'mysql+pymysql://nova:nova_db_passwd@192.168.101.10/nova',
       rabbit_host         => '192.168.101.10',
       glance_api_servers  => '192.168.101.10:9292',
       vncproxy_host       => '192.168.101.10',
