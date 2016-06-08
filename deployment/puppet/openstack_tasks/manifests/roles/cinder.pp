@@ -28,7 +28,7 @@ class openstack_tasks::roles::cinder {
   $keystone_user              = pick($cinder_hash['user'], 'cinder')
   $keystone_tenant            = pick($cinder_hash['tenant'], 'services')
 
-  $db_type      = 'mysql'
+  $db_type      = pick($cinder_hash['db_type'], 'mysql+pymysql')
   $db_host      = pick($cinder_hash['db_host'], hiera('database_vip'))
   $db_user      = pick($cinder_hash['db_user'], 'cinder')
   $db_password  = $cinder_hash[db_password]
