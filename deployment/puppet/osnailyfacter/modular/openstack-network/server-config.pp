@@ -84,12 +84,19 @@ if $use_neutron {
   if $segmentation_type == 'vlan' {
     $net_role_property    = 'neutron/private'
     $iface                = get_network_role_property($net_role_property, 'phys_dev')
-    $overlay_net_mtu      =  pick(get_transformation_property('mtu', $iface[0]), '1500')
     $physical_network_mtus = generate_physnet_mtus($neutron_config, $network_scheme, {
       'do_floating' => $do_floating,
       'do_tenant'   => true,
       'do_provider' => false
     })
+
+    $_path_mtu = try_get_value($neutron_config, 'L2/path_mtu', undef)
+    if $_path_mtu {
+      $path_mtu = $_path_mtu
+    } else {
+      $path_mtu = undef
+    }
+
     $network_vlan_ranges = generate_physnet_vlan_ranges($neutron_config, $network_scheme, {
       'do_floating' => $do_floating,
       'do_tenant'   => true,
@@ -111,21 +118,20 @@ if $use_neutron {
     })
     $network_vlan_ranges = []
 
+    $_path_mtu = try_get_value($neutron_config, 'L2/path_mtu', undef)
+    if $_path_mtu {
+      $path_mtu = $_path_mtu
+    } else {
+      $path_mtu = $physical_net_mtu
+    }
+
     if $segmentation_type == 'gre' {
-      $mtu_offset = '42'
       $network_type = 'gre'
     } else {
       # vxlan is the default segmentation type for non-vlan cases
-      $mtu_offset = '50'
       $network_type = 'vxlan'
     }
     $tunnel_types = [$network_type]
-
-    if $physical_net_mtu {
-      $overlay_net_mtu = $physical_net_mtu - $mtu_offset
-    } else {
-      $overlay_net_mtu = '1500' - $mtu_offset
-    }
   }
 
   if $compute and ! $dvr {
@@ -148,7 +154,7 @@ if $use_neutron {
     vxlan_group           => $vxlan_group,
     vni_ranges            => $tunnel_id_ranges,
     physical_network_mtus => $physical_network_mtus,
-    path_mtu              => $overlay_net_mtu,
+    path_mtu              => $path_mtu,
     extension_drivers     => $extension_drivers,
   }
 
