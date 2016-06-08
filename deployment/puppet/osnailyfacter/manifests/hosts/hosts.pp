@@ -9,7 +9,8 @@ class osnailyfacter::hosts::hosts {
   $messaging_host_resources = network_metadata_to_hosts($network_metadata, 'mgmt/messaging', $messaging_prefix)
   $host_hash = merge($host_resources, $messaging_host_resources)
 
-  $deleted_nodes = hiera('deleted_nodes', [])
+###  $deleted_nodes = hiera('deleted_nodes', [])
+  $deleted_nodes = []
   $deleted_messaging_nodes = prefix($deleted_nodes, $messaging_prefix)
 
   Host {
