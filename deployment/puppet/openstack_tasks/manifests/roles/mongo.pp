@@ -17,6 +17,7 @@ class openstack_tasks::roles::mongo {
   $keyfile             = '/etc/mongodb.key'
   $astute_keyfile      = '/var/lib/astute/mongodb/mongodb.key'
   $ceilometer_database = pick($mongo_hash['ceilometer_database'], 'ceilometer')
+  $mongodb_master      = $::mongodb_is_master
 
   if $debug {
     $verbositylevel = 'vv'
@@ -83,16 +84,19 @@ class openstack_tasks::roles::mongo {
     profile         => pick($mongo_hash['profile'], '1'),
     oplog_size      => $oplog_size,
     dbpath          => $dbpath,
-    create_admin    => true,
+    create_admin    => $mongodb_master,
     admin_password  => $ceilometer_hash['db_password'],
     store_creds     => true,
     replset_members => $mongo_hosts,
-  } ->
+  }
 
-  mongodb::db { $ceilometer_database:
-    user     => pick($mongo_hash['ceilometer_user'], 'ceilometer'),
-    password => $ceilometer_hash['db_password'],
-    roles    => [ 'readWrite', 'dbAdmin' ],
+  if $mongodb_master {
+    Class['::mongodb::server'] ->
+    mongodb::db { $ceilometer_database:
+      user     => pick($mongo_hash['ceilometer_user'], 'ceilometer'),
+      password => $ceilometer_hash['db_password'],
+      roles    => [ 'readWrite', 'dbAdmin' ],
+    }
   }
 
   if ! roles_include(['controller', 'primary-controller']) {
