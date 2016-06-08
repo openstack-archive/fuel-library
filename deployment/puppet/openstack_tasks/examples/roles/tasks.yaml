@@ -46,7 +46,7 @@
   cross-depends:
     - name: keystone
     - name: /(primary-)?openstack-controller/
-    - name: /(primary-)?rabbitmq/
+    - name: /^(primary-)?rabbitmq$/
     - name: memcached
   refresh_on: [nova_config, nova_paste_api_ini]
   parameters:
@@ -152,8 +152,8 @@
       $.get('kombu_compression'))
   cross-depends:
     - name: ironic
-    - name: /(primary-)?database/
-    - name: /(primary-)?rabbitmq/
+    - name: /^(primary-)?database$/
+    - name: /^(primary-)?rabbitmq$/
   parameters:
     puppet_manifest: /etc/puppet/modules/openstack_tasks/examples/roles/ironic-conductor.pp
     puppet_modules: /etc/puppet/modules

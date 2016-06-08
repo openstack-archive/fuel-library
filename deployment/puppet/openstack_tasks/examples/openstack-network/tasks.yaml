@@ -48,7 +48,7 @@
     - name: openstack-haproxy
       role: primary-controller
     - name: neutron-db
-    - name: /(primary-)?rabbitmq/
+    - name: /^(primary-)?rabbitmq$/
       role: self
 
 - id: openstack-network-common-config
