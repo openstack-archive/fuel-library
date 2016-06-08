@@ -1,8 +1,19 @@
+# ROLE: primary-controller
+# ROLE: controller
+
 require 'spec_helper'
 require 'shared-examples'
 manifest = 'openstack-network/server-config.pp'
 
 describe manifest do
+
+  before(:each) do
+    Noop.puppet_function_load :is_pkg_installed
+    MockFunction.new(:is_pkg_installed) do |function|
+      allow(function).to receive(:call).and_return false
+    end
+  end
+
   shared_examples 'catalog' do
     if (Noop.hiera('use_neutron') == true and Noop.hiera('role') =~ /controller/)
       let(:network_scheme) do
@@ -31,55 +42,82 @@ describe manifest do
         management_vip   = Noop.hiera('management_vip')
         service_endpoint = Noop.hiera('service_endpoint', management_vip)
         l3_ha            = Noop.hiera_hash('neutron_advanced_configuration', {}).fetch('neutron_l3_ha', false)
+        sync_db          = Noop.hiera('primary_controller')
         extension_drivers = ['port_security']
         segmentation_type = neutron_config.fetch('L2',{}).fetch('segmentation_type')
         pnets = neutron_config.fetch('L2',{}).fetch('phys_nets',{})
+        path_mtu = neutron_config.fetch('L2',{}).fetch('path_mtu', '1500')
         role = Noop.hiera('role')
         adv_neutron_config = Noop.hiera_hash('neutron_advanced_configuration')
         dvr = adv_neutron_config.fetch('neutron_dvr', false)
+        pci_vendor_devs = neutron_config.fetch('supported_pci_vendor_devs', false)
+        if role == 'compute' and !dvr
+          do_floating = false
+        else
+          do_floating = true
+        end
+        if segmentation_type == 'vlan'
+          network_vlan_ranges = Noop.puppet_function('generate_physnet_vlan_ranges',
+                            neutron_config,
+                            Noop.hiera_hash('network_scheme', {}),
+                            {
+                              'do_floating' => do_floating,
+                              'do_tenant'   => true,
+                              'do_provider' => false
+                            }
+                          )
+        else
+          network_vlan_ranges = []
+        end
+
+        if pci_vendor_devs
+          use_sriov = true
+          ml2_sriov_value = 'set DAEMON_ARGS \'"$DAEMON_ARGS --config-file /etc/neutron/plugins/ml2/ml2_conf_sriov.ini"\''
+        else
+          use_sriov = false
+          ml2_sriov_value = 'rm DAEMON_ARGS'
+        end
+
+        enable_qos = adv_neutron_config.fetch('neutron_qos', false)
+
+        if enable_qos
+          extension_drivers = extension_drivers.concat(['qos'])
+          it { should contain_class('neutron::server').with(
+            'qos_notification_drivers' => 'message_queue',
+          )}
+        end
 
         if segmentation_type == 'vlan'
           network_type   = 'vlan'
-          network_vlan_ranges_physnet2 = pnets.fetch('physnet2',{}).fetch('vlan_range')
-          if role =~ /controller/ and !dvr
-            physnets_array = ["physnet1:#{pnets['physnet1']['bridge']}", "physnet2:#{pnets['physnet2']['bridge']}"]
-            network_vlan_ranges = ["physnet1", "physnet2:#{network_vlan_ranges_physnet2}"]
-          else
-            physnets_array = ["physnet2:#{pnets['physnet2']['bridge']}"]
-            network_vlan_ranges = ["physnet2:#{network_vlan_ranges_physnet2}"]
-          end
           tunnel_id_ranges  = []
-          overlay_net_mtu = '1500'
           tunnel_types = []
-          if pnets['physnet-ironic']
-            physnets_array << "physnet-ironic:#{pnets['physnet-ironic']['bridge']}"
-            network_vlan_ranges << 'physnet-ironic'
-          end
         else
-          if role == 'compute' and !dvr
-            physnets_array = []
-          else
-            physnets_array = ["physnet1:#{pnets['physnet1']['bridge']}"]
-          end
           network_type   = 'vxlan'
-          network_vlan_ranges = []
           tunnel_id_ranges  = [neutron_config.fetch('L2',{}).fetch('tunnel_id_ranges')]
-          overlay_net_mtu = '1450'
           tunnel_types    = [network_type]
         end
 
         it 'database options' do
           database_vip        = Noop.hiera('database_vip')
-          neutron_db_password = neutron_config.fetch('database', {}).fetch('passwd')
-          neutron_db_user     = neutron_config.fetch('database', {}).fetch('user', 'neutron')
-          neutron_db_name     = neutron_config.fetch('database', {}).fetch('name', 'neutron')
-          neutron_db_host     = neutron_config.fetch('database', {}).fetch('host', database_vip)
-          neutron_db_uri = "mysql://#{neutron_db_user}:#{neutron_db_password}@#{neutron_db_host}/#{neutron_db_name}?&read_timeout=60"
+          db_password = neutron_config.fetch('database', {}).fetch('passwd')
+          db_user     = neutron_config.fetch('database', {}).fetch('user', 'neutron')
+          db_name     = neutron_config.fetch('database', {}).fetch('name', 'neutron')
+          db_host     = neutron_config.fetch('database', {}).fetch('host', database_vip)
+          if facts[:os_package_type] == 'debian'
+            extra_params = '?charset=utf8&read_timeout=60'
+          else
+            extra_params = '?charset=utf8'
+          end
+          db_connection = "mysql://#{db_user}:#{db_password}@#{db_host}/#{db_name}#{extra_params}"
+
           should contain_class('neutron::server').with(
-            'sync_db'                 => 'false',
+            'sync_db'                 => sync_db,
             'database_retry_interval' => '2',
-            'database_connection'     => neutron_db_uri,
-            'database_max_retries'    => '-1',
+            'database_connection'     => db_connection,
+            'database_max_retries'    => Noop.hiera('max_retries'),
+            'database_idle_timeout'   => Noop.hiera('idle_timeout'),
+            'database_max_pool_size'  => Noop.hiera('max_pool_size'),
+            'database_max_overflow'   => Noop.hiera('max_overflow'),
           )
         end
 
@@ -89,15 +127,16 @@ describe manifest do
             internal_auth_endpoint = Noop.hiera_structure('use_ssl/keystone_internal_hostname')
 
             it 'should have correct auth options' do
-              identity_uri     = "#{internal_auth_protocol}://#{internal_auth_endpoint}:5000/"
+              auth_url     = "#{internal_auth_protocol}://#{internal_auth_endpoint}:35357/"
+              auth_uri     = "#{internal_auth_protocol}://#{internal_auth_endpoint}:5000/"
               ks = neutron_config['keystone']
               should contain_class('neutron::server').with(
-                'auth_password' => ks.fetch('admin_password'),
-                'auth_tenant'   => ks.fetch('admin_tenant', 'services'),
-                'auth_region'   => Noop.hiera('region', 'RegionOne'),
-                'auth_user'     => ks.fetch('admin_user', 'neutron'),
-                'identity_uri'  => identity_uri,
-                'auth_uri'      => identity_uri,
+                'password'      => ks.fetch('admin_password'),
+                'project_name'  => ks.fetch('admin_tenant', 'services'),
+                'region_name'   => Noop.hiera('region', 'RegionOne'),
+                'username'      => ks.fetch('admin_user', 'neutron'),
+                'auth_url'      => auth_url,
+                'auth_uri'      => auth_uri,
               )
             end
 
@@ -110,27 +149,28 @@ describe manifest do
               nova_url            = "#{nova_auth_protocol}://#{internal_nova_endpoint}:8774/v2"
               nova_hash           = Noop.hiera_hash('nova', {})
               should contain_class('neutron::server::notifications').with(
-                'nova_url'    => nova_url,
-                'auth_url'    => nova_admin_auth_url,
-                'region_name' => Noop.hiera('region', 'RegionOne'),
-                'username'    => nova_hash.fetch('user', 'nova'),
-                'tenant_name' => nova_hash.fetch('tenant', 'services'),
-                'password'    => nova_hash.fetch('user_password'),
+                'nova_url'     => nova_url,
+                'auth_url'     => nova_admin_auth_url,
+                'region_name'  => Noop.hiera('region', 'RegionOne'),
+                'username'     => nova_hash.fetch('user', 'nova'),
+                'project_name' => nova_hash.fetch('tenant', 'services'),
+                'password'     => nova_hash.fetch('user_password'),
               )
             end
           end
         else
           context 'without overridden TLS for internal endpoints' do
             it 'should have correct auth options' do
-              identity_uri     = "http://#{service_endpoint}:5000/"
+              auth_url     = "http://#{service_endpoint}:35357/"
+              auth_uri     = "http://#{service_endpoint}:5000/"
               ks = neutron_config['keystone']
               should contain_class('neutron::server').with(
-                'auth_password' => ks.fetch('admin_password'),
-                'auth_tenant'   => ks.fetch('admin_tenant', 'services'),
-                'auth_region'   => Noop.hiera('region', 'RegionOne'),
-                'auth_user'     => ks.fetch('admin_user', 'neutron'),
-                'identity_uri'  => identity_uri,
-                'auth_uri'      => identity_uri,
+                'password'      => ks.fetch('admin_password'),
+                'project_name'  => ks.fetch('admin_tenant', 'services'),
+                'region_name'   => Noop.hiera('region', 'RegionOne'),
+                'username'      => ks.fetch('admin_user', 'neutron'),
+                'auth_url'      => auth_url,
+                'auth_uri'      => auth_uri,
               )
             end
 
@@ -140,12 +180,12 @@ describe manifest do
               nova_url            = "http://#{nova_endpoint}:8774/v2"
               nova_hash           = Noop.hiera_hash('nova', {})
               should contain_class('neutron::server::notifications').with(
-                'nova_url'    => nova_url,
-                'auth_url'    => nova_admin_auth_url,
-                'region_name' => Noop.hiera('region', 'RegionOne'),
-                'username'    => nova_hash.fetch('user', 'nova'),
-                'tenant_name' => nova_hash.fetch('tenant', 'services'),
-                'password'    => nova_hash.fetch('user_password'),
+                'nova_url'     => nova_url,
+                'auth_url'     => nova_admin_auth_url,
+                'region_name'  => Noop.hiera('region', 'RegionOne'),
+                'username'     => nova_hash.fetch('user', 'nova'),
+                'project_name' => nova_hash.fetch('tenant', 'services'),
+                'password'     => nova_hash.fetch('user_password'),
               )
             end
           end
@@ -153,7 +193,7 @@ describe manifest do
 
         it { should contain_class('neutron::server').with('manage_service' => 'true')}
         it { should contain_class('neutron::server').with('enabled' => 'true')}
-        it { should contain_class('neutron::server').with('agent_down_time' => '30')}
+        it { should contain_class('neutron::server').with('agent_down_time' => neutron_config['neutron_agent_down_time'])}
 
         it 'dvr' do
           should contain_class('neutron::server').with('router_distributed' => dvr)
@@ -185,7 +225,7 @@ describe manifest do
         end
 
         it 'worker count' do
-          fallback_workers = [[facts[:processorcount].to_i, 2].max, workers_max.to_i].min
+          fallback_workers = [[facts[:processorcount].to_i, 1].max, workers_max.to_i].min
           workers = neutron_config.fetch('workers', fallback_workers)
           should contain_class('neutron::server').with(
             'api_workers' => workers,
@@ -195,10 +235,35 @@ describe manifest do
 
         l2_population = adv_neutron_config.fetch('neutron_l2_pop', false)
 
+        default_mechanism_drivers = ['openvswitch']
+        l2_population_mech_driver = ['l2population']
+        sriov_mech_driver         = ['sriovnicswitch']
+        mechanism_drivers         = default_mechanism_drivers
+
         if l2_population
-          default_mechanism_drivers = 'openvswitch,l2population'
-        else
-          default_mechanism_drivers = 'openvswitch'
+          mechanism_drivers = mechanism_drivers.concat(l2_population_mech_driver)
+        end
+        if use_sriov
+          mechanism_drivers = mechanism_drivers.concat(sriov_mech_driver)
+        end
+
+        it 'sets up ml2_sriov_config for neutron-server' do
+          if role != 'compute' and facts[:osfamily] == 'Debian'
+            should contain_augeas('/etc/default/neutron-server:ml2_sriov_config').with(
+              'context' => '/files/etc/default/neutron-server',
+              'changes' => ml2_sriov_value,
+            ).that_notifies('Service[neutron-server]')
+            should contain_class('neutron::plugins::ml2').that_comes_before('Augeas[/etc/default/neutron-server:ml2_sriov_config]')
+          end
+        end
+
+        if pci_vendor_devs
+          it { should contain_class('neutron::plugins::ml2').with(
+            'supported_pci_vendor_devs' => pci_vendor_devs,
+          )}
+          it { should contain_class('neutron::plugins::ml2').with(
+            'sriov_agent_required' => use_sriov,
+          )}
         end
 
         it { should contain_service('neutron-server').with(
@@ -207,6 +272,9 @@ describe manifest do
 
         it { should contain_class('neutron::plugins::ml2').with(
           'enable_security_group' => 'true',
+        )}
+        it { should contain_class('neutron::plugins::ml2').with(
+          'firewall_driver' => 'neutron.agent.linux.iptables_firewall.OVSHybridIptablesFirewallDriver',
         )}
         it { should contain_class('neutron::plugins::ml2').with(
           'flat_networks' => '*',
@@ -218,7 +286,7 @@ describe manifest do
           'tenant_network_types' => ['flat', network_type],
         )}
         it { should contain_class('neutron::plugins::ml2').with(
-          'mechanism_drivers' => neutron_config.fetch('L2', {}).fetch('mechanism_drivers', default_mechanism_drivers).split(',')
+          'mechanism_drivers' => neutron_config.fetch('L2', {}).fetch('mechanism_drivers', mechanism_drivers)
         )}
         it { should contain_class('neutron::plugins::ml2').with(
           'network_vlan_ranges' => network_vlan_ranges,
@@ -242,7 +310,7 @@ describe manifest do
           'physical_network_mtus' => physical_network_mtus,
         )}
         it { should contain_class('neutron::plugins::ml2').with(
-          'path_mtu' => overlay_net_mtu,
+          'path_mtu' => path_mtu,
         )}
         it { should contain_class('neutron::plugins::ml2').with(
           'extension_drivers' => extension_drivers,
@@ -263,7 +331,7 @@ describe manifest do
         it 'should use "override_resources" to update the catalog' do
           ral_catalog = Noop.create_ral_catalog self
           neutron_config_override_resources.each do |title, params|
-            params['value'] = 'True' if params['value'].is_a? TrueClass
+            params['value'] = ['True'] if params['value'].is_a? TrueClass
             expect(ral_catalog).to contain_neutron_config(title).with(params)
           end
           neutron_api_config_override_resources.each do |title, params|
