@@ -54,7 +54,7 @@ class openstack_tasks::murano::murano {
     $murano_user    = pick($murano_hash['user'], 'murano')
     $tenant         = pick($murano_hash['tenant'], 'services')
 
-    $db_type        = 'mysql'
+    $db_type        = pick($murano_hash['db_type'], 'mysql+pymysql')
     $db_user        = pick($murano_hash['db_user'], 'murano')
     $db_name        = pick($murano_hash['db_name'], 'murano')
     $db_password    = pick($murano_hash['db_password'])

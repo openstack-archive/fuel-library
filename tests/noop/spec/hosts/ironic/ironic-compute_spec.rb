@@ -22,6 +22,7 @@ describe manifest do
     ironic_enabled = Noop.hiera_structure 'ironic/enabled'
 
     database_vip = Noop.hiera('database_vip')
+    nova_db_type = Noop.hiera_structure 'nova/db_type', 'mysql+pymysql'
     nova_db_password = Noop.hiera_structure 'nova/db_password', 'nova'
     nova_db_user = Noop.hiera_structure 'nova/db_user', 'nova'
     nova_db_name = Noop.hiera_structure 'nova/db_name', 'nova'
@@ -112,7 +113,7 @@ describe manifest do
         max_pool_size = Noop.hiera 'max_pool_size', [facts[:processorcount] * 5 + 0, 30 + 0].min
 
         should contain_class('nova').with(
-          :database_connection    => "mysql://#{nova_db_user}:#{nova_db_password}@#{database_vip}/#{nova_db_name}#{extra_params}",
+          :database_connection    => "#{nova_db_type}://#{nova_db_user}:#{nova_db_password}@#{database_vip}/#{nova_db_name}#{extra_params}",
           :cinder_catalog_info    => Noop.puppet_function('pick', nova_hash['cinder_catalog_info'], 'volumev2:cinderv2:internalURL'),
           :use_stderr             => use_stderr,
           :notification_driver    => nova_notification_driver,

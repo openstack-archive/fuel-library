@@ -69,6 +69,7 @@ describe manifest do
     primary_controller = Noop.hiera 'primary_controller'
 
     database_vip = Noop.hiera('database_vip')
+    keystone_db_type = Noop.hiera_structure 'keystone/db_type', 'mysql+pymysql'
     keystone_db_password = Noop.hiera_structure 'keystone/db_password', 'keystone'
     keystone_db_user = Noop.hiera_structure 'keystone/db_user', 'keystone'
     keystone_db_name = Noop.hiera_structure 'keystone/db_name', 'keystone'
@@ -101,7 +102,7 @@ describe manifest do
             extra_params = '?charset=utf8'
         end
         should contain_class('keystone').with(
-          :database_connection => "mysql://#{keystone_db_user}:#{keystone_db_password}@#{database_vip}/#{keystone_db_name}#{extra_params}"
+          :database_connection => "#{keystone_db_type}://#{keystone_db_user}:#{keystone_db_password}@#{database_vip}/#{keystone_db_name}#{extra_params}"
 
         )
     end

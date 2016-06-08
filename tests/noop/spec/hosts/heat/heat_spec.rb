@@ -65,6 +65,7 @@ describe manifest do
     sahara = Noop.hiera_structure('sahara/enabled')
 
     database_vip = Noop.hiera('database_vip')
+    heat_db_type = Noop.hiera_structure 'heat/db_type', 'mysql+pymysql'
     heat_db_password = Noop.hiera_structure 'heat/db_password', 'heat'
     heat_db_user = Noop.hiera_structure 'heat/db_user', 'heat'
     heat_db_name = Noop.hiera('heat_db_name', 'heat')
@@ -94,7 +95,7 @@ describe manifest do
         extra_params = '?charset=utf8'
       end
       should contain_class('heat').with(
-        :database_connection => "mysql://#{heat_db_user}:#{heat_db_password}@#{database_vip}/#{heat_db_name}#{extra_params}"
+        :database_connection => "#{heat_db_type}://#{heat_db_user}:#{heat_db_password}@#{database_vip}/#{heat_db_name}#{extra_params}"
       )
     end
 

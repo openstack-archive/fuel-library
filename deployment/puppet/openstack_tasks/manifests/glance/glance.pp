@@ -54,7 +54,7 @@ class openstack_tasks::glance::glance {
   Override_resources <||> ~> Service <| tag == 'glance-service' |>
 
 
-  $db_type      = 'mysql'
+  $db_type      = pick($glance_hash['db_type'], 'mysql+pymysql')
   $db_host      = pick($glance_hash['db_host'], $database_vip)
   $db_user      = pick($glance_hash['db_user'], 'glance')
   $db_password  = $glance_hash['db_password']
