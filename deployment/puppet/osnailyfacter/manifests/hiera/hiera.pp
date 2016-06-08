@@ -45,6 +45,18 @@ class osnailyfacter::hiera::hiera {
     merge_behavior     => 'deeper',
   }
 
+  file { '/etc/puppetlabs/code' :
+    ensure  => 'directory',
+    path    => '/etc/puppetlabs/code',
+    require => Hiera_config[$hiera_main_config],
+  }
+
+  file { '/etc/puppetlabs/code/hiera.yaml' :
+    ensure  => 'link',
+    path    => '/etc/hiera.yaml',
+    require => File['/etc/puppetlabs/code'],
+  }
+
   file { 'hiera_data_dir' :
     ensure => 'directory',
     path   => $data_dir,

@@ -290,8 +290,8 @@ class openstack_tasks::keystone::keystone {
       owner   => 'keystone',
       group   => 'keystone',
       recurse => true,
-      require => Class['::keystone'],
-      notify  => Service[httpd],
+      require => Anchor['keystone::install::end'],
+      notify  => Anchor['keystone::config::end'],
     }
   }
 
