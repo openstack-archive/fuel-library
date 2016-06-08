@@ -115,8 +115,6 @@ class openstack_tasks::roles::compute {
   $nova_config_hash = {
     'DEFAULT/resume_guests_state_on_host_boot'       => { value => hiera('resume_guests_state_on_host_boot', 'False') },
     'DEFAULT/use_cow_images'                         => { value => hiera('use_cow_images', 'True') },
-    'DEFAULT/block_device_allocate_retries'          => { value => $block_device_allocate_retries },
-    'DEFAULT/block_device_allocate_retries_interval' => { value => $block_device_allocate_retries_interval },
     'libvirt/libvirt_inject_key'                     => { value => true },
     'libvirt/libvirt_inject_password'                => { value => true },
   }
