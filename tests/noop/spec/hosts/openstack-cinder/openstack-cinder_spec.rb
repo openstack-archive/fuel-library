@@ -36,6 +36,7 @@ describe manifest do
   management_vip = Noop.hiera 'management_vip'
   database_vip = Noop.hiera('database_vip')
   cinder = Noop.puppet_function 'roles_include', 'cinder'
+  cinder_db_type = Noop.hiera_structure 'cinder/db_type', 'mysql+pymysql'
   cinder_db_password = Noop.hiera_structure 'cinder/db_password', 'cinder'
   cinder_db_user = Noop.hiera_structure 'cinder/db_user', 'cinder'
   cinder_db_name = Noop.hiera_structure 'cinder/db_name', 'cinder'
@@ -73,7 +74,7 @@ describe manifest do
       extra_params = '?charset=utf8'
     end
     should contain_class('cinder').with(
-      :database_connection => "mysql://#{cinder_db_user}:#{cinder_db_password}@#{database_vip}/#{cinder_db_name}#{extra_params}"
+      :database_connection => "#{cinder_db_type}://#{cinder_db_user}:#{cinder_db_password}@#{database_vip}/#{cinder_db_name}#{extra_params}"
     )
   end
 

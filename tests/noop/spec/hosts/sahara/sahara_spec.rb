@@ -96,6 +96,7 @@ describe manifest do
         sahara_password = Noop.hiera_structure('sahara/user_password')
         primary_controller = Noop.hiera 'primary_controller'
         tenant = Noop.hiera_structure('sahara/tenant', 'services')
+        db_type = Noop.hiera_structure 'sahara/db_type', 'mysql+pymysql'
         db_user = Noop.hiera_structure('sahara/db_user', 'sahara')
         db_name = Noop.hiera_structure('sahara/db_name', 'sahara')
         db_password = Noop.hiera_structure('sahara/db_password')
@@ -110,7 +111,7 @@ describe manifest do
         else
           extra_params = '?charset=utf8'
         end
-        sql_connection = "mysql://#{db_user}:#{db_password}@#{db_host}/#{db_name}#{extra_params}"
+        sql_connection = "#{db_type}://#{db_user}:#{db_password}@#{db_host}/#{db_name}#{extra_params}"
 
         should contain_class('sahara').with(
                    'auth_uri'               => auth_url,

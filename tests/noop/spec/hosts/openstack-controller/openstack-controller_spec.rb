@@ -60,6 +60,7 @@ describe manifest do
     kombu_compression = Noop.hiera 'kombu_compression', ''
 
     let(:database_vip) { Noop.hiera('database_vip') }
+    let(:nova_db_type) { Noop.hiera_structure 'nova/db_type', 'mysql+pymysql' }
     let(:nova_db_password) { Noop.hiera_structure 'nova/db_password', 'nova' }
     let(:nova_db_user) { Noop.hiera_structure 'nova/db_user', 'nova' }
     let(:nova_db_name) { Noop.hiera_structure 'nova/db_name', 'nova' }
@@ -253,8 +254,8 @@ describe manifest do
         extra_params = '?charset=utf8'
       end
       should contain_class('nova').with(
-        :database_connection => "mysql://#{nova_db_user}:#{nova_db_password}@#{database_vip}/#{nova_db_name}#{extra_params}",
-        :api_database_connection => "mysql://#{api_db_user}:#{api_db_password}@#{database_vip}/#{api_db_name}#{extra_params}"
+        :database_connection => "#{nova_db_type}://#{nova_db_user}:#{nova_db_password}@#{database_vip}/#{nova_db_name}#{extra_params}",
+        :api_database_connection => "#{nova_db_type}://#{api_db_user}:#{api_db_password}@#{database_vip}/#{api_db_name}#{extra_params}"
       )
     end
 

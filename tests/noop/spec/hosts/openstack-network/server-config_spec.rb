@@ -100,6 +100,7 @@ describe manifest do
 
         it 'database options' do
           database_vip        = Noop.hiera('database_vip')
+          db_type     = neutron_config.fetch('database', {}).fetch('type', 'mysql+pymysql')
           db_password = neutron_config.fetch('database', {}).fetch('passwd')
           db_user     = neutron_config.fetch('database', {}).fetch('user', 'neutron')
           db_name     = neutron_config.fetch('database', {}).fetch('name', 'neutron')
@@ -109,7 +110,7 @@ describe manifest do
           else
             extra_params = '?charset=utf8'
           end
-          db_connection = "mysql://#{db_user}:#{db_password}@#{db_host}/#{db_name}#{extra_params}"
+          db_connection = "#{db_type}://#{db_user}:#{db_password}@#{db_host}/#{db_name}#{extra_params}"
 
           should contain_class('neutron::server').with(
             'sync_db'                 => sync_db,

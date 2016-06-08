@@ -68,7 +68,7 @@ class openstack_tasks::heat::heat {
   Override_resources <||> ~> Service <| tag == 'heat-service' |>
 
 
-  $db_type     = 'mysql'
+  $db_type     = pick($heat_hash['db_type'], 'mysql+pymysql')
   $db_host     = pick($heat_hash['db_host'], hiera('database_vip'))
   $db_user     = pick($heat_hash['db_user'], 'heat')
   $db_password = $heat_hash['db_password']

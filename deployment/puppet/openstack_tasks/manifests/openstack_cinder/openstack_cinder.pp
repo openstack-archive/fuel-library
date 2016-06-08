@@ -23,7 +23,7 @@ class openstack_tasks::openstack_cinder::openstack_cinder {
   $proxy_port             = hiera('proxy_port', '8080')
   $kombu_compression      = hiera('kombu_compression', '')
 
-  $db_type                = 'mysql'
+  $db_type                = pick($cinder_hash['db_type'], 'mysql+pymysql')
   $db_host                = pick($cinder_hash['db_host'], hiera('database_vip'))
   $db_user                = pick($cinder_hash['db_user'], 'cinder')
   $db_password            = $cinder_hash[db_password]
