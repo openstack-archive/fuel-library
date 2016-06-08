@@ -461,7 +461,10 @@ class openstack_tasks::openstack_controller::openstack_controller {
     'DEFAULT/ram_weight_multiplier':        value => '1.0'
   }
 
-  if $storage_hash['volumes_ceph'] {
+  # TODO (iberezovskiy): In Debian open-iscsi is dependency
+  # of os-brick package which is required for cinder.
+  # Remove this 'if' once UCA packages are updated as well
+  if $::os_package_type == 'ubuntu' and $storage_hash['volumes_ceph'] {
     package { 'open-iscsi':
       ensure => present,
     }

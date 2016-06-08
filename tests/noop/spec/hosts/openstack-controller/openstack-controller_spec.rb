@@ -435,8 +435,11 @@ describe manifest do
       end
     end
 
-    if storage_hash['volumes_ceph']
-      it 'should install open-iscsi if ceph is used as cinder backend' do
+    # TODO (iberezovskiy): In Debian open-iscsi is dependency
+    # of os-brick package which is required for cinder.
+    # Remove this 'if' once UCA packages are updated as well
+    it 'should install open-iscsi for UCA packages if ceph is used as cinder backend' do
+      if facts[:os_package_type] == 'ubuntu' and storage_hash['volumes_ceph']
         should contain_package('open-iscsi').with('ensure' => 'present')
       end
     end
