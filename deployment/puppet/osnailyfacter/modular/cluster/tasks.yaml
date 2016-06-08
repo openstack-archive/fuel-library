@@ -61,7 +61,7 @@
   condition:
     yaql_exp: "$.status = 'ready' and changedAny($.network_metadata.nodes.keys(), $.get('corosync_roles'))"
   cross-depended-by:
-    - name: /(primary-)?(database|rabbitmq)/
+    - name: /^(primary-)?(database|rabbitmq)$/
   parameters:
     cmd: crm node maintenance
     timeout: 120
