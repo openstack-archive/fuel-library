@@ -20,7 +20,8 @@
   version: 2.1.0
   groups: [controller]
   cross-depends:
-    - name: primary-cluster
+    yaql_exp: >
+      $.roles.select({name=>'primary-cluster', role=>format('primary-{0}', $)})
   required_for: [deploy_end]
   requires: [hosts, firewall, deploy_start]
   condition:
