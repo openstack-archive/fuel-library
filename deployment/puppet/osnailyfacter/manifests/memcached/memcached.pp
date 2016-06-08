@@ -9,5 +9,7 @@ class osnailyfacter::memcached::memcached {
     max_memory => '50%',
     item_size  => '10m',
   }
+# ~>
+#  Service['memcached']
 
 }
