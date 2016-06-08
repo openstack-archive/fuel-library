@@ -109,7 +109,7 @@ mod 'openssl',
 # Pull in puppetlabs-mongodb
 mod 'mongodb',
     :git => 'https://github.com/fuel-infra/puppetlabs-mongodb.git',
-    :ref => '0.13.0'
+    :ref => '0.14.0'
 
 # Pull in puppetlabs-rsync
 mod 'rsync',
