@@ -9,7 +9,7 @@
       changedAny($.quantum, $.quantum_settings, $.mysql,
       $.network_metadata.vips, $.get('database_vip'))
   cross-depends:
-    - name: /(primary-)?database/
+    - name: /^(primary-)?database$/
       role: self
   parameters:
     puppet_manifest: /etc/puppet/modules/openstack_tasks/examples/openstack-network/db.pp
@@ -47,7 +47,7 @@
     - name: openstack-haproxy
       role: primary-controller
     - name: neutron-db
-    - name: /(primary-)?rabbitmq/
+    - name: /^(primary-)?rabbitmq$/
       role: self
 
 - id: openstack-network-common-config

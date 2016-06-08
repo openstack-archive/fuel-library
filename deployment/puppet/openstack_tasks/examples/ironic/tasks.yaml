@@ -30,7 +30,7 @@
   version: 2.1.0
   groups: [primary-controller]
   cross-depends:
-    - name: /(primary-)?database/
+    - name: /^(primary-)?database$/
       role: self
   condition:
     yaql_exp: >
@@ -88,7 +88,7 @@
   requires: [primary-openstack-controller, openstack-controller, ironic-api]
   refresh_on: [nova_config, nova_paste_api_ini]
   cross-depends:
-   - name: /(primary-)?rabbitmq/
+   - name: /^(primary-)?rabbitmq$/
      role: self
    - name: /(primary-)?openstack-controller/
      role: self

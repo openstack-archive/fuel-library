@@ -22,7 +22,7 @@
           $.get('mgmt/messaging')),
       $.get('amqp_hosts'), $.debug, $.use_cow_images, $.get('nova_endpoint'))
   cross-depends:
-    - name: /(primary-)?rabbitmq/
+    - name: /^(primary-)?rabbitmq$/
       role: self
     - name: nova-db
     - name: nova-keystone
@@ -43,7 +43,7 @@
     yaql_exp: *nova_controller
   cross-depends:
     - name: primary-openstack-controller
-    - name: /(primary-)?rabbitmq/
+    - name: /^(primary-)?rabbitmq$/
       role: self
   refresh_on: [nova_config, nova_paste_api_ini]
   parameters:
@@ -62,7 +62,7 @@
       changedAny($.nova, $.mysql, $.network_metadata.vips,
       $.get('database_vip'))
   cross-depends:
-    - name: /(primary-)?database/
+    - name: /^(primary-)?database$/
       role: self
   parameters:
     puppet_manifest: /etc/puppet/modules/openstack_tasks/examples/openstack-controller/db.pp

@@ -34,7 +34,7 @@
   version: 2.1.0
   groups: [primary-controller]
   cross-depends:
-    - name: /(primary-)?database/
+    - name: /^(primary-)?database$/
       role: self
   required_for: [sahara]
   condition:

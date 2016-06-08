@@ -22,7 +22,7 @@
   cross-depends:
     - name: glance-db
     - name: glance-keystone
-    - name: /(primary-)?rabbitmq/
+    - name: /^(primary-)?rabbitmq$/
       role: self
   parameters:
     puppet_manifest: /etc/puppet/modules/openstack_tasks/examples/glance/glance.pp
@@ -44,7 +44,7 @@
       changedAny($.glance, $.mysql, $.network_metadata.vips,
       $.get('database_vip'))
   cross-depends:
-    - name: /(primary-)?database/
+    - name: /^(primary-)?database$/
       role: self
   parameters:
     puppet_manifest: /etc/puppet/modules/openstack_tasks/examples/glance/db.pp

@@ -37,7 +37,7 @@
     yaql_exp: *keystone_changed
   refresh_on: [keystone_config]
   cross-depends:
-    - name: /(primary-)?rabbitmq/
+    - name: /^(primary-)?rabbitmq$/
       role: self
     - name: keystone-db
     - name: memcached
@@ -60,7 +60,7 @@
     yaql_exp: *keystone_changed
   refresh_on: [keystone_config]
   cross-depends:
-    - name: /(primary-)?rabbitmq/
+    - name: /^(primary-)?rabbitmq$/
       role: self
     - name: keystone-db
     - name: primary-keystone
@@ -84,7 +84,7 @@
       changedAny($.network_metadata, $.keystone, $.mysql,
       $.get('database_vip'))
   cross-depends:
-    - name: /(primary-)?database/
+    - name: /^(primary-)?database$/
       role: self
   parameters:
     puppet_manifest: /etc/puppet/modules/openstack_tasks/examples/keystone/db.pp

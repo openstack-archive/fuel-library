@@ -35,7 +35,7 @@
   version: 2.1.0
   groups: [primary-controller]
   cross-depends:
-    - name: /(primary-)?database/
+    - name: /^(primary-)?database$/
       role: self
   condition:
     yaql_exp: >
@@ -76,7 +76,7 @@
       $.murano.enabled and changedAny($.rabbit, $.murano)
   required_for: [murano]
   cross-depends:
-    - name: /(primary-)?rabbitmq/
+    - name: /^(primary-)?rabbitmq$/
       role: self
   requires: [rabbitmq, primary-rabbitmq]
   parameters:
