@@ -92,10 +92,11 @@ end
 # upload image to Glance
 # if it have not been already uploaded
 def upload_image(image)
-  list_of_images = image_list
-  if list_of_images[:images].include?(image['img_name'] => "active") && list_of_images[:exit_code] == 0
-    puts "Image '#{image['img_name']}' is already present!"
+  if check_image(image)
+    puts "Image '#{image['img_name']}' is already present and active!"
     return 0
+  else
+    cleanup_image(image)
   end
 
   # convert old API v1 'public' property to API v2 'visibility' property
@@ -105,13 +106,55 @@ def upload_image(image)
     image['visibility'] = 'private'
   end
   stdout, return_code = image_create(image)
+  puts stdout
+
+  # check to make sure the image is uploaded and active
   if return_code == 0
+    image_ok = check_image(image)
+    # retry over ~50 seconds to wait to see if it becomes active
+    5.times.each do |retries|
+      break if image_ok
+      sleep 10
+      image_ok = check_image(image)
+    end
+  end
+
+  # if the image upload was successful and it's reporting active then success!
+  upload_result = (return_code == 0 and image_ok)
+  if upload_result
     puts "Image '#{image['img_name']}' was uploaded from '#{image['img_path']}'"
   else
     puts "Image '#{image['img_name']}' upload from '#{image['img_path']}' FAILED!"
   end
-  puts stdout
-  return return_code
+
+  return upload_result
+end
+
+# return true if image has been uploaded and active
+def check_image(image)
+  list_of_images = image_list
+  if list_of_images[:exit_code] == 0 && list_of_images[:images].include?(image['img_name'] => "active")
+    return true
+  end
+  return false
+end
+
+# remove the image by name if it is in the list of images
+# TODO(aschultz): if the image exists by name multiple times we only remove
+# the first one
+def cleanup_image(image)
+  list_of_images = image_list
+  unless list_of_images[:images].select { |img_hash| img_hash.key?(image['img_name']) }.empty?
+    delete_image(image['img_name'])
+  end
+end
+
+def delete_image(image_name)
+  command = "/usr/bin/openstack image delete '#{image_name}'"
+  puts command
+  stdout = `#{command}`
+  return_code = $?.exitstatus
+  [ stdout, return_code ]
 end
 
 ########################
@@ -120,8 +163,23 @@ wait_for_glance
 errors = 0
 
 test_vm_images.each do |image|
-  errors += upload_image(image)
+  success = false
+  # retry upload 5 times with a 1 minute sleep between tries
+  5.times.each do |retries|
+    if upload_image(image)
+      success = true
+      break
+    end
+    sleep 60
+  end
+  errors += 1 unless success
 end
 
-exit 1 unless errors == 0
+if errors > 0
+  test_vm_images.each do |image|
+    cleanup_image(image)
+  end
+  exit 1
+end
 
+exit 0
