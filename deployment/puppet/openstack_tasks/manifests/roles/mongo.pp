@@ -46,8 +46,8 @@ class openstack_tasks::roles::mongo {
     before  => Service['mongodb'],
   }
 
-  $user   = $::mongodb::server::user
-  $group  = $::mongodb::server::group
+  $user = $::mongodb::globals::user
+  $group = $::mongodb::globals::group
   $dbpath = pick($mongo_hash['dbpath'], '/var/lib/mongo/mongodb')
 
   #TODO(mmalchuk) should be fixed in the File[$dbpath] resource in upstream
