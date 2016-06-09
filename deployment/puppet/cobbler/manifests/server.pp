@@ -159,6 +159,13 @@ class cobbler::server (
                 File['/etc/httpd/conf.d/']],
     notify  => Service[$cobbler_web_service],
   }
+  file { '/var/www/html/index.html':
+    content => '',
+    owner   => 'root',
+    group   => 'root',
+    mode    => '0644',
+    require => Service[$cobbler_web_service]
+  }
 
   service { $cobbler_web_service:
     ensure     => running,
