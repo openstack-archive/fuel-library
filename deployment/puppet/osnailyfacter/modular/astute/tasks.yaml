@@ -29,9 +29,9 @@
     - name: enable_quorum
   parameters:
     cmd: ruby /etc/puppet/modules/osnailyfacter/modular/astute/upload_cirros.rb
-    retries: 3
-    interval: 20
-    timeout: 180
+    retries: 5
+    interval: 60
+    timeout: 600
 
 - id: upload_nodes_info
   type: skipped
