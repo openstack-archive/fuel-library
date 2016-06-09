@@ -373,7 +373,7 @@
   parameters:
     path: /etc/fuel/cluster/{CLUSTER_ID}/deleted_nodes.yaml
     data:
-      yaql_exp: '{"deleted_nodes" => $.get(deleted($.network_metadata.nodes.values().fqdn), [])}.toYaml()'
+      yaql_exp: '{"deleted_nodes" => deleted($.network_metadata.nodes.values().fqdn)}.toYaml()'
 
 
 - id: copy_deleted_nodes
