@@ -33,6 +33,7 @@ server {
         if ( $request_method !~ ^(GET|HEAD)$ ) {
             return 444;
         }
+        internal;
         alias <%= @logdumpdir %>;
     }
 
@@ -66,7 +67,7 @@ server {
             return 444;
         }
         include uwsgi_params;
-        uwsgi_pass <%= @nailgun_host %>:8001; 
+        uwsgi_pass <%= @nailgun_host %>:8001;
         client_max_body_size 100m;
     }
 }
