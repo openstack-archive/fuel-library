@@ -36,7 +36,6 @@ class l23network::l2 (
   $modprobe_8021q               = undef,
   $install_ethtool              = undef,
   $ovs_module_name              = $::l23network::params::ovs_kern_module_name,
-  $use_ovs_dkms_datapath_module = true,
   $ovs_datapath_package_name    = $::l23network::params::ovs_datapath_package_name,
   $ovs_common_package_name      = $::l23network::params::ovs_common_package_name,
   $dpdk_options                 = {},
@@ -47,7 +46,7 @@ class l23network::l2 (
     $_install_ovs = pick($install_ovs, $use_ovs)
 
     if $_install_ovs {
-      if $use_ovs_dkms_datapath_module {
+      if $ovs_datapath_package_name {
         package { 'openvswitch-datapath':
           ensure => $ensure_package,
           name   => $ovs_datapath_package_name,
