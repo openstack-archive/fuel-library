@@ -40,7 +40,7 @@ describe manifest do
     let(:internal_auth_address) { Noop.puppet_function 'get_ssl_property',ssl_hash,{},'keystone','internal','hostname',[service_endpoint, management_vip] }
 
     let(:keystone_url) do
-      "#{internal_auth_protocol}://#{internal_auth_address}:5000/v3"
+      "#{internal_auth_protocol}://#{internal_auth_address}:5000"
     end
 
     let(:cache_options) do
