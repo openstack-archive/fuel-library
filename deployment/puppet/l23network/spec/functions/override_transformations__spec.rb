@@ -89,5 +89,40 @@ describe 'override_transformations' do
     })
   end
 
+  it 'should has ability to override "add-patch" action' do
+    expect(scope.function_override_transformations([{
+      :transformations => [
+        { :action   => 'add-br',
+          :name     => 'br0' } ,
+        { :action   => 'add-br',
+          :name     => 'br1' } ,
+        { :action   => 'add-br',
+          :name     => 'br2' } ,            # this bridge will be removed by changing action to 'noop'
+        { :action   => 'add-patch',
+          :bridges  => ['br1','br2'] } ,
+        { :action   => 'override',          # override for existing patch
+          :override => 'patch-br1:br2',
+          :bridges  => ['br0','br1'] },
+        { :action   => 'override',          # override for non-existing patch
+          :override => 'patch-br4:br5',
+          :bridges  => ['br0','br1'] },
+        { :action   => 'override',
+          :override => 'br2',
+          :'override-action' => 'noop' }
+      ]
+    }])).to eq({
+      :transformations => [
+        { :action   => 'add-br',
+          :name     => 'br0' } ,
+        { :action   => 'add-br',
+          :name     => 'br1' } ,
+        { :action   => 'noop',
+          :name     => 'br2' } ,
+        { :action   => 'add-patch',
+          :bridges  => ['br0','br1'] }
+      ]
+    })
+  end
+
 end
 # vim: set ts=2 sw=2 et :
