@@ -44,7 +44,7 @@ describe manifest do
     let(:public_auth_address) { Noop.puppet_function 'get_ssl_property',ssl_hash, public_ssl_hash,'keystone','public','hostname',[public_vip] }
 
     let(:keystone_url) do
-      "#{public_auth_protocol}://#{public_auth_address}:5000/v3"
+      "#{public_auth_protocol}://#{public_auth_address}:5000"
     end
 
     let(:cache_options) do
