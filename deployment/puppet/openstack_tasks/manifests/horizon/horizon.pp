@@ -51,8 +51,8 @@ class openstack_tasks::horizon::horizon {
   $public_auth_protocol   = get_ssl_property($ssl_hash, $public_ssl_hash, 'keystone', 'public', 'protocol', 'http')
   $public_auth_address    = get_ssl_property($ssl_hash, $public_ssl_hash, 'keystone', 'public', 'hostname', [$public_vip])
   $public_auth_port       = '5000'
-  $keystone_api           = 'v3'
-  $keystone_url           = "${public_auth_protocol}://${public_auth_address}:${public_auth_port}/${keystone_api}"
+  $keystone_url           = "${public_auth_protocol}://${public_auth_address}:${public_auth_port}"
+  $keystone_url           = "${internal_auth_protocol}://${internal_auth_address}:${internal_auth_port}"
 
   $cinder_options     = {'enable_backup' => pick($storage_hash['volumes_ceph'], false)}
   $neutron_options    = {
