@@ -96,6 +96,8 @@ def upload_image(image)
   if list_of_images[:images].include?(image['img_name'] => "active") && list_of_images[:exit_code] == 0
     puts "Image '#{image['img_name']}' is already present!"
     return 0
+  else
+    cleanup_image(image)
   end
 
   # convert old API v1 'public' property to API v2 'visibility' property
@@ -114,14 +116,44 @@ def upload_image(image)
   return return_code
 end
 
+def cleanup_image(image)
+  list_of_images = image_list
+  unless list_of_images[:images].select { |img_hash| img_hash.key?(image['img_name']) }.empty?
+    delete_image(image['img_name'])
+  end
+end
+
+def delete_image(image_name)
+  command = "/usr/bin/openstack image delete '#{image_name}'"
+  puts command
+  stdout = `#{command}`
+  return_code = $?.exitstatus
+  [ stdout, return_code ]
+end
+
 ########################
 
 wait_for_glance
 errors = 0
 
 test_vm_images.each do |image|
-  errors += upload_image(image)
+  success = false
+  # retry upload 5 times
+  5.times.each do |retries|
+    if upload_image(image)
+      success = true
+      break
+    end
+    sleep 60
+  end
+  errors += 1 unless success
 end
 
-exit 1 unless errors == 0
+if errors > 0
+  test_vm_images.each do |image|
+    cleanup_image(image)
+  end
+  exit 1
+end
 
+exit 0
