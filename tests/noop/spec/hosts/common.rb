@@ -5,8 +5,12 @@ shared_examples 'compute_service_common' do
     Noop.variable 'nova::params::compute_service_name'
   end
 
-  it do
-    is_expected.not_to contain_service(nova_compute_service_name).with(:ensure => 'running')
+  compute_vmware = Noop.puppet_function 'roles_include', 'compute-vmware'
+
+  if !compute_vmware
+    it do
+      is_expected.not_to contain_service(nova_compute_service_name).with(:ensure => 'running')
+    end
   end
 
 end
