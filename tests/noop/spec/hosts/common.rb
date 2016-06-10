@@ -12,5 +12,5 @@ shared_examples 'compute_service_common' do
 end
 
 shared_examples 'common' do
-  include_examples 'compute_service_common' unless Noop.current_spec_is? 'roles/enable_compute'
+  include_examples 'compute_service_common' unless Noop.current_spec_is? 'roles/enable_compute' or Noop.current_spec_is? 'vmware/compute-vmware'
 end

@@ -28,6 +28,7 @@ describe manifest do
   cinder_db_user = Noop.hiera_structure 'cinder/db_user', 'cinder'
   cinder_db_name = Noop.hiera_structure 'cinder/db_name', 'cinder'
   cinder = Noop.puppet_function 'roles_include', 'cinder'
+  cinder_vmware = Noop.puppet_function 'roles_include', 'cinder-vmware'
   hostname = Noop.hiera('fqdn')
 
   let(:manage_volumes) do
@@ -37,6 +38,8 @@ describe manifest do
       'ceph'
     elsif storage_hash['volumes_block_device']
       'block'
+    elsif cinder_vmware
+      'vmdk'
     else
       false
     end
