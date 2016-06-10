@@ -37,7 +37,7 @@
     yaql_exp: *keystone_changed
   refresh_on: [keystone_config]
   cross-depends:
-    - name: /(primary-)?rabbitmq/
+    - name: /^(primary-)?rabbitmq$/
       role: self
     - name: keystone-db
     - name: memcached
@@ -60,7 +60,7 @@
     yaql_exp: *keystone_changed
   refresh_on: [keystone_config]
   cross-depends:
-    - name: /(primary-)?rabbitmq/
+    - name: /^(primary-)?rabbitmq$/
       role: self
     - name: keystone-db
     - name: primary-keystone

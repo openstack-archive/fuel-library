@@ -89,7 +89,7 @@
   requires: [primary-openstack-controller, openstack-controller, ironic-api]
   refresh_on: [nova_config, nova_paste_api_ini]
   cross-depends:
-   - name: /(primary-)?rabbitmq/
+   - name: /^(primary-)?rabbitmq$/
      role: self
    - name: /(primary-)?openstack-controller/
      role: self

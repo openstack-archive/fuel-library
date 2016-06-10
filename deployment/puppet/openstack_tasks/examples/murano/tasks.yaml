@@ -77,7 +77,7 @@
       $.murano.enabled and changedAny($.rabbit, $.murano)
   required_for: [murano]
   cross-depends:
-    - name: /(primary-)?rabbitmq/
+    - name: /^(primary-)?rabbitmq$/
       role: self
   requires: [rabbitmq, primary-rabbitmq]
   parameters:
