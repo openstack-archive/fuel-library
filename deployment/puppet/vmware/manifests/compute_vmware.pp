@@ -40,7 +40,13 @@ define vmware::compute_vmware(
   $service_enabled    = false,
 )
 {
-  include nova::params
+  include ::nova::params
+
+  if $service_enabled {
+    $service_ensure = 'running'
+  } else {
+    $service_ensure = 'stopped'
+  }
 
   # We skip deployment if current node name is not same as target_node
   if ($target_node == $current_node) {
@@ -64,7 +70,7 @@ define vmware::compute_vmware(
     }
 
     service { 'nova-compute':
-      ensure => running,
+      ensure => $service_ensure,
       name   => $::nova::params::compute_service_name,
       enable => $service_enabled,
     }
