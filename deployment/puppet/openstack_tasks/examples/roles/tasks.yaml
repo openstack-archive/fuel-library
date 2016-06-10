@@ -92,7 +92,11 @@
       $.network_metadata.vips, $.debug, $.node_volumes, $.storage, $.rabbit, $.ceilometer,
       $.get('use_stderr'), $.get('use_syslog'), $.get('syslog_log_facility_cinder'),
       $.get('syslog_log_facility_ceph'), $.get('proxy_port'), $.get('kombu_compression'),
-      $.get('use_ssl'), $.get('service_endpoint'), $.get('glance_api_servers'))
+      $.get('use_ssl'), $.get('service_endpoint'), $.get('glance_api_servers'),
+      $.get('amqp_hosts'),
+      $.network_metadata.nodes.values().where(
+        $.node_roles.any($.matches('controller'))).network_roles.select(
+          $.get('mgmt/messaging')))
   parameters:
     puppet_manifest: /etc/puppet/modules/openstack_tasks/examples/roles/enable_cinder.pp
     puppet_modules: /etc/puppet/modules
