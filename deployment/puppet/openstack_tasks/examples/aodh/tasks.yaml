@@ -51,9 +51,7 @@
   version: 2.1.0
   groups: [primary-controller]
   cross-depends:
-    - name: primary-database
-    - name: database
-      role: self
+    - name: /^(primary-)?database$/
   required_for: [aodh]
   condition:
     yaql_exp: >

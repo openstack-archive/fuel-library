@@ -30,9 +30,7 @@
   version: 2.1.0
   groups: [primary-controller]
   cross-depends:
-    - name: primary-database
-    - name: database
-      role: self
+    - name: /^(primary-)?database$/
   condition:
     yaql_exp: >
       $.ironic.enabled and changedAny($.ironic, $.mysql, $.get('database_vip'),

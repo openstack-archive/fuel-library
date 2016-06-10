@@ -84,9 +84,7 @@
       changedAny($.network_metadata, $.keystone, $.mysql,
       $.get('database_vip'))
   cross-depends:
-    - name: primary-database
-    - name: database
-      role: self
+    - name: /^(primary-)?database$/
   parameters:
     puppet_manifest: /etc/puppet/modules/openstack_tasks/examples/keystone/db.pp
     puppet_modules: /etc/puppet/modules

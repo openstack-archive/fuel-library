@@ -38,9 +38,7 @@
       changedAny($.cinder, $.mysql, $.network_metadata.vips,
       $.get('mysql_custom_setup_class'))
   cross-depends:
-    - name: primary-database
-    - name: database
-      role: self
+    - name: /^(primary-)?database$/
   parameters:
     puppet_manifest: /etc/puppet/modules/openstack_tasks/examples/openstack-cinder/db.pp
     puppet_modules: /etc/puppet/modules

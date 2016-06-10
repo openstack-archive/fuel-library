@@ -44,13 +44,6 @@ class osnailyfacter::database::database {
   validate_string($mysql_root_password)
   validate_string($status_password)
 
-  # NOTE(aschultz): wait for backend is outside of the $enabled so that in the
-  # case of detached-db, the database task on the controllers simply waits
-  # until the database is up on the other systems. This will prevent the
-  # various tasks from the primary controller from continuing until the database
-  # is available.
-  include ::osnailyfacter::database::database_backend_wait
-
   if $enabled {
 
     if '/var/lib/mysql' in $::mounts {
@@ -335,6 +328,9 @@ class osnailyfacter::database::database {
         Class['::cluster::galera_grants'] ->
           Class['::cluster::galera_status']
     }
+
+    include ::osnailyfacter::database::database_backend_wait
+
     Class['::cluster::mysql'] ->
       Class['::cluster::galera_status'] ->
         ::Osnailyfacter::Wait_for_backend['mysql']
