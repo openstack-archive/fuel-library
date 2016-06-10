@@ -81,7 +81,7 @@ class fuel::cobbler(
     initrd    => "${bootstrap_path}/initrd.img",
     arch      => 'x86_64',
     breed     => 'ubuntu',
-    osversion => 'trusty',
+    osversion => 'xenial',
     ksmeta    => '',
     require   => Class['::cobbler::server'],
   }

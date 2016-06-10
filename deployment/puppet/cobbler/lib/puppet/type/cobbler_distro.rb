@@ -41,7 +41,7 @@ Puppet::Type.newtype(:cobbler_distro) do
 
   newparam(:osversion) do
     desc "OS Version"
-    newvalues(/^(rhel6|rhel5|trusty|precise|natty|squeeze|stable|other)$/)
+    newvalues(/^(rhel6|rhel5|xenial|trusty|precise|natty|squeeze|stable|other)$/)
   end
 
   newparam(:name, :namevar => true) do
