@@ -101,7 +101,13 @@ module L23network
     transformations = org_tranformations.reject{|x| x[:action]=='override'}
     org_tranformations.select{|x| x[:action]=='override'}.each do |ov|
       next if ov[:override].nil?
-      tr_index = transformations.index{|x| x[:name]==ov[:override]}
+      pm = ov[:override].match(/patch-([\w\-]+)\:([\w\-]+)/)
+      if !pm.nil? and pm.size == 3
+        # we should override patch, to search patch use bridge names
+        tr_index = transformations.index{|x| x[:action]=='add-patch' and (x[:bridges]==[pm[1],pm[2]] or x[:bridges]==[pm[2],pm[1]])}
+      else
+        tr_index = transformations.index{|x| x[:name]==ov[:override]}
+      end
       next if tr_index.nil?
       ov.reject{|k,v| [:override, :action].include? k}.each do |k,v|
         if k == :'override-action' and v.to_s!=''
