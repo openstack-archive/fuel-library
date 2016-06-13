@@ -109,19 +109,6 @@ describe manifest do
 
     primary_controller = Noop.hiera('primary_controller')
 
-    let(:storage_hash) {  Noop.hiera_hash 'storage', {} }
-    let(:ceph_nodes) do
-      Noop.puppet_function 'get_nodes_hash_by_roles', network_metadata, ['ceph-osd']
-    end
-
-    let(:use_ceph) do
-      if !ceph_nodes.empty? or (storage_hash['volumes_ceph'] or storage_hash['images_ceph'] or storage_hash['objects_ceph'])
-        true
-      else
-        false
-      end
-    end
-
     it 'should configure default_log_levels' do
       should contain_keystone_config('DEFAULT/default_log_levels').with_value(default_log_levels.sort.join(','))
     end
@@ -142,17 +129,6 @@ describe manifest do
       should contain_class('keystone').with(
         'admin_token' => admin_token
       )
-    end
-
-    it 'should do pki setup based on ceph' do
-      should contain_class('keystone').with(
-        'enable_pki_setup'     => use_ceph,
-        'signing_certfile'     => '/etc/keystone/ssl/certs/signing_cert.pem',
-        'signing_keyfile'      => '/etc/keystone/ssl/private/signing_key.pem',
-        'signing_ca_certs'     => '/etc/keystone/ssl/certs/ca.pem',
-        'signing_ca_key'       => '/etc/keystone/ssl/private/cakey.pem',
-        'signing_cert_subject' => '/C=US/ST=Unset/L=Unset/O=Unset/CN=www.example.com',
-        'signing_key_size'     => 2048)
     end
 
     it 'points to valid admin endpoint' do

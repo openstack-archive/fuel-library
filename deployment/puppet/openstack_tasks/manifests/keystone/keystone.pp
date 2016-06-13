@@ -142,19 +142,6 @@ class openstack_tasks::keystone::keystone {
   $service_user_name     = pick($service_user_hash['name'], 'fuel')
   $service_user_homedir  = pick($service_user_hash['homedir'], '/var/lib/fuel')
 
-  $storage_hash = hiera_hash('storage', {})
-  # we need to know if we're using ceph to configure PKI.
-  # TODO(aschultz): PKI is deprecated upstream, we need to find an alternative
-  if (!empty(get_nodes_hash_by_roles($network_metadata, ['ceph-osd'])) or
-    $storage_hash['volumes_ceph'] or
-    $storage_hash['images_ceph'] or
-    $storage_hash['objects_ceph']
-  ) {
-    $use_ceph = true
-  } else {
-    $use_ceph = false
-  }
-
   ####### WSGI ###########
 
   # Listen directives with host required for ip_based vhosts
@@ -333,7 +320,6 @@ class openstack_tasks::keystone::keystone {
       token_caching                => $token_caching,
       cache_backend                => $cache_backend,
       revoke_driver                => $revoke_driver,
-      enable_pki_setup             => $use_ceph,
       signing_certfile             => '/etc/keystone/ssl/certs/signing_cert.pem',
       signing_keyfile              => '/etc/keystone/ssl/private/signing_key.pem',
       signing_ca_certs             => '/etc/keystone/ssl/certs/ca.pem',

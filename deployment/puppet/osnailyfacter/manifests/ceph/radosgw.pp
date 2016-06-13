@@ -79,7 +79,8 @@ class osnailyfacter::ceph::radosgw {
       rgw_keystone_admin_token         => $keystone_hash['admin_token'],
       rgw_keystone_token_cache_size    => $rgw_keystone_token_cache_size,
       rgw_keystone_accepted_roles      => $rgw_keystone_accepted_roles,
-      rgw_keystone_revocation_interval => $rgw_keystone_revocation_interval,
+      rgw_s3_auth_use_keystone         => false,
+      use_pki                          => false,
     }
 
     file { "/var/lib/ceph/radosgw/ceph-${gateway_name}":
