@@ -8,6 +8,8 @@ describe manifest do
       contain_class('swift::keystone::auth')
     end
 
+    storage_hash = Noop.hiera_hash('storage')
+
     swift = Noop.hiera_hash('swift')
 
     if swift['management_vip']
@@ -62,29 +64,31 @@ describe manifest do
 
     tenant              = Noop.hiera_structure('swift/tenant', 'services')
 
-    it 'class swift::keystone::auth should contain correct *_url' do
-      should contain_class('swift::keystone::auth').with('public_url' => public_url)
-      should contain_class('swift::keystone::auth').with('admin_url' => admin_url)
-      should contain_class('swift::keystone::auth').with('internal_url' => internal_url)
-    end
+    if !storage_hash['objects_ceph']
 
-    it 'should have explicit ordering between LB classes and particular actions' do
-      expect(graph).to ensure_transitive_dependency("Haproxy_backend_status[keystone-public]",
+      it 'class swift::keystone::auth should contain correct *_url' do
+        should contain_class('swift::keystone::auth').with('public_url' => public_url)
+        should contain_class('swift::keystone::auth').with('admin_url' => admin_url)
+        should contain_class('swift::keystone::auth').with('internal_url' => internal_url)
+      end
+
+      it 'should have explicit ordering between LB classes and particular actions' do
+        expect(graph).to ensure_transitive_dependency("Haproxy_backend_status[keystone-public]",
                                                       "Class[swift::keystone::auth]")
-      expect(graph).to ensure_transitive_dependency("Haproxy_backend_status[keystone-admin]",
+        expect(graph).to ensure_transitive_dependency("Haproxy_backend_status[keystone-admin]",
                                                       "Class[swift::keystone::auth]")
-    end
+      end
 
-    it 'class swift::keystone::auth should contain correct S3 endpoints' do
-      should contain_class('swift::keystone::auth').with('public_url_s3' => public_url_s3)
-      should contain_class('swift::keystone::auth').with('admin_url_s3' => admin_url_s3)
-      should contain_class('swift::keystone::auth').with('internal_url_s3' => internal_url_s3)
-    end
+      it 'class swift::keystone::auth should contain correct S3 endpoints' do
+        should contain_class('swift::keystone::auth').with('public_url_s3' => public_url_s3)
+        should contain_class('swift::keystone::auth').with('admin_url_s3' => admin_url_s3)
+        should contain_class('swift::keystone::auth').with('internal_url_s3' => internal_url_s3)
+      end
 
-    it 'class swift::keystone::auth should contain tenant' do
-      should contain_class('swift::keystone::auth').with('tenant' => tenant)
+      it 'class swift::keystone::auth should contain tenant' do
+        should contain_class('swift::keystone::auth').with('tenant' => tenant)
+      end
     end
-
   end
 
   test_ubuntu_and_centos manifest
