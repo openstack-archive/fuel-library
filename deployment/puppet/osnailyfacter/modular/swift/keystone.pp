@@ -1,5 +1,7 @@
 notice('MODULAR: swift/keystone.pp')
 
+$storage_hash       = hiera('storage', {})
+
 $swift_hash         = hiera_hash('swift', {})
 $public_vip         = hiera('public_vip')
 # Allow a plugin to override the admin address using swift_hash:
@@ -23,8 +25,6 @@ $configure_endpoint = pick($swift_hash['configure_endpoint'], true)
 $service_name       = pick($swift_hash['service_name'], 'swift')
 $tenant             = pick($swift_hash['tenant'], 'services')
 
-Class['::osnailyfacter::wait_for_keystone_backends'] -> Class['::swift::keystone::auth']
-
 validate_string($public_address)
 validate_string($password)
 
@@ -37,18 +37,23 @@ $public_url_s3       = "${public_protocol}://${public_address}:8080"
 $internal_url_s3     = "${internal_protocol}://${internal_address}:8080"
 $admin_url_s3        = "${admin_protocol}://${admin_address}:8080"
 
-class {'::osnailyfacter::wait_for_keystone_backends':}
-class { '::swift::keystone::auth':
-  password           => $password,
-  auth_name          => $auth_name,
-  configure_endpoint => $configure_endpoint,
-  service_name       => $service_name,
-  public_url         => $public_url,
-  internal_url       => $internal_url,
-  admin_url          => $admin_url,
-  public_url_s3      => $public_url_s3,
-  internal_url_s3    => $internal_url_s3,
-  admin_url_s3       => $admin_url_s3,
-  region             => $region,
-  tenant             => $tenant,
+if !$storage_hash['objects_ceph'] {
+
+  Class['::osnailyfacter::wait_for_keystone_backends'] -> Class['::swift::keystone::auth']
+
+  class {'::osnailyfacter::wait_for_keystone_backends':}
+  class { '::swift::keystone::auth':
+    password           => $password,
+    auth_name          => $auth_name,
+    configure_endpoint => $configure_endpoint,
+    service_name       => $service_name,
+    public_url         => $public_url,
+    internal_url       => $internal_url,
+    admin_url          => $admin_url,
+    public_url_s3      => $public_url_s3,
+    internal_url_s3    => $internal_url_s3,
+    admin_url_s3       => $admin_url_s3,
+    region             => $region,
+    tenant             => $tenant,
+  }
 }
