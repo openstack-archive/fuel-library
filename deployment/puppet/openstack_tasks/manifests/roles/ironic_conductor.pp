@@ -14,7 +14,6 @@ class openstack_tasks::roles::ironic_conductor {
 
   $database_vip               = hiera('database_vip')
   $service_endpoint           = hiera('service_endpoint')
-  $neutron_endpoint           = hiera('neutron_endpoint', $management_vip)
   $glance_api_servers         = hiera('glance_api_servers', "${management_vip}:9292")
   $amqp_hosts                 = hiera('amqp_hosts')
   $rabbit_hosts               = split($amqp_hosts, ',')
@@ -30,6 +29,18 @@ class openstack_tasks::roles::ironic_conductor {
   $ironic_user                = pick($ironic_hash['auth_name'],'ironic')
   $ironic_user_password       = pick($ironic_hash['user_password'],'ironic')
   $ironic_swift_tempurl_key   = pick($ironic_hash['swift_tempurl_key'],'ironic')
+
+  $ssl_hash                   = hiera('use_ssl', {})
+  $neutron_endpoint_default   = hiera('neutron_endpoint', $management_vip)
+  $neutron_protocol           = get_ssl_property($ssl_hash, {}, 'neutron', 'public', 'protocol', 'http')
+  $neutron_endpoint           = get_ssl_property($ssl_hash, {}, 'neutron', 'public', 'hostname', $neutron_endpoint_default)
+  $neutron_uri                = "${neutron_protocol}://${neutron_endpoint}:9696"
+  $internal_auth_protocol     = get_ssl_property($ssl_hash, {}, 'keystone', 'internal', 'protocol', 'http')
+  $internal_auth_address      = get_ssl_property($ssl_hash, {}, 'keystone', 'internal', 'hostname', [$service_endpoint, $management_vip])
+  $internal_auth_uri          = "${internal_auth_protocol}://${internal_auth_address}:5000"
+  $admin_identity_protocol    = get_ssl_property($ssl_hash, {}, 'keystone', 'admin', 'protocol', 'http')
+  $admin_identity_address     = get_ssl_property($ssl_hash, {}, 'keystone', 'admin', 'hostname', [$service_endpoint, $management_vip])
+  $admin_identity_uri         = "${admin_identity_protocol}://${admin_identity_address}:35357"
 
   $db_type                    = 'mysql'
   $db_host                    = pick($ironic_hash['db_host'], $database_vip)
@@ -88,9 +99,9 @@ class openstack_tasks::roles::ironic_conductor {
   }
 
   ironic_config {
-    'neutron/url':                          value => "http://${neutron_endpoint}:9696";
-    'keystone_authtoken/auth_uri':          value => "http://${service_endpoint}:5000/";
-    'keystone_authtoken/auth_host':         value => $service_endpoint;
+    'neutron/url':                          value => $neutron_uri;
+    'keystone_authtoken/auth_uri':          value => $internal_auth_uri;
+    'keystone_authtoken/identity_uri':      value => $admin_identity_uri;
     'keystone_authtoken/admin_tenant_name': value => $ironic_tenant;
     'keystone_authtoken/admin_user':        value => $ironic_user;
     'keystone_authtoken/admin_password':    value => $ironic_user_password, secret => true;

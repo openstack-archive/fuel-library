@@ -47,12 +47,28 @@ describe manifest do
       management_vip = Noop.hiera 'management_vip'
       service_endpoint = Noop.hiera 'service_endpoint', management_vip
       neutron_endpoint = Noop.hiera 'neutron_endpoint', service_endpoint
-      neutron_url = "http://#{neutron_endpoint}:9696"
       ironic_user = Noop.hiera_structure 'ironic/user', 'ironic'
       temp_url_endpoint_type = (storage_config['images_ceph']) ? 'radosgw' : 'swift'
+
+      let(:public_ssl_hash) { Noop.hiera_hash('public_ssl') }
+      let(:ssl_hash) { Noop.hiera_hash 'use_ssl', {} }
+      let(:service_endpoint) { Noop.hiera 'service_endpoint' }
+      let(:neutron_protocol) { Noop.puppet_function 'get_ssl_property',ssl_hash,public_ssl_hash,'neutron','public','protocol','http' }
+      let(:neutron_endpoint) { Noop.puppet_function 'get_ssl_property',ssl_hash,public_ssl_hash,'neutron','public','hostname', management_vip }
+      let(:neutron_url) { "#{neutron_protocol}://#{neutron_endpoint}:9696" }
+      let(:internal_auth_protocol) { Noop.puppet_function 'get_ssl_property',ssl_hash,{},'keystone','internal','protocol','http' }
+      let(:internal_auth_address) { Noop.puppet_function 'get_ssl_property',ssl_hash,{},'keystone','internal','hostname', [ service_endpoint, management_vip ] }
+      let(:internal_auth_uri) { "#{internal_auth_protocol}://#{internal_auth_endpoint}:5000" }
+      let(:admin_identity_protocol) { Noop.puppet_function 'get_ssl_property',ssl_hash,{},'keystone','internal','protocol','http' }
+      let(:admin_identity_address) { Noop.puppet_function 'get_ssl_property',ssl_hash,{},'keystone','internal','hostname', [ service_endpoint, management_vip ] }
+      let(:internal_auth_uri) { "#{internal_auth_protocol}://#{internal_auth_endpoint}:35357" }
+
+
       it 'ironic config should have propper config options' do
         should contain_ironic_config('pxe/tftp_root').with('value' => '/var/lib/ironic/tftpboot')
         should contain_ironic_config('neutron/url').with('value' => neutron_url)
+        should contain_ironic_config('keystone_authtoken/auth_uri').with('value' => internal_auth_uri)
+        should contain_ironic_config('keystone_authtoken/identity_uri').with('value' => admin_identity_uri)
         should contain_ironic_config('keystone_authtoken/admin_user').with('value' => ironic_user)
         should contain_ironic_config('glance/temp_url_endpoint_type').with('value' => temp_url_endpoint_type)
       end

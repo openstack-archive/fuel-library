@@ -11,15 +11,17 @@ describe manifest do
     if ironic_enabled
       public_vip    = Noop.hiera('public_vip')
       admin_address = Noop.hiera('management_vip')
-      public_ssl    = Noop.hiera_structure('public_ssl/services')
-
-      if public_ssl
-        public_address  = Noop.hiera_structure('public_ssl/hostname')
-        public_protocol = 'https'
-      else
-        public_address  = public_vip
-        public_protocol = 'http'
-      end
+      let(:public_ssl_hash) { Noop.hiera_hash('public_ssl') }
+      let(:ssl_hash) { Noop.hiera_hash 'use_ssl', {} }
+      let(:public_protocol) { Noop.puppet_function 'get_ssl_property',ssl_hash,public_ssl_hash,'ironic','public','protocol','http' }
+      let(:public_address) { Noop.puppet_function 'get_ssl_property',ssl_hash,public_ssl_hash,'ironic','public','hostname', public_vip }
+      let(:internal_protocol) { Noop.puppet_function 'get_ssl_property',ssl_hash,{},'ironic','internal','protocol','http' }
+      let(:internal_address) { Noop.puppet_function 'get_ssl_property',ssl_hash,{},'ironic','internal','hostname', public_vip }
+      let(:admin_protocol) { Noop.puppet_function 'get_ssl_property',ssl_hash,{},'ironic','admin','protocol','http' }
+      let(:admin_address) { Noop.puppet_function 'get_ssl_property',ssl_hash,{},'ironic','admin','hostname', public_vip }
+      let(:public_url) { "#{public_protocol}://#{public_address}:6385" }
+      let(:admin_url) { "#{admin_protocol}://#{admin_address}:6385" }
+      let(:internal_url) { "#{internal_protocol}://#{internal_address}:6385" }
 
       auth_name           = Noop.hiera_structure('ironic/auth_name', 'ironic')
       password            = Noop.hiera_structure('ironic/user_password')
@@ -29,8 +31,6 @@ describe manifest do
       region              = Noop.hiera_structure('ironic/region', 'RegionOne')
       tenant              = Noop.hiera_structure('ironic/tenant', 'services')
       service_name        = Noop.hiera_structure('ironic/service_name', 'ironic')
-      public_url          = "#{public_protocol}://#{public_address}:6385"
-      admin_url           = "http://#{admin_address}:6385"
 
       it 'should have explicit ordering between LB classes and particular actions' do
         expect(graph).to ensure_transitive_dependency("Haproxy_backend_status[keystone-public]",
@@ -49,7 +49,7 @@ describe manifest do
           'service_name'        => service_name,
           'public_url'          => public_url,
           'admin_url'           => admin_url,
-          'internal_url'        => admin_url,
+          'internal_url'        => internal_url,
           'region'              => region,
           'tenant'              => tenant,
         )
