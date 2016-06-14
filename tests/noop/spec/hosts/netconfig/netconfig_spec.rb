@@ -17,14 +17,13 @@ describe manifest do
 
     network_metadata = Noop.hiera_hash 'network_metadata'
     network_scheme   = Noop.hiera_hash 'network_scheme'
-    use_neutron      = Noop.hiera 'use_neutron'
     default_gateway  = Noop.hiera 'default_gateway'
     set_xps          = Noop.hiera 'set_xps', true
     set_rps          = Noop.hiera 'set_rps', true
     dpdk_config      = Noop.hiera_hash 'dpdk', {}
     enable_dpdk      = dpdk_config.fetch 'enabled', false
 
-    it { should contain_class('l23network').with('use_ovs' => use_neutron) }
+    it { should contain_class('l23network').with('use_ovs' => true) }
     it { should contain_sysctl__value('net.ipv4.conf.all.arp_accept').with('value' => '1') }
     it { should contain_sysctl__value('net.ipv4.conf.default.arp_accept').with('value' => '1') }
     it { should contain_class('openstack::keepalive').with(

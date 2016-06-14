@@ -95,7 +95,6 @@ install -m 0755 %{files_source}/fuel-ha-utils/ocf/ceilometer-agent-central %{bui
 install -m 0755 %{files_source}/fuel-ha-utils/ocf/ceilometer-alarm-evaluator %{buildroot}/usr/lib/ocf/resource.d/fuel/ceilometer-alarm-evaluator
 install -m 0755 %{files_source}/fuel-ha-utils/ocf/aodh-evaluator %{buildroot}/usr/lib/ocf/resource.d/fuel/aodh-evaluator
 install -m 0755 %{files_source}/fuel-ha-utils/ocf/nova-compute %{buildroot}/usr/lib/ocf/resource.d/fuel/nova-compute
-install -m 0755 %{files_source}/fuel-ha-utils/ocf/nova-network %{buildroot}/usr/lib/ocf/resource.d/fuel/nova-network
 install -m 0755 %{files_source}/fuel-ha-utils/ocf/ceilometer-agent-compute %{buildroot}/usr/lib/ocf/resource.d/fuel/ceilometer-agent-compute
 install -m 0755 %{files_source}/fuel-ha-utils/ocf/ocf-fuel-funcs %{buildroot}/usr/lib/ocf/resource.d/fuel/ocf-fuel-funcs
 install -m 0755 %{files_source}/fuel-ha-utils/tools/galeracheck %{buildroot}/usr/bin/galeracheck

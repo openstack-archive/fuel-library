@@ -15,7 +15,6 @@ class openstack_tasks::keystone::keystone {
   $keystone_hash         = hiera_hash('keystone', {})
   $verbose               = pick($keystone_hash['verbose'], hiera('verbose', true))
   $debug                 = pick($keystone_hash['debug'], hiera('debug', false))
-  $use_neutron           = hiera('use_neutron', false)
   $use_syslog            = hiera('use_syslog', true)
   $use_stderr            = hiera('use_stderr', false)
   $access_hash           = hiera_hash('access', {})

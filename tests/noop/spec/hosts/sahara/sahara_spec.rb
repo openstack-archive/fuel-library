@@ -16,7 +16,6 @@ describe manifest do
 
   shared_examples 'catalog' do
 
-    let(:use_neutron) { Noop.hiera 'use_neutron' }
     let(:rabbit_user) { Noop.hiera_structure 'rabbit/user', 'nova' }
     let(:rabbit_password) { Noop.hiera_structure 'rabbit/password' }
     let(:auth_user) { Noop.hiera_structure 'access/user' }
@@ -118,7 +117,7 @@ describe manifest do
                    'identity_uri'           => admin_uri,
                    'plugins'                => sahara_plugins,
                    'rpc_backend'            => 'rabbit',
-                   'use_neutron'            => use_neutron,
+                   'use_neutron'            => true,
                    'admin_user'             => sahara_user,
                    'verbose'                => verbose,
                    'debug'                  => debug,
@@ -204,7 +203,7 @@ describe manifest do
 
         it 'should declare sahara_templates class correctly' do
           should contain_class('sahara_templates::create_templates').with(
-                     'use_neutron' => use_neutron,
+                     'use_neutron' => true,
                      'auth_uri' => "#{public_protocol}://#{public_address}:5000/v2.0/",
                      'auth_password' => auth_password,
                      'auth_user' => auth_user,

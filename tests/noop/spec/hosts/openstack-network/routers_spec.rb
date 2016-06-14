@@ -6,7 +6,7 @@ manifest = 'openstack-network/routers.pp'
 
 describe manifest do
   shared_examples 'catalog' do
-    if (Noop.hiera('use_neutron') and Noop.hiera('primary_controller'))
+    if Noop.hiera('primary_controller')
       context 'with Neutron' do
         neutron_config = Noop.hiera('neutron_config')
         nets = neutron_config['predefined_networks']
