@@ -109,9 +109,6 @@ class openstack_tasks::glance::glance {
   $admin_auth_address     = get_ssl_property($ssl_hash, {}, 'keystone', 'admin', 'hostname', [hiera('service_endpoint', ''), $management_vip])
   $glance_endpoint        = get_ssl_property($ssl_hash, {}, 'glance', 'internal', 'hostname', [$management_vip])
 
-  $murano_hash    = hiera_hash('murano', {})
-  $murano_plugins = pick($murano_hash['plugins'], {})
-
   $auth_uri     = "${internal_auth_protocol}://${internal_auth_address}:5000/"
   $identity_uri = "${admin_auth_protocol}://${admin_auth_address}:35357/"
 
@@ -130,15 +127,6 @@ class openstack_tasks::glance::glance {
     $known_stores = [ 'glance.store.swift.Store', 'glance.store.http.Store' ]
     $swift_store_large_object_size = $glance_large_object_size
     $show_image_direct_url = pick($glance_hash['show_image_direct_url'], false)
-  }
-
-  # NOTE(aschultz): UCA does not have the glance artifacts plugin package
-  # we can remove the os_package_type once UCA provides the package
-  # TODO(aschultz): switch to dig at some point
-  if $murano_plugins and $murano_plugins['glance_artifacts_plugin'] and $murano_plugins['glance_artifacts_plugin']['enabled'] and ($::os_package_type == 'debian') {
-    package {'murano-glance-artifacts-plugin':
-      ensure  => installed,
-    }
   }
 
   ####### Disable upstart startup on install #######
