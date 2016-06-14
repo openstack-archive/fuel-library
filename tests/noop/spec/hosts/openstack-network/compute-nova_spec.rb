@@ -75,7 +75,7 @@ describe manifest do
       Noop.hiera 'use_vcenter', false
     end
 
-    if Noop.hiera('use_neutron') && Noop.hiera('role') == 'compute'
+    if Noop.hiera('role') == 'compute'
       context 'Neutron is used' do
         nova_hash = Noop.hiera_hash('nova')
         neutron_integration_bridge = 'br-int'
@@ -178,52 +178,6 @@ describe manifest do
         )}
         it { expect(subject).to contain_augeas('sysctl-net.bridge.bridge-nf-call-arptables').that_comes_before('Service[libvirt]')}
         #
-      end
-    elsif !Noop.hiera('use_neutron') && Noop.hiera('role') == 'compute'
-      context 'Nova-network is used' do
-        it { expect(subject).to contain_nova_config('DEFAULT/multi_host').with(
-          :value => true
-        )}
-        it {expect(subject).to contain_nova_config('DEFAULT/send_arp_for_ha').with(
-          :value => 'True'
-        )}
-
-        #it { expect(subject).to contain_nova_config('DEFAULT/metadata_host').with(:value  => bind_address) }
-
-        it { expect(subject).to contain_class('Nova::Api').with(
-                                 :ensure_package => "installed",
-                                 :enabled => true,
-                                 :admin_tenant_name => "services",
-                                 :admin_user => "nova",
-                                 :admin_password => nova_user_password,
-                                 :enabled_apis => "metadata",
-                                 :api_bind_address => bind_address,
-                                 :metadata_listen => bind_address,
-                                 :ratelimits => nova_rate_limits,
-        )}
-
-        it {
-          expect(subject).to contain_nova_config('DEFAULT/force_snat_range').with(:value => '0.0.0.0/0')
-        }
-
-        it do
-          expect(subject).to contain_class('Nova::Network').with(
-                                 :ensure_package => "installed",
-                                 :public_interface => public_interface,
-                                 :private_interface => private_interface,
-                                 :fixed_range => fixed_network_range,
-                                 :floating_range => false,
-                                 :network_manager => "nova.network.manager.FlatDHCPManager",
-                                 :config_overrides => network_config,
-                                 :create_networks => true,
-                                 :num_networks => num_networks,
-                                 :network_size => network_size,
-                                 :dns1 => dns_nameservers[0],
-                                 :dns2 => dns_nameservers[1],
-                                 :enabled => true,
-                                 :install_service => true,
-          )
-        end
       end
     end
   end

@@ -3,7 +3,6 @@ class osnailyfacter::openstack_haproxy::openstack_haproxy_neutron {
   notice('MODULAR: openstack_haproxy/openstack_haproxy_neutron.pp')
 
   # NOT enabled by default
-  $use_neutron         = hiera('use_neutron', false)
   $public_ssl_hash     = hiera_hash('public_ssl', {})
   $ssl_hash            = hiera_hash('use_ssl', {})
 
@@ -15,7 +14,7 @@ class osnailyfacter::openstack_haproxy::openstack_haproxy_neutron {
 
   $external_lb         = hiera('external_lb', false)
 
-  if ($use_neutron and !$external_lb) {
+  if !$external_lb {
     $neutron_address_map = get_node_to_ipaddr_map_by_network_role(hiera_hash('neutron_nodes'), 'neutron/api')
     $server_names        = hiera_array('neutron_names', keys($neutron_address_map))
     $ipaddresses         = hiera_array('neutron_ipaddresses', values($neutron_address_map))

@@ -2,7 +2,6 @@ class openstack_tasks::openstack_network::agents::l3 {
 
   notice('MODULAR: openstack_network/agents/l3.pp')
 
-  $use_neutron = hiera('use_neutron', false)
   $neutron_advanced_config = hiera_hash('neutron_advanced_configuration', { })
   $dvr = pick($neutron_advanced_config['neutron_dvr'], false)
 
@@ -11,7 +10,7 @@ class openstack_tasks::openstack_network::agents::l3 {
   $controller               = roles_include($neutron_controller_roles)
   $compute                  = roles_include($neutron_compute_roles)
 
-  if $use_neutron and ($controller or ($dvr and $compute)) {
+  if $controller or ($dvr and $compute) {
     # override neutron options
     $override_configuration = hiera_hash('configuration', {})
     override_resources { 'neutron_l3_agent_config':
@@ -19,7 +18,7 @@ class openstack_tasks::openstack_network::agents::l3 {
     } ~> Service['neutron-l3']
   }
 
-  if $use_neutron and ($controller or ($dvr and $compute)) {
+  if $controller or ($dvr and $compute) {
     $debug                   = hiera('debug', true)
     $metadata_port           = '8775'
     $network_scheme          = hiera_hash('network_scheme', {})

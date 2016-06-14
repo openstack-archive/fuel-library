@@ -16,7 +16,7 @@ describe manifest do
   end
 
   shared_examples 'catalog' do
-    if (Noop.hiera('use_neutron') and Noop.hiera('role') =~ /controller|compute|ironic/)
+    if Noop.hiera('role') =~ /controller|compute|ironic/
 
       let(:network_scheme) do
         Noop.hiera_hash('network_scheme', {})

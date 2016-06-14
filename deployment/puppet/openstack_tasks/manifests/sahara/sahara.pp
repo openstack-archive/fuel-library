@@ -14,7 +14,6 @@ class openstack_tasks::sahara::sahara {
   $database_vip               = hiera('database_vip', undef)
   $management_vip             = hiera('management_vip')
   $neutron_config             = hiera_hash('neutron_config')
-  $use_neutron                = hiera('use_neutron', false)
   $service_endpoint           = hiera('service_endpoint')
   $syslog_log_facility_sahara = hiera('syslog_log_facility_sahara')
   $debug                      = pick($sahara_hash['debug'], hiera('debug', false))
@@ -104,7 +103,7 @@ class openstack_tasks::sahara::sahara {
       auth_uri               => "${internal_auth_url}/v2.0/",
       identity_uri           => $admin_identity_uri,
       rpc_backend            => 'rabbit',
-      use_neutron            => $use_neutron,
+      use_neutron            => true,
       admin_user             => $sahara_user,
       admin_password         => $sahara_password,
       admin_tenant_name      => $tenant,
@@ -179,7 +178,7 @@ class openstack_tasks::sahara::sahara {
 
       class { '::osnailyfacter::wait_for_keystone_backends':} ->
       class { '::sahara_templates::create_templates' :
-        use_neutron   => $use_neutron,
+        use_neutron   => true,
         auth_user     => $access_admin['user'],
         auth_password => $access_admin['password'],
         auth_tenant   => $access_admin['tenant'],
