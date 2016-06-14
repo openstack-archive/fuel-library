@@ -31,7 +31,7 @@ describe manifest do
     internal_auth_protocol = Noop.puppet_function 'get_ssl_property', ssl_hash, {}, 'keystone', 'internal', 'protocol', 'http'
     internal_auth_address = Noop.puppet_function 'get_ssl_property', ssl_hash, {}, 'keystone', 'internal', 'hostname', [management_vip]
     keystone_auth_uri = "#{internal_auth_protocol}://#{internal_auth_address}:5000/v2.0"
-    keystone_identity_uri = "#{internal_auth_protocol}://#{internal_auth_address}:35357/"
+    keystone_auth_url = "#{internal_auth_protocol}://#{internal_auth_address}:35357/"
 
     oslo_policy_file = '/etc/aodh/policy.json'
     notification_store_events = 'true'
@@ -85,21 +85,25 @@ describe manifest do
     it 'should configure "keystone_authtoken/" section' do
       should contain_aodh_config('keystone_authtoken/memcache_servers').with(:value => "#{memcache_address}:11211")
       should contain_aodh_config('keystone_authtoken/signing_dir').with(:value => keystone_signing_dir)
-      should contain_aodh_config('keystone_authtoken/identity_uri').with(:value => keystone_identity_uri)
+      # TODO (degorenko) uncomment after changehttps://review.openstack.org/#/c/328806
+      # will be merged
+      #should contain_aodh_config('keystone_authtoken/auth_url').with(:value => keystone_auth_url)
       should contain_aodh_config('keystone_authtoken/auth_uri').with(:value => keystone_auth_uri)
-      should contain_aodh_config('keystone_authtoken/admin_tenant_name').with(:value => tenant)
-      should contain_aodh_config('keystone_authtoken/admin_user').with(:value => user)
-      should contain_aodh_config('keystone_authtoken/admin_password').with(:value => password)
+      #should contain_aodh_config('keystone_authtoken/project_name').with(:value => tenant)
+      #should contain_aodh_config('keystone_authtoken/username').with(:value => user)
+      #should contain_aodh_config('keystone_authtoken/password').with(:value => password)
     end
 
-    it 'should configure "service_credentials/" section' do
-      should contain_aodh_config('service_credentials/os_username').with(:value => user)
-      should contain_aodh_config('service_credentials/os_password').with(:value => password)
-      should contain_aodh_config('service_credentials/os_tenant_name').with(:value => tenant)
-      should contain_aodh_config('service_credentials/os_region_name').with(:value => region)
-      should contain_aodh_config('service_credentials/os_endpoint_type').with(:value => 'internalURL')
-      should contain_aodh_config('service_credentials/os_auth_url').with(:value => keystone_auth_uri)
-    end
+# TODO (degorenko) uncomment after changehttps://review.openstack.org/#/c/328806
+# will be merged
+#    it 'should configure "service_credentials/" section' do
+#      should contain_aodh_config('service_credentials/username').with(:value => user)
+#      should contain_aodh_config('service_credentials/password').with(:value => password)
+#      should contain_aodh_config('service_credentials/tenant_name').with(:value => tenant)
+#      should contain_aodh_config('service_credentials/region_name').with(:value => region)
+#      should contain_aodh_config('service_credentials/endpoint_type').with(:value => 'internalURL')
+#      should contain_aodh_config('service_credentials/auth_url').with(:value => keystone_auth_uri)
+#    end
 
     it 'should configure "oslo_messaging_rabbit/" section' do
       should contain_aodh_config('oslo_messaging_rabbit/rabbit_ha_queues').with(:value => rabbit_ha_queues)
