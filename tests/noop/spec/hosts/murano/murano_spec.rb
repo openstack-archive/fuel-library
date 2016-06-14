@@ -43,7 +43,6 @@ describe manifest do
     end
 
     let(:region) { Noop.hiera('region', 'RegionOne') }
-    let(:use_neutron) { Noop.hiera('use_neutron', false) }
     let(:service_endpoint) { Noop.hiera('service_endpoint') }
     let(:syslog_log_facility_murano) { Noop.hiera('syslog_log_facility_murano') }
     let(:debug) { Noop.hiera('debug', false) }
@@ -117,11 +116,7 @@ describe manifest do
     end
 
     let(:external_network) do
-      if use_neutron
-        Noop.puppet_function 'get_ext_net_name', predefined_networks
-      else
-        nil
-      end
+      Noop.puppet_function 'get_ext_net_name', predefined_networks
     end
 
     let(:default_dns) { Noop.hiera_structure('external_dns/dns_list') }
@@ -180,7 +175,7 @@ describe manifest do
                    'admin_tenant_name'   => tenant,
                    'identity_uri'        => "#{admin_auth_protocol}://#{admin_auth_address}:35357/",
                    'notification_driver' => ceilometer_hash['notification_driver'],
-                   'use_neutron'         => use_neutron,
+                   'use_neutron'         => 'true',
                    'packages_service'    => packages_service,
                    'rabbit_os_user'      => rabbit_os_user,
                    'rabbit_os_password'  => rabbit_os_password,

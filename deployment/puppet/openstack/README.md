@@ -210,8 +210,7 @@ The openstack::controller class deploys the following Openstack services:
   * keystone
   * horizon
   * glance
-  * nova (ommitting the nova compute service and, when multi_host is enabled,
-    the nova network service)
+  * nova (ommitting the nova compute service)
   * mysql
   * rabbitmq
 
@@ -252,7 +251,6 @@ amount of resources being virtualized)
 The openstack::compute class deploys the following services:
   * nova
       - compute service (libvirt backend)
-      - optionally, the nova network service (if multi_host is enabled)
       - optionally, the nova api service (if multi_host is enabled)
       - optionally, the nova volume service if it is enabled
 
@@ -416,7 +414,6 @@ openstack command line utilities.
         nova-consoleauth <your_host>   nova   enabled    :-)   2012-06-06 22:30:04
         nova-scheduler   <your_host>   nova   enabled    :-)   2012-06-06 22:30:05
         nova-compute     <your_host>   nova   enabled    :-)   2012-06-06 22:30:02
-        nova-network     <your_host>   nova   enabled    :-)   2012-06-06 22:30:07
         nova-cert        <your_host>   nova   enabled    :-)   2012-06-06 22:30:04
 
   4. Ensure that the test script has been deployed to the node.

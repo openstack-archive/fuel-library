@@ -22,9 +22,7 @@ describe manifest do
       neutron_address_map.keys
     end
 
-    use_neutron = Noop.hiera('use_neutron', false)
-
-    if use_neutron and !Noop.hiera('external_lb', false)
+    if !Noop.hiera('external_lb', false)
       it "should properly configure neutron haproxy based on ssl" do
         public_ssl_neutron = Noop.hiera_structure('public_ssl/services', false)
         should contain_openstack__ha__haproxy_service('neutron').with(

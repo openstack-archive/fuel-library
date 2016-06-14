@@ -15,7 +15,7 @@ describe manifest do
   end
 
   shared_examples 'catalog' do
-    if (Noop.hiera('use_neutron') and Noop.hiera('role') =~ /controller/)
+    if and Noop.hiera('role') =~ /controller/
 
       let(:node_role) do
         Noop.hiera('role')
