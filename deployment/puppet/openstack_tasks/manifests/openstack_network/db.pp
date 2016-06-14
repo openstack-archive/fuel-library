@@ -2,7 +2,6 @@ class openstack_tasks::openstack_network::db {
 
   notice('MODULAR: openstack_network/db.pp')
 
-  $use_neutron    = hiera('use_neutron', false)
   $neutron_hash   = hiera_hash('quantum_settings', {})
   $mysql_hash     = hiera_hash('mysql', {})
   $management_vip = hiera('management_vip', undef)
@@ -27,7 +26,7 @@ class openstack_tasks::openstack_network::db {
 
   validate_string($mysql_root_user)
 
-  if $use_neutron and $db_create {
+  if $db_create {
 
     class { '::openstack::galera::client':
       custom_setup_class => hiera('mysql_custom_setup_class', 'galera'),

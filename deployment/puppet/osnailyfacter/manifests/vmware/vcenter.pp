@@ -5,7 +5,6 @@ class osnailyfacter::vmware::vcenter {
   $use_vcenter       = hiera('use_vcenter', false)
   $vcenter_hash      = hiera_hash('vcenter')
   $public_vip        = hiera('public_vip')
-  $use_neutron       = hiera('use_neutron', false)
   $ceilometer_hash   = hiera_hash('ceilometer', {})
   $nova_hash         = hiera_hash('nova', {})
   $public_ssl_hash   = hiera_hash('public_ssl')
@@ -18,7 +17,7 @@ class osnailyfacter::vmware::vcenter {
     class { '::vmware':
       vcenter_settings  => $vcenter_hash['computes'],
       vlan_interface    => $vcenter_hash['esxi_vlan_interface'],
-      use_quantum       => $use_neutron,
+      use_quantum       => true,
       vncproxy_protocol => $vncproxy_protocol,
       vncproxy_host     => $vncproxy_host,
       nova_hash         => $nova_hash,

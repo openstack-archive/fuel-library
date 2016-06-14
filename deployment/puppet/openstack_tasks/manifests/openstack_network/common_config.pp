@@ -2,106 +2,100 @@ class openstack_tasks::openstack_network::common_config {
 
   notice('MODULAR: openstack_network/common_config.pp')
 
-  $use_neutron = hiera('use_neutron', false)
+  $openstack_network_hash  = hiera_hash('openstack_network', { })
+  $neutron_config          = hiera_hash('neutron_config')
+  $neutron_advanced_config = hiera_hash('neutron_advanced_configuration', { })
+  $enable_qos              = pick($neutron_advanced_config['neutron_qos'], false)
 
-  if $use_neutron {
+  $core_plugin             = 'neutron.plugins.ml2.plugin.Ml2Plugin'
+  $default_service_plugins = [
+    'neutron.services.l3_router.l3_router_plugin.L3RouterPlugin',
+    'neutron.services.metering.metering_plugin.MeteringPlugin',
+  ]
 
-    $openstack_network_hash  = hiera_hash('openstack_network', { })
-    $neutron_config          = hiera_hash('neutron_config')
-    $neutron_advanced_config = hiera_hash('neutron_advanced_configuration', { })
-    $enable_qos              = pick($neutron_advanced_config['neutron_qos'], false)
+  if $enable_qos {
+    $service_plugins = concat($default_service_plugins, ['qos'])
+  } else {
+    $service_plugins = $default_service_plugins
+  }
 
-    $core_plugin             = 'neutron.plugins.ml2.plugin.Ml2Plugin'
-    $default_service_plugins = [
-      'neutron.services.l3_router.l3_router_plugin.L3RouterPlugin',
-      'neutron.services.metering.metering_plugin.MeteringPlugin',
-    ]
+  $neutron_config_l3   = pick($neutron_config['l3'], {})
+  $dhcp_lease_duration = pick($neutron_config_l3['dhcp_lease_duration'], '600')
 
-    if $enable_qos {
-      $service_plugins = concat($default_service_plugins, ['qos'])
-    } else {
-      $service_plugins = $default_service_plugins
-    }
+  $rabbit_hash      = hiera_hash('rabbit', {})
+  $ceilometer_hash  = hiera_hash('ceilometer', {})
+  $network_scheme   = hiera_hash('network_scheme', {})
 
-    $neutron_config_l3   = pick($neutron_config['l3'], {})
-    $dhcp_lease_duration = pick($neutron_config_l3['dhcp_lease_duration'], '600')
+  $verbose      = pick($openstack_network_hash['verbose'], hiera('verbose', true))
+  $debug        = pick($openstack_network_hash['debug'], hiera('debug', true))
+  # TODO(aschultz): LP#1499620 - neutron in UCA liberty fails to start with
+  # syslog enabled.
+  $use_syslog = $::os_package_type ? {
+    'ubuntu' => false,
+    default  => hiera('use_syslog', true)
+  }
+  $use_stderr   = hiera('use_stderr', false)
+  $log_facility = hiera('syslog_log_facility_neutron', 'LOG_LOCAL4')
 
-    $rabbit_hash      = hiera_hash('rabbit', {})
-    $ceilometer_hash  = hiera_hash('ceilometer', {})
-    $network_scheme   = hiera_hash('network_scheme', {})
+  prepare_network_config($network_scheme)
+  $bind_host = get_network_role_property('neutron/api', 'ipaddr')
 
-    $verbose      = pick($openstack_network_hash['verbose'], hiera('verbose', true))
-    $debug        = pick($openstack_network_hash['debug'], hiera('debug', true))
-    # TODO(aschultz): LP#1499620 - neutron in UCA liberty fails to start with
-    # syslog enabled.
-    $use_syslog = $::os_package_type ? {
-      'ubuntu' => false,
-      default  => hiera('use_syslog', true)
-    }
-    $use_stderr   = hiera('use_stderr', false)
-    $log_facility = hiera('syslog_log_facility_neutron', 'LOG_LOCAL4')
+  $base_mac       = $neutron_config['L2']['base_mac']
+  $amqp_hosts     = split(hiera('amqp_hosts', ''), ',')
+  $amqp_user      = $rabbit_hash['user']
+  $amqp_password  = $rabbit_hash['password']
 
-    prepare_network_config($network_scheme)
-    $bind_host = get_network_role_property('neutron/api', 'ipaddr')
+  # Force $::os_service_default for empty value to pass validation
+  # in puppet-oslo module
+  if ! hiera('kombu_compression', '') {
+    $kombu_compression = $::os_service_default
+  } else {
+    $kombu_compression = hiera('kombu_compression')
+  }
 
-    $base_mac       = $neutron_config['L2']['base_mac']
-    $amqp_hosts     = split(hiera('amqp_hosts', ''), ',')
-    $amqp_user      = $rabbit_hash['user']
-    $amqp_password  = $rabbit_hash['password']
+  $segmentation_type = try_get_value($neutron_config, 'L2/segmentation_type')
 
-    # Force $::os_service_default for empty value to pass validation
-    # in puppet-oslo module
-    if ! hiera('kombu_compression', '') {
-      $kombu_compression = $::os_service_default
-    } else {
-      $kombu_compression = hiera('kombu_compression')
-    }
+  $nets = $neutron_config['predefined_networks']
 
-    $segmentation_type = try_get_value($neutron_config, 'L2/segmentation_type')
+  if $segmentation_type == 'vlan' {
+    $net_role_property    = 'neutron/private'
+  } else {
+    $net_role_property = 'neutron/mesh'
+  }
+  $iface           = get_network_role_property($net_role_property, 'phys_dev')
+  $physical_net_mtu = pick(get_transformation_property('mtu', $iface[0]), '1500')
 
-    $nets = $neutron_config['predefined_networks']
+  $default_log_levels  = hiera_hash('default_log_levels')
 
-    if $segmentation_type == 'vlan' {
-      $net_role_property    = 'neutron/private'
-    } else {
-      $net_role_property = 'neutron/mesh'
-    }
-    $iface           = get_network_role_property($net_role_property, 'phys_dev')
-    $physical_net_mtu = pick(get_transformation_property('mtu', $iface[0]), '1500')
+  class { '::neutron' :
+    lock_path                          => '/var/lib/neutron/lock',
+    bind_host                          => $bind_host,
+    base_mac                           => $base_mac,
+    core_plugin                        => $core_plugin,
+    service_plugins                    => $service_plugins,
+    allow_overlapping_ips              => true,
+    mac_generation_retries             => '32',
+    dhcp_lease_duration                => $dhcp_lease_duration,
+    dhcp_agents_per_network            => '2',
+    report_interval                    => $neutron_config['neutron_report_interval'],
+    rabbit_user                        => $amqp_user,
+    rabbit_hosts                       => $amqp_hosts,
+    rabbit_password                    => $amqp_password,
+    rabbit_heartbeat_timeout_threshold => 0,
+    kombu_compression                  => $kombu_compression,
+    network_device_mtu                 => $physical_net_mtu,
+    advertise_mtu                      => true,
+    notification_driver                => $ceilometer_hash['notification_driver'],
+    manage_logging                     => false,
+  }
 
-    $default_log_levels  = hiera_hash('default_log_levels')
-
-    class { '::neutron' :
-      lock_path                          => '/var/lib/neutron/lock',
-      bind_host                          => $bind_host,
-      base_mac                           => $base_mac,
-      core_plugin                        => $core_plugin,
-      service_plugins                    => $service_plugins,
-      allow_overlapping_ips              => true,
-      mac_generation_retries             => '32',
-      dhcp_lease_duration                => $dhcp_lease_duration,
-      dhcp_agents_per_network            => '2',
-      report_interval                    => $neutron_config['neutron_report_interval'],
-      rabbit_user                        => $amqp_user,
-      rabbit_hosts                       => $amqp_hosts,
-      rabbit_password                    => $amqp_password,
-      rabbit_heartbeat_timeout_threshold => 0,
-      kombu_compression                  => $kombu_compression,
-      network_device_mtu                 => $physical_net_mtu,
-      advertise_mtu                      => true,
-      notification_driver                => $ceilometer_hash['notification_driver'],
-      manage_logging                     => false,
-    }
-
-    class { '::neutron::logging':
-      verbose            => $verbose,
-      debug              => $debug,
-      use_syslog         => $use_syslog,
-      use_stderr         => $use_stderr,
-      log_facility       => $log_facility,
-      default_log_levels => $default_log_levels,
-    }
-
+  class { '::neutron::logging':
+    verbose            => $verbose,
+    debug              => $debug,
+    use_syslog         => $use_syslog,
+    use_stderr         => $use_stderr,
+    log_facility       => $log_facility,
+    default_log_levels => $default_log_levels,
   }
 
   ### SYSCTL ###

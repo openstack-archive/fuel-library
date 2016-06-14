@@ -2,7 +2,6 @@ class openstack_tasks::openstack_network::agents::sriov {
 
   notice('MODULAR: openstack_network/agents/sriov.pp')
 
-  $use_neutron             = hiera('use_neutron', false)
   $network_scheme          = hiera_hash('network_scheme', {})
   $neutron_config          = hiera_hash('neutron_config')
   $neutron_advanced_config = hiera_hash('neutron_advanced_configuration', {})
@@ -11,7 +10,7 @@ class openstack_tasks::openstack_network::agents::sriov {
   prepare_network_config($network_scheme)
   $pci_passthrough_whitelist = get_nic_passthrough_whitelist('sriov')
 
-  if $use_neutron and $pci_passthrough_whitelist {
+  if $pci_passthrough_whitelist {
     $physical_device_mappings = nic_whitelist_to_mappings($pci_passthrough_whitelist)
 
     class { '::neutron::agents::ml2::sriov':

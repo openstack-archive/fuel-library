@@ -4,7 +4,6 @@ class openstack_tasks::roles::controller {
 
   # Pulling hiera
   $primary_controller             = hiera('primary_controller')
-  $use_neutron                    = hiera('use_neutron', false)
 
   if $primary_controller {
     package { 'cirros-testvm' :
