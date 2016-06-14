@@ -86,6 +86,45 @@ describe 'l23network::l2::port', :type => :define do
     end
   end
 
+  context 'Native linux bridge subinterface' do
+    let(:params) do
+      {
+        :name => 'br-bm.102',
+      }
+    end
+
+    before(:each) do
+      puppet_debug_override()
+    end
+
+    it do
+      should compile.with_all_deps
+    end
+
+    it do
+      should contain_l23_stored_config('br-bm.102').with({
+        'ensure'    => 'present',
+        'if_type'   => nil,
+        'use_ovs'   => nil,
+        'method'    => nil,
+        'ipaddr'    => nil,
+        'gateway'   => nil,
+        'vlan_id'   => '102',
+        'vlan_dev'  => 'br-bm',
+        'vlan_mode' => 'eth'
+      })
+    end
+
+    it do
+      should contain_l2_port('br-bm.102').with({
+        'ensure'    => 'present',
+        'vlan_id'   => '102',
+        'vlan_dev'  => 'br-bm',
+        'vlan_mode' => 'eth'
+      }).that_requires('L23_stored_config[br-bm.102]')
+    end
+  end
+
   context 'Alternative VLAN definition' do
     let(:params) do
       {
