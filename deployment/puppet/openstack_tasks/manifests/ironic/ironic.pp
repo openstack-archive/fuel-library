@@ -65,21 +65,31 @@ class openstack_tasks::ironic::ironic {
 
   $baremetal_vip = $network_metadata['vips']['baremetal']['ipaddr']
 
+  $ironic_settings_hash         = hiera_hash('ironic_settings', {})
+  $ironic_provision_network = try_get_value($ironic_settings_hash, 'ironic_provision_network', false)
+
+  if $ironic_provision_network {
+      $enabled_network_interfaces = ['flat','none','neutron']
+  } else {
+     $enabled_network_interfaces = ['flat','none']
+  }
+
   class { '::ironic':
-    verbose              => $verbose,
-    debug                => $debug,
-    rabbit_hosts         => $rabbit_hosts,
-    rabbit_port          => $amqp_port,
-    rabbit_userid        => $rabbit_hash['user'],
-    rabbit_password      => $rabbit_hash['password'],
-    amqp_durable_queues  => $amqp_durable_queues,
-    control_exchange     => 'ironic',
-    use_syslog           => $use_syslog,
-    log_facility         => $syslog_log_facility_ironic,
-    database_connection  => $db_connection,
-    database_max_retries => '-1',
-    glance_api_servers   => $glance_api_servers,
-    sync_db              => $primary_controller,
+    verbose                    => $verbose,
+    debug                      => $debug,
+    rabbit_hosts               => $rabbit_hosts,
+    rabbit_port                => $amqp_port,
+    rabbit_userid              => $rabbit_hash['user'],
+    rabbit_password            => $rabbit_hash['password'],
+    amqp_durable_queues        => $amqp_durable_queues,
+    control_exchange           => 'ironic',
+    use_syslog                 => $use_syslog,
+    log_facility               => $syslog_log_facility_ironic,
+    database_connection        => $db_connection,
+    database_max_retries       => '-1',
+    glance_api_servers         => $glance_api_servers,
+    sync_db                    => $primary_controller,
+    enabled_network_interfaces => $enabled_network_interfaces
   }
 
   class { '::ironic::client': }

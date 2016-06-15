@@ -62,19 +62,29 @@ class openstack_tasks::roles::ironic_conductor {
     ensure => 'present',
   }
 
+  $ironic_settings_hash         = hiera_hash('ironic_settings', {})
+  $ironic_provision_network = try_get_value($ironic_settings_hash, 'ironic_provision_network', false)
+
+  if $ironic_provision_network {
+      $enabled_network_interfaces = ['flat','none','neutron']
+  } else {
+     $enabled_network_interfaces = ['flat','none']
+  }
+
   class { '::ironic':
-    debug                => $debug,
-    enabled_drivers      => ['fuel_ssh', 'fuel_ipmitool', 'fake', 'fuel_libvirt'],
-    rabbit_hosts         => $rabbit_hosts,
-    rabbit_userid        => $rabbit_hash['user'],
-    rabbit_password      => $rabbit_hash['password'],
-    amqp_durable_queues  => $amqp_durable_queues,
-    control_exchange     => 'ironic',
-    use_syslog           => $use_syslog,
-    log_facility         => $syslog_log_facility_ironic,
-    database_connection  => $db_connection,
-    database_max_retries => '-1',
-    glance_api_servers   => $glance_api_servers,
+    debug                      => $debug,
+    enabled_drivers            => ['fuel_ssh', 'fuel_ipmitool', 'fake', 'fuel_libvirt'],
+    rabbit_hosts               => $rabbit_hosts,
+    rabbit_userid              => $rabbit_hash['user'],
+    rabbit_password            => $rabbit_hash['password'],
+    amqp_durable_queues        => $amqp_durable_queues,
+    control_exchange           => 'ironic',
+    use_syslog                 => $use_syslog,
+    log_facility               => $syslog_log_facility_ironic,
+    database_connection        => $db_connection,
+    database_max_retries       => '-1',
+    glance_api_servers         => $glance_api_servers,
+    enabled_network_interfaces => $enabled_network_interfaces
   }
 
   class { '::ironic::client': }
