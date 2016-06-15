@@ -24,7 +24,7 @@ describe manifest do
     let(:auth_tenant) { Noop.hiera_structure 'access/tenant' }
     let(:service_endpoint) { Noop.hiera('service_endpoint') }
     let(:public_vip) { Noop.hiera('public_vip') }
-    let(:internal_net) { Noop.hiera_structure('neutron_config/default_private_net', 'admin_internal_net') }
+    let(:floating_net) { Noop.hiera_structure('neutron_config/default_floating_net', 'admin_floating_net') }
 
     let(:network_scheme) do
       Noop.hiera_hash 'network_scheme'
@@ -202,16 +202,10 @@ describe manifest do
       enable = (Noop.hiera_structure('sahara/enabled') and Noop.hiera('role') == 'primary-controller')
       context 'on primary-controller', :if => enable do
 
-        it 'should declare sahara_templates class correctly' do
-          should contain_class('sahara_templates::create_templates').with(
-                     'use_neutron' => use_neutron,
-                     'auth_uri' => "#{public_protocol}://#{public_address}:5000/v2.0/",
-                     'auth_password' => auth_password,
-                     'auth_user' => auth_user,
-                     'auth_tenant' => auth_tenant,
-                     'internal_net' => internal_net,
-                 )
-        end
+        # TODO (degorenko) temporarily disable untill https://review.openstack.org/307796 merged
+        #it 'should declare sahara_templates class correctly' do
+        #  should contain_class('openstack_tasks::sahara::create_templates').with('floating_net' => floating_net)
+        #end
 
         it 'should have explicit ordering between LB classes and particular actions' do
           expect(graph).to ensure_transitive_dependency("Haproxy_backend_status[keystone-public]",
