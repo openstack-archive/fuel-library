@@ -444,6 +444,7 @@ check_if_galera_pc() {
     local NODES
     local MASTER
     local timeout=$(get_master_timeout)
+    local MYGTID
     local GTID
     local pid
 
@@ -453,10 +454,18 @@ check_if_galera_pc() {
         NODES=$(nodes_in_cluster_online)
         MASTER=$(get_master "$NODES")
         GTID=$(get_node_gtid $MASTER)
+        MYGTID=$(get_node_gtid $HOSTNAME)
         if [ "$MASTER" = "$HOSTNAME" ]; then
             ocf_log info "${LH} I\'m Primary Component. Join me! My GTID: ${GTID}"
             echo "${GTID}"
             return 1
+        fi
+
+        ocf_log info "${LH} My GTID: (${MYGTID}) - GTID: (${GTID})"
+        ocf_log info "${LH} My GTID: (${MYGTID%:*}) - GTID: (${GTID%:*})"
+        if [ "${GTID}" = "${MYGTID}" ]; then
+            ocf_log info "${LH} My GTID (${MYGTID%:*}) matches master GTID (${GTID%:*}), I'm cool."
+            return 0
         fi
 
         if check_if_reelection_needed; then
