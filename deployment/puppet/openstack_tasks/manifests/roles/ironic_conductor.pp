@@ -36,6 +36,10 @@ class openstack_tasks::roles::ironic_conductor {
   $db_user                    = pick($ironic_hash['db_user'], 'ironic')
   $db_name                    = pick($ironic_hash['db_name'], 'ironic')
   $db_password                = pick($ironic_hash['db_password'], 'ironic')
+
+  $swift_hash                = hiera_hash('swift', {})
+  $swift_user                = pick($swift_hash['auth_name'],'swift')
+
   # LP#1526938 - python-mysqldb supports this, python-pymysql does not
   if $::os_package_type == 'debian' {
     $extra_params = { 'charset' => 'utf8', 'read_timeout' => 60 }
@@ -98,7 +102,8 @@ class openstack_tasks::roles::ironic_conductor {
 
   class { '::ironic::conductor':
     cleaning_network_uuid     => $provision_network_uuid,
-    provisioning_network_uuid => $provision_network_uuid
+    provisioning_network_uuid => $provision_network_uuid,
+    swift_account             => openstack_resource_id_getter("openstack user show ${swift_user}")
   }
 
 
