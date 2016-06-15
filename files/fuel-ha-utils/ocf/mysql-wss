@@ -429,7 +429,10 @@ get_master() {
     # Cut the gtids off the stored GTID:SEQNO pairs, then
     # filter the master, which is one who has the latest SEQNO from the possible masters
     for NODE in $POSSIBLE_MASTERS; do
-        [ "${LATEST_SEQNO}" = "${TMP[$NODE]#*:}" ] && MASTER=$NODE
+        if [ "${LATEST_SEQNO}" = "${TMP[$NODE]#*:}" ]; then
+            MASTER=$NODE
+            break
+        fi
     done
     ocf_log info "${LH} Choosed master: ${MASTER} with GTID: ${TMP[$MASTER]}"
     echo "$MASTER"
