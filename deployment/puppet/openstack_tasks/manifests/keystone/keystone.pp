@@ -220,6 +220,11 @@ class openstack_tasks::keystone::keystone {
     Class['::osnailyfacter::wait_for_keystone_backends'] -> Keystone_role["$default_role"]
     Class['::osnailyfacter::wait_for_keystone_backends'] -> Class['::keystone::roles::admin']
 
+    # FIXME(mattymo): Move retries to puppet-keystone
+    Exec<| tag == 'keystone-exec' |> {
+      tries => '10',
+      try_sleep => '5',
+    }
   }
 
   osnailyfacter::credentials_file { '/root/openrc':
