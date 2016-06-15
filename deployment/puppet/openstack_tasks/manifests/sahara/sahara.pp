@@ -4,7 +4,6 @@ class openstack_tasks::sahara::sahara {
 
   prepare_network_config(hiera_hash('network_scheme', {}))
 
-  $access_admin               = hiera_hash('access', {})
   $sahara_hash                = hiera_hash('sahara', {})
   $rabbit_hash                = hiera_hash('rabbit', {})
   $public_ssl_hash            = hiera_hash('public_ssl')
@@ -174,21 +173,17 @@ class openstack_tasks::sahara::sahara {
       lb_defaults => $lb_defaults
     }
 
-    if $primary_controller {
-
-      class { '::osnailyfacter::wait_for_keystone_backends':} ->
-      class { '::sahara_templates::create_templates' :
-        use_neutron   => true,
-        auth_user     => $access_admin['user'],
-        auth_password => $access_admin['password'],
-        auth_tenant   => $access_admin['tenant'],
-        auth_uri      => "${public_protocol}://${public_address}:5000/v2.0/",
-        internal_net  => try_get_value($neutron_config, 'default_private_net', 'admin_internal_net'),
-      }
-
-      Class['::osnailyfacter::wait_for_keystone_backends'] -> ::Osnailyfacter::Wait_for_backend['sahara']
-      ::Osnailyfacter::Wait_for_backend['sahara'] -> Class['::sahara_templates::create_templates']
-    }
+# TODO (degorenko) temporarily disable untill https://review.openstack.org/307796 merged
+#    if $primary_controller {
+#
+#      class { '::osnailyfacter::wait_for_keystone_backends':} ->
+#      class { '::openstack_tasks::sahara::create_templates' :
+#        floating_net => try_get_value($neutron_config, 'default_floating_net', 'admin_floating_net'),
+#      }
+#
+#      Class['::osnailyfacter::wait_for_keystone_backends'] -> ::Osnailyfacter::Wait_for_backend['sahara']
+#      ::Osnailyfacter::Wait_for_backend['sahara'] -> Class['::openstack_tasks::sahara::create_templates']
+#    }
 
     Firewall[$firewall_rule] -> Class['::sahara::service::api']
     Service['sahara-api'] -> ::Osnailyfacter::Wait_for_backend['sahara']
