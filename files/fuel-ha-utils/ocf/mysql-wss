@@ -444,6 +444,7 @@ check_if_galera_pc() {
     local NODES
     local MASTER
     local timeout=$(get_master_timeout)
+    local MYGTID
     local GTID
     local pid
 
@@ -453,6 +454,7 @@ check_if_galera_pc() {
         NODES=$(nodes_in_cluster_online)
         MASTER=$(get_master "$NODES")
         GTID=$(get_node_gtid $MASTER)
+        MYGTID=$(get_node_gtid $HOSTNAME)
         if [ "$MASTER" = "$HOSTNAME" ]; then
             ocf_log info "${LH} I\'m Primary Component. Join me! My GTID: ${GTID}"
             echo "${GTID}"
@@ -461,6 +463,10 @@ check_if_galera_pc() {
 
         if check_if_reelection_needed; then
             ocf_log info "${LH} My neighbour is Primary Component with GTID: ${GTID}"
+            if [ "${GTID}" = "${MYGTID}"]; then
+                ocf_log info "${LH} My GTID (${MYGTID}) matches latest GTID (${GTID}), I'm cool."
+                return 0
+            fi
             pid=$(check_if_new_cluster)
             if [ "${pid}" ]; then
                 ocf_log err "${LH} But I'm running a new cluster, PID:${pid}, this is a split-brain!"
