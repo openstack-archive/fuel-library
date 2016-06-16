@@ -67,7 +67,7 @@ Puppet::Type.type(:l2_port).provide(:lnx, :parent => Puppet::Provider::Lnx_base)
       begin
         pkill('-KILL',  '-f', "dhclient.*#{@resource[:interface]}$")
       rescue
-        notice("'#{@resource[:interface]}' does not have any running dhclient processes")
+        debug("'#{@resource[:interface]}' does not have any running dhclient processes")
       end
       #
       # FLUSH changed properties
