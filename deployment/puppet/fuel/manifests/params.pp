@@ -1,5 +1,17 @@
 class fuel::params {
 
+  case $::osfamily {
+    'Debian': {
+      $keystone_service_name = 'keystone'
+    }
+    'RedHat': {
+      $keystone_service_name = 'openstack-keystone'
+    }
+    default: {
+      fail("Unsupported osfamily ${::osfamily}")
+    }
+  }
+
   $db_engine                = 'postgresql'
   $db_host                  = '127.0.0.1'
   $db_port                  = '5432'
