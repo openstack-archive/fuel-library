@@ -83,7 +83,7 @@ class openstack_tasks::aodh::aodh {
   $internal_auth_protocol = get_ssl_property($ssl_hash, {}, 'keystone', 'internal', 'protocol', 'http')
   $internal_auth_address  = get_ssl_property($ssl_hash, {}, 'keystone', 'internal', 'hostname', [$management_vip])
   $keystone_auth_uri      = "${internal_auth_protocol}://${internal_auth_address}:5000/v2.0"
-  $keystone_identity_uri  = "${internal_auth_protocol}://${internal_auth_address}:35357/"
+  $keystone_auth_url      = "${internal_auth_protocol}://${internal_auth_address}:35357/"
 
   # backwards compatibility with previous ceilometer configuration around alarm
   # history ttl
@@ -147,7 +147,9 @@ class openstack_tasks::aodh::aodh {
     keystone_password     => $aodh_user_password,
     keystone_tenant       => $tenant,
     keystone_auth_uri     => $keystone_auth_uri,
-    keystone_identity_uri => $keystone_identity_uri,
+    # TODO (degorenko) uncomment after change https://review.openstack.org/#/c/328806
+    # will be merged
+    #keystone_auth_url     => $keystone_auth_url,
     host                  => $aodh_api_bind_host,
     port                  => $aodh_api_bind_port,
   }
