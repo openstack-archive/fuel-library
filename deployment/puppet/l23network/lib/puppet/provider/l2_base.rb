@@ -353,10 +353,7 @@ class Puppet::Provider::L2_base < Puppet::Provider::InterfaceToolset
   end
   # ---------------------------------------------------------------------------
 
-  def self.get_bridge_list
-    # search all (LXN and OVS) bridges on the host, and return hash with mapping
-    # bridge_name => { bridge options }
-    #
+  def self.get_ovs_bridge_list
     bridges = {}
     # obtain OVS bridges list
     re_c = /^\s*([\w\-]+)/
@@ -367,26 +364,41 @@ class Puppet::Provider::L2_base < Puppet::Provider::InterfaceToolset
       listbr.select{|l| l.match(re_c)}.collect{|a| $1 if a.match(re_c)}.each do |br_name|
         br_name.strip!
         bridges[br_name] = {
+          :members => [],
           :br_type => :ovs
         }
       end
     end
-    # obtain LNX bridges list
-    re_c = /([\w\-]+)\s+\d+/
-    begin
-      # todo(sv): using port_list instead fork subprocess
-      self.brctl(['show']).select{|l| l.match(re_c)}.collect{|a| $1 if a.match(re_c)}.each do |br_name|
-        br_name.strip!
+    #debug("OVS bridges: #{bridges.to_yaml.gsub('!ruby/sym ',':')}")
+    return bridges
+  end
+
+  def self.get_lnx_bridge_list
+    bridges = {}
+    interfaces = Dir.glob('/sys/class/net/*').select{ |f| File.symlink? f}
+    interfaces.each do |if_dir|
+      next if ! (File.directory?("#{if_dir}/bridge") and File.directory?("#{if_dir}/brif"))
+        # this interface is a bridge, get bridge properties
+        br_name = if_dir.split('/')[-1]
         bridges[br_name] = {
-          :stp     => (File.open("/sys/class/net/#{br_name}/bridge/stp_state").read.strip.to_i == 1),
+          :members         => Dir.glob("/sys/class/net/#{br_name}/brif/*").map{|f| f.split('/')[-1]}.sort,
+          :stp             => (File.open("/sys/class/net/#{br_name}/bridge/stp_state").read.strip.to_i == 1),
           :external_ids    => :absent,
           :vendor_specific => {},
-          :br_type => :lnx
+          :br_type         => :lnx
         }
-      end
-    rescue
-      debug("No LNX bridges found, because error while 'brctl show' execution")
     end
+    #debug("LNX bridges: #{bridges.to_yaml.gsub('!ruby/sym ',':')}")
+    return bridges
+  end
+
+  def self.get_bridge_list
+    # search all (LXN and OVS) bridges on the host, and return hash with mapping
+    # bridge_name => { bridge options }
+    #
+    bridges = {}
+    bridges.merge! self.get_ovs_bridge_list
+    bridges.merge! self.get_lnx_bridge_list
     return bridges
   end
 
@@ -427,37 +439,19 @@ class Puppet::Provider::L2_base < Puppet::Provider::InterfaceToolset
     # i.e {
     #       'eth0' => { :bridge => 'br0',    :br_type => :lnx },
     #     }
-    # This function returns all visible in default namespace ports
+    # This method returns all visible in default namespace ports
     # (lnx and ovs (with type internal)) included to the lnx bridge
-    #
-    begin
-      brctl_show = self.brctl(['show']).split(/\n+/).select{|l| l.match(/^[\w\-]+\s+\d+/) or l.match(/^\s+[\w\.\-]+/)}
-    rescue
-      debug("No LNX bridges found, because error while 'brctl show' execution")
-      return {}
-    end
+
     port_mappings = {}
-    br_name = nil
-    brctl_show.each do |line|
-      line.rstrip!
-      case line
-      when /^([\w\-]+)\s+[\d\.abcdef]+\s+(yes|no)\s+([\w\-\.]+$)/i
-        br_name = $1
-        port_name = $3
-      when /^\s+([\w\.\-]+)$/
-        #br_name using from previous turn
-        port_name = $1
-      else
-        next
-      end
-      if br_name
-        port_mappings[port_name] = {
+    self.get_lnx_bridge_list.each do |br_name, br_props|
+      br_props[:members].each do |member_name|
+        port_mappings[member_name] = {
           :bridge  => br_name,
           :br_type => :lnx
         }
       end
     end
-    debug("LNX ports to bridges mapping: #{port_mappings.to_yaml.gsub('!ruby/sym ',':')}")
+    #debug("LNX ports to bridges mapping: #{port_mappings.to_yaml.gsub('!ruby/sym ',':')}")
     return port_mappings
   end
 
