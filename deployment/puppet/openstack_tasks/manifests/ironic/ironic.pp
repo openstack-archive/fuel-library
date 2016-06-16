@@ -11,7 +11,6 @@ class openstack_tasks::ironic::ironic {
 
   $database_vip               = hiera('database_vip')
   $keystone_endpoint          = hiera('service_endpoint')
-  $neutron_endpoint           = hiera('neutron_endpoint', $management_vip)
   $glance_api_servers         = hiera('glance_api_servers', "${management_vip}:9292")
   $debug                      = hiera('debug', false)
   $verbose                    = hiera('verbose', true)
@@ -60,6 +59,11 @@ class openstack_tasks::ironic::ironic {
   $admin_identity_uri         = "${admin_identity_protocol}://${admin_identity_address}:35357"
   $public_protocol            = get_ssl_property($ssl_hash, $public_ssl_hash, 'ironic', 'public', 'protocol', 'http')
   $public_address             = get_ssl_property($ssl_hash, $public_ssl_hash, 'ironic', 'public', 'hostname', $public_vip)
+  $neutron_endpoint_default   = hiera('neutron_endpoint', $management_vip)
+  $neutron_protocol           = get_ssl_property($ssl_hash, {}, 'neutron', 'internal', 'protocol', 'http')
+  $neutron_endpoint           = get_ssl_property($ssl_hash, {}, 'neutron', 'internal', 'hostname', $neutron_endpoint_default)
+
+
 
   prepare_network_config(hiera_hash('network_scheme', {}))
 
@@ -91,7 +95,7 @@ class openstack_tasks::ironic::ironic {
     admin_tenant_name => $ironic_tenant,
     admin_user        => $ironic_user,
     admin_password    => $ironic_user_password,
-    neutron_url       => "http://${neutron_endpoint}:9696",
+    neutron_url       => "${neutron_protocol}://${neutron_endpoint}:9696",
     public_endpoint   => "${public_protocol}://${public_address}:6385",
   }
 

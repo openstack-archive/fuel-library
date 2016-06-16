@@ -5,6 +5,7 @@ class openstack_tasks::ironic::keystone {
   $ironic_hash                = hiera_hash('ironic', {})
   $public_vip                 = hiera('public_vip')
   $management_vip             = hiera('management_vip')
+  $ssl_hash                   = hiera_hash('use_ssl', {})
   $public_ssl_hash            = hiera_hash('public_ssl')
   $ironic_tenant              = pick($ironic_hash['tenant'],'services')
   $ironic_user                = pick($ironic_hash['auth_name'],'ironic')
@@ -16,20 +17,20 @@ class openstack_tasks::ironic::keystone {
 
   Class['::osnailyfacter::wait_for_keystone_backends'] -> Class['::ironic::keystone::auth']
 
-  $public_address = $public_ssl_hash['services'] ? {
-    true    => $public_ssl_hash['hostname'],
-    default => $public_vip,
-  }
-  $public_protocol = $public_ssl_hash['services'] ? {
-    true    => 'https',
-    default => 'http',
-  }
-
   $region                     = hiera('region', 'RegionOne')
   $tenant                     = pick($ironic_hash['tenant'], 'services')
-  $public_url                 = "${public_protocol}://${public_address}:6385"
-  $admin_url                  = "http://${management_vip}:6385"
-  $internal_url               = "http://${management_vip}:6385"
+
+  $public_protocol     = get_ssl_property($ssl_hash, $public_ssl_hash, 'ironic', 'public', 'protocol', 'http')
+  $public_address      = get_ssl_property($ssl_hash, $public_ssl_hash, 'ironic', 'public', 'hostname', [$public_vip])
+  $internal_protocol   = get_ssl_property($ssl_hash, {}, 'ironic', 'internal', 'protocol', 'http')
+  $internal_address    = get_ssl_property($ssl_hash, {}, 'ironic', 'internal', 'hostname', [$management_vip])
+  $admin_protocol      = get_ssl_property($ssl_hash, {}, 'ironic', 'admin', 'protocol', 'http')
+  $admin_address       = get_ssl_property($ssl_hash, {}, 'ironic', 'admin', 'hostname', [$management_vip])
+
+  $public_url          = "${public_protocol}://${public_address}:6385"
+  $admin_url           = "${admin_protocol}://${admin_address}:6385"
+  $internal_url        = "${internal_protocol}://${internal_address}:6385"
+
 
   class { '::osnailyfacter::wait_for_keystone_backends':}
   class { '::ironic::keystone::auth':
