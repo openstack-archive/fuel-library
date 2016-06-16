@@ -114,28 +114,17 @@ describe 'openstack::logging' do
     end
   end
 
-  context 'on Debian platforms' do
-    let :facts do
-      { :osfamily => 'Debian',
-        :operatingsystem => 'Debian',
-        :hostname => 'hostname.example.com',
-        :rsyslog_version => '7.4.4',
-      }
+  on_supported_os(supported_os: supported_os).each do |os, facts|
+    context "on #{os}" do
+      let(:facts) do
+        facts.merge(
+            {
+              rsyslog_version: '7.4.4',
+            }
+        )
+      end
+      it_configures 'logging configuration'
     end
-
-    it_configures 'logging configuration'
-  end
-
-  context 'on RedHat platforms' do
-    let :facts do
-      { :osfamily => 'RedHat',
-        :operatingsystem => 'RedHat',
-        :hostname => 'hostname.example.com',
-        :rsyslog_version => '5.8.10',
-      }
-    end
-
-    it_configures 'logging configuration'
   end
 
 end
