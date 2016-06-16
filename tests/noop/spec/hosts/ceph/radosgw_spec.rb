@@ -74,7 +74,9 @@ describe manifest do
 
       it 'should configure radosgw keystone' do
         should contain_ceph__rgw__keystone(gateway_name).with(
-          'rgw_keystone_url' => admin_identity_url,
+          'rgw_keystone_url'         => admin_identity_url,
+          'rgw_s3_auth_use_keystone' => false,
+          'use_pki'                  => false,
         )
       end
 
