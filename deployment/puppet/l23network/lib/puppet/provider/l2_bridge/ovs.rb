@@ -96,6 +96,13 @@ Puppet::Type.type(:l2_bridge).provide(:ovs, :parent => Puppet::Provider::Ovs_bas
     @property_flush[:stp] = (val.to_s.downcase.to_sym==:true)
   end
 
+  def members
+    @property_hash[:members] || :absent
+  end
+  def members=(val)
+    @property_flush[:members] # do nothing
+  end
+
   #-----------------------------------------------------------------
 
   def _split(string, splitter=",")

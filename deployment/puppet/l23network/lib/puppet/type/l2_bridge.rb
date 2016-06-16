@@ -87,6 +87,17 @@ Puppet::Type.newtype(:l2_bridge) do
       defaultto :false
     end
 
+    newproperty(:members, :array_matching => :all) do
+      desc "Internal read-only property"
+      validate do |value|
+        raise ArgumentError, "You shouldn't change 'members' -- it's a internal RO property! Use 'bridge' for ports, bond, etc... resources."
+      end
+
+      def insync?(value)
+        true
+      end
+    end
+
     newproperty(:vendor_specific) do
       desc "Hash of vendor specific properties"
       #defaultto {}  # no default value should be!!!
