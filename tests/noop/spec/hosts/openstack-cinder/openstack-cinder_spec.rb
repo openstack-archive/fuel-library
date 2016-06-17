@@ -32,6 +32,7 @@ describe manifest do
   volume_backend_name = Noop.hiera_structure 'storage/volume_backend_names'
   kombu_compression = Noop.hiera 'kombu_compression', ''
   ssl_hash =  Noop.hiera_hash 'use_ssl', {}
+  rabbit_hash = Noop.hiera_structure 'rabbit', {}
 
   management_vip = Noop.hiera 'management_vip'
   database_vip = Noop.hiera('database_vip')
@@ -61,6 +62,14 @@ describe manifest do
   let(:glance_protocol) { Noop.puppet_function 'get_ssl_property',ssl_hash,{},'glance','internal','protocol','http' }
   let(:glance_endpoint) { Noop.puppet_function 'get_ssl_property',ssl_hash,{},'glance','internal','hostname', glance_endpoint_default}
   let(:glance_api_servers) { Noop.hiera 'glance_api_servers', "#{glance_protocol}://#{glance_endpoint}:9292" }
+
+  rabbit_heartbeat_timeout_threshold = Noop.puppet_function 'pick', cinder_hash['rabbit_heartbeat_timeout_threshold'], rabbit_hash['heartbeat_timeout_treshold'], 60
+  rabbit_heartbeat_rate = Noop.puppet_function 'pick', cinder_hash['rabbit_heartbeat_rate'], rabbit_hash['heartbeat_rate'], 2
+
+  it 'should configure RabbitMQ Heartbeat parameters' do
+    should contain_cinder_config('oslo_messaging_rabbit/heartbeat_timeout_threshold').with_value(rabbit_heartbeat_timeout_threshold)
+    should contain_cinder_config('oslo_messaging_rabbit/heartbeat_rate').with_value(rabbit_heartbeat_rate)
+  end
 
   it 'should configure default_log_levels' do
     should contain_cinder_config('DEFAULT/default_log_levels').with_value(default_log_levels.sort.join(','))

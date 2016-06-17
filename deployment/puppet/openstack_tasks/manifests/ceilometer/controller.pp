@@ -61,6 +61,9 @@ class openstack_tasks::ceilometer::controller {
   $mongo_hash = hiera_hash('mongo', $default_mongo_hash)
   $db_type    = 'mongodb'
 
+  $rabbit_heartbeat_timeout_threshold = pick($ceilometer_hash['rabbit_heartbeat_timeout_threshold'], $rabbit_hash['heartbeat_timeout_threshold'], 60)
+  $rabbit_heartbeat_rate              = pick($ceilometer_hash['rabbit_heartbeat_rate'], $rabbit_hash['rabbit_heartbeat_rate'], 2)
+
   $override_configuration = hiera_hash('configuration', {})
 
   # override ceilometer.conf options
@@ -135,19 +138,21 @@ class openstack_tasks::ceilometer::controller {
 
   if ($ceilometer_enabled) {
     class { '::ceilometer':
-      http_timeout               => $ceilometer_hash['http_timeout'],
-      event_time_to_live         => $ceilometer_hash['event_time_to_live'],
-      metering_time_to_live      => $ceilometer_hash['metering_time_to_live'],
-      alarm_history_time_to_live => $ceilometer_hash['alarm_history_time_to_live'],
-      rabbit_hosts               => split(hiera('amqp_hosts',''), ','),
-      rabbit_userid              => $amqp_user,
-      rabbit_password            => $amqp_password,
-      metering_secret            => $ceilometer_metering_secret,
-      verbose                    => $verbose,
-      debug                      => $debug,
-      use_syslog                 => $use_syslog,
-      use_stderr                 => $use_stderr,
-      log_facility               => $syslog_log_facility,
+      http_timeout                       => $ceilometer_hash['http_timeout'],
+      event_time_to_live                 => $ceilometer_hash['event_time_to_live'],
+      metering_time_to_live              => $ceilometer_hash['metering_time_to_live'],
+      alarm_history_time_to_live         => $ceilometer_hash['alarm_history_time_to_live'],
+      rabbit_hosts                       => split(hiera('amqp_hosts',''), ','),
+      rabbit_userid                      => $amqp_user,
+      rabbit_password                    => $amqp_password,
+      metering_secret                    => $ceilometer_metering_secret,
+      verbose                            => $verbose,
+      debug                              => $debug,
+      use_syslog                         => $use_syslog,
+      use_stderr                         => $use_stderr,
+      log_facility                       => $syslog_log_facility,
+      rabbit_heartbeat_timeout_threshold => $rabbit_heartbeat_timeout_threshold,
+      rabbit_heartbeat_rate              => $rabbit_heartbeat_rate,
     }
 
     # Configure authentication for agents

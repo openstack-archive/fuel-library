@@ -18,6 +18,7 @@ describe manifest do
     ssl_hash               = Noop.hiera_structure('use_ssl', {})
     internal_auth_protocol = Noop.puppet_function 'get_ssl_property',ssl_hash,{},'keystone','internal','protocol','http'
     internal_auth_endpoint = Noop.puppet_function 'get_ssl_property',ssl_hash,{},'keystone','internal','hostname',[service_endpoint]
+    rabbit_hash            = Noop.hiera_structure 'rabbit', {}
 
     admin_auth_protocol    = Noop.puppet_function 'get_ssl_property',ssl_hash,{},'keystone','admin','protocol','http'
     admin_auth_endpoint    = Noop.puppet_function 'get_ssl_property',ssl_hash,{},'keystone','admin','hostname',[service_endpoint]
@@ -26,7 +27,15 @@ describe manifest do
     keystone_auth_uri      = "#{internal_auth_protocol}://#{internal_auth_endpoint}:5000/"
     kombu_compression      = Noop.hiera 'kombu_compression', ''
 
+    rabbit_heartbeat_timeout_threshold = Noop.puppet_function 'pick', ceilometer_hash['rabbit_heartbeat_timeout_threshold'], rabbit_hash['heartbeat_timeout_treshold'], 60
+    rabbit_heartbeat_rate = Noop.puppet_function 'pick', ceilometer_hash['rabbit_heartbeat_rate'], rabbit_hash['heartbeat_rate'], 2
+
     if ceilometer_hash['enabled']
+      it 'should configure RabbitMQ Heartbeat parameters' do
+        should contain_ceilometer_config('oslo_messaging_rabbit/heartbeat_timeout_threshold').with_value(rabbit_heartbeat_timeout_threshold)
+        should contain_ceilometer_config('oslo_messaging_rabbit/heartbeat_rate').with_value(rabbit_heartbeat_rate)
+      end
+
       it 'should configure interface (ex. OS ENDPOINT TYPE) for ceilometer' do
         should contain_ceilometer_config('service_credentials/interface').with(:value => 'internalURL')
       end
