@@ -128,6 +128,8 @@ class openstack_tasks::openstack_network::server_config {
       Class['::neutron::plugins::ml2'] -> Augeas['/etc/default/neutron-server:ml2_sriov_config']
     }
 
+    $_path_mtu = try_get_value($neutron_config, 'L2/path_mtu', undef)
+
     if $segmentation_type == 'vlan' {
       $net_role_property    = 'neutron/private'
       $iface                = get_network_role_property($net_role_property, 'phys_dev')
@@ -136,6 +138,13 @@ class openstack_tasks::openstack_network::server_config {
         'do_tenant'   => true,
         'do_provider' => false
       })
+
+      if $_path_mtu {
+        $path_mtu = $_path_mtu
+      } else {
+        $path_mtu = undef
+      }
+
       $network_vlan_ranges = generate_physnet_vlan_ranges($neutron_config, $network_scheme, {
         'do_floating' => $do_floating,
         'do_tenant'   => true,
@@ -155,6 +164,12 @@ class openstack_tasks::openstack_network::server_config {
       })
       $network_vlan_ranges = []
 
+      if $_path_mtu {
+        $path_mtu = $_path_mtu
+      } else {
+        $path_mtu = pick(get_transformation_property('mtu', $iface[0]), '1500')
+      }
+
       if $segmentation_type == 'gre' {
         $network_type = 'gre'
       } else {
@@ -162,8 +177,6 @@ class openstack_tasks::openstack_network::server_config {
         $network_type = 'vxlan'
       }
     }
-
-    $physical_net_mtu = pick(get_transformation_property('mtu', $iface[0]), '1500')
 
     if $compute and ! $dvr {
       $do_floating = false
@@ -184,7 +197,7 @@ class openstack_tasks::openstack_network::server_config {
       vxlan_group               => $vxlan_group,
       vni_ranges                => $tunnel_id_ranges,
       physical_network_mtus     => $physical_network_mtus,
-      path_mtu                  => $physical_net_mtu,
+      path_mtu                  => $path_mtu,
       extension_drivers         => $extension_drivers,
       supported_pci_vendor_devs => $pci_vendor_devs,
       sriov_agent_required      => $use_sriov,
