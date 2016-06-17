@@ -177,33 +177,39 @@ class openstack_tasks::openstack_controller::openstack_controller {
     'RedHat' => '/usr/sbin/fping',
     default => fail('Unsupported Operating System.'),
   }
+
+  $rabbit_heartbeat_timeout_threshold = pick($nova_hash['rabbit_heartbeat_timeout_threshold'], $rabbit_hash['heartbeat_timeout_threshold'], 60)
+  $rabbit_heartbeat_rate              = pick($nova_hash['rabbit_heartbeat_rate'], $rabbit_hash['rabbit_heartbeat_rate'], 2)
+
   #################################################################
 
   class { '::nova':
-    database_connection     => $db_connection,
-    api_database_connection => $api_db_connection,
-    rpc_backend             => $rpc_backend,
+    database_connection               => $db_connection,
+    api_database_connection           => $api_db_connection,
+    rpc_backend                       => $rpc_backend,
     #FIXME(bogdando) we have to split amqp_hosts until all modules synced
-    rabbit_hosts            => split($amqp_hosts, ','),
-    rabbit_userid           => $amqp_user,
-    rabbit_password         => $amqp_password,
-    image_service           => 'nova.image.glance.GlanceImageService',
-    glance_api_servers      => $glance_api_servers,
-    debug                   => $debug,
-    log_facility            => $syslog_log_facility_nova,
-    use_syslog              => $use_syslog,
-    use_stderr              => $use_stderr,
-    database_idle_timeout   => $idle_timeout,
-    report_interval         => $nova_report_interval,
-    service_down_time       => $nova_service_down_time,
-    notify_api_faults       => pick($nova_hash['notify_api_faults'], false),
-    notification_driver     => $ceilometer_hash['notification_driver'],
-    memcached_servers       => $memcached_addresses,
-    cinder_catalog_info     => pick($nova_hash['cinder_catalog_info'], 'volumev2:cinderv2:internalURL'),
-    database_max_pool_size  => $max_pool_size,
-    database_max_retries    => $max_retries,
-    database_max_overflow   => $max_overflow,
-    notify_on_state_change  => $notify_on_state_change,
+    rabbit_hosts                      => split($amqp_hosts, ','),
+    rabbit_userid                     => $amqp_user,
+    rabbit_password                   => $amqp_password,
+    image_service                     => 'nova.image.glance.GlanceImageService',
+    glance_api_servers                => $glance_api_servers,
+    debug                             => $debug,
+    log_facility                      => $syslog_log_facility_nova,
+    use_syslog                        => $use_syslog,
+    use_stderr                        => $use_stderr,
+    database_idle_timeout             => $idle_timeout,
+    report_interval                   => $nova_report_interval,
+    service_down_time                 => $nova_service_down_time,
+    notify_api_faults                 => pick($nova_hash['notify_api_faults'], false),
+    notification_driver               => $ceilometer_hash['notification_driver'],
+    memcached_servers                 => $memcached_addresses,
+    cinder_catalog_info               => pick($nova_hash['cinder_catalog_info'], 'volumev2:cinderv2:internalURL'),
+    database_max_pool_size            => $max_pool_size,
+    database_max_retries              => $max_retries,
+    database_max_overflow             => $max_overflow,
+    notify_on_state_change            => $notify_on_state_change,
+    rabbit_heartbeat_timeout_threshold => $rabbit_heartbeat_timeout_threshold,
+    rabbit_heartbeat_rate             => $rabbit_heartbeat_rate,
   }
 
   # TODO(aschultz): this is being removed in M, do we need it?

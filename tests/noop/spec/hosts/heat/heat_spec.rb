@@ -73,6 +73,17 @@ describe manifest do
     heat_db_name = Noop.hiera('heat_db_name', 'heat')
     kombu_compression = Noop.hiera 'kombu_compression', ''
 
+    heat_hash = Noop.hiera_structure 'heat', {}
+    rabbit_hash = Noop.hiera_structure 'rabbit', {}
+
+    rabbit_heartbeat_timeout_threshold = Noop.puppet_function 'pick', heat_hash['rabbit_heartbeat_timeout_threshold'], rabbit_hash['heartbeat_timeout_treshold'], 60
+    rabbit_heartbeat_rate = Noop.puppet_function 'pick', heat_hash['rabbit_heartbeat_rate'], rabbit_hash['heartbeat_rate'], 2
+
+    it 'should configure RabbitMQ Heartbeat parameters' do
+      should contain_heat_config('oslo_messaging_rabbit/heartbeat_timeout_threshold').with_value(rabbit_heartbeat_timeout_threshold)
+      should contain_heat_config('oslo_messaging_rabbit/heartbeat_rate').with_value(rabbit_heartbeat_rate)
+    end
+
     it 'should install heat-docker package only after heat-engine' do
       if !facts.has_key?(:os_package_type) or facts[:os_package_type] != 'ubuntu'
         if facts[:osfamily] == 'RedHat'
