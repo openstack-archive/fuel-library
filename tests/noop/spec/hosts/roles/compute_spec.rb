@@ -93,6 +93,14 @@ describe manifest do
       compute_driver = 'libvirt.LibvirtDriver'
     end
 
+    rabbit_heartbeat_timeout_treshold = Noop.puppet_function 'pick', nova_hash['rabbit_heartbeat_timeout_treshold'], rabbit_hash['heartbeat_timeout_treshold'], 60
+    rabbit_heartbeat_rate = Noop.puppet_function 'pick', nova_hash['rabbit_heartbeat_rate'], rabbit_hash['heartbeat_rate'], 2
+
+    it 'should configure RabbitMQ Heartbeat parameters' do
+      should contain_nova_config('oslo_messaging_rabbit/heartbeat_timeout_threshold').with_value(rabbit_heartbeat_timeout_treshold)
+      should contain_nova_config('oslo_messaging_rabbit/heartbeat_rate').with_value(rabbit_heartbeat_rate)
+    end
+
     it 'should explicitly disable libvirt_inject_partition for compute node' do
       libvirt_inject_partition = '-2'
       should contain_class('nova::compute::libvirt').with(

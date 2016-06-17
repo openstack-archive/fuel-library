@@ -67,6 +67,14 @@ describe manifest do
 
     let(:identity_uri) { "#{admin_auth_protocol}://#{admin_auth_address}:35357/" }
 
+    rabbit_heartbeat_timeout_treshold = Noop.puppet_function 'pick', glance_hash['rabbit_heartbeat_timeout_treshold'], rabbit_hash['heartbeat_timeout_treshold'], 60
+    rabbit_heartbeat_rate = Noop.puppet_function 'pick', glance_hash['rabbit_heartbeat_rate'], rabbit_hash['heartbeat_rate'], 2
+
+    it 'should configure RabbitMQ Heartbeat parameters' do
+      should contain_glance_config('oslo_messaging_rabbit/heartbeat_timeout_threshold').with_value(rabbit_heartbeat_timeout_treshold)
+      should contain_glance_config('oslo_messaging_rabbit/heartbeat_rate').with_value(rabbit_heartbeat_rate)
+    end
+
     it 'should select right protocols and addresses for auth' do
       should contain_class('glance::api').with(
         'auth_uri'     => auth_uri,

@@ -65,8 +65,16 @@ describe manifest do
       service_workers = Noop.puppet_function 'pick', ceilometer_hash['workers'], fallback_workers
     end
 
+    rabbit_heartbeat_timeout_treshold = Noop.puppet_function 'pick', ceilometer_hash['rabbit_heartbeat_timeout_treshold'], rabbit_hash['heartbeat_timeout_treshold'], 60
+    rabbit_heartbeat_rate = Noop.puppet_function 'pick', ceilometer_hash['rabbit_heartbeat_rate'], rabbit_hash['heartbeat_rate'], 2
+
     # Ceilometer
     if ceilometer_hash['enabled']
+      it 'should configure RabbitMQ Heartbeat parameters' do
+        should contain_ceilometer_config('oslo_messaging_rabbit/heartbeat_timeout_threshold').with_value(rabbit_heartbeat_timeout_treshold)
+        should contain_ceilometer_config('oslo_messaging_rabbit/heartbeat_rate').with_value(rabbit_heartbeat_rate)
+      end
+
       it 'should properly build connection string' do
         if mongo_replicaset and mongo_replicaset != ''
           db_params = "?readPreference=primaryPreferred&replicaSet=#{mongo_replicaset}"

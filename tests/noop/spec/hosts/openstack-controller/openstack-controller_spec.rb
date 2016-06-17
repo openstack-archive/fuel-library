@@ -149,6 +149,14 @@ describe manifest do
     let(:ironic_protocol) { Noop.puppet_function 'get_ssl_property',ssl_hash,{},'ironic','internal','protocol','http' }
     let(:ironic_endpoint) { Noop.puppet_function 'get_ssl_property',ssl_hash,{},'ironic','internal','hostname', ironic_endpoint_default}
 
+    rabbit_heartbeat_timeout_treshold = Noop.puppet_function 'pick', nova_hash['rabbit_heartbeat_timeout_treshold'], rabbit_hash['heartbeat_timeout_treshold'], 60
+    rabbit_heartbeat_rate = Noop.puppet_function 'pick', nova_hash['rabbit_heartbeat_rate'], rabbit_hash['heartbeat_rate'], 2
+
+    it 'should configure RabbitMQ Heartbeat parameters' do
+      should contain_nova_config('oslo_messaging_rabbit/heartbeat_timeout_threshold').with_value(rabbit_heartbeat_timeout_treshold)
+      should contain_nova_config('oslo_messaging_rabbit/heartbeat_rate').with_value(rabbit_heartbeat_rate)
+    end
+
     # TODO All this stuff should be moved to shared examples controller* tests.
 
     it 'should declare correct workers for systems with 4 processess on 4 CPU & 32G system' do

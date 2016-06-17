@@ -26,7 +26,15 @@ describe manifest do
     keystone_auth_uri      = "#{internal_auth_protocol}://#{internal_auth_endpoint}:5000/"
     kombu_compression      = Noop.hiera 'kombu_compression', ''
 
+    rabbit_heartbeat_timeout_treshold = Noop.puppet_function 'pick', ceilometer_hash['rabbit_heartbeat_timeout_treshold'], rabbit_hash['heartbeat_timeout_treshold'], 60
+    rabbit_heartbeat_rate = Noop.puppet_function 'pick', ceilometer_hash['rabbit_heartbeat_rate'], rabbit_hash['heartbeat_rate'], 2
+
     if ceilometer_hash['enabled']
+      it 'should configure RabbitMQ Heartbeat parameters' do
+        should contain_ceilometer_config('oslo_messaging_rabbit/heartbeat_timeout_threshold').with_value(rabbit_heartbeat_timeout_treshold)
+        should contain_ceilometer_config('oslo_messaging_rabbit/heartbeat_rate').with_value(rabbit_heartbeat_rate)
+      end
+
       it 'should configure interface (ex. OS ENDPOINT TYPE) for ceilometer' do
         should contain_ceilometer_config('service_credentials/interface').with(:value => 'internalURL')
       end
