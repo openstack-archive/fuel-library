@@ -139,6 +139,9 @@ class openstack_tasks::keystone::keystone {
   $service_user_name     = pick($service_user_hash['name'], 'fuel')
   $service_user_homedir  = pick($service_user_hash['homedir'], '/var/lib/fuel')
 
+  $rabbit_heartbeat_timeout_threshold = pick($keystone_hash['rabbit_heartbeat_timeout_threshold'], $rabbit_hash['heartbeat_timeout_threshold'], 60)
+  $rabbit_heartbeat_rate              = pick($keystone_hash['rabbit_heartbeat_rate'], $rabbit_hash['rabbit_heartbeat_rate'], 2)
+
   ####### WSGI ###########
 
   # Listen directives with host required for ip_based vhosts
@@ -294,41 +297,43 @@ class openstack_tasks::keystone::keystone {
 
   if $enabled {
     class { '::keystone':
-      enable_bootstrap             => true,
-      debug                        => $debug,
-      catalog_type                 => 'sql',
-      admin_token                  => $admin_token,
-      enabled                      => false,
-      database_connection          => $db_connection,
-      database_max_retries         => $max_retries,
-      database_max_pool_size       => $max_pool_size,
-      database_max_overflow        => $max_overflow,
-      public_bind_host             => $local_address_for_bind,
-      admin_bind_host              => $local_address_for_bind,
-      admin_workers                => $service_workers,
-      public_workers               => $service_workers,
-      use_syslog                   => $use_syslog,
-      use_stderr                   => $use_stderr,
-      database_idle_timeout        => $database_idle_timeout,
-      sync_db                      => $primary_controller,
-      rabbit_password              => $rabbit_password,
-      rabbit_userid                => $rabbit_user,
-      rabbit_hosts                 => $rabbit_hosts,
-      memcache_servers             => $memcache_servers,
-      token_driver                 => $token_driver,
-      token_provider               => $token_provider,
-      notification_driver          => $ceilometer_hash['notification_driver'],
-      token_caching                => $token_caching,
-      cache_backend                => $cache_backend,
-      revoke_driver                => $revoke_driver,
-      admin_endpoint               => $admin_url,
-      memcache_dead_retry          => '60',
-      memcache_socket_timeout      => '1',
-      memcache_pool_maxsize        => '1000',
-      memcache_pool_unused_timeout => '60',
-      cache_memcache_servers       => $memcache_servers,
-      policy_driver                => 'keystone.policy.backends.sql.Policy',
-      kombu_compression            => $kombu_compression,
+      enable_bootstrap                   => true,
+      debug                              => $debug,
+      catalog_type                       => 'sql',
+      admin_token                        => $admin_token,
+      enabled                            => false,
+      database_connection                => $db_connection,
+      database_max_retries               => $max_retries,
+      database_max_pool_size             => $max_pool_size,
+      database_max_overflow              => $max_overflow,
+      public_bind_host                   => $local_address_for_bind,
+      admin_bind_host                    => $local_address_for_bind,
+      admin_workers                      => $service_workers,
+      public_workers                     => $service_workers,
+      use_syslog                         => $use_syslog,
+      use_stderr                         => $use_stderr,
+      database_idle_timeout              => $database_idle_timeout,
+      sync_db                            => $primary_controller,
+      rabbit_password                    => $rabbit_password,
+      rabbit_userid                      => $rabbit_user,
+      rabbit_hosts                       => $rabbit_hosts,
+      memcache_servers                   => $memcache_servers,
+      token_driver                       => $token_driver,
+      token_provider                     => $token_provider,
+      notification_driver                => $ceilometer_hash['notification_driver'],
+      token_caching                      => $token_caching,
+      cache_backend                      => $cache_backend,
+      revoke_driver                      => $revoke_driver,
+      admin_endpoint                     => $admin_url,
+      memcache_dead_retry                => '60',
+      memcache_socket_timeout            => '1',
+      memcache_pool_maxsize              => '1000',
+      memcache_pool_unused_timeout       => '60',
+      cache_memcache_servers             => $memcache_servers,
+      policy_driver                      => 'keystone.policy.backends.sql.Policy',
+      rabbit_heartbeat_timeout_threshold => $rabbit_heartbeat_timeout_threshold,
+      rabbit_heartbeat_rate              => $rabbit_heartbeat_rate,
+      kombu_compression                  => $kombu_compression,
     }
 
     Package<| title == 'keystone'|> ~> Service<| title == 'keystone'|>
