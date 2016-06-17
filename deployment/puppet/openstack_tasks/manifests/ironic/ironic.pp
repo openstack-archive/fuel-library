@@ -65,28 +65,31 @@ class openstack_tasks::ironic::ironic {
   $neutron_protocol           = get_ssl_property($ssl_hash, {}, 'neutron', 'internal', 'protocol', 'http')
   $neutron_endpoint           = get_ssl_property($ssl_hash, {}, 'neutron', 'internal', 'hostname', $neutron_endpoint_default)
 
-
+  $rabbit_heartbeat_timeout_threshold = pick($ironic_hash['rabbit_heartbeat_timeout_threshold'], $rabbit_hash['heartbeat_timeout_threshold'], 60)
+  $rabbit_heartbeat_rate              = pick($ironic_hash['rabbit_heartbeat_rate'], $rabbit_hash['rabbit_heartbeat_rate'], 2)
 
   prepare_network_config(hiera_hash('network_scheme', {}))
 
   $baremetal_vip = $network_metadata['vips']['baremetal']['ipaddr']
 
   class { '::ironic':
-    verbose              => $verbose,
-    debug                => $debug,
-    rabbit_hosts         => $rabbit_hosts,
-    rabbit_port          => $amqp_port,
-    rabbit_userid        => $rabbit_hash['user'],
-    rabbit_password      => $rabbit_hash['password'],
-    amqp_durable_queues  => $amqp_durable_queues,
-    control_exchange     => 'ironic',
-    use_syslog           => $use_syslog,
-    log_facility         => $syslog_log_facility_ironic,
-    database_connection  => $db_connection,
-    database_max_retries => '-1',
-    glance_api_servers   => $glance_api_servers,
-    sync_db              => $primary_controller,
-    kombu_compression    => $kombu_compression,
+    verbose                            => $verbose,
+    debug                              => $debug,
+    rabbit_hosts                       => $rabbit_hosts,
+    rabbit_port                        => $amqp_port,
+    rabbit_userid                      => $rabbit_hash['user'],
+    rabbit_password                    => $rabbit_hash['password'],
+    amqp_durable_queues                => $amqp_durable_queues,
+    control_exchange                   => 'ironic',
+    use_syslog                         => $use_syslog,
+    log_facility                       => $syslog_log_facility_ironic,
+    database_connection                => $db_connection,
+    database_max_retries               => '-1',
+    glance_api_servers                 => $glance_api_servers,
+    sync_db                            => $primary_controller,
+    rabbit_heartbeat_timeout_threshold => $rabbit_heartbeat_timeout_threshold,
+    rabbit_heartbeat_rate              => $rabbit_heartbeat_rate,
+    kombu_compression                  => $kombu_compression,
   }
 
   class { '::ironic::client': }
