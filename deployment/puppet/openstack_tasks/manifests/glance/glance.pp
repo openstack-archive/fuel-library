@@ -30,6 +30,9 @@ class openstack_tasks::glance::glance {
   $kombu_compression     = hiera('kombu_compression', $::os_service_default)
   $memcached_servers     = hiera('memcached_servers')
 
+  $rabbit_heartbeat_timeout_threshold = pick($glance_hash['rabbit_heartbeat_timeout_threshold'], $rabbit_hash['heartbeat_timeout_threshold'], 60)
+  $rabbit_heartbeat_rate              = pick($glance_hash['rabbit_heartbeat_rate'], $rabbit_hash['rabbit_heartbeat_rate'], 2)
+
   $override_configuration = hiera_hash('configuration', {})
 
   # override glance api options
@@ -262,7 +265,6 @@ class openstack_tasks::glance::glance {
   }
 
   class { '::glance::notify::rabbitmq':
-    rabbit_heartbeat_timeout_threshold => 0,
     rabbit_notification_exchange       => 'glance',
     rabbit_notification_topic          => 'notifications',
     rabbit_password                    => $rabbit_password,
@@ -270,6 +272,8 @@ class openstack_tasks::glance::glance {
     rabbit_hosts                       => $rabbit_hosts,
     notification_driver                => $ceilometer_hash['notification_driver'],
     kombu_compression                  => $kombu_compression,
+    rabbit_heartbeat_timeout_threshold => $rabbit_heartbeat_timeout_threshold,
+    rabbit_heartbeat_rate              => $rabbit_heartbeat_rate,
   }
 
   # syslog additional settings default/use_syslog_rfc_format = true

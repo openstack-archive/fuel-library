@@ -93,22 +93,27 @@ class openstack_tasks::aodh::aodh {
   $alarm_history_ttl = pick($aodh_hash['alarm_history_time_to_live'], $ceilometer_hash['alarm_history_time_to_live'])
   $ha_mode           = pick($ceilometer_hash['ha_mode'], true)
 
+  $rabbit_heartbeat_timeout_threshold = pick($aodh_hash['rabbit_heartbeat_timeout_threshold'], $rabbit_hash['heartbeat_timeout_threshold'], 60)
+  $rabbit_heartbeat_rate              = pick($aodh_hash['rabbit_heartbeat_rate'], $rabbit_hash['rabbit_heartbeat_rate'], 2)
+
   #################################################################
 
   class { '::aodh':
-    debug                      => $debug,
-    verbose                    => $verbose,
-    notification_topics        => $notification_topics,
-    rpc_backend                => $rpc_backend,
-    rabbit_userid              => $rabbit_userid,
-    rabbit_password            => $rabbit_password,
-    rabbit_hosts               => $rabbit_hosts,
-    rabbit_port                => $rabbit_port,
-    rabbit_virtual_host        => $rabbit_virtual_host,
-    rabbit_ha_queues           => $rabbit_ha_queues,
-    database_connection        => $database_connection,
-    alarm_history_time_to_live => $alarm_history_ttl,
-    kombu_compression          => $kombu_compression,
+    debug                              => $debug,
+    verbose                            => $verbose,
+    notification_topics                => $notification_topics,
+    rpc_backend                        => $rpc_backend,
+    rabbit_userid                      => $rabbit_userid,
+    rabbit_password                    => $rabbit_password,
+    rabbit_hosts                       => $rabbit_hosts,
+    rabbit_port                        => $rabbit_port,
+    rabbit_virtual_host                => $rabbit_virtual_host,
+    rabbit_ha_queues                   => $rabbit_ha_queues,
+    database_connection                => $database_connection,
+    alarm_history_time_to_live         => $alarm_history_ttl,
+    rabbit_heartbeat_timeout_threshold => $rabbit_heartbeat_timeout_threshold,
+    rabbit_heartbeat_rate              => $rabbit_heartbeat_rate,
+    kombu_compression                  => $kombu_compression,
   }
 
   class { '::aodh::auth':

@@ -53,6 +53,7 @@ describe manifest do
     keystone_identity_uri  = "#{internal_auth_protocol}://#{internal_auth_endpoint}:35357/"
     keystone_auth_uri      = "#{internal_auth_protocol}://#{internal_auth_endpoint}:5000/"
     kombu_compression      = Noop.hiera 'kombu_compression', ''
+    rabbit_hash            = Noop.hiera_structure 'rabbit', {}
 
     ssl = 'false'
 
@@ -66,8 +67,16 @@ describe manifest do
       service_workers = Noop.puppet_function 'pick', ceilometer_hash['workers'], fallback_workers
     end
 
+    rabbit_heartbeat_timeout_threshold = Noop.puppet_function 'pick', ceilometer_hash['rabbit_heartbeat_timeout_threshold'], rabbit_hash['heartbeat_timeout_treshold'], 60
+    rabbit_heartbeat_rate = Noop.puppet_function 'pick', ceilometer_hash['rabbit_heartbeat_rate'], rabbit_hash['heartbeat_rate'], 2
+
     # Ceilometer
     if ceilometer_hash['enabled']
+      it 'should configure RabbitMQ Heartbeat parameters' do
+        should contain_ceilometer_config('oslo_messaging_rabbit/heartbeat_timeout_threshold').with_value(rabbit_heartbeat_timeout_threshold)
+        should contain_ceilometer_config('oslo_messaging_rabbit/heartbeat_rate').with_value(rabbit_heartbeat_rate)
+      end
+
       it 'should properly build connection string' do
         if mongo_replicaset and mongo_replicaset != ''
           db_params = "?readPreference=primaryPreferred&replicaSet=#{mongo_replicaset}"
