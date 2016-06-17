@@ -41,6 +41,9 @@ class openstack_tasks::ceilometer::compute {
   $keystone_identity_uri      = "${admin_auth_protocol}://${admin_auth_endpoint}:35357/"
   $keystone_auth_uri          = "${internal_auth_protocol}://${internal_auth_endpoint}:5000/"
 
+  $rabbit_heartbeat_timeout_threshold = pick($ceilometer_hash['rabbit_heartbeat_timeout_threshold'], $rabbit_hash['heartbeat_timeout_threshold'], 60)
+  $rabbit_heartbeat_rate              = pick($ceilometer_hash['rabbit_heartbeat_rate'], $rabbit_hash['rabbit_heartbeat_rate'], 2)
+
   $override_configuration = hiera_hash('configuration', {})
 
   # override ceilometer.conf options
@@ -58,7 +61,6 @@ class openstack_tasks::ceilometer::compute {
   if ($ceilometer_enabled) {
 
     class { '::ceilometer':
-      rabbit_heartbeat_timeout_threshold => 0,
       http_timeout                       => $ceilometer_hash['http_timeout'],
       event_time_to_live                 => $ceilometer_hash['event_time_to_live'],
       metering_time_to_live              => $ceilometer_hash['metering_time_to_live'],
@@ -73,6 +75,8 @@ class openstack_tasks::ceilometer::compute {
       use_stderr                         => $use_stderr,
       log_facility                       => $syslog_log_facility,
       kombu_compression                  => $kombu_compression,
+      rabbit_heartbeat_timeout_threshold => $rabbit_heartbeat_timeout_threshold,
+      rabbit_heartbeat_rate              => $rabbit_heartbeat_rate,
     }
 
     class { '::ceilometer::agent::auth':

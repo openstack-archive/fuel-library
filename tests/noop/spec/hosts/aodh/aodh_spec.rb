@@ -62,6 +62,14 @@ describe manifest do
     ceilometer_hash = Noop.hiera_structure 'ceilometer', {'alarm_history_time_to_live' => '604800'}
     alarm_ttl = Noop.puppet_function 'pick', aodh_hash['alarm_history_time_to_live'], ceilometer_hash['alarm_history_time_to_live']
 
+    rabbit_heartbeat_timeout_threshold = Noop.puppet_function 'pick', aodh_hash['rabbit_heartbeat_timeout_threshold'], rabbit_hash['heartbeat_timeout_treshold'], 60
+    rabbit_heartbeat_rate = Noop.puppet_function 'pick', aodh_hash['rabbit_heartbeat_rate'], rabbit_hash['heartbeat_rate'], 2
+
+    it 'should configure RabbitMQ Heartbeat parameters' do
+      should contain_aodh_config('oslo_messaging_rabbit/heartbeat_timeout_threshold').with_value(rabbit_heartbeat_timeout_threshold)
+      should contain_aodh_config('oslo_messaging_rabbit/heartbeat_rate').with_value(rabbit_heartbeat_rate)
+    end
+
     it 'should configure "DEFAULT/" section ' do
       should contain_aodh_config('DEFAULT/debug').with(:value => debug)
       should contain_aodh_config('DEFAULT/rpc_backend').with(:value => 'rabbit')

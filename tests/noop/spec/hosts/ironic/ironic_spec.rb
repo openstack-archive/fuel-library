@@ -25,6 +25,9 @@ if ironic_enabled
       ironic_db_user = Noop.hiera_structure 'ironic/db_user', 'ironic'
       ironic_db_name = Noop.hiera_structure 'ironic/db_name', 'ironic'
 
+      ironic_hash = Noop.hiera_structure 'ironic', {}
+      rabbit_hash = Noop.hiera_structure 'rabbit', {}
+
       service_endpoint = Noop.hiera 'service_endpoint'
       management_vip = Noop.hiera 'management_vip'
       public_vip = Noop.hiera 'public_vip'
@@ -46,6 +49,13 @@ if ironic_enabled
       let(:neutron_protocol) { Noop.puppet_function 'get_ssl_property',ssl_hash,{},'neutron','internal','protocol','http' }
       let(:neutron_address) { Noop.puppet_function 'get_ssl_property',ssl_hash,{},'neutron','internal','hostname', neutron_endpoint_default }
 
+      rabbit_heartbeat_timeout_threshold = Noop.puppet_function 'pick', ironic_hash['rabbit_heartbeat_timeout_threshold'], rabbit_hash['heartbeat_timeout_treshold'], 60
+      rabbit_heartbeat_rate = Noop.puppet_function 'pick', ironic_hash['rabbit_heartbeat_rate'], rabbit_hash['heartbeat_rate'], 2
+
+      it 'should configure RabbitMQ Heartbeat parameters' do
+        should contain_ironic_config('oslo_messaging_rabbit/heartbeat_timeout_threshold').with_value(rabbit_heartbeat_timeout_threshold)
+        should contain_ironic_config('oslo_messaging_rabbit/heartbeat_rate').with_value(rabbit_heartbeat_rate)
+      end
 
       it 'should configure default_log_levels' do
         should contain_ironic_config('DEFAULT/default_log_levels').with_value(default_log_levels.sort.join(','))

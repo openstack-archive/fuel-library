@@ -125,6 +125,9 @@ class openstack_tasks::roles::compute {
     nova_config => $nova_complete_hash,
   }
 
+  $rabbit_heartbeat_timeout_threshold = pick($nova_hash['rabbit_heartbeat_timeout_threshold'], $rabbit_hash['heartbeat_timeout_threshold'], 60)
+  $rabbit_heartbeat_rate              = pick($nova_hash['rabbit_heartbeat_rate'], $rabbit_hash['rabbit_heartbeat_rate'], 2)
+
   ########################################################################
 
   include ::nova::params
@@ -283,6 +286,8 @@ class openstack_tasks::roles::compute {
     kombu_compression                      => $kombu_compression,
     block_device_allocate_retries          => $block_device_allocate_retries,
     block_device_allocate_retries_interval => $block_device_allocate_retries_interval,
+    rabbit_heartbeat_timeout_threshold     => $rabbit_heartbeat_timeout_threshold,
+    rabbit_heartbeat_rate                  => $rabbit_heartbeat_rate,
   }
 
   class { '::nova::availability_zone':

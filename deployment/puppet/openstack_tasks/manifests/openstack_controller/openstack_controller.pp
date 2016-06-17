@@ -177,6 +177,10 @@ class openstack_tasks::openstack_controller::openstack_controller {
     'RedHat' => '/usr/sbin/fping',
     default => fail('Unsupported Operating System.'),
   }
+
+  $rabbit_heartbeat_timeout_threshold = pick($nova_hash['rabbit_heartbeat_timeout_threshold'], $rabbit_hash['heartbeat_timeout_threshold'], 60)
+  $rabbit_heartbeat_rate              = pick($nova_hash['rabbit_heartbeat_rate'], $rabbit_hash['rabbit_heartbeat_rate'], 2)
+
   #################################################################
 
   class { '::nova':
@@ -187,7 +191,6 @@ class openstack_tasks::openstack_controller::openstack_controller {
     rabbit_hosts                       => split($amqp_hosts, ','),
     rabbit_userid                      => $amqp_user,
     rabbit_password                    => $amqp_password,
-    rabbit_heartbeat_timeout_threshold => 0,
     image_service                      => 'nova.image.glance.GlanceImageService',
     glance_api_servers                 => $glance_api_servers,
     debug                              => $debug,
@@ -206,6 +209,8 @@ class openstack_tasks::openstack_controller::openstack_controller {
     database_max_retries               => $max_retries,
     database_max_overflow              => $max_overflow,
     kombu_compression                  => $kombu_compression,
+    rabbit_heartbeat_timeout_threshold => $rabbit_heartbeat_timeout_threshold,
+    rabbit_heartbeat_rate              => $rabbit_heartbeat_rate,
   }
 
   # TODO(aschultz): this is being removed in M, do we need it?

@@ -83,6 +83,7 @@ describe manifest do
     let(:config_drive_format) { Noop.puppet_function 'pick', compute_hash['config_drive_format'], 'vfat' }
     let(:log_facility) { Noop.hiera 'syslog_log_facility_nova', 'LOG_LOCAL6' }
 
+    let(:rabbit_hash) { Noop.hiera_structure 'rabbit', {} }
 
     # Legacy openstack-compute tests
 
@@ -90,6 +91,14 @@ describe manifest do
       compute_driver = 'ironic.IronicDriver'
     else
       compute_driver = 'libvirt.LibvirtDriver'
+    end
+
+    let(:rabbit_heartbeat_timeout_threshold) { Noop.puppet_function 'pick', nova_hash['rabbit_heartbeat_timeout_threshold'], rabbit_hash['heartbeat_timeout_treshold'], 60 }
+    let(:rabbit_heartbeat_rate) { Noop.puppet_function 'pick', nova_hash['rabbit_heartbeat_rate'], rabbit_hash['heartbeat_rate'], 2 }
+
+    it 'should configure RabbitMQ Heartbeat parameters' do
+      should contain_nova_config('oslo_messaging_rabbit/heartbeat_timeout_threshold').with_value(rabbit_heartbeat_timeout_threshold)
+      should contain_nova_config('oslo_messaging_rabbit/heartbeat_rate').with_value(rabbit_heartbeat_rate)
     end
 
     it 'should explicitly disable libvirt_inject_partition for compute node' do
