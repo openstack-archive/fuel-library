@@ -44,6 +44,9 @@ class openstack_tasks::openstack_cinder::openstack_cinder {
     'extra'    => $extra_params
   })
 
+  $rabbit_heartbeat_timeout_threshold = pick($cinder_hash['rabbit_heartbeat_timeout_threshold'], $rabbit_hash['heartbeat_timeout_threshold'], 60)
+  $rabbit_heartbeat_rate              = pick($cinder_hash['rabbit_heartbeat_rate'], $rabbit_hash['rabbit_heartbeat_rate'], 2)
+
   $queue_provider = hiera('queue_provider', 'rabbit')
   $override_configuration = hiera_hash('configuration', {})
 
@@ -140,25 +143,27 @@ class openstack_tasks::openstack_cinder::openstack_cinder {
   $keymgr_encryption_auth_url = "${identity_uri}/v3"
 
   class { '::cinder':
-    rpc_backend              => $queue_provider,
-    rabbit_hosts             => split(hiera('amqp_hosts',''), ','),
-    rabbit_userid            => $rabbit_hash['user'],
-    rabbit_password          => $rabbit_hash['password'],
-    database_connection      => $db_connection,
-    verbose                  => $verbose,
-    use_syslog               => $use_syslog,
-    use_stderr               => $use_stderr,
-    log_facility             => hiera('syslog_log_facility_cinder', 'LOG_LOCAL3'),
-    debug                    => $debug,
-    database_idle_timeout    => $idle_timeout,
-    database_max_pool_size   => $max_pool_size,
-    database_max_retries     => $max_retries,
-    database_max_overflow    => $max_overflow,
-    control_exchange         => 'cinder',
-    rabbit_ha_queues         => true,
-    report_interval          => $cinder_hash['cinder_report_interval'],
-    service_down_time        => $cinder_hash['cinder_service_down_time'],
-    kombu_compression        => $kombu_compression,
+    rpc_backend                        => $queue_provider,
+    rabbit_hosts                       => split(hiera('amqp_hosts',''), ','),
+    rabbit_userid                      => $rabbit_hash['user'],
+    rabbit_password                    => $rabbit_hash['password'],
+    database_connection                => $db_connection,
+    verbose                            => $verbose,
+    use_syslog                         => $use_syslog,
+    use_stderr                         => $use_stderr,
+    log_facility                       => hiera('syslog_log_facility_cinder', 'LOG_LOCAL3'),
+    debug                              => $debug,
+    database_idle_timeout              => $idle_timeout,
+    database_max_pool_size             => $max_pool_size,
+    database_max_retries               => $max_retries,
+    database_max_overflow              => $max_overflow,
+    control_exchange                   => 'cinder',
+    rabbit_ha_queues                   => true,
+    report_interval                    => $cinder_hash['cinder_report_interval'],
+    service_down_time                  => $cinder_hash['cinder_service_down_time'],
+    rabbit_heartbeat_timeout_threshold => $rabbit_heartbeat_timeout_threshold,
+    rabbit_heartbeat_rate              => $rabbit_heartbeat_rate,
+    kombu_compression                  => $kombu_compression,
   }
 
   if ($bind_host) {
