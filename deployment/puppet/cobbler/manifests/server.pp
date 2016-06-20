@@ -101,14 +101,6 @@ class cobbler::server (
   }
 
   if $apache_ssl_module {
-    file { '/etc/apache2/mods-enabled/ssl.load':
-      ensure => link,
-      target => '/etc/apache2/mods-available/ssl.load',
-    } ->
-    file { '/etc/apache2/mods-enabled/ssl.conf':
-      ensure => link,
-      target => '/etc/apache2/mods-available/ssl.conf',
-    } ->
     file { '/etc/apache2/sites-enabled/default-ssl':
       ensure => link,
       target => '/etc/apache2/sites-available/default-ssl',
@@ -151,7 +143,7 @@ class cobbler::server (
     ensure  => present,
     path    => '/usr/share/cobbler/web/settings.py',
     line    => 'DEBUG = False',
-    match   => "^DEBUG.*$",
+    match   => '^DEBUG.*$',
   }
 
   class { 'cobbler::apache':
