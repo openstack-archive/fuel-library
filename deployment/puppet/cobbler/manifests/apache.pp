@@ -27,12 +27,14 @@ class cobbler::apache {
       },
     ],
     aliases     => [
-      { alias => '/cobbler/boot',
+      {
+        alias => '/cobbler/boot',
         path  => '/var/lib/tftpboot',
       },
     ],
     directories => [
-      { path    => '/var/lib/tftpboot',
+      {
+        path    => '/var/lib/tftpboot',
         options => ['Indexes', 'FollowSymLinks'],
       },
     ],
