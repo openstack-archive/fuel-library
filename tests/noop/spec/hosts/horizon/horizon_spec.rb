@@ -75,6 +75,17 @@ describe manifest do
       Noop.puppet_function 'pick', horizon_hash['upload_max_size'], '10737418235'
     end
 
+    let(:neutron_advanced_config) { Noop.hiera_hash 'neutron_advanced_configuration', {} }
+
+    let(:enable_lb) { Noop.puppet_function 'pick', neutron_advanced_config['neutron_lb'], false }
+    let(:enable_firewall) { Noop.puppet_function 'pick', neutron_advanced_config['neutron_firewall'], false }
+    let(:enable_quotas) { Noop.puppet_function 'pick', neutron_advanced_config['neutron_quotas'], true }
+    let(:enable_security_group) { Noop.puppet_function 'pick', neutron_advanced_config['neutron_security_group'], true }
+    let(:enable_vpn) { Noop.puppet_function 'pick', neutron_advanced_config['neutron_vpn'], false }
+    let(:enable_distributed_router) { Noop.puppet_function 'pick', neutron_advanced_config['neutron_dvr'], false }
+    let(:enable_ha_router) { Noop.puppet_function 'pick', neutron_advanced_config['neutron_ha_router'], false }
+    let(:profile_support) { Noop.puppet_function 'pick', neutron_advanced_config['neutron_profile_support'], 'None' }
+
     it 'contains ::horizon::wsgi::apache' do
       if facts[:osfamily] == 'Debian' and file_upload_max_size
         custom_fragment = "\n  <Directory /usr/share/openstack-dashboard/openstack_dashboard/wsgi>\n    Order allow,deny\n    Allow from all\n  </Directory>\n\n  LimitRequestBody #{file_upload_max_size}\n\n"
@@ -145,16 +156,20 @@ describe manifest do
              )
     end
 
-    context 'with Neutron DVR', :if => Noop.hiera_structure('neutron_advanced_configuration/neutron_dvr') do
-      it 'should configure horizon for neutron DVR' do
-        should contain_class('horizon').with(
-                   'neutron_options' => {
-                       'enable_distributed_router' => Noop.hiera_structure('neutron_advanced_configuration/neutron_dvr')
-                   }
-               )
-      end
+    it 'should configure horizon to use advanced neutron options' do
+      should contain_class('horizon').with(
+        'neutron_options' => {
+          'enable_lb'                 => enable_lb,
+          'enable_firewall'           => enable_firewall,
+          'enable_quotas'             => enable_quotas,
+          'enable_security_group'     => enable_security_group,
+          'enable_vpn'                => enable_vpn,
+          'enable_distributed_router' => enable_distributed_router,
+          'enable_ha_router'          => enable_ha_router,
+          'profile_support'           => profile_support,
+        }
+      )
     end
-
 
     it 'should have explicit ordering between LB classes and particular actions' do
       expect(graph).to ensure_transitive_dependency("Class[horizon]", "Haproxy_backend_status[keystone-public]")
