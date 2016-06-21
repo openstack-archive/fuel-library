@@ -50,9 +50,9 @@ describe Puppet::Type.type(:package).provider(:apt_fuel) do
 
   it 'should retry the failed installation attempts' do
     subject.stubs(:locked?).returns(false)
-    subject.expects(:aptget).
-        with('-q', '-y', '-o', 'DPkg::Options::=--force-confold', :install, 'test').
-        raises(Puppet::ExecutionFailure, 'installation failed').times(3)
+    subject.expects(:aptget).with do |*options|
+      options[-2..-1] == [:install, 'test']
+    end.raises(Puppet::ExecutionFailure, 'installation failed').times(3)
     subject.expects(:aptget).with('-q', '-y', :update).times(2)
     expect do
       subject.install
@@ -61,9 +61,9 @@ describe Puppet::Type.type(:package).provider(:apt_fuel) do
 
   it 'should be able to succeed after failing' do
     subject.stubs(:locked?).returns(false)
-    subject.expects(:aptget).
-        with('-q', '-y', '-o', 'DPkg::Options::=--force-confold', :install, 'test').
-        raises(Puppet::ExecutionFailure, 'installation failed').then.returns(true).times(2)
+    subject.expects(:aptget).with do |*options|
+      options[-2..-1] == [:install, 'test']
+    end.raises(Puppet::ExecutionFailure, 'installation failed').then.returns(true).times(2)
     subject.expects(:aptget).with('-q', '-y', :update).times(1)
     subject.install
   end
