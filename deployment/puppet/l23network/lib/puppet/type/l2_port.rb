@@ -164,8 +164,11 @@ Puppet::Type.newtype(:l2_port) do
       #defaultto {}
       # provider-specific hash, validating only by type.
       validate do |val|
-        if ! val.is_a? Hash
-          fail("Ethtool should be a hash!")
+        unless val.is_a? Hash
+          fail 'Ethtool should be a hash!'
+          if val['rings'] and not val['rings'].is_a? Hash
+            fail 'Rings should be a Hash! Do you have "stringify_facts=false" in your puppet config?'
+          end
         end
       end
       munge do |value|
