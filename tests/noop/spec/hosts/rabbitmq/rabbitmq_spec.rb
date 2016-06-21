@@ -50,7 +50,6 @@ describe manifest do
     amqp_port = Noop.hiera('amqp_port', '5673')
     workers_max = Noop.hiera 'workers_max'
     debug = Noop.hiera('debug', false)
-    threads_max = 2*workers_max.to_i
     rabbit_hash = Noop.hiera_structure 'rabbit'
     use_pacemaker = rabbit_hash.fetch(['pacemaker'], true)
     pid_file = rabbit_hash.fetch('pid_file', '/var/run/rabbitmq/p_pid')
@@ -98,11 +97,7 @@ describe manifest do
     end
 
     it 'has correct SERVER_ERL_ARGS in environment_variables' do
-      expect($environment_variables['SERVER_ERL_ARGS']).to eq "\"+K true +A#{threads_max} +P 1048576\""
-    end
-
-    it 'has correct SERVER_ERL_ARGS in environment_variables on 4 CPU & 32G system' do
-      expect($environment_variables['SERVER_ERL_ARGS']).to eq "\"+K true +A34 +P 1048576\""
+      expect($environment_variables['SERVER_ERL_ARGS']).to eq "\"+K true +P 1048576\""
     end
 
     it 'has correct ERL_EPMD_ADDRESS in environment_variables' do
