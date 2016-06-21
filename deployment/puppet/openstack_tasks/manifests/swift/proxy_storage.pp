@@ -175,6 +175,17 @@ class openstack_tasks::swift::proxy_storage {
         verbose                     => $verbose,
         log_facility                => 'LOG_SYSLOG',
       }
+
+      service { 'swift-container-reconciler':
+        ensure  => stopped,
+        enable  => false,
+        require => Package['swift-container'],
+      }
+      service { 'swift-object-reconstructor':
+        ensure  => stopped,
+        enable  => false,
+        require => Package['swift-object'],
+      }
     }
 
     # swift_container_sync_realms file specifying
