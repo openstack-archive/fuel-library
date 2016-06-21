@@ -14,13 +14,13 @@ Puppet::Type.type(:package).provide :apt_fuel, :parent => :apt, :source => :apt 
                 :retry_count,
                 :retry_sleep
 
-   def initialize(value={})
-     super(value)
-     @default_lock_timeout = 300
-     @lock_file = '/var/lib/dpkg/lock'
-     @lock_sleep = 2
-     @retry_count = 3
-     @retry_sleep = 5
+  def initialize(value={})
+    super(value)
+    @default_lock_timeout = 300
+    @lock_file = '/var/lib/dpkg/lock'
+    @lock_sleep = 2
+    @retry_count = 3
+    @retry_sleep = 5
   end
 
   def timeout
@@ -67,6 +67,11 @@ Puppet::Type.type(:package).provide :apt_fuel, :parent => :apt, :source => :apt 
 
   def install
     debug 'Call: install'
+    if @resource[:install_options]
+      @resource[:install_options] << "--force-yes"
+    else
+      @resource[:install_options] = "--force-yes"
+    end
     (1..@retry_count).each do |try|
       begin
         wait_for_lock do

@@ -41,7 +41,7 @@ class osnailyfacter::fuel_pkgs::setup_repositories {
     }
 
     apt::conf { 'allow-unathenticated':
-      content => 'APT::Get::AllowUnauthenticated 1;',
+      content => 'APT::Get::AllowUnauthenticated 0;',
     }
 
     apt::conf { 'install-recommends':
