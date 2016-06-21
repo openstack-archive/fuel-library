@@ -43,10 +43,10 @@ define tweaks::ubuntu_service_override (
       })
 
       File['create-policy-rc.d'] ->
-        Package <| name == $package_name |> ->
+        Package <| name == $package_name |> { provider =>  'fuel_apt' } ->
           Exec['remove-policy-rc.d']
       File['create-policy-rc.d'] ->
-        Package <| title == $package_name |> ->
+        Package <| title == $package_name |> { provider => 'fuel_apt' } ->
           Exec['remove-policy-rc.d']
       Exec['remove-policy-rc.d'] ->
         Service <| name == $service_name |>
