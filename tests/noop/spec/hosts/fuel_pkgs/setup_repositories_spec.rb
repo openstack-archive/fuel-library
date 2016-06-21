@@ -37,7 +37,7 @@ describe manifest do
     end
 
     it 'apt-get should allow unathenticated packages' do
-      should contain_apt__conf('allow-unathenticated').with_content('APT::Get::AllowUnauthenticated 1;')
+      should contain_apt__conf('allow-unathenticated').with_content('APT::Get::AllowUnauthenticated 0;')
     end
 
     it 'apt-get shouldn\'t install recommended packages' do

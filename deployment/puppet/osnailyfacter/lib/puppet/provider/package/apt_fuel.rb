@@ -5,6 +5,7 @@ Puppet::Type.type(:package).provide :apt_fuel, :parent => :apt, :source => :apt 
   desc "Package management via `apt-get` managing locks."
 
   has_feature :versionable
+  has_feature :install_options
 
   defaultfor :operatingsystem => [:ubuntu]
 
@@ -14,13 +15,13 @@ Puppet::Type.type(:package).provide :apt_fuel, :parent => :apt, :source => :apt 
                 :retry_count,
                 :retry_sleep
 
-   def initialize(value={})
-     super(value)
-     @default_lock_timeout = 300
-     @lock_file = '/var/lib/dpkg/lock'
-     @lock_sleep = 2
-     @retry_count = 3
-     @retry_sleep = 5
+  def initialize(value={})
+    super(value)
+    @default_lock_timeout = 300
+    @lock_file = '/var/lib/dpkg/lock'
+    @lock_sleep = 2
+    @retry_count = 3
+    @retry_sleep = 5
   end
 
   def timeout
@@ -67,6 +68,7 @@ Puppet::Type.type(:package).provide :apt_fuel, :parent => :apt, :source => :apt 
 
   def install
     debug 'Call: install'
+    @resource[:install_options] = "-o APT::Get::AllowUnauthenticated=1"
     (1..@retry_count).each do |try|
       begin
         wait_for_lock do
