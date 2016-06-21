@@ -1,22 +1,41 @@
+# == Class: fuel::astute
+#
+# === Parameters
+#
+# [*debug*]
+#  (Optional) Boolean used to enable debug logging
+#  Defaults to $::fuel::params::debug
+#
+# [*rabbitmq_host*]
+# [*rabbitmq_astute_user*]
+# [*rabbitmq_astute_password*]
+# [*bootstrap_profile*]
+#
 class fuel::astute(
+  $debug                    = $::fuel::params::debug,
   $rabbitmq_host            = $::fuel::params::rabbitmq_host,
   $rabbitmq_astute_user     = $::fuel::params::rabbitmq_astute_user,
   $rabbitmq_astute_password = $::fuel::params::rabbitmq_astute_password,
   $bootstrap_profile        = $::fuel::params::bootstrap_profile,
-  ) inherits fuel::params {
+) inherits fuel::params {
+
+  $log_level = $debug ? {
+    true    => 'debug',
+    default => 'info',
+  }
 
   $packages = [
-    "psmisc",
-    "python-editor",
-    "nailgun-mcagents",
-    "sysstat",
-    "rubygem-amqp",
-    "rubygem-amq-protocol",
-    "rubygem-i18n",
-    "rubygem-tzinfo",
-    "rubygem-minitest",
-    "rubygem-symboltable",
-    "rubygem-thread_safe",
+    'psmisc',
+    'python-editor',
+    'nailgun-mcagents',
+    'sysstat',
+    'rubygem-amqp',
+    'rubygem-amq-protocol',
+    'rubygem-i18n',
+    'rubygem-tzinfo',
+    'rubygem-minitest',
+    'rubygem-symboltable',
+    'rubygem-thread_safe',
   ]
 
   ensure_packages($packages)
@@ -46,26 +65,26 @@ class fuel::astute(
     mode    => '0755',
   } ~> Service <| title == 'astute' |>
 
-  file {"/etc/astute":
+  file {'/etc/astute':
     ensure => directory,
     owner  => 'root',
     group  => 'root',
     mode   => '0755',
   }
 
-  file {"/etc/astute/astuted.conf":
+  file {'/etc/astute/astuted.conf':
     content => template('fuel/astute/astuted.conf.erb'),
     owner   => 'root',
     group   => 'root',
     mode    => '0644',
-    require => File["/etc/astute"],
+    require => File['/etc/astute'],
   } ~> Service <| title == 'astute' |>
 
-  file {"/var/log/astute":
+  file {'/var/log/astute':
     ensure => directory,
     owner  => 'root',
     group  => 'root',
-    mode   => 0755,
+    mode   => '0755',
   }
 
   # FIXME(dteselkin): use correct versions of rubygem packages

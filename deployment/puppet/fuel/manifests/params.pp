@@ -4,6 +4,8 @@ class fuel::params {
   $db_host                  = '127.0.0.1'
   $db_port                  = '5432'
 
+  $debug                    = false
+
   $nailgun_db_name          = 'nailgun'
   $nailgun_db_user          = 'nailgun'
   $nailgun_db_password      = 'nailgun'
