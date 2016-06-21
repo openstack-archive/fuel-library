@@ -214,6 +214,22 @@ describe manifest do
         end
       end
 
+      if deploy_swift_storage
+        it 'should disable swift-container-reconciler service' do
+          should contain_service('swift-container-reconciler').with(
+            'ensure' => 'stopped',
+            'enable' => 'false',
+          ).that_requires('Package[swift-container]')
+        end
+
+        it 'should disable swift-object-reconstructor service' do
+          should contain_service('swift-object-reconstructor').with(
+            'ensure' => 'stopped',
+            'enable' => 'false',
+          ).that_requires('Package[swift-object]')
+        end
+      end
+
       if deploy_swift_proxy or deploy_swift_storage
         realm1_key = Noop.hiera('swift_realm1_key', 'realm1key')
         it 'should contain swift_container-sync-realms config' do
