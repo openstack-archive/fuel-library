@@ -19,6 +19,9 @@ define tweaks::ubuntu_service_override (
 ) {
   if $::operatingsystem == 'Ubuntu' {
     if ! is_pkg_installed($package_name) {
+
+      ensure_packages($package_name, { provider => 'fuel_apt' })
+
       # https://people.debian.org/~hmh/invokerc.d-policyrc.d-specification.txt
       # use policy-rc.d to really ensure services don't get started on
       # installation as service override files are only used if a job
