@@ -12,10 +12,6 @@ describe manifest do
       YAML.load facts[:astute_settings_yaml]
     end
 
-    let(:thread_pool_calc) do
-      [[12 * facts[:physicalprocessorcount].to_i, 30].max, 100].min
-    end
-
     it 'should declare "fuel::rabbitmq" class correctly' do
       parameters = {
           :astute_user => fuel_settings['astute']['user'],
@@ -24,7 +20,7 @@ describe manifest do
           :mco_user => fuel_settings['mcollective']['user'],
           :mco_password => fuel_settings['mcollective']['password'],
           :env_config => {
-              'RABBITMQ_SERVER_ERL_ARGS' => "+K true +A#{thread_pool_calc} +P 1048576",
+              'RABBITMQ_SERVER_ERL_ARGS' => "+K true +P 1048576",
               'ERL_EPMD_ADDRESS' => fuel_settings['ADMIN_NETWORK']['ipaddress'],
               'NODENAME' => "rabbit@#{facts[:hostname]}",
           },
