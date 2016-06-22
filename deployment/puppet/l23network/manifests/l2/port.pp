@@ -72,9 +72,10 @@ define l23network::l2::port (
         }
       }
     }
-    /^([\w\-]+\d+)\.(\d+)/: {
+    /^([\w\-]+\d*)\.(\d+)/: {
       if $vlan_dev == false {
-        # special case for non-vlan devices witn naming like "aaaNNN.XXX"
+        # special case for non-vlan devices witn naming like:
+        # "aaaNNN.XXX", "aaa-NNN.XXX", "aaa-bbb.XXX", "aa-bb-NN.XX"
         $port_vlan_mode = undef
         $port_vlan_id   = undef
         $port_vlan_dev  = undef
