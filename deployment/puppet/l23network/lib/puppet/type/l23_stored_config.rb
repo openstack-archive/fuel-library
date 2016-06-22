@@ -318,8 +318,11 @@ Puppet::Type.newtype(:l23_stored_config) do
     desc "ethtool addition configuration for this interface"
     #defaultto {}  # no default value should be!!!
     validate do |val|
-      if ! val.is_a? Hash
-        fail("ethtool commands should be a hash!")
+      unless val.is_a? Hash
+        fail 'Ethtool should be a hash!'
+        if val['rings'] and not val['rings'].is_a? Hash
+          fail 'Rings should be a Hash! Do you have "stringify_facts=false" in your puppet config?'
+        end
       end
     end
 
