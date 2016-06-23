@@ -107,9 +107,18 @@ class osnailyfacter::database::database {
       default: {
         # MOS galera packages
         $vendor_type = 'MOS'
-        $mysql_package_name = 'mysql-server-wsrep-5.6'
         $galera_package_name = 'galera-3'
-        $client_package_name = 'mysql-client-5.6'
+
+        # TODO(dmburmistrov): after dropping trusty support
+        # remove this if, only 'mysql-wsrep-*' should be preserved
+        if (versioncmp($::operatingsystemmajrelease, '16') >= 0) {
+          $mysql_package_name  = 'mysql-wsrep-server-5.6'
+          $client_package_name = 'mysql-wsrep-client-5.6'
+        } else {
+          $mysql_package_name  = 'mysql-server-wsrep-5.6'
+          $client_package_name = 'mysql-client-5.6'
+        }
+
         $vendor_override_options = {
           'mysqld'           => {
             'wsrep_provider' => '/usr/lib/galera/libgalera_smm.so'

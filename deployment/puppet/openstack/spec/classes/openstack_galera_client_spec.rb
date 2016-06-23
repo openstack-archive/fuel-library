@@ -7,7 +7,11 @@ describe 'openstack::galera::client' do
       let(:mysql_client_name) do
         case facts[:osfamily]
         when 'Debian'
-          'mysql-client-5.6'
+          if facts[:operatingsystemmajrelease] == '14.04'
+            'mysql-client-5.6'
+          else
+            'mysql-wsrep-client-5.6'
+          end
         when 'RedHat'
           'MySQL-client-wsrep'
         else
