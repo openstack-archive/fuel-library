@@ -52,6 +52,7 @@ describe manifest do
     debug = Noop.hiera('debug', false)
     threads_max = 2*workers_max.to_i
     rabbit_hash = Noop.hiera_structure 'rabbit'
+    rabbitmq_admin_enabled = rabbit_hash.fetch(['use_rabbitmq_admin'], true)
     use_pacemaker = rabbit_hash.fetch(['pacemaker'], true)
     pid_file = rabbit_hash.fetch('pid_file', '/var/run/rabbitmq/p_pid')
     file_limit = rabbit_hash.fetch('file_limits', 100000)
@@ -75,7 +76,7 @@ describe manifest do
     })
 
     let (:params) do {
-      :admin_enable                => true,
+      :admin_enable                => rabbitmq_admin_enabled,
       :management_port             => management_port,
       :repos_ensure                => false,
       :package_provider            => $package_provider,
@@ -141,6 +142,12 @@ describe manifest do
       )
     end
 
+    if rabbitmq_admin_enabled
+      it 'should check rabbitmq status' do
+        should contain_service_status('rabbitmq').that_comes_before('Staging::File[rabbitmqadmin]')
+      end
+    end
+
     it 'should configure rabbit fence class' do
       if use_pacemaker
         should contain_class('cluster::rabbitmq_fence').with(
@@ -182,6 +189,7 @@ describe manifest do
         ).that_comes_before('Class[nova::rabbitmq]')
         should contain_class('cluster::rabbitmq_ocf').that_requires(
           'Class[rabbitmq::install]')
+        should contain_service_status('rabbitmq').that_requires('Service[rabbitmq-server]')
       end
     end
 
