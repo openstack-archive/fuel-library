@@ -15,6 +15,7 @@ class osnailyfacter::ceph::radosgw {
   $rgw_keystone_revocation_interval = '1000000'
   $rgw_keystone_token_cache_size    = '10'
   $rgw_init_timeout                 = pick($storage_hash['rgw_init_timeout'], '360000')
+  $auth_s3_keystone_ceph            = pick($storage_hash['auth_s3_keystone_ceph'], false)
   $service_endpoint                 = hiera('service_endpoint')
   $management_vip                   = hiera('management_vip')
 
@@ -82,7 +83,7 @@ class osnailyfacter::ceph::radosgw {
       rgw_keystone_admin_token         => $keystone_hash['admin_token'],
       rgw_keystone_token_cache_size    => $rgw_keystone_token_cache_size,
       rgw_keystone_accepted_roles      => $rgw_keystone_accepted_roles,
-      rgw_s3_auth_use_keystone         => false,
+      rgw_s3_auth_use_keystone         => $auth_s3_keystone_ceph,
       use_pki                          => false,
     }
 
