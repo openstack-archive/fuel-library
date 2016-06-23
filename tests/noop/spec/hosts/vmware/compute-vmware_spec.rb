@@ -2,7 +2,7 @@
 
 require 'spec_helper'
 require 'shared-examples'
-manifest = 'vmware/compute-vmware.pp'
+manifest = 'vmware/compute_vmware.pp'
 
 describe manifest do
   shared_examples 'catalog' do

@@ -1,3 +1,5 @@
+# ROLE: primary-controller
+
 require 'spec_helper'
 require 'shared-examples'
 manifest = 'heat/cfn_keystone.pp'

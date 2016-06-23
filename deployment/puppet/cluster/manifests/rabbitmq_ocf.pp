@@ -215,5 +215,14 @@ class cluster::rabbitmq_ocf (
     parameters          => $parameters,
     #    ocf_script_file     => $ocf_script_file,
   }
-  Service[$service_name] -> Rabbitmq_user <||>
+  if !defined(Openstacklib::Service_validation['rabbitmq']) {
+    openstacklib::service_validation { 'rabbitmq':
+      command   => 'rabbitmqctl cluster_status',
+      tries     => '100',
+      try_sleep => '6',
+      unless    => 'rabbitmqctl cluster_status',
+    }
+  }
+
+  Service[$service_name] -> Openstacklib::Service_validation['rabbitmq'] -> Rabbitmq_user <||>
 }
