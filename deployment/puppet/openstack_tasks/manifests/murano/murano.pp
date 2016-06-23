@@ -40,8 +40,6 @@ class openstack_tasks::murano::murano {
 
   $api_bind_host              = get_network_role_property('murano/api', 'ipaddr')
 
-  $external_lb                = hiera('external_lb', false)
-
   $murano_plugins             = pick($murano_hash['plugins'], {})
 
   #################################################################
@@ -146,49 +144,18 @@ class openstack_tasks::murano::murano {
     class { '::murano::api':
       host    => $api_bind_host,
       port    => $api_bind_port,
-      sync_db => false,
     }
 
-    class { '::murano::engine':
-      sync_db => false,
-    }
+    class { '::murano::engine': }
 
     class { '::murano::client': }
 
     class { '::murano::dashboard':
       enable_glare => $enable_glare,
       repo_url     => $repository_url,
-      sync_db      => false,
-    }
-
-    $haproxy_stats_url = "http://${management_ip}:10000/;csv"
-
-    $murano_protocol = get_ssl_property($ssl_hash, {}, 'murano', 'internal', 'protocol', 'http')
-    $murano_address  = get_ssl_property($ssl_hash, {}, 'murano', 'internal', 'hostname', [$service_endpoint, $management_vip])
-    $murano_url      = "${murano_protocol}://${murano_address}:${api_bind_port}"
-
-    $lb_defaults = { 'provider' => 'haproxy', 'url' => $haproxy_stats_url }
-
-    if $external_lb {
-      $lb_backend_provider = 'http'
-      $lb_url = $murano_url
-    }
-
-    $lb_hash = {
-      'murano-api'      => {
-        name     => 'murano-api',
-        provider => $lb_backend_provider,
-        url      => $lb_url
-      }
-    }
-
-    ::osnailyfacter::wait_for_backend {'murano-api':
-      lb_hash     => $lb_hash,
-      lb_defaults => $lb_defaults
     }
 
     Firewall[$firewall_rule] -> Class['::murano::api']
-    Service['murano-api'] -> ::Osnailyfacter::Wait_for_backend['murano-api']
 
     # TODO (iberezovskiy): remove this workaround in N when murano module
     # will be switched to puppet-oslo usage for rabbit configuration
