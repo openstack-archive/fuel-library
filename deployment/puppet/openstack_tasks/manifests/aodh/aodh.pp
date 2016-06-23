@@ -147,9 +147,7 @@ class openstack_tasks::aodh::aodh {
     keystone_password     => $aodh_user_password,
     keystone_tenant       => $tenant,
     keystone_auth_uri     => $keystone_auth_uri,
-    # TODO (degorenko) uncomment after change https://review.openstack.org/#/c/328806
-    # will be merged
-    #keystone_auth_url     => $keystone_auth_url,
+    keystone_auth_url     => $keystone_auth_url,
     host                  => $aodh_api_bind_host,
     port                  => $aodh_api_bind_port,
   }
