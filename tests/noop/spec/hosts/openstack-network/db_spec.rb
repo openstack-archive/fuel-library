@@ -17,7 +17,10 @@ describe manifest do
       if facts[:osfamily] == 'RedHat'
         pkg_name = 'MySQL-client-wsrep'
       elsif facts[:osfamily] == 'Debian'
-        pkg_name = 'mysql-client-5.6'
+        pkg_name = facts[:operatingsystemmajrelease] ? {
+          '14'    => 'mysql-client-5.6',
+          default => 'mysql-wsrep-client-5.6',
+        }
       end
       should contain_class('mysql::client').with(
         'package_name' => pkg_name,
