@@ -13,7 +13,6 @@ class openstack_tasks::murano::murano {
   $database_ip                = hiera('database_vip')
   $management_ip              = hiera('management_vip')
   $region                     = hiera('region', 'RegionOne')
-  $use_neutron                = hiera('use_neutron', false)
   $service_endpoint           = hiera('service_endpoint')
   $syslog_log_facility_murano = hiera('syslog_log_facility_murano')
   $debug                      = pick($murano_hash['debug'], hiera('debug', false))
@@ -76,10 +75,7 @@ class openstack_tasks::murano::murano {
       'extra'    => $extra_params
     })
 
-    $external_network = $use_neutron ? {
-      true    => get_ext_net_name($neutron_config['predefined_networks']),
-      default => undef,
-    }
+    $external_network = get_ext_net_name($neutron_config['predefined_networks'])
 
     $repository_url = has_key($murano_settings_hash, 'murano_repo_url') ? {
       true    => $murano_settings_hash['murano_repo_url'],
@@ -127,7 +123,7 @@ class openstack_tasks::murano::murano {
       admin_tenant_name   => $tenant,
       identity_uri        => "${admin_auth_protocol}://${admin_auth_address}:35357/",
       notification_driver => $ceilometer_hash['notification_driver'],
-      use_neutron         => $use_neutron,
+      use_neutron         => true,
       packages_service    => $packages_service,
       rabbit_os_user      => $rabbit_hash['user'],
       rabbit_os_password  => $rabbit_hash['password'],

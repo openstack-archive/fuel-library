@@ -18,7 +18,6 @@ describe manifest do
 
     network_metadata = Noop.hiera_hash 'network_metadata'
     network_scheme   = Noop.hiera_hash 'network_scheme'
-    use_neutron      = Noop.hiera 'use_neutron'
     default_gateway  = Noop.hiera 'default_gateway'
     set_xps          = Noop.hiera 'set_xps', true
     set_rps          = Noop.hiera 'set_rps', true

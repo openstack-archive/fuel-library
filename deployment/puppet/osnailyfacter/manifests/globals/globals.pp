@@ -96,8 +96,7 @@ class osnailyfacter::globals::globals {
   $user_admin_domain              = hiera('user_admin_domain','Default')
 
   $dns_nameservers                = hiera('dns_nameservers', [])
-  $use_neutron                    = hiera('quantum', false)
-  $use_ovs                        = hiera('use_ovs', $use_neutron)
+  $use_ovs                        = hiera('use_ovs', true)
   $verbose                        = true
   $debug                          = hiera('debug', false)
   $master_ip                      = hiera('master_ip')
@@ -251,33 +250,13 @@ class osnailyfacter::globals::globals {
   $database_vip           = try_get_value($vips, 'database/ipaddr', $management_vip)
   $service_endpoint       = try_get_value($vips, 'service_endpoint/ipaddr', $management_vip)
 
-  if $use_neutron {
-    $novanetwork_params            = {}
-    $neutron_config                = hiera_hash('quantum_settings')
-    $network_provider              = 'neutron'
-    $neutron_db_password           = $neutron_config['database']['passwd']
-    $neutron_user_password         = $neutron_config['keystone']['admin_password']
-    $neutron_metadata_proxy_secret = $neutron_config['metadata']['metadata_proxy_shared_secret']
-    $base_mac                      = $neutron_config['L2']['base_mac']
-    $management_network_range      = get_network_role_property('mgmt/vip', 'network')
-  } else {
-    $neutron_config     = {}
-    $novanetwork_params = hiera('novanetwork_parameters')
-    $network_size       = $novanetwork_params['network_size']
-    $num_networks       = $novanetwork_params['num_networks']
-    $network_provider   = 'nova'
-    if ( $novanetwork_params['network_manager'] == 'FlatDHCPManager') {
-      $private_int                  = get_network_role_property('novanetwork/fixed', 'interface')
-    } else {
-      $private_int                  = get_network_role_property('novanetwork/vlan', 'interface')
-      $vlan_start         = $novanetwork_params['vlan_start']
-      $network_config     = {
-        'vlan_start'      => $vlan_start,
-      }
-    }
-    $network_manager          = "nova.network.manager.${novanetwork_params['network_manager']}"
-    $management_network_range = hiera('management_network_range')
-  }
+  $neutron_config                = hiera_hash('quantum_settings')
+  $network_provider              = 'neutron'
+  $neutron_db_password           = $neutron_config['database']['passwd']
+  $neutron_user_password         = $neutron_config['keystone']['admin_password']
+  $neutron_metadata_proxy_secret = $neutron_config['metadata']['metadata_proxy_shared_secret']
+  $base_mac                      = $neutron_config['L2']['base_mac']
+  $management_network_range      = get_network_role_property('mgmt/vip', 'network')
 
   if roles_include('primary-controller') {
     $primary_controller = true

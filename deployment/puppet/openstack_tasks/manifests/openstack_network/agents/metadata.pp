@@ -2,7 +2,6 @@ class openstack_tasks::openstack_network::agents::metadata {
 
   notice('MODULAR: openstack_network/agents/metadata.pp')
 
-  $use_neutron              = hiera('use_neutron', false)
   $neutron_controller_roles = hiera('neutron_controller_roles', ['controller', 'primary-controller'])
   $neutron_compute_roles    = hiera('neutron_compute_nodes', ['compute'])
   $controller               = roles_include($neutron_controller_roles)
@@ -20,7 +19,7 @@ class openstack_tasks::openstack_network::agents::metadata {
                              min(max($::processorcount, 2), $workers_max))
   }
 
-  if $use_neutron and ($controller or ($dvr and $compute)) {
+  if $controller or ($dvr and $compute) {
     # override neutron options
     $override_configuration = hiera_hash('configuration', {})
     override_resources { 'neutron_metadata_agent_config':
@@ -28,7 +27,7 @@ class openstack_tasks::openstack_network::agents::metadata {
     } ~> Service['neutron-metadata']
   }
 
-  if $use_neutron and ($controller or ($dvr and $compute)) {
+  if $controller or ($dvr and $compute) {
     $debug                  = hiera('debug', true)
     $ha_agent               = try_get_value($neutron_advanced_config, 'metadata_agent_ha', true)
     $service_endpoint       = hiera('service_endpoint')
