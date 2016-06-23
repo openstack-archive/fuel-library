@@ -85,25 +85,21 @@ describe manifest do
     it 'should configure "keystone_authtoken/" section' do
       should contain_aodh_config('keystone_authtoken/memcache_servers').with(:value => "#{memcache_address}:11211")
       should contain_aodh_config('keystone_authtoken/signing_dir').with(:value => keystone_signing_dir)
-      # TODO (degorenko) uncomment after changehttps://review.openstack.org/#/c/328806
-      # will be merged
-      #should contain_aodh_config('keystone_authtoken/auth_url').with(:value => keystone_auth_url)
+      should contain_aodh_config('keystone_authtoken/auth_url').with(:value => keystone_auth_url)
       should contain_aodh_config('keystone_authtoken/auth_uri').with(:value => keystone_auth_uri)
-      #should contain_aodh_config('keystone_authtoken/project_name').with(:value => tenant)
-      #should contain_aodh_config('keystone_authtoken/username').with(:value => user)
-      #should contain_aodh_config('keystone_authtoken/password').with(:value => password)
+      should contain_aodh_config('keystone_authtoken/project_name').with(:value => tenant)
+      should contain_aodh_config('keystone_authtoken/username').with(:value => user)
+      should contain_aodh_config('keystone_authtoken/password').with(:value => password)
     end
 
-# TODO (degorenko) uncomment after changehttps://review.openstack.org/#/c/328806
-# will be merged
-#    it 'should configure "service_credentials/" section' do
-#      should contain_aodh_config('service_credentials/username').with(:value => user)
-#      should contain_aodh_config('service_credentials/password').with(:value => password)
-#      should contain_aodh_config('service_credentials/tenant_name').with(:value => tenant)
-#      should contain_aodh_config('service_credentials/region_name').with(:value => region)
-#      should contain_aodh_config('service_credentials/endpoint_type').with(:value => 'internalURL')
-#      should contain_aodh_config('service_credentials/auth_url').with(:value => keystone_auth_uri)
-#    end
+    it 'should configure "service_credentials/" section' do
+      should contain_aodh_config('service_credentials/username').with(:value => user)
+      should contain_aodh_config('service_credentials/password').with(:value => password)
+      should contain_aodh_config('service_credentials/tenant_name').with(:value => tenant)
+      should contain_aodh_config('service_credentials/region_name').with(:value => region)
+      should contain_aodh_config('service_credentials/endpoint_type').with(:value => 'internalURL')
+      should contain_aodh_config('service_credentials/auth_url').with(:value => keystone_auth_uri)
+    end
 
     it 'should configure "oslo_messaging_rabbit/" section' do
       should contain_aodh_config('oslo_messaging_rabbit/rabbit_ha_queues').with(:value => rabbit_ha_queues)
