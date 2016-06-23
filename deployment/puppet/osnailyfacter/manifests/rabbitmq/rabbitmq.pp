@@ -125,9 +125,11 @@ class osnailyfacter::rabbitmq::rabbitmq {
     )
     $environment_variables = merge($environment_variables_init,{'NODENAME' => "rabbit@${fqdn_prefix}${hostname}"})
 
+    $rabbitmq_admin_enabled = pick($rabbit_hash['use_rabbitmq_admin'], true)
+
     if ($enabled) {
       class { '::rabbitmq':
-        admin_enable                => true,
+        admin_enable                => $rabbitmq_admin_enabled,
         management_port             => $management_port,
         repos_ensure                => false,
         package_provider            => $package_provider,
@@ -161,6 +163,13 @@ class osnailyfacter::rabbitmq::rabbitmq {
           tries       => 30,
           try_sleep   => 6,
       }
+
+      if $rabbitmq_admin_enabled {
+        ensure_resource('service_status', ['rabbitmq'], { 'ensure' => 'online', check_cmd => 'rabbitmqctl cluster_status'})
+
+        Service_status['rabbitmq'] -> Staging::File['rabbitmqadmin']
+      }
+
       # TODO(bogdando) contribute this to puppetlabs-rabbitmq
       # Start epmd as rabbitmq so it doesn't run as root when installing plugins
       exec { 'epmd_daemon':
