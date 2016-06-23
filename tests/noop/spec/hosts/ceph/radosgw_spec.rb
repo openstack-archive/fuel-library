@@ -12,10 +12,11 @@ describe manifest do
     ssl_hash          = Noop.hiera_structure('use_ssl', {})
     storage_hash      = Noop.hiera_hash 'storage'
 
-    rgw_large_pool_name    = '.rgw'
-    rgw_large_pool_pg_nums = storage_hash['per_pool_pg_nums'][rgw_large_pool_name]
-    rgw_id                 = 'radosgw.gateway'
-    radosgw_auth_key       = "client.#{rgw_id}"
+    rgw_large_pool_name       = '.rgw'
+    rgw_large_pool_pg_nums    = storage_hash['per_pool_pg_nums'][rgw_large_pool_name]
+    $rgw_s3_auth_use_keystone = storage_hash['rgw_s3_auth_use_keystone']
+    rgw_id                    = 'radosgw.gateway'
+    radosgw_auth_key          = "client.#{rgw_id}"
 
     let(:gateway_name) {
       'radosgw.gateway'
@@ -75,7 +76,7 @@ describe manifest do
       it 'should configure radosgw keystone' do
         should contain_ceph__rgw__keystone(gateway_name).with(
           'rgw_keystone_url'         => admin_identity_url,
-          'rgw_s3_auth_use_keystone' => false,
+          'rgw_s3_auth_use_keystone' => rgw_s3_auth_use_keystone,
           'use_pki'                  => false,
         )
       end
