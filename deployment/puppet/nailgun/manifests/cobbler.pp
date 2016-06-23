@@ -190,7 +190,7 @@ class nailgun::cobbler(
         distro    => 'ubuntu_bootstrap',
         menu      => true,
         kickstart => '',
-        kopts     => "console=ttyS0,9600 console=tty0 panic=60 ethdevice-timeout=${bootstrap_ethdevice_timeout} boot=live toram components fetch=http://${server}:8080/bootstrap/ubuntu/root.squashfs biosdevname=0 url=${nailgun_api_url} mco_user=${mco_user} mco_pass=${mco_pass}",
+        kopts     => "console=ttyS0,9600 console=tty0 panic=60 ethdevice-timeout=${bootstrap_ethdevice_timeout} boot=live net.ifnames=1 toram components fetch=http://${server}:8080/bootstrap/ubuntu/root.squashfs biosdevname=0 url=${nailgun_api_url} mco_user=${mco_user} mco_pass=${mco_pass}",
         ksmeta    => '',
         server    => $real_server,
         require   => Cobbler_distro['ubuntu_bootstrap'],
