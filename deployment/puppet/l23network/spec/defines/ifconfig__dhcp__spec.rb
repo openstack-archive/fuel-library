@@ -10,8 +10,8 @@ describe 'l23network::l3::ifconfig', :type => :define do
       :kernel => 'Linux',
       :netrings => {
         'eth4' => {
-          'maximums' => {'RX'=>'4096', 'TX'=>'4096'},
-          'current' => {'RX'=>'256', 'TX'=>'256'}
+          'maximums' => {'rx'=>'4096', 'tx'=>'4096'},
+          'current' => {'rx'=>'256', 'tx'=>'256'}
         },
       }
     } }

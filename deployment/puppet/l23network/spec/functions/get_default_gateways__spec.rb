@@ -2,9 +2,10 @@ require 'spec_helper'
 require 'yaml'
 require_relative '../../lib/puppetx/l23_hash_tools'
 
-describe Puppet::Parser::Functions.function(:get_default_gateways) do
-let(:network_scheme) do
-<<eof
+describe 'get_default_gateways' do
+
+  let(:network_scheme) do
+<<-eof
 ---
   version: 1.1
   provider: lnx
@@ -40,15 +41,10 @@ let(:network_scheme) do
     br-floating:
       IP: none
 eof
-end
+  end
 
-
-
-  let(:scope) { PuppetlabsSpec::PuppetInternals.scope }
-
-  subject do
-    function_name = Puppet::Parser::Functions.function(:get_default_gateways)
-    scope.method(function_name)
+  it 'should exist' do
+    is_expected.not_to be_nil
   end
 
   context ":get_default_gateways() usage" do
@@ -60,12 +56,8 @@ end
       )
     end
 
-    it 'should exist' do
-      subject == Puppet::Parser::Functions.function(:get_default_gateways)
-    end
-
     it do
-      should run.with_params().and_return(['10.1.3.1', '10.1.2.1', '10.1.1.1'])
+      is_expected.to run.with_params().and_return(['10.1.3.1', '10.1.2.1', '10.1.1.1'])
     end
 
   end

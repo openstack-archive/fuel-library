@@ -39,16 +39,16 @@ end
         :l3_fqdn_hostname => 'stupid_hostname',
         :netrings => {
           'eth1' => {
-            'maximums' => {'RX'=>'4096', 'TX'=>'4096'},
-            'current' => {'RX'=>'256', 'TX'=>'256'}
+            'maximums' => {'rx'=>'4096', 'tx'=>'4096'},
+            'current' => {'rx'=>'256', 'tx'=>'256'}
           },
           'eth2' => {
-            'maximums' => {'RX'=>'4096', 'TX'=>'4096'},
-            'current' => {'RX'=>'256', 'TX'=>'256'}
+            'maximums' => {'rx'=>'4096', 'tx'=>'4096'},
+            'current' => {'rx'=>'256', 'tx'=>'256'}
           },
           'eth3' => {
-            'maximums' => {'RX'=>'4096', 'TX'=>'4096'},
-            'current' => {'RX'=>'2048', 'TX'=>'2048'}
+            'maximums' => {'rx'=>'4096', 'tx'=>'4096'},
+            'current' => {'rx'=>'2048', 'tx'=>'2048'}
           }
         }
       }
