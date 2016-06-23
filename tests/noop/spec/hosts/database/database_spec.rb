@@ -122,12 +122,28 @@ describe manifest do
       end
     end
 
+    let(:mysql_client_pkg) do
+      if facts[:operatingsystemmajrelease] == '14'
+        'mysql-client-5.6'
+      else
+        'mysql-wsrep-client-5.6'
+      end
+    end
+
+    let(:mysql_server_pkg) do
+      if facts[:operatingsystemmajrelease] == '14'
+        'mysql-client-5.6'
+      else
+        'mysql-wsrep-client-5.6'
+      end
+    end
+
     it 'should contain galera' do
       should contain_class('galera').with(
         :vendor_type => 'MOS',
-        :mysql_package_name => 'mysql-server-wsrep-5.6',
+        :mysql_package_name => mysql_server_pkg,
         :galera_package_name => 'galera-3',
-        :client_package_name => 'mysql-client-5.6',
+        :client_package_name => mysql_client_pkg,
         :galera_servers => galera_nodes,
         :galera_master => false,
         :mysql_port => '3307',
