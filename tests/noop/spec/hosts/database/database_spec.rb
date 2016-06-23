@@ -125,9 +125,9 @@ describe manifest do
     it 'should contain galera' do
       should contain_class('galera').with(
         :vendor_type => 'MOS',
-        :mysql_package_name => 'mysql-server-wsrep-5.6',
+        :mysql_package_name => 'mysql-wsrep-server-5.6',
         :galera_package_name => 'galera-3',
-        :client_package_name => 'mysql-client-5.6',
+        :client_package_name => 'mysql-wsrep-client-5.6',
         :galera_servers => galera_nodes,
         :galera_master => false,
         :mysql_port => '3307',
