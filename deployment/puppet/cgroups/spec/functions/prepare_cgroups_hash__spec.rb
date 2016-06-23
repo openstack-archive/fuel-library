@@ -1,18 +1,14 @@
 require 'spec_helper'
 
-describe Puppet::Parser::Functions.function(:prepare_cgroups_hash) do
-  let(:scope) { PuppetlabsSpec::PuppetInternals.scope }
-
-  subject do
-    function_name = Puppet::Parser::Functions.function(:prepare_cgroups_hash)
-    scope.method(function_name)
-  end
+describe 'prepare_cgroups_hash' do
 
   it 'should exist' do
-    subject == Puppet::Parser::Functions.function(:prepare_cgroups_hash)
+    is_expected.not_to be_nil
   end
 
-  Facter.stubs(:fact).with(:memorysize_mb).returns Facter.add(:memorysize_mb) { setcode { 1024 } }
+  before(:each) do
+    Facter.stubs(:fact).with(:memorysize_mb).returns Facter.add(:memorysize_mb) { setcode { 1024 } }
+  end
 
   context "transform simple hash" do
     let(:sample) {
@@ -48,7 +44,7 @@ describe Puppet::Parser::Functions.function(:prepare_cgroups_hash) do
     }
 
     it 'should transform hash with simple values' do
-      should run.with_params(sample).and_return(result)
+      is_expected.to run.with_params(sample).and_return(result)
     end
 
   end
@@ -78,7 +74,7 @@ describe Puppet::Parser::Functions.function(:prepare_cgroups_hash) do
     }
 
     it 'should transform hash including expression to compute' do
-      should run.with_params(sample).and_return(result)
+      is_expected.to run.with_params(sample).and_return(result)
     end
 
   end
@@ -108,7 +104,7 @@ describe Puppet::Parser::Functions.function(:prepare_cgroups_hash) do
     }
 
     it 'should transform hash including expression to compute and return int' do
-      should run.with_params(sample).and_return(result)
+      is_expected.to run.with_params(sample).and_return(result)
     end
 
   end
@@ -138,7 +134,7 @@ describe Puppet::Parser::Functions.function(:prepare_cgroups_hash) do
     }
 
     it 'should transform hash including expression to compute with whitespaces' do
-      should run.with_params(sample).and_return(result)
+      is_expected.to run.with_params(sample).and_return(result)
     end
 
   end
@@ -169,7 +165,7 @@ describe Puppet::Parser::Functions.function(:prepare_cgroups_hash) do
     }
 
     it 'should transform hash with empty service settings' do
-      should run.with_params(sample).and_return(result)
+      is_expected.to run.with_params(sample).and_return(result)
     end
 
   end
@@ -217,7 +213,7 @@ describe Puppet::Parser::Functions.function(:prepare_cgroups_hash) do
     }
 
     it 'should convert memory values only for bytes values' do
-      should run.with_params(sample).and_return(result)
+      is_expected.to run.with_params(sample).and_return(result)
     end
 
   end
