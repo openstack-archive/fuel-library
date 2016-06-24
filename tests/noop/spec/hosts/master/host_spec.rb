@@ -305,6 +305,7 @@ describe manifest do
     end
 
     [
+        'Cleanup orphaned dns settings from ifcfg-e* files',
         'Remove ssh_config SendEnv defaults',
         'Password aging and length settings',
         'Password complexity',
