@@ -80,6 +80,10 @@ describe manifest do
         )
       end
 
+      it 'should set rgw_init_timeout' do
+        should contain_ceph_config('client.radosgw.gateway/rgw_init_timeout').with(:value => '360000')
+      end
+
       it { should contain_exec("Create #{rgw_large_pool_name} pool").with(
            :command => "ceph -n #{radosgw_auth_key} osd pool create #{rgw_large_pool_name} #{rgw_large_pool_pg_nums} #{rgw_large_pool_pg_nums}",
            :unless  => "rados lspools | grep '^#{rgw_large_pool_name}$'"

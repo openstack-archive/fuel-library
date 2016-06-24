@@ -14,6 +14,7 @@ class osnailyfacter::ceph::radosgw {
   $rgw_keystone_accepted_roles      = pick($storage_hash['radosgw_keystone_accepted_roles'], '_member_, Member, admin, swiftoperator')
   $rgw_keystone_revocation_interval = '1000000'
   $rgw_keystone_token_cache_size    = '10'
+  $rgw_init_timeout                 = '360000'
   $service_endpoint                 = hiera('service_endpoint')
   $management_vip                   = hiera('management_vip')
 
@@ -87,7 +88,7 @@ class osnailyfacter::ceph::radosgw {
       ensure => directory,
     }
 
-    ceph::rgw::apache_proxy_fcgi { 'radosgw.gateway':
+    ceph::rgw::apache_proxy_fcgi { $gateway_name:
       docroot              => '/var/www/radosgw',
       rgw_port             => '6780',
       apache_purge_configs => false,
@@ -97,13 +98,17 @@ class osnailyfacter::ceph::radosgw {
 
     if ! $use_syslog {
       ceph_config {
-        'client.radosgw.gateway/log_file':      value => $rgw_log_file;
-        'client.radosgw.gateway/log_to_syslog': value => $use_syslog;
+        "client.${gateway_name}/log_file":      value => $rgw_log_file;
+        "client.${gateway_name}/log_to_syslog": value => $use_syslog;
       }
     }
 
+    ceph_config {
+      "client.${gateway_name}/rgw_init_timeout": value => $rgw_init_timeout;
+    }
+
     exec { "Create ${rgw_large_pool_name} pool":
-      command => "ceph -n client.radosgw.gateway osd pool create ${rgw_large_pool_name} ${rgw_large_pool_pg_nums} ${rgw_large_pool_pg_nums}",
+      command => "ceph -n client.${gateway_name} osd pool create ${rgw_large_pool_name} ${rgw_large_pool_pg_nums} ${rgw_large_pool_pg_nums}",
       path    => '/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/bin',
       unless  => "rados lspools | grep '^${rgw_large_pool_name}$'",
     }
