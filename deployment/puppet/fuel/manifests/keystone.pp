@@ -41,6 +41,7 @@ class fuel::keystone (
     token_expiration    => $token_expiration,
     token_provider      => 'keystone.token.providers.uuid.Provider',
     default_domain      => $keystone_domain,
+    service_name        => $::fuel::params::keystone_service_name,
   }
 
   # FIXME(kozhukalov): Remove this hack and use enable_bootstrap instead
