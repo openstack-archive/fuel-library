@@ -44,6 +44,8 @@ class fuel::keystone (
     service_name        => $::fuel::params::keystone_service_name,
   }
 
+  include ::osnailyfacter::enable_admin_token_auth
+
   # FIXME(kozhukalov): Remove this hack and use enable_bootstrap instead
   # once patch is merged and test envs are updated with the ISO
   # that contains Mitaka keystone rpm package.
