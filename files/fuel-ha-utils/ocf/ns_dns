@@ -140,7 +140,7 @@ exit $OCF_SUCCESS
 
 check_ns() {
   local ns=$(ip netns list | awk "/${OCF_RESKEY_ns}/ {print \$1}")
-  [ $ns != $OCF_RESKEY_ns ] && return $OCF_ERR_GENERIC
+  [ "$ns" != $OCF_RESKEY_ns ] && return $OCF_ERR_GENERIC
   return $OCF_SUCCESS
 }
 
@@ -150,6 +150,7 @@ get_ns() {
 
   ocf_run ip netns add $OCF_RESKEY_ns
   rc=$?
+  ocf_run $RUN_IN_NS /sbin/sysctl -w net.ipv4.ip_nonlocal_bind=1
   ocf_run $RUN_IN_NS ip link set up dev lo
 
   return $rc
