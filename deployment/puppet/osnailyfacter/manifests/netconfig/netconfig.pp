@@ -19,10 +19,10 @@ class osnailyfacter::netconfig::netconfig {
   }
 
   class { '::l23network' :
-    use_ovs                      => hiera('use_ovs', false),
-    ovs_datapath_package_name    => $ovs_datapath_package_name,
-    use_dpdk                     => pick($dpdk_options['enabled'], false),
-    dpdk_options                 => $dpdk_options,
+    use_ovs                   => hiera('use_ovs', false),
+    ovs_datapath_package_name => $ovs_datapath_package_name,
+    use_dpdk                  => pick($dpdk_options['enabled'], false),
+    dpdk_options              => $dpdk_options,
   }
   $sdn = generate_network_config()
   notify {'SDN': message => $sdn }
