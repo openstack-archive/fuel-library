@@ -745,15 +745,6 @@ mysql_stop() {
     local shutdown_timeout
     local rc
 
-    # if there is no pid AND no SST found, consider it not running
-    # otherwise it may be running an SST and shall be stopped
-    check_if_sst
-    rc=$?
-    if [ $rc -ne $OCF_SUCCESS -a ! -f $OCF_RESKEY_pid ]; then
-        ocf_log info "${LH} MySQL is not running"
-        return $OCF_SUCCESS
-    fi
-
     shutdown_timeout=15
     if [ -n "$OCF_RESKEY_CRM_meta_timeout" ]; then
         shutdown_timeout=$(( ($OCF_RESKEY_CRM_meta_timeout/1000)-5 ))
