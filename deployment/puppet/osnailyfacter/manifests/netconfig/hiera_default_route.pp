@@ -35,6 +35,7 @@ class osnailyfacter::netconfig::hiera_default_route {
     file {'/etc/hiera/override/configuration/default_route.yaml':
       ensure  => file,
       content => inline_template('# Created by puppet, please do not edit
+default_gateway: "<%= @management_vrouter_vip %>"
 network_scheme:
   endpoints:
     <%= @admin_br %>:
