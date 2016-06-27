@@ -43,6 +43,24 @@ class fuel::keystone (
     default_domain      => $keystone_domain,
   }
 
+  # Ensure that keystone_paste_ini file includes "admin_token_auth" filter
+  # so the Puppet keystone types are able to use the admin token.
+  # It will be removed by the next task.
+
+  #FIXME(dilyin): This should be rewritten using ini_subsettings
+  # or some other way
+  $keystone_paste_ini = '/etc/keystone/keystone-paste.ini'
+
+  exec { 'add_admin_token_auth_middleware':
+    path    => ['/bin', '/usr/bin'],
+    command => "sed -i 's/\\( token_auth \\)/\\1admin_token_auth /' ${keystone_paste_ini}",
+    unless  => "fgrep -q ' admin_token_auth' ${keystone_paste_ini}",
+    require => Package['keystone'],
+  }
+
+  Exec['add_admin_token_auth_middleware'] ->
+  Exec <| title == 'keystone-manage db_sync' |> ->
+
   # FIXME(kozhukalov): Remove this hack and use enable_bootstrap instead
   # once patch is merged and test envs are updated with the ISO
   # that contains Mitaka keystone rpm package.
