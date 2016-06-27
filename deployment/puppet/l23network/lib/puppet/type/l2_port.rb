@@ -223,7 +223,9 @@ Puppet::Type.newtype(:l2_port) do
     end
 
     autorequire(:l2_bridge) do
-      [self[:bridge]]
+      bridge = self[:bridge]
+      next [] unless bridge
+      [bridge]
     end
 end
 # vim: set ts=2 sw=2 et :
