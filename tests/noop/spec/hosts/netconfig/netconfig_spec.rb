@@ -15,10 +15,8 @@ manifest = 'netconfig/netconfig.pp'
 describe manifest do
   shared_examples 'catalog' do
 
-    network_metadata = Noop.hiera_hash 'network_metadata'
-    network_scheme   = Noop.hiera_hash 'network_scheme'
     use_neutron      = Noop.hiera 'use_neutron'
-    default_gateway  = Noop.hiera 'default_gateway'
+    default_gateway  = Noop.puppet_function, 'get_default_gateways'
     set_xps          = Noop.hiera 'set_xps', true
     set_rps          = Noop.hiera 'set_rps', true
     dpdk_config      = Noop.hiera_hash 'dpdk', {}

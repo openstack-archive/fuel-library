@@ -107,7 +107,7 @@ class osnailyfacter::netconfig::netconfig {
   if $run_ping_checker {
       # check that network was configured successfully
       # and the default gateway is online
-      $default_gateway = hiera('default_gateway')
+      $default_gateway = get_default_gateways()
 
       ping_host { $default_gateway :
           ensure => 'up',
