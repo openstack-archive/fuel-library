@@ -234,7 +234,6 @@ class osnailyfacter::globals::globals {
     }
   )
 
-  $default_gateway        = get_default_gateways()
   $vips                   = $network_metadata['vips']
 
   # TODO(mpolenchuk): try_get_value() is deprecated,
