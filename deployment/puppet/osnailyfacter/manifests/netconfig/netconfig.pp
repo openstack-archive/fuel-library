@@ -19,10 +19,10 @@ class osnailyfacter::netconfig::netconfig {
   }
 
   class { '::l23network' :
-    use_ovs                      => hiera('use_ovs', false),
-    ovs_datapath_package_name    => $ovs_datapath_package_name,
-    use_dpdk                     => pick($dpdk_options['enabled'], false),
-    dpdk_options                 => $dpdk_options,
+    use_ovs                   => hiera('use_ovs', false),
+    ovs_datapath_package_name => $ovs_datapath_package_name,
+    use_dpdk                  => pick($dpdk_options['enabled'], false),
+    dpdk_options              => $dpdk_options,
   }
   $sdn = generate_network_config()
   notify {'SDN': message => $sdn }
@@ -110,7 +110,7 @@ class osnailyfacter::netconfig::netconfig {
   if $run_ping_checker {
       # check that network was configured successfully
       # and the default gateway is online
-      $default_gateway = hiera('default_gateway')
+      $default_gateway = hiera('default_gateway', get_default_gateways())
 
       ping_host { $default_gateway :
           ensure => 'up',
