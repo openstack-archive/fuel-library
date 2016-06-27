@@ -97,13 +97,13 @@ define openstack::ha::haproxy_service (
   validate_bool($public)
   validate_bool($internal)
 
-  include openstack::ha::haproxy_restart
+  include ::openstack::ha::haproxy_restart
 
   if $public_ssl and !$public_ssl_path {
-    fail("You must set up path to public ssl keypair if you want to use public ssl")
+    fail('You must set up path to public ssl keypair if you want to use public ssl')
   }
   if $internal_ssl and !$internal_ssl_path {
-    fail("You must set up path to internal ssl keypair if you want to use internal ssl")
+    fail('You must set up path to internal ssl keypair if you want to use internal ssl')
   }
   if !($internal or $public) {
     fail('At least one of $public or $internal must be set to true')
@@ -112,21 +112,22 @@ define openstack::ha::haproxy_service (
   if $public {
     $public_bind_address = suffix(any2array($public_virtual_ip), ":${listen_port}")
     if $public_ssl {
-      # TODO(sbog): add !SHA here as soon as all our clients will support TLS1.2
-      $public_bind = array_to_hash($public_bind_address, ['ssl', 'crt', $public_ssl_path, 'no-sslv3', 'no-tls-tickets', 'ciphers AES128+EECDH:AES128+EDH:AES256+EECDH:AES256+EDH'])
+      #TODO(mmalchuk) move options to the cluster::haproxy after upgrade HAProxy to at least v1.5.7
+      $public_bind = array_to_hash($public_bind_address, ['ssl', 'crt', $public_ssl_path, 'no-sslv3', 'no-tls-tickets'])
     } else {
-      $public_bind = array_to_hash($public_bind_address, "")
+      $public_bind = array_to_hash($public_bind_address, '')
     }
   } else {
     $public_bind = {}
   }
+
   if $internal {
-    $internal_bind_address = suffix(any2array($internal_virtual_ip), ":$listen_port")
+    $internal_bind_address = suffix(any2array($internal_virtual_ip), ":${listen_port}")
     if $internal_ssl {
-      # TODO(sbog): add !SHA here too as soon as all our clients will support TLS1.2
-      $internal_bind = array_to_hash($internal_bind_address, ['ssl', 'crt', $internal_ssl_path, 'no-sslv3', 'no-tls-tickets', 'ciphers AES128+EECDH:AES128+EDH:AES256+EECDH:AES256+EDH'])
+      #TODO(mmalchuk) move options to the cluster::haproxy after upgrade HAProxy to at least v1.5.7
+      $internal_bind = array_to_hash($internal_bind_address, ['ssl', 'crt', $internal_ssl_path, 'no-sslv3', 'no-tls-tickets'])
     } else {
-      $internal_bind = array_to_hash($internal_bind_address, "")
+      $internal_bind = array_to_hash($internal_bind_address, '')
     }
   } else {
     $internal_bind = {}
