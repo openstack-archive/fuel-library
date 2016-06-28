@@ -2,15 +2,16 @@ class osnailyfacter::cluster_haproxy::cluster_haproxy {
 
   notice('MODULAR: cluster_haproxy/cluster_haproxy.pp')
 
-  $network_scheme     = hiera_hash('network_scheme', {})
-  $management_vip     = hiera('management_vip')
-  $database_vip       = hiera('database_vip', '')
-  $service_endpoint   = hiera('service_endpoint', '')
-  $primary_controller = hiera('primary_controller')
-  $haproxy_hash       = hiera_hash('haproxy', {})
-  $external_lb        = hiera('external_lb', false)
+  $network_scheme      = hiera_hash('network_scheme', {})
+  $management_vip      = hiera('management_vip')
+  $database_vip        = hiera('database_vip', '')
+  $service_endpoint    = hiera('service_endpoint', '')
+  $primary_controller  = hiera('primary_controller')
+  $haproxy_hash        = hiera_hash('haproxy', {})
+  $external_lb         = hiera('external_lb', false)
   #FIXME(mattymo): Move colocations to a separate task
-  $colocate_haproxy   = hiera('colocate_haproxy', false)
+  $colocate_haproxy    = hiera('colocate_haproxy', false)
+  $ssl_default_ciphers = hiera('ssl_default_ciphers', 'HIGH:!aNULL:!MD5:!kEDH')
 
   $override_configuration = hiera_hash('configuration', {})
   $user_defined_options = $override_configuration['haproxy']
@@ -26,7 +27,8 @@ class osnailyfacter::cluster_haproxy::cluster_haproxy {
       other_networks       => direct_networks($network_scheme['endpoints']),
       stats_ipaddresses    => $stats_ipaddresses,
       colocate_haproxy     => $colocate_haproxy,
-      user_defined_options => $user_defined_options
+      user_defined_options => $user_defined_options,
+      ssl_default_ciphers  => $ssl_default_ciphers,
     }
   }
 
