@@ -1,5 +1,5 @@
 #!/bin/bash
-set -eu
+set -eux
 DIR=`dirname $0`
 cd "${DIR}" || exit 1
 
