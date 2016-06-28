@@ -30,6 +30,26 @@ describe 'openstacklib::db::mysql::host_access' do
       )}
     end
 
+    context 'with uppercase host' do
+      let (:title) { 'nova_HOST1' }
+      let :params do
+        { :user          => 'foobar',
+          :password_hash => 'AA1420F182E88B9E5F874F6FBE7459291E8F4601',
+          :database      => 'nova',
+          :privileges    => 'ALL' }
+      end
+
+      it { is_expected.to contain_mysql_user("#{params[:user]}@10.0.0.1").with(
+        :password_hash => params[:password_hash]
+      )}
+
+      it { is_expected.to contain_mysql_grant("#{params[:user]}@host1/#{params[:database]}.*").with(
+        :user       => "#{params[:user]}@host1",
+        :privileges => 'ALL',
+        :table      => "#{params[:database]}.*"
+      )}
+    end
+
   end
 
   context 'on a Debian osfamily' do
