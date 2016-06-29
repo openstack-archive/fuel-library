@@ -29,6 +29,10 @@ describe Puppet::Type.type(:haproxy_backend_status).provider(:http) do
     Net::HTTPFound.new('1.1', '302', 'Found')
   end
 
+  let (:http_401) do
+    Net::HTTPFound.new('1.1', '401', 'Unauthorized')
+  end
+
   let (:http_503) do
     Net::HTTPServiceUnavailable.new('1.1', '503', 'Service Unavailable')
   end
@@ -81,4 +85,9 @@ describe Puppet::Type.type(:haproxy_backend_status).provider(:http) do
     expect(provider.ensure).to eq(:absent)
   end
 
+  it 'should return :up for running backend (HTTP 401)' do
+    resource[:name] = 'test-up'
+    provider.stubs(:get_url).returns(http_401)
+    expect(provider.ensure).to eq(:up)
+  end
 end
