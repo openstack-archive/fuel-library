@@ -319,6 +319,11 @@ class openstack_tasks::openstack_controller::openstack_controller {
     host    => $api_bind_address,
   }
 
+  if $::os_package_type == 'ubuntu' and $::operatingsystemmajrelease == '16.04' {
+    # This override is required only for 16.04 Ubuntu with UCA packages
+    Package<| title == 'nova-vncproxy' |> { name => 'nova-novncproxy' }
+  }
+
   ####### Disable upstart startup on install #######
   if($::operatingsystem == 'Ubuntu') {
     tweaks::ubuntu_service_override { 'nova-cert':

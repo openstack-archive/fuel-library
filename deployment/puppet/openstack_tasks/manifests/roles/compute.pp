@@ -360,6 +360,13 @@ class openstack_tasks::roles::compute {
     $disk_cachemodes = ['"file=directsync,block=none"']
   }
 
+  if $::operatingsystemmajrelease == '16.04' {
+    # This override is required only for 16.04 Ubuntu because we are using UCA libvirt package.
+    $libvirt_service_name  = 'libvirt-bin'
+    $virtlock_service_name = 'virtlockd'
+    $virtlog_service_name  = 'virtlogd'
+  }
+
   # Configure libvirt for nova-compute
   class { '::nova::compute::libvirt':
     libvirt_virt_type                          => $libvirt_type,
@@ -368,7 +375,9 @@ class openstack_tasks::roles::compute {
     libvirt_inject_partition                   => $libvirt_inject_partition,
     vncserver_listen                           => '0.0.0.0',
     remove_unused_original_minimum_age_seconds => pick($nova_hash_real['remove_unused_original_minimum_age_seconds'], '86400'),
-    libvirt_service_name                       => $::nova::params::libvirt_service_name,
+    libvirt_service_name                       => $libvirt_service_name,
+    virtlock_service_name                      => $virtlock_service_name,
+    virtlog_service_name                       => $virtlog_service_name,
   }
 
   class { '::nova::migration::libvirt':
