@@ -104,6 +104,9 @@ class openstack_tasks::murano::murano {
       package {'murano-glance-artifacts-plugin':
         ensure  => present,
       }
+
+      include ::glance::params
+      Package['murano-glance-artifacts-plugin'] ~> Service[$::glance::params::glare_service_name]
     } else {
       $packages_service = 'murano'
       $enable_glare     = false
