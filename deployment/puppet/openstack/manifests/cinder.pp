@@ -113,9 +113,6 @@ class openstack::cinder(
         database_max_overflow  => $max_overflow,
         control_exchange       => 'cinder',
       }
-      cinder_config {
-        'DEFAULT/kombu_reconnect_delay': value => '5.0';
-      }
     }
     'qpid': {
       $rpc_backend = 'cinder.openstack.common.rpc.impl_qpid'

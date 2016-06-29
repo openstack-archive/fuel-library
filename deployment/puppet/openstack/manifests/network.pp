@@ -186,7 +186,6 @@ class openstack::network (
         rabbit_hosts            => $amqp_hosts,
         rabbit_port             => $amqp_port,
         rabbit_password         => $amqp_password,
-        kombu_reconnect_delay   => '5.0',
         network_device_mtu      => $network_device_mtu,
       }
 
