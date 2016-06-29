@@ -318,6 +318,7 @@ class openstack_tasks::openstack_controller::openstack_controller {
     enabled => true,
     host    => $api_bind_address,
   }
+  Package<| title == 'nova-vncproxy' |> { name => 'nova-novncproxy' }
 
   ####### Disable upstart startup on install #######
   if($::operatingsystem == 'Ubuntu') {
