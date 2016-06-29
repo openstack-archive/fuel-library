@@ -31,10 +31,17 @@ class openstack_tasks::openstack_network::compute_nova {
 
   $nova_migration_ip          =  get_network_role_property('nova/migration', 'ipaddr')
 
+  if $::operatingsystemmajrelease == '16.04' {
+    # This override is required only for 16.04 Ubuntu because we are using UCA libvirt package.
+    $libvirt_service_name  = 'libvirt-bin'
+  } else {
+    $libvirt_service_name = $::nova::params::libvirt_service_name
+  }
+
   service { 'libvirt' :
     ensure   => 'running',
     enable   => true,
-    name     => $::nova::params::libvirt_service_name,
+    name     => $libvirt_service_name,
     provider => $::nova::params::special_service_provider,
   }
 
