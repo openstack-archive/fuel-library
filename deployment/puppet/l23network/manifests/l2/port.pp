@@ -130,9 +130,13 @@ define l23network::l2::port (
     }
 
     # Merge offloading data with rings rx/tx
-    $netrings_maximums = try_get_value($::netrings, "${port_name}/maximums")
-    if $netrings_maximums {
-      $ethtool_opts = deep_merge({ 'rings' => $netrings_maximums }, $ethtool)
+    if is_hash($::netrings) {
+      $netrings_maximums = dig($::netrings, [$port_name, 'maximums'])
+      if $netrings_maximums {
+        $ethtool_opts = deep_merge({ 'rings' => $netrings_maximums }, $ethtool)
+      } else {
+        $ethtool_opts = $ethtool
+      }
     } else {
       $ethtool_opts = $ethtool
     }
