@@ -144,7 +144,7 @@ class osnailyfacter::firewall::firewall {
   }
 
   firewall {'340 vxlan_udp_port':
-    port   => $vxlan_udp_port,
+    dport  => $vxlan_udp_port,
     proto  => 'udp',
     action => 'accept',
   }
@@ -189,7 +189,7 @@ class osnailyfacter::firewall::firewall {
     }
 
     firewall { '100 http':
-      port   => [$http_port, $https_port],
+      dport  => [$http_port, $https_port],
       proto  => 'tcp',
       action => 'accept',
     }
@@ -209,19 +209,19 @@ class osnailyfacter::firewall::firewall {
     }
 
     firewall {'103 swift':
-      port   => [$swift_proxy_port, $swift_object_port, $swift_container_port, $swift_account_port, $swift_proxy_check_port],
+      dport  => [$swift_proxy_port, $swift_object_port, $swift_container_port, $swift_account_port, $swift_proxy_check_port],
       proto  => 'tcp',
       action => 'accept',
     }
 
     firewall {'104 glance':
-      port   => [$glance_api_port, $glance_glare_port, $glance_reg_port, $glance_nova_api_ec2_port,],
+      dport  => [$glance_api_port, $glance_glare_port, $glance_reg_port, $glance_nova_api_ec2_port,],
       proto  => 'tcp',
       action => 'accept',
     }
 
     firewall {'105 nova':
-      port   => [$nova_api_compute_port, $nova_api_volume_port, $nova_vncproxy_port],
+      dport  => [$nova_api_compute_port, $nova_api_volume_port, $nova_vncproxy_port],
       proto  => 'tcp',
       action => 'accept',
     }
@@ -283,7 +283,7 @@ class osnailyfacter::firewall::firewall {
     }
 
     firewall {'111 dhcp-server':
-      port   => $dhcp_server_port,
+      dport  => $dhcp_server_port,
       proto  => 'udp',
       action => 'accept',
     }
@@ -317,13 +317,13 @@ class osnailyfacter::firewall::firewall {
     }
 
     firewall {'121 ceilometer':
-      port   => $ceilometer_port,
+      dport  => $ceilometer_port,
       proto  => 'tcp',
       action => 'accept',
     }
 
     firewall {'122 aodh':
-      port   => $aodh_port,
+      dport  => $aodh_port,
       proto  => 'tcp',
       action => 'accept',
     }
@@ -335,19 +335,19 @@ class osnailyfacter::firewall::firewall {
     }
 
     firewall {'204 heat-api':
-      port   => $heat_api_port,
+      dport  => $heat_api_port,
       proto  => 'tcp',
       action => 'accept',
     }
 
     firewall {'205 heat-api-cfn':
-      port   => $heat_api_cfn_port,
+      dport  => $heat_api_cfn_port,
       proto  => 'tcp',
       action => 'accept',
     }
 
     firewall {'206 heat-api-cloudwatch':
-      port   => $heat_api_cloudwatch_port,
+      dport  => $heat_api_cloudwatch_port,
       proto  => 'tcp',
       action => 'accept',
     }
@@ -380,7 +380,7 @@ class osnailyfacter::firewall::firewall {
 
   if member($roles, 'primary-mongo') or member($roles, 'mongo') {
     firewall {'120 mongodb':
-      port   => $mongodb_port,
+      dport  => $mongodb_port,
       proto  => 'tcp',
       action => 'accept',
     }

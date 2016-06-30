@@ -41,7 +41,7 @@ prepare_firewall_rules(['10.20.0.0/24','10.20.0.1']','020 ssh', 'accept',
       # Add params only if nonempty
       fw_rules[name]['action'] = action unless [nil, ''].include?(action)
       fw_rules[name]['chain'] = chain unless [nil, ''].include?(chain)
-      fw_rules[name]['port'] = port unless [nil, ''].include?(port)
+      fw_rules[name]['dport'] = port unless [nil, ''].include?(port)
       fw_rules[name]['proto'] = proto unless [nil, ''].include?(proto)
       fw_rules[name]['source'] = source_net
     end
