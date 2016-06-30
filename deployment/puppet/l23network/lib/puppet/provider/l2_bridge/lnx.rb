@@ -12,21 +12,14 @@ Puppet::Type.type(:l2_bridge).provide(:lnx, :parent => Puppet::Provider::Lnx_bas
 
   def self.instances
     rv = []
-    get_bridge_list().each_pair do |bridge, props|
-      debug("prefetching '#{bridge}'")
+    get_lnx_bridge_list.each_pair do |bridge, props|
       br_props = {
         :ensure          => :present,
         :name            => bridge,
       }
       br_props.merge! props
-      if props[:br_type] == :lnx
-        #br_props[:provider] = 'lnx'
-        #props[:port_type] = props[:port_type].insert(0, 'ovs').join(':')
-        rv << new(br_props)
-        debug("PREFETCH properties for '#{bridge}': #{br_props}")
-      else
-        debug("SKIP properties for '#{bridge}': #{br_props}")
-      end
+      rv << new(br_props)
+      debug("PREFETCH properties for '#{bridge}': #{br_props}")
     end
     rv
   end
@@ -85,6 +78,13 @@ Puppet::Type.type(:l2_bridge).provide(:lnx, :parent => Puppet::Provider::Lnx_bas
   end
   def stp=(val)
     @property_flush[:stp] = (val.to_s.downcase.to_sym==:true)
+  end
+
+  def members
+    @property_hash[:members] || :absent
+  end
+  def members=(val)
+    @property_flush[:members] # do nothing
   end
 
   #-----------------------------------------------------------------
