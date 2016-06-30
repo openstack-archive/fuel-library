@@ -116,7 +116,6 @@ describe manifest do
       auth_url            = "#{internal_auth_protocol}://#{internal_auth_endpoint}:35357/"
       auth_uri            = "#{internal_auth_protocol}://#{internal_auth_endpoint}:5000/"
       nova_admin_auth_url = "#{admin_auth_protocol}://#{admin_auth_endpoint}:35357/"
-      nova_url            = "#{nova_internal_protocol}://#{nova_internal_endpoint}:8774/v2"
 
       workers_max = Noop.hiera('workers_max', '16')
 
@@ -300,7 +299,6 @@ describe manifest do
 
       it 'should configure neutron::server::notifications' do
         should contain_class('neutron::server::notifications').with(
-         'nova_url'     => nova_url,
          'auth_url'     => nova_admin_auth_url,
          'region_name'  => region_name,
          'username'     => nova_auth_user,

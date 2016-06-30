@@ -47,7 +47,7 @@ class openstack_tasks::openstack_network::common_config {
 
   $kombu_compression = hiera('kombu_compression', $::os_service_default)
 
-  $segmentation_type = try_get_value($neutron_config, 'L2/segmentation_type')
+  $segmentation_type = dig($neutron_config, ['L2', 'segmentation_type'])
 
   $nets = $neutron_config['predefined_networks']
 
@@ -84,12 +84,11 @@ class openstack_tasks::openstack_network::common_config {
   }
 
   class { '::neutron::logging':
-    verbose            => $verbose,
-    debug              => $debug,
-    use_syslog         => $use_syslog,
-    use_stderr         => $use_stderr,
-    log_facility       => $log_facility,
-    default_log_levels => $default_log_levels,
+    debug               => $debug,
+    use_syslog          => $use_syslog,
+    use_stderr          => $use_stderr,
+    syslog_log_facility => $log_facility,
+    default_log_levels  => $default_log_levels,
   }
 
   ### SYSCTL ###

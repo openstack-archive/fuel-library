@@ -145,16 +145,8 @@ describe manifest do
     it 'should configure rabbit fence class' do
       if use_pacemaker
         should contain_class('cluster::rabbitmq_fence').with(
-          :enabled => enabled).that_requires('Class[rabbitmq]')
+          :enabled => enabled)
       end
-    end
-
-    it 'should configure rabbit for nova' do
-      should contain_class('nova::rabbitmq').with(
-        :enabled  => enabled,
-        :userid   => rabbit_hash['user'],
-        :password => rabbit_hash['password'],
-      ).that_requires('Class[rabbitmq]')
     end
 
     it 'should configure pacemaker RA' do
@@ -180,7 +172,7 @@ describe manifest do
           :slave_mon_interval      => rabbit_ocf[:slave_mon_interval],
           :master_mon_interval     => rabbit_ocf[:master_mon_interval],
           :mon_interval            => rabbit_ocf[:mon_interval],
-        ).that_comes_before('Class[nova::rabbitmq]')
+        )
         should contain_class('cluster::rabbitmq_ocf').that_requires(
           'Class[rabbitmq::install]')
         should contain_service_status('rabbitmq').that_requires('Service[rabbitmq-server]')
