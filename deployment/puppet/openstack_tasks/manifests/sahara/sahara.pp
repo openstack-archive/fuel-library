@@ -186,7 +186,7 @@ class openstack_tasks::sahara::sahara {
         auth_password => $access_admin['password'],
         auth_tenant   => $access_admin['tenant'],
         auth_uri      => "${public_protocol}://${public_address}:5000/v2.0/",
-        internal_net  => try_get_value($neutron_config, 'default_private_net', 'admin_internal_net'),
+        internal_net  => dig($neutron_config, ['default_private_net'], 'admin_internal_net'),
       }
 
       Class['::osnailyfacter::wait_for_keystone_backends'] -> ::Osnailyfacter::Wait_for_backend['sahara']

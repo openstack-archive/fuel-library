@@ -13,7 +13,6 @@ class openstack_tasks::keystone::keystone {
   prepare_network_config($network_scheme)
 
   $keystone_hash         = hiera_hash('keystone', {})
-  $verbose               = pick($keystone_hash['verbose'], hiera('verbose', true))
   $debug                 = pick($keystone_hash['debug'], hiera('debug', false))
   $use_syslog            = hiera('use_syslog', true)
   $use_stderr            = hiera('use_stderr', false)
@@ -296,7 +295,6 @@ class openstack_tasks::keystone::keystone {
   if $enabled {
     class { '::keystone':
       enable_bootstrap             => true,
-      verbose                      => $verbose,
       debug                        => $debug,
       catalog_type                 => 'sql',
       admin_token                  => $admin_token,
