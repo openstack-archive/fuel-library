@@ -10,10 +10,11 @@ class openstack_tasks::openstack_network::agents::dhcp {
 
   $debug                   = hiera('debug', true)
   $resync_interval         = '30'
-  $isolated_metadata       = try_get_value($neutron_config, 'metadata/isolated_metadata', true)
+  $neutron_config          = hiera_hash('neutron_config')
+  $isolated_metadata       = dig($neutron_config, ['metadata', 'isolated_metadata'], true)
 
   $neutron_advanced_config = hiera_hash('neutron_advanced_configuration', { })
-  $ha_agent                = try_get_value($neutron_advanced_config, 'dhcp_agent_ha', true)
+  $ha_agent                = dig($neutron_advanced_config, ['dhcp_agent_ha'], true)
 
   class { '::neutron::agents::dhcp':
     debug                    => $debug,

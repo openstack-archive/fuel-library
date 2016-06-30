@@ -17,7 +17,6 @@ class openstack_tasks::ceilometer::compute {
     'http_timeout'               => '600',
     'event_time_to_live'         => '604800',
     'metering_time_to_live'      => '604800',
-    'alarm_history_time_to_live' => '604800',
   }
 
   $region                     = hiera('region', 'RegionOne')
@@ -28,7 +27,6 @@ class openstack_tasks::ceilometer::compute {
   $amqp_user                  = $rabbit_hash['user']
   $kombu_compression          = hiera('kombu_compression', '')
   $ceilometer_metering_secret = $ceilometer_hash['metering_secret']
-  $verbose                    = pick($ceilometer_hash['verbose'], hiera('verbose', true))
   $debug                      = pick($ceilometer_hash['debug'], hiera('debug', false))
   $ssl_hash                   = hiera_hash('use_ssl', {})
 
@@ -61,12 +59,10 @@ class openstack_tasks::ceilometer::compute {
       http_timeout               => $ceilometer_hash['http_timeout'],
       event_time_to_live         => $ceilometer_hash['event_time_to_live'],
       metering_time_to_live      => $ceilometer_hash['metering_time_to_live'],
-      alarm_history_time_to_live => $ceilometer_hash['alarm_history_time_to_live'],
       rabbit_hosts               => split(hiera('amqp_hosts',''), ','),
       rabbit_userid              => $amqp_user,
       rabbit_password            => $amqp_password,
       metering_secret            => $ceilometer_metering_secret,
-      verbose                    => $verbose,
       debug                      => $debug,
       use_syslog                 => $use_syslog,
       use_stderr                 => $use_stderr,
