@@ -95,7 +95,6 @@ define haproxy::balancermember (
   $ports          = undef,
   $server_names   = $::hostname,
   $ipaddresses    = $::ipaddress,
-  $ensure         = 'present',
   $order          = '20',
   $options        = '',
   $define_cookies = false,
@@ -105,7 +104,6 @@ define haproxy::balancermember (
 
   # Template uses $ipaddresses, $server_name, $ports, $option
   concat::fragment { "${listening_service}_balancermember_${name}":
-    ensure  => $ensure,
     order   => $use_include ? {
       true  => "01-${name}",
       false => "${order}-${listening_service}-01-${name}",

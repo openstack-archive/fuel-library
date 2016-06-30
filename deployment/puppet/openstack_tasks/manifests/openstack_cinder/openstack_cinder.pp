@@ -103,7 +103,6 @@ class openstack_tasks::openstack_cinder::openstack_cinder {
   $iscsi_bind_host = get_network_role_property('cinder/iscsi', 'ipaddr')
   $use_syslog      = hiera('use_syslog', true)
   $use_stderr      = hiera('use_stderr', false)
-  $verbose         = pick($cinder_hash['verbose'], hiera('verbose', true))
   $debug           = pick($cinder_hash['debug'], hiera('debug', true))
 
   ######### Cinder Controller Services ########
@@ -144,7 +143,6 @@ class openstack_tasks::openstack_cinder::openstack_cinder {
     rabbit_userid            => $rabbit_hash['user'],
     rabbit_password          => $rabbit_hash['password'],
     database_connection      => $db_connection,
-    verbose                  => $verbose,
     use_syslog               => $use_syslog,
     use_stderr               => $use_stderr,
     log_facility             => hiera('syslog_log_facility_cinder', 'LOG_LOCAL3'),
