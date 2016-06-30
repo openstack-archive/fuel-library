@@ -22,6 +22,7 @@ class openstack_tasks::openstack_cinder::openstack_cinder {
   $primary_controller     = hiera('primary_controller')
   $proxy_port             = hiera('proxy_port', '8080')
   $kombu_compression      = hiera('kombu_compression', '')
+  $memcached_servers      = hiera('memcached_servers')
 
   $db_type                = 'mysql'
   $db_host                = pick($cinder_hash['db_host'], hiera('database_vip'))
@@ -179,7 +180,15 @@ class openstack_tasks::openstack_cinder::openstack_cinder {
       nova_catalog_admin_info      => 'compute:nova:adminURL',
       nova_catalog_info            => 'compute:nova:internalURL',
       sync_db                      => $primary_controller,
+      # TODO(aschultz): https://review.openstack.org/336270/
+      #memcached_servers            => $memcached_servers,
     }
+    # TODO(aschultz): remove this and switch to the cinder::api param
+    ensure_resource('cinder_config', 'keystone_authtoken/memcached_servers', {
+      ensure => present,
+      value  => $memcached_servers
+    })
+
 
     class { 'cinder::scheduler': }
 
