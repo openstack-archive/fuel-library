@@ -10,11 +10,9 @@ class openstack_tasks::ceilometer::controller {
     'http_timeout'               => '600',
     'event_time_to_live'         => '604800',
     'metering_time_to_live'      => '604800',
-    'alarm_history_time_to_live' => '604800',
   }
 
   $ceilometer_hash          = hiera_hash('ceilometer', $default_ceilometer_hash)
-  $verbose                  = pick($ceilometer_hash['verbose'], hiera('verbose', true))
   $debug                    = pick($ceilometer_hash['debug'], hiera('debug', false))
   $use_syslog               = hiera('use_syslog', true)
   $use_stderr               = hiera('use_stderr', false)
@@ -141,12 +139,10 @@ class openstack_tasks::ceilometer::controller {
       http_timeout                       => $ceilometer_hash['http_timeout'],
       event_time_to_live                 => $ceilometer_hash['event_time_to_live'],
       metering_time_to_live              => $ceilometer_hash['metering_time_to_live'],
-      alarm_history_time_to_live         => $ceilometer_hash['alarm_history_time_to_live'],
       rabbit_hosts                       => split(hiera('amqp_hosts',''), ','),
       rabbit_userid                      => $amqp_user,
       rabbit_password                    => $amqp_password,
       metering_secret                    => $ceilometer_metering_secret,
-      verbose                            => $verbose,
       debug                              => $debug,
       use_syslog                         => $use_syslog,
       use_stderr                         => $use_stderr,

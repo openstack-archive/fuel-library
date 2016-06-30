@@ -53,11 +53,11 @@ describe 'function to prepare hash of firewall rules for multiple networks' do
     it 'should be able to prepare an ssh rule' do
       result = {
         '020 ssh from 10.0.0.0/24' => {'action' => 'accept',
-                                      'port'   => '22',
+                                      'dport'   => '22',
                                       'proto'  => 'tcp',
                                       'source' => '10.0.0.0/24'},
         '020 ssh from 10.0.1.0/24' => {'action' => 'accept',
-                                      'port'   => '22',
+                                      'dport'   => '22',
                                       'proto'  => 'tcp',
                                       'source' => '10.0.1.0/24'},
       }

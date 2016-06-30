@@ -35,14 +35,12 @@ describe 'haproxy::balancermember' do
         :name              => 'tyler',
         :listening_service => 'croy',
         :ports             => '18140',
-        :ensure            => 'absent'
       }
     end
 
     it { should contain_concat__fragment('croy_balancermember_tyler').with(
       'order'   => '20-croy-01-tyler',
       'target'  => '/etc/haproxy/haproxy.cfg',
-      'ensure'  => 'absent',
       'content' => "  server dero 1.1.1.1:18140  \n"
     ) }
   end

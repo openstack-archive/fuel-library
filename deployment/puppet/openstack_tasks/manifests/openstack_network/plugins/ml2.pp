@@ -42,10 +42,10 @@ class openstack_tasks::openstack_network::plugins::ml2 {
   prepare_network_config($network_scheme)
 
   $neutron_advanced_config = hiera_hash('neutron_advanced_configuration', { })
-  $l2_population     = try_get_value($neutron_advanced_config, 'neutron_l2_pop', false)
-  $dvr               = try_get_value($neutron_advanced_config, 'neutron_dvr', false)
+  $l2_population     = dig($neutron_advanced_config, ['neutron_l2_pop'], false)
+  $dvr               = dig($neutron_advanced_config, ['neutron_dvr'], false)
   $enable_qos        = pick($neutron_advanced_config['neutron_qos'], false)
-  $segmentation_type = try_get_value($neutron_config, 'L2/segmentation_type')
+  $segmentation_type = dig($neutron_config, ['L2', 'segmentation_type'])
 
   if $compute and ! $dvr {
     $do_floating = false
@@ -160,7 +160,7 @@ class openstack_tasks::openstack_network::plugins::ml2 {
       refreshonly => true,
     }
 
-    $ha_agent = try_get_value($neutron_advanced_config, 'l2_agent_ha', true)
+    $ha_agent = dig($neutron_advanced_config, ['l2_agent_ha'], true)
     if $ha_agent {
       #Exec<| title == 'waiting-for-neutron-api' |> ->
       class { '::cluster::neutron::ovs' :

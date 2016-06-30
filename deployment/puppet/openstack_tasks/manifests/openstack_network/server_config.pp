@@ -30,9 +30,9 @@ class openstack_tasks::openstack_network::server_config {
 
   $db_type     = 'mysql'
   $db_password = $neutron_config['database']['passwd']
-  $db_user     = try_get_value($neutron_config, 'database/user', 'neutron')
-  $db_name     = try_get_value($neutron_config, 'database/name', 'neutron')
-  $db_host     = try_get_value($neutron_config, 'database/host', $database_vip)
+  $db_user     = dig($neutron_config, ['database', 'user'], 'neutron')
+  $db_name     = dig($neutron_config, ['database', 'name'], 'neutron')
+  $db_host     = dig($neutron_config, ['database', 'host'], $database_vip)
   # LP#1526938 - python-mysqldb supports this, python-pymysql does not
   if $::os_package_type == 'debian' {
     $extra_params = { 'charset' => 'utf8', 'read_timeout' => 60 }
@@ -72,20 +72,16 @@ class openstack_tasks::openstack_network::server_config {
   $admin_auth_protocol     = get_ssl_property($ssl_hash, {}, 'keystone', 'admin', 'protocol', 'http')
   $admin_auth_endpoint     = get_ssl_property($ssl_hash, {}, 'keystone', 'admin', 'hostname', [$service_endpoint, $management_vip])
 
-  $nova_internal_protocol  = get_ssl_property($ssl_hash, {}, 'nova', 'internal', 'protocol', 'http')
-  $nova_internal_endpoint  = get_ssl_property($ssl_hash, {}, 'nova', 'internal', 'hostname', [$nova_endpoint])
-
   $auth_api_version        = 'v2.0'
   $auth_uri                = "${internal_auth_protocol}://${internal_auth_endpoint}:5000/"
   $auth_url                = "${internal_auth_protocol}://${internal_auth_endpoint}:35357/"
   $nova_admin_auth_url     = "${admin_auth_protocol}://${admin_auth_endpoint}:35357/"
-  $nova_url                = "${nova_internal_protocol}://${nova_internal_endpoint}:8774/v2"
 
   $workers_max             = hiera('workers_max', 16)
   $service_workers         = pick($neutron_config['workers'], min(max($::processorcount, 1), $workers_max))
 
   $neutron_advanced_config = hiera_hash('neutron_advanced_configuration', { })
-  $l2_population           = try_get_value($neutron_advanced_config, 'neutron_l2_pop', false)
+  $l2_population           = dig($neutron_advanced_config, ['neutron_l2_pop'], false)
   $dvr                     = pick($neutron_advanced_config['neutron_dvr'], false)
   $l3_ha                   = pick($neutron_advanced_config['neutron_l3_ha'], false)
   $l3agent_failover        = $l3_ha ? { true => false, default => true}
@@ -107,9 +103,9 @@ class openstack_tasks::openstack_network::server_config {
   $default_mechanism_drivers = ['openvswitch']
   $l2_population_mech_driver = $l2_population ? { true => ['l2population'], default => []}
   $sriov_mech_driver         = $use_sriov ? { true => ['sriovnicswitch'], default => []}
-  $mechanism_drivers         = delete(try_get_value($neutron_config, 'L2/mechanism_drivers', concat($default_mechanism_drivers,$l2_population_mech_driver,$sriov_mech_driver)), '')
+  $mechanism_drivers         = delete(dig($neutron_config, ['L2', 'mechanism_drivers'], concat($default_mechanism_drivers,$l2_population_mech_driver,$sriov_mech_driver)), '')
   $flat_networks             = ['*']
-  $segmentation_type         = try_get_value($neutron_config, 'L2/segmentation_type')
+  $segmentation_type         = dig($neutron_config, ['L2', 'segmentation_type'])
 
   $network_scheme = hiera_hash('network_scheme', {})
   prepare_network_config($network_scheme)
@@ -123,7 +119,7 @@ class openstack_tasks::openstack_network::server_config {
     Class['::neutron::plugins::ml2'] -> Augeas['/etc/default/neutron-server:ml2_sriov_config']
   }
 
-  $_path_mtu = try_get_value($neutron_config, 'L2/path_mtu', undef)
+  $_path_mtu = dig($neutron_config, ['L2', 'path_mtu'], undef)
 
   if $segmentation_type == 'vlan' {
     $net_role_property    = 'neutron/private'
@@ -150,7 +146,7 @@ class openstack_tasks::openstack_network::server_config {
     $net_role_property = 'neutron/mesh'
     $tunneling_ip      = get_network_role_property($net_role_property, 'ipaddr')
     $iface             = get_network_role_property($net_role_property, 'phys_dev')
-    $tunnel_id_ranges  = [try_get_value($neutron_config, 'L2/tunnel_id_ranges')]
+    $tunnel_id_ranges  = [dig($neutron_config, ['L2', 'tunnel_id_ranges'])]
     $physical_network_mtus = generate_physnet_mtus($neutron_config, $network_scheme, {
       'do_floating' => $do_floating,
       'do_tenant'   => false,
@@ -241,7 +237,6 @@ class openstack_tasks::openstack_network::server_config {
   }
 
   class { '::neutron::server::notifications':
-    nova_url     => $nova_url,
     auth_url     => $nova_admin_auth_url,
     username     => $nova_auth_user,
     project_name => $nova_auth_tenant,
