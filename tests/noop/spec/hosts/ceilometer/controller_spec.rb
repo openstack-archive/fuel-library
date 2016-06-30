@@ -56,6 +56,7 @@ describe manifest do
 
     ssl = 'false'
 
+    let(:memcached_servers) { Noop.hiera 'memcached_servers' }
     let (:api_bind_address) do
       api_bind_address = Noop.puppet_function('get_network_role_property', 'ceilometer/api', 'ipaddr')
     end
@@ -91,6 +92,7 @@ describe manifest do
           'keystone_user'         => ceilometer_user,
           'keystone_password'     => ceilometer_user_password,
           'keystone_tenant'       => ceilometer_tenant,
+          'memcached_servers'     => memcached_servers,
           'host'                  => api_bind_address,
           'service_name'          => 'httpd',
         )

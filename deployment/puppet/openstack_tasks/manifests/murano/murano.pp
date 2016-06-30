@@ -28,6 +28,7 @@ class openstack_tasks::murano::murano {
   $ssl_hash                   = hiera_hash('use_ssl', {})
   $primary_controller         = hiera('primary_controller')
   $kombu_compression          = hiera('kombu_compression', $::os_service_default)
+  $memcached_servers          = hiera('memcached_servers')
 
   $public_auth_protocol       = get_ssl_property($ssl_hash, $public_ssl_hash, 'keystone', 'public', 'protocol', 'http')
   $public_auth_address        = get_ssl_property($ssl_hash, $public_ssl_hash, 'keystone', 'public', 'hostname', [$public_ip])
@@ -145,7 +146,15 @@ class openstack_tasks::murano::murano {
       external_network    => $external_network,
       use_trusts          => true,
       kombu_compression   => $kombu_compression,
+      # TODO(aschultz): https://review.openstack.org/336261
+      #memcached_servers   => $memcached_servers,
     }
+
+    # TODO(aschultz): remove this and switch to the murano param
+    ensure_resource('murano_config', 'keystone_authtoken/memcached_servers', {
+      value  => join(any2array($memcached_servers), ',')
+    })
+
 
     class { '::murano::api':
       host    => $api_bind_host,
