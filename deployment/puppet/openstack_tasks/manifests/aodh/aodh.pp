@@ -77,8 +77,7 @@ class openstack_tasks::aodh::aodh {
   $ssl_hash    = hiera_hash('use_ssl', {})
   $public_cert = get_ssl_property($ssl_hash, $public_ssl_hash, 'keystone', 'public', 'path', [''])
 
-  $memcache_address = get_network_role_property('mgmt/memcache', 'ipaddr')
-  $memcache_servers = "${memcache_address}:11211"
+  $memcached_servers = hiera('memcached_servers')
 
   $internal_auth_protocol = get_ssl_property($ssl_hash, {}, 'keystone', 'internal', 'protocol', 'http')
   $internal_auth_address  = get_ssl_property($ssl_hash, {}, 'keystone', 'internal', 'hostname', [$management_vip])
@@ -135,21 +134,22 @@ class openstack_tasks::aodh::aodh {
 
   # keystone
   aodh_config {
-    'keystone_authtoken/memcache_servers': value => $memcache_servers;
-    'keystone_authtoken/signing_dir'     : value => '/tmp/keystone-signing-aodh';
+    'keystone_authtoken/signing_dir': value => '/tmp/keystone-signing-aodh';
   }
 
+
   class { '::aodh::api':
-    enabled               => true,
-    manage_service        => true,
-    package_ensure        => 'present',
-    keystone_user         => $aodh_user_name,
-    keystone_password     => $aodh_user_password,
-    keystone_tenant       => $tenant,
-    keystone_auth_uri     => $keystone_auth_uri,
-    keystone_auth_url     => $keystone_auth_url,
-    host                  => $aodh_api_bind_host,
-    port                  => $aodh_api_bind_port,
+    enabled           => true,
+    manage_service    => true,
+    package_ensure    => 'present',
+    keystone_user     => $aodh_user_name,
+    keystone_password => $aodh_user_password,
+    keystone_tenant   => $tenant,
+    keystone_auth_uri => $keystone_auth_uri,
+    keystone_auth_url => $keystone_auth_url,
+    host              => $aodh_api_bind_host,
+    port              => $aodh_api_bind_port,
+    memcached_servers => $memcached_servers,
   }
 
   $haproxy_stats_url = "http://${management_vip}:10000/;csv"

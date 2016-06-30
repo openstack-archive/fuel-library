@@ -47,6 +47,7 @@ if ironic_enabled
       let(:neutron_protocol) { Noop.puppet_function 'get_ssl_property',ssl_hash,{},'neutron','internal','protocol','http' }
       let(:neutron_address) { Noop.puppet_function 'get_ssl_property',ssl_hash,{},'neutron','internal','hostname', neutron_endpoint_default }
 
+      let(:memcached_servers) { Noop.hiera 'memcached_servers' }
 
       it 'should configure default_log_levels' do
         should contain_ironic_config('DEFAULT/default_log_levels').with_value(default_log_levels.sort.join(','))
@@ -70,6 +71,7 @@ if ironic_enabled
           'admin_tenant_name'    => admin_tenant,
           'admin_user'           => admin_user,
           'admin_password'       => admin_password,
+          'memcached_servers'    => memcached_servers,
           'neutron_url'          => "#{neutron_protocol}://#{neutron_address}:9696",
           'public_endpoint'      => "#{public_protocol}://#{public_address}:6385"
         )

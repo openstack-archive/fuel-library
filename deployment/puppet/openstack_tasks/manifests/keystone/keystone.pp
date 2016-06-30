@@ -87,9 +87,8 @@ class openstack_tasks::keystone::keystone {
 
   $local_address_for_bind = get_network_role_property('keystone/api', 'ipaddr')
 
-  $memcache_server_port   = hiera('memcache_server_port', '11211')
   $memcache_pool_maxsize  = '100'
-  $memcache_servers       = suffix(hiera('memcached_addresses'), inline_template(':<%= @memcache_server_port %>'))
+  $memcache_servers       = hiera('memcached_servers')
   $cache_backend          = 'keystone.cache.memcache_pool'
   $token_caching          = false
   $token_driver           = 'keystone.token.persistence.backends.memcache_pool.Token'

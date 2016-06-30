@@ -34,25 +34,9 @@ describe manifest do
 
     workers_max          = Noop.hiera 'workers_max'
     network_metadata     = Noop.hiera_hash('network_metadata')
-    memcache_roles       = Noop.hiera 'memcache_roles'
-    memcache_addresses   = Noop.hiera 'memcached_addresses', false
-    memcache_server_port = Noop.hiera 'memcache_server_port', '11211'
     use_cache            = Noop.hiera_structure 'nova/use_cache', true
-    let(:memcache_nodes) do
-      Noop.puppet_function 'get_nodes_hash_by_roles', network_metadata, memcache_roles
-    end
 
-    let(:memcache_address_map) do
-      Noop.puppet_function 'get_node_to_ipaddr_map_by_network_role', memcache_nodes, 'mgmt/memcache'
-    end
-
-    let (:memcache_servers) do
-      if not memcache_addresses
-        memcache_address_map.values.map { |server| "#{server}:#{memcache_server_port}" }.join(",")
-      else
-        memcache_addresses.map { |server| "#{server}:#{memcache_server_port}" }.join(",")
-      end
-    end
+    let(:memcached_servers) { Noop.hiera 'memcached_servers' }
 
     primary_controller = Noop.hiera 'primary_controller'
     service_endpoint = Noop.hiera 'service_endpoint'
@@ -193,7 +177,7 @@ describe manifest do
 
     it 'nova config should contain right memcached servers list' do
       should contain_nova_config('keystone_authtoken/memcached_servers').with(
-        'value' => memcache_servers,
+        'value' => memcached_servers.join(','),
       )
     end
 
@@ -229,6 +213,7 @@ describe manifest do
         :database_max_retries   => max_retries,
         :database_max_overflow  => max_overflow,
         :notify_on_state_change => 'vm_and_task_state',
+        :memcached_servers      => memcached_servers,
       )
     end
 
@@ -241,7 +226,7 @@ describe manifest do
           'value' => true,
         )
         should contain_nova_config('cache/memcache_servers').with(
-          'value' => memcache_servers,
+          'value' => memcached_servers.join(','),
         )
       end
     end

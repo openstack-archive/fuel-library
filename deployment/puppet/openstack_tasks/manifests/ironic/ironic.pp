@@ -26,6 +26,8 @@ class openstack_tasks::ironic::ironic {
   $amqp_durable_queues        = pick($ironic_hash['amqp_durable_queues'], false)
   $kombu_compression          = hiera('kombu_compression', '')
 
+  $memcached_servers          = hiera('memcached_servers')
+
   $db_type                    = 'mysql'
   $db_host                    = pick($ironic_hash['db_host'], $database_vip)
   $db_user                    = pick($ironic_hash['db_user'], 'ironic')
@@ -97,6 +99,7 @@ class openstack_tasks::ironic::ironic {
     admin_password    => $ironic_user_password,
     neutron_url       => "${neutron_protocol}://${neutron_endpoint}:9696",
     public_endpoint   => "${public_protocol}://${public_address}:6385",
+    memcached_servers => $memcached_servers,
   }
 
   # TODO (iberezovskiy): remove this workaround in N when ironic module

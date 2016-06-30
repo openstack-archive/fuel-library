@@ -24,10 +24,7 @@ describe manifest do
       Noop.puppet_function 'prepare_network_config', network_scheme
     end
 
-    let(:memcache_address) do
-      prepare
-      Noop.puppet_function 'get_network_role_property', 'mgmt/memcache', 'ipaddr'
-    end
+    let(:memcached_servers) { Noop.hiera 'memcached_servers' }
 
     let(:heat_ha_engine) do
       Noop.hiera 'heat_ha_engine', true
@@ -123,6 +120,10 @@ describe manifest do
       )
     end
 
+    it 'should configure memcache for keystone authtoken' do
+        should contain_heat_config('keystone_authtoken/memcached_servers').with_value(memcached_servers.join(','))
+    end
+
     it 'should set empty trusts_delegated_roles for heat engine' do
       should contain_class('heat::engine').with(
         'trusts_delegated_roles' => [],
@@ -141,7 +142,7 @@ describe manifest do
     it 'should configure caching for validation process' do
       should contain_heat_config('cache/enabled').with_value('true')
       should contain_heat_config('cache/backend').with_value('oslo_cache.memcache_pool')
-      should contain_heat_config('cache/memcache_servers').with_value("#{memcache_address}:11211")
+      should contain_heat_config('cache/memcache_servers').with_value(memcached_servers.join(','))
     end
 
     it 'should configure urls for metadata, cloudwatch and waitcondition servers' do

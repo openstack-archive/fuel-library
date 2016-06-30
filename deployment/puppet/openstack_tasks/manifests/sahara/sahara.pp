@@ -33,6 +33,7 @@ class openstack_tasks::sahara::sahara {
   $admin_identity_address     = get_ssl_property($ssl_hash, {}, 'keystone', 'admin', 'hostname', [$service_endpoint, $management_vip])
   $admin_identity_uri         = "${admin_identity_protocol}://${admin_identity_address}:35357"
   $kombu_compression          = hiera('kombu_compression', '')
+  $memcached_servers          = hiera('memcached_servers')
 
   #################################################################
 
@@ -111,7 +112,8 @@ class openstack_tasks::sahara::sahara {
       rabbit_password        => $rabbit_hash['password'],
       rabbit_ha_queues       => $rabbit_ha_queues,
       rabbit_port            => $amqp_port,
-      rabbit_hosts           => split($amqp_hosts, ',')
+      rabbit_hosts           => split($amqp_hosts, ','),
+      memcached_servers      => $memcached_servers,
     }
 
     if $public_ssl_hash['services'] {
