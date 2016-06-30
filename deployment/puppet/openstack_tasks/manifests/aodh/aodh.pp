@@ -28,7 +28,6 @@ class openstack_tasks::aodh::aodh {
   $tenant               = pick($aodh_hash['tenant'], 'services')
 
   $debug   = pick($aodh_hash['debug'], hiera('debug', false))
-  $verbose = pick($aodh_hash['verbose'], hiera('verbose', true))
 
   $database_vip = hiera('database_vip')
 
@@ -98,7 +97,6 @@ class openstack_tasks::aodh::aodh {
 
   class { '::aodh':
     debug                      => $debug,
-    verbose                    => $verbose,
     notification_topics        => $notification_topics,
     rpc_backend                => $rpc_backend,
     rabbit_userid              => $rabbit_userid,

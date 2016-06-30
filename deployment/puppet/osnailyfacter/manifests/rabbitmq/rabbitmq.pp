@@ -174,22 +174,30 @@ class osnailyfacter::rabbitmq::rabbitmq {
       Class['::rabbitmq::install'] -> Exec['epmd_daemon']
         -> Rabbitmq_plugin<| |> -> Rabbitmq_exchange<| |>
 
+      rabbitmq_user { $rabbit_hash['user']:
+        admin    => true,
+        password => $rabbit_hash['password'],
+        provider => 'rabbitmqctl',
+      }
+
+      rabbitmq_user_permissions { "${rabbit_hash['user']}@/":
+        configure_permission => '.*',
+        write_permission     => '.*',
+        read_permission      => '.*',
+        provider             => 'rabbitmqctl',
+      }
+
+      rabbitmq_vhost { $virtual_host:
+        provider => 'rabbitmqctl',
+      }
+
       if ($use_pacemaker) {
         # Install rabbit-fence daemon
         class { '::cluster::rabbitmq_fence':
           enabled => $enabled,
           require => Class['::rabbitmq']
         }
-      }
 
-      class { '::nova::rabbitmq':
-        enabled  => $enabled,
-        userid   => $rabbit_hash['user'],
-        password => $rabbit_hash['password'],
-        require  => Class['::rabbitmq'],
-      }
-
-      if ($use_pacemaker) {
         class { '::cluster::rabbitmq_ocf':
           command_timeout         => $command_timeout,
           debug                   => $debug,
@@ -197,7 +205,6 @@ class osnailyfacter::rabbitmq::rabbitmq {
           admin_user              => $rabbit_hash['user'],
           admin_pass              => $rabbit_hash['password'],
           host_ip                 => $rabbitmq_bind_ip_address,
-          before                  => Class['::nova::rabbitmq'],
           enable_rpc_ha           => $enable_rpc_ha,
           enable_notifications_ha => $enable_notifications_ha,
           fqdn_prefix             => $fqdn_prefix,
