@@ -28,6 +28,7 @@ class openstack_tasks::glance::glance {
   $ironic_hash           = hiera_hash('ironic', {})
   $primary_controller    = hiera('primary_controller')
   $kombu_compression     = hiera('kombu_compression', $::os_service_default)
+  $memcached_servers     = hiera('memcached_servers')
 
   $override_configuration = hiera_hash('configuration', {})
 
@@ -175,6 +176,7 @@ class openstack_tasks::glance::glance {
     token_cache_time       => '-1',
     image_cache_stall_time => '86400',
     image_cache_max_size   => $glance_image_cache_max_size,
+    memcached_servers      => $memcached_servers,
   }
 
   # TODO (dmburmistrov): remove this workaround after puppet-glance
@@ -220,6 +222,7 @@ class openstack_tasks::glance::glance {
     auth_region            => $region,
     signing_dir            => '/tmp/keystone-signing-glance',
     token_cache_time       => '-1',
+    memcached_servers      => $memcached_servers,
   }
 
   glance_api_config {
@@ -255,6 +258,7 @@ class openstack_tasks::glance::glance {
     sync_db                => $primary_controller,
     signing_dir            => '/tmp/keystone-signing-glance',
     os_region_name         => $region,
+    memcached_servers      => $memcached_servers,
   }
 
   class { '::glance::notify::rabbitmq':
