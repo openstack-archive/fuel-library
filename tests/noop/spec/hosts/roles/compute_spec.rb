@@ -15,11 +15,7 @@ describe manifest do
 
   shared_examples 'catalog' do
 
-    network_metadata     = Noop.hiera 'network_metadata'
-    memcache_roles       = Noop.hiera 'memcache_roles'
-    memcache_addresses   = Noop.hiera 'memcached_addresses', false
-    memcache_server_port = Noop.hiera 'memcache_server_port', '11211'
-
+    kombu_compression    = Noop.hiera 'kombu_compression', ''
     ironic_enabled       = Noop.hiera_structure 'ironic/enabled'
 
     let(:facts) {
@@ -29,21 +25,7 @@ describe manifest do
       })
     }
 
-    let(:memcache_nodes) do
-      Noop.puppet_function 'get_nodes_hash_by_roles', network_metadata, memcache_roles
-    end
-
-    let(:memcache_address_map) do
-      Noop.puppet_function 'get_node_to_ipaddr_map_by_network_role', memcache_nodes, 'mgmt/memcache'
-    end
-
-    let (:memcache_servers) do
-      if not memcache_addresses
-        memcache_address_map.values.map { |server| "#{server}:#{memcache_server_port}" }.join(",")
-      else
-        memcache_addresses.map { |server| "#{server}:#{memcache_server_port}" }.join(",")
-      end
-    end
+    let (:memcached_servers) { Noop.hiera 'memcached_servers' }
 
     let(:nova_hash) do
       Noop.hiera_structure 'nova'
@@ -345,8 +327,8 @@ describe manifest do
       )
     end
     it 'nova config should contain right memcached servers list' do
-      should contain_nova_config('keystone_authtoken/memcached_servers').with(
-        'value' => memcache_servers,
+      should contain_class('nova').with(
+        :memcached_servers => memcached_servers
       )
     end
 
@@ -354,7 +336,7 @@ describe manifest do
       should contain_class('nova::cache').with(
         :enabled          => use_cache,
         :backend          => 'oslo_cache.memcache_pool',
-        :memcache_servers => memcache_servers.split(','),
+        :memcache_servers => memcached_servers,
       )
     end
 

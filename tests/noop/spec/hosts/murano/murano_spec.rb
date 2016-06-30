@@ -58,6 +58,8 @@ describe manifest do
     let(:db_host) { Noop.hiera_structure('murano/db_host', service_endpoint) }
     let(:db_password) { Noop.hiera_structure('murano/db_password') }
 
+    let(:memcached_servers) { Noop.hiera 'memcached_servers' }
+
     let(:predefined_networks) { Noop.hiera_structure('neutron_config/predefined_networks') }
 
     let(:default_repository_url) { 'http://storage.apps.openstack.org' }
@@ -191,6 +193,7 @@ describe manifest do
                    'service_port'        => api_bind_port,
                    'external_network'    => external_network,
                )
+        should contain_murano_config('keystone_authtoken/memcached_servers').with_value(memcached_servers.join(','))
       end
 
       it 'should configure default_log_levels' do

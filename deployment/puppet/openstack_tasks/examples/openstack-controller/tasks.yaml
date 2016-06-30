@@ -14,7 +14,7 @@
       $.get('nova_service_down_time', '180'), $.rabbit, $.get('use_ssl'),
       $.get('kombu_compression'), $.get('glance_endpoint'),
       $.get('glance_api_servers'), $.get('region', 'RegionOne'), $.ironic,
-      $.get('memcached_addresses'), $.get('memcache_server_port'),
+      $.get('memcached_servers'),
       $.get('openstack_controller'), $.get('external_lb'), $.quantum_settings,
       $.get('database_vip'), $.nova_quota, $.use_vcenter, $.libvirt_type,
       $.network_metadata.nodes.values().where(

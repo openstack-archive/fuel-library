@@ -36,8 +36,7 @@ class openstack_tasks::swift::parts::proxy (
   $ratelimit_rate_buffer_seconds     = 5,
   $ratelimit_account_ratelimit       = 0,
   $package_ensure                    = 'present',
-  $swift_proxies_cache               = ['127.0.0.1'],
-  $cache_server_port                 = '11211',
+  $memcached_servers                 = '127.0.0.1:11211',
   $primary_proxy                     = false,
   $swift_devices                     = undef,
   $master_swift_proxy_ip             = undef,
@@ -123,9 +122,7 @@ class openstack_tasks::swift::parts::proxy (
     '::swift::proxy::slo', '::swift::proxy::container_sync']:
   }
 
-  $cache_addresses = join(suffix($swift_proxies_cache, ":${cache_server_port}"), ',')
-
-  class { '::swift::proxy::cache': memcache_servers => split($cache_addresses, ',') }
+  class { '::swift::proxy::cache': memcache_servers => $memcached_servers }
 
   class { '::swift::proxy::ratelimit':
     clock_accuracy         => $ratelimit_clock_accuracy,

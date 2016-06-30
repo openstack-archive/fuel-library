@@ -69,8 +69,6 @@ class openstack_tasks::openstack_controller::openstack_controller {
 
   $ironic_hash                  = hiera_hash('ironic', {})
 
-  $memcached_server             = hiera('memcached_addresses')
-  $memcached_port               = hiera('memcache_server_port', '11211')
   $openstack_controller_hash    = hiera_hash('openstack_controller', {})
 
   $external_lb                  = hiera('external_lb', false)
@@ -164,7 +162,7 @@ class openstack_tasks::openstack_controller::openstack_controller {
     }
   }
 
-  $memcached_addresses =  suffix($memcached_server, inline_template(":<%= @memcached_port %>"))
+  $memcached_servers = hiera('memcached_servers')
 
   $rpc_backend   = 'nova.openstack.common.rpc.impl_kombu'
   $amqp_hosts    = hiera('amqp_hosts','')
@@ -200,7 +198,7 @@ class openstack_tasks::openstack_controller::openstack_controller {
     notify_api_faults                  => pick($nova_hash['notify_api_faults'], false),
     notification_driver                => $ceilometer_hash['notification_driver'],
     notify_on_state_change             => $notify_on_state_change,
-    memcached_servers                  => $memcached_addresses,
+    memcached_servers                  => $memcached_servers,
     cinder_catalog_info                => pick($nova_hash['cinder_catalog_info'], 'volumev2:cinderv2:internalURL'),
     database_max_pool_size             => $max_pool_size,
     database_max_retries               => $max_retries,
@@ -219,7 +217,7 @@ class openstack_tasks::openstack_controller::openstack_controller {
     class { '::nova::cache':
       enabled          => true,
       backend          => 'oslo_cache.memcache_pool',
-      memcache_servers => $memcached_addresses,
+      memcache_servers => $memcached_servers,
     }
   } else {
     ensure_packages($pymemcache_package_name)
