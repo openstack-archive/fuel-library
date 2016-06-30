@@ -32,10 +32,7 @@
       $.get('block_device_allocate_retries', 300),
       $.get('block_device_allocate_retries_interval', 3),
       $.get('queue_provider', 'rabbit'), $.quantum_settings,
-      $.get('memcached_addresses', ''), $.get('memcache_roles', ''),
-      $.network_metadata.nodes.values().where(
-        $.network_roles.get('mgmt/memcache') != null),
-      $.get('memcache_server_port'),
+      $.get('memcached_servers', ''),
       $.network_metadata.nodes.values().where(
         $.node_roles.any($.matches('controller'))).network_roles.select(
           $.get('mgmt/messaging')),
