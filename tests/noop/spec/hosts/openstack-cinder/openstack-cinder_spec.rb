@@ -61,6 +61,8 @@ describe manifest do
   let(:glance_endpoint) { Noop.puppet_function 'get_ssl_property',ssl_hash,{},'glance','internal','hostname', glance_endpoint_default}
   let(:glance_api_servers) { Noop.hiera 'glance_api_servers', "#{glance_protocol}://#{glance_endpoint}:9292" }
 
+  let(:memcached_servers) { Noop.hiera 'memcached_servers' }
+
   it 'should configure default_log_levels' do
     should contain_cinder_config('DEFAULT/default_log_levels').with_value(default_log_levels.sort.join(','))
   end
@@ -212,6 +214,7 @@ describe manifest do
     'bind_host'                  => bind_host,
     'identity_uri'               => identity_uri,
     'keymgr_encryption_auth_url' => "#{identity_uri}/v3",
+    'memcached_servers'          => memcached_servers,
   ) }
 
   it { is_expected.to contain_class('cinder::glance').with(

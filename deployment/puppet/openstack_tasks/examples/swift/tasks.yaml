@@ -11,7 +11,7 @@
       (changedAny($.network_scheme, $.network_metadata, $.swift,
         $.get('swift_master_role', 'primary-controller'),
         $.get('swift_object_roles'), ('primary-controller' in $.roles),
-        $.get('swift_proxy_roles'), $.get('memcached_addresses'),
+        $.get('swift_proxy_roles'), $.get('memcached_servers'),
         $.network_metadata.nodes.values().where(
           ('controller' in $.node_roles) or
           ('primary-controller' in $.node_roles)),
@@ -21,7 +21,7 @@
         $.network_metadata.nodes.values().where(
           $.node_roles.any($.matches('controller'))).network_roles.select(
             $.get('mgmt/messaging')), $.get('amqp_hosts'),
-        $.get('memcache_server_port'), $.ceilometer.enabled, $.mp,
+        $.ceilometer.enabled, $.mp,
         $.get('swift_partition'), $.get('deploy_swift_storage')))
   cross-depends:
     - name: /glance/

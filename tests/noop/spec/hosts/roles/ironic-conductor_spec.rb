@@ -17,6 +17,8 @@ describe manifest do
     ironic_db_user = Noop.hiera_structure 'ironic/db_user', 'ironic'
     ironic_db_name = Noop.hiera_structure 'ironic/db_name', 'ironic'
 
+    let(:memcached_servers) { Noop.hiera 'memcached_servers' }
+
     if ironic_enabled
       it 'should ensure that ironic-fa-deploy is installed' do
           should contain_package('ironic-fa-deploy').with('ensure' => 'present')
@@ -70,6 +72,7 @@ describe manifest do
         should contain_ironic_config('keystone_authtoken/auth_uri').with('value' => internal_auth_uri)
         should contain_ironic_config('keystone_authtoken/identity_uri').with('value' => admin_identity_uri)
         should contain_ironic_config('keystone_authtoken/admin_user').with('value' => ironic_user)
+        should contain_ironic_config('keystone_authtoken/memcached_servers').with('value' => memcached_servers.join(','))
         should contain_ironic_config('glance/temp_url_endpoint_type').with('value' => temp_url_endpoint_type)
       end
 
