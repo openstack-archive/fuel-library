@@ -48,7 +48,7 @@ class openstack_tasks::heat::heat {
   $syslog_log_facility      = hiera('syslog_log_facility_heat')
   $deployment_mode          = hiera('deployment_mode')
   $bind_host                = get_network_role_property('heat/api', 'ipaddr')
-  $memcache_address         = get_network_role_property('mgmt/memcache', 'ipaddr')
+  $memcached_servers        = hiera('memcached_servers')
   $keystone_user            = pick($heat_hash['user'], 'heat')
   $keystone_tenant          = pick($heat_hash['tenant'], 'services')
   $region                   = hiera('region', 'RegionOne')
@@ -123,7 +123,7 @@ class openstack_tasks::heat::heat {
   heat_config {
     'cache/enabled':          value => true;
     'cache/backend':          value => 'oslo_cache.memcache_pool';
-    'cache/memcache_servers': value => "${memcache_address}:11211";
+    'cache/memcache_servers': value => $memcached_servers;
   }
 
   #------------------------------
@@ -237,7 +237,16 @@ class openstack_tasks::heat::heat {
     database_max_pool_size => $max_pool_size,
     database_max_overflow  => $max_overflow,
     database_max_retries   => $max_retries,
+
+    # TODO(aschultz): https://review.openstack.org/336135
+    #memcached_servers      => $memcached_servers
   }
+
+  # TODO(aschultz): remove this and switch to the heat param
+  ensure_resource('heat_config', 'keystone_authtoken/memcached_servers', {
+    ensure => present,
+    value  => $memcached_servers
+  })
 
   # Engine
   class { '::heat::engine' :
