@@ -202,12 +202,11 @@ describe manifest do
         should contain_class('murano::api').with(
                    'host'    => bind_address,
                    'port'    => api_bind_port,
-                   'sync_db' => false,
                )
       end
 
       it 'should declare murano::engine class coreclty' do
-        should contain_class('murano::engine').with('sync_db' => false)
+        should contain_class('murano::engine')
       end
 
       it 'should declare murano::client class coreclty' do
@@ -216,31 +215,14 @@ describe manifest do
 
       it 'should declare murano::dashboard class correctly' do
         should contain_class('murano::dashboard').with(
-                   'api_url'  => nil,
                    'repo_url' => repository_url,
                    'sync_db'  => false,
                    'enable_glare' => enable_glare
                )
       end
 
-      it { should_not contain_concat__fragment('murano_dashboard_section').with_content(/MURANO_API_URL = /)}
       it { should contain_concat__fragment('murano_dashboard_section').with_content(/METADATA_CACHE_DIR = '\/var\/cache\/murano-dashboard'/)}
       it { should_not contain_exec('django_syncdb') }
-
-       # Test for non-haproxy backend
-      it {
-        if Noop.hiera('external_lb', false)
-          url = murano_url
-          provider = 'http'
-        else
-          url = 'http://' + management_ip + ':10000/;csv'
-          provider = Puppet::Type.type(:haproxy_backend_status).defaultprovider.name
-        end
-        should contain_haproxy_backend_status('murano-api').with(
-          :url      => url,
-          :provider => provider
-        )
-      }
 
       if ['gzip', 'bz2'].include?(kombu_compression)
         it 'should configure kombu compression' do
