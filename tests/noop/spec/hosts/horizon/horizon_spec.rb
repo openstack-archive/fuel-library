@@ -35,12 +35,14 @@ describe manifest do
 
     let(:ssl_hash) { Noop.hiera_hash 'use_ssl', {} }
 
-    let(:internal_auth_protocol) { Noop.puppet_function 'get_ssl_property',ssl_hash,{},'keystone','internal','protocol','http' }
+    let(:public_ssl_hash) { Noop.hiera_hash 'public_ssl', {} }
 
-    let(:internal_auth_address) { Noop.puppet_function 'get_ssl_property',ssl_hash,{},'keystone','internal','hostname',[service_endpoint, management_vip] }
+    let(:public_auth_protocol) { Noop.puppet_function 'get_ssl_property',ssl_hash, public_ssl_hash,'keystone','public','protocol','http' }
+
+    let(:public_auth_address) { Noop.puppet_function 'get_ssl_property',ssl_hash, public_ssl_hash,'keystone','public','hostname',[service_endpoint, management_vip] }
 
     let(:keystone_url) do
-      "#{internal_auth_protocol}://#{internal_auth_address}:5000/v3"
+      "#{public_auth_protocol}://#{public_auth_address}:5000/v3"
     end
 
     let(:cache_options) do
@@ -188,4 +190,3 @@ describe manifest do
 
   test_ubuntu_and_centos manifest
 end
-
