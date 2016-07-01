@@ -2,9 +2,10 @@ require 'spec_helper'
 require 'yaml'
 require_relative '../../lib/puppetx/l23_hash_tools'
 
-describe Puppet::Parser::Functions.function(:get_dpdk_interfaces) do
-let(:network_scheme) do
-<<eof
+describe 'get_dpdk_interfaces' do
+
+  let(:network_scheme) do
+    <<-eof
 ---
   version: 1.1
   provider: lnx
@@ -27,31 +28,28 @@ let(:network_scheme) do
       vendor_specific:
         driver: tg3
         bus_info: "0000:02:00.1"
-eof
-end
+    eof
+  end
 
-  let(:scope) { PuppetlabsSpec::PuppetInternals.scope }
-
-  subject do
-    function_name = Puppet::Parser::Functions.function(:get_dpdk_interfaces)
-    scope.method(function_name)
+  it 'should exist' do
+    is_expected.not_to be_nil
   end
 
   context "get_dpdk_interfaces() usage" do
     before(:each) do
       scope.stubs(:lookupvar).with('l3_fqdn_hostname').returns('node1.tld')
       L23network::Scheme.set_config(
-        scope.lookupvar('l3_fqdn_hostname'),
-        L23network.sanitize_keys_in_hash(YAML.load(network_scheme))
+          scope.lookupvar('l3_fqdn_hostname'),
+          L23network.sanitize_keys_in_hash(YAML.load(network_scheme))
       )
     end
 
-    it 'should exist' do
-      subject == Puppet::Parser::Functions.function(:get_transformation_property)
-    end
-
     it 'should return dpdk driver list' do
-      should run.with_params().and_return([["0000:01:00.0", "igb_uio"], ["0000:01:00.1", "igb_uio"]])
+      is_expected.to run.with_params().and_return(
+          [
+              ["0000:01:00.0", "igb_uio"], ["0000:01:00.1", "igb_uio"]
+          ]
+      )
     end
   end
 end

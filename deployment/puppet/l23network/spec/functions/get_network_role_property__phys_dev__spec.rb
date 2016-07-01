@@ -2,9 +2,10 @@ require 'spec_helper'
 require 'yaml'
 require_relative '../../lib/puppetx/l23_hash_tools'
 
-describe Puppet::Parser::Functions.function(:get_network_role_property) do
-let(:network_scheme) do
-<<eof
+describe 'get_network_role_property' do
+
+  let(:network_scheme) do
+    <<-eof
 ---
   version: 1.1
   provider: lnx
@@ -114,74 +115,64 @@ let(:network_scheme) do
     custom: br-aux
     zzz: br44
     bond_103: bond0.103
-eof
-end
+    eof
+  end
 
-
-
-  let(:scope) { PuppetlabsSpec::PuppetInternals.scope }
-
-  subject do
-    function_name = Puppet::Parser::Functions.function(:get_network_role_property)
-    scope.method(function_name)
+  it 'should exist' do
+    is_expected.not_to be_nil
   end
 
   context "get_network_role_property('**something_role**', 'phys_dev') usage" do
     before(:each) do
       scope.stubs(:lookupvar).with('l3_fqdn_hostname').returns('node1.tld')
       L23network::Scheme.set_config(
-        scope.lookupvar('l3_fqdn_hostname'),
-        L23network.sanitize_keys_in_hash(YAML.load(network_scheme))
+          scope.lookupvar('l3_fqdn_hostname'),
+          L23network.sanitize_keys_in_hash(YAML.load(network_scheme))
       )
     end
 
-    it 'should exist' do
-      subject == Puppet::Parser::Functions.function(:get_network_role_property)
-    end
-
     it 'should return physical device name for "management" network role (just subinterface)' do
-      should run.with_params('management', 'phys_dev').and_return(["eth1"])
+      is_expected.to run.with_params('management', 'phys_dev').and_return(["eth1"])
     end
 
     it 'should return physical device name for "ex" network role (subinterface of bond)' do
-      should run.with_params('ex', 'phys_dev').and_return(["bond0", "eth2", "eth3"])
+      is_expected.to run.with_params('ex', 'phys_dev').and_return(["bond0", "eth2", "eth3"])
     end
 
     it 'should return physical device name for "floating" network role (OVS-bridge, connected by patch to LNX bridge)' do
-      should run.with_params('neutron/floating', 'phys_dev').and_return(["bond0", "eth2", "eth3"])
+      is_expected.to run.with_params('neutron/floating', 'phys_dev').and_return(["bond0", "eth2", "eth3"])
     end
 
     it 'should return physical device name for "private" network role' do
-      should run.with_params('neutron/private', 'phys_dev').and_return(["bond0", "eth2", "eth3"])
+      is_expected.to run.with_params('neutron/private', 'phys_dev').and_return(["bond0", "eth2", "eth3"])
     end
 
     it 'should return physical device name for "storage" network role (bond, without tag)' do
-      should run.with_params('storage', 'phys_dev').and_return(["bond0", "eth2", "eth3"])
+      is_expected.to run.with_params('storage', 'phys_dev').and_return(["bond0", "eth2", "eth3"])
     end
 
     it 'should return physical device name for "admin" network role (just interface has IP address)' do
-      should run.with_params('admin', 'phys_dev').and_return(['eth0'])
+      is_expected.to run.with_params('admin', 'phys_dev').and_return(['eth0'])
     end
 
     it 'should return physical device name for untagged interface with simple transformation' do
-      should run.with_params('xxx', 'phys_dev').and_return(['eth4'])
+      is_expected.to run.with_params('xxx', 'phys_dev').and_return(['eth4'])
     end
 
     it 'should return physical device name for subinterface of bond' do
-      should run.with_params('bond_103', 'phys_dev').and_return(["bond0", "eth2", "eth3"])
+      is_expected.to run.with_params('bond_103', 'phys_dev').and_return(["bond0", "eth2", "eth3"])
     end
 
     it 'should return physical devices names for "custom" network role (two interfaces)' do
-      should run.with_params('custom', 'phys_dev').and_return(["eth5", "bond0"])
+      is_expected.to run.with_params('custom', 'phys_dev').and_return(["eth5", "bond0"])
     end
 
     it 'should return physical device name for endpoint with interface with long name, contains shot name of another interface' do
-      should run.with_params('zzz', 'phys_dev').and_return(['eth44'])
+      is_expected.to run.with_params('zzz', 'phys_dev').and_return(['eth44'])
     end
 
-
     it 'should return NIL for "non-existent" network role' do
-      should run.with_params('non-existent', 'phys_dev').and_return(nil)
+      is_expected.to run.with_params('non-existent', 'phys_dev').and_return(nil)
     end
   end
 

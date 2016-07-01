@@ -2,9 +2,10 @@ require 'spec_helper'
 require 'yaml'
 require_relative '../../lib/puppetx/l23_hash_tools'
 
-describe Puppet::Parser::Functions.function(:get_nic_passthrough_whitelist) do
-let(:network_scheme) do
-<<eof
+describe 'get_nic_passthrough_whitelist' do
+
+  let(:network_scheme) do
+    <<-eof
 ---
   version: 1.1
   provider: lnx
@@ -33,40 +34,33 @@ let(:network_scheme) do
         sriov_numvfs: 4
   endpoints:
   roles:
-eof
-end
+    eof
+  end
 
-
-
-  let(:scope) { PuppetlabsSpec::PuppetInternals.scope }
-
-  subject do
-    function_name = Puppet::Parser::Functions.function(:get_nic_passthrough_whitelist)
-    scope.method(function_name)
+  it 'should exist' do
+    is_expected.not_to be_nil
   end
 
   context "get_nic_passthrough_whitelist() usage" do
     before(:each) do
       scope.stubs(:lookupvar).with('l3_fqdn_hostname').returns('node1.tld')
       L23network::Scheme.set_config(
-        scope.lookupvar('l3_fqdn_hostname'),
-        L23network.sanitize_keys_in_hash(YAML.load(network_scheme))
+          scope.lookupvar('l3_fqdn_hostname'),
+          L23network.sanitize_keys_in_hash(YAML.load(network_scheme))
       )
     end
 
-    it 'should exist' do
-      subject == Puppet::Parser::Functions.function(:get_pci_passthrough_whitelist)
-    end
-
     it 'should return sriov mappings from transformations' do
-      should run.with_params('sriov').and_return([
-        {"devname" => "enp1s0f0", "physical_network" => "physnet1"},
-        {"devname" => "enp1s0f1", "physical_network" => "physnet2"}
-       ])
+      is_expected.to run.with_params('sriov').and_return(
+          [
+              {"devname" => "enp1s0f0", "physical_network" => "physnet1"},
+              {"devname" => "enp1s0f1", "physical_network" => "physnet2"}
+          ]
+      )
     end
 
     it 'should return empty mapping from transformations' do
-      should run.with_params('dumb').and_return(nil)
+      is_expected.to run.with_params('dumb').and_return(nil)
     end
   end
 
