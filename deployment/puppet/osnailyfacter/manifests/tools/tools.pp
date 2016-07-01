@@ -2,11 +2,20 @@ class osnailyfacter::tools::tools {
 
   notice('MODULAR: tools/tools.pp')
 
+  $atop_hash     = hiera('atop', {})
+  $atop_enabled  = pick($atop_hash['service_enabled'], true)
+  $atop_interval = pick($atop_hash['interval'], 20)
+  $atop_rotate   = pick($atop_hash['rotate'], 7)
+
   $custom_acct_file = hiera('custom_accounting_file', undef)
+
   $puppet = hiera('puppet')
   $deployment_mode = hiera('deployment_mode')
 
   class { '::osnailyfacter::atop':
+    service_enabled  => $atop_enabled,
+    interval         => $atop_interval,
+    rotate           => $atop_rotate,
     custom_acct_file => $custom_acct_file,
   }
 
