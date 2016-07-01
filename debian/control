@@ -8,7 +8,8 @@ Build-Depends: debhelper (>= 9),
 # TODO(sgolovatiuk): ruby-thor should be removed
 # when https://bugs.launchpad.net/ubuntu/+source/librarian-puppet-simple/+bug/1588246
 # is merged (librarian-puppet-simple 0.0.5-2)
-               ruby-thor
+               ruby-thor,
+               git
 Standards-Version: 3.9.2
 
 Package: fuel-library10.0
