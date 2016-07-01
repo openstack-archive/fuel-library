@@ -43,6 +43,8 @@ class openstack_tasks::horizon::horizon {
   # Don't use custom backend until its code lands to MOS 9.0.
   $cache_backend = try_get_value($horizon_hash, 'cache_backend', 'django.core.cache.backends.memcached.MemcachedCache')
 
+  #Changing from internal addressing to public should resolve any security concerns about exposing 'internal' to public facing login.
+  #However, this should eventually be removed altogether from Horizon.
   $public_ssl_hash        = hiera_hash('public_ssl')
   $ssl_hash               = hiera_hash('use_ssl', {})
   $public_auth_protocol   = get_ssl_property($ssl_hash, $public_ssl_hash, 'keystone', 'public', 'protocol', 'http')
