@@ -34,6 +34,11 @@ cloud_init_services = [
   'cloud-log-shutdown',
 ]
 
+atop_hash     = Noop.hiera 'atop', {}
+atop_enabled  = Noop.puppet_function 'pick', atop_hash['service_enabled'], true
+atop_interval = Noop.puppet_function 'pick', atop_hash['interval'], 20
+atop_rotate   = Noop.puppet_function 'pick', atop_hash['rotate'], 7
+
 puppet = Noop.hiera('puppet')
 
 describe manifest do
@@ -49,7 +54,11 @@ describe manifest do
     end
 
     it 'should declare tools classes' do
-      should contain_class('osnailyfacter::atop')
+      should contain_class('osnailyfacter::atop').with(
+          'service_enabled' => atop_enabled,
+          'interval'        => atop_interval,
+          'rotate'          => atop_rotate,
+      )
       should contain_class('osnailyfacter::ssh').with(
           'accept_env'     => 'LANG LC_*',
       )
