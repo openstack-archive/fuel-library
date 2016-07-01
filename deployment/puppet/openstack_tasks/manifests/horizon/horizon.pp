@@ -43,12 +43,16 @@ class openstack_tasks::horizon::horizon {
   # Don't use custom backend until its code lands to MOS 9.0.
   $cache_backend = try_get_value($horizon_hash, 'cache_backend', 'django.core.cache.backends.memcached.MemcachedCache')
 
+  #Changing from internal addressing to public should resolve any security concerns about exposing 'internal' to public facing login.
+  #However, this should eventually be removed altogether from Horizon.
+  $public_ssl_hash        = hiera_hash('public_ssl')
   $ssl_hash               = hiera_hash('use_ssl', {})
-  $internal_auth_protocol = get_ssl_property($ssl_hash, {}, 'keystone', 'internal', 'protocol', 'http')
-  $internal_auth_address  = get_ssl_property($ssl_hash, {}, 'keystone', 'internal', 'hostname', [$service_endpoint, $management_vip])
-  $internal_auth_port     = '5000'
+  $public_vip             = hiera('public_vip')
+  $public_auth_protocol   = get_ssl_property($ssl_hash, $public_ssl_hash, 'keystone', 'public', 'protocol', 'http')
+  $public_auth_address    = get_ssl_property($ssl_hash, $public_ssl_hash, 'keystone', 'public', 'hostname', [$public_vip])
+  $public_auth_port       = '5000'
   $keystone_api           = 'v3'
-  $keystone_url           = "${internal_auth_protocol}://${internal_auth_address}:${internal_auth_port}/${keystone_api}"
+  $keystone_url           = "${public_auth_protocol}://${public_auth_address}:${public_auth_port}/${keystone_api}"
 
   $cinder_options     = {'enable_backup' => pick($storage_hash['volumes_ceph'], false)}
   $neutron_options    = {
@@ -121,7 +125,7 @@ class openstack_tasks::horizon::horizon {
   }
 
   # Only run collectstatic&compress for MOS packages
-  if $repo_type != 'uca' { 
+  if $repo_type != 'uca' {
     Concat[$::horizon::params::config_file] ~> Exec['refresh_horizon_django_cache']
   }
 
@@ -180,4 +184,3 @@ class openstack_tasks::horizon::horizon {
   }
 
 }
-
