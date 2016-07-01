@@ -35,7 +35,7 @@ describe manifest do
 
     let(:ssl_hash) { Noop.hiera_hash 'use_ssl', {} }
 
-    let(:public_ssl_hash) { Noop.hiera_hash 'public_use_ssl', {} }
+    let(:public_ssl_hash) { Noop.hiera_hash 'public_ssl', {} }
 
     let(:public_auth_protocol) { Noop.puppet_function 'get_ssl_property',ssl_hash, public_ssl_hash,'keystone','public','protocol','http' }
 
