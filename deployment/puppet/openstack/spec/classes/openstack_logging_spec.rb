@@ -37,6 +37,15 @@ describe 'openstack::logging' do
       it 'configures with the default params' do
         should_not contain_class('openstack::checksum_udp')
         should contain_class('rsyslog::params')
+        should contain_class('rsyslog').with(
+          :modules => [
+            '$ModLoad imuxsock # provides support for local system logging',
+            '$ModLoad imklog   # provides kernel logging support (previously done by rklogd)',
+            '#$ModLoad immark  # provides --MARK-- message capability',
+            '$ModLoad imfile   # provides the ability to convert any standard text file into a syslog message',
+          ],
+          :extra_modules => [ 'imfile' ],
+        )
         should contain_rsyslog__imfile('04-rabbitmq')
         should contain_rsyslog__imfile('04-rabbitmq-sasl')
         should contain_rsyslog__imfile('04-rabbitmq-startup_err')

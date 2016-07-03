@@ -32,7 +32,7 @@ $ActionResumeRetryCount -1
 # Isolate sudo logs locally
 # match if "program name" is equal to "sudo"
 :programname, isequal, "sudo" -/var/log/sudo.log
-&~
+& stop
 
 <% if rserver['remote_type'] == 'tcp' -%>
 # Send messages we receive to master node via tcp
