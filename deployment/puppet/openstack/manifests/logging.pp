@@ -119,10 +119,11 @@ class openstack::logging (
     class { '::openstack::checksum_udp' : port => $port }
   }
 
-  include ::rsyslog::params
-
   # Configure syslog roles
   if $role == 'client' {
+
+    # configure service to load 'imfile' module only once
+    class { '::rsyslog': extra_modules => [ 'imfile' ] }
 
     if $rservers == undef {
       fail('Please provide a valid $rservers configuration')
