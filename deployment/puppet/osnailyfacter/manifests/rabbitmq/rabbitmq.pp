@@ -3,7 +3,6 @@ class osnailyfacter::rabbitmq::rabbitmq {
   notice('MODULAR: rabbitmq/rabbitmq.pp')
 
   $network_scheme = hiera_hash('network_scheme', {})
-  $workers_max = hiera('workers_max', 50)
 
   prepare_network_config($network_scheme)
 
@@ -30,12 +29,12 @@ class osnailyfacter::rabbitmq::rabbitmq {
         'master_mon_interval' => '27',
         'mon_interval'        => '35',
     }
-    $rabbit_ocf = merge($rabbit_ocf_default, hiera_hash('rabbit_ocf', {}))
-    $debug           = pick($rabbit_hash['debug'], hiera('debug', false))
-    $enabled         = pick($rabbit_hash['enabled'], true)
-    $use_pacemaker   = pick($rabbit_hash['pacemaker'], true)
-    $file_limit     = pick($rabbit_hash['file_limit'], '100000')
-    $pid_file        = pick($rabbit_hash['pid_file'], '/var/run/rabbitmq/p_pid')
+    $rabbit_ocf    = merge($rabbit_ocf_default, hiera_hash('rabbit_ocf', {}))
+    $debug         = pick($rabbit_hash['debug'], hiera('debug', false))
+    $enabled       = pick($rabbit_hash['enabled'], true)
+    $use_pacemaker = pick($rabbit_hash['pacemaker'], true)
+    $file_limit    = pick($rabbit_hash['file_limit'], '100000')
+    $pid_file      = pick($rabbit_hash['pid_file'], '/var/run/rabbitmq/p_pid')
 
     case $::osfamily {
       'RedHat': {
@@ -61,8 +60,8 @@ class osnailyfacter::rabbitmq::rabbitmq {
     $rabbitmq_bind_ip_address     = pick(get_network_role_property('mgmt/messaging', 'ipaddr'), 'UNSET')
     $management_bind_ip_address   = hiera('management_bind_ip_address', '127.0.0.1')
     $management_port              = hiera('rabbit_management_port', '15672')
-    $enable_rpc_ha                = hiera('enable_rpc_ha', 'false')
-    $enable_notifications_ha      = hiera('enable_notifications_ha', 'true')
+    $enable_rpc_ha                = hiera('enable_rpc_ha', false)
+    $enable_notifications_ha      = hiera('enable_notifications_ha', true)
     $fqdn_prefix                  = hiera('node_name_prefix_for_messaging', 'messaging-')
 
     # NOTE(mattymo) UNSET is a puppet ref, but would break real configs
@@ -146,6 +145,8 @@ class osnailyfacter::rabbitmq::rabbitmq {
         #cluster_node_type          => 'disc',
         #cluster_partition_handling => $cluster_partition_handling,
         version                     => $version,
+        # since 5.4.0 used only for management plugin, so NODE_IP_ADDRESS set
+        # via $environment_variables hash to the $rabbitmq_bind_ip_address value
         node_ip_address             => $management_bind_ip_address,
         config_kernel_variables     => $config_kernel_variables_merged,
         config_management_variables => $config_management_variables_merged,
@@ -195,7 +196,7 @@ class osnailyfacter::rabbitmq::rabbitmq {
           erlang_cookie           => $erlang_cookie,
           admin_user              => $rabbit_hash['user'],
           admin_pass              => $rabbit_hash['password'],
-          host_ip                 => $management_bind_ip_address,
+          host_ip                 => $rabbitmq_bind_ip_address,
           before                  => Class['::nova::rabbitmq'],
           enable_rpc_ha           => $enable_rpc_ha,
           enable_notifications_ha => $enable_notifications_ha,

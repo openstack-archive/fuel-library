@@ -48,7 +48,6 @@ describe manifest do
     erlang_cookie = Noop.hiera('erlang_cookie', 'EOKOWXQREETZSHFNTPEY')
     version = Noop.hiera('rabbit_version', '3.3.5')
     amqp_port = Noop.hiera('amqp_port', '5673')
-    workers_max = Noop.hiera 'workers_max'
     debug = Noop.hiera('debug', false)
     rabbit_hash = Noop.hiera_structure 'rabbit'
     use_pacemaker = rabbit_hash.fetch(['pacemaker'], true)
@@ -159,7 +158,7 @@ describe manifest do
           :erlang_cookie           => erlang_cookie,
           :admin_user              => rabbit_hash['user'],
           :admin_pass              => rabbit_hash['password'],
-          :host_ip                 => management_bind_ip_address,
+          :host_ip                 => rabbitmq_bind_ip_address,
           :enable_rpc_ha           => enable_rpc_ha,
           :enable_notifications_ha => enable_notifications_ha,
           :fqdn_prefix             => fqdn_prefix,
