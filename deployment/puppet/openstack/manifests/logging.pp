@@ -119,10 +119,20 @@ class openstack::logging (
     class { '::openstack::checksum_udp' : port => $port }
   }
 
-  include ::rsyslog::params
-
   # Configure syslog roles
   if $role == 'client' {
+
+    # configure service to load 'imfile' module once in the global config,
+    # next in the extra_modules as a workaround to not load in the snippets
+    class { '::rsyslog':
+      modules       => [
+        '$ModLoad imuxsock # provides support for local system logging',
+        '$ModLoad imklog   # provides kernel logging support (previously done by rklogd)',
+        '#$ModLoad immark  # provides --MARK-- message capability',
+        '$ModLoad imfile   # provides the ability to convert any standard text file into a syslog message',
+      ],
+      extra_modules => [ 'imfile' ],
+    }
 
     if $rservers == undef {
       fail('Please provide a valid $rservers configuration')

@@ -21,12 +21,12 @@ $template PuppetApplyLogFile, "/var/log/remote/%fromhost-ip%/puppet-apply.log"
 
 # Parse puppet logs
 :syslogtag, regex, "puppet-user" ?PuppetApplyLogFile;RemoteLog
-&~
+& stop
 :syslogtag, regex, "puppet-error" ?PuppetApplyLogFile;RemoteLog
-&~
+& stop
 
 :fromhost-ip, regex, "^[1-9]" ?RemoteLogFile;RemoteLog
-&~
+& stop
 
 <% end -%>
 
