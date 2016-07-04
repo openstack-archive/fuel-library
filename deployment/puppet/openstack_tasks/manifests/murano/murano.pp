@@ -27,7 +27,7 @@ class openstack_tasks::murano::murano {
   $public_ssl_hash            = hiera_hash('public_ssl', {})
   $ssl_hash                   = hiera_hash('use_ssl', {})
   $primary_controller         = hiera('primary_controller')
-  $kombu_compression          = hiera('kombu_compression', '')
+  $kombu_compression          = hiera('kombu_compression', $::os_service_default)
 
   $public_auth_protocol       = get_ssl_property($ssl_hash, $public_ssl_hash, 'keystone', 'public', 'protocol', 'http')
   $public_auth_address        = get_ssl_property($ssl_hash, $public_ssl_hash, 'keystone', 'public', 'hostname', [$public_ip])
@@ -144,6 +144,7 @@ class openstack_tasks::murano::murano {
       service_port        => $api_bind_port,
       external_network    => $external_network,
       use_trusts          => true,
+      kombu_compression   => $kombu_compression,
     }
 
     class { '::murano::api':
@@ -162,16 +163,5 @@ class openstack_tasks::murano::murano {
     }
 
     Firewall[$firewall_rule] -> Class['::murano::api']
-
-    # TODO (iberezovskiy): remove this workaround in N when murano module
-    # will be switched to puppet-oslo usage for rabbit configuration
-    if $kombu_compression in ['gzip','bz2'] {
-      if !defined(Oslo::Messaging_rabbit['murano_config']) and !defined(Murano_config['oslo_messaging_rabbit/kombu_compression']) {
-        murano_config { 'oslo_messaging_rabbit/kombu_compression': value => $kombu_compression; }
-      } else {
-        Murano_config<| title == 'oslo_messaging_rabbit/kombu_compression' |> { value => $kombu_compression }
-      }
-    }
   }
-
 }

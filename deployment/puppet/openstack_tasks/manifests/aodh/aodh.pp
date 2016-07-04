@@ -16,7 +16,7 @@ class openstack_tasks::aodh::aodh {
   $rabbit_port         = hiera('amqp_port')
   $rabbit_hosts        = split($amqp_hosts, ',')
   $rabbit_virtual_host = '/'
-  $kombu_compression   = hiera('kombu_compression', '')
+  $kombu_compression   = hiera('kombu_compression', $::os_service_default)
 
   prepare_network_config(hiera_hash('network_scheme', {}))
 
@@ -109,6 +109,7 @@ class openstack_tasks::aodh::aodh {
     rabbit_ha_queues           => $rabbit_ha_queues,
     database_connection        => $database_connection,
     alarm_history_time_to_live => $alarm_history_ttl,
+    kombu_compression          => $kombu_compression,
   }
 
   class { '::aodh::auth':
@@ -196,15 +197,4 @@ class openstack_tasks::aodh::aodh {
   }
 
   Service['aodh-api'] -> ::Osnailyfacter::Wait_for_backend['aodh']
-
-  # TODO (iberezovskiy): remove this workaround in N when aodh module
-  # will be switched to puppet-oslo usage for rabbit configuration
-  if $kombu_compression in ['gzip','bz2'] {
-    if !defined(Oslo::Messaging_rabbit['aodh_config']) and !defined(Aodh_config['oslo_messaging_rabbit/kombu_compression']) {
-      aodh_config { 'oslo_messaging_rabbit/kombu_compression': value => $kombu_compression; }
-    } else {
-      Aodh_config<| title == 'oslo_messaging_rabbit/kombu_compression' |> { value => $kombu_compression }
-    }
-  }
-
 }
