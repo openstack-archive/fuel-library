@@ -390,8 +390,8 @@
     files:
       - src: /etc/fuel/cluster/{CLUSTER_ID}/deleted_nodes.yaml
         dst: /etc/hiera/deleted_nodes.yaml
-    permissions: '0600'
-    dir_permissions: '0700'
+    permissions: '0644'
+    dir_permissions: '0755'
 
 - id: purge_service_entries
   version: 2.1.0

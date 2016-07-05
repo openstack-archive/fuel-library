@@ -134,8 +134,8 @@
     files:
       - src: /etc/fuel/cluster/{CLUSTER_ID}/old_admin_user.yaml
         dst: /etc/hiera/old_admin_user.yaml
-    permissions: '0600'
-    dir_permissions: '0700'
+    permissions: '0644'
+    dir_permissions: '0755'
 
 - id: delete_old_admin_user
   version: 2.1.0
