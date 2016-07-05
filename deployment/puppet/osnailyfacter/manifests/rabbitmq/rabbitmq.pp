@@ -83,7 +83,7 @@ class osnailyfacter::rabbitmq::rabbitmq {
         'inet_dist_listen_min'         => '41055',
         'inet_dist_listen_max'         => '41055',
         'inet_default_connect_options' => '[{nodelay,true}]',
-        'net_ticktime'                 => '10',
+        'net_ticktime'                 => '60',
     }
     $config_kernel_variables_merged = merge ($config_kernel_variables_default, $config_kernel_variables)
 
