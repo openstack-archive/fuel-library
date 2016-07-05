@@ -108,7 +108,6 @@ describe manifest do
       should contain_glance_api_config('DEFAULT/delayed_delete').with_value(false)
       should contain_glance_api_config('DEFAULT/scrub_time').with_value('43200')
       should contain_glance_api_config('DEFAULT/scrubber_datadir').with_value('/var/lib/glance/scrubber')
-      should contain_glance_api_config('DEFAULT/auth_region').with_value(region)
       should contain_glance_api_config('glance_store/os_region_name').with_value(region)
       should contain_glance_api_config('keystone_authtoken/signing_dir').with_value('/tmp/keystone-signing-glance')
       should contain_glance_api_config('keystone_authtoken/token_cache_time').with_value('-1')
