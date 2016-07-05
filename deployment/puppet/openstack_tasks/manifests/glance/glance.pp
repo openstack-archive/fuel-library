@@ -170,7 +170,6 @@ class openstack_tasks::glance::glance {
     os_region_name         => $region,
     delayed_delete         => false,
     scrub_time             => '43200',
-    auth_region            => $region,
     signing_dir            => '/tmp/keystone-signing-glance',
     token_cache_time       => '-1',
     image_cache_stall_time => '86400',
