@@ -11,6 +11,8 @@ describe manifest do
     ceilometer_enabled = Noop.hiera_structure 'ceilometer/enabled'
     service_endpoint   = Noop.hiera 'service_endpoint'
 
+    let(:local_memcached_server) { Noop.hiera 'local_memcached_server' }
+
     it 'should declare openstack::network with use_stderr disabled' do
       should contain_class('openstack::network').with(
         'use_stderr' => 'false',
@@ -113,6 +115,10 @@ describe manifest do
         should contain_class('openstack::network').with(
          'auth_url' => "http://#{service_endpoint}:5000",
         )
+      end
+
+      it 'should configure keystone_authtoken memcached_servers' do
+        should contain_neutron_config('keystone_authtoken/memcached_servers').with_value(local_memcached_server)
       end
 
       neutron_config =  Noop.hiera_structure 'quantum_settings'
