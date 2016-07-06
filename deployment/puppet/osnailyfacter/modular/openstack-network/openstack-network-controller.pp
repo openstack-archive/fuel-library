@@ -12,6 +12,7 @@ $network_scheme                 = hiera('network_scheme', {})
 $nova_endpoint                  = hiera('nova_endpoint', $management_vip)
 $neutron_endpoint               = hiera('neutron_endpoint', $management_vip)
 $region                         = hiera('region', 'RegionOne')
+$memcached_servers              = hiera('memcached_servers')
 
 $floating_hash = {}
 
@@ -43,6 +44,9 @@ if $use_neutron {
   $neutron_db_name       = pick($neutron_config['database']['name'], 'neutron')
   $neutron_db_host       = pick($neutron_config['database']['host'], hiera('database_vip'))
   $base_mac              = $neutron_config['L2']['base_mac']
+  neutron_config {
+    'keystone_authtoken/memcached_servers' : value => join(any2array($memcached_servers), ',');
+  }
 } else {
   $network_provider   = 'nova'
   $floating_ips_range = hiera('floating_network_range')
