@@ -16,6 +16,7 @@ $use_syslog               = hiera('use_syslog', true)
 $syslog_log_facility_heat = hiera('syslog_log_facility_heat')
 $deployment_mode          = hiera('deployment_mode')
 $bind_address             = get_network_role_property('heat/api', 'ipaddr')
+$local_memcached_server  = hiera('local_memcached_server')
 $database_password        = $heat_hash['db_password']
 $keystone_user            = pick($heat_hash['user'], 'heat')
 $keystone_tenant          = pick($heat_hash['tenant'], 'services')
@@ -84,6 +85,11 @@ if hiera('heat_ha_engine', true){
   if ($deployment_mode == 'ha') or ($deployment_mode == 'ha_compact') {
     include ::heat_ha::engine
   }
+}
+
+# Turn on Caching for Heat validation process
+heat_config {
+  'keystone_authtoken/memcached_servers' : value => join(any2array($local_memcached_server), ',');
 }
 
 #------------------------------
