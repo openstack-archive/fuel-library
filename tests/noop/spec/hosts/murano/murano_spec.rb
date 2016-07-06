@@ -36,6 +36,8 @@ describe manifest do
     predefined_networks        = Noop.hiera_structure('neutron_config/predefined_networks')
     repository_url             = Noop.hiera_structure('murano_settings/murano_repo_url')
 
+    let(:local_memcached_server) { Noop.hiera('local_memcached_server') }
+
     if murano_enabled
       api_bind_port              = '8082'
       api_bind_host              = bind_address
@@ -92,6 +94,10 @@ describe manifest do
                    'service_port'        => api_bind_port,
                    'external_network'    => external_network,
                )
+      end
+
+      it 'should configure keystone_authtoken memcached_servers' do
+        should contain_murano_config('keystone_authtoken/memcached_servers').with_value(local_memcached_server.join(','))
       end
 
       it 'should declare murano::api class correctly' do

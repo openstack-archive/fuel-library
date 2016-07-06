@@ -58,6 +58,12 @@ describe manifest do
       )
     end
 
+    let (:local_memcached_server) { Noop.hiera 'local_memcached_server' }
+
+    it 'nova config should contain right memcached servers list' do
+      should contain_nova_config('keystone_authtoken/memcached_servers').with_value(local_memcached_server.join(','))
+    end
+
     if floating_ips_range && access_hash
       floating_ips_range.each do |ips_range|
         it "should configure nova floating IP range for #{ips_range}" do

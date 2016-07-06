@@ -12,6 +12,8 @@ describe manifest do
     ceilometer_hash = Noop.hiera_structure 'ceilometer'
     rabbit_ha_queues = 'true'
 
+    let(:local_memcached_server) { Noop.hiera 'local_memcached_server' }
+
     # Ceilometer
     if ceilometer_hash['enabled']
       it 'should declare openstack::ceilometer class with correct parameters' do
@@ -22,6 +24,9 @@ describe manifest do
           'on_controller'    => 'true',
           'use_stderr'       => 'false',
         )
+      end
+      it 'should configure memcache for keystone_authtoken' do
+        should contain_ceilometer_config('keystone_authtoken/memcached_servers').with_value(local_memcached_server.join(','))
       end
       it 'should configure OS ENDPOINT TYPE for ceilometer' do
         should contain_ceilometer_config('service_credentials/os_endpoint_type').with(:value => 'internalURL')
