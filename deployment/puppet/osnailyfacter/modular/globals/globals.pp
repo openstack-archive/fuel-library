@@ -7,9 +7,10 @@ notice('MODULAR: globals.pp')
 
 $fuel_settings = parseyaml($astute_settings_yaml)
 
+$uid                            = hiera('uid')
 $nodes_hash                     = hiera('nodes', {})
 $deployment_mode                = hiera('deployment_mode', 'ha_compact')
-$roles                          = hiera('roles', node_roles($nodes_hash, hiera('uid')))
+$roles                          = hiera('roles', node_roles($nodes_hash, $uid))
 $storage_hash                   = hiera('storage', {})
 $syslog_hash                    = hiera('syslog', {})
 $base_syslog_hash               = hiera('base_syslog', {})
@@ -87,7 +88,7 @@ $cinder_rate_limits = hiera('cinder_rate_limits',
   }
 )
 
-$node = hiera('node', filter_nodes($nodes_hash, 'name', $::hostname))
+$node = hiera('node', filter_nodes($nodes_hash, 'uid', $uid))
 if empty($node) {
   fail("Node hostname is not defined in the hash structure")
 }
