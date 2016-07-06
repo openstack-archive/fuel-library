@@ -44,7 +44,7 @@
   parameters:
     puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/rabbitmq/rabbitmq.pp
     puppet_modules: /etc/puppet/modules
-    timeout: 900
+    timeout: 1800
     strategy:
       type: parallel
       amount:
