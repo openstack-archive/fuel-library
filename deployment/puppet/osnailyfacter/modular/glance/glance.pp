@@ -71,6 +71,8 @@ $identity_uri = "${admin_auth_protocol}://${admin_auth_address}:35357/"
 
 $rados_connect_timeout          = '30'
 
+$memcached_servers = hiera('memcached_servers')
+
 if ($storage_hash['images_ceph'] and !$ironic_hash['enabled']) {
   $glance_backend = 'ceph'
   $glance_known_stores = [ 'glance.store.rbd.Store', 'glance.store.http.Store' ]
@@ -144,6 +146,14 @@ if $murano_plugins and $murano_plugins['glance_artifacts_plugin'] and $murano_pl
   glance_api_config {
     'DEFAULT/enable_v3_api': value => true,
   }
+}
+
+glance_api_config {
+  'keystone_authtoken/memcached_servers' : value => join(any2array($memcached_servers), ',');
+}
+
+glance_registry_config {
+  'keystone_authtoken/memcached_servers' : value => join(any2array($memcached_servers), ',');
 }
 
 ####### Disable upstart startup on install #######

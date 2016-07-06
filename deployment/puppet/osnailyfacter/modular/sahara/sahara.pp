@@ -31,6 +31,7 @@ $internal_auth_url          = "${internal_auth_protocol}://${internal_auth_addre
 $admin_identity_protocol    = get_ssl_property($ssl_hash, {}, 'keystone', 'admin', 'protocol', 'http')
 $admin_identity_address     = get_ssl_property($ssl_hash, {}, 'keystone', 'admin', 'hostname', [$service_endpoint, $management_vip])
 $admin_identity_uri         = "${admin_identity_protocol}://${admin_identity_address}:35357"
+$memcached_servers          = hiera('memcached_servers')
 
 #################################################################
 
@@ -98,6 +99,10 @@ if $sahara_hash['enabled'] {
     rabbit_ha_queues       => $rabbit_ha_queues,
     rabbit_port            => $amqp_port,
     rabbit_hosts           => split($amqp_hosts, ',')
+  }
+
+  sahara_config {
+    'keystone_authtoken/memcached_servers' : value => join(any2array($memcached_servers), ',');
   }
 
   if $public_ssl_hash['services'] {
