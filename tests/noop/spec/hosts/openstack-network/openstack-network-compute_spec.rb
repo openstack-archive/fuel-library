@@ -11,6 +11,8 @@ describe manifest do
     use_neutron      = Noop.hiera 'use_neutron'
     service_endpoint = Noop.hiera 'service_endpoint'
 
+    let(:memcached_servers) { Noop.hiera 'memcached_servers' }
+
     it 'should declare openstack::network with use_stderr disabled' do
       should contain_class('openstack::network').with(
         'use_stderr' => 'false',
@@ -139,6 +141,10 @@ describe manifest do
           'context' => '/files/etc/sysctl.conf',
           'changes' => "set net.bridge.bridge-nf-call-ip6tables '1'",
         ).that_comes_before('Service[libvirt]')
+      end
+
+      it 'should configure keystone_authtoken memcached_servers' do
+        should contain_neutron_config('keystone_authtoken/memcached_servers').with_value(memcached_servers.join(','))
       end
 
       neutron_config =  Noop.hiera_structure 'quantum_settings'

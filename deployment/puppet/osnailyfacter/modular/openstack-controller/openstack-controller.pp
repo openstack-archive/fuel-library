@@ -40,6 +40,7 @@ $glance_api_servers             = hiera('glance_api_servers', "$management_vip:9
 $region                         = hiera('region', 'RegionOne')
 $service_workers                = pick($nova_hash['workers'],
                                         min(max($::processorcount, 2), 16))
+$memcached_servers              = hiera('memcached_servers')
 
 $memcache_nodes                 = get_nodes_hash_by_roles(hiera('network_metadata'), hiera('memcache_roles'))
 $memcache_ipaddrs               = ipsort(values(get_node_to_ipaddr_map_by_network_role($memcache_nodes,'mgmt/memcache')))
@@ -142,7 +143,10 @@ class { '::openstack::controller':
 package { 'socat': ensure => present }
 
 #TODO: PUT this configuration stanza into nova class
-nova_config { 'DEFAULT/use_cow_images':                   value => hiera('use_cow_images')}
+nova_config {
+  'DEFAULT/use_cow_images':               value => hiera('use_cow_images');
+  'keystone_authtoken/memcached_servers': value => join(any2array($memcached_servers), ',');
+}
 
 if $primary_controller {
 

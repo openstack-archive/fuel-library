@@ -56,6 +56,8 @@ $glance_large_object_size       = pick($glance_hash['large_object_size'], '5120'
 
 $rados_connect_timeout          = '30'
 
+$memcached_servers = hiera('memcached_servers')
+
 if ($storage_hash['images_ceph']) {
   $glance_backend = 'ceph'
   $glance_known_stores = [ 'glance.store.rbd.Store', 'glance.store.http.Store' ]
@@ -118,6 +120,14 @@ class { 'openstack::glance':
   service_workers                => $service_workers,
   rados_connect_timeout          => $rados_connect_timeout,
  }
+
+glance_api_config {
+  'keystone_authtoken/memcached_servers' : value => join(any2array($memcached_servers), ',');
+}
+
+glance_registry_config {
+  'keystone_authtoken/memcached_servers' : value => join(any2array($memcached_servers), ',');
+}
 
 ####### Disable upstart startup on install #######
 if($::operatingsystem == 'Ubuntu') {

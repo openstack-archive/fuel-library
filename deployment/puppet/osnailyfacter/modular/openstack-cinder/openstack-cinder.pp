@@ -14,6 +14,7 @@ $rabbit_hash           = hiera_hash('rabbit_hash', {})
 $service_endpoint      = hiera('service_endpoint')
 $service_workers       = pick($cinder_hash['workers'],
                               min(max($::processorcount, 2), 16))
+$memcached_servers      = hiera('memcached_servers')
 
 $cinder_db_password    = $cinder_hash[db_password]
 $cinder_user_password  = $cinder_hash[user_password]
@@ -93,6 +94,10 @@ class {'openstack::cinder':
   ceilometer           => $ceilometer_hash[enabled],
   service_workers      => $service_workers,
 } # end class
+
+cinder_config {
+  'keystone_authtoken/memcached_servers' : value => join(any2array($memcached_servers), ',');
+}
 
 if $storage_hash['volumes_block_device'] or ($sahara_hash['enabled'] and $storage_hash['volumes_lvm']) {
     $cinder_scheduler_filters = [ 'InstanceLocalityFilter' ]
