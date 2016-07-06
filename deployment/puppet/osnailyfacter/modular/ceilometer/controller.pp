@@ -49,6 +49,8 @@ $api_bind_address           = get_network_role_property('ceilometer/api', 'ipadd
 $keystone_protocol = get_ssl_property($ssl_hash, {}, 'keystone', 'internal', 'protocol', 'http')
 $keystone_endpoint = get_ssl_property($ssl_hash, {}, 'keystone', 'internal', 'hostname', [$service_endpoint, $management_vip])
 
+$memcached_servers = hiera('memcached_servers')
+
 # Database related items
 $default_mongo_hash = {
   'enabled' => false,
@@ -114,5 +116,9 @@ if ($ceilometer_enabled) {
     api_workers                => $service_workers,
     collector_workers          => $service_workers,
     notification_workers       => $service_workers,
+  }
+
+  ceilometer_config {
+    'keystone_authtoken/memcached_servers' : value => join(any2array($memcached_servers), ',');
   }
 }

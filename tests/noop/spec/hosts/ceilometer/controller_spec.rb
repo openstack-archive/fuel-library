@@ -35,6 +35,8 @@ describe manifest do
     default_log_levels = Noop.puppet_function 'join_keys_to_values',default_log_levels_hash,'='
     primary_controller = Noop.hiera 'primary_controller'
 
+    let(:memcached_servers) { Noop.hiera 'memcached_servers' }
+
     # Ceilometer
     if ceilometer_hash['enabled']
       it 'should configure connection string with read reference set to primaryPreferred' do
@@ -56,6 +58,9 @@ describe manifest do
           'use_stderr'         => 'false',
           'primary_controller' => primary_controller,
         )
+      end
+      it 'should configure memcache for keystone_authtoken' do
+        should contain_ceilometer_config('keystone_authtoken/memcached_servers').with_value(memcached_servers.join(','))
       end
       it 'should configure OS ENDPOINT TYPE for ceilometer' do
         should contain_ceilometer_config('service_credentials/os_endpoint_type').with(:value => 'internalURL')
