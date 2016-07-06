@@ -26,6 +26,7 @@ describe manifest do
     log_facility_sahara  = Noop.hiera('syslog_log_facility_sahara')
     rabbit_ha_queues     = Noop.hiera('rabbit_ha_queues')
     public_ssl           = Noop.hiera_structure('public_ssl/services')
+    let(:memcached_servers) { Noop.hiera('memcached_servers') }
 
     if sahara_enabled
       firewall_rule   = '201 sahara-api'
@@ -75,6 +76,8 @@ describe manifest do
           'rabbit_port'         => amqp_port,
           'rabbit_hosts'        => amqp_hosts.split(","),
         )
+
+        should contain_sahara_config('keystone_authtoken/memcached_servers').with_value(memcached_servers.join(','))
       end
 
       it 'should configure sahara db params' do
