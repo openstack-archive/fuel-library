@@ -23,6 +23,8 @@ $neutron_config             = hiera_hash('quantum_settings')
 $primary_controller         = hiera('primary_controller')
 $amqp_durable_queues        = pick($ironic_hash['amqp_durable_queues'], false)
 
+$memcached_servers          = hiera('memcached_servers')
+
 $db_host                    = pick($ironic_hash['db_host'], $database_vip)
 $db_user                    = pick($ironic_hash['db_user'], 'ironic')
 $db_name                    = pick($ironic_hash['db_name'], 'ironic')
@@ -78,4 +80,8 @@ class { 'ironic::api':
   admin_user        => $ironic_user,
   admin_password    => $ironic_user_password,
   neutron_url       => "http://${neutron_endpoint}:9696",
+}
+
+ironic_api_config {
+  'keystone_authtoken/memcached_servers' : value => join(any2array($memcached_servers), ',');
 }

@@ -25,6 +25,8 @@ describe manifest do
         configuration_override.fetch('neutron_plugin_ml2', {})
       end
 
+      let(:memcached_servers) { Noop.hiera 'memcached_servers' }
+
       context 'with Neutron-server' do
         workers_max      = Noop.hiera 'workers_max'
         neutron_config   = Noop.hiera_hash('neutron_config')
@@ -81,6 +83,10 @@ describe manifest do
             'database_connection'     => neutron_db_uri,
             'database_max_retries'    => '-1',
           )
+        end
+
+        it 'should configure keystone_authtoken memcached_servers' do
+          should contain_neutron_server('keystone_authtoken/memcached_servers').with_value(memcached_servers.join(','))
         end
 
         if Noop.hiera_structure('use_ssl', false)

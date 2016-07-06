@@ -46,6 +46,7 @@ describe manifest do
     let(:amqp_port) { Noop.hiera('amqp_port') }
     let(:amqp_hosts) { Noop.hiera('amqp_hosts') }
     let(:public_ssl) { Noop.hiera_structure('public_ssl/services') }
+    let(:memcached_servers) { Noop.hiera('memcached_servers') }
 
     let(:db_user) { Noop.hiera_structure('murano/db_user', 'murano') }
     let(:db_name) { Noop.hiera_structure('murano/db_name', 'murano') }
@@ -154,6 +155,10 @@ describe manifest do
                    'service_port'        => api_bind_port,
                    'external_network'    => external_network,
                )
+      end
+
+      it 'should configure keystone_authtoken memcached_servers' do
+        should contain_murano_config('keystone_authtoken/memcached_servers').with_value(memcached_servers.join(','))
       end
 
       it 'should configure default_log_levels' do

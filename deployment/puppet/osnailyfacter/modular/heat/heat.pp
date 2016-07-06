@@ -39,7 +39,7 @@ $use_syslog               = hiera('use_syslog', true)
 $syslog_log_facility_heat = hiera('syslog_log_facility_heat')
 $deployment_mode          = hiera('deployment_mode')
 $bind_address             = get_network_role_property('heat/api', 'ipaddr')
-$memcache_address         = get_network_role_property('mgmt/memcache', 'ipaddr')
+$memcached_servers        = hiera('memcached_servers')
 $database_password        = $heat_hash['db_password']
 $keystone_user            = pick($heat_hash['user'], 'heat')
 $keystone_tenant          = pick($heat_hash['tenant'], 'services')
@@ -123,9 +123,10 @@ if $sahara_hash['enabled'] {
 
 # Turn on Caching for Heat validation process
 heat_config {
-  'cache/enabled':          value => true;
-  'cache/backend':          value => 'oslo_cache.memcache_pool';
-  'cache/memcache_servers': value => "${memcache_address}:11211";
+  'cache/enabled': value => true;
+  'cache/backend': value => 'oslo_cache.memcache_pool';
+  'cache/memcache_servers': value => join(any2array($memcached_servers), ',');
+  'keystone_authtoken/memcached_servers' : value => join(any2array($memcached_servers), ',');
 }
 
 #------------------------------

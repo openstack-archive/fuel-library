@@ -25,6 +25,7 @@ $external_dns               = hiera_hash('external_dns', {})
 $public_ssl_hash            = hiera_hash('public_ssl', {})
 $ssl_hash                   = hiera_hash('use_ssl', {})
 $primary_controller         = hiera('primary_controller')
+$memcached_servers          = hiera('memcached_servers')
 
 $public_auth_protocol       = get_ssl_property($ssl_hash, $public_ssl_hash, 'keystone', 'public', 'protocol', 'http')
 $public_auth_address        = get_ssl_property($ssl_hash, $public_ssl_hash, 'keystone', 'public', 'hostname', [$public_ip])
@@ -108,6 +109,10 @@ if $murano_hash['enabled'] {
     service_port        => $api_bind_port,
     external_network    => $external_network,
     use_trusts          => true,
+  }
+
+  murano_config {
+    'keystone_authtoken/memcached_servers' : value => join(any2array($memcached_servers), ',');
   }
 
   # TODO (iberezovskiy): Move to globals (as it is done for sahara)

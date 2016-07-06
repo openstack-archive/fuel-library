@@ -36,6 +36,7 @@ describe manifest do
       Noop.hiera_structure('public_ssl/hostname')
     end
 
+    let(:memcached_servers) { Noop.hiera('memcached_servers') }
     let(:database_vip) { Noop.hiera('database_vip', bind_address) }
     let(:amqp_port) { Noop.hiera('amqp_port') }
     let(:amqp_hosts) { Noop.hiera('amqp_hosts') }
@@ -118,6 +119,8 @@ describe manifest do
                    'host'                   => bind_address,
                    'port'                   => '8386'
                )
+
+        should contain_sahara_config('keystone_authtoken/memcached_servers').with_value(memcached_servers.join(','))
       end
 
       default_log_levels_hash = Noop.hiera_hash 'default_log_levels'

@@ -5,18 +5,7 @@ manifest = 'heat/heat.pp'
 describe manifest do
   shared_examples 'catalog' do
 
-    let(:network_scheme) do
-      Noop.hiera_hash 'network_scheme'
-    end
-
-    let(:prepare) do
-      Noop.puppet_function 'prepare_network_config', network_scheme
-    end
-
-    let(:memcache_address) do
-      prepare
-      Noop.puppet_function 'get_network_role_property', 'mgmt/memcache', 'ipaddr'
-    end
+    let(:memcached_servers) { Noop.hiera 'memcached_servers' }
 
     admin_auth_protocol = 'http'
     admin_auth_address = Noop.hiera('service_endpoint')
@@ -82,7 +71,8 @@ describe manifest do
     it 'should configure caching for validation process' do
       should contain_heat_config('cache/enabled').with_value('true')
       should contain_heat_config('cache/backend').with_value('oslo_cache.memcache_pool')
-      should contain_heat_config('cache/memcache_servers').with_value("#{memcache_address}:11211")
+      should contain_heat_config('cache/memcache_servers').with_value(memcached_servers.join(','))
+      should contain_heat_config('keystone_authtoken/memcached_servers').with_value(memcached_servers.join(','))
     end
 
     it 'should configure heat rpc response timeout' do
