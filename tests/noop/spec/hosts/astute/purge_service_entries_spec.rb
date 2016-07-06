@@ -10,7 +10,7 @@ describe manifest do
 
     deleted_nodes = Noop.hiera('deleted_nodes', [])
 
-    if !deleted_nodes.empty?
+    unless deleted_nodes.empty?
       it 'should purge deleted nodes' do
         deleted_nodes.each do |deleted|
           is_expected.to contain_nova_service(deleted).with_ensure('absent')

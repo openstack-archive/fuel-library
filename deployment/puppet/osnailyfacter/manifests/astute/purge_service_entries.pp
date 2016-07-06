@@ -7,6 +7,9 @@ class osnailyfacter::astute::purge_service_entries {
   # from deleted hosts
   #
   $deleted_hosts = hiera('deleted_nodes',[])
-  ensure_resource('nova_service', $deleted_hosts, {'ensure' => 'purged'})
+
+  unless empty($deleted_hosts) {
+    ensure_resource('nova_service', $deleted_hosts, {'ensure' => 'absent'})
+  }
 
 }
