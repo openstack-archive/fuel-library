@@ -20,6 +20,8 @@ describe manifest do
        pipeline = 'keystone'
     end
 
+    let(:memcached_servers) { Noop.hiera 'memcached_servers' }
+
     it 'should declare glance classes' do
       should contain_class('glance::api').with('pipeline' => pipeline)
       should contain_class('glance::registry')
@@ -37,6 +39,7 @@ describe manifest do
       should contain_glance_api_config('DEFAULT/auth_region').with_value(region)
       should contain_glance_api_config('keystone_authtoken/signing_dir').with_value('/tmp/keystone-signing-glance')
       should contain_glance_api_config('keystone_authtoken/token_cache_time').with_value('-1')
+      should contain_glance_api_config('keystone_authtoken/memcached_servers').with_value(local_memcached_server)
     end
 
     if $glance_backend == 'rbd'
