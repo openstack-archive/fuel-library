@@ -12,6 +12,7 @@ describe manifest do
   cinder_user = Noop.hiera_structure('cinder/user', "cinder")
   cinder_user_password = Noop.hiera_structure('cinder/user_password')
   cinder_tenant = Noop.hiera_structure('cinder/tenant', "services")
+  let(:memcached_servers) { Noop.hiera 'memcached_servers' }
 
   it 'ensures cinder_config contains "oslo_messaging_rabbit/rabbit_ha_queues" ' do
     should contain_cinder_config('oslo_messaging_rabbit/rabbit_ha_queues').with(
@@ -63,6 +64,10 @@ describe manifest do
 
   it 'configures cinder scheduler filters' do
     should contain_class('cinder::scheduler::filter').with( :scheduler_default_filters => filters )
+  end
+
+  it 'should configure keystone_authtoken memcached_servers' do
+    should contain_cinder_config('keystone_authtoken/memcached_servers').with_value(memcached_servers.join(','))
   end
 
   end # end of shared_examples

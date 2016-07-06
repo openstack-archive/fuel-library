@@ -278,6 +278,17 @@ if $public_ssl_hash['services'] {
   $nova_hash['vncproxy_protocol'] = 'http'
 }
 
+# Define how we should get memcache addresses
+if hiera('memcached_addresses', false) {
+  # need this to successful lookup from template
+  $memcached_addresses = hiera('memcached_addresses')
+} else {
+  $memcache_nodes = get_nodes_hash_by_roles(hiera_hash('network_metadata'), $memcache_roles)
+  $memcached_addresses = ipsort(values(get_node_to_ipaddr_map_by_network_role($memcache_nodes, 'mgmt/memcache')))
+}
+$memcached_port    = hiera('memcache_server_port', '11211')
+$memcached_servers = suffix($memcached_addresses, ":${memcached_port}")
+
 ##################### DO NOT USE BELOW VARIABLES ANYMORE ############################
 #           THEY ARE DEPRECATED AND WILL BE REMOVED IN NEXT RELEASE
 $internal_int     = get_network_role_property('management', 'interface')
