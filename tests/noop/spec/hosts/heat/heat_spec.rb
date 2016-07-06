@@ -5,6 +5,8 @@ manifest = 'heat/heat.pp'
 describe manifest do
   shared_examples 'catalog' do
 
+    let(:local_memcached_server) { Noop.hiera 'local_memcached_server' }
+
     use_syslog = Noop.hiera 'use_syslog'
 
     it 'should set empty trusts_delegated_roles for heat engine' do
@@ -20,6 +22,12 @@ describe manifest do
       should contain_heat_config('DEFAULT/max_template_size').with_value('5440000')
       should contain_heat_config('DEFAULT/max_resources_per_stack').with_value('20000')
       should contain_heat_config('DEFAULT/max_json_body_size').with_value('10880000')
+    end
+
+    it 'should configure caching for validation process' do
+      should contain_heat_config('cache/enabled').with_value('true')
+      should contain_heat_config('cache/backend').with_value('oslo_cache.memcache_pool')
+      should contain_heat_config('keystone_authtoken/memcached_servers').with_value(local_memcached_server)
     end
 
     it 'should configure heat rpc response timeout' do
