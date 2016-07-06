@@ -35,9 +35,7 @@ $db_name                        = pick($nova_hash['db_name'], 'nova')
 $db_password                    = pick($nova_hash['db_password'], 'nova')
 $database_connection            = "mysql://${db_name}:${db_password}@${db_host}/${db_name}?read_timeout=60"
 
-$memcached_servers              = hiera('memcached_addresses')
-$memcached_port                 = hiera('memcache_server_port', '11211')
-$memcached_addresses            = suffix($memcached_servers, ":${memcached_port}")
+$memcached_servers              = hiera('memcached_servers')
 $notify_on_state_change         = 'vm_and_task_state'
 
 ####### Disable upstart startup on install #######
@@ -64,7 +62,7 @@ class { '::nova':
     report_interval        => $nova_report_interval,
     service_down_time      => $nova_service_down_time,
     notify_on_state_change => $notify_on_state_change,
-    memcached_servers      => $memcached_addresses,
+    memcached_servers      => $memcached_servers,
 }
 
 

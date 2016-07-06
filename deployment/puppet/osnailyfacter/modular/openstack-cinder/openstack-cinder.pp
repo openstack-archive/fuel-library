@@ -25,6 +25,7 @@ $cinder_db_name         = pick($cinder_hash['db_name'], 'cinder')
 $roles                  = node_roles($nodes_hash, hiera('uid'))
 $ssl_hash               = hiera_hash('use_ssl', {})
 $primary_controller      = hiera('primary_controller')
+$memcached_servers      = hiera('memcached_servers')
 
 $keystone_auth_protocol = get_ssl_property($ssl_hash, {}, 'keystone', 'internal', 'protocol', 'http')
 $keystone_auth_host     = get_ssl_property($ssl_hash, {}, 'keystone', 'internal', 'hostname', [hiera('keystone_endpoint', ''), $service_endpoint, $management_vip])
@@ -108,6 +109,10 @@ class {'openstack::cinder':
   ceilometer           => $ceilometer_hash[enabled],
   service_workers      => $service_workers,
 } # end class
+
+cinder_config {
+  'keystone_authtoken/memcached_servers' : value => join(any2array($memcached_servers), ',');
+}
 
 if $storage_hash['volumes_block_device'] or ($sahara_hash['enabled'] and $storage_hash['volumes_lvm']) {
     $cinder_scheduler_filters = [ 'InstanceLocalityFilter' ]

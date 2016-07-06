@@ -28,6 +28,7 @@ $ironic_tenant              = pick($ironic_hash['tenant'],'services')
 $ironic_user                = pick($ironic_hash['auth_name'],'ironic')
 $ironic_user_password       = pick($ironic_hash['user_password'],'ironic')
 $ironic_swift_tempurl_key   = pick($ironic_hash['swift_tempurl_key'],'ironic')
+$memcached_servers          = pick('memcached_servers')
 
 $db_host                    = pick($ironic_hash['db_host'], $database_vip)
 $db_user                    = pick($ironic_hash['db_user'], 'ironic')
@@ -79,6 +80,7 @@ ironic_config {
   'keystone_authtoken/admin_tenant_name': value => $ironic_tenant;
   'keystone_authtoken/admin_user':        value => $ironic_user;
   'keystone_authtoken/admin_password':    value => $ironic_user_password, secret => true;
+  'keystone_authtoken/memcached_servers': value => join(any2array($memcached_servers), ',');
   'glance/swift_temp_url_key':            value => $ironic_swift_tempurl_key;
   'glance/swift_endpoint_url':            value => "http://${baremetal_vip}:8080";
   'glance/temp_url_endpoint_type':        value => $temp_url_endpoint_type;

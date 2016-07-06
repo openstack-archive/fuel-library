@@ -9,6 +9,7 @@ describe manifest do
     ironic_enabled = Noop.hiera_structure 'ironic/enabled'
     storage_config = Noop.hiera_structure 'storage'
     amqp_durable_queues = Noop.hiera_structure 'ironic/amqp_durable_queues', 'false'
+    let(:memcached_servers) { Noop.hiera 'memcached_servers' }
 
     if ironic_enabled
       it 'should ensure that ironic-fa-deploy is installed' do
@@ -37,6 +38,7 @@ describe manifest do
         should contain_ironic_config('neutron/url').with('value' => neutron_url)
         should contain_ironic_config('keystone_authtoken/admin_user').with('value' => ironic_user)
         should contain_ironic_config('glance/temp_url_endpoint_type').with('value' => temp_url_endpoint_type)
+        should contain_ironic_config('keystone_authtoken/memcached_servers').with_value(memcached_servers)
       end
 
       tftp_root = '/var/lib/ironic/tftpboot'

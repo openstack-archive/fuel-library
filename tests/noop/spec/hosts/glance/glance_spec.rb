@@ -40,6 +40,8 @@ describe manifest do
 
     let(:identity_uri) { "#{admin_auth_protocol}://#{admin_auth_address}:35357/" }
 
+    let(:memcached_servers) { Noop.hiera 'memcached_servers' }
+
     it 'should select right protocols and addresses for auth' do
       should contain_class('glance::api').with(
         'auth_uri'     => auth_uri,
@@ -79,6 +81,11 @@ describe manifest do
       should contain_glance_api_config('glance_store/os_region_name').with_value(region)
       should contain_glance_api_config('keystone_authtoken/signing_dir').with_value('/tmp/keystone-signing-glance')
       should contain_glance_api_config('keystone_authtoken/token_cache_time').with_value('-1')
+    end
+
+    it 'should configure keystone_authtoken memcached servers' do
+      should contain_glance_api_config('keystone_authtoken/memcached_servers').with_value(memcached_servers.join(','))
+      should contain_glance_registry_config('keystone_authtoken/memcached_servers').with_value(memcached_servers.join(','))
     end
 
     if $glance_backend == 'rbd'
