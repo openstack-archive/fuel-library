@@ -60,7 +60,10 @@
   requires: [primary-cluster, cluster]
   required_for: [deploy_end]
   condition:
-    yaql_exp: "$.status = 'ready' and changedAny($.network_metadata.nodes.keys(), $.get('corosync_roles'))"
+    yaql_exp: >
+      $.status = 'ready' and
+      changedAny($.network_metadata.nodes.keys(), $.get('corosync_roles')) and
+      not changed($.get('configuration', {}))
   cross-depended-by:
     - name: /^(primary-)?(database|rabbitmq)$/
   parameters:
