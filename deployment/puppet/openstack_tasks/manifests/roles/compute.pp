@@ -49,6 +49,7 @@ class openstack_tasks::roles::compute {
   $use_1g_huge_pages              = $allocated_hugepages['1G']
   $libvirt_type                   = hiera('libvirt_type', undef)
   $kombu_compression              = hiera('kombu_compression', $::os_service_default)
+  $nova_cache                     = pick($nova_hash['use_cache'], true)
 
   $dpdk_config                    = hiera_hash('dpdk', {})
   $enable_dpdk                    = pick($dpdk_config['enabled'], false)
@@ -283,6 +284,12 @@ class openstack_tasks::roles::compute {
     kombu_compression                      => $kombu_compression,
     block_device_allocate_retries          => $block_device_allocate_retries,
     block_device_allocate_retries_interval => $block_device_allocate_retries_interval,
+  }
+
+  class { '::nova::cache':
+    enabled          => $nova_cache,
+    backend          => 'oslo_cache.memcache_pool',
+    memcache_servers => $memcached_addresses,
   }
 
   class { '::nova::availability_zone':
