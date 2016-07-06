@@ -85,6 +85,8 @@ describe manifest do
     let(:config_drive_format) { Noop.puppet_function 'pick', compute_hash['config_drive_format'], 'vfat' }
     let(:log_facility) { Noop.hiera 'syslog_log_facility_nova', 'LOG_LOCAL6' }
 
+    let(:use_cache) { Noop.puppet_function 'pick', nova_hash['use_cache'], true }
+
 
     # Legacy openstack-compute tests
 
@@ -354,6 +356,18 @@ describe manifest do
     it 'nova config should contain right memcached servers list' do
       should contain_nova_config('keystone_authtoken/memcached_servers').with(
         'value' => memcache_servers,
+      )
+    end
+
+    it 'should configure nova cache correctly' do
+      should contain_nova_config('cache/enabled').with(
+        :value => use_cache
+      )
+      should contain_nova_config('cache/backend').with(
+        :value => 'oslo_cache.memcache_pool'
+      )
+      should contain_nova_config('cache/memcache_servers').with
+        value => memcache_servers
       )
     end
 
