@@ -59,6 +59,9 @@ $ha_mode                    = pick($ceilometer_hash['ha_mode'], true)
 prepare_network_config(hiera('network_scheme', {}))
 $api_bind_address           = get_network_role_property('ceilometer/api', 'ipaddr')
 
+$local_memcached_server = hiera('local_memcached_server')
+
+
 if $ceilometer_hash['enabled'] {
   if $external_mongo {
     $mongo_hosts = $exteranl_mongo_hash['hosts_ip']
@@ -107,5 +110,9 @@ if ($ceilometer_enabled) {
     event_time_to_live    => $ceilometer_hash['event_time_to_live'],
     metering_time_to_live => $ceilometer_hash['metering_time_to_live'],
     http_timeout          => $ceilometer_hash['http_timeout'],
+  }
+
+  ceilometer_config {
+    'keystone_authtoken/memcached_servers' : value => join(any2array($local_memcached_server), ',');
   }
 }
