@@ -39,6 +39,8 @@ describe manifest do
       end
     end
 
+    let (:memcached_servers) { Noop.hiera 'memcached_servers' }
+
     use_neutron = Noop.hiera 'use_neutron'
     primary_controller = Noop.hiera 'primary_controller'
     if !use_neutron && primary_controller
@@ -119,6 +121,7 @@ describe manifest do
       should contain_nova_config('DEFAULT/memcached_servers').with(
         'value' => memcache_servers,
       )
+      should contain_nova_config('keystone_authtoken/memcached_servers').with_value(memcached_servers.join(','))
     end
 
     it 'should declare class nova::api with keystone_ec2_url' do

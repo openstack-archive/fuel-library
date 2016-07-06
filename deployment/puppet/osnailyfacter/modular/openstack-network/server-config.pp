@@ -42,6 +42,7 @@ if $use_neutron {
   $auth_tenant             = pick($neutron_config['keystone']['admin_tenant'], 'services')
   $auth_region             = hiera('region', 'RegionOne')
   $auth_endpoint_type      = 'internalURL'
+  $memcached_servers       = hiera('memcached_servers')
 
   $ssl_hash                = hiera_hash('use_ssl', {})
 
@@ -178,6 +179,10 @@ if $use_neutron {
     router_distributed               => $dvr,
     enabled                          => true,
     manage_service                   => true,
+  }
+
+  neutron_config {
+    'keystone_authtoken/memcached_servers' : value => join(any2array($memcached_servers), ',');
   }
 
   include neutron::params

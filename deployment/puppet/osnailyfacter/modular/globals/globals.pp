@@ -425,6 +425,8 @@ if hiera('memcached_addresses', false) {
   $memcache_nodes = get_nodes_hash_by_roles(hiera_hash('network_metadata'), $memcache_roles)
   $memcached_addresses = ipsort(values(get_node_to_ipaddr_map_by_network_role($memcache_nodes, 'mgmt/memcache')))
 }
+$memcached_port    = hiera('memcache_server_port', '11211')
+$memcached_servers = suffix($memcached_addresses, ":${memcached_port}")
 
 $cinder_backends = {
   'volumes_ceph' => $storage_hash['volumes_ceph'] ? { true => 'RBD-backend', default => false },

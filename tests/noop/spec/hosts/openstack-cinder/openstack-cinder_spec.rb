@@ -19,6 +19,7 @@ describe manifest do
   primary_controller = Noop.hiera 'primary_controller'
   volume_backend_name = Noop.hiera_structure 'storage_hash/volume_backend_names'
   cinder = Noop.puppet_function 'roles_include', 'cinder'
+  let(:memcached_servers) { Noop.hiera 'memcached_servers' }
 
   it 'should configure default_log_levels' do
     should contain_cinder_config('DEFAULT/default_log_levels').with_value(default_log_levels.sort.join(','))
@@ -120,6 +121,10 @@ describe manifest do
 
   it 'configures cinder scheduler filters' do
     should contain_class('cinder::scheduler::filter').with( :scheduler_default_filters => filters )
+  end
+
+  it 'should configure keystone_authtoken memcached_servers' do
+    should contain_cinder_config('keystone_authtoken/memcached_servers').with_value(memcached_servers.join(','))
   end
 
   it 'ensures that cinder have proper volume_backend_name' do

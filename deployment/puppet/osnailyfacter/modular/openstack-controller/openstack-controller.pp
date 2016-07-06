@@ -45,6 +45,8 @@ $service_endpoint             = hiera('service_endpoint')
 $db_host                      = pick($nova_hash['db_host'], hiera('database_vip'))
 $ssl_hash                     = hiera_hash('use_ssl', {})
 
+$memcached_servers       = hiera('memcached_servers')
+
 $internal_auth_protocol = get_ssl_property($ssl_hash, {}, 'keystone', 'internal', 'protocol', [$nova_hash['auth_protocol'], 'http'])
 $internal_auth_address  = get_ssl_property($ssl_hash, {}, 'keystone', 'internal', 'hostname', [$service_endpoint, $management_vip])
 $admin_auth_protocol    = get_ssl_property($ssl_hash, {}, 'keystone', 'admin', 'protocol', [$nova_hash['auth_protocol'], 'http'])
@@ -179,7 +181,11 @@ class { '::openstack::controller':
 }
 
 #TODO: PUT this configuration stanza into nova class
-nova_config { 'DEFAULT/use_cow_images':                   value => hiera('use_cow_images')}
+nova_config {
+  'DEFAULT/use_cow_images':               value => hiera('use_cow_images');
+  'keystone_authtoken/memcached_servers': value => join(any2array($memcached_servers), ',');
+}
+
 
 if $primary_controller {
 
