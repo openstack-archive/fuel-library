@@ -14,6 +14,8 @@ if ironic_enabled
       primary_controller = Noop.hiera 'primary_controller'
       amqp_durable_queues = Noop.hiera_structure 'ironic/amqp_durable_queues', 'false'
 
+      let(:memcached_servers) { Noop.hiera 'memcached_servers' }
+
       it 'should configure default_log_levels' do
         should contain_ironic_config('DEFAULT/default_log_levels').with_value(default_log_levels.sort.join(','))
       end
@@ -27,6 +29,10 @@ if ironic_enabled
           'amqp_durable_queues'  => amqp_durable_queues,
           'database_max_retries' => '-1',
         )
+      end
+
+      it 'should configure keystone_authtoken memcached servers' do
+        should contain_ironic_api_config('keystone_authtoken/memcached_servers').with_value(memcached_servers.join(','))
       end
 
       # TODO (iberezovskiy): uncomment this test after ironic module update
