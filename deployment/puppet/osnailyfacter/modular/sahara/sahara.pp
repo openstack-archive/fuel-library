@@ -21,6 +21,7 @@ $use_stderr                 = hiera('use_stderr', false)
 $rabbit_ha_queues           = hiera('rabbit_ha_queues')
 $amqp_port                  = hiera('amqp_port')
 $amqp_hosts                 = hiera('amqp_hosts')
+$memcached_servers          = hiera('memcached_servers')
 
 #################################################################
 
@@ -88,6 +89,7 @@ if $sahara_hash['enabled'] {
   sahara_config {
     'database/max_overflow':  value => $max_overflow;
     'database/max_pool_size': value => $max_pool_size;
+    'keystone_authtoken/memcached_servers' : value => join(any2array($memcached_servers), ',');
   }
 
   if $public_ssl_hash['services'] {
