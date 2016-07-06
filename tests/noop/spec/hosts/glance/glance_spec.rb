@@ -20,6 +20,8 @@ describe manifest do
        pipeline = 'keystone'
     end
 
+    let(:memcached_servers) { Noop.hiera 'memcached_servers' }
+
     it 'should declare glance classes' do
       should contain_class('glance::api').with('pipeline' => pipeline)
       should contain_class('glance::registry')

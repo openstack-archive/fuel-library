@@ -12,6 +12,7 @@ $auto_assign_floating_ip        = hiera('auto_assign_floating_ip', false)
 $rabbit_hash                    = hiera_hash('rabbit_hash', {})
 $neutron_endpoint               = hiera('neutron_endpoint', $management_vip)
 $region                         = hiera('region', 'RegionOne')
+$memcached_servers              = hiera('memcached_servers')
 
 $floating_hash = {}
 
@@ -30,6 +31,9 @@ if $use_neutron {
   $neutron_user_password = $neutron_config['keystone']['admin_password']
   $keystone_user         = pick($neutron_config['keystone']['admin_user'], 'neutron')
   $keystone_tenant       = pick($neutron_config['keystone']['admin_tenant'], 'services')
+  neutron_config {
+    'keystone_authtoken/memcached_servers' : value => join(any2array($memcached_servers), ',');
+  }
 } else {
   $network_provider   = 'nova'
   $floating_ips_range = hiera('floating_network_range')
@@ -424,3 +428,4 @@ class { 'openstack::network':
   nameservers       => hiera('dns_nameservers', undef),
   enable_nova_net   => $enable_network_service,
 }
+

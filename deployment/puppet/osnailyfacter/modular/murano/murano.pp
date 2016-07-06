@@ -23,6 +23,7 @@ $rabbit_ha_queues           = hiera('rabbit_ha_queues')
 $amqp_port                  = hiera('amqp_port')
 $amqp_hosts                 = hiera('amqp_hosts')
 $public_ssl                 = hiera_hash('public_ssl', {})
+$memcached_servers          = hiera('memcached_servers')
 
 #################################################################
 
@@ -98,6 +99,10 @@ if $murano_hash['enabled'] {
     service_host        => $api_bind_host,
     service_port        => $api_bind_port,
     external_network    => $external_network,
+  }
+
+  murano_config {
+    'keystone_authtoken/memcached_servers' : value => join(any2array($memcached_servers), ',');
   }
 
   class { 'murano::api':
