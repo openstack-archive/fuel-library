@@ -51,6 +51,7 @@ class openstack_tasks::roles::compute {
   $use_1g_huge_pages              = $allocated_hugepages['1G']
   $libvirt_type                   = hiera('libvirt_type', undef)
   $kombu_compression              = hiera('kombu_compression', '')
+  $nova_cache                     = pick($nova_hash['use_cache'], true)
 
   $dpdk_config                    = hiera_hash('dpdk', {})
   $enable_dpdk                    = pick($dpdk_config['enabled'], false)
@@ -311,6 +312,12 @@ class openstack_tasks::roles::compute {
     memcached_servers                  => $memcached_addresses,
     cinder_catalog_info                => pick($nova_hash_real['cinder_catalog_info'], 'volumev2:cinderv2:internalURL'),
     rabbit_heartbeat_timeout_threshold => $::os_service_default,
+  }
+
+  class { '::nova::cache':
+    enabled          => $nova_cache,
+    backend          => 'oslo_cache.memcache_pool',
+    memcache_servers => $memcached_addresses,
   }
 
   class { '::nova::availability_zone':
