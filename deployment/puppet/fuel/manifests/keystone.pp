@@ -4,6 +4,11 @@ class fuel::keystone (
   $admin_port        = $::fuel::params::keystone_admin_port,
   $keystone_domain   = $::fuel::params::keystone_domain,
 
+  $bind_address      = '0.0.0.0',
+  $public_port       = '5000',
+  $admin_port        = '35357',
+  $ssl               = false,
+
   $db_engine         = $::fuel::params::db_engine,
   $db_host           = $::fuel::params::db_host,
   $db_port           = $::fuel::params::db_port,
@@ -31,6 +36,14 @@ class fuel::keystone (
   ensure_packages(['crontabs', 'os-client-config', 'python-tablib',
                   'python-unicodecsv', 'rubygem-thread_safe'])
 
+  class {'apache':
+    server_signature => 'Off',
+    purge_configs    => false,
+    purge_vhost_dir  => false,
+    default_vhost    => false,
+  }
+  include apache
+
   class { '::keystone':
     # (TODO iberezovskiy): Set 'enable_bootstrap' to true when MOS packages will
     # be updated and 'keystone-manage bootstrap' command will be available
@@ -41,8 +54,19 @@ class fuel::keystone (
     token_expiration    => $token_expiration,
     token_provider      => 'keystone.token.providers.uuid.Provider',
     default_domain      => $keystone_domain,
-    service_name        => $::fuel::params::keystone_service_name,
+    service_name        => 'httpd',
   }
+  class { 'keystone::wsgi::apache':
+    wsgi_script_ensure    => 'link',
+    public_port           => $public_port,
+    admin_port            => $admin_port,
+    bind_host             => $bind_address,
+    priority              => '05',
+    threads               => 3,
+    workers               => min($::processorcount, 6),
+    ssl                   => $ssl,
+   }
+  include ::tweaks::apache_wrappers
 
   # Ensure that keystone_paste_ini file includes "admin_token_auth" filter
   # so the Puppet keystone types are able to use the admin token.
