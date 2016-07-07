@@ -56,9 +56,11 @@ describe "cobbler::apache" do
       it "configures 'apache' class" do
         is_expected.to contain_class("apache").with(
             :server_signature => "Off",
-            :trace_enable => "Off",
-            :purge_configs => false,
-            :default_vhost => false,
+            :trace_enable     => "Off",
+            :purge_configs    => false,
+            :default_vhost    => false,
+            :conf_template    => 'fuel/httpd.conf.erb',
+            :ports_file       => '/etc/httpd/conf.ports.d/cobbler.conf',
         )
       end
 

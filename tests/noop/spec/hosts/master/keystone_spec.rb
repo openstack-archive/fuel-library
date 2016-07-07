@@ -31,15 +31,6 @@ describe manifest do
       is_expected.to contain_class('fuel::keystone').with parameters
     end
 
-    it 'should have "openstack-keystone" fuel::systemd service' do
-      parameters = {
-          :start => true,
-          :template_path => 'fuel/systemd/restart_template.erb',
-          :config_name => 'restart.conf',
-      }
-      is_expected.to contain_fuel__systemd('openstack-keystone').with parameters
-    end
-
   end
   run_test manifest
 end
