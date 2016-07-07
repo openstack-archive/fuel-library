@@ -1,0 +1,41 @@
+# DELETION TASKS
+#
+- id: deletion_start
+  type: stage
+
+- id: deletion_end
+  type: stage
+  requires: [deletion_start]
+
+- id: cobbler_enable_netboot
+  type: master_shell
+  version: 2.1.0
+  role: ['deleted']
+  requires: [deletion_start]
+  required_for: [move_to_bootstrap]
+  parameters:
+    cmd:
+      yaql_exp: 'concat("sh /etc/puppet/modules/osnailyfacter/modular/provision/netboot enable ", $.provision.name)'
+    timeout: 180
+
+- id: move_to_bootstrap
+  type: move_to_bootstrap
+  version: 2.1.0
+  role: ['deleted']
+  requires: [cobbler_enable_netboot]
+  required_for: [node_erase]
+  parameters:
+    slave_name:
+      yaql_exp: '$.provision.name'
+    provisioning_info:
+      yaql_exp: '$.provision'
+    timeout: 180
+
+- id: node_erase
+  type: erase_node
+  version: 2.1.0
+  role: ['deleted']
+  requires: [move_to_bootstrap]
+  required_for: [deletion_end]
+  parameters:
+    timeout: 180
