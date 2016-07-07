@@ -7,3 +7,4 @@ fixtures:
     stdlib: "#{source_dir}/../stdlib"
     apache: "#{source_dir}/../apache"
     concat: "#{source_dir}/../concat"
+    fuel: "#{source_dir}/../fuel"
