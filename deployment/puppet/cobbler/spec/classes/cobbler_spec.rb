@@ -15,7 +15,7 @@ describe 'cobbler' do
     :dhcp_end_address   => '10.0.0.254',
     :dhcp_netmask       => '255.255.255.0',
     :dhcp_gateway       => facts[:ipaddress],
-    :dhcp_interface     => 'eth0',
+    :dhcp_ipaddress     => facts[:ipaddress],
     :cobbler_user       => 'cobbler',
     :cobbler_password   => 'cobbler',
     :pxetimeout         => 0,

@@ -17,7 +17,7 @@ class fuel::cobbler(
   $dns_search                    = $::fuel::params::dns_search,
   $mco_user                      = $::fuel::params::mco_user,
   $mco_pass                      = $::fuel::params::mco_password,
-  $dhcp_interface                = $::fuel::params::dhcp_interface,
+  $dhcp_ipaddress                = $::fuel::params::dhcp_ipaddress,
   $nailgun_api_url               = "http://${::fuel::params::nailgun_host}:${::fuel::params::nailgun_port}/api",
   # default password is 'r00tme'
   $ks_encrypted_root_password    = $::fuel::params::ks_encrypted_root_password,
@@ -59,7 +59,7 @@ class fuel::cobbler(
     # dhcp_end_address   => $dhcp_end_address,
     # dhcp_netmask       => $dhcp_netmask,
     # dhcp_gateway       => $dhcp_gateway,
-    dhcp_interface   => $dhcp_interface,
+    dhcp_ipaddress   => $dhcp_ipaddress,
     cobbler_user     => $cobbler_user,
     cobbler_password => $cobbler_password,
     pxetimeout       => '50'
