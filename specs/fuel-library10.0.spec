@@ -61,6 +61,7 @@ mkdir -p %{buildroot}/usr/share/fuel-utils
 mkdir -p %{buildroot}/sbin/
 mkdir -p %{buildroot}/sbin/
 cp -fr %{_builddir}/%{name}-%{version}/deployment/puppet/* %{buildroot}/etc/puppet/%{openstack_version}/modules/
+cp -fr %{_builddir}/%{name}-%{version}/graphs %{buildroot}/etc/fuel/
 #LP1515988
 find %{buildroot}/etc/puppet/%{openstack_version}/modules -maxdepth 2 -type d \( -name .git -or -name spec \) -exec rm -rf '{}' +
 cp -f %{_builddir}/%{name}-%{version}/deployment/Puppetfile %{buildroot}/etc/puppet/%{openstack_version}/modules/
@@ -150,6 +151,7 @@ fi
 %files
 /etc/puppet/%{openstack_version}/modules/
 /etc/puppet/%{openstack_version}/manifests/
+/etc/fuel/graphs/
 
 %package -n fuel-utils
 Summary: Fuel project utilities

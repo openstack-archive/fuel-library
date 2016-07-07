@@ -1,0 +1,115 @@
+# PROVISION TASKS
+#
+- id: provision_start
+  type: stage
+
+- id: provision_end
+  type: stage
+  requires: [provision_start]
+
+- id: upload_provision_info_master
+  type: upload_file
+  version: 2.1.0
+  role: ['master']
+  requires: [provision_start]
+  required_for: [build_deploy_image]
+  parameters:
+    path: /tmp/provision.yaml
+    timeout: 180
+    data:
+      yaql_exp: "($.provision.set('packages', $.provision.packages.split('\n')) + $.repo_setup + dict('output' => '/var/www/nailgun/targetimages') + $).toYaml()"
+
+- id: generate_ironic_bootstrap_keys
+  type: shell
+  version: 2.1.0
+  role: ['master']
+  requires: [provision_start]
+  required_for: [build_deploy_image]
+  condition:
+    yaql_exp: '$.ironic.enabled'
+  parameters:
+    cmd: sh /etc/puppet/modules/osnailyfacter/modular/astute/generate_keys.sh -i {CLUSTER_ID} -s 'ironic' -p /var/lib/fuel/keys/
+    timeout: 180
+    retries: 1
+
+- id: build_deploy_image
+  type: puppet
+  version: 2.1.0
+  role: ['master']
+  requires: [upload_provision_info_master, generate_ironic_bootstrap_keys]
+  required_for: [provision_end]
+  parameters:
+    puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/provision/build_image.pp
+    puppet_modules: /etc/puppet/modules
+    timeout: 3600
+
+- id: move_to_bootstrap
+  type: move_to_bootstrap
+  version: 2.1.0
+  role: ['/.*/']
+  requires: [provision_start, build_deploy_image]
+  required_for: [upload_provision_info]
+  cross-depends:
+    - name: build_deploy_image
+      role: master
+  parameters:
+    slave_name:
+      yaql_exp: '$.network_metadata.nodes.values().where($.uid = new($.uid)).name.first()'
+    provisioning_info:
+      yaql_exp: '$.provision'
+    timeout: 180
+
+- id: upload_provision_info
+  type: upload_file
+  version: 2.1.0
+  role: ['/.*/']
+  requires: [move_to_bootstrap]
+  required_for: [system_provision]
+  parameters:
+    path: /tmp/provision.json
+    timeout: 180
+    data:
+      yaql_exp: '$.provision.toJson()'
+
+- id: system_provision
+  type: shell
+  version: 2.1.0
+  role: ['/.*/']
+  requires: [move_to_bootstrap, upload_provision_info]
+  required_for: [cobbler_disable_netboot]
+  cross-depends:
+    - name: build_deploy_image
+      role: master
+  parameters:
+    cmd: /usr/bin/provision
+    timeout: 3600
+
+- id: cobbler_disable_netboot
+  type: master_shell
+  version: 2.1.0
+  role: ['/.*/']
+  requires: [system_provision]
+  required_for: [node_reboot]
+  parameters:
+    cmd:
+      yaql_exp: 'concat("sh /etc/puppet/modules/osnailyfacter/modular/provision/netboot disable ", $.network_metadata.nodes.values().where($.uid = new($.uid)).name.first())'
+    timeout: 180
+
+- id: node_reboot
+  type: reboot
+  version: 2.1.0
+  role: ['/.*/']
+  requires: [cobbler_disable_netboot]
+  required_for: [set_status_provisioned]
+  parameters:
+    timeout: 180
+
+- id: set_status_provisioned
+  type: set_node_properties
+  version: 2.1.0
+  role: ['/.*/']
+  requires: [node_reboot]
+  required_for: [provision_end]
+  parameters:
+    status: 'provisioned'
+    pending_addition: false
