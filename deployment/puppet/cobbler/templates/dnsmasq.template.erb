@@ -17,7 +17,7 @@ server=/<%= @dns_domain %>/
 server=/<%= @dns_domain %>/<%= dns %>
 <%- end -%>
 resolv-file=/etc/dnsmasq.upstream
-interface=<%= @dhcp_interface %>
+listen-address=<%= @dhcp_ipaddress %>
 
 # On systems which support it, dnsmasq binds the wildcard address,
 # even when it is listening on only some interfaces. It then discards

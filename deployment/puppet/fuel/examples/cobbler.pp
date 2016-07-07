@@ -40,7 +40,7 @@ class { '::fuel::cobbler':
   dns_upstream                => $::fuel_settings['DNS_UPSTREAM'],
   dns_domain                  => $::fuel_settings['DNS_DOMAIN'],
   dns_search                  => $::fuel_settings['DNS_SEARCH'],
-  dhcp_interface              => $::fuel_settings['ADMIN_NETWORK']['interface'],
+  dhcp_ipaddress              => $::fuel_settings['ADMIN_NETWORK']['ipaddress'],
   nailgun_api_url             => $nailgun_api_url,
   bootstrap_ethdevice_timeout => $bootstrap_ethdevice_timeout,
 }
