@@ -1,0 +1,19 @@
+#!/bin/bash
+
+flag=$1
+node_name=$2
+
+if [[ ${flag} == 'disable' ]]
+then
+  flag=0
+elif [[ ${flag} == 'enable' ]]
+then
+  flag=1
+else
+  echo 'Wrong flag argument given'
+  exit 1
+fi
+
+test -z ${node_name} && echo 'Node name not found' && exit 1
+
+cobbler system edit --name=${node_name} --netboot-enabled=${flag}
