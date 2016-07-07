@@ -1,7 +1,15 @@
 #STAGES
 
+- id: provision_start
+  type: stage
+
+- id: provision_end
+  type: stage
+  requires: [provision_start]
+
 - id: pre_deployment_start
   type: stage
+  requires: [provision_end]
 
 - id: pre_deployment_end
   type: stage
