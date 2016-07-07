@@ -4,6 +4,10 @@ class fuel::keystone (
   $admin_port        = $::fuel::params::keystone_admin_port,
   $keystone_domain   = $::fuel::params::keystone_domain,
 
+  $ssl               = $::fuel::params::ssl,
+
+  $vhost_limit_request_field_size = $::fuel::params::vhost_limit_request_field_size,
+
   $db_engine         = $::fuel::params::db_engine,
   $db_host           = $::fuel::params::db_host,
   $db_port           = $::fuel::params::db_port,
@@ -31,6 +35,18 @@ class fuel::keystone (
   ensure_packages(['crontabs', 'os-client-config', 'python-tablib',
                   'python-unicodecsv', 'rubygem-thread_safe'])
 
+  file { ['/etc/httpd/', '/etc/httpd/conf.ports.d/']: ensure  => directory }
+  ->
+  class {'::apache':
+    server_signature => 'Off',
+    trace_enable     => 'Off',
+    purge_configs    => false,
+    purge_vhost_dir  => false,
+    default_vhost    => false,
+    ports_file       => '/etc/httpd/conf.ports.d/keystone.conf',
+    conf_template    => 'fuel/httpd.conf.erb',
+  }
+
   class { '::keystone':
     # (TODO iberezovskiy): Set 'enable_bootstrap' to true when MOS packages will
     # be updated and 'keystone-manage bootstrap' command will be available
@@ -41,8 +57,19 @@ class fuel::keystone (
     token_expiration    => $token_expiration,
     token_provider      => 'keystone.token.providers.uuid.Provider',
     default_domain      => $keystone_domain,
-    service_name        => $::fuel::params::keystone_service_name,
+    service_name        => 'httpd',
+    use_syslog          => true,
   }
+  class { 'keystone::wsgi::apache':
+    public_port           => $port,
+    admin_port            => $admin_port,
+    ssl                   => $ssl,
+    priority              => '05',
+    threads               => 3,
+    workers               => min($::processorcount, 6),
+    vhost_custom_fragment => $vhost_limit_request_field_size,
+    access_log_format     => 'forwarded',
+   }
 
   # Ensure that keystone_paste_ini file includes "admin_token_auth" filter
   # so the Puppet keystone types are able to use the admin token.
