@@ -36,6 +36,9 @@ class fuel::params {
   $keystone_port              = '5000'
   $keystone_admin_port        = '35357'
   $keystone_domain            = 'fuel'
+  $ssl                        = false
+
+  $vhost_limit_request_field_size = 'LimitRequestFieldSize 81900'
 
   $keystone_admin_user        = 'admin'
   $keystone_admin_password    = 'admin'
