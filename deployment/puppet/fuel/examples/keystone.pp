@@ -23,10 +23,3 @@ class { 'fuel::keystone':
   ostf_user         => $::fuel_settings['keystone']['ostf_user'],
   ostf_password     => $::fuel_settings['keystone']['ostf_password'],
 }
-
-fuel::systemd {['openstack-keystone']:
-  start         => true,
-  template_path => 'fuel/systemd/restart_template.erb',
-  config_name   => 'restart.conf',
-  require       => Class['fuel::keystone'],
-}

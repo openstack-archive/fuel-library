@@ -31,14 +31,12 @@ describe manifest do
       is_expected.to contain_class('fuel::keystone').with parameters
     end
 
-    it 'should have "openstack-keystone" fuel::systemd service' do
-      parameters = {
-          :start => true,
-          :template_path => 'fuel/systemd/restart_template.erb',
-          :config_name => 'restart.conf',
-      }
-      is_expected.to contain_fuel__systemd('openstack-keystone').with parameters
-    end
+    it {
+      should contain_service('httpd').with(
+           'hasrestart' => true,
+           'restart'    => 'sleep 30 && apachectl graceful || apachectl restart'
+      )
+    }
 
   end
   run_test manifest
