@@ -158,7 +158,7 @@
   type: sync
   version: 2.0.0
   role: ['/.*/']
-  requires: []
+  requires: [provision_end]
   required_for: [pre_deployment_start]
   parameters:
     src: rsync://{MASTER_IP}:/puppet/{OPENSTACK_VERSION}/modules/
