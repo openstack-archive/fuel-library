@@ -52,6 +52,11 @@ class osnailyfacter::fuel_pkgs::setup_repositories {
       content => 'APT::Install-Suggests "false";',
     }
 
+    exec { 'mos-linux-apt-key':
+      command => '/usr/bin/curl -s http://172.18.170.22/repos/mos-xenial.key | /usr/bin/apt-key add -',
+      unless  => '/usr/bin/apt-key list | /bin/grep -q "MOS Linux Team"',
+    } ->
+
     Apt::Source<||> ~> Exec<| title == 'apt_update' |>
     Exec<| title == 'apt_update' |> -> Package<||>
   }
