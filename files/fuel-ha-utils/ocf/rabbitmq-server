@@ -27,4 +27,11 @@ affected by this flag.
 EOF
 
 upstream_rabbitmq_ocf_script="${OCF_ROOT}/resource.d/rabbitmq/rabbitmq-server-ha"
+
+# if we haven't installed the upstream script, clearly we cannot be running.
+if ! test -f $upstream_rabbitmq_ocf_script ; then
+    ocf_log err "rabbitmq-server upstream ocf script not present ${upstream_rabbitmq_ocf_script}"
+    exit $OCF_NOT_RUNNING
+fi
+
 . $upstream_rabbitmq_ocf_script
