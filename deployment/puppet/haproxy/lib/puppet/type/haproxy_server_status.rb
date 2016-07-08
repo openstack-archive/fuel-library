@@ -1,8 +1,15 @@
-Puppet::Type.newtype(:haproxy_backend_status) do
+Puppet::Type.newtype(:haproxy_server_status) do
   desc  'Wait for HAProxy backend to become online'
 
   newparam(:name) do
     desc 'The name of HAProxy backend to monitor'
+    validate do |value|
+      service_name = value.split('/')[0]
+      server_name = value.split('/')[1]
+      if not service_name or  not server_name
+        raise ArgumentError, 'haproxy backend server should be a pair of "<service>/<server>" names, e.g. "database/foo"'
+      end
+    end
     isnamevar
   end
 
@@ -57,6 +64,11 @@ Puppet::Type.newtype(:haproxy_backend_status) do
     munge do |value|
       value.to_s
     end
+  end
+
+  newparam(:control_socket) do
+    desc 'Haproxy control socket to '
+    defaultto '/var/lib/haproxy/stats'
   end
 
   def validate

@@ -20,7 +20,7 @@ Puppet::Type.type(:haproxy_backend_status).provide(:http) do
     status = get_url
     return :absent unless status
     return :present if [:present, :absent].include? @resource[:ensure]
-    return :up if status.kind_of? Net::HTTPSuccess or status.kind_of? Net::HTTPRedirection or status.kind_of? Net::HTTPUnauthorized
+    return :up if status.kind_of? Net::HTTPSuccess or status.kind_of? Net::HTTPRedirection
     return :down if status.kind_of? Net::HTTPServerError or status.kind_of? Net::HTTPClientError
     :present
   end
