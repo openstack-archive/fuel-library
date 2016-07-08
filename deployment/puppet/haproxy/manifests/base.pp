@@ -31,6 +31,7 @@ class haproxy::base (
   $stats_ipaddresses = $haproxy::params::stats_ipaddresses,
   $custom_fragment = undef,
 ) inherits haproxy::params {
+  include concat::setup
 
   concat { '/etc/haproxy/haproxy.cfg':
     owner  => '0',
