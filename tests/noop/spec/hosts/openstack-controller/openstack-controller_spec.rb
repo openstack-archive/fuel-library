@@ -282,21 +282,6 @@ describe manifest do
       should contain_nova_config('oslo_messaging_rabbit/kombu_compression').with(:value => kombu_compression)
     end
 
-    it 'should configure keystone authtoken signing' do
-      should contain_nova_config('keystone_authtoken/signing_dir').with(
-        :value => '/tmp/keystone-signing-nova'
-      )
-      should contain_nova_config('keystone_authtoken/signing_dirname').with(
-        :value => '/tmp/keystone-signing-nova'
-      )
-      should contain_nova_paste_api_ini('filter:authtoken/signing_dir').with(
-        :ensure => 'absent'
-      )
-      should contain_nova_paste_api_ini('filter:authtoken/signing_dirname').with(
-        :ensure => 'absent'
-      )
-    end
-
     it 'should configure use_local for nova::conductor' do
       should contain_class('nova::conductor').with(
         :use_local => Noop.puppet_function('pick', nova_hash['use_local'], false)
