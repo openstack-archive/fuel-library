@@ -301,15 +301,6 @@ describe manifest do
       should contain_nova_config('keystone_authtoken/signing_dir').with(
         :value => '/tmp/keystone-signing-nova'
       )
-      should contain_nova_config('keystone_authtoken/signing_dirname').with(
-        :value => '/tmp/keystone-signing-nova'
-      )
-      should contain_nova_paste_api_ini('filter:authtoken/signing_dir').with(
-        :ensure => 'absent'
-      )
-      should contain_nova_paste_api_ini('filter:authtoken/signing_dirname').with(
-        :ensure => 'absent'
-      )
     end
 
     it 'should configure use_local for nova::conductor' do

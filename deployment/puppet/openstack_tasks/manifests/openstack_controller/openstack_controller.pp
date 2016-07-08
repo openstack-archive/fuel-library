@@ -292,13 +292,6 @@ class openstack_tasks::openstack_controller::openstack_controller {
 
   nova_config {
     'DEFAULT/allow_resize_to_same_host':  value => pick($nova_hash['allow_resize_to_same_host'], true);
-    'keystone_authtoken/signing_dir':     value => '/tmp/keystone-signing-nova';
-    'keystone_authtoken/signing_dirname': value => '/tmp/keystone-signing-nova';
-  }
-
-  nova_paste_api_ini {
-    'filter:authtoken/signing_dir':       ensure => absent;
-    'filter:authtoken/signing_dirname':   ensure => absent;
   }
 
   class { '::nova::conductor':
