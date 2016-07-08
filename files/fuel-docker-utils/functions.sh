@@ -302,6 +302,12 @@ function start_container {
   else
     first_run_container "$1" $2
   fi
+  # Make sure that the systemd manage the service
+  if [ -x "$SYSTEMCTL" ] ; then
+    if ! ${SYSTEMCTL} is-active "docker-$1" > /dev/null; then
+      ${SYSTEMCTL} start "docker-$1"
+    fi
+  fi
   unlock
 }
 
