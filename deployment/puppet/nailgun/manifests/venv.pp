@@ -96,6 +96,7 @@ class nailgun::venv(
                     ],
         tries     => 50,
         try_sleep => 5,
+        timeout => 0,
       }
       exec {"nailgun_upload_fixtures":
         command   => "${venv}/bin/nailgun_fixtures",
