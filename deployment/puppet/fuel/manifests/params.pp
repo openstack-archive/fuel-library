@@ -78,7 +78,7 @@ class fuel::params {
   $dns_upstream                  = '8.8.8.8'
   $dns_domain                    = 'domain.tld'
   $dns_search                    = 'domain.tld'
-  $dhcp_interface                = 'eth0'
+  $dhcp_ipaddress                = '127.0.0.1'
   $admin_interface               = 'eth0'
   $admin_network                 = '10.20.0.*'
   $extra_networks                = undef
