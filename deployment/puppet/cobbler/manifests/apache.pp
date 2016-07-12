@@ -3,11 +3,16 @@
 #  Configure apache and listen ports.
 #
 class cobbler::apache {
+  file { ['/etc/httpd/', '/etc/httpd/conf.ports.d/']: ensure  => directory }
+  ->
   class { '::apache':
     server_signature => 'Off',
     trace_enable     => 'Off',
     purge_configs    => false,
+    purge_vhost_dir  => false,
     default_vhost    => false,
+    ports_file       => '/etc/httpd/conf.ports.d/cobbler.conf',
+    conf_template    => 'fuel/httpd.conf.erb',
   }
 
   apache::vhost { 'cobbler non-ssl':
