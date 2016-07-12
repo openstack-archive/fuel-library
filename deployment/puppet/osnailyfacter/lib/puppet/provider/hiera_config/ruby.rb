@@ -62,6 +62,12 @@ Puppet::Type.type(:hiera_config).provide(:ruby) do
     resource[:override_dir].to_s
   end
 
+  # Add to the end of each override file
+  # Commonly used to stop plugins contamitaing globals
+  def override_suffix
+    resource[:override_suffix].to_s
+  end
+
   # the path to the Hiera config file
   # @return [String]
   def config_file
@@ -85,7 +91,7 @@ Puppet::Type.type(:hiera_config).provide(:ruby) do
     @override_metadata_elements = []
     data['plugins'].each do |plugin|
       next unless plugin['name']
-      @override_metadata_elements << File.join(override_dir_name, plugin['name'].to_s)
+      @override_metadata_elements << File.join(override_dir_name, plugin['name'].to_s) + override_suffix
     end
     @override_metadata_elements.sort!
     debug "Found plugins hierarchy elements in '#{resource[:metadata_yaml_file]}': #{@override_metadata_elements.inspect}"
@@ -101,7 +107,7 @@ Puppet::Type.type(:hiera_config).provide(:ruby) do
     dir_entries(override_dir_path).each do |file|
       next unless file.end_with? '.yaml'
       file = file.gsub /\.yaml$/, ''
-      @override_directory_elements << File.join(override_dir_name, file)
+      @override_directory_elements << File.join(override_dir_name, file) + override_suffix
     end
     @override_directory_elements.sort!
     debug "Found override hierarchy elements: #{@override_directory_elements.inspect}"
