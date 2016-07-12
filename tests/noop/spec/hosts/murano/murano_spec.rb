@@ -192,8 +192,8 @@ describe manifest do
                    'service_host'        => bind_address,
                    'service_port'        => api_bind_port,
                    'external_network'    => external_network,
+                   'memcached_servers'   => memcached_servers,
                )
-        should contain_murano_config('keystone_authtoken/memcached_servers').with_value(memcached_servers.join(','))
       end
 
       it 'should configure default_log_levels' do
