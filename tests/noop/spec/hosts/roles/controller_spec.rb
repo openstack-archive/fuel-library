@@ -8,6 +8,42 @@ manifest = 'roles/controller.pp'
 describe manifest do
   shared_examples 'catalog' do
 
+    let(:primary_controller) { Noop.hiera 'primary_controller' }
+
+    it 'should contain backend status calls on primary-controller only' do
+      if primary_controller
+        should contain_class('osnailyfacter::wait_for_nova_backends').with(
+          :backends => ['nova-api'],
+        )
+      else
+        should_not contain_class('osnailyfacter::wait_for_nova_backends')
+      end
+    end
+
+    it 'should configure nova_flavor to manage flavor on primary-controller only' do
+      if primary_controller
+        expect(graph).to ensure_transitive_dependency("Haproxy_backend_status[nova-api]", "Nova_flavor[m1.micro-flavor]")
+        expect(graph).to ensure_transitive_dependency("Haproxy_backend_status[keystone-public]","Nova_flavor[m1.micro-flavor]")
+        expect(graph).to ensure_transitive_dependency("Haproxy_backend_status[keystone-admin]","Nova_flavor[m1.micro-flavor]")
+
+        should contain_nova_flavor('m1.micro-flavor').with(
+          :ram  => 64,
+          :disk => 0,
+          :vcpu => 1
+        )
+      else
+        should_not contain_nova_flavor('m1.micro-flavor')
+      end
+    end
+
+    it 'should install cirros image on primary-controler only' do
+      if primary_controller
+        should contain_package('cirros-testvm')
+      else
+        should_not contain_package('cirros-testvm')
+      end
+    end
+
     it 'should set vm.swappiness sysctl to 10' do
       should contain_sysctl('vm.swappiness').with(
         'val' => '10',
