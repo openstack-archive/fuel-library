@@ -10,3 +10,4 @@ fixtures:
     openstacklib: "#{source_dir}/../openstacklib"
     sysfs: "#{source_dir}/../sysfs"
     oslo: "#{source_dir}/../oslo"
+    haproxy: "#{source_dir}/../haproxy"
