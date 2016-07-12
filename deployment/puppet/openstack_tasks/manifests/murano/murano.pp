@@ -146,15 +146,8 @@ class openstack_tasks::murano::murano {
       external_network    => $external_network,
       use_trusts          => true,
       kombu_compression   => $kombu_compression,
-      # TODO(aschultz): https://review.openstack.org/336261
-      #memcached_servers   => $memcached_servers,
+      memcached_servers   => $memcached_servers,
     }
-
-    # TODO(aschultz): remove this and switch to the murano param
-    ensure_resource('murano_config', 'keystone_authtoken/memcached_servers', {
-      value  => join(any2array($memcached_servers), ',')
-    })
-
 
     class { '::murano::api':
       host    => $api_bind_host,
