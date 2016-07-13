@@ -63,6 +63,7 @@ class openstack::corosync (
     debug                    => false,
     log_stderr               => false,
     log_function_name        => true,
+    cluster_name             => 'Fuel',
   } ->
   Anchor['corosync-done']
 
