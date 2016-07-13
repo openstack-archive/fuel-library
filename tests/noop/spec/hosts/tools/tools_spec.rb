@@ -68,6 +68,17 @@ describe manifest do
       )
     end
 
+    it 'should configure postfix with correct hostname' do
+      should contain_service('postfix')
+      should contain_augeas('configure postfix').with(
+        'context' => '/files/etc/postfix/main.cf',
+        'changes' => [
+          "set /files/etc/postfix/main.cf/mydestination #{facts[:fqdn]},localhost",
+          "set /files/etc/postfix/main.cf/myhostname #{facts[:fqdn]}",
+        ],
+      ).that_notifies('Service[postfix]')
+    end
+
     it 'should declare osnailyfacter::acpid on virtual machines' do
       facts[:virtual] = 'kvm'
       should contain_class('osnailyfacter::acpid')

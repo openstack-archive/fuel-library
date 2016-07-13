@@ -21,6 +21,20 @@ class osnailyfacter::tools::tools {
 
   class { '::osnailyfacter::ssh': }
 
+  service { 'postfix':
+    ensure => running,
+    enable => true,
+  }
+
+  augeas { 'configure postfix':
+    context => '/files/etc/postfix/main.cf',
+    changes => [
+      "set /files/etc/postfix/main.cf/mydestination ${::fqdn},localhost",
+      "set /files/etc/postfix/main.cf/myhostname ${::fqdn}",
+    ],
+    notify  => Service['postfix'],
+  }
+
   if $::virtual != 'physical' {
     class { '::osnailyfacter::acpid': }
   }
