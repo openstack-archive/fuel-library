@@ -111,7 +111,6 @@ describe manifest do
       should contain_glance_api_config('DEFAULT/scrub_time').with_value('43200')
       should contain_glance_api_config('DEFAULT/scrubber_datadir').with_value('/var/lib/glance/scrubber')
       should contain_glance_api_config('glance_store/os_region_name').with_value(region)
-      should contain_glance_api_config('keystone_authtoken/signing_dir').with_value('/tmp/keystone-signing-glance')
       should contain_glance_api_config('keystone_authtoken/token_cache_time').with_value('-1')
       should contain_glance_api_config('keystone_authtoken/auth_type').with_value('password')
       should contain_glance_api_config('keystone_authtoken/auth_url').with_value(identity_uri)
@@ -127,7 +126,6 @@ describe manifest do
       should contain_glance_glare_config('database/max_overflow').with_value(max_overflow)
       should contain_glance_glare_config('database/max_retries').with_value(max_retries)
       should contain_glance_glare_config('glance_store/os_region_name').with_value(region)
-      should contain_glance_glare_config('keystone_authtoken/signing_dir').with_value('/tmp/keystone-signing-glance')
       should contain_glance_glare_config('keystone_authtoken/token_cache_time').with_value('-1')
       should contain_glance_glare_config('keystone_authtoken/memcached_servers').with_value(memcached_servers.join(','))
     end
@@ -157,7 +155,6 @@ describe manifest do
       should contain_glance_registry_config('database/max_overflow').with_value(max_overflow)
       should contain_glance_registry_config('database/max_retries').with_value(max_retries)
       should contain_glance_registry_config('glance_store/os_region_name').with_value(region)
-      should contain_glance_registry_config('keystone_authtoken/signing_dir').with_value('/tmp/keystone-signing-glance')
       should contain_glance_registry_config('keystone_authtoken/memcached_servers').with_value(memcached_servers.join(','))
     end
 
