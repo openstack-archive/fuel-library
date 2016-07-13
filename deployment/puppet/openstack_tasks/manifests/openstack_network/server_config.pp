@@ -127,7 +127,6 @@ class openstack_tasks::openstack_network::server_config {
 
   if $segmentation_type == 'vlan' {
     $net_role_property    = 'neutron/private'
-    $iface                = get_network_role_property($net_role_property, 'phys_dev')
     $physical_network_mtus = generate_physnet_mtus($neutron_config, $network_scheme, {
       'do_floating' => $do_floating,
       'do_tenant'   => true,
