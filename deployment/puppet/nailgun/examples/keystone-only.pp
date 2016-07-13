@@ -33,48 +33,62 @@ case $production {
       refreshonly => false,
     }
 
+    # Get paste.ini source
+    $keystone_paste_ini = $::keystone::params::paste_config ? {
+      undef   => '/etc/keystone/keystone-paste.ini',
+      default => $::keystone::params::paste_config,
+    }
+
+    # Temporary add admin_token_auth middleware from public/admin/v3 pipelines
+    exec { 'add_admin_token_auth_middleware':
+      path    => ['/bin', '/usr/bin'],
+      command => "sed -i.dist 's/ token_auth / token_auth admin_token_auth /' ${keystone_paste_ini}",
+      unless  => "fgrep -q ' admin_token_auth' ${keystone_paste_ini}",
+    }
+
+    # Remove admin_token_auth middleware from public/admin/v3 pipelines
+    exec { 'remove_admin_token_auth_middleware':
+      path    => ['/bin', '/usr/bin'],
+      command => "mv ${keystone_paste_ini}.dist ${keystone_paste_ini}",
+      require => Keystone_user_role["monitord@services"],
+    }
+
     # Admin user
     keystone_tenant { 'admin':
       ensure  => present,
       enabled => 'True',
-    }
-
+      require => Exec["add_admin_token_auth_middleware"],
+    } ->
     keystone_tenant { 'services':
       ensure      => present,
       enabled     => 'True',
       description => 'fuel services tenant',
-    }
-
+    } ->
     keystone_role { 'admin':
       ensure => present,
-    }
-
+    } ->
     keystone_user { 'admin':
       ensure          => present,
       password        => $::fuel_settings['FUEL_ACCESS']['password'],
       enabled         => 'True',
       tenant          => 'admin',
       replace_password => false,
-    }
-
+    } ->
     keystone_user_role { 'admin@admin':
       ensure => present,
       roles  => ['admin'],
-    }
-
+    } ->
     # Monitord user
     keystone_role { 'monitoring':
       ensure => present,
-    }
-
+    } ->
     keystone_user { $::fuel_settings['keystone']['monitord_user']:
       ensure   => present,
       password => $::fuel_settings['keystone']['monitord_password'],
       enabled  => 'True',
       email    => 'monitord@localhost',
       tenant   => 'services',
-    }
-
+    } ->
     keystone_user_role { 'monitord@services':
       ensure => present,
       roles  => ['monitoring'],
