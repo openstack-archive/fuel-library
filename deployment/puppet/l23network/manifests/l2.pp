@@ -82,6 +82,16 @@ class l23network::l2 (
     }
     Service['openvswitch-service'] -> Anchor['l23network::l2::init']
 
+    if $::l23network::params::ovs_db_socket {
+      exec { 'wait_for_ovsdb_sock':
+        command   => "/usr/bin/test -S ${::l23network::params::ovs_db_socket}",
+        tries     => 120,
+        try_sleep => 1,
+      }
+      Service['openvswitch-service'] -> Exec['wait_for_ovsdb_sock']
+      Exec['wait_for_ovsdb_sock'] -> Anchor['l23network::l2::init']
+    }
+
   } else {
     $ovs_mod_ensure = absent
   }
