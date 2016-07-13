@@ -143,12 +143,14 @@ class l23network (
     disable_hotplug { 'global':
       ensure => 'present',
     }
+    Anchor['l23network::l2::init'] -> Disable_hotplug['global']
     Disable_hotplug['global'] -> Anchor['l23network::init']
 
     enable_hotplug { 'global':
       ensure => 'present',
     }
     Disable_hotplug['global'] -> Enable_hotplug['global']
+    Disable_hotplug['global'] -> L23_stored_config<||>
     L2_port<||>               -> Enable_hotplug['global']
     L2_bridge<||>             -> Enable_hotplug['global']
     L2_bond<||>               -> Enable_hotplug['global']
