@@ -23,12 +23,18 @@ describe manifest do
       Noop.puppet_function 'prepare_network_config', network_scheme
     end
 
+    let(:admin_nets) do
+      Noop.puppet_function 'get_routable_networks_for_network_role', network_scheme, 'admin/pxe'
+    end
+
     let(:management_nets) do
-      Noop.puppet_function 'get_routable_networks_for_network_role', network_scheme, 'management'
+      Noop.puppet_function 'get_routable_networks_for_network_role', network_scheme, 'mgmt/vip'
     end
 
     let(:storage_nets) do
-      Noop.puppet_function 'get_routable_networks_for_network_role', network_scheme, 'storage'
+      Noop.puppet_function 'unique',
+        Noop.puppet_function, 'get_routable_networks_for_network_role', network_scheme, 'swift/replication',
+        Noop.puppet_function, 'get_routable_networks_for_network_role', network_scheme, 'ceph/replication'
     end
 
     let(:database_network) do
@@ -54,6 +60,24 @@ describe manifest do
     network_metadata = Noop.hiera_hash 'network_metadata', {}
     roles = network_metadata['nodes'][node_name]['node_roles']
     mongodb_port = Noop.hiera('mongodb_port', '27017')
+
+    ssh_hash = Noop.hiera_hash 'ssh', {}
+
+    it 'should accept connections to the SSH service only from specified networks' do
+
+      if ssh_hash['security_enabled']
+        ssh_networks = Noop.puppet_function 'pick', ssh_hash['security_networks'], Noop.puppet_function, 'concat', admin_nets, management_nets, storage_nets
+      else
+        ssh_networks = Noop.puppet_function 'concat', admin_nets, management_nets, storage_nets
+      end
+
+      should contain_openstack__firewall__multi_net('020 ssh').with(
+        'port'        => [ 22 ],
+        'proto'       => 'tcp',
+        'action'      => 'accept',
+        'source_nets' => ssh_networks,
+      )
+    end
 
     if Noop.puppet_function 'member', roles, 'primary-controller' or Noop.puppet_function 'member', roles, 'controller'
       it 'should properly restrict rabbitmq admin traffic' do
