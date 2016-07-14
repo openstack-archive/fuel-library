@@ -5,6 +5,7 @@ class osnailyfacter::firewall::firewall {
   $network_scheme   = hiera_hash('network_scheme', {})
   $network_metadata = hiera_hash('network_metadata')
   $ironic_hash      = hiera_hash('ironic', {})
+  $ssh_hash         = hiera_hash('ssh', {})
   $roles            = hiera('roles')
   $storage_hash     = hiera('storage', {})
 
@@ -108,11 +109,19 @@ class osnailyfacter::firewall::firewall {
     action => 'accept',
   }
 
+  $all_networks = concat($admin_nets, $management_nets, $storage_nets)
+
+  if $ssh_hash['security_enabled'] {
+    $ssh_networks = pick($ssh_hash['security_networks'], $all_networks)
+  } else {
+    $ssh_networks = $all_networks
+  }
+
   openstack::firewall::multi_net {'020 ssh':
     port        => $ssh_port,
     proto       => 'tcp',
     action      => 'accept',
-    source_nets => concat($admin_nets, $management_nets, $storage_nets),
+    source_nets => $ssh_networks,
   }
 
   openstack::firewall::multi_net {'109 iscsi':
@@ -488,10 +497,10 @@ class osnailyfacter::firewall::firewall {
     if $storage_hash['objects_ceph'] {
       if member($roles, 'primary-controller') or member($roles, 'controller') {
         firewall {'012 RadosGW allow':
-          chain   => 'INPUT',
-          dport   => [ $radosgw_port, $swift_proxy_port ],
-          proto   => 'tcp',
-          action  => accept,
+          chain  => 'INPUT',
+          dport  => [ $radosgw_port, $swift_proxy_port ],
+          proto  => 'tcp',
+          action => accept,
         }
       }
     }
