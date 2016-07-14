@@ -86,6 +86,7 @@ class openstack_tasks::roles::ironic_conductor {
     log_facility         => $syslog_log_facility_ironic,
     database_connection  => $db_connection,
     database_max_retries => '-1',
+    sync_db              => false,
     glance_api_servers   => $glance_api_servers,
     kombu_compression    => $kombu_compression,
   }
