@@ -9,7 +9,7 @@
   parameters:
     puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/virtual_ips/virtual_ips.pp
     puppet_modules: /etc/puppet/modules
-    timeout: 120
+    timeout: 200
   test_post:
     cmd: ruby /etc/puppet/modules/osnailyfacter/modular/virtual_ips/virtual_ips_post.rb
 
@@ -26,7 +26,7 @@
   parameters:
     puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/virtual_ips/conntrackd.pp
     puppet_modules: /etc/puppet/modules
-    timeout: 120
+    timeout: 200
   test_pre:
     cmd: ruby /etc/puppet/modules/osnailyfacter/modular/virtual_ips/conntrackd_pre.rb
   test_post:
