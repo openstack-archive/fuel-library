@@ -6,7 +6,7 @@
   requires: [openstack-controller, primary-rabbitmq, memcached]
   condition:
     yaql_exp: &swift_enabled >
-      ((not $.storage.objects_ceph or not $.storage.images_ceph) and
+      (not $.storage.objects_ceph and not $.storage.images_ceph and
         not $.storage.images_vcenter) and
       (changedAny($.network_scheme, $.network_metadata, $.swift,
         $.get('swift_master_role', 'primary-controller'),
@@ -62,7 +62,7 @@
   requires: [swift-proxy_storage, primary-swift-proxy_storage]
   condition:
     yaql_exp: >
-      ((not $.storage.objects_ceph or not $.storage.images_ceph) and
+      (not $.storage.objects_ceph and not $.storage.images_ceph and
         not $.storage.images_vcenter) and
       (changedAny($.storage, $.get('swift_master_role', 'primary-controller'),
         $.get('swift_ring_min_part_hours'),('primary-controller' in $.roles)))
@@ -79,7 +79,7 @@
   required_for: [swift-proxy_storage]
   condition:
     yaql_exp: >
-      ((not $.storage.objects_ceph or not $.storage.images_ceph) and
+      (not $.storage.objects_ceph and not $.storage.images_ceph and
         not $.storage.images_vcenter) and
       (changedAny($.swift, $.network_metadata.vips,
         $.get('region', 'RegionOne'), $.public_ssl, $.get('use_ssl')))
