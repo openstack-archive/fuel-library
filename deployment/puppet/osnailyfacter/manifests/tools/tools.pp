@@ -21,18 +21,29 @@ class osnailyfacter::tools::tools {
 
   class { '::osnailyfacter::ssh': }
 
-  service { 'postfix':
-    ensure => running,
-    enable => true,
-  }
+  unless (versioncmp($::operatingsystemmajrelease, '16') >= 0) {
 
-  augeas { 'configure postfix':
-    context => '/files/etc/postfix/main.cf',
-    changes => [
-      "set /files/etc/postfix/main.cf/mydestination ${::fqdn},localhost",
-      "set /files/etc/postfix/main.cf/myhostname ${::fqdn}",
-    ],
-    notify  => Service['postfix'],
+    ensure_packages(['postfix'])
+
+    service { 'postfix':
+      ensure  => running,
+      enable  => true,
+      require => Package['postfix'],
+    }
+
+    augeas { 'configure postfix':
+      context => '/files/etc/postfix/main.cf',
+      changes => [
+        "set /files/etc/postfix/main.cf/mydestination ${::fqdn},localhost",
+        "set /files/etc/postfix/main.cf/myhostname ${::fqdn}",
+        "set /files/etc/postfix/main.cf/inet_interfaces loopback-only",
+        "set /files/etc/postfix/main.cf/default_transport error",
+        "set /files/etc/postfix/main.cf/relay_transport error",
+      ],
+      notify  => Service['postfix'],
+      require => Package['postfix'],
+    }
+
   }
 
   if $::virtual != 'physical' {
