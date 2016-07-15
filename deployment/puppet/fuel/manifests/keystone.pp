@@ -147,7 +147,7 @@ class fuel::keystone (
   cron { 'keystone-flush-token':
     ensure      => present,
     command     => 'keystone-manage token_flush',
-    environment => 'PATH=/bin:/usr/bin:/usr/sbin',
+    environment => [ 'MAILTO=""', 'PATH=/bin:/usr/bin:/usr/sbin' ],
     user        => 'keystone',
     hour        => '1',
     require     => [ Package['crontabs'], Package['openstack-keystone'] ],

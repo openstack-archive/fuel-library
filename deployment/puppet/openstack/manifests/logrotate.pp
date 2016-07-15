@@ -82,8 +82,9 @@ class openstack::logrotate (
   }
 
   cron { 'fuel-logrotate':
-    command => '/usr/bin/fuel-logrotate',
-    user    => 'root',
-    minute  => "*/${interval}",
+    command     => '/usr/bin/fuel-logrotate',
+    environment => [ 'MAILTO=""', 'PATH=/bin:/usr/bin:/usr/sbin' ],
+    user        => 'root',
+    minute      => "*/${interval}",
   }
 }

@@ -18,14 +18,15 @@ class openstack_tasks::swift::parts::rebalance_cronjob(
   }
 
   cron { 'swift-rings-rebalance':
-    ensure  => $primary_proxy ? {
+    ensure      => $primary_proxy ? {
       true    => present,
       default => absent,
     },
-    command => '/usr/local/bin/swift-rings-rebalance.sh &>/dev/null',
-    user    => 'swift',
-    hour    => "*/$ring_rebalance_period",
-    minute  => '15',
+    command     => '/usr/local/bin/swift-rings-rebalance.sh &>/dev/null',
+    environment => [ 'MAILTO=""', 'PATH=/bin:/usr/bin:/usr/sbin' ],
+    user        => 'swift',
+    hour        => "*/$ring_rebalance_period",
+    minute      => '15',
   }
 
   # setup a cronjob to download rings periodically on secondaries
@@ -41,14 +42,15 @@ class openstack_tasks::swift::parts::rebalance_cronjob(
   }
 
   cron { 'swift-rings-sync':
-    ensure  => $primary_proxy ? {
+    ensure      => $primary_proxy ? {
       true    => absent,
       default => present,
     },
-    command => '/usr/local/bin/swift-rings-sync.sh &>/dev/null',
-    user    => 'swift',
-    hour    => "*/$ring_rebalance_period",
-    minute  => '25',
+    command     => '/usr/local/bin/swift-rings-sync.sh &>/dev/null',
+    environment => [ 'MAILTO=""', 'PATH=/bin:/usr/bin:/usr/sbin' ],
+    user        => 'swift',
+    hour        => "*/$ring_rebalance_period",
+    minute      => '25',
   }
 
 }
