@@ -139,7 +139,7 @@ class fuel::nailgun::server (
   cron { 'oswl_cleaner':
     ensure      => present,
     command     => 'oswl_cleaner',
-    environment => 'PATH=/bin:/usr/bin:/usr/sbin',
+    environment => [ 'MAILTO=""', 'PATH=/bin:/usr/bin:/usr/sbin' ],
     user        => 'nailgun',
     hour        => '1',
     require     => Package['crontabs'],
