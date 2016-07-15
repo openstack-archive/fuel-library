@@ -69,6 +69,7 @@ describe manifest do
     end
 
     it 'should configure postfix with correct hostname' do
+      should contain_package('postfix')
       should contain_service('postfix')
       should contain_augeas('configure postfix').with(
         'context' => '/files/etc/postfix/main.cf',

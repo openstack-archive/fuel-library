@@ -21,9 +21,12 @@ class osnailyfacter::tools::tools {
 
   class { '::osnailyfacter::ssh': }
 
+  ensure_packages(['postfix'])
+
   service { 'postfix':
-    ensure => running,
-    enable => true,
+    ensure  => running,
+    enable  => true,
+    require => Package['postfix'],
   }
 
   augeas { 'configure postfix':
@@ -33,6 +36,7 @@ class osnailyfacter::tools::tools {
       "set /files/etc/postfix/main.cf/myhostname ${::fqdn}",
     ],
     notify  => Service['postfix'],
+    require => Package['postfix'],
   }
 
   if $::virtual != 'physical' {
