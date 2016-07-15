@@ -4,3 +4,14 @@ apache
 ntp
 postgresql
 staging
+cinder
+galera
+glance
+heat
+keystone
+mongodb
+murano
+neutron
+nova
+openstacklib
+sahara
