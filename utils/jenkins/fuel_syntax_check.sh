@@ -51,38 +51,26 @@ bundle --version || exit 1
 
 # Function that runs lint check for puppet manifests
 function check_lint {
-  MODULE=`basename $(pwd)`
 
-  if grep -qs puppet-lint Gemfile && ! grep -qxs $MODULE $WORKSPACE/utils/jenkins/modules.disable_rake-lint ; then
-    echo 'Using rake lint'
-    GEM_HOME=$WORKSPACE/.bundled_gems bundle update
-    GEM_HOME=$WORKSPACE/.bundled_gems bundle exec rake lint --trace
-    RETURNVAL=$?
-    if [ "${RETURNVAL}" -ne "0" ]; then
-        echo "FAILED rake lint, return value was ${RETURNVAL}"
-    fi
-    return $RETURNVAL
-  else
-    echo 'Using puppet-lint'
-    exit_code=0
-    all_files=`find . -name "*.pp"`
-    for x in $all_files; do
-      puppet-lint \
-          --no-80chars-check \
-          --no-autoloader_layout-check \
-          --no-nested_classes_or_defines-check \
-          --no-only_variable_string-check \
-          --no-2sp_soft_tabs-check \
-          --no-trailing_whitespace-check \
-          --no-hard_tabs-check \
-          --no-class_inherits_from_params_class-check \
-          --with-filename $x || let exit_code=1
-    done
-    if [ "${exit_code}" -eq "1" ]; then
-        echo "FAILED lint check for ${x}"
-    fi
-    return $exit_code
+  echo 'Using puppet-lint'
+  exit_code=0
+  all_files=`find . -name "*.pp"`
+  for x in $all_files; do
+    puppet-lint \
+        --no-80chars-check \
+        --no-autoloader_layout-check \
+        --no-nested_classes_or_defines-check \
+        --no-only_variable_string-check \
+        --no-2sp_soft_tabs-check \
+        --no-trailing_whitespace-check \
+        --no-hard_tabs-check \
+        --no-class_inherits_from_params_class-check \
+        --with-filename $x || let exit_code=1
+  done
+  if [ "${exit_code}" -eq "1" ]; then
+      echo "FAILED lint check for ${x}"
   fi
+  return $exit_code
 }
 
 # Function that checks syntax
