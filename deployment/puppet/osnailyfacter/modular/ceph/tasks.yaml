@@ -159,11 +159,11 @@
 - id: ceph-compute
   type: puppet
   version: 2.1.0
-  role: [compute]
+  groups: [compute]
   cross-depends:
-    - name: ceph_create_pools
-  requires: [ceph_create_pools]
-  required_for: [post_deployment_end]
+    - name: /(primary-)?ceph-mon/
+  requires: [top-role-compute]
+  required_for: [deploy_end]
   condition:
     yaql_exp: &storage_changed >
       ($.storage.objects_ceph or $.storage.images_ceph or
