@@ -69,12 +69,16 @@ describe manifest do
     end
 
     it 'should configure postfix with correct hostname' do
+      should contain_package('postfix')
       should contain_service('postfix')
       should contain_augeas('configure postfix').with(
         'context' => '/files/etc/postfix/main.cf',
         'changes' => [
           "set /files/etc/postfix/main.cf/mydestination #{facts[:fqdn]},localhost",
           "set /files/etc/postfix/main.cf/myhostname #{facts[:fqdn]}",
+          "set /files/etc/postfix/main.cf/inet_interfaces loopback-only",
+          "set /files/etc/postfix/main.cf/default_transport error",
+          "set /files/etc/postfix/main.cf/relay_transport error",
         ],
       ).that_notifies('Service[postfix]')
     end
