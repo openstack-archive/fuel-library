@@ -75,6 +75,14 @@ file { '/etc/resolv.conf':
   mode    => '0644',
 }
 
+augeas { 'Cleanup orphaned dns settings from ifcfg-e* files':
+  context => "/files/etc/sysconfig/network-scripts",
+  changes => [
+    "rm /files/etc/sysconfig/network-scripts/*[label() =~ glob('ifcfg-e*')]/DNS1",
+    "rm /files/etc/sysconfig/network-scripts/*[label() =~ glob('ifcfg-e*')]/DNS2",
+  ],
+}
+
 file { '/etc/dhcp/dhclient.conf':
   content => template('fuel/dhclient.conf.erb'),
   owner   => 'root',
