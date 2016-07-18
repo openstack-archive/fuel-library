@@ -1,0 +1,15 @@
+Code-Review+1: Oleksiy Molchanov <omolchanov@mirantis.com>
+Verified+1: Fuel CI <fuel-ci-bot@mirantis.com>
+Code-Review+2: Alex Schultz <aschultz@mirantis.com>
+Code-Review+1: Stanislaw Bogatkin <sbogatkin@mirantis.com>
+Code-Review+2: Maksim Malchuk <mmalchuk@mirantis.com>
+Code-Review+1: Kyrylo Galanov <kgalanov@mirantis.com>
+Code-Review+1: Ivan Berezovskiy <iberezovskiy@mirantis.com>
+Code-Review+1: Andrew Maksimov <amaksimov@mirantis.com>
+Workflow+1: Maksim Malchuk <mmalchuk@mirantis.com>
+Verified+2: Jenkins
+Submitted-by: Jenkins
+Submitted-at: Mon, 18 Jul 2016 18:44:23 +0000
+Reviewed-on: https://review.openstack.org/338940
+Project: openstack/fuel-library
+Branch: refs/heads/stable/mitaka
