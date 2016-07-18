@@ -188,8 +188,6 @@ class openstack_tasks::openstack_cinder::openstack_cinder {
 
     # Note, because keystone is enabled
     cinder_config {
-      'keystone_authtoken/signing_dir':     value => '/tmp/keystone-signing-cinder';
-      'keystone_authtoken/signing_dirname': value => '/tmp/keystone-signing-cinder';
       'keystone_authtoken/auth_version':    value => $keystone_api;
     }
   }

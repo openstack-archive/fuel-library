@@ -267,13 +267,6 @@ class openstack::cinder(
     }
   }
 
-  if $keystone_enabled {
-    cinder_config {
-      'keystone_authtoken/signing_dir':       value => '/tmp/keystone-signing-cinder';
-      'keystone_authtoken/signing_dirname':   value => '/tmp/keystone-signing-cinder';
-    }
-  }
-
   if $notification_driver {
     class { 'cinder::ceilometer':
       notification_driver => $notification_driver
