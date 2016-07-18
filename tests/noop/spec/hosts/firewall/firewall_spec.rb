@@ -50,6 +50,7 @@ describe manifest do
     end
 
     node_name = Noop.hiera('node_name')
+    storage_hash = Noop.hiera 'storage'
     network_metadata = Noop.hiera_hash 'network_metadata', {}
     roles = network_metadata['nodes'][node_name]['node_roles']
     mongodb_port = Noop.hiera('mongodb_port', '27017')
@@ -232,6 +233,47 @@ describe manifest do
             'source'      => baremetal_network,
             'destination' => baremetal_ipaddr,
           )
+        end
+      end
+    end
+
+    if (storage_hash['volumes_ceph'] or
+        storage_hash['images_ceph'] or
+        storage_hash['objects_ceph'] or
+        storage_hash['ephemeral_ceph']
+    )
+      if Noop.puppet_function 'member', roles, 'primary-controller' or Noop.puppet_function 'member', roles, 'controller'
+        it 'should configure firewall' do
+          should contain_firewall('010 ceph-mon allow').with(
+            'chain'  => 'INPUT',
+            'dport'  => '6789',
+            'proto'  => 'tcp',
+            'action' => 'accept',
+          )
+        end
+      end
+
+      if Noop.puppet_function 'member', roles, 'ceph-osd'
+        it 'should configure firewall' do
+          should contain_firewall('011 ceph-osd allow').with(
+            'chain'  => 'INPUT',
+            'dport'  => '6800-7100',
+            'proto'  => 'tcp',
+            'action' => 'accept',
+          )
+        end
+      end
+
+      if storage_hash['objects_ceph']
+        if Noop.puppet_function 'member', roles, 'primary-controller' or Noop.puppet_function 'member', roles, 'controller'
+          it 'should configure firewall' do
+            should contain_firewall('012 RadosGW allow').with(
+            'chain'  => 'INPUT',
+            'dport'  => [ '6780', '8080' ],
+            'proto'  => 'tcp',
+            'action' => 'accept',
+          )
+          end
         end
       end
     end
