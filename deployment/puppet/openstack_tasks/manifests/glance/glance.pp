@@ -171,7 +171,6 @@ class openstack_tasks::glance::glance {
     os_region_name         => $region,
     delayed_delete         => false,
     scrub_time             => '43200',
-    signing_dir            => '/tmp/keystone-signing-glance',
     token_cache_time       => '-1',
     image_cache_stall_time => '86400',
     image_cache_max_size   => $glance_image_cache_max_size,
@@ -218,7 +217,6 @@ class openstack_tasks::glance::glance {
     workers                => $service_workers,
     pipeline               => $pipeline,
     os_region_name         => $region,
-    signing_dir            => '/tmp/keystone-signing-glance',
     token_cache_time       => '-1',
     memcached_servers      => $memcached_servers,
   }
@@ -254,7 +252,6 @@ class openstack_tasks::glance::glance {
     database_idle_timeout  => $idle_timeout,
     workers                => $service_workers,
     sync_db                => $primary_controller,
-    signing_dir            => '/tmp/keystone-signing-glance',
     os_region_name         => $region,
     memcached_servers      => $memcached_servers,
   }
