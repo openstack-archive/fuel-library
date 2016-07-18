@@ -54,6 +54,8 @@ class osnailyfacter::firewall::firewall {
   $pcsd_port                    = 2224
   $rsync_port                   = 873
   $ssh_port                     = 22
+  $ssh_rseconds                 = 60
+  $ssh_rhitcount                = 4
   $swift_account_port           = 6002
   $swift_container_port         = 6001
   $swift_object_port            = 6000
@@ -122,6 +124,46 @@ class osnailyfacter::firewall::firewall {
     proto       => 'tcp',
     action      => 'accept',
     source_nets => $ssh_networks,
+  }
+
+  if $ssh_hash['brute_force_protection'] {
+
+    firewall { '021 ssh: new pipe for a sessions':
+      proto  => 'tcp',
+      dport  => $ssh_port,
+      state  => 'NEW',
+      recent => 'set',
+    }
+
+    firewall { '022 ssh: more than allowed attempts logged':
+      proto      => 'tcp',
+      dport      => $ssh_port,
+      state      => 'NEW',
+      recent     => 'update',
+      rseconds   => $ssh_rseconds,
+      rhitcount  => $ssh_rhitcount,
+      jump       => 'LOG',
+      log_prefix => 'iptables SSH brute-force: ',
+      log_level  => '7',
+    }
+
+    firewall { '023 ssh: block more than allowed attempts':
+      proto     => 'tcp',
+      dport     => $ssh_port,
+      state     => 'NEW',
+      recent    => 'update',
+      rseconds  => $ssh_rseconds,
+      rhitcount => $ssh_rhitcount,
+      action    => 'drop',
+    }
+
+    firewall { '024: accept allowed attempt':
+      proto  => 'tcp',
+      dport  => $ssh_port,
+      state  => 'NEW',
+      action => 'accept',
+    }
+
   }
 
   openstack::firewall::multi_net {'109 iscsi':
