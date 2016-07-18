@@ -75,6 +75,14 @@ describe manifest do
         'action'      => 'accept',
         'source_nets' => ssh_networks,
       )
+
+      if ssh_hash['brute_force_protection']
+        should contain_firewall('021 ssh: new pipe for a sessions')
+        should contain_firewall('022 ssh: more than allowed attempts logged')
+        should contain_firewall('023 ssh: block more than allowed attempts')
+        should contain_firewall('024 ssh: accept allowed new session')
+      end
+
     end
 
     if Noop.puppet_function 'member', roles, 'primary-controller' or Noop.puppet_function 'member', roles, 'controller'
