@@ -75,6 +75,23 @@ describe manifest do
         'action'      => 'accept',
         'source_nets' => ssh_networks,
       )
+
+      it 'should properly ensure ssh brute force protection rules' do
+
+        let(:ssh_brute_force) do
+          if ssh_hash['brute_force_protection']
+            'present'
+          else
+            'absent'
+          end
+        end
+
+        should contain_firewall('021 ssh: new pipe for a sessions').with_ensure(ssh_brute_force)
+        should contain_firewall('022 ssh: more than allowed attempts logged').with_ensure(ssh_brute_force)
+        should contain_firewall('023 ssh: block more than allowed attempts').with_ensure(ssh_brute_force)
+        should contain_firewall('024 ssh: accept allowed new session').with_ensure(ssh_brute_force)
+      end
+
     end
 
     if Noop.puppet_function 'member', roles, 'primary-controller' or Noop.puppet_function 'member', roles, 'controller'
