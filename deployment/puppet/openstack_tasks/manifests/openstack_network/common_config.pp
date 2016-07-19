@@ -88,6 +88,7 @@ class openstack_tasks::openstack_network::common_config {
       advertise_mtu                      => true,
       # To be sure that Heartbeats are disabled for Neutron
       rabbit_heartbeat_timeout_threshold => 0,
+      root_helper_daemon                 => 'sudo neutron-rootwrap-daemon /etc/neutron/rootwrap.conf'
     }
 
     # TODO (iberezovskiy): remove this workaround in N when neutron module
