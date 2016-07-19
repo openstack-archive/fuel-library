@@ -65,6 +65,17 @@ class openstack_tasks::openstack_network::common_config {
 
     $default_log_levels  = hiera_hash('default_log_levels')
 
+    # manually add line to neutron_sudoers in case of UCA packages
+    # because UCA doesn't have such line
+    if $::os_package_type != 'debian' {
+      file_line { 'root_helper_daemon':
+        line    => 'sudo neutron-rootwrap-daemon /etc/neutron/rootwrap.conf',
+        path    => '/etc/sudoers.d/neutron_sudoers',
+        match   => '^sudo neutron-rootwrap-daemon',
+      }
+      Package['neutron'] -> File_line[ 'root_helper_daemon'] -> Neutron_config<||>
+    }
+
     class { '::neutron' :
       verbose                            => $verbose,
       debug                              => $debug,
@@ -88,6 +99,7 @@ class openstack_tasks::openstack_network::common_config {
       advertise_mtu                      => true,
       # To be sure that Heartbeats are disabled for Neutron
       rabbit_heartbeat_timeout_threshold => 0,
+      root_helper_daemon                 => 'sudo neutron-rootwrap-daemon /etc/neutron/rootwrap.conf'
     }
 
     # TODO (iberezovskiy): remove this workaround in N when neutron module
