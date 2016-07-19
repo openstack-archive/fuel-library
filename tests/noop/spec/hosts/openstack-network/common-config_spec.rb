@@ -43,6 +43,7 @@ describe manifest do
       it { should contain_class('neutron').with('allow_overlapping_ips' => 'true')}
       it { should contain_class('neutron').with('base_mac' => neutron_config['L2']['base_mac'])}
       it { should contain_class('neutron').with('core_plugin' => 'neutron.plugins.ml2.plugin.Ml2Plugin')}
+      it { should contain_class('neutron').with('root_helper_daemon' => 'sudo neutron-rootwrap-daemon /etc/neutron/rootwrap.conf') }
 
       it { should contain_class('neutron').with('service_plugins' => service_plugins)}
 
