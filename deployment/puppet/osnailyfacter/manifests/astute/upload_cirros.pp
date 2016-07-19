@@ -10,19 +10,15 @@ class osnailyfacter::astute::upload_cirros {
 
   notice('MODULAR: astute/upload_cirros.pp')
 
-  $test_vm_image = hiera_hash('test_vm_image')
+  $test_vm_images = hiera('test_vm_image')
+  $glance_images = generate_glance_images(flatten([$test_vm_images]))
+  $defaults = {
+    'ensure' => 'present',
+  }
 
   include ::osnailyfacter::wait_for_glance_backends
 
-  glance_image { $test_vm_image['img_name']:
-    ensure           => present,
-    container_format => $test_vm_image['container_format'],
-    disk_format      => $test_vm_image['disk_format'],
-    is_public        => $test_vm_image['public'],
-    min_ram          => $test_vm_image['min_ram'],
-    source           => $test_vm_image['img_path'],
-    properties       => $test_vm_image['properties'],
-  }
+  create_resources(glance_image, $glance_images, $defaults)
 
   Class['osnailyfacter::wait_for_glance_backends'] -> Glance_image<||>
 }
