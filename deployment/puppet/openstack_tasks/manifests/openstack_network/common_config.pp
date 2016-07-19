@@ -81,6 +81,7 @@ class openstack_tasks::openstack_network::common_config {
     advertise_mtu                      => true,
     notification_driver                => $ceilometer_hash['notification_driver'],
     manage_logging                     => false,
+    root_helper_daemon                 => 'sudo neutron-rootwrap-daemon /etc/neutron/rootwrap.conf'
   }
 
   class { '::neutron::logging':
