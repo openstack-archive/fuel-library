@@ -61,6 +61,17 @@ class openstack_tasks::openstack_network::common_config {
 
   $default_log_levels  = hiera_hash('default_log_levels')
 
+  # manually add line to neutron_sudoers in case of UCA packages
+  # because UCA doesn't have such line
+  if $::os_package_type != 'debian' {
+    file_line { 'root_helper_daemon':
+      line    => 'neutron ALL = (root) NOPASSWD: /usr/bin/neutron-rootwrap-daemon /etc/neutron/rootwrap.conf',
+      path    => '/etc/sudoers.d/neutron_sudoers',
+      match   => '^neutron ALL = (root) NOPASSWD: /usr/bin/neutron-rootwrap-daemon',
+    }
+    Package['neutron'] -> File_line[ 'root_helper_daemon'] -> Neutron_config<||>
+  }
+
   class { '::neutron' :
     lock_path                          => '/var/lib/neutron/lock',
     bind_host                          => $bind_host,
@@ -81,6 +92,7 @@ class openstack_tasks::openstack_network::common_config {
     advertise_mtu                      => true,
     notification_driver                => $ceilometer_hash['notification_driver'],
     manage_logging                     => false,
+    root_helper_daemon                 => 'sudo neutron-rootwrap-daemon /etc/neutron/rootwrap.conf'
   }
 
   class { '::neutron::logging':
