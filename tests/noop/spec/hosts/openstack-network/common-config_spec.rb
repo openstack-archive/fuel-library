@@ -43,10 +43,19 @@ describe manifest do
       it { should contain_class('neutron').with('allow_overlapping_ips' => 'true')}
       it { should contain_class('neutron').with('base_mac' => neutron_config['L2']['base_mac'])}
       it { should contain_class('neutron').with('core_plugin' => 'neutron.plugins.ml2.plugin.Ml2Plugin')}
+      it { should contain_class('neutron').with('root_helper_daemon' => 'sudo neutron-rootwrap-daemon /etc/neutron/rootwrap.conf') }
 
       it { should contain_class('neutron').with('service_plugins' => service_plugins)}
 
       it { should contain_class('neutron').with('bind_host' => bind_host)}
+
+      if facts[:os_package_type] == 'ubuntu'
+         it { should contain_file_line('root_helper_daemon').with(
+                :line  => 'sudo neutron-rootwrap-daemon /etc/neutron/rootwrap.conf',
+                :path  => '/etc/sudoers.d/neutron_sudoers',
+                :match => '^sudo neutron-rootwrap-daemon')
+         }
+      end
 
       it { should contain_class('neutron::logging').with('use_syslog' => Noop.hiera('use_syslog', true))}
       it { should contain_class('neutron::logging').with('use_stderr' => Noop.hiera('use_stderr', false))}
