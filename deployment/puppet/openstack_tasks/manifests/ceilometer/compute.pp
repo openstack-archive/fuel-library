@@ -95,8 +95,13 @@ class openstack_tasks::ceilometer::compute {
     }
 
     if $::operatingsystem == 'Ubuntu' and $::ceilometer::params::libvirt_group {
-      # Our libvirt-bin deb package (1.2.9 version) creates 'libvirt' group on Ubuntu
-      if (versioncmp($::libvirt_package_version, '1.2.9') >= 0) {
+      if (versioncmp($::libvirt_package_version, '1.3.1') >= 0) {
+        # UCA libvirt-bin deb package (1.3.1 version) creates 'libvirtd' group on Ubuntu
+        User<| name == 'ceilometer' |> {
+          groups => ['nova', 'libvirtd'],
+        }
+      } elsif (versioncmp($::libvirt_package_version, '1.2.9') >= 0) {
+        # Our libvirt-bin deb package (1.2.9 version) creates 'libvirt' group on Ubuntu
         User<| name == 'ceilometer' |> {
           groups => ['nova', 'libvirt'],
         }
