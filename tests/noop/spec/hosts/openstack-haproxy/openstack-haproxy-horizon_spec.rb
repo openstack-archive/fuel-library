@@ -33,6 +33,8 @@ describe manifest do
             'server_names'           => nil,
             'ipaddresses'            => nil,
             'haproxy_config_options' => {
+              'option'   => 'http-buffer-request',
+              'timeout'  => 'http-request 10s',
               'redirect' => 'scheme https if !{ ssl_fc }'
             }
           )
@@ -45,11 +47,11 @@ describe manifest do
             'balancermember_port'    => 80,
             'public_ssl'             => public_ssl_horizon,
             'haproxy_config_options' => {
-              'option'      => ['forwardfor', 'httpchk', 'httpclose', 'httplog'],
+              'option'      => ['forwardfor', 'httpchk', 'httpclose', 'httplog', 'http-buffer-request'],
+              'timeout'     => ['client 3h', 'server 3h', 'http-request 10s'],
               'stick-table' => 'type ip size 200k expire 30m',
               'stick'       => 'on src',
               'balance'     => 'source',
-              'timeout'     => ['client 3h', 'server 3h'],
               'mode'        => 'http',
               'reqadd'      => 'X-Forwarded-Proto:\ https',
             },
@@ -62,13 +64,13 @@ describe manifest do
             'ipaddresses'            => ipaddresses,
             'server_names'           => server_names,
             'haproxy_config_options' => {
+              'option'  => [ 'forwardfor', 'httpchk', 'httpclose', 'httplog', 'http-buffer-request'],
+              'timeout' => ['client 3h', 'server 3h', 'http-request 10s'],
               'balance' => 'source',
               'capture' => 'cookie vgnvisitor= len 32',
               'cookie'  => 'SERVERID insert indirect nocache',
               'mode'    => 'http',
-              'option'  => [ 'forwardfor', 'httpchk', 'httpclose', 'httplog' ],
               'rspidel' => '^Set-cookie:\ IP=',
-              'timeout' => [ 'client 3h', 'server 3h' ]
             }
           )
           should contain_haproxy__balancermember('horizon')

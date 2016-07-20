@@ -80,28 +80,30 @@ class openstack::ha::swift (
         $http_check,
         'httplog',
         'httpclose',
+        'http-buffer-request',
         'tcp-smart-accept',
         'tcp-smart-connect',
       ],
+      'timeout'      => 'http-request 10s',
       'http-request' => 'set-header X-Forwarded-Proto https if { ssl_fc }',
     },
     balancermember_options => $balancermember_options,
   }
 
   openstack::ha::haproxy_service { 'object-storage':
-    order                  => '130',
-    public                 => true,
-    public_ssl             => $public_ssl,
-    public_ssl_path        => $public_ssl_path,
-    internal_ssl           => $internal_ssl,
-    internal_ssl_path      => $internal_ssl_path,
+    order             => '130',
+    public            => true,
+    public_ssl        => $public_ssl,
+    public_ssl_path   => $public_ssl_path,
+    internal_ssl      => $internal_ssl,
+    internal_ssl_path => $internal_ssl_path,
   }
 
   if $baremetal_virtual_ip {
     openstack::ha::haproxy_service { 'object-storage-baremetal':
-      order                  => '135',
-      public_virtual_ip      => false,
-      internal_virtual_ip    => $baremetal_virtual_ip,
+      order               => '135',
+      public_virtual_ip   => false,
+      internal_virtual_ip => $baremetal_virtual_ip,
     }
   }
 }

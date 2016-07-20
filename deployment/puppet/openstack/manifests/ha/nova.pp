@@ -66,9 +66,9 @@ class openstack::ha::nova (
     internal_ssl_path      => $internal_ssl_path,
     require_service        => 'nova-api',
     haproxy_config_options => {
-      option           => ['httpchk', 'httplog', 'httpclose'],
-      'timeout server' => '600s',
-      'http-request'   => 'set-header X-Forwarded-Proto https if { ssl_fc }',
+      'option'       => ['httpchk', 'httplog', 'httpclose', 'http-buffer-request'],
+      'timeout'      => ['server 600s', 'http-request 10s'],
+      'http-request' => 'set-header X-Forwarded-Proto https if { ssl_fc }',
     },
     balancermember_options => 'check inter 10s fastinter 2s downinter 3s rise 3 fall 3',
   }
@@ -80,20 +80,23 @@ class openstack::ha::nova (
     internal_ssl_path      => $internal_ssl_path,
     require_service        => 'nova-api',
     haproxy_config_options => {
-      option => ['httpchk', 'httplog', 'httpclose'],
+      'option'  => ['httpchk', 'httplog', 'httpclose', 'http-buffer-request'],
+      'timeout' => 'http-request 10s',
     },
     balancermember_options => 'check inter 10s fastinter 2s downinter 3s rise 3 fall 3',
   }
 
   openstack::ha::haproxy_service { 'nova-novncproxy':
-    order           => '170',
-    listen_port     => 6080,
-    public          => true,
-    public_ssl      => $public_ssl,
-    public_ssl_path => $public_ssl_path,
-    internal        => false,
-    require_service => 'nova-vncproxy',
+    order                  => '170',
+    listen_port            => 6080,
+    public                 => true,
+    public_ssl             => $public_ssl,
+    public_ssl_path        => $public_ssl_path,
+    internal               => false,
+    require_service        => 'nova-vncproxy',
     haproxy_config_options => {
+      'option'       => 'http-buffer-request',
+      'timeout'      => 'http-request 10s',
       'http-request' => 'set-header X-Forwarded-Proto https if { ssl_fc }',
     },
   }

@@ -53,8 +53,7 @@ class cluster::haproxy (
   $spread_checks        = '3',
   $user_defined_options = {},
   $ssl_default_ciphers  = 'HIGH:!aNULL:!MD5:!kEDH',
-  #TODO(mmalchuk) use this after upgrade HAProxy to at least v1.5.7
-  #$ssl_default_options = 'no-sslv3 no-tls-tickets',
+  $ssl_default_options = 'no-sslv3 no-tls-tickets',
 ) {
   include ::concat::setup
   include ::haproxy::params
@@ -80,9 +79,8 @@ class cluster::haproxy (
     'tune.maxrewrite'            => $haproxy_maxrewrite,
     'ssl-default-bind-ciphers'   => $ssl_default_ciphers,
     'ssl-default-server-ciphers' => $ssl_default_ciphers,
-    #TODO(mmalchuk) use this after upgrade HAProxy to at least v1.5.7
-    #'ssl-default-bind-options'   => $ssl_default_options,
-    #'ssl-default-server-options' => $ssl_default_options,
+    'ssl-default-bind-options'   => $ssl_default_options,
+    'ssl-default-server-options' => $ssl_default_options,
   }
 
   $defaults_options = {

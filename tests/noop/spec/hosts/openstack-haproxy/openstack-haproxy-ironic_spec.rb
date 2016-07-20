@@ -38,7 +38,8 @@ if ironic_enabled
             'public'                 => true,
             'public_ssl'             => public_ssl_ironic,
             'haproxy_config_options' => {
-              'option'       => ['httpchk GET /', 'httplog', 'httpclose'],
+              'option'       => ['httpchk GET /', 'httplog', 'httpclose', 'http-buffer-request'],
+              'timeout'      => 'http-request 10s',
               'http-request' => 'set-header X-Forwarded-Proto https if { ssl_fc }',
             },
 
@@ -53,7 +54,8 @@ if ironic_enabled
             'public_virtual_ip'      => false,
             'internal_virtual_ip'    => baremetal_virtual_ip,
             'haproxy_config_options' => {
-              'option'       => ['httpchk GET /', 'httplog', 'httpclose'],
+              'option'       => ['httpchk GET /', 'httplog', 'httpclose', 'http-buffer-request'],
+              'timeout'      => 'http-request 10s',
               'http-request' => 'set-header X-Forwarded-Proto https if { ssl_fc }',
             },
 
