@@ -26,7 +26,8 @@ describe manifest do
 
     let(:config_options) do
       options = {
-        'option' => ['httpchk GET /v3', 'httplog', 'httpclose', 'forwardfor'],
+        'option' => ['httpchk GET /v3', 'httplog', 'httpclose', 'http-buffer-request', 'forwardfor'],
+        'timeout' => 'http-request 10s',
         'http-request' => 'set-header X-Forwarded-Proto https if { ssl_fc }',
       }
       session_options = {
@@ -56,7 +57,6 @@ describe manifest do
         )
       end
       it "should properly configure keystone haproxy admin without public" do
-        public_ssl_keystone = Noop.hiera_structure('public_ssl/services', false)
         should contain_openstack__ha__haproxy_service('keystone-2').with(
           'order'                  => '030',
           'ipaddresses'            => ipaddresses,
