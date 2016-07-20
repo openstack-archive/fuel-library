@@ -215,5 +215,8 @@ class cluster::rabbitmq_ocf (
     parameters          => $parameters,
     #    ocf_script_file     => $ocf_script_file,
   }
-  Service[$service_name] -> Rabbitmq_user <||>
+
+  ensure_resource('service_status', ['rabbitmq'], { 'ensure' => 'online', check_cmd => 'rabbitmqctl cluster_status'})
+
+  Service[$service_name] -> Service_status['rabbitmq'] -> Rabbitmq_user <||>
 }
