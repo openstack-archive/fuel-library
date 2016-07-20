@@ -123,10 +123,10 @@ describe manifest do
   end
 
   it 'should contain oslo_messaging_notifications "driver" option' do
-    if ceilometer_hash['enabled']
+    if ceilometer_hash['notification_driver']
       should contain_cinder_config('oslo_messaging_notifications/driver').with(:value => ceilometer_hash['notification_driver'])
     else
-      should_not contain_cinder_config('oslo_messaging_notifications/driver')
+      should contain_cinder_config('oslo_messaging_notifications/driver').with(:value => 'messagingv2')
     end
   end
 
