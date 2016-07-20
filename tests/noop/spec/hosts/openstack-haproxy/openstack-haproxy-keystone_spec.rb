@@ -21,7 +21,6 @@ describe manifest do
         )
       end
       it "should properly configure keystone haproxy admin without public" do
-        public_ssl_keystone = Noop.hiera_structure('public_ssl/services', false)
         should contain_openstack__ha__haproxy_service('keystone-2').with(
           'order'                  => '030',
           'listen_port'            => 35357,

@@ -22,6 +22,8 @@ require 'spec_helper'
         'public_ssl_path'        => '/var/lib/fuel/haproxy/public_sahara.pem',
         'require_service'        => 'sahara-api',
         'haproxy_config_options' => {
+          'option'       => 'http-buffer-request',
+          'timeout'      => 'http-request 10s',
           'http-request' => 'set-header X-Forwarded-Proto https if { ssl_fc }',
         },
       )

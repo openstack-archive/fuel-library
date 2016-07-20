@@ -71,6 +71,8 @@ class openstack::ha::murano (
     internal_ssl_path      => $internal_ssl_path,
     require_service        => 'murano_api',
     haproxy_config_options => {
+      'option'       => 'http-buffer-request',
+      'timeout'      => 'http-request 10s',
       'http-request' => 'set-header X-Forwarded-Proto https if { ssl_fc }',
     },
   }
@@ -85,6 +87,8 @@ class openstack::ha::murano (
       internal_ssl_path      => $internal_ssl_path,
       require_service        => 'murano_cfapi',
       haproxy_config_options => {
+        'option'       => 'http-buffer-request',
+        'timeout'      => 'http-request 10s',
         'http-request' => 'set-header X-Forwarded-Proto https if { ssl_fc }',
       },
     }
