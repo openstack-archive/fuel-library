@@ -383,7 +383,7 @@ describe manifest do
     it 'should use "override_resources" to update the catalog' do
       ral_catalog = Noop.create_ral_catalog self
       nova_config_override_resources.each do |title, params|
-        params['value'] = 'True' if params['value'].is_a? TrueClass
+        params['value'] = ['True'] if params['value'].is_a? TrueClass
         expect(ral_catalog).to contain_nova_config(title).with(params)
       end
     end
@@ -395,7 +395,7 @@ describe manifest do
     it 'should use override_resources to update nova_paste_api_ini' do
       ral_catalog = Noop.create_ral_catalog self
       nova_paste_api_ini_override_resources.each do |title, params|
-       params['value'] = 'True' if params['value'].is_a? TrueClass
+       params['value'] = ['True'] if params['value'].is_a? TrueClass
        expect(ral_catalog).to contain_nova_paste_api_ini(title).with(params)
       end
     end
