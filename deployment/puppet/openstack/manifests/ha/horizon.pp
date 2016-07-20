@@ -55,6 +55,8 @@ class openstack::ha::horizon (
       server_names           => undef,
       ipaddresses            => undef,
       haproxy_config_options => {
+        'option'   => 'http-buffer-request',
+        'timeout'  => 'http-request 10s',
         'redirect' => 'scheme https if !{ ssl_fc }'
       },
     }
@@ -66,11 +68,11 @@ class openstack::ha::horizon (
       public_ssl             => $use_ssl,
       public_ssl_path        => $public_ssl_path,
       haproxy_config_options => {
-        'option'      => ['forwardfor', 'httpchk', 'httpclose', 'httplog'],
+        'option'      => ['forwardfor', 'httpchk', 'httpclose', 'httplog', 'http-buffer-request'],
+        'timeout'     => ['client 3h', 'server 3h', 'http-request 10s'],
         'stick-table' => 'type ip size 200k expire 30m',
         'stick'       => 'on src',
         'balance'     => 'source',
-        'timeout'     => ['client 3h', 'server 3h'],
         'mode'        => 'http',
         'reqadd'      => 'X-Forwarded-Proto:\ https',
       },
@@ -83,13 +85,13 @@ class openstack::ha::horizon (
       listen_port            => 80,
       define_cookies         => true,
       haproxy_config_options => {
-        'option'  => ['forwardfor', 'httpchk', 'httpclose', 'httplog'],
+        'option'  => ['forwardfor', 'httpchk', 'httpclose', 'httplog', 'http-buffer-request'],
+        'timeout' => ['client 3h', 'server 3h', 'http-request 10s'],
         'rspidel' => '^Set-cookie:\ IP=',
         'balance' => 'source',
         'mode'    => 'http',
         'cookie'  => 'SERVERID insert indirect nocache',
         'capture' => 'cookie vgnvisitor= len 32',
-        'timeout' => ['client 3h', 'server 3h'],
       },
       balancermember_options => 'check inter 2000 fall 3',
     }

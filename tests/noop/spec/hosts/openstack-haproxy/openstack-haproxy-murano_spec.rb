@@ -17,6 +17,8 @@ describe manifest do
           'public_ssl'             => public_ssl_murano,
           'require_service'        => 'murano_api',
           'haproxy_config_options' => {
+            'option'       => 'http-buffer-request',
+            'timeout'      => 'http-request 10s',
             'http-request' => 'set-header X-Forwarded-Proto https if { ssl_fc }',
           },
         )
@@ -32,6 +34,8 @@ describe manifest do
             'public_ssl'             => public_ssl_murano,
             'require_service'        => 'murano_cfapi',
             'haproxy_config_options' => {
+              'option'       => 'http-buffer-request',
+              'timeout'      => 'http-request 10s',
               'http-request' => 'set-header X-Forwarded-Proto https if { ssl_fc }',
             },
           )
@@ -39,7 +43,6 @@ describe manifest do
       end
 
       it "should properly configure murano rabbitmq haproxy" do
-        public_ssl_murano = Noop.hiera_structure('public_ssl/services', false)
         should contain_openstack__ha__haproxy_service('murano_rabbitmq').with(
           'order'                  => '191',
           'listen_port'            => 55572,
