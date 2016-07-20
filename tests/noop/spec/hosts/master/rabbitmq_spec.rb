@@ -22,7 +22,7 @@ describe manifest do
           :env_config => {
               'RABBITMQ_SERVER_ERL_ARGS' => "+K true +P 1048576",
               'ERL_EPMD_ADDRESS' => fuel_settings['ADMIN_NETWORK']['ipaddress'],
-              'NODENAME' => "rabbit@#{facts[:hostname]}",
+              'NODENAME' => "rabbit@#{fuel_settings['HOSTNAME']}",
           },
       }
       is_expected.to contain_class('fuel::rabbitmq').with parameters
