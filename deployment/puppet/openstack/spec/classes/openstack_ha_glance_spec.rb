@@ -22,9 +22,9 @@ require 'spec_helper'
         'public_ssl_path'        => '/var/lib/fuel/haproxy/public_glance.pem',
         'require_service'        => 'glance-api',
         'haproxy_config_options' => {
-          'option'       => ['httpchk GET /healthcheck', 'httplog','httpclose'],
+          'option'       => ['httpchk GET /healthcheck', 'httplog', 'httpclose', 'http-buffer-request'],
+          'timeout'      => ['server 11m', 'http-request 10s'],
           'http-request' => 'set-header X-Forwarded-Proto https if { ssl_fc }',
-          'timeout server' => '11m',
         },
         'balancermember_options' => 'check inter 10s fastinter 2s downinter 3s rise 3 fall 3',
       )
@@ -38,9 +38,9 @@ require 'spec_helper'
         'public_ssl_path'        => '/var/lib/fuel/haproxy/public_glance.pem',
         'require_service'        => 'glance-glare',
         'haproxy_config_options' => {
-          'option'       => ['httpchk /versions', 'httplog','httpclose'],
+          'option'       => ['httpchk /versions', 'httplog', 'httpclose', 'http-buffer-request'],
+          'timeout'      => ['server 11m', 'http-request 10s'],
           'http-request' => 'set-header X-Forwarded-Proto https if { ssl_fc }',
-          'timeout server' => '11m',
         },
         'balancermember_options' => 'check inter 10s fastinter 2s downinter 3s rise 3 fall 3',
       )
@@ -50,7 +50,7 @@ require 'spec_helper'
         'order'                  => '090',
         'listen_port'            => 9191,
         'haproxy_config_options' => {
-          'timeout server' => '11m',
+          'timeout' => 'server 11m',
         },
       )
     end
