@@ -1,5 +1,6 @@
 notice('MODULAR: openstack-cinder.pp')
 
+
 #Network stuff
 prepare_network_config(hiera('network_scheme', {}))
 $cinder_hash           = hiera_hash('cinder_hash', {})
