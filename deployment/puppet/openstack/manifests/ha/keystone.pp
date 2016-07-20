@@ -67,7 +67,8 @@ class openstack::ha::keystone (
 ) {
 
   $base_options = {
-    'option'       => ['httpchk GET /v3', 'httplog', 'httpclose', 'forwardfor'],
+    'option'       => ['httpchk GET /v3', 'httplog', 'httpclose', 'http-buffer-request', 'forwardfor'],
+    'timeout'      => 'http-request 10s',
     'http-request' => 'set-header X-Forwarded-Proto https if { ssl_fc }',
   }
 
