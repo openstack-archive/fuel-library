@@ -67,9 +67,9 @@ class openstack::ha::glance (
     internal_ssl_path      => $internal_ssl_path,
     require_service        => 'glance-api',
     haproxy_config_options => {
-        'option'         => ['httpchk GET /healthcheck', 'httplog', 'httpclose'],
-        'http-request'   => 'set-header X-Forwarded-Proto https if { ssl_fc }',
-        'timeout server' => '11m',
+      'option'       => ['httpchk GET /healthcheck', 'httplog', 'httpclose', 'http-buffer-request'],
+      'timeout'      => ['server 11m', 'http-request 10s'],
+      'http-request' => 'set-header X-Forwarded-Proto https if { ssl_fc }',
     },
     balancermember_options => 'check inter 10s fastinter 2s downinter 3s rise 3 fall 3',
   }
@@ -85,10 +85,10 @@ class openstack::ha::glance (
     internal_ssl_path      => $internal_ssl_path,
     require_service        => 'glance-glare',
     haproxy_config_options => {
-        # TODO degorenko: check for ability for 'httpchk GET /healthcheck' for Glare
-        'option'         => ['httpchk /versions', 'httplog', 'httpclose'],
-        'http-request'   => 'set-header X-Forwarded-Proto https if { ssl_fc }',
-        'timeout server' => '11m',
+      # TODO degorenko: check for ability for 'httpchk GET /healthcheck' for Glare
+      'option'       => ['httpchk /versions', 'httplog', 'httpclose', 'http-buffer-request'],
+      'timeout'      => ['server 11m', 'http-request 10s'],
+      'http-request' => 'set-header X-Forwarded-Proto https if { ssl_fc }',
     },
     balancermember_options => 'check inter 10s fastinter 2s downinter 3s rise 3 fall 3',
   }
@@ -98,7 +98,7 @@ class openstack::ha::glance (
     order                  => '090',
     listen_port            => 9191,
     haproxy_config_options => {
-      'timeout server' => '11m',
+      'timeout' => 'server 11m',
     },
   }
 }
