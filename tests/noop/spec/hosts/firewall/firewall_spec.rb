@@ -61,6 +61,14 @@ describe manifest do
 
     ssh_hash = Noop.hiera_hash 'ssh', {}
 
+    let(:ssh_brute_force) do
+      if ssh_hash['brute_force_protection']
+        'present'
+      else
+        'absent'
+      end
+    end
+
     it 'should accept connections to the SSH service only from specified networks' do
 
       if ssh_hash['security_enabled']
@@ -75,6 +83,12 @@ describe manifest do
         'action'      => 'accept',
         'source_nets' => ssh_networks,
       )
+
+      should contain_firewall('021 ssh: new pipe for a sessions').with_ensure(ssh_brute_force)
+      should contain_firewall('022 ssh: more than allowed attempts logged').with_ensure(ssh_brute_force)
+      should contain_firewall('023 ssh: block more than allowed attempts').with_ensure(ssh_brute_force)
+      should contain_firewall('024 ssh: accept allowed new session').with_ensure(ssh_brute_force)
+
     end
 
     if Noop.puppet_function 'member', roles, 'primary-controller' or Noop.puppet_function 'member', roles, 'controller'
