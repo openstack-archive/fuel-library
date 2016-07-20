@@ -71,8 +71,9 @@ class openstack::ha::aodh (
     internal_ssl_path      => $internal_ssl_path,
     require_service        => 'aodh-api',
     haproxy_config_options => {
-        'option'       => ['httplog', 'forceclose'],
-        'http-request' => 'set-header X-Forwarded-Proto https if { ssl_fc }',
+      'option'       => ['httplog', 'forceclose', 'http-buffer-request'],
+      'timeout'      => 'http-request 10s',
+      'http-request' => 'set-header X-Forwarded-Proto https if { ssl_fc }',
     },
   }
 }

@@ -66,8 +66,9 @@ class openstack::ha::neutron (
     internal_ssl_path      => $internal_ssl_path,
     define_backups         => false,
     haproxy_config_options => {
-        option         => ['httpchk', 'httplog', 'httpclose'],
-        'http-request' => 'set-header X-Forwarded-Proto https if { ssl_fc }',
+      'option'       => ['httpchk', 'httplog', 'httpclose', 'http-buffer-request'],
+      'timeout'      => 'http-request 10s',
+      'http-request' => 'set-header X-Forwarded-Proto https if { ssl_fc }',
     },
     balancermember_options => 'check inter 10s fastinter 2s downinter 3s rise 3 fall 3',
   }

@@ -57,16 +57,18 @@ class openstack::ha::sahara (
   }
 
   openstack::ha::haproxy_service { 'sahara':
-    order           => '150',
-    listen_port     => 8386,
-    public          => true,
-    public_ssl      => $public_ssl,
-    public_ssl_path   => $public_ssl_path,
-    internal_ssl      => $internal_ssl,
-    internal_ssl_path => $internal_ssl_path,
-    require_service => 'sahara-api',
+    order                  => '150',
+    listen_port            => 8386,
+    public                 => true,
+    public_ssl             => $public_ssl,
+    public_ssl_path        => $public_ssl_path,
+    internal_ssl           => $internal_ssl,
+    internal_ssl_path      => $internal_ssl_path,
+    require_service        => 'sahara-api',
     haproxy_config_options => {
-        'http-request' => 'set-header X-Forwarded-Proto https if { ssl_fc }',
+      'option'       => 'http-buffer-request',
+      'timeout'      => 'http-request 10s',
+      'http-request' => 'set-header X-Forwarded-Proto https if { ssl_fc }',
     },
   }
 }
