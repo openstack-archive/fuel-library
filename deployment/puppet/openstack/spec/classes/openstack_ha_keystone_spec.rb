@@ -27,7 +27,8 @@ describe 'openstack::ha::keystone' do
         'public_ssl'             => true,
         'public_ssl_path'        => '/var/lib/fuel/haproxy/public_keystone.pem',
         'haproxy_config_options' => {
-          'option'       => ['httpchk GET /v3', 'httplog','httpclose', 'forwardfor'],
+          'option'       => ['httpchk GET /v3', 'httplog', 'httpclose', 'http-buffer-request', 'forwardfor'],
+          'timeout'      => 'http-request 10s',
           'http-request' => 'set-header X-Forwarded-Proto https if { ssl_fc }',
         },
         'balancermember_options' => 'check inter 10s fastinter 2s downinter 2s rise 30 fall 3',
@@ -40,7 +41,8 @@ describe 'openstack::ha::keystone' do
         'listen_port'            => 35357,
         'public'                 => false,
         'haproxy_config_options' => {
-          'option'       => ['httpchk GET /v3', 'httplog','httpclose', 'forwardfor'],
+          'option'       => ['httpchk GET /v3', 'httplog', 'httpclose', 'http-buffer-request', 'forwardfor'],
+          'timeout'      => 'http-request 10s',
           'http-request' => 'set-header X-Forwarded-Proto https if { ssl_fc }',
         },
         'balancermember_options' => 'check inter 10s fastinter 2s downinter 2s rise 30 fall 3',
@@ -68,10 +70,11 @@ describe 'openstack::ha::keystone' do
         'public_ssl'             => true,
         'public_ssl_path'        => '/var/lib/fuel/haproxy/public_keystone.pem',
         'haproxy_config_options' => {
-          'option'       => ['httpchk GET /v3', 'httplog','httpclose', 'forwardfor'],
+          'option'       => ['httpchk GET /v3', 'httplog', 'httpclose', 'http-buffer-request', 'forwardfor'],
+          'timeout'      => 'http-request 10s',
+          'http-request' => 'set-header X-Forwarded-Proto https if { ssl_fc }',
           'stick'        => ['on src'],
           'stick-table'  => ['type ip size 200k expire 2m'],
-          'http-request' => 'set-header X-Forwarded-Proto https if { ssl_fc }',
         },
         'balancermember_options' => 'check inter 10s fastinter 2s downinter 2s rise 30 fall 3',
       )
@@ -83,10 +86,11 @@ describe 'openstack::ha::keystone' do
         'listen_port'            => 35357,
         'public'                 => false,
         'haproxy_config_options' => {
-          'option'       => ['httpchk GET /v3', 'httplog','httpclose', 'forwardfor'],
+          'option'       => ['httpchk GET /v3', 'httplog', 'httpclose', 'http-buffer-request', 'forwardfor'],
+          'timeout'      => 'http-request 10s',
+          'http-request' => 'set-header X-Forwarded-Proto https if { ssl_fc }',
           'stick'        => ['on src'],
           'stick-table'  => ['type ip size 200k expire 2m'],
-          'http-request' => 'set-header X-Forwarded-Proto https if { ssl_fc }',
         },
         'balancermember_options' => 'check inter 10s fastinter 2s downinter 2s rise 30 fall 3',
       )
