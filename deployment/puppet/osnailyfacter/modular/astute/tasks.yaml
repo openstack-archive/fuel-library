@@ -173,14 +173,6 @@
         role: master
   parameters:
     files:
-      - src: /var/lib/fuel/keys/{CLUSTER_ID}/neutron/neutron.pub
-        dst: /var/lib/astute/neutron/neutron.pub
-      - src: /var/lib/fuel/keys/{CLUSTER_ID}/neutron/neutron
-        dst: /var/lib/astute/neutron/neutron
-      - src: /var/lib/fuel/keys/{CLUSTER_ID}/nova/nova.pub
-        dst: /var/lib/astute/nova/nova.pub
-      - src: /var/lib/fuel/keys/{CLUSTER_ID}/nova/nova
-        dst: /var/lib/astute/nova/nova
       - src: /var/lib/fuel/keys/{CLUSTER_ID}/mysql/mysql.pub
         dst: /var/lib/astute/mysql/mysql.pub
       - src: /var/lib/fuel/keys/{CLUSTER_ID}/mysql/mysql
@@ -201,7 +193,7 @@
   requires: [pre_deployment_start]
   required_for: [copy_keys]
   parameters:
-    cmd: sh /etc/puppet/modules/osnailyfacter/modular/astute/generate_keys.sh -p /var/lib/fuel/keys/ -i {CLUSTER_ID} -o 'mongodb' -s 'neutron nova mysql' -f '0 1'
+    cmd: sh /etc/puppet/modules/osnailyfacter/modular/astute/generate_keys.sh -p /var/lib/fuel/keys/ -i {CLUSTER_ID} -o 'mongodb' -s 'mysql' -f '0 1'
     timeout: 180
 
 - id: generate_haproxy_keys

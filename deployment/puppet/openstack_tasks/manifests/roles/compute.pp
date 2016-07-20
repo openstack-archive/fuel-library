@@ -520,27 +520,6 @@ class openstack_tasks::roles::compute {
 
   ensure_packages([$scp_package, $multipath_tools_package])
 
-  $ssh_private_key   = '/var/lib/astute/nova/nova'
-  $ssh_public_key    = '/var/lib/astute/nova/nova.pub'
-
-  # Install ssh keys and config file
-  install_ssh_keys {'nova_ssh_key_for_migration':
-    ensure           => present,
-    user             => 'nova',
-    private_key_path => $ssh_private_key,
-    public_key_path  => $ssh_public_key,
-    private_key_name => 'id_rsa',
-    public_key_name  => 'id_rsa.pub',
-    authorized_keys  => 'authorized_keys',
-  } ->
-  file { '/var/lib/nova/.ssh/config':
-    ensure  => present,
-    owner   => 'nova',
-    group   => 'nova',
-    mode    => '0600',
-    content => "Host *\n  StrictHostKeyChecking no\n  UserKnownHostsFile=/dev/null\n",
-  }
-
   # TODO (iberezovskiy): remove this workaround in N when nova module
   # will be switched to puppet-oslo usage for rabbit configuration
   if $kombu_compression in ['gzip','bz2'] {
