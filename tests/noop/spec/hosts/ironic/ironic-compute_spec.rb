@@ -34,8 +34,6 @@ describe manifest do
       nova_notification_driver = []
     end
 
-    let(:memcached_servers) { Noop.hiera 'memcached_servers' }
-
     let(:ssl_hash) { Noop.hiera_hash 'use_ssl', {} }
     let(:admin_auth_protocol) { Noop.puppet_function 'get_ssl_property',ssl_hash,{},'keystone', 'admin','protocol','http' }
     let(:admin_auth_address) { Noop.puppet_function 'get_ssl_property',ssl_hash,{},'keystone','admin', 'hostname', [Noop.hiera('service_endpoint', Noop.hiera('management_vip'))]}
@@ -61,12 +59,6 @@ describe manifest do
 
       it 'nova config should have reserved_host_memory_mb set to 0' do
         should contain_nova_config('DEFAULT/reserved_host_memory_mb').with(:value => '0')
-      end
-
-      it 'nova config should contain right memcached servers list' do
-        should contain_nova_config('keystone_authtoken/memcached_servers').with(
-          'value' => memcached_servers.join(','),
-        )
       end
 
       it 'nova-compute.conf should have host set to "ironic-compute"' do
