@@ -23,7 +23,8 @@ require 'spec_helper'
 
     let :haproxy_config_opts do
       {
-        'option'       => ['httplog', 'httpchk HEAD /', 'http-server-close', 'forwardfor'],
+        'option'       => ['httplog', 'httpchk HEAD /', 'http-server-close', 'forwardfor', 'http-buffer-request'],
+        'timeout'      => 'http-request 10s',
         'http-request' => 'set-header X-Forwarded-Proto https if { ssl_fc }',
       }
     end

@@ -13,7 +13,8 @@ require 'spec_helper'
 
     let(:haproxy_config_opts) do
       {
-        'option'       => [@http_check, 'httplog', 'httpclose', 'tcp-smart-accept', 'tcp-smart-connect'],
+        'option'       => [@http_check, 'httplog', 'httpclose', 'http-buffer-request', 'tcp-smart-accept', 'tcp-smart-connect'],
+        'timeout'      => 'http-request 10s',
         'http-request' => 'set-header X-Forwarded-Proto https if { ssl_fc }',
       }
     end

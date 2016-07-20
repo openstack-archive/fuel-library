@@ -15,19 +15,21 @@ describe manifest do
           'public'                 => true,
           'public_ssl'             => public_ssl_keystone,
           'haproxy_config_options' => {
-            'option'       => ['httpchk GET /v3', 'httplog', 'httpclose', 'forwardfor'],
+            'option'       => ['httpchk GET /v3', 'httplog', 'httpclose', 'http-buffer-request', 'forwardfor'],
+            'timeout'      => 'http-request 10s',
             'http-request' => 'set-header X-Forwarded-Proto https if { ssl_fc }',
+
           },
         )
       end
       it "should properly configure keystone haproxy admin without public" do
-        public_ssl_keystone = Noop.hiera_structure('public_ssl/services', false)
         should contain_openstack__ha__haproxy_service('keystone-2').with(
           'order'                  => '030',
           'listen_port'            => 35357,
           'public'                 => false,
           'haproxy_config_options' => {
-            'option'       => ['httpchk GET /v3', 'httplog', 'httpclose', 'forwardfor'],
+            'option'       => ['httpchk GET /v3', 'httplog', 'httpclose', 'http-buffer-request', 'forwardfor'],
+            'timeout'      => 'http-request 10s',
             'http-request' => 'set-header X-Forwarded-Proto https if { ssl_fc }',
           },
         )
