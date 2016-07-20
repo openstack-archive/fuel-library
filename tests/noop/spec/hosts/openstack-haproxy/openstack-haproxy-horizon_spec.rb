@@ -13,6 +13,8 @@ describe manifest do
             'server_names'           => nil,
             'ipaddresses'            => nil,
             'haproxy_config_options' => {
+              'option'   => 'http-buffer-request',
+              'timeout'  => 'http-request 10s',
               'redirect' => 'scheme https if !{ ssl_fc }'
             }
           )
@@ -23,11 +25,11 @@ describe manifest do
             'balancermember_port'    => 80,
             'public_ssl'             => public_ssl_horizon,
             'haproxy_config_options' => {
-              'option'      => ['forwardfor', 'httpchk', 'httpclose', 'httplog'],
+              'option'      => ['forwardfor', 'httpchk', 'httpclose', 'httplog', 'http-buffer-request'],
+              'timeout'     => ['client 3h', 'server 3h', 'http-request 10s'],
               'stick-table' => 'type ip size 200k expire 30m',
               'stick'       => 'on src',
               'balance'     => 'source',
-              'timeout'     => ['client 3h', 'server 3h'],
               'mode'        => 'http',
               'reqadd'      => 'X-Forwarded-Proto:\ https',
             },
@@ -38,13 +40,13 @@ describe manifest do
           # http horizon only
           should contain_openstack__ha__haproxy_service('horizon').with(
             'haproxy_config_options' => {
-              'option'      => ['forwardfor', 'httpchk', 'httpclose', 'httplog'],
+              'option'  => [ 'forwardfor', 'httpchk', 'httpclose', 'httplog', 'http-buffer-request'],
+              'timeout' => ['client 3h', 'server 3h', 'http-request 10s'],
               'stick-table' => 'type ip size 200k expire 30m',
               'stick'       => 'on src',
-              'balance'     => 'source',
-              'timeout'     => ['client 3h', 'server 3h'],
-              'mode'        => 'http',
-              'reqadd'      => 'X-Forwarded-Proto:\ https',
+              'balance' => 'source',
+              'capture' => 'cookie vgnvisitor= len 32',
+              'mode'    => 'http',
             }
           )
           should contain_haproxy__balancermember('horizon')
