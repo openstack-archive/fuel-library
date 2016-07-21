@@ -103,6 +103,10 @@ class openstack_tasks::murano::murano {
     if $murano_plugins and $murano_plugins['glance_artifacts_plugin'] and $murano_plugins['glance_artifacts_plugin']['enabled'] and ($::os_package_type == 'debian') {
       $packages_service = 'glance'
       $enable_glare     = true
+
+      package {'murano-glance-artifacts-plugin':
+        ensure  => present,
+      }
     } else {
       $packages_service = 'murano'
       $enable_glare     = false

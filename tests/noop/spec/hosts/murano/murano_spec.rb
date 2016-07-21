@@ -148,6 +148,15 @@ describe manifest do
     kombu_compression = Noop.hiera 'kombu_compression', ''
 
     context 'if murano is enabled', :if => enable do
+
+      it 'should manage murano-glance-artifacts-plugin package' do
+        if enable_glare
+         should contain_package('murano-glance-artifacts-plugin').with(:ensure  => 'present')
+        else
+         should_not contain_package('murano-glance-artifacts-plugin')
+        end
+      end
+
       it 'should declare murano class correctly' do
         should contain_class('murano').with(
                    'verbose'             => verbose,
