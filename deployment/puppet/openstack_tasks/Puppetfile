@@ -24,7 +24,7 @@
 # Pull in puppet-aodh
 mod 'aodh',
     :git => 'https://github.com/fuel-infra/puppet-aodh.git',
-    :ref => '8.1.0'
+    :ref => '563010f1912dd6850a48153c9d0da9fb92c0e6a2'
 
 # Pull in puppet-ceilometer
 mod 'ceilometer',
@@ -34,7 +34,7 @@ mod 'ceilometer',
 # Pull in openstack-cinder
 mod 'cinder',
     :git => 'https://github.com/fuel-infra/openstack-cinder.git',
-    :ref => '111d063d1f16a07842c34c9a127373f20db5082a'
+    :ref => 'fa017f57f814d1fec6daee71f4e3257fb6c471de'
 
 # Pull in puppet-glance
 mod 'glance',
@@ -44,47 +44,47 @@ mod 'glance',
 # Pull in puppet-heat
 mod 'heat',
     :git => 'https://github.com/fuel-infra/puppet-heat.git',
-    :ref => '8.1.0'
+    :ref => 'a6ce6ef92f755ffea3e68a3c2f5c355a4bc3654c'
 
 # Pull in puppet-horizon
 mod 'horizon',
     :git => 'https://github.com/fuel-infra/puppet-horizon.git',
-    :ref => '8.1.0'
+    :ref => '77cfadf139b946dacf3b7eb245cd2c0eed878b35'
 
 # Pull in puppet-ironic
 mod 'ironic',
     :git => 'https://github.com/fuel-infra/puppet-ironic.git',
-    :ref => '8.1.0'
+    :ref => 'd244370d37255eb9400e718f42c8783bfbc339ab'
 
 # Pull in puppet-keystone
 mod 'keystone',
     :git => 'https://github.com/fuel-infra/puppet-keystone.git',
-    :ref => '108d4655f944b0cfdd990677df3cd02ceb9a42bf'
+    :ref => 'd76dbaa6e6b521d7e2567745d7c571f23cad2b71'
 
 # Pull in puppet-openstacklib
 mod 'openstacklib',
     :git => 'https://github.com/fuel-infra/puppet-openstacklib.git',
-    :ref => '8.1.0'
+    :ref => 'aafb9b05dac6aedf69f1317acf50d4ec851bbbd6'
 
 # Pull in puppet-neutron
 mod 'neutron',
     :git => 'https://github.com/fuel-infra/puppet-neutron.git',
-    :ref => 'bff312e029f677935ac99f7454b507ede31a26b9'
+    :ref => '879e8d698e07dca23b48b2ade6ffd910626de9ed'
 
 # Pull in puppet-nova
 mod 'nova',
     :git => 'https://github.com/fuel-infra/puppet-nova.git',
-    :ref => '4b53a7c7712695e8d009197a4cd336c55032ea69'
+    :ref => '1d236a87c38f1506182134d0d6726432c3d240d6'
 
 # Pull in puppet-murano
 mod 'murano',
     :git => 'https://github.com/fuel-infra/puppet-murano.git',
-    :ref => '8.1.0'
+    :ref => 'e8da90ba045310670d275e7d6b09461c91d8e201'
 
 # Pull in puppet-sahara
 mod 'sahara',
     :git => 'https://github.com/fuel-infra/puppet-sahara.git',
-    :ref => '8.1.0'
+    :ref => '5359ed0ddedba65c2edc1766904e81f079cc9d5a'
 
 # Pull in puppet-swift
 mod 'swift',
