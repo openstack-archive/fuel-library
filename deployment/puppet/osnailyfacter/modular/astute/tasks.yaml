@@ -48,6 +48,7 @@
   requires: [override_configuration]
   required_for: [pre_deployment_start]
   refresh_on: ['*']
+  permissions: '0640'
   parameters:
     path: /etc/fuel/cluster/{CLUSTER_ID}/astute.yaml
     timeout: 180
@@ -358,6 +359,7 @@
     yaql_exp: 'changed($.network_metadata)'
   requires: [upload_configuration]
   required_for: [pre_deployment_end]
+  permissions: '0640'
   parameters:
     path: /etc/fuel/cluster/{CLUSTER_ID}/deleted_nodes.yaml
     data:
@@ -378,5 +380,5 @@
     files:
       - src: /etc/fuel/cluster/{CLUSTER_ID}/deleted_nodes.yaml
         dst: /etc/hiera/deleted_nodes.yaml
-    permissions: '0600'
-    dir_permissions: '0700'
+    permissions: '0640'
+    dir_permissions: '0750'
