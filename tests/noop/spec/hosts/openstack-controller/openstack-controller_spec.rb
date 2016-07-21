@@ -75,14 +75,6 @@ describe manifest do
 
     let(:ceilometer_hash) { Noop.hiera_hash 'ceilometer', {} }
     storage_hash = Noop.hiera_structure 'storage'
-    sahara_hash  = Noop.hiera_structure 'sahara'
-    nova_internal_protocol = Noop.puppet_function 'get_ssl_property',
-      Noop.hiera_hash('use_ssl', {}), {}, 'nova', 'internal', 'protocol',
-      'http'
-    nova_endpoint = Noop.hiera('nova_endpoint', Noop.hiera('management_vip'))
-    nova_internal_endpoint = Noop.puppet_function 'get_ssl_property',
-      Noop.hiera_hash('use_ssl', {}), {}, 'nova', 'internal', 'hostname',
-      [nova_endpoint]
 
     let(:auto_assign_floating_ip) { Noop.hiera 'auto_assign_floating_ip', false }
     let(:amqp_hosts) { Noop.hiera 'amqp_hosts', '' }
@@ -385,20 +377,6 @@ describe manifest do
       end
     end
 
-    #PUP-2299
-    if primary_controller
-      it 'should retry unless when creating m1.micro flavor' do
-        should contain_exec('create-m1.micro-flavor').with(
-           'command' => 'bash -c "nova flavor-create --is-public true m1.micro auto 64 0 1"',
-           'unless'  => 'bash -c \'for tries in {1..10}; do
-                      nova flavor-list | grep m1.micro;
-                      status=("${PIPESTATUS[@]}");
-                      (( ! status[0] )) && exit "${status[1]}";
-                      sleep 2;
-                    done; exit 1\'',
-        )
-      end
-    end
 
     ironic_enabled = Noop.hiera_structure 'ironic/enabled'
     if ironic_enabled
@@ -465,37 +443,6 @@ describe manifest do
     end
 
     if primary_controller
-      it 'should have explicit ordering between LB classes and particular actions' do
-        expect(graph).to ensure_transitive_dependency("Class[nova::api]","Haproxy_backend_status[nova-api]")
-        expect(graph).to ensure_transitive_dependency("Haproxy_backend_status[nova-api]",
-                                                    "Exec[create-m1.micro-flavor]")
-        expect(graph).to ensure_transitive_dependency("Haproxy_backend_status[keystone-public]","Exec[create-m1.micro-flavor]")
-        expect(graph).to ensure_transitive_dependency("Haproxy_backend_status[keystone-admin]","Exec[create-m1.micro-flavor]")
-        franges = graph.vertices.find_all {|v| v.type == :nova_floating_range }
-        if !franges.to_a.empty?
-          franges.each do
-            |frange|
-            expect(graph).to ensure_transitive_dependency("Haproxy_backend_status[nova-api]",frange.ref)
-            expect(graph).to ensure_transitive_dependency("Haproxy_backend_status[keystone-public]",frange.ref)
-            expect(graph).to ensure_transitive_dependency("Haproxy_backend_status[keystone-admin]",frange.ref)
-          end
-        end
-      end
-
-      if Noop.hiera('external_lb', false)
-        url = "#{nova_internal_protocol}://#{nova_internal_endpoint}:8774"
-        provider = 'http'
-      else
-        url = 'http://' + Noop.hiera('management_vip').to_s + ':10000/;csv'
-        provider = Puppet::Type.type(:haproxy_backend_status).defaultprovider.name
-      end
-
-      it {
-        should contain_haproxy_backend_status('nova-api').with(
-          :url      => url,
-          :provider => provider
-        )
-      }
       it 'should declare class nova::api with sync_db and sync_db_api' do
         should contain_class('nova::api').with(
           'sync_db'     => true,

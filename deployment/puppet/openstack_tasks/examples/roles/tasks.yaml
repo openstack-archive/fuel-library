@@ -6,6 +6,8 @@
   condition:
     yaql_exp: >
       changedAny(('primary-controller' in $.roles), $.quantum)
+  cross-depends:
+    - name: /(primary-)?openstack-controller/
   parameters:
     puppet_manifest: /etc/puppet/modules/openstack_tasks/examples/roles/controller.pp
     puppet_modules: /etc/puppet/modules
