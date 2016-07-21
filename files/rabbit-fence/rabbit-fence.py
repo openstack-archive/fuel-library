@@ -49,7 +49,8 @@ def catchall_signal_lh(*args, **kwargs):
         node = args[0]
         this_node = socket.gethostname().split('.')[0]
         node_name = node.split('.')[0]
-        node_name_prefix = bash_command('hiera node_name_prefix_for_messaging')
+        cmd = 'cat /etc/node_name_prefix_for_messaging 2>/dev/null'
+        node_name_prefix = bash_command(cmd)
         if node_name_prefix == 'nil' or node_name_prefix in node_name:
             node_name_prefix = ''
         node_to_remove = 'rabbit@%s%s' % (node_name_prefix, node_name)
