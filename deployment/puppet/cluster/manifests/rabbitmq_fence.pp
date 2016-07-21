@@ -48,27 +48,38 @@ class cluster::rabbitmq_fence(
   package { $packages: } ->
 
   service { $dbus_service_name:
-    ensure     => running,
-    enable     => true,
+    ensure => running,
+    enable => true,
   } ->
 
   service { 'corosync-notifyd':
-    ensure     => running,
-    enable     => true,
+    ensure => running,
+    enable => true,
   } ->
 
   package { 'fuel-rabbit-fence': } ->
+
+  file { '/etc/rabbitmq/node_name_prefix_for_messaging':
+    ensure  => file,
+    mode    => '0644',
+    content => hiera('node_name_prefix_for_messaging', 'messaging-'),
+    notify  => Service['rabbit-fence'],
+    require => Package['fuel-rabbit-fence'],
+  } ->
+
   service { 'rabbit-fence':
+    ensure  => $enabled ? {
+      true  => running,
+      false => stopped },
     name    => $service_name,
     enable  => $enabled,
-    ensure  => $enabled ? { true => running, false => stopped },
     require => Package['rabbitmq-server'],
   }
 
   if $::osfamily == 'Debian' {
     Exec {
-      path    => [ '/bin', '/usr/bin' ],
-      before  => Service['corosync-notifyd'],
+      path   => [ '/bin', '/usr/bin' ],
+      before => Service['corosync-notifyd'],
     }
 
     exec { 'enable_corosync_notifyd':
