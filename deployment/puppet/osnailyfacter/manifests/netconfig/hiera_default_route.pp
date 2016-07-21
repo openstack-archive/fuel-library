@@ -34,6 +34,7 @@ class osnailyfacter::netconfig::hiera_default_route {
   if $loaded_network_scheme != $network_scheme {
     file {'/etc/hiera/override/configuration/default_route.yaml':
       ensure  => file,
+      mode    => '0640',
       content => inline_template('# Created by puppet, please do not edit
 network_scheme:
   endpoints:

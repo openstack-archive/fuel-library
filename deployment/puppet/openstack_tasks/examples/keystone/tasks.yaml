@@ -113,6 +113,7 @@
       changed($.access.user)
   requires: [upload_configuration]
   required_for: [pre_deployment_end]
+  permissions: '0640'
   parameters:
     path: /etc/fuel/cluster/{CLUSTER_ID}/old_admin_user.yaml
     data:
@@ -133,8 +134,8 @@
     files:
       - src: /etc/fuel/cluster/{CLUSTER_ID}/old_admin_user.yaml
         dst: /etc/hiera/old_admin_user.yaml
-    permissions: '0644'
-    dir_permissions: '0755'
+    permissions: '0640'
+    dir_permissions: '0750'
 
 - id: delete_old_admin_user
   version: 2.1.0

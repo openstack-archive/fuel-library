@@ -34,7 +34,7 @@ class osnailyfacter::hiera::hiera {
   File {
     owner => 'root',
     group => 'root',
-    mode  => '0644',
+    mode  => '0640',
   }
 
   hiera_config { $hiera_main_config :
@@ -49,6 +49,7 @@ class osnailyfacter::hiera::hiera {
 
   file { ['/etc/puppetlabs', '/etc/puppetlabs/code'] :
     ensure  => 'directory',
+    mode    => '0750',
     require => Hiera_config[$hiera_main_config],
   }
 
@@ -60,11 +61,13 @@ class osnailyfacter::hiera::hiera {
 
   file { 'hiera_data_dir' :
     ensure => 'directory',
+    mode   => '0750',
     path   => $data_dir,
   }
 
   file { 'hiera_data_override_dir' :
     ensure => 'directory',
+    mode   => '0750',
     path   => $override_dir_path,
   }
 
