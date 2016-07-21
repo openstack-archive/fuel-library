@@ -22,7 +22,8 @@ describe manifest do
       ['/etc/hiera/override', '/etc/hiera/override/configuration'].each do |f|
         should contain_file(f).with(
           'ensure' => 'directory',
-          'path'   => f
+          'path'   => f,
+          'mode'   => '0750',
         )
       end
     end
