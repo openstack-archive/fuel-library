@@ -36,7 +36,7 @@ describe manifest do
         'ensure' => 'absent',
       )}
     elsif in_group_with_vip
-      it { should contain_file('/etc/hiera/override/configuration/default_route.yaml').with_content(
+      it { should contain_file('/etc/hiera/override/configuration/default_route.yaml').with('mode'=>'0640').with_content(
         /gateway: "#{mgmt_vrouter_vip}"/
       )}
     else

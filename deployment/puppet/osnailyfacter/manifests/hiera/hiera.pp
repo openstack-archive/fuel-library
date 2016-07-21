@@ -33,7 +33,6 @@ class osnailyfacter::hiera::hiera {
   File {
     owner => 'root',
     group => 'root',
-    mode  => '0644',
   }
 
   hiera_config { $hiera_main_config :
@@ -47,17 +46,20 @@ class osnailyfacter::hiera::hiera {
 
   file { 'hiera_data_dir' :
     ensure => 'directory',
+    mode   => '0750',
     path   => $data_dir,
   }
 
   file { 'hiera_data_override_dir' :
     ensure => 'directory',
+    mode   => '0750',
     path   => $override_dir_path,
   }
 
   file { 'hiera_config' :
     ensure => 'present',
     path   => $hiera_main_config,
+    mode   => '0640',
   }
 
   file { 'hiera_data_astute' :

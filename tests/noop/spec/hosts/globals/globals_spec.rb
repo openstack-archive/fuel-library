@@ -18,7 +18,7 @@ manifest = 'globals/globals.pp'
 describe manifest do
 
   shared_examples 'catalog' do
-    it { is_expected.to contain_file '/etc/hiera/globals.yaml' }
+    it { is_expected.to contain_file('/etc/hiera/globals.yaml').with('mode' => '0640') }
 
     it 'should save the globals yaml file', :if => ENV['SPEC_UPDATE_GLOBALS'] do
       globals_yaml_content = Noop.resource_parameter_value self, 'file', '/etc/hiera/globals.yaml', 'content'
