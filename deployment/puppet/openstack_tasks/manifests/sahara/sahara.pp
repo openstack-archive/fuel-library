@@ -176,17 +176,16 @@ class openstack_tasks::sahara::sahara {
       lb_defaults => $lb_defaults
     }
 
-# TODO (degorenko) temporarily disable untill https://review.openstack.org/307796 merged
-#    if $primary_controller {
-#
-#      class { '::osnailyfacter::wait_for_keystone_backends':} ->
-#      class { '::openstack_tasks::sahara::create_templates' :
-#        floating_net => try_get_value($neutron_config, 'default_floating_net', 'admin_floating_net'),
-#      }
-#
-#      Class['::osnailyfacter::wait_for_keystone_backends'] -> ::Osnailyfacter::Wait_for_backend['sahara']
-#      ::Osnailyfacter::Wait_for_backend['sahara'] -> Class['::openstack_tasks::sahara::create_templates']
-#    }
+    if $primary_controller {
+
+      class { '::osnailyfacter::wait_for_keystone_backends':} ->
+      class { '::openstack_tasks::sahara::create_templates' :
+        floating_net => try_get_value($neutron_config, 'default_floating_net', 'admin_floating_net'),
+      }
+
+      Class['::osnailyfacter::wait_for_keystone_backends'] -> ::Osnailyfacter::Wait_for_backend['sahara']
+      ::Osnailyfacter::Wait_for_backend['sahara'] -> Class['::openstack_tasks::sahara::create_templates']
+    }
 
     Firewall[$firewall_rule] -> Class['::sahara::service::api']
     Service['sahara-api'] -> ::Osnailyfacter::Wait_for_backend['sahara']
