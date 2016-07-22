@@ -174,6 +174,7 @@ This package contains a set of helpers to maintain Fuel services
 /usr/bin/fuel-utils
 /usr/bin/flat_yaml.py
 /usr/share/fuel-utils/functions.sh
+/usr/share/fuel-utils/updates/update-master-node.sh
 
 %config(noreplace) /etc/fuel-utils/config
 
