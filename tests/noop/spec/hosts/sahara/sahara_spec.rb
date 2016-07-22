@@ -200,37 +200,6 @@ describe manifest do
         end
       end
 
-      enable = (Noop.hiera_structure('sahara/enabled') and Noop.hiera('role') == 'primary-controller')
-      context 'on primary-controller', :if => enable do
-        # TODO (degorenko) temporarily disable untill https://review.openstack.org/307796 merged
-        #it 'should declare sahara_templates class correctly' do
-        #  should contain_class('openstack_tasks::sahara::create_templates').with('floating_net' => floating_net)
-        #end
-
-        it 'should have explicit ordering between LB classes and particular actions' do
-          expect(graph).to ensure_transitive_dependency("Haproxy_backend_status[keystone-public]",
-                                                      "Haproxy_backend_status[sahara]")
-          expect(graph).to ensure_transitive_dependency("Haproxy_backend_status[keystone-admin]",
-                                                      "Haproxy_backend_status[sahara]")
-          expect(graph).to ensure_transitive_dependency("Haproxy_backend_status[sahara]",
-                                                      "Class[sahara_templates::create_templates]")
-        end
-      end
-
-      it {
-        if Noop.hiera('external_lb', false)
-          url = sahara_url
-          provider = 'http'
-        else
-          url = "http://#{Noop.hiera('management_vip')}:10000/;csv"
-          provider = Puppet::Type.type(:haproxy_backend_status).defaultprovider.name
-        end
-        should contain_haproxy_backend_status('sahara').with(
-          :url      => url,
-          :provider => provider
-        )
-      }
-
       it 'should configure kombu compression' do
         kombu_compression = Noop.hiera 'kombu_compression', facts[:os_service_default]
         should contain_sahara_config('oslo_messaging_rabbit/kombu_compression').with(:value => kombu_compression)
