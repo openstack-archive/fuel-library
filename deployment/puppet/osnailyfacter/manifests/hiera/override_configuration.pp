@@ -9,10 +9,10 @@ class osnailyfacter::hiera::override_configuration {
   File {
     owner  => 'root',
     group  => 'root',
-    mode   => '0644',
+    mode   => '0750',
     ensure => 'directory',
   }
 
-  file { [$hiera_override_dir, $hiera_override_config_dir]: }
+  file { [$hiera_data_dir, $hiera_override_dir, $hiera_override_config_dir]: }
 
 }

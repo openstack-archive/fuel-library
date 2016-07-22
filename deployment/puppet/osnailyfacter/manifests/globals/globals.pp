@@ -52,11 +52,11 @@ class osnailyfacter::globals::globals {
       }
       file { [$base_facter_dir, $facter_os_package_type_dir]:
         ensure => 'directory',
-        mode   => '0755',
+        mode   => '0750',
       }
       file { $facter_os_package_type_file :
         ensure  => 'present',
-        mode    => '0644',
+        mode    => '0640',
         content => "os_package_type=${os_package_type_override}\n"
       }
     }
@@ -501,7 +501,7 @@ class osnailyfacter::globals::globals {
   # by other manifests with hiera function
   file { $globals_yaml_file :
     ensure  => 'present',
-    mode    => '0644',
+    mode    => '0640',
     owner   => 'root',
     group   => 'root',
     content => template('osnailyfacter/globals_yaml.erb')

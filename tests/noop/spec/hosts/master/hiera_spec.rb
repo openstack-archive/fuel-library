@@ -10,11 +10,14 @@ describe manifest do
     it 'should setup hiera' do
       should contain_file('hiera_data_dir').with(
         'ensure' => 'directory',
-        'path'   => '/etc/hiera'
+        'path'   => '/etc/hiera',
+        'mode'   => '0750',
+
       )
       should contain_file('hiera_config').with(
         'ensure' => 'present',
-        'path'   => '/etc/hiera.yaml'
+        'path'   => '/etc/hiera.yaml',
+        'mode'   => '0640',
       )
 
       # check symlinks

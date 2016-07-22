@@ -16,7 +16,6 @@ $hiera_data_file     = "${data_dir}/astute.yaml"
 File {
   owner => 'root',
   group => 'root',
-  mode  => '0644',
 }
 
 $hiera_config_content = inline_template('
@@ -40,11 +39,13 @@ $hiera_config_content = inline_template('
 file { 'hiera_data_dir' :
   ensure => 'directory',
   path   => $data_dir,
+  mode   => '0750',
 }
 
 file { 'hiera_config' :
   ensure  => 'present',
   path    => $hiera_main_config,
+  mode    => '0640',
   content => $hiera_config_content,
 }
 
