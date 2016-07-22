@@ -151,45 +151,7 @@ class openstack_tasks::sahara::sahara {
       }
     }
 
-    $haproxy_stats_url = "http://${management_vip}:10000/;csv"
-    $sahara_protocol = get_ssl_property($ssl_hash, {}, 'sahara', 'internal', 'protocol', 'http')
-    $sahara_address  = get_ssl_property($ssl_hash, {}, 'sahara', 'internal', 'hostname', [$service_endpoint, $management_vip])
-    $sahara_url      = "${sahara_protocol}://${sahara_address}:${api_bind_port}"
-
-    $lb_defaults = { 'provider' => 'haproxy', 'url' => $haproxy_stats_url }
-
-    if $external_lb {
-      $lb_backend_provider = 'http'
-      $lb_url = $sahara_url
-    }
-
-    $lb_hash = {
-      sahara      => {
-        name     => 'sahara',
-        provider => $lb_backend_provider,
-        url      => $lb_url
-      }
-    }
-
-    ::osnailyfacter::wait_for_backend {'sahara':
-      lb_hash     => $lb_hash,
-      lb_defaults => $lb_defaults
-    }
-
-# TODO (degorenko) temporarily disable untill https://review.openstack.org/307796 merged
-#    if $primary_controller {
-#
-#      class { '::osnailyfacter::wait_for_keystone_backends':} ->
-#      class { '::openstack_tasks::sahara::create_templates' :
-#        floating_net => try_get_value($neutron_config, 'default_floating_net', 'admin_floating_net'),
-#      }
-#
-#      Class['::osnailyfacter::wait_for_keystone_backends'] -> ::Osnailyfacter::Wait_for_backend['sahara']
-#      ::Osnailyfacter::Wait_for_backend['sahara'] -> Class['::openstack_tasks::sahara::create_templates']
-#    }
-
     Firewall[$firewall_rule] -> Class['::sahara::service::api']
-    Service['sahara-api'] -> ::Osnailyfacter::Wait_for_backend['sahara']
   }
 
 }

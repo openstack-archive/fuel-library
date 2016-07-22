@@ -201,21 +201,6 @@ describe manifest do
       end
 
       enable = (Noop.hiera_structure('sahara/enabled') and Noop.hiera('role') == 'primary-controller')
-      context 'on primary-controller', :if => enable do
-        # TODO (degorenko) temporarily disable untill https://review.openstack.org/307796 merged
-        #it 'should declare sahara_templates class correctly' do
-        #  should contain_class('openstack_tasks::sahara::create_templates').with('floating_net' => floating_net)
-        #end
-
-        it 'should have explicit ordering between LB classes and particular actions' do
-          expect(graph).to ensure_transitive_dependency("Haproxy_backend_status[keystone-public]",
-                                                      "Haproxy_backend_status[sahara]")
-          expect(graph).to ensure_transitive_dependency("Haproxy_backend_status[keystone-admin]",
-                                                      "Haproxy_backend_status[sahara]")
-          expect(graph).to ensure_transitive_dependency("Haproxy_backend_status[sahara]",
-                                                      "Class[sahara_templates::create_templates]")
-        end
-      end
 
       it {
         if Noop.hiera('external_lb', false)
