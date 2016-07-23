@@ -113,9 +113,10 @@
       changed($.access.user)
   requires: [upload_configuration]
   required_for: [pre_deployment_end]
-  permissions: '0640'
   parameters:
     path: /etc/fuel/cluster/{CLUSTER_ID}/old_admin_user.yaml
+    permissions: '0640'
+    dir_permissions: '0750'
     data:
       yaql_exp: '{"old_access" => old($).get("access", {})}.toYaml()'
 
