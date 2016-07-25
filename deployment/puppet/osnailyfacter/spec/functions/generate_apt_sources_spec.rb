@@ -13,19 +13,19 @@ describe 'generate_apt_sources' do
        'section'  => 'main universe multiverse',
        'uri'      => 'http://archive.ubuntu.com/ubuntu/',
        'priority' => nil,
-       'suite'    => 'trusty',
+       'suite'    => 'xenial',
        'type'     => 'deb'},
       {'name'     => 'ubuntu-updates',
        'section'  => 'main universe multiverse',
        'uri'      => 'http://archive.ubuntu.com/ubuntu/',
        'priority' => nil,
-       'suite'    => 'trusty-updates',
+       'suite'    => 'xenial-updates',
        'type'     => 'deb'},
       {'name'     => 'ubuntu-security',
        'section'  => 'main universe multiverse',
        'uri'      => 'http://archive.ubuntu.com/ubuntu/',
        'priority' => nil,
-       'suite'    => 'trusty-security',
+       'suite'    => 'xenial-security',
        'type'     => 'deb'},
     ]
   }
@@ -35,19 +35,19 @@ describe 'generate_apt_sources' do
       'ubuntu' =>
          {
            'repos'    => 'main universe multiverse',
-           'release'  => 'trusty',
+           'release'  => 'xenial',
            'location' => 'http://archive.ubuntu.com/ubuntu/'
          },
       'ubuntu-updates' =>
          {
            'repos'    => 'main universe multiverse',
-           'release'  => 'trusty-updates',
+           'release'  => 'xenial-updates',
            'location' => 'http://archive.ubuntu.com/ubuntu/'
          },
      'ubuntu-security' =>
          {
            'repos'    => 'main universe multiverse',
-           'release'  => 'trusty-security',
+           'release'  => 'xenial-security',
            'location' => 'http://archive.ubuntu.com/ubuntu/'
          },
     }
