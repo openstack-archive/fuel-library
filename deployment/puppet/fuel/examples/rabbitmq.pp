@@ -11,6 +11,6 @@ class { 'fuel::rabbitmq':
   env_config      => {
     'RABBITMQ_SERVER_ERL_ARGS' => "+K true +P 1048576",
     'ERL_EPMD_ADDRESS'         => $::fuel_settings['ADMIN_NETWORK']['ipaddress'],
-    'NODENAME'                 => "rabbit@${::hostname}",
+    'NODENAME'                 => "rabbit@${::fuel_settings['HOSTNAME']}",
   },
 }
