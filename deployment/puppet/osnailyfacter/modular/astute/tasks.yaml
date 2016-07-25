@@ -48,9 +48,10 @@
   requires: [override_configuration]
   required_for: [pre_deployment_start]
   refresh_on: ['*']
-  permissions: '0640'
   parameters:
     path: /etc/fuel/cluster/{CLUSTER_ID}/astute.yaml
+    permissions: '0640'
+    dir_permissions: '0750'
     timeout: 180
     data:
       yaql_exp: '$.toYaml()'
@@ -359,9 +360,10 @@
     yaql_exp: 'changed($.network_metadata)'
   requires: [upload_configuration]
   required_for: [pre_deployment_end]
-  permissions: '0640'
   parameters:
     path: /etc/fuel/cluster/{CLUSTER_ID}/deleted_nodes.yaml
+    permissions: '0640'
+    dir_permissions: '0750'
     data:
       yaql_exp: '{"deleted_nodes" => deleted($.nodes.fqdn)}.toYaml()'
 
