@@ -42,37 +42,60 @@ class osnailyfacter::package_pins (
 ) {
 
   if $repo_type == 'uca' {
+    # versions of pins depending on ubuntu release
+    if $::operatingsystemrelease =~ /^14/ {
+      $ceph_version        = '0.94*'
+      $rabbitmq_version    = '3.6*'
+      $openvswitch_version = '2.4.0*'
+    } else {
+      # TODO(aschultz): currently there is no MOS ceph version for newton
+      $ceph_version        = undef
+      $rabbitmq_version    = '3.6*'
+      # NOTE(aschultz): currently there is no MOS version of openvswitch-*
+      $openvswitch_version = undef
+
+      # NOTE(aschultz): LP#1612556
+      # make sure MOS python items are less than the Ubuntu provided packages
+      apt::pin { 'mos-python':
+        packages   => 'python-*',
+        originator => 'Mirantis',
+        priority   => '499'
+      }
+    }
 
     #FIXME(mattmyo): derive versions via fact or hiera
     if $pin_haproxy {
+      # TODO(aschultz): xenial has the same version so switch to the originator
       apt::pin { 'haproxy-mos':
-        packages => 'haproxy',
-        version  => '1.5.3-*',
-        priority => $pin_priority,
+        packages   => 'haproxy',
+        originator => 'Mirantis',
+        priority   => $pin_priority,
       }
     }
-    if $pin_ceph {
+    if $pin_ceph and $ceph_version {
       apt::pin { 'ceph-mos':
         packages => $ceph_packages,
-        version  => '0.94*',
+        version  => $ceph_version,
         priority => $pin_priority,
       }
     }
-    if $pin_rabbitmq {
+    if $pin_rabbitmq and $rabbitmq_version{
       apt::pin { 'rabbitmq-server-mos':
         packages => 'rabbitmq-server',
-        version  => '3.6*',
+        version  => $rabbitmq_version,
         priority => $pin_priority,
       }
     }
-    apt::pin { 'openvswitch-mos':
-      packages => 'openvswitch*',
-      version  => '2.4.0*',
-      priority => $pin_priority,
+    if $openvswitch_version {
+      apt::pin { 'openvswitch-mos':
+        packages => 'openvswitch*',
+        version  => $openvswitch_version,
+        priority => $pin_priority,
+      }
     }
+
     package { 'ubuntu-cloud-keyring':
       ensure  => 'present',
     }
-
   }
 }

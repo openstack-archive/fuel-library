@@ -11,3 +11,4 @@ fixtures:
     sysfs: "#{source_dir}/../sysfs"
     oslo: "#{source_dir}/../oslo"
     haproxy: "#{source_dir}/../haproxy"
+    apt: "#{source_dir}/../apt"
