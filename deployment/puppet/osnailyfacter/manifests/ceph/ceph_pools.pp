@@ -84,6 +84,7 @@ class osnailyfacter::ceph::ceph_pools {
       }
 
       Ceph::Pool[$cinder_pool] ~> Service['cinder-volume']
+      Ceph::Key<||> ~> Service['cinder-volume']
 
       service { 'cinder-backup':
         ensure     => 'running',
@@ -93,6 +94,7 @@ class osnailyfacter::ceph::ceph_pools {
       }
 
       Ceph::Pool[$cinder_backup_pool] ~> Service['cinder-backup']
+      Ceph::Key<||> ~> Service['cinder-backup']
     }
 
     if ($storage_hash['images_ceph']) {
@@ -105,6 +107,7 @@ class osnailyfacter::ceph::ceph_pools {
       }
 
       Ceph::Pool[$glance_pool] ~> Service['glance-api']
+      Ceph::Key<||> ~> Service['glance-api']
     }
   }
 }
