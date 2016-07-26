@@ -126,7 +126,7 @@ describe manifest do
 
       it 'should accept connections to nova' do
         should contain_firewall('105 nova').with(
-          'port'        => [ 8774, 8776, 6080 ],
+          'dport'        => [ 8774, 8776, 6080 ],
           'proto'       => 'tcp',
           'action'      => 'accept',
         )
@@ -135,7 +135,7 @@ describe manifest do
       it 'should accept connections to nova without ssl' do
         management_nets.each do |source|
           should contain_firewall("105 nova internal - no ssl from #{source}").with(
-            'port'        => [ 8775, '5900-6100' ],
+            'dport'        => [ 8775, '5900-6100' ],
             'proto'       => 'tcp',
             'action'      => 'accept',
             'source'      => source,
@@ -146,7 +146,7 @@ describe manifest do
       it 'should accept connections to iscsi' do
         storage_nets.each do |source|
           should contain_firewall("109 iscsi from #{source}").with(
-            'port'        => [ 3260 ],
+            'dport'        => [ 3260 ],
             'proto'       => 'tcp',
             'action'      => 'accept',
             'source'      => source,
@@ -164,17 +164,17 @@ describe manifest do
 
       it 'should create rules for heat' do
         should contain_firewall('204 heat-api').with(
-          'port'    => [ 8004 ],
+          'dport'    => [ 8004 ],
           'proto'   => 'tcp',
           'action'  => 'accept',
         )
         should contain_firewall('205 heat-api-cfn').with(
-          'port'    => [ 8000 ],
+          'dport'    => [ 8000 ],
           'proto'   => 'tcp',
           'action'  => 'accept',
         )
         should contain_firewall('206 heat-api-cloudwatch').with(
-          'port'    => [ 8003 ],
+          'dport'    => [ 8003 ],
           'proto'   => 'tcp',
           'action'  => 'accept',
         )
@@ -182,7 +182,7 @@ describe manifest do
 
       it 'should create rules for glance' do
         should contain_firewall('104 glance').with(
-          'port'    => [ 9292, 9494, 9191, 8773 ],
+          'dport'    => [ 9292, 9494, 9191, 8773 ],
           'proto'   => 'tcp',
           'action'  => 'accept',
         )
@@ -198,7 +198,7 @@ describe manifest do
       it 'should accept connections to nova without ssl' do
         management_nets.each do |source|
           should contain_firewall("105 nova vnc from #{source}").with(
-            'port'        => [ '5900-6100' ],
+            'dport'        => [ '5900-6100' ],
             'proto'       => 'tcp',
             'action'      => 'accept',
             'source'      => source,
@@ -209,7 +209,7 @@ describe manifest do
       it 'should accept connections to libvirt' do
         management_nets.each do |source|
           should contain_firewall("118 libvirt from #{source}").with(
-            'port'        => [ 16509 ],
+            'dport'        => [ 16509 ],
             'proto'       => 'tcp',
             'action'      => 'accept',
             'source'      => source,
@@ -220,7 +220,7 @@ describe manifest do
       it 'should allow libvirt vm migration' do
         management_nets.each do |source|
           should contain_firewall("119 libvirt-migration from #{source}").with(
-            'port'        => [ '49152-49215' ],
+            'dport'        => [ '49152-49215' ],
             'proto'       => 'tcp',
             'action'      => 'accept',
             'source'      => source,
@@ -229,7 +229,7 @@ describe manifest do
       end
     elsif Noop.puppet_function 'member', roles, 'primary-mongo' or Noop.puppet_function 'member', roles, 'mongo'
       it 'should create firewall rules' do
-        should contain_firewall('120 mongodb').with('port' => mongodb_port)
+        should contain_firewall('120 mongodb').with('dport' => mongodb_port)
       end
     end
 

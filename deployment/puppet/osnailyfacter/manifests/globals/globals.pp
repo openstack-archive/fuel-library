@@ -236,18 +236,16 @@ class osnailyfacter::globals::globals {
 
   $vips = $network_metadata['vips']
 
-  # TODO(mpolenchuk): try_get_value() is deprecated,
-  # replace with dig() once stdlib 4.12 will be available
-  $public_vip             = try_get_value($vips, 'public/ipaddr',
+  $public_vip             = dig($vips, ['public', 'ipaddr'],
                               get_network_role_property('public/vip', 'ipaddr')
                             )
-  $management_vip         = try_get_value($vips, 'management/ipaddr',
+  $management_vip         = dig($vips, ['management', 'ipaddr'],
                               get_network_role_property('mgmt/vip', 'ipaddr')
                             )
-  $public_vrouter_vip     = try_get_value($vips, 'vrouter_pub/ipaddr', undef)
-  $management_vrouter_vip = try_get_value($vips, 'vrouter/ipaddr', undef)
-  $database_vip           = try_get_value($vips, 'database/ipaddr', $management_vip)
-  $service_endpoint       = try_get_value($vips, 'service_endpoint/ipaddr', $management_vip)
+  $public_vrouter_vip     = dig($vips, ['vrouter_pub', 'ipaddr'], undef)
+  $management_vrouter_vip = dig($vips, ['vrouter', 'ipaddr'], undef)
+  $database_vip           = dig($vips, ['database', 'ipaddr'], $management_vip)
+  $service_endpoint       = dig($vips, ['service_endpoint', 'ipaddr'], $management_vip)
 
   $neutron_config                = hiera_hash('quantum_settings')
   $network_provider              = 'neutron'
