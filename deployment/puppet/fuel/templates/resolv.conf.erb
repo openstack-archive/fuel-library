@@ -1,3 +1,5 @@
 search <%= @dns_search %>
 domain <%= @dns_domain %>
-nameserver <%= @cobbler_host %>
+<% for @nameserver in @dns_upstream -%>
+nameserver <%= @nameserver %>
+<% end %>
