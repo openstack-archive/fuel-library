@@ -8,11 +8,6 @@ $fuel_settings = parseyaml($astute_settings_yaml)
 $ntp_servers = delete(delete_undef_values([$::fuel_settings['NTP1'],
   $::fuel_settings['NTP2'], $::fuel_settings['NTP3']]), '')
 
-# Vars for File['/etc/resolv.conf']
-$dns_domain = $::fuel_settings['DNS_DOMAIN']
-$dns_search = $::fuel_settings['DNS_SEARCH']
-$dns_upstream = split($::fuel_settings['DNS_UPSTREAM'], ',')
-
 # Vars for File['/etc/dhcp/dhclient.conf']
 $cobbler_host = $::fuel_settings['ADMIN_NETWORK']['ipaddress']
 
@@ -66,13 +61,6 @@ file { '/etc/dhcp/dhclient-enter-hooks':
   owner   => 'root',
   group   => 'root',
   mode    => '0755',
-}
-
-file { '/etc/resolv.conf':
-  content => template('fuel/resolv.conf.erb'),
-  owner   => 'root',
-  group   => 'root',
-  mode    => '0644',
 }
 
 augeas { 'Cleanup orphaned dns settings from ifcfg-e* files':

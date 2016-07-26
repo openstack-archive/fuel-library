@@ -3,22 +3,22 @@ require 'spec_helper'
 describe 'cobbler' do
 
   let(:default_params) { {
-    :server => facts[:ipaddress],
-    :production => 'prod',
-    :domain_name => 'local',
-    :name_server => facts[:ipaddress],
-    :next_server => facts[:ipaddress],
-    :dns_upstream => '8.8.8.8',
-    :dns_domain   => 'domain.tld',
-    :dns_search   => 'domain.tld',
-    :dhcp_start_address => '10.0.0.201',
-    :dhcp_end_address   => '10.0.0.254',
-    :dhcp_netmask       => '255.255.255.0',
-    :dhcp_gateway       => facts[:ipaddress],
-    :dhcp_ipaddress     => facts[:ipaddress],
-    :cobbler_user       => 'cobbler',
-    :cobbler_password   => 'cobbler',
-    :pxetimeout         => 0,
+      :server => facts[:ipaddress],
+      :production => 'prod',
+      :domain_name => 'local',
+      :name_server => facts[:ipaddress],
+      :next_server => facts[:ipaddress],
+      :dns_upstream => ['8.8.8.8'],
+      :dns_domain => 'domain.tld',
+      :dns_search => 'domain.tld',
+      :dhcp_start_address => '10.0.0.201',
+      :dhcp_end_address => '10.0.0.254',
+      :dhcp_netmask => '255.255.255.0',
+      :dhcp_gateway => facts[:ipaddress],
+      :dhcp_ipaddress => '127.0.0.1',
+      :cobbler_user => 'cobbler',
+      :cobbler_password => 'cobbler',
+      :pxetimeout => 0,
   } }
 
   shared_examples_for 'cobbler configuration' do
@@ -103,4 +103,3 @@ describe 'cobbler' do
   end
 
 end
-
