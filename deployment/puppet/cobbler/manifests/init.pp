@@ -46,7 +46,7 @@ class cobbler(
   $domain_name        = 'local',
   $name_server        = $ipaddress,
   $next_server        = $ipaddress,
-  $dns_upstream       = '8.8.8.8',
+  $dns_upstream       = ['8.8.8.8'],
   $dns_domain         = 'domain.tld',
   $dns_search         = 'domain.tld',
 
