@@ -10,6 +10,10 @@ $bootstrap_path              = pick($bootstrap_settings['path'], '/var/www/nailg
 $bootstrap_meta              = pick(loadyaml("${bootstrap_path}/metadata.yaml"), {})
 $bootstrap_ethdevice_timeout = pick($bootstrap_settings['ethdevice_timeout'], '120')
 $dhcp_gw                     = $::fuel_settings['ADMIN_NETWORK']['dhcp_gateway']
+$dns_domain                  = $::fuel_settings['DNS_DOMAIN']
+$dns_search                  = $::fuel_settings['DNS_SEARCH']
+$dns_upstream                = split($::fuel_settings['DNS_UPSTREAM'], ',')
+$cobbler_host                = $::fuel_settings['ADMIN_NETWORK']['ipaddress']
 
 if $dhcp_gw {
   $dhcp_gateway = $dhcp_gw
@@ -28,12 +32,19 @@ class { '::fuel::cobbler':
   next_server                 => $::fuel_settings['ADMIN_NETWORK']['ipaddress'],
   mco_user                    => $::fuel_settings['mcollective']['user'],
   mco_pass                    => $::fuel_settings['mcollective']['password'],
-  dns_upstream                => $::fuel_settings['DNS_UPSTREAM'],
-  dns_domain                  => $::fuel_settings['DNS_DOMAIN'],
-  dns_search                  => $::fuel_settings['DNS_SEARCH'],
+  dns_upstream                => $dns_upstream,
+  dns_domain                  => $dns_domain,
+  dns_search                  => $dns_search,
   dhcp_ipaddress              => $::fuel_settings['ADMIN_NETWORK']['ipaddress'],
   nailgun_api_url             => $nailgun_api_url,
   bootstrap_ethdevice_timeout => $bootstrap_ethdevice_timeout,
+} ->
+
+file { '/etc/resolv.conf':
+  content => template('fuel/resolv.conf.erb'),
+  owner   => 'root',
+  group   => 'root',
+  mode    => '0644',
 }
 
 fuel::systemd {['httpd', 'cobblerd', 'dnsmasq', 'xinetd']:
