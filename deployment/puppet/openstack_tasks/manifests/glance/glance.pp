@@ -201,6 +201,10 @@ class openstack_tasks::glance::glance {
     database_max_overflow  => $max_overflow,
   }
 
+  # TODO (dmburmistrov): remove this workaround after LP #1604397
+  # is fixed and released in UCA/MOS repos
+  ensure_packages(['python-swiftclient'])
+  ->
   class { '::glance::glare':
     bind_host              => $glare_bind_host,
     auth_type              => 'keystone',
