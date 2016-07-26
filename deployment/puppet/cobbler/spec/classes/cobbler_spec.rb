@@ -8,7 +8,7 @@ describe 'cobbler' do
       :domain_name => 'local',
       :name_server => facts[:ipaddress],
       :next_server => facts[:ipaddress],
-      :dns_upstream => '8.8.8.8',
+      :dns_upstream => ['8.8.8.8'],
       :dns_domain => 'domain.tld',
       :dns_search => 'domain.tld',
       :dhcp_start_address => '10.0.0.201',
@@ -72,4 +72,3 @@ describe 'cobbler' do
   end
 
 end
-

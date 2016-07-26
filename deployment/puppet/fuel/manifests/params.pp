@@ -78,7 +78,7 @@ class fuel::params {
   ]
 
   $ks_system_timezone            = 'Etc/UTC'
-  $dns_upstream                  = '8.8.8.8'
+  $dns_upstream                  = ['8.8.8.8']
   $dns_domain                    = 'domain.tld'
   $dns_search                    = 'domain.tld'
   $dhcp_ipaddress                = '127.0.0.1'

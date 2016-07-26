@@ -13,7 +13,7 @@ dhcp-lease-max=<%= @dhcp_lease_max %>
 server=/<%= @domain_name %>/
 <% end %>
 server=/<%= @dns_domain %>/
-<%- @dns_upstream.split(',').each do |dns| -%>
+<%- @dns_upstream.each do |dns| -%>
 server=/<%= @dns_domain %>/<%= dns %>
 <%- end -%>
 resolv-file=/etc/dnsmasq.upstream
