@@ -1,3 +1,34 @@
+# == Class: fuel::keystone
+#
+# === Parameters
+#
+# [*host*]
+# [*port*]
+# [*admin_port*]
+# [*keystone_domain*]
+# [*db_engine*]
+# [*db_host*]
+# [*db_port*]
+# [*db_name*]
+# [*db_user*]
+# [*db_user*]
+# [*db_password*]
+# [*admin_token*]
+# [*token_expiration*]
+# [*admin_user*]
+# [*token_expiration*]
+# [*admin_user*]
+# [*admin_password*]
+# [*monitord_user*]
+# [*monitord_password*]
+# [*nailgun_user*]
+# [*nailgun_password*]
+# [*ostf_user*]
+# [*ostf_password*]
+# [*workers_max*]
+#  (Optional) Maximum number of keystone workers to configure.
+#  Defaults to $::fuel::params::workers_max
+#
 class fuel::keystone (
   $host              = $::fuel::params::keystone_host,
   $port              = $::fuel::params::keystone_port,
@@ -26,11 +57,13 @@ class fuel::keystone (
   $ostf_user         = $::fuel::params::keystone_ostf_user,
   $ostf_password     = $::fuel::params::keystone_ostf_password,
 
+  $workers_max       = $::fuel::params::workers_max,
   ) inherits fuel::params {
 
   ensure_packages(['crontabs', 'os-client-config', 'python-tablib',
                   'python-unicodecsv', 'rubygem-thread_safe'])
 
+  $service_workers = min(max($::processorcount, 2), $workers_max))
   class { '::keystone':
     # (TODO iberezovskiy): Set 'enable_bootstrap' to true when MOS packages will
     # be updated and 'keystone-manage bootstrap' command will be available
@@ -41,6 +74,8 @@ class fuel::keystone (
     token_expiration    => $token_expiration,
     token_provider      => 'keystone.token.providers.uuid.Provider',
     default_domain      => $keystone_domain,
+    admin_workers       => $service_workers,
+    public_workers      => $service_workers,
   }
 
   # Ensure that keystone_paste_ini file includes "admin_token_auth" filter
