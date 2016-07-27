@@ -253,8 +253,10 @@ describe 'l23network::l3::ifconfig', :type => :define do
       :kernel => 'Linux'
     } }
 
-    let :pre_condition do
+    let :pre_condition do [
+      "class {'l23network': }",
       'l23network::l2::bridge{"br-test":}'
+    ]
     end
 
     let(:params) { {
