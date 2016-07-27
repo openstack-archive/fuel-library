@@ -105,10 +105,10 @@ class l23network (
       ensure => directory,
       owner  => 'root',
       mode   => '0755',
-    } -> Anchor['l23network::init']
+    }
   }
-  Anchor['l23network::l2::init'] -> File<| title == $::l23network::params::interfaces_dir |>
-  Anchor['l23network::l2::init'] -> File<| title == $::l23network::params::interfaces_file |>
+  Anchor['l23network::l2::init'] -> File<| title == $::l23network::params::interfaces_dir |> -> Anchor['l23network::init']
+  Anchor['l23network::l2::init'] -> File<| title == $::l23network::params::interfaces_file |> -> Anchor['l23network::init']
 
   # Centos interface up-n-down scripts
   if $::l23_os =~ /(?i:redhat|centos|oraclelinux)/ {
