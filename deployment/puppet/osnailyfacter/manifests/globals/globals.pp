@@ -45,19 +45,32 @@ class osnailyfacter::globals::globals {
     } else {
       $os_package_type_override = hiera('os_package_type', 'debian')
     }
+
+    File {
+      owner => 'root',
+      group => 'root'
+    }
+    file { [$base_facter_dir, $facter_os_package_type_dir]:
+      ensure => 'directory',
+      mode   => '0750',
+    }
+
     if (!empty($os_package_type_override)) {
-      File {
-        owner => 'root',
-        group => 'root'
-      }
-      file { [$base_facter_dir, $facter_os_package_type_dir]:
-        ensure => 'directory',
-        mode   => '0750',
-      }
       file { $facter_os_package_type_file :
         ensure  => 'present',
         mode    => '0640',
         content => "os_package_type=${os_package_type_override}\n"
+      }
+    }
+
+    # TODO (iberezovskiy): Remove this workaround when
+    # https://bugs.launchpad.net/ubuntu/+source/puppet/+bug/1570472 is resolved
+    if $::operatingsystemmajrelease == '16.04' {
+      file { "${facter_os_package_type_dir}/service_provider.txt":
+        ensure  => 'present',
+        mode    => '0640',
+        content => 'service_provider=systemd',
+        require => File[$facter_os_package_type_dir],
       }
     }
   }
