@@ -60,6 +60,20 @@ class osnailyfacter::globals::globals {
         content => "os_package_type=${os_package_type_override}\n"
       }
     }
+
+    # TODO (iberezovskiy): Remove this workaround when
+    # https://bugs.launchpad.net/ubuntu/+source/puppet/+bug/1570472 is resolved
+    if $::operatingsystemmajrelease == '16.04' {
+      file { "${facter_os_package_type_dir}/service_provier.txt":
+        ensure  => 'present',
+        mode    => '0640',
+        owner   => 'root',
+        group   => 'root',
+        content => 'service_provider=systemd',
+      }
+
+      File<| title == $facter_os_package_type_dir |> -> File["${facter_os_package_type_dir}/service_provier.txt"]
+    }
   }
 
   $deployment_mode                = hiera('deployment_mode', 'ha_compact')
