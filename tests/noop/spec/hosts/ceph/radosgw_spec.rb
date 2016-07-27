@@ -50,6 +50,10 @@ describe manifest do
       Noop.hiera_structure 'storage/radosgw_key', 'AQCTg71RsNIHORAAW+O6FCMZWBjmVfMIPk3MhQ=='
     end
 
+    let(:rgw_init_timeout) {
+      Noop.hiera_structure 'storage/rgw_init_timeout', '360000'
+    }
+
     if radosgw_enabled
       it 'should add radosgw key' do
         should contain_ceph__key("client.#{gateway_name}").with(
@@ -78,6 +82,10 @@ describe manifest do
           'rgw_s3_auth_use_keystone' => false,
           'use_pki'                  => false,
         )
+      end
+
+      it 'should set rgw_init_timeout' do
+        should contain_ceph_config('client.radosgw.gateway/rgw_init_timeout').with(:value => rgw_init_timeout)
       end
 
       it { should contain_exec("Create #{rgw_large_pool_name} pool").with(
