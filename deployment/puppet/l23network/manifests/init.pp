@@ -97,7 +97,6 @@ class l23network (
         source => 'puppet:///modules/l23network/interfaces',
       }
     }
-    File<| title == $::l23network::params::interfaces_file |> -> File<| title == $::l23network::params::interfaces_dir |>
   }
 
   if ! defined(File[$::l23network::params::interfaces_dir]) {
@@ -105,10 +104,10 @@ class l23network (
       ensure => directory,
       owner  => 'root',
       mode   => '0755',
-    } -> Anchor['l23network::init']
+    }
   }
-  Anchor['l23network::l2::init'] -> File<| title == $::l23network::params::interfaces_dir |>
-  Anchor['l23network::l2::init'] -> File<| title == $::l23network::params::interfaces_file |>
+  Anchor['l23network::l2::init'] -> File<| title == $::l23network::params::interfaces_file |> ->
+    File<| title == $::l23network::params::interfaces_dir |> -> Anchor['l23network::init']
 
   # Centos interface up-n-down scripts
   if $::l23_os =~ /(?i:redhat|centos|oraclelinux)/ {
@@ -148,8 +147,7 @@ class l23network (
     disable_hotplug { 'global':
       ensure => 'present',
     }
-    Anchor['l23network::l2::init'] -> Disable_hotplug['global']
-    Disable_hotplug['global'] -> Anchor['l23network::init']
+    Anchor['l23network::l2::init'] -> Disable_hotplug['global'] -> Anchor['l23network::init']
 
     enable_hotplug { 'global':
       ensure => 'present',
