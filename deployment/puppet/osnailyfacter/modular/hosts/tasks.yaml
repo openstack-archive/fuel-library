@@ -1,7 +1,8 @@
 - id: hosts
   type: puppet
-  version: 2.1.0
-  groups: [primary-controller, controller, cinder, cinder-block-device, cinder-vmware, compute, ceph-osd, primary-mongo, mongo, ironic]
+  version: 2.2.0
+  tags: [primary-controller, controller, cinder, cinder-block-device, cinder-vmware, compute, ceph-osd,
+         primary-mongo, mongo, ironic, primary-rabbitmq, rabbitmq]
   required_for: [deploy_end]
   requires: [netconfig]
   condition:
