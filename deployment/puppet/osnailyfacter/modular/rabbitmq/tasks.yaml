@@ -1,7 +1,7 @@
 - id: rabbitmq
   type: puppet
   version: 2.1.0
-  groups: [controller]
+  groups: [modular-rabbitmq]
   cross-depends:
     - name: primary-rabbitmq
   required_for: [deploy_end, openstack-controller, primary-openstack-controller, glance]
@@ -36,7 +36,7 @@
 - id: primary-rabbitmq
   type: puppet
   version: 2.1.0
-  groups: [primary-controller]
+  groups: [primary-modular-rabbitmq]
   required_for: [deploy_end, openstack-controller, primary-openstack-controller, glance]
   requires: [netconfig, primary-cluster]
   condition:
@@ -51,3 +51,15 @@
         yaql_exp: *rabbitmq_strategy
   test_post:
     cmd: ruby /etc/puppet/modules/osnailyfacter/modular/rabbitmq/rabbitmq_post.rb
+
+- id: rabbitmq-firewall
+  type: puppet
+  version: 2.0.0
+  groups: [modular-rabbitmq]
+  requires: [hosts, globals, firewall]
+  required_for: [deploy_end, cluster, primary-cluster,
+    rabbitmq, primary-rabbitmq]
+  parameters:
+    puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/rabbitmq/rabbitmq_firewall.pp
+    puppet_modules: /etc/puppet/modules
+  timeout: 3600
