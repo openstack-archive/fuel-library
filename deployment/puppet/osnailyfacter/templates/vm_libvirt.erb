@@ -3,7 +3,7 @@
   <memory unit='GiB'><%= @details['mem'] %></memory>
   <vcpu placement='static'><%= @details['cpu'] %></vcpu>
   <os>
-    <type arch='x86_64' machine='pc-i440fx-trusty'>hvm</type>
+    <type arch='x86_64' machine='pc'>hvm</type>
     <boot dev='network'/>
     <boot dev='hd'/>
   </os>
