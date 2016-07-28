@@ -294,10 +294,15 @@ class osnailyfacter::globals::globals {
   } else {
     # using RabbitMQ servers on controllers
     # todo(sv): switch from 'controller' nodes to 'rmq' nodes as soon as it was implemented as additional node-role
-    $controllers_with_amqp_server = get_node_to_ipaddr_map_by_network_role($controller_nodes, 'mgmt/messaging')
-    $amqp_nodes = ipsort(values($controllers_with_amqp_server))
+    $amqp_tagged_nodes = get_nodes_hash_by_tags($network_metadata, ['primary-rabbitmq', 'rabbitmq'])
+    $amqp_servers = empty($amqp_tagged_nodes) ? {
+      true    => $controller_nodes,
+      false   => $amqp_tagged_nodes,
+      default => $controller_nodes,
+    }
+    $amqp_hash = ipsort(values(get_node_to_ipaddr_map_by_network_role($amqp_servers, 'mgmt/messaging')))
     # amqp_hosts() randomize order of RMQ endpoints and put local one first
-    $amqp_hosts = amqp_hosts($amqp_nodes, $amqp_port, get_network_role_property('mgmt/messaging', 'ipaddr'))
+    $amqp_hosts = amqp_hosts($amqp_hash, $amqp_port, get_network_role_property('mgmt/messaging', 'ipaddr'))
   }
 
   # Generic workers limits by RAM
@@ -384,6 +389,8 @@ class osnailyfacter::globals::globals {
 
   # Define node roles, that will carry corosync/pacemaker
   $corosync_roles = hiera('corosync_roles', ['primary-controller', 'controller'])
+  $corosync_tags = hiera('corosync_tags', ['primary-controller', 'controller',
+                                           'primary-rabbitmq', 'rabbitmq'])
 
   # Define cinder-related variables
   # todo: use special node-roles instead controllers in the future
