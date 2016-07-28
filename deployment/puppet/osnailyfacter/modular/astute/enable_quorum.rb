@@ -31,10 +31,11 @@ def corosync_roles
   $corosync_roles
 end
 
+
 def corosync_nodes_count
   return $corosync_nodes_count if $corosync_nodes_count
   $corosync_nodes_count = nodes.select do |key, node|
-    !(corosync_roles & node['node_roles']).empty?
+   !(corosync_roles & node['node_roles']).empty?
   end.size
 end
 

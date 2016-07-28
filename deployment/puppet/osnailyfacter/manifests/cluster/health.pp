@@ -3,7 +3,7 @@ class osnailyfacter::cluster::health {
   notice('MODULAR: cluster/health.pp')
 
   if ! roles_include(hiera('corosync_roles')) {
-    fail('The node role is not in corosync roles')
+    fail('The node roles is not in corosync roles')
   }
 
   # load the mounted filesystems from our custom fact and remove not needed

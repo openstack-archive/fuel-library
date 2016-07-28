@@ -3,7 +3,7 @@ class osnailyfacter::cluster::cluster {
   notice('MODULAR: cluster/cluster.pp')
 
   if ! roles_include(hiera('corosync_roles')) {
-    fail('The node role is not in corosync roles')
+    fail('The node roles is not in corosync roles')
   }
 
   prepare_network_config(hiera_hash('network_scheme', {}))
@@ -15,6 +15,7 @@ class osnailyfacter::cluster::cluster {
       ),
       'mgmt/corosync'
   )
+
   # Sort the corosync nodes by node IDs
   # and then extract IPs, IDs and host names as lists
   $corosync_nodes_processed = corosync_nodes_process($corosync_nodes)
