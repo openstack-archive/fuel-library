@@ -29,7 +29,7 @@
 - id: primary-keystone
   type: puppet
   version: 2.1.0
-  groups: [primary-controller]
+  groups: ['primary-controller::keystone']
   required_for: [primary-openstack-controller, openstack-controller]
   requires: [openstack-haproxy, database, primary-rabbitmq, rabbitmq, primary-database]
   condition:
@@ -51,7 +51,7 @@
 
 - id: keystone
   type: puppet
-  groups: [controller]
+  groups: ['controller::keystone']
   version: 2.1.0
   required_for: [primary-openstack-controller, openstack-controller]
   requires: [openstack-haproxy, database, primary-rabbitmq, rabbitmq, primary-database]
