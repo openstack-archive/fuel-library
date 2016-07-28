@@ -69,6 +69,8 @@ if $use_ceph and $storage_hash['objects_ceph'] {
     adm_ip                           => $management_vip,
     int_ip                           => $management_vip,
 
+    rgw_init_timeout                 => '360000',
+
     # RadosGW settings
     rgw_host                         => $::hostname,
     rgw_ip                           => $rgw_ip_address,
