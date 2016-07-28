@@ -1,9 +1,10 @@
 - id: globals
   type: puppet
-  version: 2.1.0
-  groups: [primary-controller, controller,
-           cinder, cinder-block-device, cinder-vmware, compute, compute-vmware,
-           ceph-osd, primary-mongo, mongo, virt, ironic]
+  version: 2.2.0
+  tags: [primary-controller, controller,
+         cinder, cinder-block-device, cinder-vmware, compute, compute-vmware,
+         ceph-osd, primary-mongo, mongo, virt, ironic,
+         primary-modular-rabbitmq, modular-rabbitmq]
   required_for: [deploy_end]
   requires: [hiera]
   condition:

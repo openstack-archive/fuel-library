@@ -31,10 +31,17 @@ def corosync_roles
   $corosync_roles
 end
 
+def corosync_tags
+  return $corosync_tags if $corosync_tags
+  $corosync_tags = hiera.lookup 'corosync_tags', [], {}, nil, :priority
+  raise 'Invalid corosync_tags!' unless $corosync_tags.is_a? Array
+  $corosync_tags
+end
+
 def corosync_nodes_count
   return $corosync_nodes_count if $corosync_nodes_count
-  $corosync_nodes_count = nodes.select do |key, node|
-    !(corosync_roles & node['node_roles']).empty?
+  $corosync_nodes = nodes.select do |key, node|
+    (corosync_roles & node['node_roles'] || corosync_tags & node.fetch('node_tags')).any?
   end.size
 end
 
