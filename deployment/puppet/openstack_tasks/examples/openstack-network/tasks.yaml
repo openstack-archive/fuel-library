@@ -47,7 +47,6 @@
       role: primary-controller
     - name: neutron-db
     - name: /^(primary-)?rabbitmq$/
-      role: self
 
 - id: openstack-network-common-config
   type: puppet
