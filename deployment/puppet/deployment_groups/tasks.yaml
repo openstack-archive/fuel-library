@@ -45,6 +45,29 @@
       type: parallel
       amount: 6
 
+- id: primary-modular-rabbitmq
+  type: group
+  tags: [primary-rabbitmq]
+  requires: [deploy_start]
+  required_for: [deploy_end]
+  tasks: [hiera, fuel_pkgs, globals, tools, logging, netconfig,
+    hosts, firewall, rabbitmq-firewall, deploy_start, primary-cluster,
+    primary-rabbitmq]
+  parameters:
+    strategy:
+      type: parallel
+
+- id: modular-rabbitmq
+  type: group
+  tags: [rabbitmq]
+  requires: [deploy_start]
+  required_for: [deploy_end]
+  tasks: [hiera, fuel_pkgs, globals, tools, logging, netconfig,
+    hosts, firewall, rabbitmq-firewall, deploy_start, cluster, rabbitmq]
+  parameters:
+    strategy:
+      type: parallel
+
 - id: cinder
   type: group
   role: [cinder]
