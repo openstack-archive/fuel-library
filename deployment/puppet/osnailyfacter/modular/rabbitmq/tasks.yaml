@@ -1,7 +1,7 @@
 - id: rabbitmq
   type: puppet
-  version: 2.1.0
-  groups: [controller]
+  version: 2.2.0
+  tags: [modular-rabbitmq]
   cross-depends:
     - name: primary-rabbitmq
   required_for: [deploy_end, openstack-controller, primary-openstack-controller, glance]
@@ -35,8 +35,8 @@
 
 - id: primary-rabbitmq
   type: puppet
-  version: 2.1.0
-  groups: [primary-controller]
+  version: 2.2.0
+  tags: [primary-modular-rabbitmq]
   required_for: [deploy_end, openstack-controller, primary-openstack-controller, glance]
   requires: [netconfig, primary-cluster]
   condition:
