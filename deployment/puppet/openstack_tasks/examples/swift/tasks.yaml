@@ -3,7 +3,7 @@
   version: 2.1.0
   groups: [primary-controller, controller]
   required_for: [deploy_end, controller_remaining_tasks]
-  requires: [openstack-controller, primary-rabbitmq, rabbitmq, memcached]
+  requires: [openstack-controller, memcached]
   condition:
     yaql_exp: &swift_enabled >
       ((not $.storage.objects_ceph and not $.storage.images_ceph) and
@@ -25,7 +25,6 @@
         $.get('swift_partition'), $.get('deploy_swift_storage')))
   cross-depends:
     - name: /(primary-)?rabbitmq/
-      role: self
     - name: /glance/
       role: self
     - name: swift-keystone
