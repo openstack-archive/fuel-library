@@ -17,11 +17,10 @@
 
 - id: cluster
   type: puppet
-  version: 2.1.0
-  groups: [controller]
+  version: 2.2.0
+  tags: [controller, primary-rabbitmq, rabbitmq]
   cross-depends:
-    yaql_exp: >
-      [{name=>'primary-cluster', role=>$.roles.select('primary-' + $)}]
+    - name: primary-cluster
   required_for: [deploy_end]
   requires: [hosts, firewall, deploy_start]
   condition:
