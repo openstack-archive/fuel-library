@@ -295,8 +295,8 @@
 
 - id: dump_rabbitmq_definitions
   type: puppet
-  version: 2.1.0
-  role: [primary-controller, controller]
+  version: 2.2.0
+  tags: [primary-rabbitmq, rabbitmq]
   requires: [post_deployment_start]
   required_for: [post_deployment_end]
   condition:
