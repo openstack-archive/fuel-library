@@ -31,13 +31,12 @@
   version: 2.1.0
   groups: [primary-controller]
   required_for: [primary-openstack-controller, openstack-controller]
-  requires: [openstack-haproxy, database, primary-rabbitmq, rabbitmq, primary-database]
+  requires: [openstack-haproxy, database, primary-database]
   condition:
     yaql_exp: *keystone_changed
   refresh_on: [keystone_config]
   cross-depends:
     - name: /^(primary-)?rabbitmq$/
-      role: self
     - name: keystone-db
     - name: memcached
   parameters:
@@ -54,13 +53,12 @@
   groups: [controller]
   version: 2.1.0
   required_for: [primary-openstack-controller, openstack-controller]
-  requires: [openstack-haproxy, database, primary-rabbitmq, rabbitmq, primary-database]
+  requires: [openstack-haproxy, database, primary-database]
   condition:
     yaql_exp: *keystone_changed
   refresh_on: [keystone_config]
   cross-depends:
     - name: /^(primary-)?rabbitmq$/
-      role: self
     - name: keystone-db
     - name: primary-keystone
   parameters:
