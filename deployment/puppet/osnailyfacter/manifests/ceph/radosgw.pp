@@ -64,6 +64,7 @@ class osnailyfacter::ceph::radosgw {
       rgw_nss_db_path                  => '/etc/ceph/nss',
       rgw_large_pool_name              => $radosgw_large_pool_name,
       rgw_large_pool_pg_nums           => pick($storage_hash['per_pool_pg_nums'][$radosgw_large_pool_name], '512'),
+      rgw_init_timeout                 => pick($storage_hash['rgw_init_timeout'], '360000'),
 
       #rgw Log settings
       use_syslog                       => hiera('use_syslog', true),
