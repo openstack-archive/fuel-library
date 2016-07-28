@@ -3,7 +3,7 @@
   version: 2.1.0
   groups: [primary-controller]
   required_for: [deploy_end, controller_remaining_tasks]
-  requires: [openstack-controller, primary-rabbitmq, memcached]
+  requires: [openstack-controller, memcached]
   condition:
     yaql_exp: &swift_enabled >
       ((not $.storage.objects_ceph and not $.storage.images_ceph) and
@@ -24,6 +24,7 @@
         $.ceilometer.enabled, $.mp,
         $.get('swift_partition'), $.get('deploy_swift_storage')))
   cross-depends:
+    - name: primary-rabbitmq
     - name: /glance/
       role: self
     - name: swift-keystone
@@ -39,10 +40,11 @@
   version: 2.1.0
   groups: [controller]
   required_for: [deploy_end, controller_remaining_tasks]
-  requires: [openstack-controller, rabbitmq, memcached]
+  requires: [openstack-controller, memcached]
   condition:
     yaql_exp: *swift_enabled
   cross-depends:
+    - name: rabbitmq
     - name: primary-swift-proxy_storage
     - name: /glance/
       role: self
