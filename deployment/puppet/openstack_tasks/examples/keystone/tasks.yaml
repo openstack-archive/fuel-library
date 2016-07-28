@@ -29,7 +29,7 @@
 - id: primary-keystone
   type: puppet
   version: 2.1.0
-  groups: [primary-controller]
+  groups: [primary-modular-keystone]
   required_for: [primary-openstack-controller, openstack-controller]
   requires: [openstack-haproxy, database, primary-rabbitmq, rabbitmq, primary-database]
   condition:
@@ -51,7 +51,7 @@
 
 - id: keystone
   type: puppet
-  groups: [controller]
+  groups: [modular-keystone]
   version: 2.1.0
   required_for: [primary-openstack-controller, openstack-controller]
   requires: [openstack-haproxy, database, primary-rabbitmq, rabbitmq, primary-database]
@@ -75,7 +75,7 @@
 - id: keystone-db
   type: puppet
   version: 2.1.0
-  groups: [primary-controller]
+  groups: [primary-modular-keystone]
   required_for: [keystone, primary-keystone]
   requires: [primary-database, database]
   condition:
@@ -92,7 +92,7 @@
 - id: workloads_collector_add
   type: puppet
   version: 2.1.0
-  groups: [primary-controller]
+  groups: [primary-modular-keystone]
   required_for: [deploy_end]
   requires: [keystone, primary-keystone]
   condition:
