@@ -45,6 +45,62 @@
       type: parallel
       amount: 6
 
+- id: primary-keystone
+  type: group
+  role: [primary-controller]
+  tags: [primary-keystone]
+  requires: [deploy_start, primary-database, database,
+    primary-rabbitmq, rabbitmq]
+  required_for: [deploy_end]
+  tasks: [hiera, fuel_pkgs, globals, tools, logging,
+    netconfig, hosts, firewall, keystone-firewall, ssl-keys-saving,
+    ssl-add-trust-chain, deploy_start, primary-cluster, keystone-vip,
+    primary-cluster-haproxy, openstack-haproxy-stats,
+    memcached, apache, primary-keystone]
+  parameters:
+    strategy:
+      type: one_by_one
+
+- id: keystone
+  type: group
+  role: [controller]
+  tags: [keystone]
+  requires: [deploy_start, primary-database, database, primary-rabbitmq, rabbitmq]
+  required_for: [deploy_end]
+  tasks: [hiera, fuel_pkgs, globals, tools, logging,
+    netconfig, hosts, firewall, keystone-firewall, ssl-keys-saving,
+    ssl-add-trust-chain, deploy_start, cluster, keystone-vip, cluster-haproxy,
+    openstack-haproxy-stats, memcached, apache, keystone]
+  parameters:
+    strategy:
+      type: parallel
+
+- id: primary-rabbitmq
+  type: group
+  role: [primary-controller]
+  tags: [primary-rabbitmq]
+  requires: [deploy_start]
+  required_for: [deploy_end]
+  tasks: [hiera, fuel_pkgs, globals, tools, logging, netconfig,
+    hosts, firewall, rabbitmq-firewall, deploy_start, primary-cluster,
+    primary-rabbitmq]
+  parameters:
+    strategy:
+      type: parallel
+
+- id: rabbitmq
+  type: group
+  role: [controller]
+  tags: [rabbitmq]
+  requires: [deploy_start]
+  required_for: [deploy_end]
+  tasks: [hiera, fuel_pkgs, globals, tools, logging, netconfig,
+    hosts, firewall, rabbitmq-firewall, deploy_start, cluster, rabbitmq]
+  parameters:
+    strategy:
+      type: parallel
+
+
 - id: cinder
   type: group
   role: [cinder]
