@@ -17,15 +17,16 @@
 
 - id: cluster
   type: puppet
-  version: 2.1.0
-  groups: [controller]
+  version: 2.2.0
+  tags: [controller, primary-rabbitmq, rabbitmq]
   cross-depends:
-    yaql_exp: >
-      [{name=>'primary-cluster', role=>$.roles.select('primary-' + $)}]
+    - name: primary-cluster
   required_for: [deploy_end]
   requires: [hosts, firewall, deploy_start]
   condition:
-    yaql_exp: *cluster
+    yaql_exp: >
+      changedAny($.network_scheme, $.get('cluster_recheck_interval', '190s'),
+      $.network_metadata, $.get('corosync_roles')) and not ('primary-controller' in $.roles)
   parameters:
     puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/cluster/cluster.pp
     puppet_modules: /etc/puppet/modules
