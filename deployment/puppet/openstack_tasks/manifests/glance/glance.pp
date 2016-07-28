@@ -201,6 +201,14 @@ class openstack_tasks::glance::glance {
     database_max_overflow  => $max_overflow,
   }
 
+  # TODO (dmburmistrov): remove this workaround after LaunchPad
+  # (https://bugs.launchpad.net/glance/+bug/1604397) is fixed
+  # and released to UCA repos
+  if $::os_package_type == 'ubuntu' {
+    ensure_packages(['python-swiftclient'])
+    Package['python-swiftclient'] -> Class['::glance::glare']
+  }
+
   class { '::glance::glare':
     bind_host              => $glare_bind_host,
     auth_type              => 'keystone',
