@@ -17,8 +17,8 @@
 
 - id: cluster
   type: puppet
-  version: 2.1.0
-  groups: [controller]
+  version: 2.2.0
+  tags: [controller, primary-modular-rabbitmq, modular-rabbitmq]
   cross-depends:
     yaql_exp: >
       [{name=>'primary-cluster', role=>$.roles.select('primary-' + $)}]
