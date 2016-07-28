@@ -57,6 +57,8 @@ describe manifest do
     if radosgw_enabled
       it 'should add radosgw key' do
         should contain_ceph__key("client.#{gateway_name}").with(
+          'user'         => 'ceph',
+          'group'        => 'ceph',
           'secret'       => radosgw_key,
           'cap_mon'      => 'allow rw',
           'cap_osd'      => 'allow rwx',
