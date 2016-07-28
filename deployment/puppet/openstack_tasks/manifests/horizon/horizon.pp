@@ -41,8 +41,6 @@ class openstack_tasks::horizon::horizon {
   # Don't use custom backend until its code lands to MOS 9.0.
   $cache_backend = try_get_value($horizon_hash, 'cache_backend', 'django.core.cache.backends.memcached.MemcachedCache')
 
-  $neutron_dvr = pick($neutron_advanced_config['neutron_dvr'], false)
-
   $ssl_hash               = hiera_hash('use_ssl', {})
   $internal_auth_protocol = get_ssl_property($ssl_hash, {}, 'keystone', 'internal', 'protocol', 'http')
   $internal_auth_address  = get_ssl_property($ssl_hash, {}, 'keystone', 'internal', 'hostname', [$service_endpoint, $management_vip])
@@ -51,7 +49,16 @@ class openstack_tasks::horizon::horizon {
   $keystone_url           = "${internal_auth_protocol}://${internal_auth_address}:${internal_auth_port}/${keystone_api}"
 
   $cinder_options     = {'enable_backup' => pick($storage_hash['volumes_ceph'], false)}
-  $neutron_options    = {'enable_distributed_router' => $neutron_dvr}
+  $neutron_options    = {
+    'enable_lb'                 => pick($neutron_advanced_config['neutron_lb'], false),
+    'enable_firewall'           => pick($neutron_advanced_config['neutron_firewall'], false),
+    'enable_quotas'             => pick($neutron_advanced_config['neutron_quotas'], true),
+    'enable_security_group'     => pick($neutron_advanced_config['neutron_security_group'], true),
+    'enable_vpn'                => pick($neutron_advanced_config['neutron_vpn'], false),
+    'enable_distributed_router' => pick($neutron_advanced_config['neutron_dvr'], false),
+    'enable_ha_router'          => pick($neutron_advanced_config['neutron_ha_router'], false),
+    'profile_support'           => pick($neutron_advanced_config['neutron_profile_support'], 'None'),
+  }
   $hypervisor_options = {'enable_quotas' => hiera('nova_quota')}
 
   $temp_root_default = '/var/lib/horizon'
