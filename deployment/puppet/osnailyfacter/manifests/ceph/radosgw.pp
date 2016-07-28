@@ -42,6 +42,8 @@ class osnailyfacter::ceph::radosgw {
 
     ceph::key { "client.${gateway_name}":
       keyring_path => "/etc/ceph/client.${gateway_name}",
+      user         => 'ceph',
+      group        => 'ceph',
       secret       => $radosgw_key,
       cap_mon      => 'allow rw',
       cap_osd      => 'allow rwx',
