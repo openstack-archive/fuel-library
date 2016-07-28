@@ -97,7 +97,7 @@
 - id: disable_keystone_service_token
   type: puppet
   version: 2.0.0
-  role: [primary-controller, controller]
+  groups: [primary-keystone, keystone]
   requires: [upload_cirros]
   required_for: [post_deployment_end]
   condition:
