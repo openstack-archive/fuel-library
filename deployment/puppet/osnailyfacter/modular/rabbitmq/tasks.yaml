@@ -51,3 +51,19 @@
         yaql_exp: *rabbitmq_strategy
   test_post:
     cmd: ruby /etc/puppet/modules/osnailyfacter/modular/rabbitmq/rabbitmq_post.rb
+
+- id: rabbitmq-firewall
+  type: puppet
+  version: 2.1.0
+  groups: [modular-rabbitmq]
+  condition:
+    yaql_exp: >
+      changedAny($.network_scheme, $.network_metadata,
+      ($.ironic.enabled and changed($.ironic.enabled)), $.roles, $.master_ip)
+  requires: [hosts, globals, firewall]
+  required_for: [deploy_end, cluster, primary-cluster,
+    rabbitmq, primary-rabbitmq]
+  parameters:
+    puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/rabbitmq/rabbitmq_firewall.pp
+    puppet_modules: /etc/puppet/modules
+  timeout: 3600
