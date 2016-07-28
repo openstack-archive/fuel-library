@@ -140,7 +140,7 @@ class osnailyfacter::globals::globals {
     $ceph_tuning_settings = {
       'max_open_files'                       => pick($storage_tuning_settings['max_open_files'], '131072'),
       'osd_mkfs_type'                        => pick($storage_tuning_settings['osd_mkfs_type'], 'xfs'),
-      'osd_mount_options_xfs'                => pick($storage_tuning_settings['osd_mount_options_xfs'], 'rw,relatime,inode64,logbsize=256k,delaylog,allocsize=4M'),
+      'osd_mount_options_xfs'                => pick($storage_tuning_settings['osd_mount_options_xfs'], 'rw,relatime,inode64,logbsize=256k,allocsize=4M'),
       'osd_op_threads'                       => pick($storage_tuning_settings['osd_op_threads'], '20'),
       'filestore_queue_max_ops'              => pick($storage_tuning_settings['filestore_queue_max_ops'], '500'),
       'filestore_queue_committing_max_ops'   => pick($storage_tuning_settings['filestore_queue_committing_max_ops'], '5000'),
