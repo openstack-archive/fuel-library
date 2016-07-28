@@ -205,19 +205,13 @@ class osnailyfacter::firewall::firewall {
     action => 'accept',
   }
 
-  # Role-related rules
-  if member($roles, 'primary-controller') or member($roles, 'controller') {
 
+  # Role-related rules
+  $amqp_role = intersection($roles, hiera('amqp_roles'))
+  if $amqp_role {
     # Workaround for fuel bug with firewall
     firewall {'003 remote rabbitmq ':
       sport  => [ 4369, 5672, 41055, 55672, 61613 ],
-      source => hiera('master_ip'),
-      proto  => 'tcp',
-      action => 'accept',
-    }
-
-    firewall {'004 remote puppet ':
-      sport  => [ 8140 ],
       source => hiera('master_ip'),
       proto  => 'tcp',
       action => 'accept',
@@ -236,6 +230,48 @@ class osnailyfacter::firewall::firewall {
       sport  => [ 15672 ],
       proto  => 'tcp',
       action => 'drop',
+    }
+
+    openstack::firewall::multi_net {'106 rabbitmq':
+      port        => [$erlang_epmd_port, $erlang_rabbitmq_port, $erlang_rabbitmq_backend_port, $erlang_inet_dist_port],
+      proto       => 'tcp',
+      action      => 'accept',
+      source_nets => $rabbitmq_networks,
+    }
+
+  }
+
+  $corosync_role = intersection($roles, hiera('corosync_roles'))
+  if $corosync_role {
+    openstack::firewall::multi_net {'113 corosync-input':
+      port        => $corosync_input_port,
+      proto       => 'udp',
+      action      => 'accept',
+      source_nets => $corosync_networks,
+    }
+
+    openstack::firewall::multi_net {'114 corosync-output':
+      port        => $corosync_output_port,
+      proto       => 'udp',
+      action      => 'accept',
+      source_nets => $corosync_networks,
+    }
+
+    openstack::firewall::multi_net {'115 pcsd-server':
+      port        => $pcsd_port,
+      proto       => 'tcp',
+      action      => 'accept',
+      source_nets => $corosync_networks,
+    }
+  }
+
+  $controller_role = intersection($roles, ['primary-controller', 'controller'])
+  if $controller_role {
+    firewall {'004 remote puppet ':
+      sport  => [ 8140 ],
+      source => hiera('master_ip'),
+      proto  => 'tcp',
+      action => 'accept',
     }
 
     # allow connections from haproxy namespace
@@ -289,13 +325,6 @@ class osnailyfacter::firewall::firewall {
       source_nets => $nova_networks,
     }
 
-    openstack::firewall::multi_net {'106 rabbitmq':
-      port        => [$erlang_epmd_port, $erlang_rabbitmq_port, $erlang_rabbitmq_backend_port, $erlang_inet_dist_port],
-      proto       => 'tcp',
-      action      => 'accept',
-      source_nets => $rabbitmq_networks,
-    }
-
     openstack::firewall::multi_net {'107 memcache tcp':
       port        => $memcached_port,
       proto       => 'tcp',
@@ -344,27 +373,6 @@ class osnailyfacter::firewall::firewall {
       action => 'accept',
     }
 
-    openstack::firewall::multi_net {'113 corosync-input':
-      port        => $corosync_input_port,
-      proto       => 'udp',
-      action      => 'accept',
-      source_nets => $corosync_networks,
-    }
-
-    openstack::firewall::multi_net {'114 corosync-output':
-      port        => $corosync_output_port,
-      proto       => 'udp',
-      action      => 'accept',
-      source_nets => $corosync_networks,
-    }
-
-    openstack::firewall::multi_net {'115 pcsd-server':
-      port        => $pcsd_port,
-      proto       => 'tcp',
-      action      => 'accept',
-      source_nets => $corosync_networks,
-    }
-
     openstack::firewall::multi_net {'116 openvswitch db':
       port        => $openvswitch_db_port,
       proto       => 'udp',
@@ -411,7 +419,6 @@ class osnailyfacter::firewall::firewall {
   }
 
   if member($roles, 'compute') {
-
     openstack::firewall::multi_net {'105 nova vnc':
       port        => $nova_api_vnc_ports,
       proto       => 'tcp',
@@ -434,7 +441,7 @@ class osnailyfacter::firewall::firewall {
     }
   }
 
-  if member($roles, 'primary-mongo') or member($roles, 'mongo') {
+  if intersection($roles, hiera('mongo_roles')) {
     firewall {'120 mongodb':
       dport  => $mongodb_port,
       proto  => 'tcp',
@@ -463,7 +470,7 @@ class osnailyfacter::firewall::firewall {
       jump    => 'baremetal',
     }
 
-    if member($roles, 'controller') or member($roles, 'primary-controller') {
+    if $controller_role {
       firewall { '100 allow baremetal ping from VIP':
         chain       => 'baremetal',
         source      => $baremetal_vip,
@@ -523,7 +530,7 @@ class osnailyfacter::firewall::firewall {
       $storage_hash['objects_ceph'] or
       $storage_hash['ephemeral_ceph']
   ) {
-    if member($roles, 'primary-controller') or member($roles, 'controller') {
+    if $controller_role {
       firewall {'010 ceph-mon allow':
         chain  => 'INPUT',
         dport  => $ceph_mon_port,
@@ -542,7 +549,7 @@ class osnailyfacter::firewall::firewall {
     }
 
     if $storage_hash['objects_ceph'] {
-      if member($roles, 'primary-controller') or member($roles, 'controller') {
+      if $controller_role {
         firewall {'012 RadosGW allow':
           chain  => 'INPUT',
           dport  => [ $radosgw_port, $swift_proxy_port ],
