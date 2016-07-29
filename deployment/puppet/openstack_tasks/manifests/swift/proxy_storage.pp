@@ -55,148 +55,145 @@ class openstack_tasks::swift::proxy_storage {
   $swift_proxies_num = size(hiera('swift_proxies'))
 
 # Use Swift if it isn't replaced by vCenter, Ceph for BOTH images and objects
-  if !($storage_hash['images_ceph'] and $storage_hash['objects_ceph']) and !$storage_hash['images_vcenter'] {
-    $master_swift_proxy_nodes      = get_nodes_hash_by_roles($network_metadata, [$swift_master_role])
-    $master_swift_proxy_nodes_list = values($master_swift_proxy_nodes)
-    $master_swift_proxy_ip         = regsubst($master_swift_proxy_nodes_list[0]['network_roles']['swift/api'], '\/\d+$', '')
-    $master_swift_replication_ip   = regsubst($master_swift_proxy_nodes_list[0]['network_roles']['swift/replication'], '\/\d+$', '')
-    $swift_partition               = hiera('swift_partition', '/var/lib/glance/node')
+  $master_swift_proxy_nodes      = get_nodes_hash_by_roles($network_metadata, [$swift_master_role])
+  $master_swift_proxy_nodes_list = values($master_swift_proxy_nodes)
+  $master_swift_proxy_ip         = regsubst($master_swift_proxy_nodes_list[0]['network_roles']['swift/api'], '\/\d+$', '')
+  $master_swift_replication_ip   = regsubst($master_swift_proxy_nodes_list[0]['network_roles']['swift/replication'], '\/\d+$', '')
+  $swift_partition               = hiera('swift_partition', '/var/lib/glance/node')
 
-    if $is_primary_swift_proxy {
-      ring_devices {'all':
-        storages => $swift_nodes,
-        require  => Class['swift'],
-      }
+  if $is_primary_swift_proxy {
+    ring_devices {'all':
+      storages => $swift_nodes,
+      require  => Class['swift'],
+    }
+  }
+
+  if ($swift_proxies_num < 2) {
+    $ring_replicas = 2
+  } else {
+    $ring_replicas = 3
+  }
+
+  if $deploy_swift_proxy {
+    class { 'openstack_tasks::swift::parts::proxy':
+      swift_user_password            => $swift_hash['user_password'],
+      swift_operator_roles           => $swift_operator_roles,
+      memcached_servers              => $memcached_servers,
+      ring_part_power                => $ring_part_power,
+      ring_replicas                  => $ring_replicas,
+      primary_proxy                  => $is_primary_swift_proxy,
+      swift_proxy_local_ipaddr       => $swift_api_ipaddr,
+      swift_replication_local_ipaddr => $swift_storage_ipaddr,
+      master_swift_proxy_ip          => $master_swift_proxy_ip,
+      master_swift_replication_ip    => $master_swift_replication_ip,
+      proxy_port                     => $proxy_port,
+      proxy_workers                  => $service_workers,
+      debug                          => $debug,
+      verbose                        => $verbose,
+      log_facility                   => 'LOG_SYSLOG',
+      ceilometer                     => hiera('use_ceilometer',false),
+      ring_min_part_hours            => $ring_min_part_hours,
+      admin_user                     => $keystone_user,
+      admin_tenant_name              => $keystone_tenant,
+      admin_password                 => $keystone_password,
+      auth_host                      => $internal_auth_address,
+      auth_protocol                  => $internal_auth_protocol,
+      auth_uri                       => $auth_uri,
+      identity_uri                   => $identity_uri,
+      rabbit_user                    => $rabbit_hash['user'],
+      rabbit_password                => $rabbit_hash['password'],
+      rabbit_hosts                   => split($rabbit_hosts, ', '),
     }
 
-    if ($swift_proxies_num < 2) {
-      $ring_replicas = 2
+    # Check swift proxy and internal VIP are from the same IP network. If no
+    # then it's possible to get network failure, so proxy couldn't access
+    # Keystone via VIP. In such cases swift health check returns OK, but all
+    # requests forwarded from HAproxy fail, see LP#1459772 In order to detect
+    # such bad swift backends we enable a service which checks Keystone
+    # availability from swift node. HAProxy monitors that service to get
+    # proper backend status.
+    # NOTE: this is the same logic in the HAproxy configuration so if it's
+    # updated there, this must be updated. See LP#1548275
+    $swift_api_network = get_network_role_property('swift/api', 'network')
+    $bind_to_one       = has_ip_in_network($management_vip, $swift_api_network)
+
+    if !$bind_to_one {
+      $storage_nets = get_routable_networks_for_network_role($network_scheme, 'swift/replication', ' ')
+      $mgmt_nets = get_routable_networks_for_network_role($network_scheme, 'swift/api', ' ')
+
+      class { 'openstack_tasks::swift::parts::status':
+        endpoint    => "${swift_internal_protocol}://${swift_internal_address}:${proxy_port}",
+        scan_target => "${internal_auth_address}:5000",
+        only_from   => "127.0.0.1 240.0.0.2 ${storage_nets} ${mgmt_nets}",
+        con_timeout => 5
+      }
+
+      Class['openstack_tasks::swift::parts::status'] -> Class['swift::dispersion']
+    }
+
+    class { 'swift::dispersion':
+      auth_url     => "${internal_auth_protocol}://${internal_auth_address}:5000/v2.0/",
+      auth_user    =>  $keystone_user,
+      auth_tenant  =>  $keystone_tenant,
+      auth_pass    =>  $keystone_password,
+      auth_version =>  '2.0',
+    }
+
+    Class['openstack_tasks::swift::parts::proxy'] -> Class['swift::dispersion']
+    Service<| tag == 'swift-service' |> -> Class['swift::dispersion']
+  }
+
+  if $deploy_swift_storage {
+    if !defined(File['/var/lib/glance']) {
+      file {'/var/lib/glance':
+        ensure  => 'directory',
+        group   => 'swift',
+        require => Package['swift'],
+      } -> Service <| tag == 'swift-service' |>
     } else {
-      $ring_replicas = 3
+      File['/var/lib/glance'] {
+        ensure  => 'directory',
+        group   => 'swift',
+        require +> Package['swift'],
+      }
+      File['/var/lib/glance'] -> Service <| tag == 'swift-service' |>
     }
 
-    if $deploy_swift_proxy {
-      class { 'openstack_tasks::swift::parts::proxy':
-        swift_user_password            => $swift_hash['user_password'],
-        swift_operator_roles           => $swift_operator_roles,
-        memcached_servers              => $memcached_servers,
-        ring_part_power                => $ring_part_power,
-        ring_replicas                  => $ring_replicas,
-        primary_proxy                  => $is_primary_swift_proxy,
-        swift_proxy_local_ipaddr       => $swift_api_ipaddr,
-        swift_replication_local_ipaddr => $swift_storage_ipaddr,
-        master_swift_proxy_ip          => $master_swift_proxy_ip,
-        master_swift_replication_ip    => $master_swift_replication_ip,
-        proxy_port                     => $proxy_port,
-        proxy_workers                  => $service_workers,
-        debug                          => $debug,
-        verbose                        => $verbose,
-        log_facility                   => 'LOG_SYSLOG',
-        ceilometer                     => hiera('use_ceilometer',false),
-        ring_min_part_hours            => $ring_min_part_hours,
-        admin_user                     => $keystone_user,
-        admin_tenant_name              => $keystone_tenant,
-        admin_password                 => $keystone_password,
-        auth_host                      => $internal_auth_address,
-        auth_protocol                  => $internal_auth_protocol,
-        auth_uri                       => $auth_uri,
-        identity_uri                   => $identity_uri,
-        rabbit_user                    => $rabbit_hash['user'],
-        rabbit_password                => $rabbit_hash['password'],
-        rabbit_hosts                   => split($rabbit_hosts, ', '),
-      }
-
-      # Check swift proxy and internal VIP are from the same IP network. If no
-      # then it's possible to get network failure, so proxy couldn't access
-      # Keystone via VIP. In such cases swift health check returns OK, but all
-      # requests forwarded from HAproxy fail, see LP#1459772 In order to detect
-      # such bad swift backends we enable a service which checks Keystone
-      # availability from swift node. HAProxy monitors that service to get
-      # proper backend status.
-      # NOTE: this is the same logic in the HAproxy configuration so if it's
-      # updated there, this must be updated. See LP#1548275
-      $swift_api_network = get_network_role_property('swift/api', 'network')
-      $bind_to_one       = has_ip_in_network($management_vip, $swift_api_network)
-
-      if !$bind_to_one {
-        $storage_nets = get_routable_networks_for_network_role($network_scheme, 'swift/replication', ' ')
-        $mgmt_nets = get_routable_networks_for_network_role($network_scheme, 'swift/api', ' ')
-
-        class { 'openstack_tasks::swift::parts::status':
-          endpoint    => "${swift_internal_protocol}://${swift_internal_address}:${proxy_port}",
-          scan_target => "${internal_auth_address}:5000",
-          only_from   => "127.0.0.1 240.0.0.2 ${storage_nets} ${mgmt_nets}",
-          con_timeout => 5
-        }
-
-        Class['openstack_tasks::swift::parts::status'] -> Class['swift::dispersion']
-      }
-
-      class { 'swift::dispersion':
-        auth_url       => "${internal_auth_protocol}://${internal_auth_address}:5000/v2.0/",
-        auth_user      =>  $keystone_user,
-        auth_tenant    =>  $keystone_tenant,
-        auth_pass      =>  $keystone_password,
-        auth_version   =>  '2.0',
-      }
-
-      Class['openstack_tasks::swift::parts::proxy'] -> Class['swift::dispersion']
-      Service<| tag == 'swift-service' |> -> Class['swift::dispersion']
+    class { 'openstack_tasks::swift::parts::storage_node':
+      storage_type                => false,
+      loopback_size               => '5243780',
+      storage_mnt_base_dir        => $swift_partition,
+      storage_devices             => filter_hash($mp_hash,'point'),
+      swift_zone                  => $master_swift_proxy_nodes_list[0]['swift_zone'],
+      swift_local_net_ip          => $swift_storage_ipaddr,
+      master_swift_proxy_ip       => $master_swift_proxy_ip,
+      master_swift_replication_ip => $master_swift_replication_ip,
+      sync_rings                  => ! $is_primary_swift_proxy,
+      debug                       => $debug,
+      verbose                     => $verbose,
+      log_facility                => 'LOG_SYSLOG',
     }
 
-    if $deploy_swift_storage {
-      if !defined(File['/var/lib/glance']) {
-        file {'/var/lib/glance':
-          ensure  => 'directory',
-          group   => 'swift',
-          require => Package['swift'],
-        } -> Service <| tag == 'swift-service' |>
-      } else {
-        File['/var/lib/glance'] {
-          ensure  => 'directory',
-          group   => 'swift',
-          require +> Package['swift'],
-        }
-        File['/var/lib/glance'] -> Service <| tag == 'swift-service' |>
-      }
-
-      class { 'openstack_tasks::swift::parts::storage_node':
-        storage_type                => false,
-        loopback_size               => '5243780',
-        storage_mnt_base_dir        => $swift_partition,
-        storage_devices             => filter_hash($mp_hash,'point'),
-        swift_zone                  => $master_swift_proxy_nodes_list[0]['swift_zone'],
-        swift_local_net_ip          => $swift_storage_ipaddr,
-        master_swift_proxy_ip       => $master_swift_proxy_ip,
-        master_swift_replication_ip => $master_swift_replication_ip,
-        sync_rings                  => ! $is_primary_swift_proxy,
-        debug                       => $debug,
-        verbose                     => $verbose,
-        log_facility                => 'LOG_SYSLOG',
-      }
-
-      service { 'swift-container-reconciler':
-        ensure  => stopped,
-        enable  => false,
-        require => Package['swift-container'],
-      }
-      service { 'swift-object-reconstructor':
-        ensure  => stopped,
-        enable  => false,
-        require => Package['swift-object'],
-      }
+    service { 'swift-container-reconciler':
+      ensure  => stopped,
+      enable  => false,
+      require => Package['swift-container'],
     }
-
-    # swift_container_sync_realms file specifying
-    # the allowable clusters and their information.
-    # Changes in this file don't require restart services.
-    # This config should be present on proxy and containers nodes.
-    if $deploy_swift_storage or $deploy_swift_proxy {
-      swift_container_sync_realms_config {
-        'realm1/key':           value => $swift_realm1_key;
-        'realm1/cluster_name1': value => "${swift_public_protocol}://${swift_public_address}:8080/v1";
-      }
+    service { 'swift-object-reconstructor':
+      ensure  => stopped,
+      enable  => false,
+      require => Package['swift-object'],
     }
+  }
 
+  # swift_container_sync_realms file specifying
+  # the allowable clusters and their information.
+  # Changes in this file don't require restart services.
+  # This config should be present on proxy and containers nodes.
+  if $deploy_swift_storage or $deploy_swift_proxy {
+    swift_container_sync_realms_config {
+      'realm1/key':           value => $swift_realm1_key;
+      'realm1/cluster_name1': value => "${swift_public_protocol}://${swift_public_address}:8080/v1";
+    }
   }
 }
