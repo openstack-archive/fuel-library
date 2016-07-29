@@ -77,6 +77,17 @@ class osnailyfacter::ceph::radosgw {
       log_file           => undef,
     }
 
+    if $::operatingsystemmajrelease == '16.04' {
+      # TODO(aschultz): ubuntu ceph packages have different service names
+      # than the upstream ceph packages
+      # Remove this when https://review.openstack.org/349051 is merged.
+      Service<| title == "radosgw-${gateway_name}" |> {
+        start  => 'systemctl start radosgw',
+        stop   => 'systemctl stop radosgw',
+        status => 'systemctl status radosgw',
+      }
+    }
+
     ceph::rgw::keystone { $gateway_name:
       rgw_keystone_url                 => $admin_identity_url,
       rgw_keystone_admin_token         => $keystone_hash['admin_token'],
