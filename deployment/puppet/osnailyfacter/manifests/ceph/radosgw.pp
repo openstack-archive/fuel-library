@@ -40,6 +40,23 @@ class osnailyfacter::ceph::radosgw {
       fail('Please provide radosgw_key')
     }
 
+    group { 'ceph':
+      ensure   => "present",
+      system   => true,
+      gid      => 64045,
+      provider => "groupadd",
+    }
+
+    user { 'ceph':
+      ensure  => "present",
+      system  => true,
+      gid     => 'ceph',
+      uid      => 64045,
+      home    => "/",
+      shell   => "/bin/false",
+      require => Group['ceph'],
+    }
+
     ceph::key { "client.${gateway_name}":
       keyring_path => "/etc/ceph/client.${gateway_name}",
       user         => 'ceph',
@@ -48,6 +65,7 @@ class osnailyfacter::ceph::radosgw {
       cap_mon      => 'allow rw',
       cap_osd      => 'allow rwx',
       inject       => true,
+      require      => User['ceph'],
     }
 
     class { 'ceph':
