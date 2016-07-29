@@ -12,7 +12,7 @@ class osnailyfacter::openstack_haproxy::openstack_haproxy_radosgw {
   $external_lb      = hiera('external_lb', false)
 
   if !$external_lb {
-    if !($storage_hash['images_ceph'] and $storage_hash['objects_ceph']) and !$storage_hash['images_vcenter'] {
+    if (!$storage_hash['objects_ceph'] and !$storage_hash['images_vcenter']) {
       $use_swift = true
     } else {
       $use_swift = false
