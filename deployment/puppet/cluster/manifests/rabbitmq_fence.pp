@@ -100,4 +100,12 @@ class cluster::rabbitmq_fence(
       onlyif  => 'grep \'PIDFILE=/var/run/corosync.pid\' /etc/init.d/corosync-notifyd',
     }
   }
+
+  if $::service_provider == 'systemd' {
+    exec{'systemctl daemon-reload':
+      path    => [ '/bin', '/usr/bin' ],
+      require => Package['fuel-rabbit-fence'],
+      before  => Service['rabbit-fence']
+    }
+  }
 }
