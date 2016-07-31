@@ -76,6 +76,14 @@ class cluster::rabbitmq_fence(
     require => Package['rabbitmq-server'],
   }
 
+  if $::service_provider == 'systemd' {
+    exec{'systemctl daemon-reload':
+      path    => [ '/bin', '/usr/bin' ],
+      require => Package['fuel-rabbit-fence'],
+      before  => Service['rabbit-fence']
+    }
+  }
+
   if $::osfamily == 'Debian' {
     Exec {
       path   => [ '/bin', '/usr/bin' ],
