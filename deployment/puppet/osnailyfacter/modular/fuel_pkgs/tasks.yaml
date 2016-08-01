@@ -15,7 +15,8 @@
   type: puppet
   version: 2.2.0
   tags: [primary-controller, controller, cinder, cinder-block-device, cinder-vmware, compute, ceph-osd,
-         primary-mongo, mongo, ironic, primary-rabbitmq, rabbitmq, primary-database, database]
+         primary-mongo, mongo, ironic, primary-rabbitmq, rabbitmq, primary-database, database,
+         primary-keystone, keystone]
   requires: [setup_repositories]
   required_for: [globals]
   condition:
