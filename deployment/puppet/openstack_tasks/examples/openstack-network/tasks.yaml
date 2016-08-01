@@ -11,6 +11,7 @@
       role: self
   cross-depended-by:
     - name: openstack-network-end
+      role: self
   parameters:
     puppet_manifest: /etc/puppet/modules/openstack_tasks/examples/openstack-network/db.pp
     puppet_modules: /etc/puppet/modules
@@ -18,18 +19,18 @@
 
 - id: neutron-keystone
   type: puppet
-  version: 2.1.0
-  groups: [primary-controller]
   required_for: [openstack-network-end]
-  requires: [primary-keystone, keystone]
+  version: 2.2.0
+  tags: [primary-keystone]
+  required_for: [openstack-network-end]
+  cross-depends:
+    - name: /^(primary-)?keystone$/
+      role: self
   condition:
     yaql_exp: >
       changedAny($.quantum, $.quantum_settings,
       $.network_metadata.vips, $.public_ssl, $.get('use_ssl'),
       $.get('region', 'RegionOne'))
-  cross-depends:
-    - name: keystone
-      role: self
   parameters:
     puppet_manifest: /etc/puppet/modules/openstack_tasks/examples/openstack-network/keystone.pp
     puppet_modules: /etc/puppet/modules
@@ -40,7 +41,7 @@
   type: skipped
   version: 2.0.0
   groups: [primary-controller,controller,compute]
-  requires: [neutron-keystone, neutron-db, netconfig, primary-openstack-controller, openstack-controller, top-role-compute]
+  requires: [neutron-db, netconfig, primary-openstack-controller, openstack-controller, top-role-compute]
   required_for: [openstack-network-common-config]
   cross-depends:
     - name: neutron-keystone
@@ -127,10 +128,16 @@
 
 - id: openstack-network-networks
   type: puppet
-  version: 2.1.0
-  groups: [primary-controller]
-  required_for: [openstack-network-end]
-  requires: [openstack-network-start, openstack-network-common-config, openstack-network-server-config, primary-openstack-network-plugins-l2]
+  version: 2.2.0
+  tags: [primary-keystone]
+  cross-depends:
+    - name: openstack-network-start
+      role: self
+    - name: openstack-network-common-config
+    - name: openstack-network-server-config
+    - name: primary-openstack-network-plugins-l2
+  cross-depended-by:
+    - name: openstack-network-end
   condition:
     yaql_exp: "changedAny($.access, $.quantum_settings, $.quantum)"
   parameters:
@@ -140,14 +147,18 @@
 
 - id: openstack-network-routers
   type: puppet
-  version: 2.1.0
-  groups: [primary-controller]
+  version: 2.2.0
+  tags: [primary-keystone]
+  cross-depends:
+    - name: openstack-network-start
+      role: self
+    - name: openstack-network-networks
+  cross-depended-by:
+    - name: openstack-network-end
   condition:
     yaql_exp: >
       not $.neutron_advanced_configuration.neutron_l3_ha and
       changed($.neutron_advanced_configuration.neutron_l3_ha)
-  required_for: [openstack-network-end]
-  requires: [openstack-network-start, openstack-network-networks]
   parameters:
     puppet_manifest: /etc/puppet/modules/openstack_tasks/examples/openstack-network/routers.pp
     puppet_modules: /etc/puppet/modules
@@ -157,8 +168,8 @@
 # HA routers must be created on post-deployment step when all L3 agents are available
 - id: openstack-network-routers-ha
   type: puppet
-  version: 2.1.0
-  role: [primary-controller]
+  version: 2.2.0
+  tags: [primary-keystone]
   condition:
     yaql_exp: >
       $.neutron_advanced_configuration.neutron_l3_ha and
@@ -173,10 +184,20 @@
 
 - id: primary-openstack-network-agents-l3
   type: puppet
-  version: 2.1.0
-  groups: [primary-controller]
-  required_for: [openstack-network-end]
-  requires: [openstack-network-start, openstack-network-networks, openstack-network-routers, primary-openstack-network-plugins-l2, openstack-network-plugins-l2]
+  version: 2.2.0
+  tags: [primary-controller]
+  cross-depends:
+    - name: /^(primary-)?openstack-network-plugins-l2$/
+      role: self
+    - name: openstack-network-start
+      role: self
+    - name: openstack-network-networks
+      role: self
+    - name: openstack-network-routers
+      role: self
+  cross-depended-by:
+    - name: openstack-network-end
+      role: self
   refresh_on: [neutron_l3_agent_config]
   condition:
     yaql_exp: &network_agents_l3 >
@@ -192,17 +213,23 @@
 
 - id: openstack-network-agents-l3
   type: puppet
-  version: 2.1.0
-  groups: [controller,compute]
-  required_for: [openstack-network-end]
-  requires: [openstack-network-start, openstack-network-networks, openstack-network-routers, primary-openstack-network-plugins-l2, openstack-network-plugins-l2]
-  condition:
-    yaql_exp: *network_agents_l3
-  refresh_on: [neutron_l3_agent_config]
+  version: 2.2.0
+  tags: [controller,compute]
+
   cross-depends:
+    - name: openstack-network-start
+      role: self
+    - name: openstack-network-networks
+    - name: openstack-network-routers
     - name: /(primary-)?openstack-network-plugins-l2/
       role: ["/(primary-)?controller/"]
     - name: primary-openstack-network-agents-l3
+  cross-depended-by:
+    - name: openstack-network-end
+      role: self
+  condition:
+    yaql_exp: *network_agents_l3
+  refresh_on: [neutron_l3_agent_config]
   parameters:
     puppet_manifest: /etc/puppet/modules/openstack_tasks/examples/openstack-network/agents/l3.pp
     puppet_modules: /etc/puppet/modules
