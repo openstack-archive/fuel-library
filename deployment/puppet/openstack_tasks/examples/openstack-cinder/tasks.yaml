@@ -50,13 +50,13 @@
 
 - id: cinder-keystone
   type: puppet
-  version: 2.1.0
-  groups: [primary-controller]
-  required_for: [openstack-cinder]
+  version: 2.2.0
+  tags: [primary-keystone]
   cross-depends:
-    - name: keystone
+    - name: /^(primary-)?keystone$/
       role: self
-  requires: [primary-keystone, keystone]
+  cross-depended-by:
+    - name: openstack-cinder
   condition:
     yaql_exp: >
       changedAny($.cinder, $.public_ssl, $.get('use_ssl'),

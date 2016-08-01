@@ -45,17 +45,17 @@
 
 - id: ironic-keystone
   type: puppet
-  version: 2.1.0
-  groups: [primary-controller]
+  version: 2.2.0
+  tags: [primary-keystone]
+  cross-depends:
+    - name: /^(primary-)?keystone$/
+      role: self
+  cross-depended-by:
+    - name: ironic-api
   condition:
     yaql_exp: >
       $.ironic.enabled and changedAny($.ironic, $.network_metadata.vips,
       $.public_ssl, $.get('region', 'RegionOne'))
-  required_for: [ironic-api]
-  requires: [primary-keystone, keystone]
-  cross-depends:
-    - name: keystone
-      role: self
   parameters:
     puppet_manifest: /etc/puppet/modules/openstack_tasks/examples/ironic/keystone.pp
     puppet_modules: /etc/puppet/modules
