@@ -275,6 +275,16 @@ class osnailyfacter::firewall::firewall {
     }
   }
 
+  $keystone_role = intersection($roles, hiera('keystone_roles'))
+  if $keystone_role {
+    openstack::firewall::multi_net {'102 keystone':
+      port        => [$keystone_public_port, $keystone_admin_port],
+      proto       => 'tcp',
+      action      => 'accept',
+      source_nets => $keystone_networks,
+    }
+  }
+
   $controller_role = intersection($roles, ['primary-controller', 'controller'])
   if $controller_role {
     firewall {'004 remote puppet ':
@@ -294,13 +304,6 @@ class osnailyfacter::firewall::firewall {
       dport  => [$http_port, $https_port],
       proto  => 'tcp',
       action => 'accept',
-    }
-
-    openstack::firewall::multi_net {'102 keystone':
-      port        => [$keystone_public_port, $keystone_admin_port],
-      proto       => 'tcp',
-      action      => 'accept',
-      source_nets => $keystone_networks,
     }
 
     firewall {'103 swift':
