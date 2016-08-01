@@ -15,10 +15,22 @@
 
 - id: top-role-compute
   type: puppet
-  version: 2.1.0
-  groups: [compute]
+  version: 2.2.0
+  tags: [compute]
   required_for: [enable_nova_compute_service]
   requires: [hosts, firewall]
+  cross-depends:
+    - name: keystone
+    - name: /(primary-)?openstack-controller/
+    - name: /^(primary-)?rabbitmq$/
+    - name: memcached
+    - name: hosts
+      role: self
+    - name: firewall
+      role: self
+  cross-depended-by:
+    - name: enable_nova_compute_service
+      role: self
   condition:
     yaql_exp: &top_compute >
       changedAny($.network_scheme, $.configuration, $.get('compute', ''),
@@ -45,11 +57,6 @@
       $.network_metadata.nodes.values().where(
         $.network_roles.get('mgmt/messaging') != null),
       $.resume_guests_state_on_host_boot, $.use_cow_images)
-  cross-depends:
-    - name: keystone
-    - name: /^(primary-)?openstack-controller$/
-    - name: /^(primary-)?rabbitmq$/
-    - name: memcached
   refresh_on: [nova_config, nova_paste_api_ini]
   parameters:
     puppet_manifest: /etc/puppet/modules/openstack_tasks/examples/roles/compute.pp
