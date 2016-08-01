@@ -68,11 +68,20 @@
     timeout: 300
 
 - id: ceph-radosgw
-  version: 2.1.0
+  version: 2.2.0
   type: puppet
-  groups: [primary-controller, controller]
+  tags: [primary-controller, controller]
   required_for: [deploy_end]
   requires: [radosgw-keystone, apache, keystone, ceph-mon]
+  cross-depends:
+    - name: radosgw-keystone
+    - name: apache
+      role: self
+    - name: ceph-mon
+      role: self
+  cross-depended-by:
+    - name: deploy_end
+      role: self
   condition:
     yaql_exp:
       $.storage.objects_ceph and
@@ -92,17 +101,21 @@
 
 - id: radosgw-keystone
   type: puppet
-  version: 2.1.0
-  groups: [primary-controller]
+  version: 2.2.0
+  tags: [primary-keystone]
   required_for: [ceph-radosgw]
   requires: [keystone, primary-mon-update]
+  cross-depends:
+    - name: /^(primary-)?keystone$/
+      role: self
+    - name: primary-mon-update
+  cross-depended-by:
+    - name: ceph-radosgw
   condition:
     yaql_exp:
       $.storage.objects_ceph and
       changedAny($.storage, $.network_metadata.vips,
       $.get('region', 'RegionOne'), $.public_ssl, $.get('use_ssl'))
-  cross-depends:
-    - name: keystone
   parameters:
     puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/ceph/radosgw_keystone.pp
     puppet_modules: /etc/puppet/modules

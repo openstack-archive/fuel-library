@@ -30,13 +30,15 @@
 
 - id: aodh-keystone
   type: puppet
-  version: 2.1.0
-  groups: [primary-controller]
+  version: 2.2.0
+  tags: [primary-keystone]
   required_for: [aodh]
   requires: [primary-keystone, keystone]
   cross-depends:
-    - name: keystone
+    - name: /^(primary-)?keystone$/
       role: self
+  cross-depended-by:
+    - name: aodh
   condition:
     yaql_exp: >
       $.ceilometer.enabled and changedAny($.aodh, $.network_metadata.vips,

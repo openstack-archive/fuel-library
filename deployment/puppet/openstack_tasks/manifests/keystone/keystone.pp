@@ -32,7 +32,7 @@ class openstack_tasks::keystone::keystone {
   $service_workers       = pick($keystone_hash['workers'],
                                 min(max($::processorcount, 2), $workers_max))
   $default_log_levels    = hiera_hash('default_log_levels')
-  $primary_controller    = hiera('primary_controller')
+  $primary_keystone      = has_primary_role(intersection(hiera('keystone_roles'), hiera('roles')))
   $kombu_compression     = hiera('kombu_compression', $::os_service_default)
 
   $default_role = '_member_'
@@ -179,7 +179,7 @@ class openstack_tasks::keystone::keystone {
 
   ###############################################################################
 
-  if $primary_controller {
+  if $primary_keystone {
 
     keystone_role { "$default_role":
       ensure => present,
@@ -314,7 +314,7 @@ class openstack_tasks::keystone::keystone {
       use_syslog                         => $use_syslog,
       use_stderr                         => $use_stderr,
       database_idle_timeout              => $database_idle_timeout,
-      sync_db                            => $primary_controller,
+      sync_db                            => $primary_keystone,
       rabbit_password                    => $rabbit_password,
       rabbit_userid                      => $rabbit_user,
       rabbit_hosts                       => $rabbit_hosts,
