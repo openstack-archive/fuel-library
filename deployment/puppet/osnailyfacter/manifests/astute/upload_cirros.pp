@@ -10,6 +10,11 @@ class osnailyfacter::astute::upload_cirros {
 
   notice('MODULAR: astute/upload_cirros.pp')
 
+  package { 'cirros-testvm' :
+      ensure => 'installed',
+      name   => 'cirros-testvm',
+  }
+
   $test_vm_images = hiera('test_vm_image')
   $glance_images = generate_glance_images(flatten([$test_vm_images]))
   $defaults = {
@@ -20,5 +25,5 @@ class osnailyfacter::astute::upload_cirros {
 
   create_resources(glance_image, $glance_images, $defaults)
 
-  Class['osnailyfacter::wait_for_glance_backends'] -> Glance_image<||>
+  Class['osnailyfacter::wait_for_glance_backends'] -> Package['cirros-testvm'] -> Glance_image<||>
 }

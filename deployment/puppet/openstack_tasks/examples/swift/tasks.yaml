@@ -69,9 +69,14 @@
 
 - id: swift-keystone
   type: puppet
-  version: 2.1.0
-  groups: [primary-controller]
+  version: 2.2.0
+  tags: [primary-keystone]
+  requires: [primary-keystone]
   required_for: [swift-proxy_storage]
+  cross-depends:
+    - name: /^(primary-)?keystone$/
+  cross-depended-by:
+    - name: swift-proxy_storage
   condition:
     yaql_exp: >
       ((not $.storage.objects_ceph and not $.storage.images_ceph) and
