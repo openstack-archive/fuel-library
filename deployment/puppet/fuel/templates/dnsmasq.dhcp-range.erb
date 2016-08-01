@@ -1,4 +1,5 @@
 <% if @file_header %><%= @file_header %><% end %>
+<% if @listen_address %>listen-address=<%= @listen_address %><% end %>
 dhcp-range=<%= @range_name %>,<%= @dhcp_start_address %>,<%= @dhcp_end_address %>,<%= @dhcp_netmask %>,<%= @lease_time %>
 dhcp-option=net:<%= @range_name %>,option:router,<%= @dhcp_gateway %>
 dhcp-boot=net:<%= @range_name %>,pxelinux.0,boothost,<%= @next_server %>
