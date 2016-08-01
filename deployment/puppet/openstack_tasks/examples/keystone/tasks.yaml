@@ -1,9 +1,17 @@
 - id: openrc-delete
   type: puppet
-  version: 2.1.0
-  groups: [primary-controller, controller]
+  version: 2.2.0
+  tags: [primary-controller, controller,
+         primary-keystone, keystone]
   requires: [deploy_start, openstack-haproxy]
   required_for: [primary-keystone, keystone]
+  cross-depends:
+    - name: deploy_start
+      role: self
+    - name: openstack-haproxy
+  cross-depended-by:
+    - name: /^(primary-)?keystone$/
+      role: self
   condition:
     yaql_exp: &keystone_changed >
       changedAny($.configuration, $.network_scheme, $.network_metadata,
@@ -26,10 +34,28 @@
     puppet_modules: /etc/puppet/modules
     timeout: 90
 
+- id: keystone-openrc-generate
+  type: puppet
+  version: 2.2.0
+  tags: [primary-controller, controller]
+  requires: [openrc-delete, primary-keystone, keystone]
+  cross-depends:
+    - name: openrc-delete
+      role: self
+    - name: /^(primary-)?keystone$/
+      role: self
+  condition:
+    yaql_exp: *keystone_changed
+  refresh_on: [keystone_config]
+  parameters:
+    puppet_manifest: /etc/puppet/modules/openstack_tasks/examples/keystone/openrc_generate.pp
+    puppet_modules: /etc/puppet/modules
+    timeout: 3600
+
 - id: primary-keystone
   type: puppet
-  version: 2.1.0
-  groups: [primary-controller]
+  version: 2.2.0
+  tags: [primary-keystone]
   required_for: [primary-openstack-controller, openstack-controller]
   requires: [openstack-haproxy, database, primary-database]
   condition:
@@ -37,8 +63,12 @@
   refresh_on: [keystone_config]
   cross-depends:
     - name: /^(primary-)?rabbitmq$/
+    - name: /^(primary-)?database$/
     - name: keystone-db
+    - name: openstack-haproxy
     - name: memcached
+  cross-depended-by:
+    - name: /^(primary-)?openstack-controller$/
   parameters:
     puppet_manifest: /etc/puppet/modules/openstack_tasks/examples/keystone/keystone.pp
     puppet_modules: /etc/puppet/modules
@@ -50,8 +80,8 @@
 
 - id: keystone
   type: puppet
-  groups: [controller]
-  version: 2.1.0
+  tags: [keystone]
+  version: 2.2.0
   required_for: [primary-openstack-controller, openstack-controller]
   requires: [openstack-haproxy, database, primary-database]
   condition:
@@ -59,8 +89,12 @@
   refresh_on: [keystone_config]
   cross-depends:
     - name: /^(primary-)?rabbitmq$/
+    - name: /^(primary-)?database$/
     - name: keystone-db
+    - name: openstack-haproxy
     - name: primary-keystone
+  cross-depended-by:
+    - name: /^(primary-)?openstack-controller$/
   parameters:
     puppet_manifest: /etc/puppet/modules/openstack_tasks/examples/keystone/keystone.pp
     puppet_modules: /etc/puppet/modules
@@ -92,10 +126,16 @@
 
 - id: workloads_collector_add
   type: puppet
-  version: 2.1.0
-  groups: [primary-controller]
+  version: 2.2.0
+  tags: [primary-keystone]
   required_for: [deploy_end]
   requires: [keystone, primary-keystone]
+  cross-depends:
+    - name: /^(primary-)?keystone$/
+      role: self
+  cross-depended-by:
+    - name: deploy_end
+      role: self
   condition:
     yaql_exp: >
       changedAny($.workloads_collector, $.get('external_lb'),
@@ -130,8 +170,11 @@
   required_for: [pre_deployment_end]
   requires: [generate_changed_admin_user]
   cross-depends:
-      - name: generate_changed_admin_user
-        role: master
+    - name: generate_changed_admin_user
+      role: master
+  cross-depended-by:
+    - name: pre_deployment_end
+      role: self
   parameters:
     files:
       - src: /etc/fuel/cluster/{CLUSTER_ID}/old_admin_user.yaml
@@ -140,13 +183,22 @@
     dir_permissions: '0750'
 
 - id: delete_old_admin_user
-  version: 2.1.0
+  version: 2.2.0
   type: puppet
-  role: [primary-controller]
+  tags: [primary-keystone]
   condition:
     yaql_exp: *changed_username
   requires: [post_deployment_start, primary-keystone]
   required_for: [post_deployment_end]
+  cross-depends:
+    - name: post_deployment_start
+      role: self
+    - name: primary-keystone
+      role: self
+  cross-depended-by:
+    - name: post_deployment_end
+      role: self
+  parameters:
   parameters:
     puppet_manifest: /etc/puppet/modules/openstack_tasks/examples/keystone/purge_old_admin.pp
     puppet_modules: /etc/puppet/modules
