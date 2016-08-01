@@ -49,13 +49,13 @@
 
 - id: sahara-keystone
   type: puppet
-  version: 2.1.0
-  groups: [primary-controller]
-  required_for: [sahara]
-  requires: [primary-keystone, keystone]
+  version: 2.2.0
+  tags: [primary-keystone]
   cross-depends:
-    - name: keystone
+    - name: /^(primary-)?keystone$/
       role: self
+  cross-depended-by:
+    - name: sahara
   condition:
     yaql_exp: >
       $.sahara.enabled and changedAny($.sahara, $.public_ssl,

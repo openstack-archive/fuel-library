@@ -17,18 +17,18 @@
 
 - id: neutron-keystone
   type: puppet
-  version: 2.1.0
-  groups: [primary-controller]
   required_for: [openstack-network-end]
-  requires: [primary-keystone, keystone]
+  version: 2.2.0
+  tags: [primary-keystone]
+  required_for: [openstack-network-end]
+  cross-depends:
+    - name: /^(primary-)?keystone$/
+      role: self
   condition:
     yaql_exp: >
       changedAny($.quantum, $.quantum_settings,
       $.network_metadata.vips, $.public_ssl, $.get('use_ssl'),
       $.get('region', 'RegionOne'))
-  cross-depends:
-    - name: keystone
-      role: self
   parameters:
     puppet_manifest: /etc/puppet/modules/openstack_tasks/examples/openstack-network/keystone.pp
     puppet_modules: /etc/puppet/modules
