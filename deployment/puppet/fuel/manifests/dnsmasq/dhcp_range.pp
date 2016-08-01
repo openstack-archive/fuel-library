@@ -14,6 +14,7 @@ define fuel::dnsmasq::dhcp_range(
   $dhcp_end_address   = '10.0.0.254',
   $dhcp_netmask       = '255.255.255.0',
   $dhcp_gateway       = $::ipaddress,
+  $listen_address     = $::ipaddress,
   $file_header        = undef,
   $lease_time         = '120m',
   $next_server        = $::ipaddress,
