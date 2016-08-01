@@ -371,7 +371,12 @@ class osnailyfacter::globals::globals {
   }
 
   # Define keystone-related variables:
-  $keystone_nodes = $controller_nodes
+  $keystone_tagged_nodes = get_nodes_hash_by_tags($network_metadata, ['primary-keystone', 'keystone'])
+  $keystone_nodes = empty($keystone_tagged_nodes) ? {
+    true    => $controller_nodes,
+    false   => $keystone_tagged_nodes,
+    default => $controller_nodes,
+  }
 
   # Define glance-related variables:
   $glance_nodes = $controller_nodes
