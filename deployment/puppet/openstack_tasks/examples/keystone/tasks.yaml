@@ -1,9 +1,15 @@
 - id: openrc-delete
   type: puppet
-  version: 2.1.0
-  groups: [primary-controller, controller]
-  requires: [deploy_start, openstack-haproxy]
-  required_for: [primary-keystone, keystone]
+  version: 2.2.0
+  tags: [primary-controller, controller,
+         primary-keystone, keystone]
+  cross-depends:
+    - name: deploy_start
+      role: self
+    - name: openstack-haproxy
+  cross-depended-by:
+    - name: /^(primary-)?keystone$/
+      role: self
   condition:
     yaql_exp: &keystone_changed >
       changedAny($.configuration, $.network_scheme, $.network_metadata,
@@ -26,19 +32,37 @@
     puppet_modules: /etc/puppet/modules
     timeout: 90
 
+# TODO
+#- id: generate-openrc
+#  type: puppet
+#  version: 2.2.0
+#  tags: [primary-controller, controller]
+#  cross-depends:
+#    - name: openrc-delete
+#      role: self
+#  condition:
+#    yaql_exp: *keystone_changed
+#  refresh_on: [keystone_config]
+#  parameters:
+#    puppet_manifest: /etc/puppet/modules/openstack_tasks/examples/keystone/keystone.pp
+#    puppet_modules: /etc/puppet/modules
+#    timeout: 3600
+
 - id: primary-keystone
   type: puppet
-  version: 2.1.0
-  groups: [primary-controller]
-  required_for: [primary-openstack-controller, openstack-controller]
-  requires: [openstack-haproxy, database, primary-database]
+  version: 2.2.0
+  tags: [primary-keystone]
   condition:
     yaql_exp: *keystone_changed
   refresh_on: [keystone_config]
   cross-depends:
     - name: /^(primary-)?rabbitmq$/
+    - name: /^(primary-)?database$/
     - name: keystone-db
+    - name: openstack-haproxy
     - name: memcached
+  cross-depended-by:
+    - name: /^(primary-)?openstack-controller$/
   parameters:
     puppet_manifest: /etc/puppet/modules/openstack_tasks/examples/keystone/keystone.pp
     puppet_modules: /etc/puppet/modules
@@ -50,17 +74,19 @@
 
 - id: keystone
   type: puppet
-  groups: [controller]
-  version: 2.1.0
-  required_for: [primary-openstack-controller, openstack-controller]
-  requires: [openstack-haproxy, database, primary-database]
+  tags: [keystone]
+  version: 2.2.0
   condition:
     yaql_exp: *keystone_changed
   refresh_on: [keystone_config]
   cross-depends:
     - name: /^(primary-)?rabbitmq$/
+    - name: /^(primary-)?database$/
     - name: keystone-db
+    - name: openstack-haproxy
     - name: primary-keystone
+  cross-depended-by:
+    - name: /^(primary-)?openstack-controller$/
   parameters:
     puppet_manifest: /etc/puppet/modules/openstack_tasks/examples/keystone/keystone.pp
     puppet_modules: /etc/puppet/modules
@@ -90,10 +116,14 @@
 
 - id: workloads_collector_add
   type: puppet
-  version: 2.1.0
-  groups: [primary-controller]
-  required_for: [deploy_end]
-  requires: [keystone, primary-keystone]
+  version: 2.2.0
+  tags: [primary-keystone]
+  cross-depends:
+    - name: /^(primary-)?keystone$/
+      role: self
+  cross-depended-by:
+    - name: deploy_end
+      role: self
   condition:
     yaql_exp: >
       changedAny($.workloads_collector, $.get('external_lb'),
@@ -138,9 +168,9 @@
     dir_permissions: '0750'
 
 - id: delete_old_admin_user
-  version: 2.1.0
+  version: 2.2.0
   type: puppet
-  role: [primary-controller]
+  tags: [primary-keystone]
   condition:
     yaql_exp: *changed_username
   requires: [post_deployment_start, primary-keystone]
