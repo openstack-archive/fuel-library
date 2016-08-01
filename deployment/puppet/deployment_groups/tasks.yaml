@@ -45,6 +45,32 @@
       type: parallel
       amount: 6
 
+- id: primary-modular-keystone
+  type: group
+  tags: [primary-keystone]
+  requires: [deploy_start, primary-database, database,
+    primary-rabbitmq, rabbitmq]
+  required_for: [deploy_end]
+  tasks: [hiera, fuel_pkgs, globals, tools, logging,
+    netconfig, hosts, firewall, keystone-firewall, ssl-keys-saving,
+    ssl-add-trust-chain, deploy_start, memcached, apache, primary-keystone]
+  parameters:
+    strategy:
+      type: one_by_one
+
+- id: modular-keystone
+  type: group
+  tags: [keystone]
+  requires: [deploy_start, primary-database, database, primary-rabbitmq,
+             rabbitmq]
+  required_for: [deploy_end]
+  tasks: [hiera, fuel_pkgs, globals, tools, logging,
+    netconfig, hosts, firewall, keystone-firewall, ssl-keys-saving,
+    ssl-add-trust-chain, deploy_start, memcached, apache, keystone]
+  parameters:
+    strategy:
+      type: parallel
+
 - id: cinder
   type: group
   role: [cinder]
