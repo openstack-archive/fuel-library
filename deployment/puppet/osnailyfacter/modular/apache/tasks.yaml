@@ -1,7 +1,7 @@
 - id: apache
   type: puppet
-  version: 2.1.0
-  groups: [primary-controller, controller]
+  version: 2.2.0
+  tags: [primary-controller, controller, primary-keystone, keystone]
   required_for: [keystone, primary-keystone]
   requires: [netconfig]
   condition:
