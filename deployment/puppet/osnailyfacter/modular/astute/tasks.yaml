@@ -8,25 +8,36 @@
   condition:
     yaql_exp: "changed($.nodes) or changed($.get('corosync_roles'))"
   cross-depends:
+    - name: post_deployment_start
+      role: self
     - name: dns-client
     - name: ntp-server
     - name: public_vip_ping
+  cross-depended-by:
+    - name: post_deployment_end
+      role: self
+  condition:
+    yaql_exp: "changed($.network_metadata.nodes) or changed($.get('corosync_roles'))"
   parameters:
     cmd: ruby /etc/puppet/modules/osnailyfacter/modular/astute/enable_quorum.rb
     timeout: 180
 
 - id: upload_cirros
   type: puppet
-  version: 2.1.0
-  role: [primary-controller]
+  version: 2.2.0
+  tags: [primary-keystone]
   requires: [enable_quorum]
   required_for: [post_deployment_end]
+  cross-depends:
+    - name: enable_quorum
+    - name: primary-keystone
+  cross-depended-by:
+    - name: post_deployment_end
+      role: self
   condition:
     yaql_exp: >
       changedAny($.test_vm_image, $.glance, $.network_metadata.vips,
       $.get('region', 'RegionOne'), $.get('use_ssl'))
-  cross-depends:
-    - name: enable_quorum
   parameters:
     puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/astute/upload_cirros.pp
     puppet_modules: /etc/puppet/modules
@@ -96,16 +107,16 @@
 
 - id: disable_keystone_service_token
   type: puppet
-  version: 2.0.0
-  role: [primary-controller, controller]
+  version: 2.2.0
+  tags: [primary-keystone, keystone]
   requires: [upload_cirros]
   required_for: [post_deployment_end]
+  cross-depends:
+    - name: upload_cirros
   condition:
     yaql_exp: >
       changed($.keystone.get('service_token_off')) and
       $.keystone.get('service_token_off')
-  cross-depends:
-    - name: upload_cirros
   parameters:
     puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/astute/service_token_off.pp
     puppet_modules: /etc/puppet/modules
@@ -321,8 +332,14 @@
 
 - id: ironic_upload_images
   type: shell
-  version: 2.1.0
-  role: [primary-controller]
+  version: 2.2.0
+  tags: [primary-keystone]
+  cross-depends:
+    - name: enable_quorum
+    - name: ceph-radosgw
+  cross-depended-by:
+    - name: post_deployment_end
+      role: self
   condition:
     yaql_exp: *ironic_enabled
   required_for: [post_deployment_end]
