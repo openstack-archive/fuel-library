@@ -383,7 +383,8 @@ class osnailyfacter::globals::globals {
   }
 
   # Define keystone-related variables:
-  $keystone_nodes = $controller_nodes
+  $keystone_roles = ['primary-keystone', 'keystone']
+  $keystone_nodes = get_nodes_hash_by_roles($network_metadata, $keystone_roles)
 
   # Define glance-related variables:
   $glance_nodes = $controller_nodes
