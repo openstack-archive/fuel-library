@@ -1,5 +1,5 @@
-# ROLE: primary-controller
-# ROLE: controller
+# ROLE: primary-keystone
+# ROLE: keystone
 
 require 'spec_helper'
 require 'shared-examples'
@@ -84,7 +84,6 @@ describe manifest do
     murano_plugins = murano_hash['plugins']
     murano_glare_plugin = murano_plugins['glance_artifacts_plugin']
     token_provider = Noop.hiera('token_provider')
-    primary_controller = Noop.hiera 'primary_controller'
 
     database_vip = Noop.hiera('database_vip')
     keystone_db_password = Noop.hiera_structure 'keystone/db_password', 'keystone'
@@ -107,7 +106,7 @@ describe manifest do
     access_hash       = Noop.hiera_hash('access', {})
     admin_user        = access_hash['user']
 
-    primary_controller = Noop.hiera('primary_controller')
+    primary_keystone = Noop.puppet_function 'has_primary_role', Noop.hiera('keystone_roles') & Noop.hiera('roles')
 
     it 'should configure default_log_levels' do
       should contain_keystone_config('DEFAULT/default_log_levels').with_value(default_log_levels.sort.join(','))
@@ -172,8 +171,8 @@ describe manifest do
       )
     end
 
-    it 'should declare keystone class with parameter primary controller' do
-        should contain_class('keystone').with('sync_db' => primary_controller)
+    it 'should declare keystone class with parameter primary keystone' do
+        should contain_class('keystone').with('sync_db' => primary_keystone)
     end
 
     it 'should declare keystone class with revoke_by_id set to false' do
@@ -305,7 +304,7 @@ describe manifest do
       should contain_keystone_config('DEFAULT/secure_proxy_ssl_header').with(:value => 'HTTP_X_FORWARDED_PROTO')
     end
 
-    if primary_controller
+    if primary_keystone
       it 'should create default _member_ role' do
         should contain_keystone_role('_member_').with('ensure' => 'present')
       end
