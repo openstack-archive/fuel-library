@@ -13,6 +13,18 @@ Creates fuel::dnsmasq::dhcp_range puppet resources from list of admin networks.
     admin_nets.each do |net|
       next unless net['ip_ranges'].is_a? Array
       net['ip_ranges'].each do |ip_range|
+        # loop through local facts to pull which interface has an IP in the
+        # dhcp range so we can properly listen on the interface for dhcp
+        # messages
+        cidr = IPAddr.new(net['cidr'])
+        listen_address = []
+        interfaces = lookupvar('interfaces')
+        if ! interfaces.nil?
+          interfaces.split(',').each do |interface|
+            local_address = lookupvar("ipaddress_#{interface}")
+            listen_address.push(interface) if cidr.include?(local_address)
+          end
+        end
         netmask = IPAddr.new('255.255.255.255').mask(net['cidr'].split('/')[1]).to_s
         print_range = ip_range.join('_')
         resource_name = sprintf("range_%08x", Zlib::crc32("#{print_range}_#{net['cidr']}").to_i)
@@ -20,6 +32,7 @@ Creates fuel::dnsmasq::dhcp_range puppet resources from list of admin networks.
         dhcp_range_resource = {
           resource_name => {
             'file_header'        => "# Generated automatically by puppet\n#{range_comment}",
+            'listen_address'     => listen_address.join(','),
             'dhcp_start_address' => ip_range[0],
             'dhcp_end_address'   => ip_range[1],
             'dhcp_netmask'       => netmask,
