@@ -29,10 +29,13 @@
 
 - id: cinder-db
   type: puppet
-  version: 2.1.0
-  groups: [primary-controller]
-  required_for: [openstack-cinder]
-  requires: [primary-database, database]
+  version: 2.2.0
+  tags: [primary-database]
+  cross-depends:
+    - name: /^(primary-)?database$/
+      role: self
+  cross-depened-by:
+    - name: openstack-cinder
   condition:
     yaql_exp: >
       changedAny($.cinder, $.mysql, $.network_metadata.vips,
