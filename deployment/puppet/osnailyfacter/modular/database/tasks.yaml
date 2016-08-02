@@ -49,3 +49,18 @@
     cmd: ruby /etc/puppet/modules/osnailyfacter/modular/database/database_pre.rb
   test_post:
     cmd: ruby /etc/puppet/modules/osnailyfacter/modular/database/database_post.rb
+
+- id: database-firewall
+  type: puppet
+  version: 2.1.0
+  groups: [primary-modular-database, modular-database]
+  condition:
+    yaql_exp: >
+      changedAny($.network_scheme, $.network_metadata,
+      ($.ironic.enabled and changed($.ironic.enabled)), $.roles, $.master_ip)
+  requires: [globals, firewall]
+  required_for: [primary-cluster, cluster, primary-database, database]
+  parameters:
+    puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/database/database_firewall.pp
+    puppet_modules: /etc/puppet/modules
+  timeout: 120
