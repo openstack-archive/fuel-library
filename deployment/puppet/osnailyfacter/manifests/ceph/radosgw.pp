@@ -40,33 +40,30 @@ class osnailyfacter::ceph::radosgw {
       fail('Please provide radosgw_key')
     }
 
-    group { 'ceph':
-      ensure   => "present",
-      system   => true,
-      gid      => 64045,
-      provider => "groupadd",
-    }
-
-    user { 'ceph':
-      ensure  => "present",
-      system  => true,
-      gid     => 'ceph',
-      uid      => 64045,
-      home    => "/",
-      shell   => "/bin/false",
-      require => Group['ceph'],
-    }
-
     ceph::key { "client.${gateway_name}":
       keyring_path => "/etc/ceph/client.${gateway_name}",
-      user         => 'ceph',
-      group        => 'ceph',
       secret       => $radosgw_key,
       cap_mon      => 'allow rw',
       cap_osd      => 'allow rwx',
       inject       => true,
-      require      => User['ceph'],
     }
+    Package <| tag == 'ceph' |> ->
+      Ceph::Key["client.${gateway_name}"]
+
+    # TODO (dmburmistrov): remove after dropping old ceph support.
+    # This ownership modifications should be present only for fresh ceph
+    # version ("hammer" release doesn't use/contain "ceph" user/group.
+    # So we depend on package version. And modern package provides necessary
+    # group & user.
+    exec { 'fix ceph client gateway keyring owner':
+      path        => [ '/bin', '/sbin', '/usr/bin', '/usr/sbin' ],
+      command     => "chown ceph:ceph /etc/ceph/client.${gateway_name}",
+      onlyif      => 'getent passwd ceph > /dev/null 2>&1',
+      subscribe   => Ceph::Key["client.${gateway_name}"],
+      refreshonly => true,
+    }
+    Exec['fix ceph client gateway keyring owner'] ->
+      Service["radosgw-${gateway_name}"]
 
     class { 'ceph':
       fsid => $fsid,

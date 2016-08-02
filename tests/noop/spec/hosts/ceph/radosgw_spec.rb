@@ -57,12 +57,20 @@ describe manifest do
     if radosgw_enabled
       it 'should add radosgw key' do
         should contain_ceph__key("client.#{gateway_name}").with(
-          'user'         => 'ceph',
-          'group'        => 'ceph',
           'secret'       => radosgw_key,
           'cap_mon'      => 'allow rw',
           'cap_osd'      => 'allow rwx',
           'inject'       => true,
+        )
+      end
+
+      it 'should adjust keyring ownership' do
+        should contain_exec('fix ceph client gateway keyring owner').with(
+          :path        => [ '/bin', '/sbin', '/usr/bin', '/usr/sbin' ],
+          :command     => "chown ceph:ceph /etc/ceph/client.#{gateway_name}",
+          :onlyif      => 'getent passwd ceph > /dev/null 2>&1',
+          :subscribe   => "Ceph::Key[\"client.#{gateway_name}\"]",
+          :refreshonly => true,
         )
       end
 
