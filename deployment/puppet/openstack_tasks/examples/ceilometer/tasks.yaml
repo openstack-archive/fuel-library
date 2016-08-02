@@ -71,7 +71,7 @@
       $.get('region', 'RegionOne'))
   requires: [primary-keystone, keystone]
   cross-depends:
-    - name: /(primary-)?keystone/
+    - name: /^(primary-)?keystone$/
       role: self
   parameters:
     puppet_manifest: /etc/puppet/modules/openstack_tasks/examples/ceilometer/keystone.pp
