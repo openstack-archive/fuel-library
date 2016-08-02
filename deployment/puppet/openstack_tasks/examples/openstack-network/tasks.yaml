@@ -1,15 +1,16 @@
 - id: neutron-db
   type: puppet
-  version: 2.1.0
-  groups: [primary-controller]
-  required_for: [openstack-network-end]
-  requires: [primary-database, database]
+  version: 2.2.0
+  tags: [primary-database]
   condition:
     yaql_exp: >
       changedAny($.quantum, $.quantum_settings, $.mysql,
       $.network_metadata.vips, $.get('database_vip'))
   cross-depends:
     - name: /^(primary-)?database$/
+      role: self
+  cross-depended-by:
+    - name: openstack-network-end
   parameters:
     puppet_manifest: /etc/puppet/modules/openstack_tasks/examples/openstack-network/db.pp
     puppet_modules: /etc/puppet/modules

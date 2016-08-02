@@ -31,17 +31,18 @@
 
 - id: sahara-db
   type: puppet
-  version: 2.1.0
-  groups: [primary-controller]
+  version: 2.2.0
+  tags: [primary-database]
   cross-depends:
     - name: /^(primary-)?database$/
-  required_for: [sahara]
+      role: self
+  cross-depended-by:
+    - name: sahara
   condition:
     yaql_exp: >
       $.sahara.enabled and changedAny($.sahara, $.mysql,
       $.network_metadata.vips, $.get('database_vip'),
       $.get('mysql_custom_setup_class'))
-  requires: [primary-database, database]
   parameters:
     puppet_manifest: /etc/puppet/modules/openstack_tasks/examples/sahara/db.pp
     puppet_modules: /etc/puppet/modules
