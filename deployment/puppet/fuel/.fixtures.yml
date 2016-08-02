@@ -1,3 +1,15 @@
 fixtures:
   symlinks:
     fuel: "#{source_dir}"
+    stdlib: "#{source_dir}/../stdlib"
+    apache: "#{source_dir}/../apache"
+    rabbitmq: "#{source_dir}/../rabbitmq"
+    concat: "#{source_dir}/../concat"
+    inifile: "#{source_dir}/../inifile"
+    keystone: "#{source_dir}/../keystone"
+    openstacklib: "#{source_dir}/../openstacklib"
+    oslo: "#{source_dir}/../oslo"
+    apt: "#{source_dir}/../apt"
+    openssl: "#{source_dir}/../openssl"
+    postgresql: "#{source_dir}/../postgresql"
+    staging: "#{source_dir}/../staging"
