@@ -45,6 +45,31 @@
       type: parallel
       amount: 6
 
+- id: primary-modular-database
+  type: group
+  tags: [primary-database]
+  requires: [deploy_start]
+  required_for: [deploy_end]
+  tasks: [hiera, fuel_pkgs, globals, tools, logging, netconfig,
+    hosts, firewall, database-firewall, deploy_start, primary-cluster,
+    database-virtual-ip, primary-cluster-haproxy, openstack-haproxy-stats,
+    primary-database]
+  parameters:
+    strategy:
+      type: one_by_one
+
+- id: modular-database
+  type: group
+  tags: [database]
+  requires: [deploy_start, primary-standalone-database, primary-controller, controller]
+  required_for: [deploy_end]
+  tasks: [hiera, fuel_pkgs, globals, tools, logging, netconfig,
+    hosts, firewall, database-firewall, deploy_start, cluster,
+    database-virtual-ip, cluster-haproxy, openstack-haproxy-stats, database]
+  parameters:
+    strategy:
+      type: parallel
+
 - id: cinder
   type: group
   role: [cinder]
