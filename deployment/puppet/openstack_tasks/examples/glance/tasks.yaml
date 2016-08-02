@@ -1,9 +1,16 @@
 - id: glance
   type: puppet
-  version: 2.1.0
-  groups: [primary-controller, controller]
-  required_for: [primary-openstack-controller, openstack-controller]
-  requires: [openstack-haproxy, primary-database, database]
+  version: 2.2.0
+  tags: [primary-controller, controller]
+  cross-depends:
+    - name: glance-db
+    - name: glance-keystone
+    - name: /^(primary-)?rabbitmq$/
+    - name: openstack-haproxy
+      role: self
+  cross-depended-by:
+    - name: /^(primary-)?openstack-controller$/
+      role: self
   condition:
     yaql_exp: >
       changedAny($.network_scheme, $.network_metadata, $.glance,
@@ -19,10 +26,6 @@
       $.get('amqp_hosts'), $.get('use_ssl'), $.murano,
       $.configuration.get('glance_api'), $.configuration.get('glance_cache'),
       $.configuration.get('glance_registry'), $.configuration.get('glare_config'))
-  cross-depends:
-    - name: glance-db
-    - name: glance-keystone
-    - name: /^(primary-)?rabbitmq$/
   parameters:
     puppet_manifest: /etc/puppet/modules/openstack_tasks/examples/glance/glance.pp
     puppet_modules: /etc/puppet/modules
@@ -34,16 +37,17 @@
 
 - id: glance-db
   type: puppet
-  version: 2.1.0
-  groups: [primary-controller]
-  required_for: [glance]
-  requires: [primary-database, database]
+  version: 2.2.0
+  tags: [primary-database]
   condition:
     yaql_exp: >
       changedAny($.glance, $.mysql, $.network_metadata.vips,
       $.get('database_vip'))
   cross-depends:
     - name: /^(primary-)?database$/
+      role: self
+  cross-depended-by:
+    - name: glance
   parameters:
     puppet_manifest: /etc/puppet/modules/openstack_tasks/examples/glance/db.pp
     puppet_modules: /etc/puppet/modules
