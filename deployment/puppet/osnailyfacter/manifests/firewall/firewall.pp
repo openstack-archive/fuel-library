@@ -205,6 +205,16 @@ class osnailyfacter::firewall::firewall {
     }
   }
 
+  $database_role = intersection($roles, hiera('database_roles'))
+  if $database_role {
+    openstack::firewall::multi_net {'101 mysql':
+      port        => [$mysql_port, $mysql_backend_port, $mysql_gcomm_port, $galera_ist_port, $galera_sst_port, $galera_clustercheck_port],
+      proto       => 'tcp',
+      action      => 'accept',
+      source_nets => $database_networks,
+    }
+  }
+
   $controller_role = intersection($roles, ['primary-controller', 'controller'])
   if $controller_role {
     firewall {'004 remote puppet ':
@@ -224,13 +234,6 @@ class osnailyfacter::firewall::firewall {
       port   => [$http_port, $https_port],
       proto  => 'tcp',
       action => 'accept',
-    }
-
-    openstack::firewall::multi_net {'101 mysql':
-      port        => [$mysql_port, $mysql_backend_port, $mysql_gcomm_port, $galera_ist_port, $galera_sst_port, $galera_clustercheck_port],
-      proto       => 'tcp',
-      action      => 'accept',
-      source_nets => $database_networks,
     }
 
     openstack::firewall::multi_net {'102 keystone':
