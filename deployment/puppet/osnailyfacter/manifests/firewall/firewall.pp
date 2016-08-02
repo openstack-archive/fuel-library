@@ -185,27 +185,6 @@ class osnailyfacter::firewall::firewall {
     source_nets => $management_nets,
   }
 
-  firewall { '333 notrack gre':
-    chain => 'PREROUTING',
-    table => 'raw',
-    proto => 'gre',
-    jump  => 'NOTRACK',
-  }
-
-  firewall { '334 accept gre':
-    chain  => 'INPUT',
-    table  => 'filter',
-    proto  => 'gre',
-    action => 'accept',
-  }
-
-  firewall {'340 vxlan_udp_port':
-    dport  => $vxlan_udp_port,
-    proto  => 'udp',
-    action => 'accept',
-  }
-
-
   # Role-related rules
   $amqp_role = intersection($roles, hiera('amqp_roles'))
   if $amqp_role {
@@ -265,6 +244,26 @@ class osnailyfacter::firewall::firewall {
     }
   }
 
+  $database_role = intersection($roles, hiera('database_roles'))
+  if $database_role {
+    openstack::firewall::multi_net {'101 mysql':
+      port        => [$mysql_port, $mysql_backend_port, $mysql_gcomm_port, $galera_ist_port, $galera_sst_port, $galera_clustercheck_port],
+      proto       => 'tcp',
+      action      => 'accept',
+      source_nets => $database_networks,
+    }
+  }
+
+  $keystone_role = intersection($roles, hiera('keystone_roles'))
+  if $keystone_role {
+    openstack::firewall::multi_net {'102 keystone':
+      port        => [$keystone_public_port, $keystone_admin_port],
+      proto       => 'tcp',
+      action      => 'accept',
+      source_nets => $keystone_networks,
+    }
+  }
+
   $controller_role = intersection($roles, ['primary-controller', 'controller'])
   if $controller_role {
     firewall {'004 remote puppet ':
@@ -284,20 +283,6 @@ class osnailyfacter::firewall::firewall {
       dport  => [$http_port, $https_port],
       proto  => 'tcp',
       action => 'accept',
-    }
-
-    openstack::firewall::multi_net {'101 mysql':
-      port        => [$mysql_port, $mysql_backend_port, $mysql_gcomm_port, $galera_ist_port, $galera_sst_port, $galera_clustercheck_port],
-      proto       => 'tcp',
-      action      => 'accept',
-      source_nets => $database_networks,
-    }
-
-    openstack::firewall::multi_net {'102 keystone':
-      port        => [$keystone_public_port, $keystone_admin_port],
-      proto       => 'tcp',
-      action      => 'accept',
-      source_nets => $keystone_networks,
     }
 
     firewall {'103 swift':
@@ -346,13 +331,6 @@ class osnailyfacter::firewall::firewall {
       source_nets => concat($management_nets, $storage_nets),
     }
 
-    openstack::firewall::multi_net {'110 neutron':
-      port        => $neutron_api_port,
-      proto       => 'tcp',
-      action      => 'accept',
-      source_nets => $neutron_networks,
-    }
-
     openstack::firewall::multi_net {'111 dns-server udp':
       port        => $dns_server_port,
       proto       => 'udp',
@@ -373,12 +351,6 @@ class osnailyfacter::firewall::firewall {
       action => 'accept',
     }
 
-    openstack::firewall::multi_net {'116 openvswitch db':
-      port        => $openvswitch_db_port,
-      proto       => 'udp',
-      action      => 'accept',
-      source_nets => $management_nets,
-    }
 
     firewall {'121 ceilometer':
       dport  => $ceilometer_port,
@@ -416,6 +388,43 @@ class osnailyfacter::firewall::firewall {
       action => 'accept',
     }
 
+  }
+
+  $neutron_role = intersection($roles, hiera('neutron_roles'))
+  if $neutron_role {
+    openstack::firewall::multi_net {'110 neutron':
+       port        => $neutron_api_port,
+       proto       => 'tcp',
+       action      => 'accept',
+       source_nets => $neutron_networks,
+    }
+
+    firewall { '333 notrack gre':
+      chain => 'PREROUTING',
+      table => 'raw',
+      proto => 'gre',
+      jump  => 'NOTRACK',
+    }
+
+    firewall { '334 accept gre':
+      chain  => 'INPUT',
+      table  => 'filter',
+      proto  => 'gre',
+      action => 'accept',
+    }
+
+    firewall {'340 vxlan_udp_port':
+      dport  => $vxlan_udp_port,
+      proto  => 'udp',
+      action => 'accept',
+    }
+
+    openstack::firewall::multi_net {'116 openvswitch db':
+      port        => $openvswitch_db_port,
+      proto       => 'udp',
+      action      => 'accept',
+      source_nets => $management_nets,
+    }
   }
 
   if member($roles, 'compute') {

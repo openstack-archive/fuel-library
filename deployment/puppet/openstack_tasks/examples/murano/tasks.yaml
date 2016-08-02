@@ -32,17 +32,19 @@
 
 - id: murano-db
   type: puppet
-  version: 2.1.0
-  groups: [primary-controller]
+  version: 2.2.0
+  tags: [primary-database]
+  required_for: [murano]
+  requires: [primary-database, database]
   cross-depends:
     - name: /^(primary-)?database$/
+  cross-depended-by:
+    - name: murano
   condition:
     yaql_exp: >
       $.murano.enabled and changedAny(
       $.network_metadata.nodes.values().where($.fqdn = new($.fqdn)),
       $.murano, $.mysql, $.network_metadata.vips, $.get('database_vip'))
-  required_for: [murano]
-  requires: [primary-database, database]
   parameters:
     puppet_manifest: /etc/puppet/modules/openstack_tasks/examples/murano/db.pp
     puppet_modules: /etc/puppet/modules
@@ -50,17 +52,18 @@
 
 - id: murano-keystone
   type: puppet
-  version: 2.1.0
-  groups: [primary-controller]
+  version: 2.2.0
+  tags: [primary-keystone]
+  required_for: [murano]
+  requires: [primary-keystone, keystone]
+  cross-depends:
+    - name: /^(primary-)?keystone$/
+  cross-depended-by:
+    - name: murano
   condition:
     yaql_exp: >
       $.murano.enabled and changedAny($.murano, $.network_metadata.vips,
       $.get('region', 'RegionOne'), $.public_ssl, $.get('use_ssl'))
-  required_for: [murano]
-  requires: [primary-keystone, keystone]
-  cross-depends:
-    - name: keystone
-      role: self
   parameters:
     puppet_manifest: /etc/puppet/modules/openstack_tasks/examples/murano/keystone.pp
     puppet_modules: /etc/puppet/modules
@@ -76,7 +79,6 @@
   required_for: [murano]
   cross-depends:
     - name: /^(primary-)?rabbitmq$/
-      role: self
   requires: [rabbitmq, primary-rabbitmq]
   parameters:
     puppet_manifest: /etc/puppet/modules/openstack_tasks/examples/murano/rabbitmq.pp
@@ -100,8 +102,12 @@
 
 - id: murano-cfapi-keystone
   type: puppet
-  version: 2.1.0
-  groups: [primary-controller]
+  version: 2.2.0
+  tags: [primary-keystone]
+  cross-depends:
+    - name: /^(primary-)?keystone$/
+  cross-depended-by:
+    - name: murano-cfapi
   condition:
     yaql_exp: >
       $.get('murano-cfapi').enabled and changedAny($.murano,
@@ -109,9 +115,6 @@
       $.get('use_ssl'))
   required_for: [murano-cfapi]
   requires: [primary-keystone, keystone]
-  cross-depends:
-    - name: keystone
-      role: self
   parameters:
     puppet_manifest: /etc/puppet/modules/openstack_tasks/examples/murano/keystone_cfapi.pp
     puppet_modules: /etc/puppet/modules

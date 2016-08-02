@@ -370,8 +370,13 @@ class osnailyfacter::globals::globals {
     $glance_known_stores = false
   }
 
+  # Define neutron-related variables:
+  $neutron_roles = ['primary-neutron', 'neutron']
+  $neutron_nodes = get_nodes_hash_by_roles($network_metadata, $neutron_roles)
+
   # Define keystone-related variables:
-  $keystone_nodes = $controller_nodes
+  $keystone_roles = ['primary-keystone', 'keystone']
+  $keystone_nodes = get_nodes_hash_by_roles($network_metadata, $keystone_roles)
 
   # Define glance-related variables:
   $glance_nodes = $controller_nodes
@@ -389,7 +394,9 @@ class osnailyfacter::globals::globals {
 
   # Define node roles, that will carry corosync/pacemaker
   $corosync_roles = hiera('corosync_roles', ['primary-controller', 'controller',
-                                             'primary-rabbitmq', 'rabbitmq'])
+                                             'primary-rabbitmq', 'rabbitmq',
+                                             'primary-database', 'database',
+                                             'primary-neutron', 'neutron'])
 
   # Define cinder-related variables
   # todo: use special node-roles instead controllers in the future
@@ -460,8 +467,8 @@ class osnailyfacter::globals::globals {
   $aodh = hiera('aodh', {})
 
   # Define database-related variables:
-  # todo: use special node-roles instead controllers in the future
-  $database_nodes = $controller_nodes
+  $database_roles = ['primary-database', 'database']
+  $database_nodes =  get_nodes_hash_by_roles($network_metadata, $database_roles)
 
   # Define Nova-API variables:
   # todo: use special node-roles instead controllers in the future
@@ -469,10 +476,6 @@ class osnailyfacter::globals::globals {
 
   # Define mongo-related variables
   $mongo_roles = ['primary-mongo', 'mongo']
-
-  # Define neutron-related variables:
-  # todo: use special node-roles instead controllers in the future
-  $neutron_nodes = $controller_nodes
 
   #Define Ironic-related variables:
   $ironic_api_nodes = $controller_nodes
