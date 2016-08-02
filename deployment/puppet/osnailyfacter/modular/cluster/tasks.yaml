@@ -18,7 +18,9 @@
 - id: cluster
   type: puppet
   version: 2.2.0
-  tags: [controller, primary-rabbitmq, rabbitmq]
+  tags: [controller, primary-rabbitmq, rabbitmq,
+         primary-database, database,
+         primary-neutron, neutron]
   cross-depends:
     - name: primary-cluster
   required_for: [deploy_end]

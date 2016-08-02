@@ -1,9 +1,24 @@
 - id: openstack-cinder
   type: puppet
-  version: 2.1.0
-  groups: [primary-controller, controller]
+  version: 2.2.0
+  tags: [primary-controller, controller]
   required_for: [deploy_end, openstack-controller]
   requires: [primary-keystone, keystone, hosts, firewall]
+  cross-depends:
+    - name: /^(primary-)?keystone$/
+    - name: hosts
+      role: self
+    - name: firewall
+      role: self
+    - name: /^(primary-)?rabbitmq$/
+    - name: cinder-db
+    - name: cinder-keystone
+
+  cross-depened-by:
+    - name: openstack-controller
+      role: self
+    - name: deploy_end
+      role: self
   condition:
     yaql_exp: >
       changedAny($.network_scheme, $.cinder, $.network_metadata.vips,
@@ -19,10 +34,6 @@
       $.get('amqp_hosts'), $.get('syslog_log_facility_cinder'),
       $.get('cinder_rate_limits'), $.get('keystone_api', 'v3'),
       $.configuration.get('cinder_api_paste_ini'), $.configuration.get('cinder') )
-  cross-depends:
-    - name: /^(primary-)?rabbitmq$/
-    - name: cinder-db
-    - name: cinder-keystone
   parameters:
     puppet_manifest: /etc/puppet/modules/openstack_tasks/examples/openstack-cinder/openstack-cinder.pp
     puppet_modules: /etc/puppet/modules
@@ -30,10 +41,15 @@
 
 - id: cinder-db
   type: puppet
-  version: 2.1.0
-  groups: [primary-controller]
+  version: 2.2.0
+  tags: [primary-database]
   required_for: [openstack-cinder]
   requires: [primary-database, database]
+  cross-depends:
+    - name: /^(primary-)?database$/
+      role: self
+  cross-depened-by:
+    - name: openstack-cinder
   condition:
     yaql_exp: >
       changedAny($.cinder, $.mysql, $.network_metadata.vips,
@@ -47,13 +63,15 @@
 
 - id: cinder-keystone
   type: puppet
-  version: 2.1.0
-  groups: [primary-controller]
+  version: 2.2.0
+  tags: [primary-keystone]
   required_for: [openstack-cinder]
-  cross-depends:
-    - name: keystone
-      role: self
   requires: [primary-keystone, keystone]
+  cross-depends:
+    - name: /^(primary-)?keystone$/
+      role: self
+  cross-depended-by:
+    - name: openstack-cinder
   condition:
     yaql_exp: >
       changedAny($.cinder, $.public_ssl, $.get('use_ssl'),
