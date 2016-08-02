@@ -1,9 +1,18 @@
 - id: glance
   type: puppet
-  version: 2.1.0
-  groups: [primary-controller, controller]
+  version: 2.2.0
+  tags: [primary-controller, controller]
   required_for: [primary-openstack-controller, openstack-controller]
   requires: [openstack-haproxy, primary-database, database]
+  cross-depends:
+    - name: glance-db
+    - name: glance-keystone
+    - name: /^(primary-)?rabbitmq$/
+    - name: openstack-haproxy
+      role: self
+  cross-depended-by:
+    - name: /^(primary-)?openstack-controller$/
+      role: self
   condition:
     yaql_exp: >
       changedAny($.network_scheme, $.network_metadata, $.glance,
@@ -19,10 +28,6 @@
       $.get('amqp_hosts'), $.get('use_ssl'), $.murano,
       $.configuration.get('glance_api'), $.configuration.get('glance_cache'),
       $.configuration.get('glance_registry'), $.configuration.get('glare_config'))
-  cross-depends:
-    - name: glance-db
-    - name: glance-keystone
-    - name: /^(primary-)?rabbitmq$/
   parameters:
     puppet_manifest: /etc/puppet/modules/openstack_tasks/examples/glance/glance.pp
     puppet_modules: /etc/puppet/modules
@@ -34,8 +39,8 @@
 
 - id: glance-db
   type: puppet
-  version: 2.1.0
-  groups: [primary-controller]
+  version: 2.2.0
+  tags: [primary-database]
   required_for: [glance]
   requires: [primary-database, database]
   condition:
@@ -44,6 +49,8 @@
       $.get('database_vip'))
   cross-depends:
     - name: /^(primary-)?database$/
+  cross-depended-by:
+    - name: glance
   parameters:
     puppet_manifest: /etc/puppet/modules/openstack_tasks/examples/glance/db.pp
     puppet_modules: /etc/puppet/modules
@@ -51,17 +58,18 @@
 
 - id: glance-keystone
   type: puppet
-  version: 2.1.0
-  groups: [primary-controller]
+  version: 2.2.0
+  tags: [primary-keystone]
   required_for: [glance]
   requires: [primary-keystone, keystone]
+  cross-depends:
+    - name: /^(primary-)?keystone$/
+  cross-depended-by:
+    - name: glance
   condition:
     yaql_exp: >
       changedAny($.glance, $.network_metadata.vips, $.public_ssl,
       $.get('use_ssl'), $.get('region', 'RegionOne'))
-  cross-depends:
-    - name: /(primary-)?keystone/
-      role: self
   parameters:
     puppet_manifest: /etc/puppet/modules/openstack_tasks/examples/glance/keystone.pp
     puppet_modules: /etc/puppet/modules

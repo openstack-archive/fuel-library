@@ -11,10 +11,9 @@ class openstack_tasks::openstack_network::server_config {
   $nova_hash               = hiera_hash('nova', { })
   $pci_vendor_devs         = $neutron_config['supported_pci_vendor_devs']
 
-  $neutron_primary_controller_roles = hiera('neutron_primary_controller_roles', ['primary-controller'])
-  $neutron_compute_roles            = hiera('neutron_compute_nodes', ['compute'])
-  $primary_controller               = roles_include($neutron_primary_controller_roles)
-  $compute                          = roles_include($neutron_compute_roles)
+  $neutron_compute_roles = hiera('neutron_compute_nodes', ['compute'])
+  $primary_neutron       = has_primary_role(intersection(hiera('neutron_roles'), hiera('roles')))
+  $compute               = roles_include($neutron_compute_roles)
 
   $db_type     = try_get_value($neutron_config, 'database/type', 'mysql+pymysql')
   $db_password = $neutron_config['database']['passwd']
@@ -194,7 +193,7 @@ class openstack_tasks::openstack_network::server_config {
   }
 
   class { '::neutron::server':
-    sync_db                          => $primary_controller,
+    sync_db                          => $primary_neutron,
 
     auth_strategy                    => 'keystone',
 
