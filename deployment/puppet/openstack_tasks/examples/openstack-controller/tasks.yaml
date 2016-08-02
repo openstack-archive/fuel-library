@@ -53,16 +53,17 @@
 
 - id: nova-db
   type: puppet
-  version: 2.1.0
-  groups: [primary-controller]
-  required_for: [primary-openstack-controller, openstack-controller]
-  requires: [primary-database, database]
+  version: 2.2.0
+  tags: [primary-database]
   condition:
     yaql_exp: >
       changedAny($.nova, $.mysql, $.network_metadata.vips,
       $.get('database_vip'))
   cross-depends:
     - name: /^(primary-)?database$/
+      role: self
+  cross-depended-by:
+    - name: /^(primary-)?openstack-controller$/
   parameters:
     puppet_manifest: /etc/puppet/modules/openstack_tasks/examples/openstack-controller/db.pp
     puppet_modules: /etc/puppet/modules
