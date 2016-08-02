@@ -1,7 +1,7 @@
 - id: neutron-db
   type: puppet
-  version: 2.1.0
-  groups: [primary-controller]
+  version: 2.2.0
+  tags: [primary-database]
   required_for: [openstack-network-end]
   requires: [primary-database, database]
   condition:
@@ -10,6 +10,9 @@
       $.network_metadata.vips, $.get('database_vip'))
   cross-depends:
     - name: /^(primary-)?database$/
+      role: self
+  cross-depended-by:
+    - name: openstack-network-end
   parameters:
     puppet_manifest: /etc/puppet/modules/openstack_tasks/examples/openstack-network/db.pp
     puppet_modules: /etc/puppet/modules
@@ -199,8 +202,8 @@
     yaql_exp: *network_agents_l3
   refresh_on: [neutron_l3_agent_config]
   cross-depends:
-    - name: /(primary-)?openstack-network-plugins-l2/
-      role: ["/(primary-)?controller/"]
+    - name: /^(primary-)?openstack-network-plugins-l2$/
+      role: ["/^(primary-)?controller$/"]
     - name: primary-openstack-network-agents-l3
   parameters:
     puppet_manifest: /etc/puppet/modules/openstack_tasks/examples/openstack-network/agents/l3.pp
@@ -234,9 +237,9 @@
       changedAny($.quantum, $.quantum_settings,
       $.network_metadata.vips, $.get('use_ssl'))
   cross-depends:
-    - name: /(primary-)?openstack-network-common-config/
+    - name: /^(primary-)?openstack-network-common-config$/
       role: self
-    - name: /(primary-)?openstack-network-server-config/
+    - name: /^(primary-)?openstack-network-server-config$/
       role: self
   parameters:
     puppet_manifest: /etc/puppet/modules/openstack_tasks/examples/openstack-network/server-nova.pp
@@ -255,7 +258,7 @@
       $.neutron_advanced_configuration, ('primary-controller' in $.roles))
   refresh_on: [neutron_dhcp_agent_config]
   cross-depends:
-    - name: /(primary-)?openstack-network-plugins-l2/
+    - name: /^(primary-)?openstack-network-plugins-l2$/
       role: self
   parameters:
     puppet_manifest: /etc/puppet/modules/openstack_tasks/examples/openstack-network/agents/dhcp.pp
@@ -274,7 +277,7 @@
   refresh_on: [neutron_dhcp_agent_config]
   cross-depends:
     - name: primary-openstack-network-agents-dhcp
-    - name: /(primary-)?openstack-network-plugins-l2/
+    - name: /^(primary-)?openstack-network-plugins-l2$/
       role: self
   parameters:
     puppet_manifest: /etc/puppet/modules/openstack_tasks/examples/openstack-network/agents/dhcp.pp
@@ -299,9 +302,9 @@
         $.get('workers_max'),
         ('primary-controller' in $.roles))
   cross-depends:
-    - name: /(primary-)?openstack-network-plugins-l2/
+    - name: /^(primary-)?openstack-network-plugins-l2$/
       role: self
-    - name: /(primary-)?openstack-network-agents-l3/
+    - name: /^(primary-)?openstack-network-agents-l3$/
       role: self
   parameters:
     puppet_manifest: /etc/puppet/modules/openstack_tasks/examples/openstack-network/agents/metadata.pp
@@ -320,8 +323,8 @@
   refresh_on: [neutron_metadata_agent_config]
   cross-depends:
     - name: primary-openstack-network-agents-metadata
-    - name: /(primary-)?openstack-network-plugins-l2/
-      role: ["/(primary-)?controller/"]
+    - name: /^(primary-)?openstack-network-plugins-l2$/
+      role: ["/^(primary-)?controller$/"]
   parameters:
     puppet_manifest: /etc/puppet/modules/openstack_tasks/examples/openstack-network/agents/metadata.pp
     puppet_modules: /etc/puppet/modules
@@ -338,7 +341,7 @@
       changedAny($.network_scheme, $.quantum, $.quantum_settings, $.nova,
       $.network_metadata.vips, $.get('region'), $.get('use_ssl'))
   cross-depends:
-    - name: /(primary-)?openstack-network-plugins-l2/
+    - name: /^(primary-)?openstack-network-plugins-l2$/
   parameters:
     puppet_manifest: /etc/puppet/modules/openstack_tasks/examples/openstack-network/compute-nova.pp
     puppet_modules: /etc/puppet/modules
