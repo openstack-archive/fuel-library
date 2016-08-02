@@ -38,7 +38,7 @@ describe "fuel::keystone" do
           :priority               => '05',
           :threads                => 3,
           :vhost_custom_fragment  => 'LimitRequestFieldSize 81900',
-          :workers                => 6,
+          :workers                => 1,
           :access_log_format      => 'forwarded',
         )
       end
@@ -49,7 +49,7 @@ describe "fuel::keystone" do
 
   on_supported_os(supported_os: supported_os).each do |os, facts|
     context "on #{os}" do
-      let(:facts) { facts }
+        let(:facts) { facts.merge!(@default_facts) }
       it_configures "keystone configuration"
     end
   end

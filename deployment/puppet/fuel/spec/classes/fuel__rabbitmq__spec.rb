@@ -3,10 +3,11 @@ require 'spec_helper'
 describe 'fuel::rabbitmq', :type => :class do
   context 'on supported platform' do
     let(:facts) {{
-      :osfamily               => 'Debian',
-      :lsbdistid              => 'Ubuntu',
-      :operatingsystem        => 'Ubuntu',
-      :operatingsystemrelease => '14.04',
+      :osfamily               => 'RedHat',
+      :lsbdistid              => 'CentOS',
+      :operatingsystem        => 'CentOS',
+      :operatingsystemrelease => '7.2',
+      :operatingsystemmajrelease => '7',
     }}
     context 'with default parameters' do
       describe 'declares rabbitmq class' do
