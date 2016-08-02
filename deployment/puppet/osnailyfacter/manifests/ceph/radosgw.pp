@@ -41,21 +41,22 @@ class osnailyfacter::ceph::radosgw {
     }
 
     group { 'ceph':
-      ensure   => "present",
+      ensure   => 'present',
       system   => true,
       gid      => 64045,
-      provider => "groupadd",
+      provider => 'groupadd',
     }
 
     user { 'ceph':
-      ensure  => "present",
+      ensure  => 'present',
       system  => true,
       gid     => 'ceph',
-      uid      => 64045,
-      home    => "/",
-      shell   => "/bin/false",
+      uid     => 64045,
+      home    => '/var/lib/ceph/',
+      shell   => '/bin/false',
       require => Group['ceph'],
-    }
+    } ->
+      Package<| tag == 'ceph' |>
 
     ceph::key { "client.${gateway_name}":
       keyring_path => "/etc/ceph/client.${gateway_name}",
