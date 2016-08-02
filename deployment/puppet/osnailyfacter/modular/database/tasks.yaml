@@ -1,8 +1,8 @@
 - id: database
   type: puppet
-  version: 2.1.0
-  groups: [controller]
-  requires: [deploy_start, openstack-haproxy]
+  version: 2.2.0
+  tags: [database]
+  requires: [deploy_start]
   required_for: [deploy_end, openstack-controller]
   condition:
     yaql_exp: &db >
@@ -14,6 +14,9 @@
       $.get('database_nodes'), $.get('mysql_custom_setup_class'),
       $.get('mysql_binary_logs'), $.configuration.get('mysql'))
   cross-depends:
+    - name: openstack-haproxy
+    - name: /^(primary-)?cluster$/
+      role: self
     - name: primary-database
   parameters:
     puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/database/database.pp
@@ -31,12 +34,18 @@
 
 - id: primary-database
   type: puppet
-  version: 2.1.0
-  groups: [primary-controller]
-  requires: [deploy_start, openstack-haproxy]
-  required_for: [deploy_end, primary-openstack-controller]
+  version: 2.2.0
+  tags: [primary-database]
+  requires: [deploy_start]
+  required_for: [deploy_end]
   condition:
     yaql_exp: *db
+  cross-depends:
+    - name: openstack-haproxy
+    - name: /^(primary-)?cluster$/
+      role: self
+  cross-depended-by:
+    - name: primary-openstack-controller
   parameters:
     puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/database/database.pp
     puppet_modules: /etc/puppet/modules
