@@ -388,7 +388,8 @@ class osnailyfacter::globals::globals {
 
   # Define node roles, that will carry corosync/pacemaker
   $corosync_roles = hiera('corosync_roles', ['primary-controller', 'controller',
-                                             'primary-rabbitmq', 'rabbitmq'])
+                                             'primary-rabbitmq', 'rabbitmq',
+                                             'primary-database', 'database'])
 
   # Define cinder-related variables
   # todo: use special node-roles instead controllers in the future
@@ -459,8 +460,12 @@ class osnailyfacter::globals::globals {
   $aodh = hiera('aodh', {})
 
   # Define database-related variables:
-  # todo: use special node-roles instead controllers in the future
-  $database_nodes = $controller_nodes
+  $database_tagged_nodes = get_nodes_hash_by_roles($network_metadata, ['primary-database', 'database'])
+  $database_nodes = empty($database_tagged_nodes) ? {
+    true    => $controller_nodes,
+    false   => $database_tagged_nodes,
+    default => $controller_nodes,
+  }
 
   # Define Nova-API variables:
   # todo: use special node-roles instead controllers in the future
