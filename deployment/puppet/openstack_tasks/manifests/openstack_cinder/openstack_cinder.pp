@@ -184,10 +184,11 @@ class openstack_tasks::openstack_cinder::openstack_cinder {
 
     class { 'cinder::scheduler': }
 
-    # Note, because keystone is enabled
-    cinder_config {
-      'keystone_authtoken/auth_version':    value => $keystone_api;
-    }
+    # TODO (degorenko): cinder auth parameters should be reworked
+    # after https://review.openstack.org/#/c/342905/
+    #cinder_config {
+    #  'keystone_authtoken/auth_version':    value => $keystone_api;
+    #}
   }
 
   if $manage_volumes {

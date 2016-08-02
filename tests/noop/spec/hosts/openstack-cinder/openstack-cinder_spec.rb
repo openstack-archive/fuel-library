@@ -126,8 +126,9 @@ describe manifest do
 
   it 'ensures cinder_config contains auth_uri and identity_uri ' do
       should contain_cinder_config('keystone_authtoken/auth_uri').with(:value  => auth_uri)
-      should contain_cinder_config('keystone_authtoken/identity_uri').with(:value  => identity_uri)
-      should contain_cinder_config('keystone_authtoken/auth_version').with(:value  => auth_version)
+# TODO degorenko: should be reworked after https://review.openstack.org/#/c/342905/
+#      should contain_cinder_config('keystone_authtoken/auth_url').with(:value  => auth_url)
+#      should contain_cinder_config('keystone_authtoken/auth_version').with(:value  => auth_version)
   end
 
   it 'ensures cinder_config contains correct values' do
