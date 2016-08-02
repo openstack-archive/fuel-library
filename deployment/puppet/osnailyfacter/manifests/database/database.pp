@@ -4,24 +4,24 @@ class osnailyfacter::database::database {
 
   $network_scheme = hiera_hash('network_scheme', {})
   prepare_network_config($network_scheme)
-  $network_metadata = hiera_hash('network_metadata', {})
-  $use_syslog               = hiera('use_syslog', true)
-  $primary_controller       = hiera('primary_controller')
-  $mysql_hash               = hiera_hash('mysql', {})
-  $debug                    = pick($mysql_hash['debug'], hiera('debug', false))
 
-  $mgmt_iface = get_network_role_property('mgmt/database', 'interface')
+  $network_metadata  = hiera_hash('network_metadata', {})
+  $use_syslog        = hiera('use_syslog', true)
+  $mysql_hash        = hiera_hash('mysql', {})
+  $debug             = pick($mysql_hash['debug'], hiera('debug', false))
+
+  $mgmt_iface      = get_network_role_property('mgmt/database', 'interface')
   $direct_networks = split(direct_networks($network_scheme['endpoints'], $mgmt_iface, 'netmask'), ' ')
   # localhost is covered by mysql::server so we use this for detached db
   $access_networks = unique(flatten(['240.0.0.0/255.255.0.0', $direct_networks]))
 
+
+  $primary_db                = has_primary_role(intersection(hiera('database_roles'), hiera('roles')))
   $mysql_root_password       = $mysql_hash['root_password']
   $enabled                   = pick($mysql_hash['enabled'], true)
 
   $galera_node_address       = get_network_role_property('mgmt/database', 'ipaddr')
-  $galera_nodes_map          = get_node_to_ipaddr_map_by_network_role(hiera_hash('database_nodes'), 'mgmt/database')
-  $galera_nodes              = sorted_hosts($galera_nodes_map, 'ip', 'ip')
-  $galera_primary_controller = hiera('primary_database', $primary_controller)
+  $galera_nodes              = values(get_node_to_ipaddr_map_by_network_role(hiera_hash('database_nodes'), 'mgmt/database'))
   $galera_cluster_name       = 'openstack'
 
   $mysql_skip_name_resolve  = true
@@ -268,8 +268,8 @@ class osnailyfacter::database::database {
       galera_master         => false,
       mysql_port            => $backend_port,
       root_password         => $mysql_root_password,
-      create_root_user      => $primary_controller,
-      create_root_my_cnf    => $primary_controller,
+      create_root_user      => $primary_db,
+      create_root_my_cnf    => $primary_db,
       configure_repo        => false, # NOTE: repos should be managed via fuel
       configure_firewall    => false,
       validate_connection   => false,
@@ -327,7 +327,7 @@ class osnailyfacter::database::database {
     }
 
     # this sets up remote grants for use with detached db
-    if $primary_controller {
+    if $primary_db {
       # We do not need to create users on all controllers as
       # whole /var/lib/mysql will be transferred during SST
       # Also this leads to split brain as MyISAM tables are got diverged
