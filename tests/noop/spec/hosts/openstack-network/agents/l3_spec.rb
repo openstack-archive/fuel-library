@@ -66,8 +66,8 @@ describe manifest do
         end
       end
 
-    elsif not (Noop.hiera('roles') & ['controller', 'primary-controller']).empty?
-      context 'with Neutron-l3-agent on controller' do
+    elsif not (Noop.hiera('roles') & ['neutron', 'primary-neutron']).empty?
+      context 'with Neutron-l3-agent on neutron node' do
         na_config = Noop.hiera_hash('neutron_advanced_configuration')
         dvr = na_config.fetch('neutron_dvr', false)
         agent_mode = (dvr  ?  'dvr_snat'  :  'legacy')
@@ -96,7 +96,7 @@ describe manifest do
 
         if ha_agent
           it { should contain_cluster__neutron__l3('default-l3').with(
-            'primary' => (node_roles.include? 'primary-controller')
+            'primary' => (node_roles.include? 'primary-neutron')
           )}
         else
           it { should_not contain_cluster__neutron__l3('default-l3') }
