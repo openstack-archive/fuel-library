@@ -78,8 +78,8 @@ describe manifest do
       Noop.puppet_function 'pick', mysql_hash['max_binlog_size'], '64M'
     end
 
-    let(:primary_controller) do
-      Noop.hiera('primary_controller')
+    let(:primary_db) do
+      Noop.puppet_function 'has_primary_role', Noop.hiera('database_roles') & Noop.hiera('roles')
     end
 
     let(:mysql_database_password) do
@@ -132,8 +132,8 @@ describe manifest do
         :galera_master => false,
         :mysql_port => '3307',
         :root_password => mysql_database_password,
-        :create_root_my_cnf => primary_controller,
-        :create_root_user => primary_controller,
+        :create_root_my_cnf => primary_db,
+        :create_root_user => primary_db,
         :validate_connection => false,
         :status_check => false,
         :wsrep_group_comm_port => '4567',
@@ -160,8 +160,8 @@ describe manifest do
       )
     end
 
-    it 'should setup additional root grants from other hosts only on primary controller' do
-      if primary_controller
+    it 'should setup additional root grants from other hosts only on primary db' do
+      if primary_db
         should contain_class('osnailyfacter::mysql_user_access').with(
           :db_user          => 'root',
           :db_password_hash => mysql_database_password_hash,
@@ -271,7 +271,7 @@ describe manifest do
     end
 
     it 'should configure galera grants service and proper flow' do
-      if primary_controller
+      if primary_db
         should contain_class('cluster::galera_grants').with(
           :status_user => 'clustercheck',
           :status_password => status_database_password,

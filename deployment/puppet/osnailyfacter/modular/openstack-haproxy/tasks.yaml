@@ -26,7 +26,7 @@
         ('primary-controller' in $.node_roles)),
       $.network_metadata.vips)
   cross-depends:
-    - name: /(primary-)?cluster-haproxy/
+    - name: /^(primary-)?cluster-haproxy$/
       role: self
   parameters:
     puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/openstack-haproxy/openstack-haproxy-horizon.pp
@@ -53,7 +53,7 @@
       $.get('keystone_names'), $.get('keystone_ipaddresses'),
       $.get('public_service_endpoint'), $.network_metadata.vips)
   cross-depends:
-    - name: /(primary-)?cluster-haproxy/
+    - name: /^(primary-)?cluster-haproxy$/
       role: self
   parameters:
     puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/openstack-haproxy/openstack-haproxy-keystone.pp
@@ -78,7 +78,7 @@
         ('primary-controller' in $.node_roles)),
       $.network_metadata.vips)
   cross-depends:
-    - name: /(primary-)?cluster-haproxy/
+    - name: /^(primary-)?cluster-haproxy$/
       role: self
   parameters:
     puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/openstack-haproxy/openstack-haproxy-nova.pp
@@ -104,7 +104,7 @@
         ('primary-controller' in $.node_roles)),
       $.network_metadata.vips)
   cross-depends:
-    - name: /(primary-)?cluster-haproxy/
+    - name: /^(primary-)?cluster-haproxy$/
       role: self
   parameters:
     puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/openstack-haproxy/openstack-haproxy-heat.pp
@@ -129,7 +129,7 @@
         ('primary-controller' in $.node_roles)),
       $.network_metadata.vips)
   cross-depends:
-    - name: /(primary-)?cluster-haproxy/
+    - name: /^(primary-)?cluster-haproxy$/
       role: self
   parameters:
     puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/openstack-haproxy/openstack-haproxy-glance.pp
@@ -155,7 +155,7 @@
         ('primary-controller' in $.node_roles)),
       $.network_metadata.vips)
   cross-depends:
-    - name: /(primary-)?cluster-haproxy/
+    - name: /^(primary-)?cluster-haproxy$/
       role: self
   parameters:
     puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/openstack-haproxy/openstack-haproxy-cinder.pp
@@ -182,7 +182,7 @@
       $.get('neutron_names'), $.get('neutron_ipaddresses'),
       $.network_metadata.vips)
   cross-depends:
-    - name: /(primary-)?cluster-haproxy/
+    - name: /^(primary-)?cluster-haproxy$/
       role: self
   parameters:
     puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/openstack-haproxy/openstack-haproxy-neutron.pp
@@ -237,7 +237,7 @@
       $.network_metadata.vips, $.ironic, $.network_scheme,
       $.network_metadata.nodes.get(concat('node-', $.uid)))
   cross-depends:
-    - name: /(primary-)?cluster-haproxy/
+    - name: /^(primary-)?cluster-haproxy$/
       role: self
   parameters:
     puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/openstack-haproxy/openstack-haproxy-swift.pp
@@ -263,7 +263,7 @@
         ('primary-controller' in $.node_roles)),
       $.network_metadata.vips, $.ironic)
   cross-depends:
-    - name: /(primary-)?cluster-haproxy/
+    - name: /^(primary-)?cluster-haproxy$/
       role: self
   parameters:
     puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/openstack-haproxy/openstack-haproxy-radosgw.pp
@@ -289,7 +289,7 @@
         ('primary-controller' in $.node_roles)),
       $.network_metadata.vips)
   cross-depends:
-    - name: /(primary-)?cluster-haproxy/
+    - name: /^(primary-)?cluster-haproxy$/
       role: self
   parameters:
     puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/openstack-haproxy/openstack-haproxy-ceilometer.pp
@@ -315,7 +315,7 @@
         ('primary-controller' in $.node_roles)),
       $.network_metadata.vips)
   cross-depends:
-    - name: /(primary-)?cluster-haproxy/
+    - name: /^(primary-)?cluster-haproxy$/
       role: self
   parameters:
     puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/openstack-haproxy/openstack-haproxy-aodh.pp
@@ -341,7 +341,7 @@
         ('primary-controller' in $.node_roles)),
       $.network_metadata.vips)
   cross-depends:
-    - name: /(primary-)?cluster-haproxy/
+    - name: /^(primary-)?cluster-haproxy$/
       role: self
   parameters:
     puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/openstack-haproxy/openstack-haproxy-sahara.pp
@@ -369,7 +369,7 @@
       $.get('murano_names'), $.get('murano_ipaddresses'),
       $.network_metadata.vips)
   cross-depends:
-    - name: /(primary-)?cluster-haproxy/
+    - name: /^(primary-)?cluster-haproxy$/
       role: self
   parameters:
     puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/openstack-haproxy/openstack-haproxy-murano.pp
@@ -389,7 +389,7 @@
   condition:
     yaql_exp: "changed($.get('external_lb')) or changed($.network_metadata.vips)"
   cross-depends:
-    - name: /(primary-)?cluster-haproxy/
+    - name: /^(primary-)?cluster-haproxy$/
       role: self
   parameters:
     puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/openstack-haproxy/openstack-haproxy-stats.pp
@@ -409,7 +409,7 @@
   required_for: [deploy_end]
   requires: [deploy_start, primary-cluster-haproxy, cluster-haproxy]
   cross-depends:
-    - name: /(primary-)?cluster-haproxy/
+    - name: /^(primary-)?cluster-haproxy$/
       role: self
   parameters:
     puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/openstack-haproxy/openstack-haproxy-ironic.pp
