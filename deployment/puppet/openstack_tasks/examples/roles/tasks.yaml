@@ -7,7 +7,7 @@
     yaql_exp: >
       changedAny(('primary-controller' in $.roles), $.quantum)
   cross-depends:
-    - name: /(primary-)?openstack-controller/
+    - name: /^(primary-)?openstack-controller$/
   parameters:
     puppet_manifest: /etc/puppet/modules/openstack_tasks/examples/roles/controller.pp
     puppet_modules: /etc/puppet/modules
@@ -44,7 +44,7 @@
       $.resume_guests_state_on_host_boot, $.use_cow_images)
   cross-depends:
     - name: keystone
-    - name: /(primary-)?openstack-controller/
+    - name: /^(primary-)?openstack-controller$/
     - name: /^(primary-)?rabbitmq$/
     - name: memcached
   refresh_on: [nova_config, nova_paste_api_ini]

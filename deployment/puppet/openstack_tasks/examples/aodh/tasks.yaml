@@ -48,16 +48,19 @@
 
 - id: aodh-db
   type: puppet
-  version: 2.1.0
-  groups: [primary-controller]
+  version: 2.2.0
+  tags: [primary-database]
+  requires: [primary-database, database]
+  required_for: [aodh]
   cross-depends:
     - name: /^(primary-)?database$/
-  required_for: [aodh]
+      role: self
+  cross-depended-by:
+    - name: aodh
   condition:
     yaql_exp: >
       $.ceilometer.enabled and changedAny($.aodh, $.get('database_vip'),
       $.mysql, $.get('mysql_custom_setup_class'))
-  requires: [primary-database, database]
   parameters:
     puppet_manifest: /etc/puppet/modules/openstack_tasks/examples/aodh/db.pp
     puppet_modules: /etc/puppet/modules
