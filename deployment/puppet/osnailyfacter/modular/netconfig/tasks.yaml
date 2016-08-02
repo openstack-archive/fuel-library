@@ -50,7 +50,8 @@
   type: puppet
   version: 2.2.0
   tags: [primary-controller, controller, cinder, cinder-block-device, cinder-vmware, compute, ceph-osd,
-         primary-mongo, mongo, virt, ironic, primary-modular-rabbitmq, modular-rabbitmq]
+         primary-mongo, mongo, virt, ironic, primary-modular-rabbitmq, modular-rabbitmq,
+         primary-modular-database, modular-database]
   required_for: [deploy_end]
   requires: [tools]
   condition:
