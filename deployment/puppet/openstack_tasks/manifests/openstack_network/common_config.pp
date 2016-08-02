@@ -77,7 +77,7 @@ class openstack_tasks::openstack_network::common_config {
     rabbit_password                    => $amqp_password,
     rabbit_heartbeat_timeout_threshold => 0,
     kombu_compression                  => $kombu_compression,
-    network_device_mtu                 => $physical_net_mtu,
+    global_physnet_mtu                 => $physical_net_mtu,
     advertise_mtu                      => true,
     notification_driver                => $ceilometer_hash['notification_driver'],
     manage_logging                     => false,

@@ -57,7 +57,7 @@ describe manifest do
       it {
         segmentation_type = neutron_config['L2']['segmentation_type']
         physical_net_mtu = 1500
-        should contain_class('neutron').with('network_device_mtu' => physical_net_mtu)
+        should contain_class('neutron').with('global_physnet_mtu' => physical_net_mtu)
       }
 
       it 'RMQ options' do
