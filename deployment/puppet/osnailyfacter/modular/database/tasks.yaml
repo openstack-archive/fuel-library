@@ -2,6 +2,7 @@
   type: puppet
   version: 2.1.0
   groups: [controller]
+  tags: [modular-database]
   requires: [deploy_start, openstack-haproxy]
   required_for: [deploy_end, openstack-controller]
   condition:
@@ -33,6 +34,7 @@
   type: puppet
   version: 2.1.0
   groups: [primary-controller]
+  tags: [primary-modular-database]
   requires: [deploy_start, openstack-haproxy]
   required_for: [deploy_end, primary-openstack-controller]
   condition:
