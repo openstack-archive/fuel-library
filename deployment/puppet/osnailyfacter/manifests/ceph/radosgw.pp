@@ -52,10 +52,11 @@ class osnailyfacter::ceph::radosgw {
       system  => true,
       gid     => 'ceph',
       uid      => 64045,
-      home    => "/",
+      home    => "/var/lib/ceph/",
       shell   => "/bin/false",
       require => Group['ceph'],
-    }
+    } ->
+      Package<| tag == 'ceph' |>
 
     ceph::key { "client.${gateway_name}":
       keyring_path => "/etc/ceph/client.${gateway_name}",
