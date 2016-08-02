@@ -27,16 +27,18 @@
 
 - id: ironic-db
   type: puppet
-  version: 2.1.0
-  groups: [primary-controller]
+  version: 2.2.0
+  tags: [primary-database]
+  required_for: [ironic-api]
+  requires: [primary-database, database]
   cross-depends:
     - name: /^(primary-)?database$/
+  cross-depended-by:
+    - name: ironic-api
   condition:
     yaql_exp: >
       $.ironic.enabled and changedAny($.ironic, $.mysql, $.get('database_vip'),
       $.get('mysql_custom_setup_class'))
-  required_for: [ironic-api]
-  requires: [primary-database, database]
   parameters:
     puppet_manifest: /etc/puppet/modules/openstack_tasks/examples/ironic/db.pp
     puppet_modules: /etc/puppet/modules
@@ -88,7 +90,7 @@
   refresh_on: [nova_config, nova_paste_api_ini]
   cross-depends:
    - name: /^(primary-)?rabbitmq$/
-   - name: /(primary-)?openstack-controller/
+   - name: /^(primary-)?openstack-controller$/
      role: self
    - name: ironic-api
      role: self
