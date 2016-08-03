@@ -13,7 +13,6 @@ describe manifest do
     unless created
       libvirt_dir = '/etc/libvirt/qemu'
       template_dir = '/var/lib/nova'
-      libvirt_service = 'libvirtd'
       packages = ['qemu-utils', 'qemu-kvm', 'libvirt-bin', 'xmlstarlet']
 
       vms.each do | vm |
@@ -44,7 +43,12 @@ describe manifest do
         )
       end
 
-      it "should start #{libvirt_service} service" do
+      it "should start libvirt service service" do
+        if facts[:operatingsystem] == 'Ubuntu' and facts[:operatingsystemrelease] =~ /^16/
+          libvirt_service = 'libvirt-bin'
+        else
+          libvirt_service = 'libvirtd'
+        end
         should contain_service(libvirt_service).with(
           'ensure' => 'running',
           'before' => 'Exec[generate_vms]',
