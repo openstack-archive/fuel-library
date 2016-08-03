@@ -2,7 +2,7 @@
 - id: enable_quorum
   type: shell
   version: 2.1.0
-  role: [primary-controller]
+  groups: [primary-controller]
   requires: [post_deployment_start]
   required_for: [post_deployment_end]
   condition:
@@ -18,7 +18,7 @@
 - id: upload_cirros
   type: puppet
   version: 2.1.0
-  role: [primary-controller]
+  groups: [primary-controller]
   requires: [enable_quorum]
   required_for: [post_deployment_end]
   condition:
@@ -36,13 +36,13 @@
 - id: upload_nodes_info
   type: skipped
   version: 2.1.0
-  role: ['/.*/']
+  groups: ['/.*/']
   requires: [post_deployment_start]
 
 - id: upload_configuration
   type: upload_file
   version: 2.1.0
-  role: ['master', '/.*/']
+  groups: ['master', '/.*/']
   condition:
     yaql_exp: 'changed($)'
   requires: [override_configuration]
@@ -59,7 +59,7 @@
 - id: configuration_symlink
   type: shell
   version: 2.1.0
-  role: ['/.*/']
+  groups: ['/.*/']
   condition:
     yaql_exp: '$.uid in added($.network_metadata.nodes.values()).uid'
   requires: [upload_configuration]
@@ -71,7 +71,7 @@
 - id: update_hosts
   type: puppet
   version: 2.1.0
-  role: ['/.*/']
+  groups: ['/.*/']
   required_for: [post_deployment_end]
   requires: [upload_nodes_info, copy_deleted_nodes]
   condition:
@@ -85,7 +85,7 @@
 - id: vcenter_compute_zones_create
   type: shell
   version: 2.1.0
-  role: [primary-controller, compute-vmware]
+  groups: [primary-controller, compute-vmware]
   requires: [post_deployment_start, enable_nova_compute_service]
   required_for: [post_deployment_end]
   condition:
@@ -97,7 +97,7 @@
 - id: disable_keystone_service_token
   type: puppet
   version: 2.0.0
-  role: [primary-controller, controller]
+  groups: [primary-controller, controller]
   requires: [upload_cirros]
   required_for: [post_deployment_end]
   condition:
@@ -115,7 +115,7 @@
 - id: public_vip_ping
   type: puppet
   version: 2.1.0
-  role: [primary-controller, controller]
+  groups: [primary-controller, controller]
   requires: [post_deployment_start]
   required_for: [post_deployment_end]
   condition:
@@ -129,7 +129,7 @@
 - id: configure_default_route
   type: puppet
   version: 2.1.0
-  role: [primary-mongo, mongo]
+  groups: [primary-mongo, mongo]
   requires: [post_deployment_start]
   required_for: [post_deployment_end]
   condition:
@@ -144,7 +144,7 @@
 - id: cluster_mm_off
   type: shell
   version: 2.1.0
-  role: [primary-controller, controller]
+  groups: [primary-controller, controller]
   condition:
     yaql_exp: "changedAny($.network_metadata.nodes.keys(), $.get('corosync_roles'))"
   requires: [post_deployment_start]
@@ -157,7 +157,7 @@
 - id: rsync_core_puppet
   type: sync
   version: 2.0.0
-  role: ['/.*/']
+  groups: ['/.*/']
   requires: []
   required_for: [pre_deployment_start]
   parameters:
@@ -169,7 +169,7 @@
 - id: clear_nodes_info
   type: skipped
   version: 2.0.0
-  role: ['/.*/']
+  groups: ['/.*/']
   requires: [pre_deployment_start]
   required_for: [pre_deployment_end]
   parameters:
@@ -179,7 +179,7 @@
 - id: copy_keys
   type: copy_files
   version: 2.0.0
-  role: ['/.*/']
+  groups: ['/.*/']
   required_for: [pre_deployment_end]
   requires: [generate_keys]
   cross-depends:
@@ -203,7 +203,7 @@
 - id: generate_keys
   type: shell
   version: 2.0.0
-  role: master
+  groups: [master]
   requires: [pre_deployment_start]
   required_for: [copy_keys]
   parameters:
@@ -213,7 +213,7 @@
 - id: generate_haproxy_keys
   type: shell
   version: 2.1.0
-  role: master
+  groups: [master]
   requires: [pre_deployment_start]
   condition:
     yaql_exp: &public_ssl >
@@ -228,7 +228,7 @@
 - id: copy_haproxy_keys
   type: copy_files
   version: 2.1.0
-  role: ['/.*/']
+  groups: ['/.*/']
   condition:
     yaql_exp: >
       (((changedAny($.public_ssl.horizon, $.public_ssl.services)) and
@@ -254,7 +254,7 @@
 - id: sync_time
   type: shell
   version: 2.1.0
-  role: ['/.*/']
+  groups: ['/.*/']
   condition:
     yaql_exp: '$.uid in added($.network_metadata.nodes.values()).uid'
   requires: [pre_deployment_start]
@@ -268,7 +268,7 @@
 - id: pre_hiera_config
   type: puppet
   version: 2.1.0
-  role: ['/.*/']
+  groups: ['/.*/']
   condition:
     yaql_exp: '$.uid in added($.network_metadata.nodes.values()).uid'
   requires: [rsync_core_puppet]
@@ -282,7 +282,7 @@
 - id: override_configuration
   type: puppet
   version: 2.1.0
-  role: ['/.*/']
+  groups: ['/.*/']
   condition:
     yaql_exp: '$.uid in added($.network_metadata.nodes.values()).uid'
   requires: [pre_hiera_config]
@@ -296,7 +296,7 @@
 - id: dump_rabbitmq_definitions
   type: puppet
   version: 2.1.0
-  role: [primary-controller, controller]
+  groups: [primary-controller, controller]
   requires: [post_deployment_start]
   required_for: [post_deployment_end]
   condition:
@@ -312,7 +312,7 @@
 - id: ironic_post_swift_key
   type: shell
   version: 2.1.0
-  role: [primary-controller]
+  groups: [primary-controller]
   condition:
     yaql_exp: &ironic_enabled '$.ironic.enabled and changed($.ironic.enabled)'
   requires: [enable_quorum, ceph-radosgw]
@@ -326,7 +326,7 @@
 - id: ironic_upload_images
   type: shell
   version: 2.1.0
-  role: [primary-controller]
+  groups: [primary-controller]
   condition:
     yaql_exp: *ironic_enabled
   required_for: [post_deployment_end]
@@ -340,7 +340,7 @@
 - id: ironic_copy_bootstrap_key
   type: copy_files
   version: 2.1.0
-  role: [ironic]
+  groups: [ironic]
   condition:
     yaql_exp: >
       ($.ironic.enabled and
@@ -359,7 +359,7 @@
 - id: generate_deleted_nodes
   version: 2.1.0
   type: upload_file
-  role: master
+  groups: [master]
   condition:
     yaql_exp: &deleted_nodes 'changed($.network_metadata.nodes)'
   requires: [upload_configuration]
@@ -374,7 +374,7 @@
 - id: copy_deleted_nodes
   type: copy_files
   version: 2.1.0
-  role: ['/.*/']
+  groups: ['/.*/']
   condition:
     yaql_exp: *deleted_nodes
   required_for: [pre_deployment_end]
@@ -392,7 +392,7 @@
 - id: purge_service_entries
   version: 2.1.0
   type: puppet
-  role: [primary-controller]
+  groups: [primary-controller]
   condition:
     yaql_exp: *deleted_nodes
   requires: [post_deployment_start]

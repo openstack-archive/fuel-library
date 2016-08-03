@@ -158,7 +158,7 @@
 - id: openstack-network-routers-ha
   type: puppet
   version: 2.1.0
-  role: [primary-controller]
+  groups: [primary-controller]
   condition:
     yaql_exp: >
       $.neutron_advanced_configuration.neutron_l3_ha and

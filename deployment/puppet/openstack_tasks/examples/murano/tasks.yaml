@@ -120,7 +120,7 @@
 - id: upload_murano_package
   type: puppet
   version: 2.1.0
-  role: [primary-controller]
+  groups: [primary-controller]
   requires: [upload_cirros]
   required_for: [post_deployment_end]
   condition:

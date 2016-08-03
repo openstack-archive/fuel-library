@@ -140,7 +140,7 @@
 - id: ceph_create_pools
   type: puppet
   version: 2.1.0
-  role: [primary-controller, controller]
+  groups: [primary-controller, controller]
   requires: [post_deployment_start]
   required_for: [ceph_ready_check]
   cross-depended-by:
@@ -159,7 +159,7 @@
 - id: ceph_ready_check
   type: shell
   version: 2.1.0
-  role: [primary-controller]
+  groups: [primary-controller]
   condition:
     yaql_exp: *ceph_changed
   requires: [post_deployment_start]
@@ -171,7 +171,7 @@
 - id: updatedb
   type: puppet
   version: 2.1.0
-  role: [primary-controller, controller, ceph-osd]
+  groups: [primary-controller, controller, ceph-osd]
   condition:
     yaql_exp: *ceph_changed
   requires: [post_deployment_start]

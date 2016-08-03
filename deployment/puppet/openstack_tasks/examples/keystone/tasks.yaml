@@ -141,7 +141,7 @@
 - id: delete_old_admin_user
   version: 2.1.0
   type: puppet
-  role: [primary-controller]
+  groups: [primary-controller]
   condition:
     yaql_exp: *changed_username
   requires: [post_deployment_start, primary-keystone]

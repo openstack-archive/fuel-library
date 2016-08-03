@@ -31,7 +31,7 @@
 - id: dns-client
   type: puppet
   version: 2.1.0
-  role: [primary-mongo, mongo, primary-controller, controller, compute, ceph-osd, cinder, cinder-vmware]
+  groups: [primary-mongo, mongo, primary-controller, controller, compute, ceph-osd, cinder, cinder-vmware]
   requires: [post_deployment_start]
   required_for: [ntp-client]
   condition:

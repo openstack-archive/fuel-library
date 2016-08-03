@@ -27,6 +27,7 @@
 - id: primary-controller
   type: group
   role: [primary-controller]
+  tags: [primary-controller]
   requires: [deploy_start]
   fault_tolerance: 0
   required_for: [deploy_end]
@@ -37,6 +38,7 @@
 - id: controller
   type: group
   role: [controller]
+  tags: [controller]
   requires: [primary-controller]
   required_for: [deploy_end]
   fault_tolerance: 1
@@ -48,6 +50,7 @@
 - id: cinder
   type: group
   role: [cinder]
+  tags: [cinder]
   requires: [controller]
   required_for: [deploy_end]
   fault_tolerance: "2%"
@@ -58,6 +61,7 @@
 - id: cinder-block-device
   type: group
   role: [cinder-block-device]
+  tags: [cinder-block-device]
   requires: [compute]
   required_for: [deploy_end]
   fault_tolerance: "2%"
@@ -68,6 +72,7 @@
 - id: cinder-vmware
   type: group
   role: [cinder-vmware]
+  tags: [cinder-vmware]
   requires: [controller]
   required_for: [deploy_end]
   parameters:
@@ -77,6 +82,7 @@
 - id: compute
   type: group
   role: [compute]
+  tags: [compute]
   requires: [controller]
   required_for: [deploy_end]
   fault_tolerance: "2%"
@@ -87,6 +93,7 @@
 - id: compute-vmware
   type: group
   role: [compute-vmware]
+  tags: [compute-vmware]
   requires: [controller]
   required_for: [deploy_end]
   tasks: [globals, hiera, tools, logging, netconfig, connectivity_tests, hosts, firewall, top-role-compute]
@@ -97,6 +104,7 @@
 - id: mongo
   type: group
   role: [mongo]
+  tags: [mongo]
   requires: [primary-mongo]
   required_for: [deploy_end, primary-controller, controller]
   fault_tolerance: 1
@@ -107,6 +115,7 @@
 - id: primary-mongo
   type: group
   role: [primary-mongo]
+  tags: [primary-mongo]
   requires: [deploy_start]
   required_for: [deploy_end, primary-controller, controller]
   fault_tolerance: 0
@@ -117,6 +126,7 @@
 - id: ceph-osd
   type: group
   role: [ceph-osd]
+  tags: [ceph-osd]
   requires: [controller]
   required_for: [deploy_end]
   parameters:
@@ -155,3 +165,10 @@
   parameters:
     strategy:
       type: parallel
+
+- id: master
+  type: group
+  role: [master]
+  requires: [deploy_start]
+  required_for: [deploy_end]
+  fault_tolerance: 0
