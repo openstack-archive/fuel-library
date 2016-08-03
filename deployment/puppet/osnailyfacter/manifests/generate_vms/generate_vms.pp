@@ -17,7 +17,14 @@ class osnailyfacter::generate_vms::generate_vms {
       ensure => 'installed',
     }
 
-    service { $::nova::params::libvirt_service_name:
+    if ($::operatingsystem == 'Ubuntu') and ($::operatingsystemrelease =~ /^16/) {
+      # This override is required only for 16.04 Ubuntu because we are using UCA libvirt package.
+      $libvirt_service_name  = 'libvirt-bin'
+    } else {
+      $libvirt_service_name  = $::nova::params::libvirt_service_name
+    }
+
+    service { $libvirt_service_name:
       ensure  => 'running',
       require => Package[$packages],
       before  => Exec['generate_vms'],
