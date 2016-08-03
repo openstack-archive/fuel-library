@@ -31,4 +31,6 @@ if ($rabbit_enabled) {
     group  => 'root',
     mode   => '0600',
   }
+
+  File[$filter] -> Exec['rabbitmq-dump-definitions']
 }
