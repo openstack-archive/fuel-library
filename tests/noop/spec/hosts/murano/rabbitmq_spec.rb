@@ -8,8 +8,8 @@ manifest = 'murano/rabbitmq.pp'
 describe manifest do
   shared_examples 'catalog' do
 
-    let(:rabbit_user) { Noop.hiera_structure('rabbit/user', 'nova') }
-    let(:rabbit_password) { Noop.hiera_structure('rabbit/password', 'secret') }
+    let(:rabbit_user) { Noop.hiera_structure('murano/rabbit/user', 'murano') }
+    let(:rabbit_password) { Noop.hiera_structure('murano/rabbit_password') }
     let(:rabbit_vhost) { Noop.hiera_structure('murano/rabbit/vhost', '/') }
 
     let(:rabbit_node_name) { 'murano@localhost' }

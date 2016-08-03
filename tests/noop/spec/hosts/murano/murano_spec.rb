@@ -14,6 +14,8 @@ describe manifest do
     let(:rabbit_os_user) { Noop.hiera_structure('rabbit/user', 'nova') }
     let(:rabbit_os_password) { Noop.hiera_structure('rabbit/password') }
 
+    let(:rabbit_own_user) { Noop.hiera_structure('murano/rabbit/user', 'murano') }
+    let(:rabbit_own_password) { Noop.hiera_structure('murano/rabbit_password') }
     let(:rabbit_own_vhost) { '/' }
     let(:rabbit_own_port) { '55572' }
 
@@ -172,8 +174,8 @@ describe manifest do
                    'rabbit_ha_queues'    => rabbit_ha_queues,
                    'rabbit_own_host'     => public_ip,
                    'rabbit_own_port'     => rabbit_own_port,
-                   'rabbit_own_user'     => rabbit_os_user,
-                   'rabbit_own_password' => rabbit_os_password,
+                   'rabbit_own_user'     => rabbit_own_user,
+                   'rabbit_own_password' => rabbit_own_password,
                    'rabbit_own_vhost'    => rabbit_own_vhost,
                    'default_nameservers' => default_dns,
                    'service_host'        => bind_address,
