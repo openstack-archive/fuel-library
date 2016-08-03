@@ -739,7 +739,7 @@ function backup_compress {
   if [ -z "$(virt-what)" ] ; then
     lrzopts="-L2 -U"
   else
-    lrzopts="-L2"
+    lrzopts="-L2 -w 5"
   fi
   lrzip $lrzopts "$backup_dir/fuel_backup${image_suffix}.tar" -o "$backup_dir/fuel_backup${image_suffix}.tar.lrz"
 
