@@ -116,6 +116,7 @@ class fuel::nailgun::server (
     subscribe   => File["/etc/nailgun/settings.yaml"],
     tries       => 50,
     try_sleep   => 5,
+    timeout     => 0,
   }
 
   exec {"nailgun_upload_fixtures":
