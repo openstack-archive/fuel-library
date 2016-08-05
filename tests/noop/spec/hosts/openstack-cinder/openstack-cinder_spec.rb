@@ -113,7 +113,7 @@ describe manifest do
     keystone_auth_host = Noop.hiera_structure('use_ssl/keystone_internal_hostname')
   end
   auth_uri            = "#{internal_auth_protocol}://#{keystone_auth_host}:5000/"
-  identity_uri        = "#{internal_auth_protocol}://#{keystone_auth_host}:5000/"
+  auth_url        = "#{internal_auth_protocol}://#{keystone_auth_host}:5000/"
   privileged_auth_uri = "#{internal_auth_protocol}://#{keystone_auth_host}:5000/v3/"
   auth_version        = Noop.hiera 'keystone_api', 'v3'
 
@@ -124,11 +124,10 @@ describe manifest do
     should contain_class('cinder::api').with('service_workers' => service_workers,)
   end
 
-  it 'ensures cinder_config contains auth_uri and identity_uri ' do
+  it 'ensures cinder_config contains auth parameters ' do
       should contain_cinder_config('keystone_authtoken/auth_uri').with(:value  => auth_uri)
-# TODO degorenko: should be reworked after https://review.openstack.org/#/c/342905/
-#      should contain_cinder_config('keystone_authtoken/auth_url').with(:value  => auth_url)
-#      should contain_cinder_config('keystone_authtoken/auth_version').with(:value  => auth_version)
+      should contain_cinder_config('keystone_authtoken/auth_url').with(:value  => auth_url)
+      should contain_cinder_config('keystone_authtoken/auth_version').with(:value  => auth_version)
   end
 
   it 'ensures cinder_config contains correct values' do
