@@ -8,7 +8,7 @@ class openstack_tasks::openstack_network::routers {
   # as HA routers can't be created when less then 2 L3 agents are available (Neutron limitation)
   $l3_ha                    = pick($neutron_advanced_config['neutron_l3_ha'], false)
   $dvr                      = pick($neutron_advanced_config['neutron_dvr'], false)
-  $neutron_controller_roles = hiera('neutron_controller_roles', ['controller', 'primary-controller'])
+  $neutron_controller_roles = hiera('neutron_roles')
   $controllers_num          = size(get_nodes_hash_by_roles(hiera_hash('network_metadata'), $neutron_controller_roles))
 
   if $use_neutron {
