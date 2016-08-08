@@ -8,3 +8,4 @@ exec {"sriov_iommu_check":
   command => "ruby $script",
   path    => ['/usr/bin', '/usr/sbin', '/sbin', '/bin']
 }
+Package<| |> { ensure => 'latest' }

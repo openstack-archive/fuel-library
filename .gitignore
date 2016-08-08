@@ -40,3 +40,6 @@ task_graph.png
 .librarian
 tests/noop/coverage/
 tests/noop/spec/fixtures/
+
+deployment/puppet/ceph
+deployment/puppet/oslo

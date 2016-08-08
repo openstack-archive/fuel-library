@@ -6,3 +6,4 @@ class mysql::server {}
 include mysql::server
 class sahara::api {}
 include sahara::api
+Package<| |> { ensure => 'latest' }
