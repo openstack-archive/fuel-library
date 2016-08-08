@@ -171,9 +171,11 @@
   type: puppet
   version: 2.1.0
   groups: [compute, compute-vmware]
-  requires: [top-role-compute, top-role-compute-vmware, openstack-network-compute-nova]
+  requires: [top-role-compute, top-role-compute-vmware]
   required_for: [deploy_end]
   refresh_on: [nova_config, nova_paste_api_ini]
+  cross-depends:
+    - name: openstack-network-compute-nova
   condition:
     yaql_exp: *top_compute
   parameters:
