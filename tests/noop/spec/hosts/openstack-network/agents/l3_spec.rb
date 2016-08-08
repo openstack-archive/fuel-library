@@ -1,5 +1,5 @@
-# ROLE: primary-controller
-# ROLE: controller
+# ROLE: primary-neutron
+# ROLE: neutron
 # ROLE: compute
 
 require 'spec_helper'
@@ -67,8 +67,8 @@ describe manifest do
           end
         end
 
-      elsif Noop.hiera('role') =~ /controller/
-        context 'with Neutron-l3-agent on controller' do
+      elsif Noop.hiera('role') =~ /neutron/
+        context 'with Neutron-l3-agent on neutron' do
           na_config = Noop.hiera_hash('neutron_advanced_configuration')
           dvr = na_config.fetch('neutron_dvr', false)
           agent_mode = (dvr  ?  'dvr_snat'  :  'legacy')
@@ -97,7 +97,7 @@ describe manifest do
 
           if ha_agent
             it { should contain_cluster__neutron__l3('default-l3').with(
-              'primary' => (node_role == 'primary-controller')
+              'primary' => (node_role == 'primary-neutron')
             )}
           else
             it { should_not contain_cluster__neutron__l3('default-l3') }

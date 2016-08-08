@@ -1,5 +1,5 @@
-# ROLE: primary-controller
-# ROLE: controller
+# ROLE: primary-neutron
+# ROLE: neutron
 
 require 'spec_helper'
 require 'shared-examples'
@@ -15,7 +15,7 @@ describe manifest do
   end
 
   shared_examples 'catalog' do
-    if (Noop.hiera('use_neutron') == true and Noop.hiera('role') =~ /controller/)
+    if (Noop.hiera('use_neutron') == true and Noop.hiera('role') =~ /neutron/)
       let(:network_scheme) do
         Noop.hiera_hash('network_scheme', {})
       end
@@ -26,7 +26,7 @@ describe manifest do
         management_vip   = Noop.hiera('management_vip')
         service_endpoint = Noop.hiera('service_endpoint', management_vip)
         l3_ha            = Noop.hiera_hash('neutron_advanced_configuration', {}).fetch('neutron_l3_ha', false)
-        sync_db          = Noop.hiera('primary_controller')
+        sync_db          = Noop.puppet_function('has_primary_role', Noop.puppet_function('intersection', Noop.hiera('neutron_roles'), Noop.hiera('roles')))
         extension_drivers = ['port_security']
         segmentation_type = neutron_config.fetch('L2',{}).fetch('segmentation_type')
         pnets = neutron_config.fetch('L2',{}).fetch('phys_nets',{})
