@@ -352,33 +352,6 @@ class osnailyfacter::firewall::firewall {
       source_nets => concat($management_nets, $storage_nets),
     }
 
-    openstack::firewall::multi_net {'110 neutron':
-      port        => $neutron_api_port,
-      proto       => 'tcp',
-      action      => 'accept',
-      source_nets => $neutron_networks,
-    }
-
-    openstack::firewall::multi_net {'111 dns-server udp':
-      port        => $dns_server_port,
-      proto       => 'udp',
-      action      => 'accept',
-      source_nets => $management_nets,
-    }
-
-    openstack::firewall::multi_net {'111 dns-server tcp':
-      port        => $dns_server_port,
-      proto       => 'tcp',
-      action      => 'accept',
-      source_nets => $management_nets,
-    }
-
-    firewall {'111 dhcp-server':
-      dport  => $dhcp_server_port,
-      proto  => 'udp',
-      action => 'accept',
-    }
-
     openstack::firewall::multi_net {'116 openvswitch db':
       port        => $openvswitch_db_port,
       proto       => 'udp',
@@ -422,6 +395,36 @@ class osnailyfacter::firewall::firewall {
       action => 'accept',
     }
 
+  }
+
+  $neutron_role = intersection($roles, ['primary-neutron', 'neutron'])
+  if $neutron_role {
+   openstack::firewall::multi_net {'110 neutron':
+      port        => $neutron_api_port,
+      proto       => 'tcp',
+      action      => 'accept',
+      source_nets => $neutron_networks,
+    }
+
+    openstack::firewall::multi_net {'111 dns-server udp':
+      port        => $dns_server_port,
+      proto       => 'udp',
+      action      => 'accept',
+      source_nets => $management_nets,
+    }
+
+    openstack::firewall::multi_net {'111 dns-server tcp':
+      port        => $dns_server_port,
+      proto       => 'tcp',
+      action      => 'accept',
+      source_nets => $management_nets,
+    }
+
+    firewall {'111 dhcp-server':
+      dport  => $dhcp_server_port,
+      proto  => 'udp',
+      action => 'accept',
+    } 
   }
 
   if member($roles, 'compute') {
