@@ -165,7 +165,7 @@ class osnailyfacter::rabbitmq::rabbitmq {
       }
 
       if $rabbitmq_admin_enabled {
-        ensure_resource('service_status', ['rabbitmq'], { 'ensure' => 'online', check_cmd => 'rabbitmqctl cluster_status'})
+        ensure_resource('service_status', ['rabbitmq'], { 'ensure' => 'online', check_cmd => 'rabbitmqctl status | grep -qE "{listeners,\[.+\]},"'})
 
         Service_status['rabbitmq'] -> Staging::File['rabbitmqadmin']
       }
