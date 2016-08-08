@@ -52,7 +52,8 @@
   tags: [primary-controller, controller, cinder, cinder-block-device, cinder-vmware, compute, ceph-osd,
          primary-mongo, mongo, virt, ironic, primary-modular-rabbitmq, modular-rabbitmq,
          primary-modular-database, modular-database,
-         primary-modular-keystone, modular-keystone]
+         primary-modular-keystone, modular-keystone,
+         primary-modular-neutron, modular-neutron]
   required_for: [deploy_end]
   requires: [tools]
   condition:
