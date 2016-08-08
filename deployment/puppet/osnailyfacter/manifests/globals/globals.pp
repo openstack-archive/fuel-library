@@ -365,6 +365,14 @@ class osnailyfacter::globals::globals {
     $glance_known_stores = false
   }
 
+  # Define neutron-related variables:
+  $neutron_tagged_nodes = get_nodes_hash_by_tags($network_metadata, ['primary-neutron', 'neutron'])
+  $neutron_nodes = empty($neutron_tagged_nodes) ? {
+    true    => $controller_nodes,
+    false   => $neutron_tagged_nodes,
+    default => $controller_nodes,
+  }
+
   # Define keystone-related variables:
   $keystone_nodes = $controller_nodes
 
@@ -384,6 +392,10 @@ class osnailyfacter::globals::globals {
 
   # Define node roles, that will carry corosync/pacemaker
   $corosync_roles = hiera('corosync_roles', ['primary-controller', 'controller'])
+
+  # Define corosync tags to use corosync on decomposed nodes
+  $corosync_tags = hiera('corosync_tags', ['primary-controller', 'controller',
+                                         'primary-neutron', 'neutron'])
 
   # Define cinder-related variables
   # todo: use special node-roles instead controllers in the future
