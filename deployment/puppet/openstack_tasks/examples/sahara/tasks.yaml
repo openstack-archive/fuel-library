@@ -1,7 +1,7 @@
 - id: sahara
   type: puppet
-  version: 2.1.0
-  groups: [primary-controller, controller]
+  version: 2.2.0
+  tags: [primary-controller, controller]
   condition:
     yaql_exp: >
       $.sahara.enabled and changedAny($.access, $.sahara, $.rabbit,
@@ -15,11 +15,16 @@
         $.node_roles.any($.matches('controller'))).network_roles.select(
           $.get('mgmt/messaging')), $.get('amqp_hosts'),
       $.get('external_lb'), $.get('use_ssl'), $.get('kombu_compression'))
-  required_for: [deploy_end, controller_remaining_tasks]
-  requires: [openstack-network-end, horizon]
   cross-depends:
+    - name: openstack-network-end
+    - name: horizon
     - name: sahara-db
     - name: sahara-keystone
+  cross-depended-by:
+    - name: deploy_end
+      role: self
+    - name: controller_remaining_tasks
+      role: self
   parameters:
     puppet_manifest: /etc/puppet/modules/openstack_tasks/examples/sahara/sahara.pp
     puppet_modules: /etc/puppet/modules

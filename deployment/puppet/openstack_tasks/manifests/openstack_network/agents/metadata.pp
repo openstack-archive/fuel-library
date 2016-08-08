@@ -2,7 +2,7 @@ class openstack_tasks::openstack_network::agents::metadata {
 
   notice('MODULAR: openstack_network/agents/metadata.pp')
 
-  $neutron_controller_roles = hiera('neutron_controller_roles', ['controller', 'primary-controller'])
+  $neutron_controller_roles = hiera('neutron_roles')
   $neutron_compute_roles    = hiera('neutron_compute_nodes', ['compute'])
   $controller               = roles_include($neutron_controller_roles)
   $compute                  = roles_include($neutron_compute_roles)
