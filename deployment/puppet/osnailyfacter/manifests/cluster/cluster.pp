@@ -2,9 +2,8 @@ class osnailyfacter::cluster::cluster {
 
   notice('MODULAR: cluster/cluster.pp')
 
-  unless (roles_include(hiera('corosync_roles')) or tags_include(hiera('corosync_tags'))) {
+  if (!roles_include(hiera('corosync_roles')) && !tags_include(hiera('corosync_tags'))) {
     fail('The node roles/tags is not in corosync roles/tags')
-  }
 
   prepare_network_config(hiera_hash('network_scheme', {}))
 
@@ -17,10 +16,7 @@ class osnailyfacter::cluster::cluster {
   )
 
   $corosync_nodes_by_tags = corosync_nodes(
-      get_nodes_hash_by_tags(
-          hiera_hash('network_metadata'),
-          hiera('corosync_tags')
-      ),
+    get_nodes_hash_by_tags( hiera_hash('network_metadata'), hiera('corosync_tags') ),
       'mgmt/corosync'
   )
 
@@ -29,6 +25,7 @@ class osnailyfacter::cluster::cluster {
     false   => $corosync_nodes_by_tags,
     default => $corosync_nodes_by_roles,
   }
+
   # Sort the corosync nodes by node IDs
   # and then extract IPs, IDs and host names as lists
   $corosync_nodes_processed = corosync_nodes_process($corosync_nodes)
