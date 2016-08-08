@@ -185,27 +185,6 @@ class osnailyfacter::firewall::firewall {
     source_nets => $management_nets,
   }
 
-  firewall { '333 notrack gre':
-    chain => 'PREROUTING',
-    table => 'raw',
-    proto => 'gre',
-    jump  => 'NOTRACK',
-  }
-
-  firewall { '334 accept gre':
-    chain  => 'INPUT',
-    table  => 'filter',
-    proto  => 'gre',
-    action => 'accept',
-  }
-
-  firewall {'340 vxlan_udp_port':
-    dport  => $vxlan_udp_port,
-    proto  => 'udp',
-    action => 'accept',
-  }
-
-
   # Role-related rules
   $amqp_role = intersection($roles, hiera('amqp_roles'))
   if $amqp_role {
@@ -352,13 +331,6 @@ class osnailyfacter::firewall::firewall {
       source_nets => concat($management_nets, $storage_nets),
     }
 
-    openstack::firewall::multi_net {'110 neutron':
-      port        => $neutron_api_port,
-      proto       => 'tcp',
-      action      => 'accept',
-      source_nets => $neutron_networks,
-    }
-
     openstack::firewall::multi_net {'111 dns-server udp':
       port        => $dns_server_port,
       proto       => 'udp',
@@ -379,12 +351,6 @@ class osnailyfacter::firewall::firewall {
       action => 'accept',
     }
 
-    openstack::firewall::multi_net {'116 openvswitch db':
-      port        => $openvswitch_db_port,
-      proto       => 'udp',
-      action      => 'accept',
-      source_nets => $management_nets,
-    }
 
     firewall {'121 ceilometer':
       dport  => $ceilometer_port,
@@ -422,6 +388,43 @@ class osnailyfacter::firewall::firewall {
       action => 'accept',
     }
 
+  }
+
+  $neutron_role = intersection($roles, hiera('neutron_roles'))
+  if $neutron_role {
+    openstack::firewall::multi_net {'110 neutron':
+       port        => $neutron_api_port,
+       proto       => 'tcp',
+       action      => 'accept',
+       source_nets => $neutron_networks,
+    }
+
+    firewall { '333 notrack gre':
+      chain => 'PREROUTING',
+      table => 'raw',
+      proto => 'gre',
+      jump  => 'NOTRACK',
+    }
+
+    firewall { '334 accept gre':
+      chain  => 'INPUT',
+      table  => 'filter',
+      proto  => 'gre',
+      action => 'accept',
+    }
+
+    firewall {'340 vxlan_udp_port':
+      dport  => $vxlan_udp_port,
+      proto  => 'udp',
+      action => 'accept',
+    }
+
+    openstack::firewall::multi_net {'116 openvswitch db':
+      port        => $openvswitch_db_port,
+      proto       => 'udp',
+      action      => 'accept',
+      source_nets => $management_nets,
+    }
   }
 
   if member($roles, 'compute') {
