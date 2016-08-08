@@ -69,9 +69,9 @@ describe manifest do
     let(:memcached_servers) { Noop.hiera 'memcached_servers' }
 
     it 'should select right protocols and addresses for auth' do
-      should contain_class('glance::api').with(
-        'auth_uri'     => auth_uri,
-        'identity_uri' => identity_uri,
+      should contain_class('glance::api::authtoken').with(
+        'auth_uri' => auth_uri,
+        'auth_url' => identity_uri,
       )
     end
 
@@ -294,4 +294,3 @@ describe manifest do
 
   test_ubuntu_and_centos manifest
 end
-

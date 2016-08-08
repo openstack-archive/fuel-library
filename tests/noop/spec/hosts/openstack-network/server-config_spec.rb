@@ -61,7 +61,7 @@ describe manifest do
         db_user     = neutron_config.fetch('database', {}).fetch('user', 'neutron')
         db_name     = neutron_config.fetch('database', {}).fetch('name', 'neutron')
         db_host     = neutron_config.fetch('database', {}).fetch('host', database_vip)
-        
+
         if facts[:os_package_type] == 'debian'
           extra_params = { 'charset' => 'utf8', 'read_timeout' => 60 }
         else
@@ -272,7 +272,7 @@ describe manifest do
       end
 
       it 'should have correct auth options' do
-        should contain_class('neutron::server').with(
+        should contain_class('neutron::keystone::authtoken').with(
           'password'     => password,
           'project_name' => project_name,
           'region_name'  => region_name,
