@@ -39,21 +39,20 @@
 # Anchor (empty task) for another tasks, say 'tenant network FW setup starting'
 - id: openstack-network-start
   type: skipped
-  version: 2.0.0
-  groups: [primary-controller,controller,compute]
-  requires: [neutron-db, netconfig, primary-openstack-controller, openstack-controller, top-role-compute]
+  version: 2.2.0
+  tags: [compute, primary-neutron, neutron, primary-keystone]
+  requires: [neutron-keystone, neutron-db, netconfig, primary-openstack-controller, openstack-controller, top-role-compute]
   required_for: [openstack-network-common-config]
   cross-depends:
     - name: neutron-keystone
     - name: openstack-haproxy
-      role: primary-controller
     - name: neutron-db
     - name: /^(primary-)?rabbitmq$/
 
 - id: openstack-network-common-config
   type: puppet
-  version: 2.1.0
-  groups: [primary-controller,controller,compute]
+  version: 2.2.0
+  tags: [compute, primary-neutron, neutron, primary-keystone]
   required_for: [openstack-network-end]
   requires: [openstack-network-start]
   condition:
@@ -73,8 +72,8 @@
 
 - id: openstack-network-server-config
   type: puppet
-  version: 2.1.0
-  groups: [primary-controller,controller]
+  version: 2.2.0
+  tags: [primary-neutron, neutron]
   required_for: [openstack-network-end]
   requires: [openstack-network-start, openstack-network-common-config]
   condition:
@@ -92,8 +91,8 @@
 
 - id: primary-openstack-network-plugins-l2
   type: puppet
-  version: 2.1.0
-  groups: [primary-controller]
+  version: 2.2.0
+  tags: [primary-neutron]
   required_for: [openstack-network-end]
   requires: [openstack-network-start, openstack-network-common-config, openstack-network-server-config]
   condition:
@@ -113,7 +112,7 @@
 - id: openstack-network-plugins-l2
   type: puppet
   version: 2.1.0
-  groups: [controller,compute]
+  groups: [compute, neutron]
   required_for: [openstack-network-end]
   requires: [openstack-network-start, openstack-network-common-config, openstack-network-server-config]
   condition:
@@ -134,6 +133,7 @@
     - name: openstack-network-start
       role: self
     - name: openstack-network-common-config
+      role: self
     - name: openstack-network-server-config
     - name: primary-openstack-network-plugins-l2
   cross-depended-by:
@@ -215,14 +215,13 @@
   type: puppet
   version: 2.2.0
   tags: [controller,compute]
-
   cross-depends:
     - name: openstack-network-start
       role: self
     - name: openstack-network-networks
     - name: openstack-network-routers
     - name: /(primary-)?openstack-network-plugins-l2/
-      role: ["/(primary-)?controller/"]
+      role: ["/(primary-)?neutron/"]
     - name: primary-openstack-network-agents-l3
   cross-depended-by:
     - name: openstack-network-end
@@ -253,8 +252,8 @@
 
 - id: openstack-network-server-nova
   type: puppet
-  version: 2.1.0
-  groups: [primary-controller,controller]
+  version: 2.2.0
+  tags: [primary-neutron, neutron]
   required_for: [openstack-network-end]
   requires: [openstack-network-start, openstack-network-common-config, openstack-network-server-config, openstack-network-agents-l3]
   condition:
@@ -263,9 +262,7 @@
       $.network_metadata.vips, $.get('use_ssl'))
   cross-depends:
     - name: /(primary-)?openstack-network-common-config/
-      role: self
     - name: /(primary-)?openstack-network-server-config/
-      role: self
   parameters:
     puppet_manifest: /etc/puppet/modules/openstack_tasks/examples/openstack-network/server-nova.pp
     puppet_modules: /etc/puppet/modules
@@ -273,8 +270,8 @@
 
 - id: primary-openstack-network-agents-dhcp
   type: puppet
-  version: 2.1.0
-  groups: [primary-controller]
+  version: 2.2.0
+  tags: [primary-neutron]
   required_for: [openstack-network-end]
   requires: [openstack-network-start, openstack-network-common-config, openstack-network-server-config, openstack-network-server-nova, openstack-network-agents-l3]
   condition:
@@ -294,7 +291,7 @@
 - id: openstack-network-agents-dhcp
   type: puppet
   version: 2.1.0
-  groups: [controller]
+  groups: [neutron]
   required_for: [openstack-network-end]
   requires: [openstack-network-start, openstack-network-common-config, openstack-network-server-config, openstack-network-server-nova, openstack-network-agents-l3]
   condition:
@@ -311,8 +308,8 @@
 
 - id: primary-openstack-network-agents-metadata
   type: puppet
-  version: 2.1.0
-  groups: [primary-controller]
+  version: 2.2.0
+  tags: [primary-neutron]
   required_for: [openstack-network-end]
   requires: [openstack-network-start, openstack-network-common-config, openstack-network-server-config, openstack-network-server-nova, openstack-network-agents-l3]
   refresh_on: [neutron_metadata_agent_config]
@@ -340,7 +337,7 @@
 - id: openstack-network-agents-metadata
   type: puppet
   version: 2.1.0
-  groups: [controller,compute]
+  groups: [neutron,compute]
   required_for: [openstack-network-end]
   requires: [openstack-network-start, openstack-network-common-config, openstack-network-server-config, openstack-network-server-nova, openstack-network-agents-l3]
   condition:
@@ -349,7 +346,7 @@
   cross-depends:
     - name: primary-openstack-network-agents-metadata
     - name: /(primary-)?openstack-network-plugins-l2/
-      role: ["/(primary-)?controller/"]
+      role: ["/(primary-)?neutron/"]
   parameters:
     puppet_manifest: /etc/puppet/modules/openstack_tasks/examples/openstack-network/agents/metadata.pp
     puppet_modules: /etc/puppet/modules
@@ -375,7 +372,7 @@
 # Anchor (empty task) for another tasks, say 'tenant network FW setup done'
 - id: openstack-network-end
   type: skipped
-  version: 2.0.0
-  groups: [primary-controller,controller,compute]
+  version: 2.2.0
+  tags: [compute, primary-neutron, neutron]
   required_for: [deploy_end]
   requires: []
