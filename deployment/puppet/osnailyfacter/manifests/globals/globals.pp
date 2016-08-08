@@ -365,6 +365,14 @@ class osnailyfacter::globals::globals {
     $glance_known_stores = false
   }
 
+  # Define neutron-related variables:
+  $neutron_tagged_nodes = get_nodes_hash_by_tags($network_metadata, ['primary-neutron', 'neutron'])
+  $neturon_nodes = empty($neutron_tagged_nodes) ? {
+    true    => $controller_nodes,
+    false   => $neutron_tagged_nodes,
+    default => $controller_nodes,
+  }
+
   # Define keystone-related variables:
   $keystone_nodes = $controller_nodes
 
