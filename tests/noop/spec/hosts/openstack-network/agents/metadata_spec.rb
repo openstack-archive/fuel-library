@@ -22,7 +22,7 @@ describe manifest do
 
     na_config                = Noop.hiera_hash('neutron_advanced_configuration', {})
     neutron_config           = Noop.hiera_hash('neutron_config')
-    neutron_controller_roles = Noop.hiera('neutron_controller_nodes', ['controller', 'primary-controller'])
+    neutron_controller_roles = Noop.hiera('neutron_controller_nodes', ['neutron', 'primary-neutron'])
     neutron_compute_roles    = Noop.hiera('neutron_compute_nodes', ['compute'])
     workers_max              = Noop.hiera 'workers_max'
     isolated_metadata        = neutron_config.fetch('metadata',{}).fetch('isolated_metadata', true)
@@ -105,7 +105,7 @@ describe manifest do
         include_examples 'override_resources'
         if ha_agent
           it { should contain_class('cluster::neutron::metadata').with(
-            'primary' => (node_roles.include? 'primary-controller')
+            'primary' => (node_roles.include? 'primary-neutron')
           )}
         else
           it { should_not contain_class('cluster::neutron::metadata') }
