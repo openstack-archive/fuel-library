@@ -33,9 +33,9 @@ class openstack_tasks::openstack_network::agents::dhcp {
   }
 
   if $ha_agent {
-    $primary_controller = hiera('primary_controller')
+    $primary_neutron = has_primary_role(intersection(hiera('neutron_roles'), hiera('roles')))
     class { '::cluster::neutron::dhcp' :
-      primary => $primary_controller,
+      primary => $primary_neutron,
     }
   }
 

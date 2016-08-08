@@ -17,7 +17,7 @@ describe manifest do
 
   shared_examples 'catalog' do
     let(:node_roles) do
-      Noop.hiera('roles')
+      Noop.hiera('role')
     end
 
     let(:network_scheme) do
@@ -33,7 +33,7 @@ describe manifest do
       Noop.puppet_function('get_network_role_property', 'neutron/floating', 'interface')
     end
 
-    if Noop.hiera('roles').include? 'compute'
+    if Noop.hiera('role').include? 'compute'
       context 'neutron-l3-agent on compute' do
         na_config = Noop.hiera_hash('neutron_advanced_configuration')
         dvr = na_config.fetch('neutron_dvr', false)
@@ -66,7 +66,7 @@ describe manifest do
         end
       end
 
-    elsif not (Noop.hiera('roles') & ['controller', 'primary-controller']).empty?
+    elsif not (Noop.hiera('role') & ['controller', 'primary-controller']).empty?
       context 'with Neutron-l3-agent on controller' do
         na_config = Noop.hiera_hash('neutron_advanced_configuration')
         dvr = na_config.fetch('neutron_dvr', false)
