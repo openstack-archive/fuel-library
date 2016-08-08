@@ -45,6 +45,37 @@
       type: parallel
       amount: 6
 
+- id: primary-modular-neutron
+  type: group
+  tags: [primary-neutron]
+  requires: [deploy_start]
+  required_for: [deploy_end]
+  tasks: [hiera, fuel_pkgs, globals, tools, logging, netconfig,
+    hosts, firewall, deploy_start, neutron-db, neutron-keystone,
+    openstack-network-start, openstack-network-common-config, openstack-network-server-config,
+    openstack-network-server-nova, openstack-network-end,
+    openstack-network-networks, openstack-network-routers, openstack-network-routers-ha,
+    primary-openstack-network-agents-l3,
+    primary-cluster, primary-openstack-network-plugins-l2, primary-openstack-network-agents-l3,
+    primary-openstack-network-agents-dhcp, primary-openstack-network-agents-metadata]
+  parameters:
+    strategy:
+      type: one_by_one
+
+- id: modular-neutron
+  type: group
+  tags: [neutron]
+  requires: [deploy_start]
+  required_for: [deploy_end]
+  tasks: [hiera, fuel_pkgs, globals, tools, logging, netconfig,
+    hosts, firewall, deploy_start, primary-cluster,openstack-network-start,
+    openstack-network-common-config, openstack-network-server-config, openstack-network-plugins-l2,
+    openstack-network-agents-l3, openstack-network-server-nova, openstack-network-agents-dhcp,
+    openstack-network-agents-metadata, openstack-network-end]
+  parameters:
+    strategy:
+      type: parallel
+
 - id: cinder
   type: group
   role: [cinder]
