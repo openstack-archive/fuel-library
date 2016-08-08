@@ -175,28 +175,30 @@ class openstack_tasks::ceilometer::controller {
       sync_db             => $primary_controller,
     }
 
-    class { 'osnailyfacter::apache':
+    class { '::osnailyfacter::apache':
       listen_ports => hiera_array('apache_ports', ['0.0.0.0:80', '0.0.0.0:8888', '0.0.0.0:5000', '0.0.0.0:35357', '0.0.0.0:8777']),
     }
 
-    class { 'ceilometer::wsgi::apache':
+    class { '::ceilometer::wsgi::apache':
       ssl       => $ssl,
       bind_host => $api_bind_address,
       workers   => $service_workers,
     }
 
     # Install the ceilometer-api service
-    # The keystone_password parameter is mandatory
-    class { '::ceilometer::api':
+    class { '::ceilometer::keystone::authtoken':
       auth_uri          => $keystone_auth_uri,
-      identity_uri      => $keystone_identity_uri,
-      keystone_user     => $ceilometer_hash['user'],
-      keystone_password => $ceilometer_hash['user_password'],
-      keystone_tenant   => $ceilometer_hash['tenant'],
+      auth_url          => $keystone_identity_uri,
+      username          => $ceilometer_hash['user'],
+      password          => $ceilometer_hash['user_password'],
+      project_name      => $ceilometer_hash['tenant'],
       memcached_servers => $memcached_servers,
-      host              => $api_bind_address,
-      service_name      => 'httpd',
-      api_workers       => $service_workers,
+    }
+
+    class { '::ceilometer::api':
+      host         => $api_bind_address,
+      service_name => 'httpd',
+      api_workers  => $service_workers,
     }
 
     # Clean up expired data once a week
@@ -218,7 +220,7 @@ class openstack_tasks::ceilometer::controller {
     }
 
     if $ha_mode {
-      include cluster::ceilometer_central
+      include ::cluster::ceilometer_central
       Service['ceilometer-polling'] -> Class['::cluster::ceilometer_central']
     }
 

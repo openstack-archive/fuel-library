@@ -87,23 +87,25 @@ describe manifest do
 
       it 'should declare ceilometer::api class with correct parameters' do
         should contain_class('ceilometer::api').with(
+          'host'                  => api_bind_address,
+          'service_name'          => 'httpd',
+        )
+      end
+
+      it 'should declare ceilometer::keystone::authtoken class with correct parameters' do
+        should contain_class('ceilometer::keystone::authtoken').with(
           'auth_uri'          => keystone_auth_uri,
-          # TODO(aschultz): uncomment these and fix calling class
-          # once https://review.openstack.org/#/c/345789/ has landed
-          #'auth_url'         => keystone_identity_uri,
-          #'username'         => ceilometer_user,
-          #'password'         => ceilometer_user_password,
-          #'project_name'     => ceilometer_tenant,
+          'auth_url'          => keystone_identity_uri,
+          'username'          => ceilometer_user,
+          'password'          => ceilometer_user_password,
+          'project_name'      => ceilometer_tenant,
           'memcached_servers' => memcached_servers,
-          'host'              => api_bind_address,
-          'service_name'      => 'httpd',
         )
       end
 
       it 'should configure auth and identity uri' do
         should contain_ceilometer_config('keystone_authtoken/auth_uri').with(:value => keystone_auth_uri)
-        # TODO(aschultz): uncomment this once https://review.openstack.org/#/c/345789/ has landed
-        #should contain_ceilometer_config('keystone_authtoken/auth_url').with(:value => keystone_identity_uri)
+        should contain_ceilometer_config('keystone_authtoken/auth_url').with(:value => keystone_identity_uri)
       end
 
       it 'should configure interface (ex. OS ENDPOINT TYPE) for ceilometer' do
@@ -206,4 +208,3 @@ describe manifest do
 
   test_ubuntu_and_centos manifest
 end
-

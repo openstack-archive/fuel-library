@@ -143,15 +143,20 @@ class openstack_tasks::glance::glance {
   }
 
   # Install and configure glance-api
+  class { '::glance::api::authtoken':
+    auth_uri          => $auth_uri,
+    auth_url          => $identity_uri,
+    username          => $glance_user,
+    password          => $glance_user_password,
+    project_name      => $glance_tenant,
+    memcached_servers => $memcached_servers,
+    token_cache_time  => '-1',
+  }
+
   class { '::glance::api':
     debug                  => $debug,
     bind_host              => $api_bind_host,
     auth_type              => 'keystone',
-    auth_uri               => $auth_uri,
-    identity_uri           => $identity_uri,
-    keystone_user          => $glance_user,
-    keystone_password      => $glance_user_password,
-    keystone_tenant        => $glance_tenant,
     database_connection    => $db_connection,
     enabled                => $enabled,
     workers                => $service_workers,
@@ -169,28 +174,16 @@ class openstack_tasks::glance::glance {
     os_region_name         => $region,
     delayed_delete         => false,
     scrub_time             => '43200',
-    token_cache_time       => '-1',
     image_cache_stall_time => '86400',
     image_cache_max_size   => $glance_image_cache_max_size,
-    memcached_servers      => $memcached_servers,
-  }
-
-  # TODO (dmburmistrov): remove this workaround after puppet-glance
-  # will migrate to keystone auth_plugin usage (CR #313545)
-  glance_api_config {
-    'keystone_authtoken/auth_type':    value => 'password';
-    'keystone_authtoken/auth_url':     value => $identity_uri;
-    'keystone_authtoken/username':     value => $glance_user;
-    'keystone_authtoken/password':     value => $glance_user_password;
-    'keystone_authtoken/project_name': value => $glance_tenant;
   }
 
   class { '::glance::glare::logging':
-    use_syslog             => $use_syslog,
-    use_stderr             => $use_stderr,
-    log_facility           => $syslog_log_facility,
-    debug                  => $debug,
-    default_log_levels     => hiera('default_log_levels'),
+    use_syslog         => $use_syslog,
+    use_stderr         => $use_stderr,
+    log_facility       => $syslog_log_facility,
+    debug              => $debug,
+    default_log_levels => hiera('default_log_levels'),
   }
 
   class { '::glance::glare::db':
@@ -209,21 +202,24 @@ class openstack_tasks::glance::glance {
     Package['python-swiftclient'] -> Class['::glance::glare']
   }
 
+  class { '::glance::glare::authtoken':
+    auth_uri          => $auth_uri,
+    auth_url          => $identity_uri,
+    username          => $glance_glare_user,
+    password          => $glance_glare_user_password,
+    project_name      => $glance_glare_tenant,
+    memcached_servers => $memcached_servers,
+    token_cache_time  => '-1',
+  }
+
   class { '::glance::glare':
-    bind_host              => $glare_bind_host,
-    auth_type              => 'keystone',
-    auth_uri               => $auth_uri,
-    identity_uri           => $identity_uri,
-    keystone_user          => $glance_glare_user,
-    keystone_password      => $glance_glare_user_password,
-    keystone_tenant        => $glance_glare_tenant,
-    enabled                => $enabled,
-    stores                 => $known_stores,
-    workers                => $service_workers,
-    pipeline               => $pipeline,
-    os_region_name         => $region,
-    token_cache_time       => '-1',
-    memcached_servers      => $memcached_servers,
+    bind_host      => $glare_bind_host,
+    auth_type      => 'keystone',
+    enabled        => $enabled,
+    stores         => $known_stores,
+    workers        => $service_workers,
+    pipeline       => $pipeline,
+    os_region_name => $region,
   }
 
   glance_api_config {
@@ -236,15 +232,19 @@ class openstack_tasks::glance::glance {
   }
 
   # Install and configure glance-registry
+  class { '::glance::registry::authtoken':
+    auth_uri          => $auth_uri,
+    auth_url          => $identity_uri,
+    username          => $glance_user,
+    password          => $glance_user_password,
+    project_name      => $glance_tenant,
+    memcached_servers => $memcached_servers,
+  }
+
   class { '::glance::registry':
     debug                  => $debug,
     bind_host              => $api_bind_host,
-    auth_uri               => $auth_uri,
-    identity_uri           => $identity_uri,
     auth_type              => 'keystone',
-    keystone_user          => $glance_user,
-    keystone_password      => $glance_user_password,
-    keystone_tenant        => $glance_tenant,
     database_connection    => $db_connection,
     database_max_pool_size => $max_pool_size,
     database_max_retries   => $max_retries,
@@ -257,7 +257,6 @@ class openstack_tasks::glance::glance {
     workers                => $service_workers,
     sync_db                => $primary_controller,
     os_region_name         => $region,
-    memcached_servers      => $memcached_servers,
   }
 
   class { '::glance::notify::rabbitmq':
