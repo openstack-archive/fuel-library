@@ -4,7 +4,8 @@
   tags: [primary-controller, controller, cinder, cinder-block-device, cinder-vmware, compute, ceph-osd,
          primary-mongo, mongo, ironic, primary-modular-rabbitmq, modular-rabbitmq,
          primary-modular-database, modular-database,
-         primary-modular-keystone, modular-keystone]
+         primary-modular-keystone, modular-keystone,
+         primary-neutron, neutron]
   required_for: [deploy_end]
   requires: [netconfig]
   condition:
