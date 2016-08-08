@@ -370,6 +370,14 @@ class osnailyfacter::globals::globals {
     $glance_known_stores = false
   }
 
+  # Define neutron-related variables:
+  $neutron_tagged_nodes = get_nodes_hash_by_tags($network_metadata, ['primary-neutron', 'neutron'])
+  $neutron_nodes = empty($neutron_tagged_nodes) ? {
+    true    => $controller_nodes,
+    false   => $neutron_tagged_nodes,
+    default => $controller_nodes,
+  }
+
   # Define keystone-related variables:
   $keystone_tagged_nodes = get_nodes_hash_by_tags($network_metadata, ['primary-keystone', 'keystone'])
   $keystone_nodes = empty($keystone_tagged_nodes) ? {
@@ -396,7 +404,8 @@ class osnailyfacter::globals::globals {
   $corosync_roles = hiera('corosync_roles', ['primary-controller', 'controller'])
   $corosync_tags = hiera('corosync_tags', ['primary-controller-common', 'controller-common',
                                            'primary-rabbitmq', 'rabbitmq',
-                                           'primary-modular-database', 'modular-database'])
+                                           'primary-modular-database', 'modular-database',
+                                           'primary-neutron', 'neutron'])
 
   # Define cinder-related variables
   # todo: use special node-roles instead controllers in the future
