@@ -37,13 +37,12 @@
 - id: keystone-openrc-generate
   type: puppet
   version: 2.2.0
-  tags: [primary-controller, controller]
+  tags: [primary-controller, controller, primary-neutron, neutron]
   requires: [openrc-delete, primary-keystone, keystone]
   cross-depends:
     - name: openrc-delete
       role: self
     - name: /^(primary-)?keystone$/
-      role: self
   condition:
     yaql_exp: *keystone_changed
   refresh_on: [keystone_config]
