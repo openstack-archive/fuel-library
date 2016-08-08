@@ -55,7 +55,7 @@ describe manifest do
       compute                          = Noop.puppet_function 'roles_include', neutron_compute_roles
 
       it 'Configure database options for neutron::server' do
-        sync_db     = Noop.hiera('primary_controller')
+        sync_db     = Noop.hiera('primary_neutron')
         db_type     = 'mysql'
         db_password = neutron_config.fetch('database', {}).fetch('passwd')
         db_user     = neutron_config.fetch('database', {}).fetch('user', 'neutron')
