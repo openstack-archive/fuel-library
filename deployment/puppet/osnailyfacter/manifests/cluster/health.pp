@@ -5,7 +5,6 @@ class osnailyfacter::cluster::health {
   if ! roles_include(hiera('corosync_roles')) {
     fail('The node role is not in corosync roles')
   }
-
   # load the mounted filesystems from our custom fact and remove not needed
   $mount_points = delete($::mounts, ['/boot', '/var/lib/horizon'])
 
@@ -20,5 +19,4 @@ class osnailyfacter::cluster::health {
     disk_unit        => $disk_unit,
     monitor_interval => $monitor_interval,
   }
-
 }
