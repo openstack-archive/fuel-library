@@ -2,9 +2,8 @@ class osnailyfacter::cluster::health {
 
   notice('MODULAR: cluster/health.pp')
 
-  unless (roles_include(hiera('corosync_roles')) or tags_include(hiera('corosync_tags'))) {
+  if !roles_include(hiera('corosync_roles')) && !tags_include(hiera('corosync_tags')) {
     fail('The node roles/tags is not in corosync roles/tags')
-  }
 
   # load the mounted filesystems from our custom fact and remove not needed
   $mount_points = delete($::mounts, ['/boot', '/var/lib/horizon'])
