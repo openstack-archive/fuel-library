@@ -19,7 +19,8 @@
   type: puppet
   version: 2.2.0
   tags: [controller, primary-rabbitmq, rabbitmq,
-         primary-database, database]
+         primary-database, database,
+         primary-neutron, neutron]
   cross-depends:
     yaql_exp: >
       [{name=>'primary-cluster', role=>$.roles.select('primary-' + $)}]

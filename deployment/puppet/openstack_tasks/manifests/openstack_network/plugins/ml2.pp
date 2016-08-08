@@ -11,9 +11,9 @@ class openstack_tasks::openstack_network::plugins::ml2 {
   include ::neutron::params
 
   $node_name = hiera('node_name')
-  $neutron_primary_controller_roles = hiera('neutron_primary_controller_roles', ['primary-controller'])
+  $neutron_primary_controller_roles = hiera('neutron_primary_controller_roles', ['primary-neutron'])
   $neutron_compute_roles            = hiera('neutron_compute_nodes', ['compute'])
-  $primary_controller               = roles_include($neutron_primary_controller_roles)
+  $primary_neutron                  = roles_include($neutron_primary_controller_roles)
   $compute                          = roles_include($neutron_compute_roles)
 
   $neutron_config = hiera_hash('neutron_config')
@@ -164,7 +164,7 @@ class openstack_tasks::openstack_network::plugins::ml2 {
     if $ha_agent {
       #Exec<| title == 'waiting-for-neutron-api' |> ->
       class { '::cluster::neutron::ovs' :
-        primary => $primary_controller,
+        primary => $primary_neutron,
       }
     }
   }
