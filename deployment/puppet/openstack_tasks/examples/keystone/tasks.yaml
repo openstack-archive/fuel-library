@@ -2,7 +2,7 @@
   type: puppet
   version: 2.2.0
   tags: [primary-controller, controller,
-         primary-keystone, keystone]
+         primary-keystone, keystone, primary-neutron, neutron]
   requires: [deploy_start, openstack-haproxy]
   required_for: [primary-keystone, keystone]
   cross-depends:
@@ -37,7 +37,7 @@
 - id: keystone-openrc-generate
   type: puppet
   version: 2.2.0
-  tags: [primary-controller, controller]
+  tags: [primary-controller, controller, primary-neutron, neutron]
   requires: [openrc-delete, primary-keystone, keystone]
   cross-depends:
     - name: openrc-delete
