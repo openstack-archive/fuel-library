@@ -4,7 +4,8 @@
   tags: [primary-controller, controller,
          cinder, cinder-block-device, cinder-vmware, compute, compute-vmware,
          ceph-osd, primary-mongo, mongo, virt, ironic,
-         primary-rabbitmq, rabbitmq, primary-database, database, primary-keystone, keystone]
+         primary-rabbitmq, rabbitmq, primary-database, database, primary-keystone, keystone,
+         primary-neutron, neutron]
   required_for: [deploy_end]
   requires: [hiera]
   condition:
