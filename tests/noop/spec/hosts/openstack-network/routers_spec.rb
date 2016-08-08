@@ -6,9 +6,9 @@ manifest = 'openstack-network/routers.pp'
 
 describe manifest do
   shared_examples 'catalog' do
-    if Noop.hiera('primary_controller')
+    if Noop.hiera('primary_neutron')
       context 'with Neutron' do
-        neutron_config = Noop.hiera('neutron_config')
+        neutron_config = Noop.has_primary_role(Noop.puppet_function('intersection', Noop.hiera('neutron_roles'), Noop.hiera('roles')))
         nets = neutron_config['predefined_networks']
 
         floating_net             = (neutron_config['default_floating_net'] or 'net04_ext')
@@ -18,7 +18,7 @@ describe manifest do
         l3_ha                    = Noop.hiera_hash('neutron_advanced_configuration', {}).fetch('neutron_l3_ha', false)
         dvr                      = Noop.hiera_hash('neutron_advanced_configuration', {}).fetch('neutron_dvr', false)
         network_metadata         = Noop.hiera_hash('network_metadata')
-        neutron_controller_roles = Noop.hiera('neutron_controller_nodes', ['controller', 'primary-controller'])
+        neutron_controller_roles = Noop.hiera('neutron_controller_nodes', ['neutron', 'primary-neutron'])
         neutron_controller_nodes = Noop.puppet_function 'get_nodes_hash_by_roles', network_metadata, neutron_controller_roles
         neutron_controllers_num  = neutron_controller_nodes.size
 
