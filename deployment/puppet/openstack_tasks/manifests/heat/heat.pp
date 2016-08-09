@@ -67,6 +67,10 @@ class openstack_tasks::heat::heat {
 
   Override_resources <||> ~> Service <| tag == 'heat-service' |>
 
+  $storage_hash = hiera_hash('storage', {})
+  if $storage_hash['objects_ceph'] {
+    $use_radosgw = true
+  }
 
   $db_type     = 'mysql'
   $db_host     = pick($heat_hash['db_host'], hiera('database_vip'))
@@ -109,7 +113,7 @@ class openstack_tasks::heat::heat {
     Tweaks::Ubuntu_service_override['heat-engine']         -> Service['heat-engine']
   }
 
-  if $sahara_hash['enabled'] {
+  if $sahara_hash['enabled'] and !$use_radosgw {
     heat_config {
       'DEFAULT/reauthentication_auth_method': value  => 'trusts';
     }
