@@ -61,6 +61,8 @@ describe manifest do
     primary_controller = Noop.hiera 'primary_controller'
     sahara = Noop.hiera_structure('sahara/enabled')
 
+    storage_hash = Noop.hiera_hash 'storage'
+
     database_vip = Noop.hiera('database_vip')
     heat_db_password = Noop.hiera_structure 'heat/db_password', 'heat'
     heat_db_user = Noop.hiera_structure 'heat/db_user', 'heat'
@@ -101,7 +103,7 @@ describe manifest do
     end
 
     it 'should configure reauthentication_auth_method' do
-      if sahara
+      if sahara and !storage_hash['objects_ceph']
         should contain_heat_config('DEFAULT/reauthentication_auth_method').with_value('trusts')
       else
         should contain_heat_config('DEFAULT/reauthentication_auth_method').with_ensure('absent')
