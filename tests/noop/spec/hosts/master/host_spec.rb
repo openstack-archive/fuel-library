@@ -17,7 +17,6 @@ describe manifest do
       /var/log/remote
       /var/www/nailgun/dump
       /etc/dhcp/dhclient-enter-hooks
-      /etc/resolv.conf
       /etc/dhcp/dhclient.conf
       /etc/fuel/free_disk_check.yaml
       /etc/fuel-utils/config
