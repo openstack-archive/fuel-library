@@ -1,26 +1,49 @@
-#    Copyright 2014 Mirantis, Inc.
 #
-#    Licensed under the Apache License, Version 2.0 (the "License"); you may
-#    not use this file except in compliance with the License. You may obtain
-#    a copy of the License at
+# Copyright 2016 Mirantis, Inc.
 #
-#         http://www.apache.org/licenses/LICENSE-2.0
+# Licensed under the Apache License, Version 2.0 (the "License"); you may
+# not use this file except in compliance with the License. You may obtain
+# a copy of the License at
 #
-#    Unless required by applicable law or agreed to in writing, software
-#    distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
-#    WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
-#    License for the specific language governing permissions and limitations
-#    under the License.
-
-# VMWare network class for nova-network
-
+#      http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+# WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
+# License for the specific language governing permissions and limitations
+# under the License.
+#
+# == Class: vmware::network
+#
+# VMware network class for nova-network.
+#
+# === Parameters
+#
+# [*ensure_package*]
+#   (optional) What state the package should be in.
+#   Defaults to 'present'.
+#
+# [*amqp_port*]
+#   (optional) The listening port number of the AMQP server. Mandatory to
+#   perform a monitor check.
+#   Defaults to '5673'.
+#
+# [*nova_network_config*]
+#   (required) Path used for nova conf.
+#   Defaults to '/etc/nova/nova.conf'.
+#
+# [*nova_network_config_dir*]
+#   (required) The base directory used for nova-network configs.
+#   Defaults to '/etc/nova/nova-network.d'.
+#
 class vmware::network::nova (
-  $ensure_package = 'present',
-  $amqp_port = '5673',
-  $nova_network_config = '/etc/nova/nova.conf',
-  $nova_network_config_dir = '/etc/nova/nova-network.d'
-) {
-  include nova::params
+  $ensure_package          = 'present',
+  $amqp_port               = '5673',
+  $nova_network_config     = '/etc/nova/nova.conf',
+  $nova_network_config_dir = '/etc/nova/nova-network.d',
+)
+{
+  include ::nova::params
 
   $nova_network_config_ha = "${nova_network_config_dir}/nova-network-ha.conf"
 
@@ -29,7 +52,7 @@ class vmware::network::nova (
       ensure => 'directory',
       owner  => 'nova',
       group  => 'nova',
-      mode   => '0750'
+      mode   => '0750',
     }
   }
 
@@ -43,12 +66,12 @@ class vmware::network::nova (
     }
   }
 
-  $nova_user = 'nova'
-  $nova_hash = hiera('nova')
-  $nova_password = $nova_hash['user_password']
+  $nova_user      = 'nova'
+  $nova_hash      = hiera('nova')
+  $nova_password  = $nova_hash['user_password']
   $management_vip = hiera('management_vip')
-  $auth_url = "http://${management_vip}:5000/v2.0"
-  $region = hiera('region', 'RegionOne')
+  $auth_url       = "http://${management_vip}:5000/v2.0"
+  $region         = hiera('region', 'RegionOne')
 
   $service_name       = 'p_vcenter_nova_network'
   $primitive_class    = 'ocf'
@@ -91,13 +114,13 @@ class vmware::network::nova (
 
   if ($::operatingsystem == 'Ubuntu') {
     tweaks::ubuntu_service_override { 'nova-network':
-      package_name => 'nova-network'
+      package_name => 'nova-network',
     }
   }
 
   service { $service_name :
-    ensure   => 'running',
-    enable   => true,
+    ensure => 'running',
+    enable => true,
   }
 
   package { 'nova-network':
