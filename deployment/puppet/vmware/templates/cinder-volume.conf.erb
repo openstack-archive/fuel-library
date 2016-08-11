@@ -43,6 +43,10 @@ vmware_api_retry_count=<%= @vc_api_retry_count %>
 # CA bundle file to use in verifying the vCenter server certificate. (string
 # value)
 #vmware_ca_file = <None>
+<% if @cinder_vcenter_ca_filepath and @cinder_vcenter_ca_filepath \
+  != "<SERVICE DEFAULT>" and !@cinder_vcenter_ca_filepath.empty? -%>
+vmware_ca_file=<%= @cinder_vcenter_ca_filepath %>
+<% end -%>
 
 # Name of a vCenter compute cluster where volumes should be created. (multi
 # valued)
@@ -78,7 +82,7 @@ vmware_image_transfer_timeout_secs=<%= @vc_image_transfer_timeout_secs %>
 # default CA truststore is used for verification. This option is ignored if
 # "vmware_ca_file" is set. (boolean value)
 #vmware_insecure = false
-vmware_insecure = True
+vmware_insecure =<%= @cinder_vcenter_insecure_real %>
 
 # Max number of objects to be retrieved per batch. Query results will be
 # obtained in batches from the server and not in one shot. Server may still

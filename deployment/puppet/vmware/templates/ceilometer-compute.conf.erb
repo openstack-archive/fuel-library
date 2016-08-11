@@ -1,17 +1,74 @@
 [DEFAULT]
+
+# Name of this node, which must be valid in an AMQP key. Can be an opaque
+# identifier. For ZeroMQ only, must be a valid host name, FQDN, or IP address.
+#host=localhost
 host=<%= @availability_zone_name %>-<%= @service_name %>
+
+# Inspector to use for inspecting the hypervisor layer. Known inspectors are
+# libvirt, hyperv, vmware, xenapi and powervm.
+#hypervisor_inspector=libvirt
 hypervisor_inspector=<%= scope.lookupvar('vmware::ceilometer::hypervisor_inspector') %>
+
+# List of package logging levels in logger=LEVEL pairs. This option is ignored
+# if log_config_append is set.
+#default_log_levels=amqp=WARN, amqplib=WARN, boto=WARN, qpid=WARN,
+#sqlalchemy=WARN, suds=INFO, oslo.messaging=INFO, iso8601=WARN,
+#requests.packages.urllib3.connectionpool=WARN, urllib3.connectionpool=WARN,
+#websocket=WARN, requests.packages.urllib3.util.retry=WARN,
+#urllib3.util.retry=WARN, keystonemiddleware=WARN, routes.middleware=WARN,
+#stevedore=WARN, taskflow=WARN, keystoneauth=WARN, oslo.cache=INFO,
+#dogpile.core.dogpile=INFO
 default_log_levels=<%= scope.lookupvar('vmware::ceilometer::default_log_levels') %>
+
+# Name of log file to send logging output to. If no default is set, logging will
+# go to stderr as defined by use_stderr. This option is ignored if
+# log_config_append is set.
+#log_file=None
 log_file=ceilometer-agent-compute-vmware-<%= @availability_zone_name %>-<%= @service_name %>.log
-force_config_drive=False
+
 
 [vmware]
+
+# Number of times a VMware vSphere API may be retried.
+#api_retry_count=10
+api_retry_count=<%= @api_retry_count %>
+
+# CA bundle file to use in verifying the vCenter server certificate.
+#ca_file=None
+<% if @ceilometer_vcenter_ca_filepath and @ceilometer_vcenter_ca_filepath \
+  != "<SERVICE DEFAULT>" and !@ceilometer_vcenter_ca_filepath.empty? -%>
+ca_file=<%= @ceilometer_vcenter_ca_filepath %>
+<% end -%>
+
+# IP address of the VMware vSphere host.
+#host_ip=
 host_ip=<%= @vc_host %>
-host_username=<%= @vc_user %>
+
+# Password of VMware vSphere.
+#host_password=
 host_password=<%= @vc_password %>
 
-api_retry_count=<%= @api_retry_count %>
+# Port of the VMware vSphere host.
+#host_port=443
+
+# Username of VMware vSphere.
+#host_username=
+host_username=<%= @vc_user %>
+
+# If true, the vCenter server certificate is not verified. If false, then the
+# default CA truststore is used for verification. This option is ignored if
+# “ca_file” is set.
+#insecure=False
+insecure=<%= @ceilometer_vcenter_insecure_real %>
+
+# Sleep time in seconds for polling an ongoing async task.
+#task_poll_interval=0.5
 task_poll_interval=<%= @task_poll_interval %>
+
+# Optional vim service WSDL location e.g http://<server>/vimService.wsdl.
+# Optional over-ride to default location for bug work-arounds.
+#wsdl_location=None
 <% if @wsdl_location -%>
 wsdl_location=<%= @wsdl_location %>
 <% end -%>

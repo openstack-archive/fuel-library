@@ -2,10 +2,10 @@ class osnailyfacter::vmware::compute_vmware {
 
   notice('MODULAR: vmware/compute_vmware.pp')
 
-  $debug = hiera('debug', true)
+  $debug         = hiera('debug', true)
 
-  $vcenter_hash = hiera_hash('vcenter', {})
-  $computes = $vcenter_hash['computes']
+  $vcenter_hash  = hiera_hash('vcenter', {})
+  $computes      = $vcenter_hash['computes']
   $computes_hash = parse_vcenter_settings($computes)
 
   $defaults = {
@@ -15,7 +15,7 @@ class osnailyfacter::vmware::compute_vmware {
 
   create_resources(vmware::compute_vmware, $computes_hash, $defaults)
 
-  $ceilometer_hash = hiera_hash('ceilometer', {})
+  $ceilometer_hash    = hiera_hash('ceilometer', {})
   $ceilometer_enabled = $ceilometer_hash['enabled']
 
   if $ceilometer_enabled and $computes {
@@ -30,8 +30,8 @@ class osnailyfacter::vmware::compute_vmware {
     $auth_protocol    = get_ssl_property($ssl_hash, {}, 'keystone', 'internal', 'protocol', 'http')
     $auth_host        = get_ssl_property($ssl_hash, {}, 'keystone', 'internal', 'hostname', [hiera('keystone_endpoint', ''), $service_endpoint, $management_vip])
 
-    $auth_port     = '5000'
-    $identity_uri  = "${auth_protocol}://${auth_host}:${auth_port}"
+    $auth_port    = '5000'
+    $identity_uri = "${auth_protocol}://${auth_host}:${auth_port}"
 
     class { '::vmware::ceilometer::compute_vmware':
       debug                  => $debug,
@@ -40,6 +40,8 @@ class osnailyfacter::vmware::compute_vmware {
       vc_host                => $compute['vc_host'],
       vc_user                => $compute['vc_user'],
       vc_password            => $compute['vc_password'],
+      vc_insecure            => $compute['vc_insecure'],
+      vc_ca_file             => $compute['vc_ca_file'],
       service_name           => $compute['service_name'],
       identity_uri           => $identity_uri,
       auth_user              => 'ceilometer',
