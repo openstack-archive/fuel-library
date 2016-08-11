@@ -187,6 +187,14 @@ class openstack_tasks::swift::proxy_storage {
       }
     }
 
+    file { '/etc/logrotate.d/swift-common':
+      ensure  => 'file',
+      owner   => 'root',
+      group   => 'root',
+      mode    => '0644',
+      content => template('osnailyfacter/swift.logrotate.erb'),
+    }
+
     # swift_container_sync_realms file specifying
     # the allowable clusters and their information.
     # Changes in this file don't require restart services.
