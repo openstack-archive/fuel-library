@@ -2,32 +2,32 @@ class openstack_tasks::glance::glance {
 
   notice('MODULAR: glance/glance.pp')
 
-  $network_scheme = hiera_hash('network_scheme', {})
+  $network_scheme   = hiera_hash('network_scheme', {})
   $network_metadata = hiera_hash('network_metadata', {})
   prepare_network_config($network_scheme)
 
-  $glance_hash           = hiera_hash('glance', {})
-  $glance_glare_hash     = hiera_hash('glance_glare', {})
-  $debug                 = pick($glance_hash['debug'], hiera('debug', false))
-  $management_vip        = hiera('management_vip')
-  $database_vip          = hiera('database_vip')
-  $service_endpoint      = hiera('service_endpoint')
-  $storage_hash          = hiera('storage')
-  $use_syslog            = hiera('use_syslog', true)
-  $use_stderr            = hiera('use_stderr', false)
-  $syslog_log_facility   = hiera('syslog_log_facility_glance')
-  $rabbit_hash           = hiera_hash('rabbit', {})
-  $max_pool_size         = hiera('max_pool_size')
-  $max_overflow          = hiera('max_overflow')
-  $ceilometer_hash       = hiera_hash('ceilometer', {})
-  $region                = hiera('region','RegionOne')
-  $workers_max           = hiera('workers_max', 16)
-  $service_workers       = pick($glance_hash['glance_workers'],
-                                min(max($::processorcount, 2), $workers_max))
-  $ironic_hash           = hiera_hash('ironic', {})
-  $primary_controller    = hiera('primary_controller')
-  $kombu_compression     = hiera('kombu_compression', $::os_service_default)
-  $memcached_servers     = hiera('memcached_servers')
+  $glance_hash         = hiera_hash('glance', {})
+  $glance_glare_hash   = hiera_hash('glance_glare', {})
+  $debug               = pick($glance_hash['debug'], hiera('debug', false))
+  $management_vip      = hiera('management_vip')
+  $database_vip        = hiera('database_vip')
+  $service_endpoint    = hiera('service_endpoint')
+  $storage_hash        = hiera('storage')
+  $use_syslog          = hiera('use_syslog', true)
+  $use_stderr          = hiera('use_stderr', false)
+  $syslog_log_facility = hiera('syslog_log_facility_glance')
+  $rabbit_hash         = hiera_hash('rabbit', {})
+  $max_pool_size       = hiera('max_pool_size')
+  $max_overflow        = hiera('max_overflow')
+  $ceilometer_hash     = hiera_hash('ceilometer', {})
+  $region              = hiera('region','RegionOne')
+  $workers_max         = hiera('workers_max', 16)
+  $service_workers     = pick($glance_hash['glance_workers'],
+                              min(max($::processorcount, 2), $workers_max))
+  $ironic_hash         = hiera_hash('ironic', {})
+  $primary_controller  = hiera('primary_controller')
+  $kombu_compression   = hiera('kombu_compression', $::os_service_default)
+  $memcached_servers   = hiera('memcached_servers')
 
   $override_configuration = hiera_hash('configuration', {})
 
@@ -53,11 +53,11 @@ class openstack_tasks::glance::glance {
   Override_resources <||> ~> Service <| tag == 'glance-service' |>
 
 
-  $db_type      = 'mysql'
-  $db_host      = pick($glance_hash['db_host'], $database_vip)
-  $db_user      = pick($glance_hash['db_user'], 'glance')
-  $db_password  = $glance_hash['db_password']
-  $db_name      = pick($glance_hash['db_name'], 'glance')
+  $db_type     = 'mysql'
+  $db_host     = pick($glance_hash['db_host'], $database_vip)
+  $db_user     = pick($glance_hash['db_user'], 'glance')
+  $db_password = $glance_hash['db_password']
+  $db_name     = pick($glance_hash['db_name'], 'glance')
   # LP#1526938 - python-mysqldb supports this, python-pymysql does not
   if $::os_package_type == 'debian' {
     $extra_params = { 'charset' => 'utf8', 'read_timeout' => 60 }
@@ -95,6 +95,7 @@ class openstack_tasks::glance::glance {
   $glance_vcenter_datacenter      = $glance_hash['vc_datacenter']
   $glance_vcenter_datastore       = $glance_hash['vc_datastore']
   $glance_vcenter_image_dir       = $glance_hash['vc_image_dir']
+  $glance_vcenter_insecure        = $glance_hash['vc_insecure']
   $glance_vcenter_api_retry_count = '20'
   $glance_vcenter_ca_file         = pick($glance_hash['vc_ca_file'], {})
   $glance_vcenter_ca_content      = pick($glance_vcenter_ca_file['content'], {})
@@ -112,19 +113,19 @@ class openstack_tasks::glance::glance {
   $auth_uri     = "${internal_auth_protocol}://${internal_auth_address}:5000/"
   $identity_uri = "${admin_auth_protocol}://${admin_auth_address}:35357/"
 
-  $rados_connect_timeout          = '30'
+  $rados_connect_timeout = '30'
 
   if ($storage_hash['images_ceph'] and !$ironic_hash['enabled']) {
     $glance_backend = 'ceph'
-    $known_stores = [ 'glance.store.rbd.Store', 'glance.store.http.Store' ]
+    $known_stores   = [ 'glance.store.rbd.Store', 'glance.store.http.Store' ]
     $show_image_direct_url = pick($glance_hash['show_image_direct_url'], true)
   } elsif ($storage_hash['images_vcenter']) {
     $glance_backend = 'vmware'
-    $known_stores = [ 'glance.store.vmware_datastore.Store', 'glance.store.http.Store' ]
+    $known_stores   = [ 'glance.store.vmware_datastore.Store', 'glance.store.http.Store' ]
     $show_image_direct_url = pick($glance_hash['show_image_direct_url'], true)
   } else {
     $glance_backend = 'swift'
-    $known_stores = [ 'glance.store.swift.Store', 'glance.store.http.Store' ]
+    $known_stores   = [ 'glance.store.swift.Store', 'glance.store.http.Store' ]
     $swift_store_large_object_size = $glance_large_object_size
     $show_image_direct_url = pick($glance_hash['show_image_direct_url'], false)
   }
@@ -186,11 +187,11 @@ class openstack_tasks::glance::glance {
   }
 
   class { '::glance::glare::logging':
-    use_syslog             => $use_syslog,
-    use_stderr             => $use_stderr,
-    log_facility           => $syslog_log_facility,
-    debug                  => $debug,
-    default_log_levels     => hiera('default_log_levels'),
+    use_syslog         => $use_syslog,
+    use_stderr         => $use_stderr,
+    log_facility       => $syslog_log_facility,
+    debug              => $debug,
+    default_log_levels => hiera('default_log_levels'),
   }
 
   class { '::glance::glare::db':
@@ -210,20 +211,20 @@ class openstack_tasks::glance::glance {
   }
 
   class { '::glance::glare':
-    bind_host              => $glare_bind_host,
-    auth_type              => 'keystone',
-    auth_uri               => $auth_uri,
-    identity_uri           => $identity_uri,
-    keystone_user          => $glance_glare_user,
-    keystone_password      => $glance_glare_user_password,
-    keystone_tenant        => $glance_glare_tenant,
-    enabled                => $enabled,
-    stores                 => $known_stores,
-    workers                => $service_workers,
-    pipeline               => $pipeline,
-    os_region_name         => $region,
-    token_cache_time       => '-1',
-    memcached_servers      => $memcached_servers,
+    bind_host         => $glare_bind_host,
+    auth_type         => 'keystone',
+    auth_uri          => $auth_uri,
+    identity_uri      => $identity_uri,
+    keystone_user     => $glance_glare_user,
+    keystone_password => $glance_glare_user_password,
+    keystone_tenant   => $glance_glare_tenant,
+    enabled           => $enabled,
+    stores            => $known_stores,
+    workers           => $service_workers,
+    pipeline          => $pipeline,
+    os_region_name    => $region,
+    token_cache_time  => '-1',
+    memcached_servers => $memcached_servers,
   }
 
   glance_api_config {
@@ -324,9 +325,11 @@ class openstack_tasks::glance::glance {
       }
     }
     'vmware': {
-      if ! empty($glance_vcenter_ca_content) {
-        $vcenter_ca_filename = $glance_vcenter_ca_file['name']
-        $vcenter_ca_filepath = "/etc/glance/${vcenter_ca_filename}"
+      $glance_vcenter_datastores = "${glance_vcenter_datacenter}:${glance_vcenter_datastore}"
+      if ! empty($glance_vcenter_ca_content) and ! $glance_vcenter_insecure {
+        $vcenter_ca_filename          = $glance_vcenter_ca_file['name']
+        $vcenter_ca_filepath          = "/etc/glance/${vcenter_ca_filename}"
+        $glance_vcenter_insecure_real = false
 
         file { $vcenter_ca_filepath:
           ensure  => file,
@@ -337,16 +340,16 @@ class openstack_tasks::glance::glance {
         }
         Class['::glance::backend::vsphere']->File[$vcenter_ca_filepath]
       } else {
+        $glance_vcenter_insecure_real = $glance_vcenter_insecure
         $vcenter_ca_filepath = undef
       }
-
-      $glance_vcenter_datastores = "${glance_vcenter_datacenter}:${glance_vcenter_datastore}"
 
       class { '::glance::backend::vsphere':
           vcenter_host            => $glance_vcenter_host,
           vcenter_user            => $glance_vcenter_user,
           vcenter_password        => $glance_vcenter_password,
           vcenter_datastores      => $glance_vcenter_datastores,
+          vcenter_insecure        => $glance_vcenter_insecure_real,
           vcenter_image_dir       => $glance_vcenter_image_dir,
           vcenter_api_retry_count => $glance_vcenter_api_retry_count,
           vcenter_ca_file         => $vcenter_ca_filepath,
