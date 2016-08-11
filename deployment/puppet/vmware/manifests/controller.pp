@@ -1,4 +1,4 @@
-# Copyright 2014 Mirantis, Inc.
+# Copyright 2016 Mirantis, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License"); you may
 # not use this file except in compliance with the License. You may obtain
@@ -23,7 +23,6 @@
 #
 # [*vcenter_settings*]
 #   (optional) Computes hash in format of:
-#   Defaults to undef.
 #   Example:
 #   "[ {"availability_zone_name"=>"vcenter", "datastore_regex"=>".*",
 #       "service_name"=>"vm_cluster1", "target_node"=>"controllers",
@@ -33,22 +32,22 @@
 #       "service_name"=>"vm_cluster2", "target_node"=>"node-65",
 #       "vc_cluster"=>"Cluster2", "vc_host"=>"172.16.0.254",
 #       "vc_password"=>"Qwer!1234", "vc_user"=>"administrator@vsphere.local"} ]"
+#   Defaults to undef.
 #
 # [*vcenter_host_ip*]
-#   (required) vCenter server hostname or IP address.
-#   Defaults to 10.10.10.10.
+#   (optional) Hostname or IP address for connection to VMware vCenter host.
+#   Defaults to '10.10.10.10'.
 #
 # [*vcenter_user*]
-#   (required) Username for authenticating with vCenter server.
-#   Defaults to user.
+#   (optional) Username for connection to VMware vCenter host.
+#   Defaults to 'user'.
 #
 # [*vcenter_password*]
-#   (required) Password for authenticating with vCenter server.
-#   Defaults to password.
+#   (optional) Password for connection to VMware vCenter host.
+#   Defaults to 'password'.
 #
 # [*vlan_interface*]
-#   (optional) VLAN interface on which networks will be provisioned
-#   if VLANManager is used for nova-network.
+#   (optional) Physical ethernet adapter name for vlan networking.
 #   Defaults to undef.
 #
 # [*vncproxy_host*]
@@ -56,17 +55,17 @@
 #   Defaults to undef.
 #
 # [*vncproxy_protocol*]
-#   (optional) The protocol to communicate with the VNC proxy server.
-#   Defaults to http.
+#   (required) The protocol to communicate with the VNC proxy server.
+#   Defaults to 'http'.
 #
 # [*vncproxy_port*]
 #   (optional) The port to communicate with the VNC proxy server.
-#   Defaults to 6080.
+#   Defaults to '6080'.
 #
 # [*vncproxy_path*]
 #   (optional) The path at the end of the uri for communication
 #   with the VNC proxy server.
-#   Defaults to "/vnc_auto.html".
+#   Defaults to '/vnc_auto.html'.
 #
 # [*use_quantum*]
 #   (optional) Shows if neutron is enabled.
@@ -93,6 +92,7 @@ class vmware::controller (
 {
   include ::nova::params
   $vncproxy_base_url = "${vncproxy_protocol}://${vncproxy_host}:${vncproxy_port}${vncproxy_path}"
+  $computes_hash     = parse_vcenter_settings($vcenter_settings)
 
   # Stubs from nova class in order to not include whole class
   if ! defined(Class['nova']) {
@@ -110,7 +110,7 @@ class vmware::controller (
     }
   }
 
-  $libvirt_type = hiera('libvirt_type')
+  $libvirt_type =  hiera('libvirt_type', 'qemu')
   tweaks::ubuntu_service_override { 'nova-compute':
     package_name => "nova-compute-${libvirt_type}",
   }
@@ -127,7 +127,7 @@ class vmware::controller (
   }
 
   # Create nova-compute per vSphere cluster.
-  create_resources(vmware::compute::ha, parse_vcenter_settings($vcenter_settings))
+  create_resources(vmware::compute::ha, $computes_hash)
 
   Package['nova-compute']->
   Service['nova-compute']->
