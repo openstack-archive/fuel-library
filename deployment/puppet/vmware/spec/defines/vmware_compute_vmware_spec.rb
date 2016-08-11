@@ -1,6 +1,6 @@
 require 'spec_helper'
 
-describe 'vmware::compute::ha', type: :define do
+describe 'vmware::compute_vmware', type: :define do
   on_supported_os.each do |os, facts|
     context "on #{os}" do
       let(:facts) { facts }
@@ -14,7 +14,9 @@ describe 'vmware::compute::ha', type: :define do
             :vc_user                => 'administrator@vsphere.local',
             :vc_password            => 'Qwer!1234',
             :service_name           => 'srv_cluster1',
-            :target_node            => 'controllers',
+            :current_node           => 'node-2',
+            :target_node            => 'node-2',
+            :vlan_interface         => 'vmnic0',
             :vc_insecure            => false,
             :vc_ca_file             => {
               'content' => 'RSA',
@@ -27,16 +29,11 @@ describe 'vmware::compute::ha', type: :define do
 
         it { is_expected.to compile.with_all_deps }
 
-        it { is_expected.to contain_vmware__compute__ha('0') }
+        it { is_expected.to contain_vmware__compute_vmware('0') }
 
-        it { is_expected.to contain_file('/etc/nova/nova-compute.d').with(
-          :ensure => 'directory',
-          :owner  => 'nova',
-          :group  => 'nova',
-          :mode   => '0750',
-        ).that_comes_before('File[/etc/nova/nova-compute.d/vmware-vcenter_srv_cluster1.conf]') }
+        it { is_expected.to contain_class('nova::params') }
 
-        it { is_expected.to contain_file('/etc/nova/nova-compute.d/vmware-vcenter_srv_cluster1-ca.pem').with(
+        it { is_expected.to contain_file('/etc/nova/vmware-ca.pem').with(
           :ensure  => 'file',
           :content => 'RSA',
           :mode    => '0644',
@@ -82,7 +79,7 @@ api_retry_count=5
 
 # Specify a CA bundle file to use in verifying the vCenter server certificate.
 #ca_file=None
-ca_file=/etc/nova/nova-compute.d/vmware-vcenter_srv_cluster1-ca.pem
+ca_file=/etc/nova/vmware-ca.pem
 
 # The prefix for where cached images are stored. This is NOT the full path -
 # just a folder prefix. This should only be used when a datastore cache should
@@ -172,6 +169,7 @@ use_linked_clone=true
 
 # Physical ethernet adapter name for vlan networking
 #vlan_interface=vmnic0
+vlan_interface=vmnic0
 
 # VNC starting port.
 #vnc_port=5900
@@ -187,34 +185,23 @@ use_linked_clone=true
             :group   => 'nova',
             :content => content,
           }
-          is_expected.to contain_file('/etc/nova/nova-compute.d/vmware-vcenter_srv_cluster1.conf') \
-            .with(parameters).that_comes_before('Pcmk_resource[p_nova_compute_vmware_vcenter-srv_cluster1]')
+          is_expected.to contain_file('/etc/nova/nova-compute.conf') \
+            .with(parameters).that_comes_before('Service[nova-compute]')
         end
 
-        it { is_expected.to contain_pcmk_resource('p_nova_compute_vmware_vcenter-srv_cluster1').with(
-          :primitive_class    => 'ocf',
-          :primitive_provider => 'fuel',
-          :primitive_type     => 'nova-compute',
-          :metadata           => {
-            'resource-stickiness' => '1' },
-          :parameters         => {
-            'amqp_server_port'      => '5673',
-            'config'                => '/etc/nova/nova.conf',
-            'pid'                   => '/var/run/nova/nova-compute-vcenter-srv_cluster1.pid',
-            'additional_parameters' => '--config-file=/etc/nova/nova-compute.d/vmware-vcenter_srv_cluster1.conf', },
-          :operations         => {
-            'monitor'  => {
-              'timeout'  => '10',
-              'interval' => '20', },
-            'start'    => {
-              'timeout' => '30', },
-            'stop'     => {
-              'timeout' => '30', } },
-        ).that_comes_before('Service[p_nova_compute_vmware_vcenter-srv_cluster1]') }
+        it { is_expected.to contain_package('nova-compute').with(
+          :ensure => 'installed',
+          :name   => 'nova-compute',
+        ).that_comes_before('File[/etc/nova/nova-compute.conf]') }
 
-        it { is_expected.to contain_service('p_nova_compute_vmware_vcenter-srv_cluster1').with(
-          :ensure => 'running',
-          :enable => true,
+        it { is_expected.to contain_package('python-oslo.vmware').with(
+          :ensure => 'installed',
+        ).that_comes_before('Package[nova-compute]') }
+
+        it { is_expected.to contain_service('nova-compute').with(
+          :ensure => 'stopped',
+          :name   => 'nova-compute',
+          :enable => false,
         ) }
       end
 
@@ -227,7 +214,9 @@ use_linked_clone=true
             :vc_user                => 'administrator@vsphere.local',
             :vc_password            => 'Qwer!1234',
             :service_name           => 'srv_cluster2',
-            :target_node            => 'controllers',
+            :current_node           => 'node-3',
+            :target_node            => 'node-3',
+            :vlan_interface         => '',
             :vc_insecure            => true,
             :vc_ca_file             => '',
             :datastore_regex        => '.*',
@@ -238,14 +227,9 @@ use_linked_clone=true
 
         it { is_expected.to compile.with_all_deps }
 
-        it { is_expected.to contain_vmware__compute__ha('1') }
+        it { is_expected.to contain_vmware__compute_vmware('1') }
 
-        it { is_expected.to contain_file('/etc/nova/nova-compute.d').with(
-          :ensure => 'directory',
-          :owner  => 'nova',
-          :group  => 'nova',
-          :mode   => '0750',
-        ).that_comes_before('File[/etc/nova/nova-compute.d/vmware-vcenter_srv_cluster2.conf]') }
+        it { is_expected.to contain_class('nova::params') }
 
         it do
           content = <<-eof
@@ -389,34 +373,23 @@ use_linked_clone=true
             :group   => 'nova',
             :content => content,
           }
-          is_expected.to contain_file('/etc/nova/nova-compute.d/vmware-vcenter_srv_cluster2.conf') \
-            .with(parameters).that_comes_before('Pcmk_resource[p_nova_compute_vmware_vcenter-srv_cluster2]')
+          is_expected.to contain_file('/etc/nova/nova-compute.conf') \
+            .with(parameters).that_comes_before('Service[nova-compute]')
         end
 
-        it { is_expected.to contain_pcmk_resource('p_nova_compute_vmware_vcenter-srv_cluster2').with(
-          :primitive_class    => 'ocf',
-          :primitive_provider => 'fuel',
-          :primitive_type     => 'nova-compute',
-          :metadata           => {
-            'resource-stickiness' => '1' },
-          :parameters         => {
-            'amqp_server_port'      => '5673',
-            'config'                => '/etc/nova/nova.conf',
-            'pid'                   => '/var/run/nova/nova-compute-vcenter-srv_cluster2.pid',
-            'additional_parameters' => '--config-file=/etc/nova/nova-compute.d/vmware-vcenter_srv_cluster2.conf', },
-          :operations         => {
-            'monitor'  => {
-              'timeout'  => '10',
-              'interval' => '20', },
-            'start'    => {
-              'timeout' => '30', },
-            'stop'     => {
-              'timeout' => '30', } },
-        ).that_comes_before('Service[p_nova_compute_vmware_vcenter-srv_cluster2]') }
+        it { is_expected.to contain_package('nova-compute').with(
+          :ensure => 'installed',
+          :name   => 'nova-compute',
+        ).that_comes_before('File[/etc/nova/nova-compute.conf]') }
 
-        it { is_expected.to contain_service('p_nova_compute_vmware_vcenter-srv_cluster2').with(
-          :ensure => 'running',
-          :enable => true,
+        it { is_expected.to contain_package('python-oslo.vmware').with(
+          :ensure => 'installed',
+        ).that_comes_before('Package[nova-compute]') }
+
+        it { is_expected.to contain_service('nova-compute').with(
+          :ensure => 'stopped',
+          :name   => 'nova-compute',
+          :enable => false,
         ) }
       end
 
