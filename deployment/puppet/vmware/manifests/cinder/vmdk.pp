@@ -1,4 +1,5 @@
-# Copyright 2015 Mirantis, Inc.
+#
+# Copyright 2016 Mirantis, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License"); you may
 # not use this file except in compliance with the License. You may obtain
@@ -12,7 +13,7 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 #
-# == Class: vmware::cinder::vmdk
+# == Define: vmware::cinder::vmdk
 #
 # This type creates cinder-volume service with VMDK backend,
 # which provides block storage solution for
@@ -20,12 +21,23 @@
 #
 # === Parameters
 #
+# [*vc_insecure*]
+#   (optional) If true, the ESX/vCenter server certificate is not verified.
+#   If false, then the default CA truststore is used for verification.
+#   Defaults to 'True'.
+#
+# [*vc_ca_file*]
+#   (optional) The hash name of the CA bundle file and data in format of:
+#   Example:
+#   "{"vc_ca_file"=>{"content"=>"RSA", "name"=>"vcenter-ca.pem"}}"
+#   Defaults to undef.
+#
 # [*vc_host*]
 #   (required) IP address for connecting to VMware vCenter server.
 #   Defaults to '1.2.3.4'.
-# 
+#
 # [*vc_user*]
-#   (required) Username for authenticating with VMware vCenter server. 
+#   (required) Username for authenticating with VMware vCenter server.
 #   Defaults to 'user'.
 #
 # [*vc_password*]
@@ -98,6 +110,8 @@
 #   Defaults to false.
 #
 define vmware::cinder::vmdk(
+  $vc_insecure                    = true,
+  $vc_ca_file                     = undef,
   $vc_host                        = '1.2.3.4',
   $vc_user                        = 'user',
   $vc_password                    = 'password',
@@ -115,12 +129,14 @@ define vmware::cinder::vmdk(
   $debug                          = false,
 )
 {
-
   include ::cinder::params
-  $index                = $availability_zone_name
-  $cinder_volume_conf   = "${cinder_conf_dir}/vmware-${index}.conf"
+  $az_name              = $availability_zone_name
+  $cinder_volume_conf   = "${cinder_conf_dir}/vmware-${az_name}.conf"
   $cinder_volume_vmware = "${::cinder::params::volume_service}-vmware"
   $storage_hash         = hiera_hash('storage', {})
+  $vcenter_ca_file      = pick($vc_ca_file, {})
+  $vcenter_ca_content   = pick($vcenter_ca_file['content'], {})
+  $vcenter_ca_filepath  = "${cinder_conf_dir}/vmware-${az_name}-ca.pem"
 
   if ($storage_hash['volumes_ceph']) and
     (roles_include(['primary-controller']) or
@@ -135,6 +151,22 @@ define vmware::cinder::vmdk(
       group  => 'cinder',
       mode   => '0750',
     }
+  }
+
+  if ! empty($vcenter_ca_content) and ! $vc_insecure {
+    $cinder_vcenter_ca_filepath   = $vcenter_ca_filepath
+    $cinder_vcenter_insecure_real = false
+
+    file { $vcenter_ca_filepath:
+      ensure  => file,
+      content => $vcenter_ca_content,
+      mode    => '0644',
+      owner   => 'root',
+      group   => 'root',
+    }
+  } else {
+    $cinder_vcenter_ca_filepath   = $::os_service_default
+    $cinder_vcenter_insecure_real = $vc_insecure
   }
 
   if ! defined (File[$cinder_volume_conf]) {
@@ -158,10 +190,10 @@ define vmware::cinder::vmdk(
     }
   }
 
-  if ! defined(Service["cinder_volume_vmware_${index}"]) {
-    service { "cinder_volume_vmware_${index}":
+  if ! defined(Service["cinder_volume_vmware_${az_name}"]) {
+    service { "cinder_volume_vmware_${az_name}":
       ensure => running,
-      name   => "${cinder_volume_vmware}-${index}",
+      name   => "${cinder_volume_vmware}-${az_name}",
       enable => true,
     }
   }
@@ -172,7 +204,7 @@ define vmware::cinder::vmdk(
       $dst_init                  = '/etc/init.d'
       $file_perm                 = '0755'
       $cinder_volume_vmware_init = "${dst_init}/${cinder_volume_vmware}"
-      $init_link                 = "${cinder_volume_vmware_init}-${index}"
+      $init_link                 = "${cinder_volume_vmware_init}-${az_name}"
       if ! defined(File[$init_link]) {
         file { $init_link:
           ensure => link,
@@ -180,7 +212,7 @@ define vmware::cinder::vmdk(
         }
       }
 
-      $cinder_volume_default = "/etc/sysconfig/${cinder_volume_vmware}-${index}"
+      $cinder_volume_default = "/etc/sysconfig/${cinder_volume_vmware}-${az_name}"
       if ! defined(File[$cinder_volume_default]){
         file { $cinder_volume_default:
           ensure  => present,
@@ -188,11 +220,11 @@ define vmware::cinder::vmdk(
         }
       }
       File[$cinder_volume_default]~>
-      Service["cinder_volume_vmware_${index}"]->
+      Service["cinder_volume_vmware_${az_name}"]->
       Service['cinder_volume_vmware']
     }
     'Debian': {
-      $cinder_volume_default = "/etc/default/${cinder_volume_vmware}-${index}"
+      $cinder_volume_default = "/etc/default/${cinder_volume_vmware}-${az_name}"
       $src_init              = "${cinder_volume_vmware}.conf"
       $dst_init              = '/etc/init'
       $file_perm             = '0644'
@@ -208,7 +240,7 @@ define vmware::cinder::vmdk(
       }
 
       $cinder_volume_vmware_init = "${dst_init}/${cinder_volume_vmware}.conf"
-      $init_link = "/etc/init/${cinder_volume_vmware}-${index}.conf"
+      $init_link = "${dst_init}/${cinder_volume_vmware}-${az_name}.conf"
       if ! defined(File[$init_link]) {
         file { $init_link:
           ensure => link,
@@ -227,7 +259,7 @@ define vmware::cinder::vmdk(
 
       File[$cinder_volume_default]~>
       Exec[$init_reload]->
-      Service["cinder_volume_vmware_${index}"]->
+      Service["cinder_volume_vmware_${az_name}"]->
       Service['cinder_volume_vmware']
     }
     default: {
