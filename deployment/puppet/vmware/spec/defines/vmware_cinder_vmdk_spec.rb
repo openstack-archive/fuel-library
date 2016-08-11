@@ -88,7 +88,6 @@ vmware_host_username=user
 # value)
 #vmware_host_version = <None>
 
-
 # Timeout in seconds for VMDK volume transfer between Cinder and Glance.
 # (integer value)
 #vmware_image_transfer_timeout_secs = 7200
@@ -98,7 +97,7 @@ vmware_image_transfer_timeout_secs=7200
 # default CA truststore is used for verification. This option is ignored if
 # "vmware_ca_file" is set. (boolean value)
 #vmware_insecure = false
-vmware_insecure = True
+vmware_insecure=
 
 # Max number of objects to be retrieved per batch. Query results will be
 # obtained in batches from the server and not in one shot. Server may still
@@ -147,7 +146,7 @@ vmware_volume_folder=cinder-volumes
               :vc_host => '172.16.0.254',
               :vc_password => 'Qwer!1234',
               :vc_user => 'administrator@vsphere.local',
-              :debug => false,
+              :debug => true,
           }
         end
 
@@ -185,7 +184,7 @@ default_availability_zone=vcenter-cinder
 # If set to true, the logging level will be set to DEBUG instead of the default
 # INFO level. (boolean value)
 #debug = false
-debug=false
+debug=true
 
 
 [VMwareVcVmdk-backend]
@@ -233,7 +232,6 @@ vmware_host_username=administrator@vsphere.local
 # value)
 #vmware_host_version = <None>
 
-
 # Timeout in seconds for VMDK volume transfer between Cinder and Glance.
 # (integer value)
 #vmware_image_transfer_timeout_secs = 7200
@@ -243,7 +241,7 @@ vmware_image_transfer_timeout_secs=7200
 # default CA truststore is used for verification. This option is ignored if
 # "vmware_ca_file" is set. (boolean value)
 #vmware_insecure = false
-vmware_insecure = True
+vmware_insecure=
 
 # Max number of objects to be retrieved per batch. Query results will be
 # obtained in batches from the server and not in one shot. Server may still

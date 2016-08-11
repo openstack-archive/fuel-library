@@ -1,4 +1,5 @@
-# Copyright 2015 Mirantis, Inc.
+#
+# Copyright 2016 Mirantis, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License"); you may
 # not use this file except in compliance with the License. You may obtain
@@ -12,7 +13,7 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 #
-# == Class: vmware::cinder::vmdk
+# == Define: vmware::cinder::vmdk
 #
 # This type creates cinder-volume service with VMDK backend,
 # which provides block storage solution for
@@ -20,12 +21,23 @@
 #
 # === Parameters
 #
+# [*vc_insecure*]
+#   (optional) If true, the ESX/vCenter server certificate is not verified.
+#   If false, then the default CA truststore is used for verification.
+#   Defaults to 'True'.
+#
+# [*vc_ca_file*]
+#   (optional) The hash name of the CA bundle file and data in format of:
+#   Example:
+#   "{"vc_ca_file"=>{"content"=>"RSA", "name"=>"vcenter-ca.pem"}}"
+#   Defaults to undef.
+#
 # [*vc_host*]
 #   (required) IP address for connecting to VMware vCenter server.
 #   Defaults to '1.2.3.4'.
-# 
+#
 # [*vc_user*]
-#   (required) Username for authenticating with VMware vCenter server. 
+#   (required) Username for authenticating with VMware vCenter server.
 #   Defaults to 'user'.
 #
 # [*vc_password*]
@@ -98,6 +110,8 @@
 #   Defaults to false.
 #
 define vmware::cinder::vmdk(
+  $vc_insecure                    = true,
+  $vc_ca_file                     = undef,
   $vc_host                        = '1.2.3.4',
   $vc_user                        = 'user',
   $vc_password                    = 'password',
@@ -115,12 +129,11 @@ define vmware::cinder::vmdk(
   $debug                          = false,
 )
 {
-
   include ::cinder::params
-  $index                = $availability_zone_name
-  $cinder_volume_conf   = "${cinder_conf_dir}/vmware-${index}.conf"
-  $cinder_volume_vmware = "${::cinder::params::volume_service}-vmware"
-  $storage_hash         = hiera_hash('storage', {})
+  $index                     = $availability_zone_name
+  $cinder_volume_conf        = "${cinder_conf_dir}/vmware-${index}.conf"
+  $cinder_volume_vmware      = "${::cinder::params::volume_service}-vmware"
+  $storage_hash              = hiera_hash('storage', {})
 
   if ($storage_hash['volumes_ceph']) and
     (roles_include(['primary-controller']) or
@@ -137,6 +150,15 @@ define vmware::cinder::vmdk(
     }
   }
 
+  class { '::vmware::ssl::ssl':
+      vc_insecure    => $vc_insecure,
+      vc_ca_file     => $vc_ca_file,
+      vc_ca_filepath => "${cinder_conf_dir}/vcenter-${index}-ca.pem",
+  }
+
+  $cinder_vcenter_ca_filepath   = $::vmware::ssl::ssl::vcenter_ca_filepath
+  $cinder_vcenter_insecure_real = $::vmware::ssl::ssl::vcenter_insecure_real
+
   if ! defined (File[$cinder_volume_conf]) {
     file { $cinder_volume_conf:
       ensure  => present,
@@ -147,7 +169,7 @@ define vmware::cinder::vmdk(
     }
   }
 
-  File[$cinder_conf_dir]->File[$cinder_volume_conf]
+  File[$cinder_conf_dir]->Class['::vmware::ssl::ssl']->File[$cinder_volume_conf]
 
   if ! defined(Service['cinder_volume_vmware']) {
     service { 'cinder_volume_vmware':
