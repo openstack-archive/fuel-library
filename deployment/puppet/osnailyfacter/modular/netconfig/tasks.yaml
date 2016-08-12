@@ -35,11 +35,12 @@
         ]
       )
   condition:
-    yaql_exp: >
-      changedAny($.network_scheme, $.dpdk, $.get('use_ovs'), $.get('set_rps'),
+    yaql_exp: &network >
+      changedAny($.network_scheme, $.dpdk, $.get('use_ovs'),
       $.get('set_rps'), $.get('run_ping_checker'),
       $.network_scheme.endpoints.values().where(
-        $.get('gateway') != null).gateway)
+        $.get('gateway') != null).gateway,
+      $.network_metadata.vips)
   parameters:
     puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/netconfig/hiera_default_route.pp
     puppet_modules: /etc/puppet/modules
@@ -53,11 +54,7 @@
   requires: [tools]
   reexecute_on: [deploy_changes]
   condition:
-    yaql_exp: >
-      changedAny($.network_scheme, $.dpdk, $.get('use_ovs'), $.get('set_rps'),
-      $.get('set_rps'), $.get('run_ping_checker'),
-      $.network_scheme.endpoints.values().where(
-        $.get('gateway') != null).gateway)
+    yaql_exp: *network
   parameters:
     puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/netconfig/netconfig.pp
     puppet_modules: /etc/puppet/modules
