@@ -35,6 +35,7 @@ class osnailyfacter::package_pins (
   $pin_haproxy     = false,
   $pin_rabbitmq    = false,
   $pin_ceph        = false,
+  $pin_mos_python  = false,
   $pin_priority    = '2000',
   $ceph_packages   = ['ceph', 'ceph-common', 'libradosstriper1', 'python-ceph',
     'python-rbd', 'python-rados', 'python-cephfs', 'libcephfs1', 'librados2',
@@ -65,6 +66,15 @@ class osnailyfacter::package_pins (
         priority => $pin_priority,
       }
     }
+
+    if $pin_mos_python {
+      apt::pin { 'mos-python-packages':
+        packages   => ['novnc', 'pycadf-common', 'python-*'],
+        priority   => 499,
+        originator => 'Mirantis',
+      }
+    }
+
     apt::pin { 'openvswitch-mos':
       packages => 'openvswitch*',
       version  => '2.4.0*',
