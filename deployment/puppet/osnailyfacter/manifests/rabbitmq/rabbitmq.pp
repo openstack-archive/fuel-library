@@ -30,7 +30,7 @@ class osnailyfacter::rabbitmq::rabbitmq {
         'mon_interval'        => '35',
     }
     $rabbit_ocf    = merge($rabbit_ocf_default, hiera_hash('rabbit_ocf', {}))
-    $debug         = pick($rabbit_hash['debug'], hiera('debug', false))
+    $debug         = pick($rabbit_hash['debug'], hiera('debug', true))
     $enabled       = pick($rabbit_hash['enabled'], true)
     $use_pacemaker = pick($rabbit_hash['pacemaker'], true)
     $file_limit    = pick($rabbit_hash['file_limit'], '100000')

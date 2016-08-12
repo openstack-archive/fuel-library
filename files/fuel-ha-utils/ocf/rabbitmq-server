@@ -1,6 +1,7 @@
 #!/bin/bash
 
 # needed for ocf_log
+: ${OCF_FUNCTIONS_DIR=${OCF_ROOT}/lib/heartbeat}
 . ${OCF_FUNCTIONS_DIR}/ocf-shellfuncs
 
 OCF_RESKEY_enable_rpc_ha_default=false
