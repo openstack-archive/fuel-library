@@ -1,0 +1,176 @@
+# VERIFICATION TASKS
+#
+- id: verification_start
+  type: stage
+
+- id: verification_end
+  type: stage
+  requires: [verification_start]
+
+# Network configuration
+
+- id: v_rsync_core_puppet
+  type: sync
+  version: 2.0.0
+  role: ['/.*/']
+  requires: [verification_start]
+  required_for: [v_hiera]
+  parameters:
+    src: rsync://{MASTER_IP}:/puppet/{OPENSTACK_VERSION}/modules/
+    dst: /etc/puppet/modules
+    timeout: 180
+
+- id: v_pre_hiera_config
+  type: puppet
+  version: 2.1.0
+  role: ['/.*/']
+  condition:
+    yaql_exp: '$.uid in added($.network_metadata.nodes.values()).uid'
+  requires: [v_rsync_core_puppet]
+  required_for: [v_hiera]
+  parameters:
+    puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/hiera/hiera.pp
+    puppet_modules: /etc/puppet/modules
+    timeout: 120
+    cwd: /
+
+- id: v_override_configuration
+  type: puppet
+  version: 2.1.0
+  role: ['/.*/']
+  condition:
+    yaql_exp: '$.uid in added($.network_metadata.nodes.values()).uid'
+  requires: [v_pre_hiera_config]
+  required_for: [v_hiera]
+  parameters:
+    puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/hiera/override_configuration.pp
+    puppet_modules: /etc/puppet/modules
+    timeout: 180
+    cwd: /
+
+- id: v_upload_configuration
+  type: upload_file
+  version: 2.1.0
+  role: ['master', '/.*/']
+  requires: [v_override_configuration]
+  required_for: [v_hiera]
+  refresh_on: ['*']
+  parameters:
+    path: /etc/fuel/cluster/{CLUSTER_ID}/astute.yaml
+    permissions: '0640'
+    dir_permissions: '0750'
+    timeout: 180
+    data:
+      yaql_exp: '$.toYaml()'
+
+- id: v_configuration_symlink
+  type: shell
+  version: 2.1.0
+  role: ['/.*/']
+  condition:
+    yaql_exp: '$.uid in added($.network_metadata.nodes.values()).uid'
+  requires: [v_upload_configuration]
+  required_for: [v_hiera]
+  parameters:
+    cmd: ln -sf /etc/fuel/cluster/{CLUSTER_ID}/astute.yaml /etc/astute.yaml
+    timeout: 180
+
+- id: v_hiera
+  type: puppet
+  version: 2.1.0
+  groups: [primary-controller, controller, cinder, cinder-block-device,
+           cinder-vmware, compute, compute-vmware, ceph-osd, primary-mongo, mongo, virt, ironic]
+  required_for: [v_setup_repositories]
+  condition:
+    yaql_exp: >
+      ($.uid in added($.network_metadata.nodes.values()).uid) or
+      changedAny($.plugins, $.cgroups)
+  parameters:
+    puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/hiera/hiera.pp
+    puppet_modules: /etc/puppet/modules
+    timeout: 120
+  test_pre:
+    cmd: python /etc/puppet/modules/osnailyfacter/modular/hiera/hiera_pre.py
+  test_post:
+    cmd: python /etc/puppet/modules/osnailyfacter/modular/hiera/hiera_post.py
+
+- id: v_setup_repositories
+  type: puppet
+  version: 2.1.0
+  groups: ['/.*/']
+  required_for: [v_fuel_pkgs]
+  condition:
+    yaql_exp: '($.uid in added($.network_metadata.nodes.values()).uid) or changed($.repo_setup)'
+  parameters:
+    puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/fuel_pkgs/setup_repositories.pp
+    puppet_modules: /etc/puppet/modules
+    timeout: 600
+
+- id: v_fuel_pkgs
+  type: puppet
+  version: 2.1.0
+  groups: [primary-controller, controller, cinder, cinder-block-device, cinder-vmware, compute, ceph-osd, primary-mongo, mongo, ironic]
+  required_for: [v_netconfig]
+  condition:
+    yaql_exp: '$.uid in added($.network_metadata.nodes.values()).uid'
+  parameters:
+    puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/fuel_pkgs/fuel_pkgs.pp
+    puppet_modules: /etc/puppet/modules
+    timeout: 600
+
+- id: v_netconfig
+  type: puppet
+  version: 2.1.0
+  groups: [primary-controller, controller, cinder, cinder-block-device, cinder-vmware, compute, ceph-osd, primary-mongo, mongo, virt, ironic]
+  condition:
+    yaql_exp: >
+      changedAny($.network_scheme, $.dpdk, $.get('use_ovs'), $.get('set_rps'),
+      $.get('set_rps'), $.get('run_ping_checker'),
+      $.network_scheme.endpoints.values().where(
+        $.get('gateway') != null).gateway)
+  parameters:
+    puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/netconfig/netconfig.pp
+    puppet_modules: /etc/puppet/modules
+    timeout: 300
+  test_pre:
+    cmd: ruby /etc/puppet/modules/osnailyfacter/modular/netconfig/netconfig_pre.rb
+  test_post:
+    cmd: ruby /etc/puppet/modules/osnailyfacter/modular/netconfig/netconfig_post.rb
+  # Run netconfig task on all nodes (except mongo and vrouter VIP roles) after virtual_ips.
+  # Thus we make sure that our default gateway (vrouter VIP) is up before configuring
+  # routing on nodes.
+  cross-depends:
+    yaql_exp: >
+      switch(
+        (
+          $.roles.any($.matches('^(primary-)?(mongo)$'))
+          or ($.network_metadata.get('vips',{}).get('vrouter',{}).get('ipaddr') = null)
+          or (
+            len($.roles.toSet().intersect($.network_metadata.get('vips',{}).get('vrouter',{}).get('node_roles').toSet())) > 0
+          )
+        ) => [],
+        true => [{
+          name => 'virtual_ips',
+          role => $.network_metadata.get('vips',{}).get('vrouter',{}).get('node_roles')
+        }]
+      )
+
+# Network checking
+# TODO: add connectivity-checker task as soon as it will be added by svasilenko
+
+#- id: connectivity-checker
+#  type: puppet
+#  groups: ["/.*/"]
+#  version: 2.0.0
+#  requires: [v_netconfig]
+#  required_for: [verification_end]
+#  cross-depends:
+#    - name: v_netconfig
+#      policy: all
+#  reexecute_on: [deploy_changes]
+#  parameters:
+#    puppet_manifest: puppet/manifests/connectivity-checker.pp
+#    puppet_modules: puppet/modules:/etc/puppet/modules
+#    timeout: 3600
+#  strategy:
+#    type: parallel
