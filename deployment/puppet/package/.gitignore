@@ -1,0 +1,6 @@
+.DS_Store
+.idea
+*.swp
+*~
+Gemfile.lock
+spec/fixtures
