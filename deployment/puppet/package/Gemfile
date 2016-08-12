@@ -1,0 +1,12 @@
+source 'https://rubygems.org'
+
+group :development, :test do
+  gem 'puppetlabs_spec_helper'
+  gem 'pry'
+end
+
+if ENV['PUPPET_GEM_VERSION']
+  gem 'puppet', ENV['PUPPET_GEM_VERSION']
+else
+  gem 'puppet'
+end
