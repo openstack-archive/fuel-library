@@ -57,7 +57,9 @@
       changedAny($.network_scheme, $.dpdk, $.get('use_ovs'), $.get('set_rps'),
       $.get('set_rps'), $.get('run_ping_checker'),
       $.network_scheme.endpoints.values().where(
-        $.get('gateway') != null).gateway)
+        $.get('gateway') != null).gateway,
+      'primary-controller' in added($.network_metadata.nodes.values()).node_roles.flatten())
+  refresh_on: [hiera_default_route]
   parameters:
     puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/netconfig/netconfig.pp
     puppet_modules: /etc/puppet/modules
