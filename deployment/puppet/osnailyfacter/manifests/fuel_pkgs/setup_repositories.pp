@@ -7,11 +7,12 @@ class osnailyfacter::fuel_pkgs::setup_repositories {
   $repo_type  = pick($repo_setup_hash['repo_type'], 'fuel')
 
   class { '::osnailyfacter::package_pins':
-    repo_type    => $repo_type,
-    pin_haproxy  => $repo_setup_hash['pin_haproxy'],
-    pin_rabbitmq => $repo_setup_hash['pin_rabbitmq'],
-    pin_ceph     => $repo_setup_hash['pin_ceph'],
-    pin_priority => '2000',
+    repo_type      => $repo_type,
+    pin_haproxy    => $repo_setup_hash['pin_haproxy'],
+    pin_rabbitmq   => $repo_setup_hash['pin_rabbitmq'],
+    pin_ceph       => $repo_setup_hash['pin_ceph'],
+    pin_priority   => '2000',
+    pin_mos_python => true,
   }
 
   if $::osfamily == 'Debian' {
