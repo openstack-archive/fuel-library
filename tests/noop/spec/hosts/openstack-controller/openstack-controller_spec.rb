@@ -382,7 +382,7 @@ describe manifest do
     if ironic_enabled
       it 'should declare nova::scheduler::filter class with scheduler_host_manager' do
         should contain_class('nova::scheduler::filter').with(
-          'scheduler_host_manager' => 'nova.scheduler.ironic_host_manager.IronicHostManager',
+          'scheduler_host_manager' => 'ironic_host_manager',
         )
       end
       it 'should declare nova::ironic::common class with ironic parameters' do
