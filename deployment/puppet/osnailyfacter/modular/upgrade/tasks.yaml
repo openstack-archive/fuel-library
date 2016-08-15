@@ -1,0 +1,12 @@
+- id: pkg_upgrade
+  type: puppet
+  version: 2.1.0
+  groups: [primary-controller, controller, cinder, cinder-block-device, cinder-vmware, compute, ceph-osd, primary-mongo, mongo, ironic]
+  requires: [setup_repositories]
+  required_for: [fuel_pkgs]
+  condition:
+    yaql_exp: $.get('mu_upgrade').get('enabled')
+  parameters:
+    puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/upgrade/pkg_upgrade.pp
+    puppet_modules: /etc/puppet/modules
+    timeout: 1800
