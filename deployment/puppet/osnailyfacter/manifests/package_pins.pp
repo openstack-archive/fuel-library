@@ -33,8 +33,11 @@
 class osnailyfacter::package_pins (
   $repo_type       = unset,
   $pin_haproxy     = false,
+  $pin_erlang      = false,
   $pin_rabbitmq    = false,
   $pin_ceph        = false,
+  $pin_xtrabackup  = false,
+  $pin_mos_other   = false,
   $pin_priority    = '2000',
   $ceph_packages   = ['ceph', 'ceph-common', 'libradosstriper1', 'python-ceph',
     'python-rbd', 'python-rados', 'python-cephfs', 'libcephfs1', 'librados2',
@@ -46,25 +49,52 @@ class osnailyfacter::package_pins (
     #FIXME(mattmyo): derive versions via fact or hiera
     if $pin_haproxy {
       apt::pin { 'haproxy-mos':
-        packages => 'haproxy',
-        version  => '1.5.3-*',
-        priority => $pin_priority,
+        packages   => ['haproxy*', 'vim-haproxy'],
+        originator => 'Mirantis',
+        priority   => $pin_priority,
       }
     }
     if $pin_ceph {
       apt::pin { 'ceph-mos':
-        packages => $ceph_packages,
-        version  => '0.94*',
-        priority => $pin_priority,
+        packages   => $ceph_packages,
+        originator => 'Mirantis',
+        priority   => $pin_priority,
+      }
+    }
+    if $pin_erlang {
+      apt::pin { 'mos-erlang':
+        packages   => 'erlang*',
+        originator => 'Mirantis',
+        priority   => $pin_priority,
       }
     }
     if $pin_rabbitmq {
       apt::pin { 'rabbitmq-server-mos':
-        packages => 'rabbitmq-server',
-        version  => '3.6*',
-        priority => $pin_priority,
+        packages   => 'rabbitmq-server',
+        originator => 'Mirantis',
+        priority   => $pin_priority,
       }
     }
+    if $pin_xtrabackup {
+      apt::pin { 'mos-xtrabackup':
+        packages   => ['percona-xtrabackup*', 'xtrabackup'],
+        originator => 'Mirantis',
+        priority   => $pin_priority,
+      }
+    }
+    if $pin_mos_other {
+      apt::pin { 'mos-other':
+        packages   => ['fonts-materialdesignicons-webfont',
+                       'libapache2-mod-wsgi*',
+                       'libjs-*',
+                       'live-boot*',
+                       'nailgun-*',
+                       'ruby-*'],
+        originator => 'Mirantis',
+        priority   => $pin_priority,
+      }
+    }
+
     apt::pin { 'openvswitch-mos':
       packages => 'openvswitch*',
       version  => '2.4.0*',
