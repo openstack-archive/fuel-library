@@ -23,3 +23,15 @@
     puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/fuel_pkgs/fuel_pkgs.pp
     puppet_modules: /etc/puppet/modules
     timeout: 600
+
+- id: pkg_upgrade
+  type: shell
+  version: 2.1.0
+  groups: [primary-controller, controller, cinder, cinder-block-device, cinder-vmware, compute, ceph-osd, primary-mongo, mongo, ironic]
+  requires: [setup_repositories]
+  required_for: [fuel_pkgs]
+  condition:
+    yaql_exp: '$.mu_upgrade'
+  parameters:
+    cmd: DEBIAN_FRONTEND=noninteractive apt-get upgrade -y -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold"
+    timeout: 1800
