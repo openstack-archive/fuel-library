@@ -123,6 +123,7 @@ class openstack_tasks::horizon::horizon {
   # Only run collectstatic&compress for MOS packages
   if $repo_type != 'uca' { 
     Concat[$::horizon::params::config_file] ~> Exec['refresh_horizon_django_cache']
+    Exec['refresh_horizon_django_cache'] -> Exec['refresh_horizon_django_compress']
   }
 
   # Performance optimization for wsgi
