@@ -1,7 +1,6 @@
 class { '::openstack_tasks::swift::storage' :}
 class { '::openstack_tasks::swift::proxy' :}
-
-
+class { '::osnailyfacter::upgrade::restart_services' :}
 # 'ceilometer' class is being declared inside openstack::ceilometer class
 # which is declared inside openstack::controller class in the other task.
 # So we need a stub here for dependency from swift::proxy::ceilometer
