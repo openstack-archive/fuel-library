@@ -1,4 +1,5 @@
 include ::openstack_tasks::swift::proxy_storage
+include ::osnailyfacter::upgrade::restart_services
 
 # 'ceilometer' class is being declared inside openstack::ceilometer class
 # which is declared inside openstack::controller class in the other task.
