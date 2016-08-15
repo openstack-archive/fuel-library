@@ -337,10 +337,10 @@ set_ns_routing() {
   fi
 
   # set masquerade on host node
-  iptables -n -t nat -L | grep -q masquerade-for-haproxy-namespace
+  iptables -n -w -t nat -L | grep -q masquerade-for-haproxy-namespace
   if [ $? -gt 0 ]; then
     ocf_log debug "Creating NAT rule on the host system for traffic from IP: ${OCF_RESKEY_namespace_ip}"
-    ocf_run iptables -t nat -A POSTROUTING -s "${OCF_RESKEY_namespace_ip}" -j MASQUERADE -m comment --comment "masquerade-for-haproxy-namespace"
+    ocf_run iptables -w -t nat -A POSTROUTING -s "${OCF_RESKEY_namespace_ip}" -j MASQUERADE -m comment --comment "masquerade-for-haproxy-namespace"
   fi
 
   ### Needed for ML2 routing ###
