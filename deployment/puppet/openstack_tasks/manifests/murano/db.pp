@@ -2,7 +2,6 @@ class openstack_tasks::murano::db {
 
   notice('MODULAR: murano/db.pp')
 
-  $node_name      = hiera('node_name')
   $murano_hash    = hiera_hash('murano', {})
   $murano_enabled = pick($murano_hash['enabled'], false)
   $mysql_hash     = hiera_hash('mysql', {})
@@ -22,7 +21,7 @@ class openstack_tasks::murano::db {
   $db_root_user     = pick($murano_hash['root_user'], $mysql_root_user)
   $db_root_password = pick($murano_hash['root_password'], $mysql_root_password)
 
-  $allowed_hosts = [ $node_name, 'localhost', '127.0.0.1', '%' ]
+  $allowed_hosts = [ 'localhost', '127.0.0.1', '%' ]
 
   validate_string($mysql_root_user)
 
