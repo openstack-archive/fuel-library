@@ -16,6 +16,7 @@ describe manifest do
     ironic_db_password = Noop.hiera_structure 'ironic/db_password', 'ironic'
     ironic_db_user = Noop.hiera_structure 'ironic/db_user', 'ironic'
     ironic_db_name = Noop.hiera_structure 'ironic/db_name', 'ironic'
+    baremetal_vip = Noop.hiera_structure 'network_metadata/vips/baremetal/ipaddr'
 
     let(:memcached_servers) { Noop.hiera 'memcached_servers' }
 
@@ -32,6 +33,12 @@ describe manifest do
           'control_exchange'     => 'ironic',
           'amqp_durable_queues'  => amqp_durable_queues,
           'database_max_retries' => '-1',
+        )
+      end
+
+      it 'should declare ironic::conductor class correctly' do
+        should contain_class('ironic::conductor').with(
+          api_url => "http://${baremetal_vip}:6385",
         )
       end
 
