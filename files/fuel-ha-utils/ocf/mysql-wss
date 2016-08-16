@@ -348,6 +348,22 @@ get_node_gtid() {
     fi
 }
 
+#Retry get node gtid with once with a random 1-10 second sleep if gtid is not found
+get_node_gtid_with_retry() {
+    local LH="${LL} get_node_gtid():"
+    local GTID
+    local NODE="$1"
+
+    GTID=$(get_node_gtid $NODE)
+
+    if [ "$GTID"="0" ]; then
+        sleep $[ ( $RANDOM % 10 ) + 1]
+        GTID=$(get_node_gtid $NODE)
+    fi
+
+    echo $GTID
+}
+
 check_if_reelection_needed() {
     local LH="${LL} check_if_reelection_needed()"
     local PARTITION_WITH_QUORUM=$(crm_node -q | sed -e '/(null)/d')
@@ -399,7 +415,9 @@ get_master() {
     NODES=$(printf -- '%s\n' ${NODES} | sort -u)
     # Form a hash of keys as node names, values as GTID:SEQNO
     for NODE in $NODES; do
-        GTID=$(get_node_gtid $NODE)
+        # Try and get a gtid with a retry when the GTID=0 to make sure there
+        # is plenty of time if multiple nodes are starting at the same time.
+        GTID=$(get_node_gtid_with_retry $NODE)
         # Cut the seqno off the GTID:SEQNO pairs
         TMP[$NODE]=$GTID
     done
