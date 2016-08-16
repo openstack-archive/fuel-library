@@ -190,6 +190,14 @@ class openstack_tasks::roles::cinder {
     kombu_compression      => $kombu_compression,
   }
 
+  # TODO (iberezovskiy): rework this option management once it's available in puppet-cinder module
+  if !defined(Cinder_config['privsep_osbrick/helper_command']) {
+    cinder_config {
+      'privsep_osbrick/helper_command': value => 'sudo cinder-rootwrap /etc/cinder/rootwrap.conf privsep-helper --config-file /etc/cinder/cinder.conf';
+    }
+  }
+
+
   if $manage_volumes {
     ####### Disable upstart startup on install #######
     #NOTE(bogdando) ceph::backends::rbd creates override file as well

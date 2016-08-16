@@ -159,6 +159,13 @@ class openstack_tasks::openstack_cinder::openstack_cinder {
     kombu_compression        => $kombu_compression,
   }
 
+  # TODO (iberezovskiy): rework this option management once it's available in puppet-cinder module
+  if !defined(Cinder_config['privsep_osbrick/helper_command']) {
+    cinder_config {
+      'privsep_osbrick/helper_command': value => 'sudo cinder-rootwrap /etc/cinder/rootwrap.conf privsep-helper --config-file /etc/cinder/cinder.conf';
+    }
+  }
+
   if ($bind_host) {
     class { 'cinder::api':
       auth_uri                     => $auth_uri,
