@@ -72,11 +72,14 @@ Puppet::Type.type(:database_grant).provide(:mysql) do
         :host => matches[1]
       }
     when 4
+      db, table = matches[3].split('.')
+      table = '*' unless table
       {
-        :type => :db,
-        :user => matches[0],
-        :host => matches[1],
-        :db => matches[3]
+        :type  => :db,
+        :user  => matches[0],
+        :host  => matches[1],
+        :db    => db,
+        :table => table,
       }
     end
   end
@@ -86,15 +89,10 @@ Puppet::Type.type(:database_grant).provide(:mysql) do
       name = split_name(@resource[:name])
       case name[:type]
       when :user
-        mysql defaults_file, "mysql", "-e", "INSERT INTO user (host, user) VALUES ('%s', '%s')" % [
-          name[:host], name[:user],
-        ]
+        mysql defaults_file, "mysql", "-e", "CREATE USER '%s'@'%s';" % [name[:user], name[:host]]
       when :db
-        mysql defaults_file, "mysql", "-e", "INSERT INTO db (host, user, db) VALUES ('%s', '%s', '%s')" % [
-          name[:host], name[:user], name[:db],
-        ]
+        mysql defaults_file, "mysql", "-e", "GRANT ALL PRIVILEGES ON %s.%s TO '%s'@'%s' WITH GRANT OPTION;" % [name[:db], name[:table], name[:user], name[:host]]
       end
-      mysql_flush
     end
   end
 
