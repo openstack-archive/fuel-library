@@ -143,6 +143,10 @@ describe manifest do
     should contain_cinder_config('oslo_messaging_rabbit/kombu_compression').with(:value => kombu_compression)
   end
 
+  it 'should configure privsep entrypoint' do
+    should contain_cinder_config('privsep_osbrick/helper_command').with_value('sudo cinder-rootwrap /etc/cinder/rootwrap.conf privsep-helper --config-file /etc/cinder/cinder.conf')
+  end
+
   end # end of shared_examples
   test_ubuntu_and_centos manifest
 end

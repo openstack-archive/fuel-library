@@ -509,6 +509,10 @@ describe manifest do
       kombu_compression = Noop.hiera 'kombu_compression', facts[:os_service_default]
       should contain_nova_config('oslo_messaging_rabbit/kombu_compression').with(:value => kombu_compression)
     end
+
+    it 'should configure privsep entrypoint' do
+      should contain_nova_config('privsep_osbrick/helper_command').with_value('sudo nova-rootwrap /etc/nova/rootwrap.conf privsep-helper --config-file /etc/nova/nova.conf')
+    end
   end
 
   it 'should contain ssh and multipath packages' do
