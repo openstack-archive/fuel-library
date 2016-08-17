@@ -10,6 +10,15 @@ describe 'osnailyfacter::wait_for_nova_backends' do
     }
   end
 
+  let(:lb_defaults) do
+    {
+        'step'     => 6,
+        'count'    => 200,
+        'provider' => 'haproxy',
+        'url'      => 'http://127.0.0.2:10000/;csv'
+    }
+  end
+
   context 'all backends' do
     let :params do
       {
@@ -23,26 +32,15 @@ describe 'osnailyfacter::wait_for_nova_backends' do
         :lb_hash => {
           'nova-api'          => {
             'name'     => 'nova-api',
-            'step'     => 6,
-            'count'    => 200,
-            'provider' => 'haproxy',
-            'url'      => 'http://127.0.0.2:10000/;csv'
           },
           'nova-metadata-api' => {
             'name'     => 'nova-metadata-api',
-            'step'     => 6,
-            'count'    => 200,
-            'provider' => 'haproxy',
-            'url'      => 'http://127.0.0.2:10000/;csv'
           },
           'nova-novncproxy'   => {
             'name'     => 'nova-novncproxy',
-            'step'     => 6,
-            'count'    => 200,
-            'provider' => 'haproxy',
-            'url'      => 'http://127.0.0.2:10000/;csv'
           },
-        }
+        },
+        :lb_defaults => lb_defaults,
       )
     end
   end
@@ -61,12 +59,9 @@ describe 'osnailyfacter::wait_for_nova_backends' do
         :lb_hash => {
           'nova-api'          => {
             'name'     => 'nova-api',
-            'step'     => 6,
-            'count'    => 200,
-            'provider' => 'haproxy',
-            'url'      => 'http://127.0.0.2:10000/;csv'
           }
-        }
+        },
+        :lb_defaults => lb_defaults,
       )
     end
   end
@@ -86,12 +81,11 @@ describe 'osnailyfacter::wait_for_nova_backends' do
         :lb_hash => {
           'nova-api'          => {
             'name'     => 'nova-api',
-            'step'     => 6,
-            'count'    => 200,
             'provider' => 'http',
-            'url'      => 'http://127.0.0.2:8774'
+            'url' => 'http://127.0.0.2:8774',
           },
-        }
+        },
+        :lb_defaults => lb_defaults,
       )
     end
   end

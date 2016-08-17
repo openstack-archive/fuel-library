@@ -2,66 +2,59 @@ require 'spec_helper'
 
 describe 'get_ssl_property' do
 
-  let(:scope) { PuppetlabsSpec::PuppetInternals.scope }
-
-  subject do
-    function_name = Puppet::Parser::Functions.function(:get_ssl_property)
-    scope.method(function_name)
-  end
-
   let(:public_ssl_hash) do
     {
-     'horizon' => true,
-     'services' => true,
-     'cert_source' => 'self_signed',
-     'cert_data' => {
-        'content' => 'somedataaboutyourkeypair'
-     },
-     'hostname' => 'public.fuel.local'
+        'horizon' => true,
+        'services' => true,
+        'cert_source' => 'self_signed',
+        'cert_data' => {
+            'content' => 'somedataaboutyourkeypair'
+        },
+        'hostname' => 'public.fuel.local'
     }
   end
 
   let(:disabled_public_ssl_hash) do
     {
-     'horizon' => false,
-     'services' => false,
-     'cert_source' => 'self_signed',
-     'cert_data' => {
-        'content' => 'somedataaboutyourkeypair'
-     },
-     'hostname' => 'disabled.public.fuel.local'
+        'horizon' => false,
+        'services' => false,
+        'cert_source' => 'self_signed',
+        'cert_data' => {
+            'content' => 'somedataaboutyourkeypair'
+        },
+        'hostname' => 'disabled.public.fuel.local'
     }
   end
 
   let(:use_ssl_hash) do
     {
-      'horizon' => true,
-      'horizon_public' => true,
-      'horizon_public_hostname' => 'horizon.public.fuel.local',
-      'horizon_public_usercert' => true,
-      'horizon_public_certdata' => 'somethinglikeacertificateforhorizon',
-      'keystone' => true,
-      'keystone_public' => true,
-      'keystone_public_ip' => '10.10.10.10',
-      'keystone_public_hostname' => 'keystone.public.fuel.local',
-      'keystone_public_usercert' => true,
-      'keystone_public_certdata' => 'somethinglikeacertificateforkeystone',
-      'keystone_internal' => true,
-      'keystone_internal_ip' => '20.20.20.20',
-      'keystone_internal_hostname' => 'keystone.internal.fuel.local',
-      'keystone_internal_usercert' => true,
-      'keystone_internal_certdata' => 'somethinglikeacertificateforkeystone',
-      'keystone_admin' => true,
-      'keystone_admin_ip' => '30.30.30.30',
-      'keystone_admin_hostname' => 'keystone.admin.fuel.local',
-      'keystone_admin_usercert' => true,
-      'keystone_admin_certdata' => 'somethinglikeacertificateforkeystone',
+        'horizon' => true,
+        'horizon_public' => true,
+        'horizon_public_hostname' => 'horizon.public.fuel.local',
+        'horizon_public_usercert' => true,
+        'horizon_public_certdata' => 'somethinglikeacertificateforhorizon',
+        'keystone' => true,
+        'keystone_public' => true,
+        'keystone_public_ip' => '10.10.10.10',
+        'keystone_public_hostname' => 'keystone.public.fuel.local',
+        'keystone_public_usercert' => true,
+        'keystone_public_certdata' => 'somethinglikeacertificateforkeystone',
+        'keystone_internal' => true,
+        'keystone_internal_ip' => '20.20.20.20',
+        'keystone_internal_hostname' => 'keystone.internal.fuel.local',
+        'keystone_internal_usercert' => true,
+        'keystone_internal_certdata' => 'somethinglikeacertificateforkeystone',
+        'keystone_admin' => true,
+        'keystone_admin_ip' => '30.30.30.30',
+        'keystone_admin_hostname' => 'keystone.admin.fuel.local',
+        'keystone_admin_usercert' => true,
+        'keystone_admin_certdata' => 'somethinglikeacertificateforkeystone',
     }
   end
 
   context 'when wrong data provided' do
     it 'should exist' do
-      is_expected.not_to eq(nil)
+      is_expected.not_to be_nil
     end
 
     it 'should fail if first argument is not hash' do
