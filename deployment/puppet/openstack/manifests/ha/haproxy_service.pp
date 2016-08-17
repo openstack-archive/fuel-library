@@ -132,11 +132,17 @@ define openstack::ha::haproxy_service (
     $internal_bind = {}
   }
 
+  # Get additional haproxy configuration options from hiera
+  $haproxy_config_options_hash = hiera_hash('haproxy_config_options', {})
+
+  # Merge selected by $name hash from hiera and one from upstream resource
+  $merged_config_options = merge($haproxy_config_options, pick($haproxy_config_options_hash[$name], {}))
+
   # Configure HAProxy to listen
   haproxy::listen { $name:
     order       => $order,
     bind        => merge($public_bind, $internal_bind),
-    options     => $haproxy_config_options,
+    options     => $merged_config_options,
     mode        => $mode,
     use_include => true,
     notify      => Exec['haproxy-restart'],
