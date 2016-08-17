@@ -23,6 +23,9 @@
 # [*password_auth*]
 #   Use password authentication. Defaults to no
 #
+# [*permit_root*]
+#   Specifies whether root can log in using ssh. Defaults: 'prohibit-password'
+#
 # [*listen_address*]
 #   Array of the local addresses sshd should listen on.
 
@@ -33,6 +36,7 @@ class osnailyfacter::ssh(
   $ports          = '22',
   $log_lvl        = 'VERBOSE',
   $password_auth  = 'no',
+  $permit_root    = 'prohibit-password',
   $listen_address = [],
   $accept_env     = 'LANG LC_*',
 ){
@@ -59,6 +63,7 @@ class osnailyfacter::ssh(
       'LogLevel'                        => $log_lvl,
       'Subsystem'                       => $subsystem,
       'PasswordAuthentication'          => $password_auth,
+      'PermitRootLogin'                 => $permit_root,
       'ListenAddress'                   => $listen_address,
       'AllowTcpForwarding'              => 'yes',
       'X11Forwarding'                   => 'no',
