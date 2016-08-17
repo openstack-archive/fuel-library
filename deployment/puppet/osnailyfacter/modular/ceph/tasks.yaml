@@ -35,7 +35,7 @@
   parameters:
     puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/ceph/mon.pp
     puppet_modules: /etc/puppet/modules
-    timeout: 180
+    timeout: 300
 
 - id: ceph-mon
   type: puppet
