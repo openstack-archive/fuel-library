@@ -45,40 +45,25 @@ describe 'cluster::heat_engine' do
     end
   end
 
-  context 'on Debian platforms' do
-    let :facts do
-      { :osfamily => 'Debian',
-        :operatingsystem => 'Debian',
-        :hostname => 'hostname.example.com',
-        :os_service_default => '<SERVICE DEFAULT>'
-      }
-    end
+  on_supported_os(supported_os: supported_os).each do |os, facts|
+    context "on #{os}" do
+      let(:facts) { facts.merge(common_facts) }
 
-    let :platform_params do
-      {
-        :engine_service_name => 'heat-engine'
-      }
-    end
+      let :platform_params do
+        if facts[:osfamily] == 'Debian'
+          {
+              :engine_service_name => 'heat-engine'
+          }
+        else
+          {
+              :engine_service_name => 'openstack-heat-engine'
+          }
+        end
+      end
 
-    it_configures 'cluster::heat_engine configuration'
+      it_configures 'cluster::heat_engine configuration'
+    end
   end
 
-  context 'on RedHat platforms' do
-    let :facts do
-      { :osfamily => 'RedHat',
-        :operatingsystem => 'RedHat',
-        :hostname => 'hostname.example.com',
-        :os_service_default => '<SERVICE DEFAULT>'
-      }
-    end
-
-    let :platform_params do
-      {
-        :engine_service_name => 'openstack-heat-engine'
-      }
-    end
-
-    it_configures 'cluster::heat_engine configuration'
-  end
 end
 

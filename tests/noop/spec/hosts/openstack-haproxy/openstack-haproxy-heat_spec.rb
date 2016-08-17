@@ -33,7 +33,7 @@ describe manifest do
         should contain_openstack__ha__haproxy_service('heat-api').with(
           'order'                  => '160',
           'listen_port'            => 8004,
-          'require_service'        => 'heat-api',
+
           # common parameters
           'internal_virtual_ip'    => internal_virtual_ip,
           'ipaddresses'            => ipaddresses,

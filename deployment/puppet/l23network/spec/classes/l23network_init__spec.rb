@@ -2,6 +2,10 @@ require 'spec_helper'
 
 describe 'l23network', :type => :class do
 
+  let(:pre_condition) do
+    class_pre_condition
+  end
+
   context 'default init of l23network module(Ubuntu)' do
     let(:facts) { {
       :osfamily => 'Debian',
