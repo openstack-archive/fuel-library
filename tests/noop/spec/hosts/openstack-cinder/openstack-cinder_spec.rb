@@ -155,6 +155,9 @@ describe manifest do
     should contain_cinder_config('DEFAULT/nova_catalog_info').with_value('compute:nova:internalURL')
   end
 
+  it 'should configure privsep entrypoint' do
+    should contain_cinder_config('privsep_osbrick/helper_command').with_value('sudo cinder-rootwrap /etc/cinder/rootwrap.conf privsep-helper --config-file /etc/cinder/cinder.conf')
+  end
 
   it 'ensures tgt is installed and stopped om Ubuntu with ceph' do
     if facts[:operatingsystem] == 'Ubuntu' and use_ceph

@@ -348,6 +348,13 @@ class openstack_tasks::roles::compute {
     'DEFAULT/connection_type':      value => 'libvirt';
   }
 
+  # TODO (iberezovskiy): rework this option management once it's available in puppet-nova module
+  if !defined(Nova_config['privsep_osbrick/helper_command']) {
+    nova_config {
+      'privsep_osbrick/helper_command': value => 'sudo nova-rootwrap /etc/nova/rootwrap.conf privsep-helper --config-file /etc/nova/nova.conf'
+    }
+  }
+
   if $use_syslog {
     nova_config {
       'DEFAULT/use_syslog_rfc_format':  value => true;
