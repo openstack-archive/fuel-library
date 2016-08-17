@@ -23,7 +23,7 @@ network_scheme:
         mtu: 9000
         vendor_specific:
           disable_offloading: true
-  emdpoints: {}
+  endpoints: {}
   roles: {}
 eof
 end
@@ -134,7 +134,7 @@ network_scheme:
         vendor_specific:
           disable_offloading: true
       provider: ovs
-  emdpoints: {}
+  endpoints: {}
   roles: {}
 eof
 end

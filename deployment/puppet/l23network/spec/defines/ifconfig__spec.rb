@@ -21,9 +21,9 @@ describe 'l23network::l3::ifconfig', :type => :define do
       :ipaddr => 'none'
     } }
 
-    let(:pre_condition) { [
-      "class {'l23network': }"
-    ] }
+    let(:pre_condition) do
+      definition_pre_condition
+    end
 
     let(:rings) do
       {
