@@ -131,12 +131,6 @@ class openstack_tasks::aodh::aodh {
     user => $db_user,
   }
 
-  # keystone
-  aodh_config {
-    'keystone_authtoken/signing_dir': value => '/tmp/keystone-signing-aodh';
-  }
-
-
   class { '::aodh::api':
     enabled           => true,
     manage_service    => true,
