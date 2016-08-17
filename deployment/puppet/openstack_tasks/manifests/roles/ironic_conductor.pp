@@ -112,7 +112,10 @@ class openstack_tasks::roles::ironic_conductor {
     'glance/swift_temp_url_key':            value => $ironic_swift_tempurl_key;
     'glance/swift_endpoint_url':            value => "http://${baremetal_vip}:8080";
     'glance/temp_url_endpoint_type':        value => $temp_url_endpoint_type;
-    'conductor/api_url':                    value => "http://${baremetal_vip}:6385";
+  }
+
+  if !defined(Ironic_config['conductor/api_url']) {
+    ironic_config { 'conductor/api_url': value => "http://${baremetal_vip}:6385"}
   }
 
   file { $tftp_root:
