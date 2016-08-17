@@ -35,7 +35,8 @@ describe manifest do
           'public'                 => true,
           'public_ssl'             => public_ssl_neutron,
           'haproxy_config_options' => {
-            'option'       => ['httpchk', 'httplog', 'httpclose'],
+            'option'       => ['httpchk', 'httplog', 'httpclose', 'http-buffer-request'],
+            'timeout'      => 'http-request 10s',
             'http-request' => 'set-header X-Forwarded-Proto https if { ssl_fc }',
           },
           'balancermember_options' => 'check inter 10s fastinter 2s downinter 3s rise 3 fall 3',

@@ -78,7 +78,8 @@ define openstack::ha::haproxy_service (
   $before_start           = false,
   $define_backups         = false,
   $define_cookies         = false,
-  $haproxy_config_options = { 'option' => ['httplog'],
+  $haproxy_config_options = { 'option'  => ['httplog', 'forceclose', 'http-buffer-request'],
+                              'timeout' => 'http-request 10s',
                               'balance' => 'roundrobin' },
   $internal               = true,
   $public                 = false,
@@ -112,8 +113,7 @@ define openstack::ha::haproxy_service (
   if $public {
     $public_bind_address = suffix(any2array($public_virtual_ip), ":${listen_port}")
     if $public_ssl {
-      #TODO(mmalchuk) move options to the cluster::haproxy after upgrade HAProxy to at least v1.5.7
-      $public_bind = array_to_hash($public_bind_address, ['ssl', 'crt', $public_ssl_path, 'no-sslv3', 'no-tls-tickets'])
+      $public_bind = array_to_hash($public_bind_address, ['ssl', 'crt', $public_ssl_path])
     } else {
       $public_bind = array_to_hash($public_bind_address, '')
     }
@@ -124,8 +124,7 @@ define openstack::ha::haproxy_service (
   if $internal {
     $internal_bind_address = suffix(any2array($internal_virtual_ip), ":${listen_port}")
     if $internal_ssl {
-      #TODO(mmalchuk) move options to the cluster::haproxy after upgrade HAProxy to at least v1.5.7
-      $internal_bind = array_to_hash($internal_bind_address, ['ssl', 'crt', $internal_ssl_path, 'no-sslv3', 'no-tls-tickets'])
+      $internal_bind = array_to_hash($internal_bind_address, ['ssl', 'crt', $internal_ssl_path])
     } else {
       $internal_bind = array_to_hash($internal_bind_address, '')
     }
