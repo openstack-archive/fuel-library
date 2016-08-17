@@ -78,7 +78,7 @@ class openstack_tasks::openstack_cinder::openstack_cinder {
   $service_port        = '5000'
   $keystone_api        = hiera('keystone_api', 'v3')
   $auth_uri            = "${keystone_auth_protocol}://${keystone_auth_host}:${service_port}/"
-  $identity_uri        = "${keystone_auth_protocol}://${keystone_auth_host}:${service_port}/"
+  $auth_url            = "${keystone_auth_protocol}://${keystone_auth_host}:${service_port}/"
   # TODO(degorenko): it should be fixed in upstream
   $privileged_auth_uri = "${keystone_auth_protocol}://${keystone_auth_host}:${service_port}/${keystone_api}/"
 
@@ -136,7 +136,7 @@ class openstack_tasks::openstack_cinder::openstack_cinder {
   }
 
   #NOTE(mattymo): Remove keymgr_encryption_auth_url after LP#1516085 is fixed
-  $keymgr_encryption_auth_url = "${identity_uri}/v3"
+  $keymgr_encryption_auth_url = "${auth_url}/v3"
 
   class { '::cinder':
     rpc_backend              => $queue_provider,
@@ -160,12 +160,17 @@ class openstack_tasks::openstack_cinder::openstack_cinder {
   }
 
   if ($bind_host) {
+    class { '::cinder::keystone::authtoken':
+      auth_uri          => $auth_uri,
+      auth_url          => $auth_url,
+      username          => $keystone_user,
+      project_name      => $keystone_tenant,
+      password          => $cinder_user_password,
+      memcached_servers => $memcached_servers,
+      auth_version      => $keystone_api,
+    }
+
     class { 'cinder::api':
-      auth_uri                     => $auth_uri,
-      identity_uri                 => $identity_uri,
-      keystone_user                => $keystone_user,
-      keystone_tenant              => $keystone_tenant,
-      keystone_password            => $cinder_user_password,
       os_region_name               => $region,
       bind_host                    => $bind_host,
       ratelimits                   => hiera('cinder_rate_limits'),
@@ -179,16 +184,9 @@ class openstack_tasks::openstack_cinder::openstack_cinder {
       nova_catalog_admin_info      => 'compute:nova:adminURL',
       nova_catalog_info            => 'compute:nova:internalURL',
       sync_db                      => $primary_controller,
-      memcached_servers            => $memcached_servers,
     }
 
     class { 'cinder::scheduler': }
-
-    # TODO (degorenko): cinder auth parameters should be reworked
-    # after https://review.openstack.org/#/c/342905/
-    #cinder_config {
-    #  'keystone_authtoken/auth_version':    value => $keystone_api;
-    #}
   }
 
   if $manage_volumes {
