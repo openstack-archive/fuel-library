@@ -9,10 +9,10 @@ describe 'l23network::l2::port', :type => :define do
     :l23_os => 'ubuntu',
     :l3_fqdn_hostname => 'stupid_hostname',
   } }
-  let(:pre_condition) { [
-    "class {'l23network': }"
-  ] }
 
+  let(:pre_condition) do
+    definition_pre_condition
+  end
 
   context 'Port without anythyng' do
     let(:params) do
