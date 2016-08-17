@@ -2,18 +2,9 @@ class openstack_tasks::murano::rabbitmq {
 
   notice('MODULAR: murano/rabbitmq.pp')
 
-  $rabbit_hash          = hiera_hash('rabbit', {})
   $murano_hash          = hiera_hash('murano', {})
-
-  if $rabbit_hash == {} {
-    fail('No rabbit_hash defined')
-  }
-  if !$rabbit_hash['password'] {
-    fail('Rabbit password is not set')
-  }
-
-  $rabbit_user          = pick($rabbit_hash['user'], 'nova')
-  $rabbit_password      = $rabbit_hash['password']
+  $rabbit_user          = pick($murano_hash['rabbit']['user'], 'murano')
+  $rabbit_password      = $murano_hash['rabbit_password']
   $rabbit_vhost         = $murano_hash['rabbit']['vhost']
 
   $rabbit_node_name     = 'murano@localhost'
