@@ -24,7 +24,7 @@ class fuel::postgresql(
     ip_mask_allow_all_users => '0.0.0.0/0',
   }
 
-  postgresql::server::db{ $nailgun_db_name:
+  postgresql::server::db { $nailgun_db_name :
     user     => $nailgun_db_user,
     password => $nailgun_db_password,
     grant    => 'all',
@@ -35,14 +35,14 @@ class fuel::postgresql(
     user     => $keystone_db_user,
     password => $keystone_db_password,
     grant    => 'all',
-    require => Class['::postgresql::server'],
+    require  => Class['::postgresql::server'],
   }
 
   postgresql::server::db { $ostf_db_name:
     user     => $ostf_db_user,
     password => $ostf_db_password,
     grant    => 'all',
-    require => Class['::postgresql::server'],
+    require  => Class['::postgresql::server'],
   }
 
   ensure_packages(['python-psycopg2', 'postgresql-libs'])
