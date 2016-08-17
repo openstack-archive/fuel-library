@@ -22,9 +22,9 @@ require 'spec_helper'
         'public_ssl_path'        => '/var/lib/fuel/haproxy/public_nova.pem',
         'require_service'        => 'nova-api',
         'haproxy_config_options' => {
-          'option'         => ['httpchk', 'httplog', 'httpclose'],
-          'timeout server' => '600s',
-          'http-request'   => 'set-header X-Forwarded-Proto https if { ssl_fc }',
+          'option'       => ['httpchk', 'httplog', 'httpclose', 'http-buffer-request'],
+          'timeout'      => ['server 600s', 'http-request 10s'],
+          'http-request' => 'set-header X-Forwarded-Proto https if { ssl_fc }',
         },
         'balancermember_options' => 'check inter 10s fastinter 2s downinter 3s rise 3 fall 3',
       )
@@ -34,7 +34,8 @@ require 'spec_helper'
         'order'                  => '050',
         'listen_port'            => 8775,
         'haproxy_config_options' => {
-          'option'         => ['httpchk', 'httplog', 'httpclose'],
+          'option'  => ['httpchk', 'httplog', 'httpclose', 'http-buffer-request'],
+          'timeout' => 'http-request 10s',
         },
         'balancermember_options' => 'check inter 10s fastinter 2s downinter 3s rise 3 fall 3',
       )
@@ -49,7 +50,9 @@ require 'spec_helper'
         'internal'               => false,
         'require_service'        => 'nova-vncproxy',
         'haproxy_config_options' => {
-          'http-request'   => 'set-header X-Forwarded-Proto https if { ssl_fc }',
+          'option'       => 'http-buffer-request',
+          'timeout'      => 'http-request 10s',
+          'http-request' => 'set-header X-Forwarded-Proto https if { ssl_fc }',
         },
       )
     end
