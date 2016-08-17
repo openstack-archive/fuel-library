@@ -112,11 +112,13 @@ describe manifest do
       should contain_glance_api_config('DEFAULT/scrubber_datadir').with_value('/var/lib/glance/scrubber')
       should contain_glance_api_config('glance_store/os_region_name').with_value(region)
       should contain_glance_api_config('keystone_authtoken/token_cache_time').with_value('-1')
-      should contain_glance_api_config('keystone_authtoken/auth_type').with_value('password')
-      should contain_glance_api_config('keystone_authtoken/auth_url').with_value(identity_uri)
-      should contain_glance_api_config('keystone_authtoken/username').with_value(glance_config.fetch('user', 'glance'))
-      should contain_glance_api_config('keystone_authtoken/password').with_value(glance_config.fetch('user_password'))
-      should contain_glance_api_config('keystone_authtoken/project_name').with_value(glance_config.fetch('project_name', 'services'))
+      # TODO(aderyugin): Enable this test after https://review.openstack.org/#/c/348826/ merge
+      # should contain_glance_api_config('keystone_authtoken/auth_type').with_value('password')
+      # should contain_glance_api_config('keystone_authtoken/auth_url').with_value(identity_uri)
+      # should contain_glance_api_config('keystone_authtoken/username').with_value(glance_config.fetch('user', 'glance'))
+      # should contain_glance_api_config('keystone_authtoken/password').with_value(glance_config.fetch('user_password'))
+      # should contain_glance_api_config('keystone_authtoken/project_name').with_value(glance_config.fetch('project_name', 'services'))
+
       should contain_glance_api_config('keystone_authtoken/memcached_servers').with_value(memcached_servers.join(','))
     end
 
