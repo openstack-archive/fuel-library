@@ -77,7 +77,7 @@ if $queue_provider == 'rabbitmq' {
       'inet_dist_listen_min'         => '41055',
       'inet_dist_listen_max'         => '41055',
       'inet_default_connect_options' => '[{nodelay,true}]',
-      'net_ticktime'                 => '10',
+      'net_ticktime'                 => '60',
     }
   )
   $config_variables = hiera('rabbit_config_variables',
