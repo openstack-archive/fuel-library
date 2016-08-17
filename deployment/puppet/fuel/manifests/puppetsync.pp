@@ -2,7 +2,8 @@ class fuel::puppetsync (
   $puppet_folder = '/etc/puppet',
   $xinetd_config = '/etc/xinetd.d/rsync',
   $rsync_config  = '/etc/rsyncd.conf',
-  ){
+  $bind_address  = '0.0.0.0',
+){
 
   File {
     ensure => present,
@@ -25,8 +26,8 @@ class fuel::puppetsync (
 
   if ! defined(Service['xinetd']) {
     service { 'xinetd':
-      ensure => running,
-      enable => true,
+      ensure  => running,
+      enable  => true,
       require => Package['xinetd'],
     }
   }
