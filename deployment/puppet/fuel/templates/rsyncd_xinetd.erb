@@ -5,7 +5,7 @@ service rsync
     wait            = no
     user            = root
     server          = /usr/bin/rsync
-    server_args     = --daemon --log-file=/var/log/rsync.log
+    server_args     = --address=<%= @bind_address %> --daemon --log-file=/var/log/rsync.log
     cps = 512 10
     flags = IPv4
     per_source = UNLIMITED
