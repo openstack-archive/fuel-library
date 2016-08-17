@@ -49,25 +49,12 @@ describe 'cluster::mysql' do
 
   end
 
-  context 'on Debian platforms' do
-    let :facts do
-      { :osfamily => 'Debian',
-        :operatingsystem => 'Debian',
-        :hostname => 'hostname.example.com', }
+  on_supported_os(supported_os: supported_os).each do |os, facts|
+    context "on #{os}" do
+      let(:facts) { facts.merge(common_facts) }
+
+      it_configures 'cluster::mysql configuration'
     end
-
-    it_configures 'cluster::mysql configuration'
-  end
-
-  context 'on RedHat platforms' do
-    let :facts do
-      { :osfamily => 'RedHat',
-        :operatingsystem => 'RedHat',
-        :operatingsystemmajrelease => '7',
-        :hostname => 'hostname.example.com', }
-    end
-
-    it_configures 'cluster::mysql configuration'
   end
 
 end
