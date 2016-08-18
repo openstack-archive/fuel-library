@@ -245,7 +245,7 @@ describe manifest do
         :admin_tenant_name => Noop.puppet_function('pick', nova_hash['admin_tenant_name'], keystone_tenant),
         :identity_uri => keystone_identity_uri,
         :auth_uri => keystone_auth_uri,
-        :auth_version => Noop.puppet_function('pick', nova_hash['auth_version'], false),
+        :auth_version => Noop.puppet_function('pick', nova_hash['auth_version'], nil),
         :neutron_metadata_proxy_shared_secret => neutron_metadata_proxy_secret,
         :osapi_compute_workers => service_workers,
         :metadata_workers => service_workers,
