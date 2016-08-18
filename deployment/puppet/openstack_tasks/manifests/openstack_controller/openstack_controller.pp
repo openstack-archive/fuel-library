@@ -273,7 +273,7 @@ class openstack_tasks::openstack_controller::openstack_controller {
     admin_tenant_name                    => pick($nova_hash['admin_tenant_name'], $keystone_tenant),
     identity_uri                         => $keystone_identity_uri,
     auth_uri                             => $keystone_auth_uri,
-    auth_version                         => pick($nova_hash['auth_version'], false),
+    auth_version                         => $nova_hash['auth_version'],
     ratelimits                           => $nova_rate_limits_string,
     neutron_metadata_proxy_shared_secret => $neutron_metadata_proxy_secret,
     osapi_compute_workers                => $service_workers,
