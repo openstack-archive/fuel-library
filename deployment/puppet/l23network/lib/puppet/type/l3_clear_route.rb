@@ -14,7 +14,7 @@ Puppet::Type.newtype(:l3_clear_route) do
     newproperty(:destination) do
       desc "Destination network"
       validate do |val|
-        val.strip!
+        val = val.strip
         if val.to_s.downcase != 'default'
           raise ArgumentError, "Invalid IP address: '#{val}'" if \
             not val.match(/^(\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})(\/(\d{1,2}))?$/) \
@@ -61,7 +61,7 @@ Puppet::Type.newtype(:l3_clear_route) do
       newvalues(/^\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}$/)
       validate do |val|
         # gateway can't be "absent" by design
-        val.strip!
+        val = val.strip
         raise ArgumentError, "Invalid gateway: '#{val}'" if \
            not val.match(/^(\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})$/) \
            or not ($1.to_i >= 0  and  $1.to_i <= 255) \
