@@ -26,10 +26,9 @@ describe 'l23network::l2::patch', :type => :define do
     get_provider_for.stubs(:call).with('L2_bridge', 'br2').returns('lnx')
   end
 
-  let(:pre_condition) { [
-    "class {'l23network': }"
-  ] }
-
+  let(:pre_condition) do
+    definition_pre_condition
+  end
 
   context 'Just a patch between two bridges' do
     let(:params) do
@@ -186,10 +185,9 @@ describe 'l23network::l2::patch', :type => :define do
     get_provider_for.stubs(:call).with('L2_bridge', 'br2').returns('ovs')
   }
 
-  let(:pre_condition) { [
-    "class {'l23network': }"
-  ] }
-
+  let(:pre_condition) do
+    definition_pre_condition
+  end
 
   context 'Just a ovs2ovs patch between two bridges' do
     let(:params) do

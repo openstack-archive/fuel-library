@@ -27,3 +27,21 @@ def puppet_debug_override
     Puppet::Util::Log.newdestination(:console)
   end
 end
+
+def definition_pre_condition
+  <<-eof
+  class {'l23network': }
+
+  Package <||> {
+    provider => 'apt',
+  }
+  eof
+end
+
+def class_pre_condition
+  <<-eof
+  Package <||> {
+    provider => 'apt',
+  }
+  eof
+end
