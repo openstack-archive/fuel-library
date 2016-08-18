@@ -51,16 +51,7 @@ class cluster::ntp_ocf inherits ntp::params {
     prefix              => true,
   }
 
-  if ! defined(Service[$service_name]) {
-    service { $service_name:
-      name       => $service_name,
-      enable     => true,
-      ensure     => 'running',
-      hasstatus  => true,
-      hasrestart => true,
-      provider   => 'pacemaker',
-    }
-  }
+  include ::ntp::service
 
   Pcmk_resource["p_${service_name}"] ->
   Pcmk_colocation['ntp-with-vrouter-ns'] ->
