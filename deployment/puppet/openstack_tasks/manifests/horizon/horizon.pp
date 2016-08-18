@@ -36,12 +36,12 @@ class openstack_tasks::horizon::horizon {
   # of the MOS package set. This should be contributed upstream and then we can
   # use this as the default.
   #if !$::os_package_type or $::os_package_type == 'debian' {
-  #  $cache_backend = dig($horizon_hash, ['cache_backend'], 'horizon.backends.memcached.HorizonMemcached')
+  #  $cache_backend = fetch_value($horizon_hash, ['cache_backend'], 'horizon.backends.memcached.HorizonMemcached')
   #} else {
-  #  $cache_backend = dig($horizon_hash, ['cache_backend'], 'django.core.cache.backends.memcached.MemcachedCache')
+  #  $cache_backend = fetch_value($horizon_hash, ['cache_backend'], 'django.core.cache.backends.memcached.MemcachedCache')
   #}
   # Don't use custom backend until its code lands to MOS 9.0.
-  $cache_backend = dig($horizon_hash, ['cache_backend'], 'django.core.cache.backends.memcached.MemcachedCache')
+  $cache_backend = fetch_value($horizon_hash, ['cache_backend'], 'django.core.cache.backends.memcached.MemcachedCache')
 
   #Changing from internal addressing to public should resolve any security concerns about exposing 'internal' to public facing login.
   #However, this should eventually be removed altogether from Horizon.
