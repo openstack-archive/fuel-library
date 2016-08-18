@@ -47,7 +47,7 @@ class openstack_tasks::openstack_network::common_config {
 
   $kombu_compression = hiera('kombu_compression', $::os_service_default)
 
-  $segmentation_type = dig($neutron_config, ['L2', 'segmentation_type'])
+  $segmentation_type = fetch_value($neutron_config, ['L2', 'segmentation_type'])
 
   $nets = $neutron_config['predefined_networks']
 
