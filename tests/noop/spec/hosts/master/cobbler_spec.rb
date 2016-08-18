@@ -27,7 +27,7 @@ describe manifest do
           :next_server                 => fuel_settings['ADMIN_NETWORK']['ipaddress'],
           :mco_user                    => fuel_settings['mcollective']['user'],
           :mco_pass                    => fuel_settings['mcollective']['password'],
-          :dns_upstream                => fuel_settings['DNS_UPSTREAM'],
+          :dns_upstream                => [fuel_settings['DNS_UPSTREAM']],
           :dns_domain                  => fuel_settings['DNS_DOMAIN'],
           :dns_search                  => fuel_settings['DNS_SEARCH'],
           :dhcp_ipaddress              => fuel_settings['ADMIN_NETWORK']['ipaddress'],

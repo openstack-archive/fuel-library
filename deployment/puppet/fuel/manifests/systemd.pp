@@ -1,16 +1,17 @@
 define fuel::systemd (
   $start = true,
   $template_path = 'fuel/systemd/service_template.erb',
-  $config_name = 'fuel.conf'
+  $config_name = 'fuel.conf',
+  $service_manage = true,
   ) {
 
-  if !defined(File["/etc/systemd/system/${title}.service.d"]) {
-    file { "/etc/systemd/system/${title}.service.d":
+  if !defined(File["/etc/systemd/system/${name}.service.d"]) {
+    file { "/etc/systemd/system/${name}.service.d":
       ensure => directory
     }
   }
 
-  file { "/etc/systemd/system/${title}.service.d/${config_name}":
+  file { "/etc/systemd/system/${name}.service.d/${config_name}":
     content => template($template_path),
     owner   => 'root',
     group   => 'root',
@@ -25,21 +26,26 @@ define fuel::systemd (
     }
   }
 
-  if !defined(Service[$title]) {
-    if $start {
-      service { "${title}":
-        ensure    => running,
-        enable    => true,
-        require   => Exec['fuel_systemd_reload'],
-        subscribe => File["/etc/systemd/system/${title}.service.d/${config_name}"]
-      }
+  if $start {
+    $ensure = 'running'
+  } else {
+    $ensure = undef
+  }
+
+  if $service_manage and ! defined(Service[$title]) {
+    service { $name :
+      ensure    => $ensure,
+      enable    => true,
+      require   => Exec['fuel_systemd_reload'],
+      subscribe => File["/etc/systemd/system/${name}.service.d/${config_name}"]
     }
-    else {
-      service { "${title}":
-        enable    => true,
-        require   => Exec['fuel_systemd_reload'],
-        subscribe => File["/etc/systemd/system/${title}.service.d/${config_name}"]
-      }
+  } else {
+    Service <| title == $name |> {
+      ensure    => $ensure,
+      enable    => true,
+      require   => Exec['fuel_systemd_reload'],
+      subscribe => File["/etc/systemd/system/${name}.service.d/${config_name}"]
     }
   }
+
 }
