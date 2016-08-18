@@ -66,7 +66,6 @@ class osnailyfacter::logging::logging {
       ironic_collector   => $ironic_collector,
     }
 
-    class { '::cluster::haproxy::rsyslog': }
   }
 
 }
