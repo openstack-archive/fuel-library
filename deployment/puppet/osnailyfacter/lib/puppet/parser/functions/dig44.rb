@@ -1,6 +1,6 @@
 module Puppet::Parser::Functions
   newfunction(
-      :fetch_value,
+      :dig44,
       :type => :rvalue,
       :arity => -2,
       :doc => <<-eos
@@ -36,18 +36,18 @@ missing. And the fourth argument can set a variable path separator.
   eos
   ) do |arguments|
     # Two arguments are required
-    raise(Puppet::ParseError, "fetch_value(): Wrong number of arguments " +
+    raise(Puppet::ParseError, "dig44(): Wrong number of arguments " +
                               "given (#{arguments.size} for at least 2)") if arguments.size < 2
 
     data, path, default = *arguments
 
     unless data.is_a?(Hash) or data.is_a?(Array)
-      raise(Puppet::ParseError, "fetch_value(): first argument must be a hash or an array, " <<
+      raise(Puppet::ParseError, "dig44(): first argument must be a hash or an array, " <<
                                 "given #{data.class.name}")
     end
 
     unless path.is_a? Array
-      raise(Puppet::ParseError, "fetch_value(): second argument must be an array, " <<
+      raise(Puppet::ParseError, "dig44(): second argument must be an array, " <<
                                 "given #{path.class.name}")
     end
 

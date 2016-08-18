@@ -1,6 +1,6 @@
 require 'spec_helper'
 
-describe 'fetch_value' do
+describe 'dig44' do
 
   let(:data) do
     {
