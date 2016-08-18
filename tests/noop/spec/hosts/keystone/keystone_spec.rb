@@ -313,7 +313,7 @@ describe manifest do
       end
 
       it 'should add admin role to admin user' do
-        should contain_keystone_user_role("#{admin_user}@::#{user_admin_domain}").with('ensure' => 'present','roles' => user_admin_role)
+        should contain_keystone_user_role("#{admin_user}@::#{user_admin_domain}").with('ensure' => 'present','roles' => [user_admin_role])
       end
     end
 
