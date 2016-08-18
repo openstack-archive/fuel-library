@@ -2,7 +2,7 @@
 #
 # Configure OCF service for NTP managed by corosync/pacemaker
 #
-class cluster::ntp_ocf inherits ntp::params {
+class cluster::ntp_ocf inherits ::ntp {
   $primitive_type = 'ns_ntp'
   $complex_type   = 'clone'
 
@@ -49,17 +49,6 @@ class cluster::ntp_ocf inherits ntp::params {
     complex_metadata    => $complex_metadata,
     complex_type        => $complex_type,
     prefix              => true,
-  }
-
-  if ! defined(Service[$service_name]) {
-    service { $service_name:
-      name       => $service_name,
-      enable     => true,
-      ensure     => 'running',
-      hasstatus  => true,
-      hasrestart => true,
-      provider   => 'pacemaker',
-    }
   }
 
   Pcmk_resource["p_${service_name}"] ->
