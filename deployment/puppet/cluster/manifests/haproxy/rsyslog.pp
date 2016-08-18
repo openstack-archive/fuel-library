@@ -18,10 +18,4 @@ class cluster::haproxy::rsyslog (
     notify  => Service[$::rsyslog::params::service_name],
   }
 
-  if !defined(Service[$::rsyslog::params::service_name]) {
-    service { $::rsyslog::params::service_name:
-      ensure => 'running',
-      enable => true,
-    }
-  }
 }
