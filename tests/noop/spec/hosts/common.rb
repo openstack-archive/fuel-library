@@ -1,8 +1,13 @@
 shared_examples 'compute_service_common' do
 
   let (:nova_compute_service_name) do
-    Noop.puppet_class_include 'nova::params'
-    Noop.variable 'nova::params::compute_service_name'
+    if facts[:osfamily] == 'RedHat'
+      'openstack-nova-compute'
+    elsif facts[:osfamily] == 'Debian'
+      'nova-compute'
+    else
+      fail "Osfamily: #{facts[:osfamily]} is not supported!"
+    end
   end
 
   it do
