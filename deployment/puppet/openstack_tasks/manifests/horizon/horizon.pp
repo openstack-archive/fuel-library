@@ -147,6 +147,8 @@ class openstack_tasks::horizon::horizon {
   # 10G by default
   $file_upload_max_size = pick($horizon_hash['upload_max_size'], 10737418235)
 
+  include ::apache::params
+
   class { '::horizon::wsgi::apache':
     priority       => false,
     bind_address   => $bind_address,
