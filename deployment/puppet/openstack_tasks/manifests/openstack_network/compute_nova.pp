@@ -13,9 +13,9 @@ class openstack_tasks::openstack_network::compute_nova {
 
   $management_vip             = hiera('management_vip')
   $service_endpoint           = hiera('service_endpoint', $management_vip)
-  $admin_password             = dig($neutron_config, ['keystone', 'admin_password'])
-  $admin_tenant_name          = dig($neutron_config, ['keystone', 'admin_tenant'], 'services')
-  $admin_username             = dig($neutron_config, ['keystone', 'admin_user'], 'neutron')
+  $admin_password             = fetch_value($neutron_config, ['keystone', 'admin_password'])
+  $admin_tenant_name          = fetch_value($neutron_config, ['keystone', 'admin_tenant'], 'services')
+  $admin_username             = fetch_value($neutron_config, ['keystone', 'admin_user'], 'neutron')
   $region_name                = hiera('region', 'RegionOne')
   $auth_api_version           = 'v3'
   $ssl_hash                   = hiera_hash('use_ssl', {})
