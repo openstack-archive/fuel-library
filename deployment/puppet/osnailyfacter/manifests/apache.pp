@@ -49,6 +49,11 @@ class osnailyfacter::apache (
 
   apache::listen { $listen_ports: }
 
+  anchor { 'osnailyfacter::apache start' :} ->
+  Apache::Listen[$listen_ports] ->
+  Class['::apache'] ->
+  anchor { 'osnailyfacter::apache end' :}
+
   # we need to override the logrotate file provided by apache to work around
   # wsgi issues on the restart caused by logrotate.
   # LP#1491576 and https://github.com/GrahamDumpleton/mod_wsgi/issues/81
