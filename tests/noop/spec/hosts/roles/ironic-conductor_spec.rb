@@ -83,7 +83,7 @@ describe manifest do
         should contain_file("#{tftp_root}/pxelinux.0").with(
           'ensure' => 'present',
           'source' => '/usr/lib/syslinux/pxelinux.0'
-        ).that_requires('Package[syslinux]')
+        )
       end
 
     end #end of ironic_enabled

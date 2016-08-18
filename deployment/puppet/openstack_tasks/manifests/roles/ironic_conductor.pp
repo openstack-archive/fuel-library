@@ -128,10 +128,19 @@ class openstack_tasks::roles::ironic_conductor {
     require => Class['::ironic'],
   }
 
+  if $::operatingsystemmajrelease == '16.04' {
+    $pxelinux_source = '/usr/lib/PXELINUX/pxelinux.0'
+    $pxelinux_package = ['syslinux', 'pxelinux']
+  } else {
+    $pxelinux_source = '/usr/lib/syslinux/pxelinux.0'
+    $pxelinux_package = 'syslinux'
+  }
+
+  ensure_packages($pxelinux_package, {'ensure' => 'present'})
+
   file { "${tftp_root}/pxelinux.0":
     ensure  => present,
-    source  => '/usr/lib/syslinux/pxelinux.0',
-    require => Package['syslinux'],
+    source  => $pxelinux_source,
   }
 
   file { "${tftp_root}/map-file":
@@ -144,10 +153,6 @@ class openstack_tasks::roles::ironic_conductor {
     options   => "--map-file ${tftp_root}/map-file",
     inetd     => false,
     require   => File["${tftp_root}/map-file"],
-  }
-
-  package { 'syslinux':
-    ensure => 'present',
   }
 
   package { 'ipmitool':
