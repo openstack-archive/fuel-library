@@ -80,7 +80,6 @@ describe manifest do
 
     it 'should configure "keystone_authtoken/" section' do
       should contain_aodh_config('keystone_authtoken/memcached_servers').with(:value => memcached_servers.join(','))
-      should contain_aodh_config('keystone_authtoken/signing_dir').with(:value => keystone_signing_dir)
       should contain_aodh_config('keystone_authtoken/auth_url').with(:value => keystone_auth_url)
       should contain_aodh_config('keystone_authtoken/auth_uri').with(:value => keystone_auth_uri)
       should contain_aodh_config('keystone_authtoken/project_name').with(:value => tenant)
