@@ -119,7 +119,7 @@ class cluster::mysql (
   }
 
   Exec['create-init-file'] ->
-    Service<| title == $service_name |> ->
+    Service<| title == $service_name |> ~>
       Exec['wait-initial-sync'] ->
         Exec['rm-init-file']
 }

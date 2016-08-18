@@ -40,6 +40,10 @@ describe 'cluster::mysql' do
       it 'creates exec to remove init-file' do
         should contain_exec('rm-init-file')
       end
+
+      it 'creates exec to wait initial database sync' do
+        should contain_exec('wait-initial-sync').that_subscribes_to('Service[mysqld]')
+      end
     end
 
   end
