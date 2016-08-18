@@ -64,4 +64,4 @@ mod 'apt',
 # Pull in puppetlabs-firewall
 mod 'firewall',
     :git => 'https://review.fuel-infra.org/p/puppet-modules/puppetlabs-firewall.git',
-    :ref => '1.2.0'
+    :ref => '1.2.0-mos-rc1'
