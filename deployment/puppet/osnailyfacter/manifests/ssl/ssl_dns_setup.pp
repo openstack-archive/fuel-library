@@ -19,25 +19,25 @@ class osnailyfacter::ssl::ssl_dns_setup {
     $public_vip = hiera('public_vip')
     $management_vip = hiera('management_vip')
 
-    $public_hostname = dig($ssl_hash, ["${service}_public_hostname"], '')
-    $internal_hostname = dig($ssl_hash, ["${service}_internal_hostname"], '')
-    $admin_hostname = dig($ssl_hash, ["${service}_admin_hostname"], $internal_hostname)
+    $public_hostname = fetch_value($ssl_hash, ["${service}_public_hostname"], '')
+    $internal_hostname = fetch_value($ssl_hash, ["${service}_internal_hostname"], '')
+    $admin_hostname = fetch_value($ssl_hash, ["${service}_admin_hostname"], $internal_hostname)
 
-    $service_public_ip = dig($ssl_hash, ["${service}_public_ip"], '')
+    $service_public_ip = fetch_value($ssl_hash, ["${service}_public_ip"], '')
     if !empty($service_public_ip) {
       $public_ip = $service_public_ip
     } else {
       $public_ip = $public_vip
     }
 
-    $service_internal_ip = dig($ssl_hash, ["${service}_internal_ip"], '')
+    $service_internal_ip = fetch_value($ssl_hash, ["${service}_internal_ip"], '')
     if !empty($service_internal_ip) {
       $internal_ip = $service_internal_ip
     } else {
       $internal_ip = $management_vip
     }
 
-    $service_admin_ip = dig($ssl_hash, ["${service}_admin_ip"], '')
+    $service_admin_ip = fetch_value($ssl_hash, ["${service}_admin_ip"], '')
     if !empty($service_admin_ip) {
       $admin_ip = $service_admin_ip
     } else {
