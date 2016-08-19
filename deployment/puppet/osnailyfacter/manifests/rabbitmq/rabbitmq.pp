@@ -173,6 +173,14 @@ class osnailyfacter::rabbitmq::rabbitmq {
       # Make sure the various providers have their requirements in place.
       Class['::rabbitmq::install'] -> Rabbitmq_plugin<| |> -> Rabbitmq_exchange<| |>
 
+      file { '/etc/rabbitmq/enabled_plugins':
+        ensure => 'present',
+        mode   => '0644',
+      }
+
+      File['/etc/rabbitmq/enabled_plugins'] ->
+      Rabbitmq_plugin<| |>
+
       rabbitmq_user { $rabbit_hash['user']:
         admin    => true,
         password => $rabbit_hash['password'],

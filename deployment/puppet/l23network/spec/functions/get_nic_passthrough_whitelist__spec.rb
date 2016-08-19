@@ -60,7 +60,7 @@ describe 'get_nic_passthrough_whitelist' do
     end
 
     it 'should return empty mapping from transformations' do
-      is_expected.to run.with_params('dumb').and_return(nil)
+      is_expected.to run.with_params('dumb').and_return([])
     end
   end
 
