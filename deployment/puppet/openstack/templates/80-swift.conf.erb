@@ -1,5 +1,9 @@
 # managed by puppet
 
 :syslogtag, contains, "swift" /var/log/swift-all.log
+:syslogtag, contains, "swift-account-server" /var/log/swift/swift-account-server.log
+:syslogtag, contains, "swift-proxy-server" /var/log/swift/swift-proxy-server.log
+:syslogtag, contains, "swift-object-server" /var/log/swift/swift-object-server.log
+:syslogtag, contains, "swift-container-server" /var/log/swift/swift-container-server.log
 ### stop further processing for the matched entries
 & stop
