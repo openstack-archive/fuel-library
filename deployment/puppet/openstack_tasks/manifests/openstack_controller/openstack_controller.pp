@@ -312,6 +312,8 @@ class openstack_tasks::openstack_controller::openstack_controller {
     host    => $api_bind_address,
   }
 
+  include ::nova::params
+
   ####### Disable upstart startup on install #######
   if($::operatingsystem == 'Ubuntu') {
     tweaks::ubuntu_service_override { 'nova-cert':
