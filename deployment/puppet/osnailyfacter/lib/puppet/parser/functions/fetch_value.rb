@@ -20,58 +20,48 @@ $data = {
   }
 }
 
-$value = try_get_value($data, 'a/b/2', 'not_found', '/')
+$value = dig44($data, ['a', 'b', '2'], 'not_found')
 => $value = 'b3'
 
 a -> first hash key
 b -> second hash key
 2 -> array index starting with 0
 
-not_found -> (optional) will be returned if there is no value or the path did not match. Defaults to nil.
-/ -> (optional) path delimiter. Defaults to '/'.
+not_found -> (optional) will be returned if there is no value or the path
+did not match. Defaults to nil.
 
-In addition to the required "key" argument, "try_get_value" accepts default
+In addition to the required "key" argument, the function accepts a default
 argument. It will be returned if no value was found or a path component is
 missing. And the fourth argument can set a variable path separator.
   eos
-  ) do |args|
-    path_lookup = lambda do |data, path, default|
-      debug "Fetch_value: #{path.inspect} from: #{data.inspect}"
-      if data.nil? or data == :undef
-        debug "Fetch_value: no data, return default: #{default.inspect}"
-        break default
-      end
-      unless path.is_a? Array
-        debug "Fetch_value: wrong path, return default: #{default.inspect}"
-        break default
-      end
-      unless path.any?
-        debug "Fetch_value: value found, return data: #{data.inspect}"
-        break data
-      end
-      unless data.is_a? Hash or data.is_a? Array
-        debug "Fetch_value: incorrect data, return default: #{default.inspect}"
-        break default
-      end
+  ) do |arguments|
+    # Two arguments are required
+    raise(Puppet::ParseError, "fetch_value(): Wrong number of arguments " +
+                              "given (#{arguments.size} for at least 2)") if arguments.size < 2
 
-      key = path.shift
-      if data.is_a? Array
-        begin
-          key = Integer key
-        rescue ArgumentError
-          debug "Fetch_value: non-numeric path for an array, return default: #{default.inspect}"
-          break default
-        end
-      end
-      path_lookup.call data[key], path, default
+    data, path, default = *arguments
+
+    unless data.is_a?(Hash) or data.is_a?(Array)
+      raise(Puppet::ParseError, "fetch_value(): first argument must be a hash or an array, " <<
+                                "given #{data.class.name}")
     end
 
-    data = args[0]
-    path = args[1] || ''
-    default = args[2]
-    separator = args[3] || '/'
+    unless path.is_a? Array
+      raise(Puppet::ParseError, "fetch_value(): second argument must be an array, " <<
+                                "given #{path.class.name}")
+    end
 
-    path = path.split separator
-    path_lookup.call data, path, default
+    value = path.reduce(data) do |structure, key|
+      if structure.is_a? Hash or structure.is_a? Array
+        if structure.is_a? Array
+          key = Integer key rescue break
+        end
+        break if structure[key].nil? or structure[key] == :undef
+        structure[key]
+      else
+        break
+      end
+    end
+    value.nil? ? default : value
   end
 end
