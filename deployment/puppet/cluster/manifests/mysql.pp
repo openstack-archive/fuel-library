@@ -111,7 +111,7 @@ class cluster::mysql (
     require => Package['mysql-server'],
   } ~>
 
-  exec { 'wait-initial-sync':
+  exec { 'wait-for-sync':
     path        => '/bin:/sbin:/usr/bin:/usr/sbin',
     command     => "mysql ${user_password_string} -Nbe \"show status like 'wsrep_local_state_comment'\" | grep -q -e Synced && sleep 10",
     try_sleep   => 10,
@@ -126,7 +126,7 @@ class cluster::mysql (
   }
 
   Exec['create-init-file'] ->
-    Service<| title == $service_name |> ->
-      Exec['wait-initial-sync'] ->
+    Service<| title == $service_name |> ~>
+      Exec['wait-for-sync'] ->
         Exec['rm-init-file']
 }

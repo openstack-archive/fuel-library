@@ -39,11 +39,15 @@ describe 'cluster::mysql' do
           /'username'@'localhost' IDENTIFIED BY 'password'/
         )
         should contain_exec('create-init-file').that_comes_before('Service[mysqld]')
-        should contain_exec('create-init-file').that_notifies('Exec[wait-initial-sync]')
+        should contain_exec('create-init-file').that_notifies('Exec[wait-for-sync]')
       end
 
       it 'creates exec to remove init-file' do
         should contain_exec('rm-init-file')
+      end
+
+      it 'creates exec to wait initial database sync' do
+        should contain_exec('wait-for-sync').that_subscribes_to('Service[mysqld]')
       end
     end
 
