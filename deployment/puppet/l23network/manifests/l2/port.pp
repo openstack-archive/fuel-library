@@ -129,8 +129,16 @@ define l23network::l2::port (
       $real_if_type = $if_type
     }
 
+    # Check that "netrings" fact is defined
+    # This should work both in Puppet < 3.5 and Puppet > 4.0 with stict variables enabled
+    if versioncmp($::puppetversion, '3.5.0') < 0 {
+      $has_netrings = defined($::netrings) and is_hash($::netrings)
+    } else {
+      $has_netrings = defined('$::netrings') and is_hash($::netrings)
+    }
+
     # Merge offloading data with rings rx/tx
-    if is_hash($::netrings) {
+    if $has_netrings {
       $port_netrings = $::netrings[$port_name]
 
       if is_hash($port_netrings) and $port_netrings['maximums'] {
