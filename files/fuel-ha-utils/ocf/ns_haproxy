@@ -264,9 +264,9 @@ block_client_access()
     # do not add temporary SYN blocking rule, if it is already exist
     # otherwise, try to add a blocking rule with max of 5 retries
     local tries=5
-    until $($RUN_IN_NS iptables -t filter -nvL | grep -q 'temporary SYN block') || [ $tries -eq 0 ]; do
+    until $($RUN_IN_NS iptables -t filter -nvL --wait | grep -q 'temporary SYN block') || [ $tries -eq 0 ]; do
       tries=$((tries-1))
-      ocf_run $RUN_IN_NS iptables -t filter -I INPUT -p tcp \
+      ocf_run $RUN_IN_NS iptables --wait -t filter -I INPUT -p tcp \
         -m comment --comment 'temporary SYN block' --syn -j DROP
       sleep 1
     done
@@ -281,8 +281,8 @@ block_client_access()
 unblock_client_access()
 {
     # remove all temporary SYN blocking rules, if there are more than one exist
-    for i in $($RUN_IN_NS iptables -t filter -nvL --line-numbers | awk '/temporary SYN block/ {print $1}'); do
-      ocf_run $RUN_IN_NS iptables -t filter -D INPUT -p tcp \
+    for i in $($RUN_IN_NS iptables -t filter -nvL --wait --line-numbers | awk '/temporary SYN block/ {print $1}'); do
+      ocf_run $RUN_IN_NS iptables --wait -t filter -D INPUT -p tcp \
         -m comment --comment 'temporary SYN block' --syn -j DROP
     done
 }
@@ -372,10 +372,10 @@ set_ns_routing() {
   fi
 
   # set masquerade on host node
-  iptables -n -t nat -L | grep -q masquerade-for-haproxy-namespace
+  iptables -n --wait -t nat -L | grep -q masquerade-for-haproxy-namespace
   if [ $? -gt 0 ]; then
     ocf_log debug "Creating NAT rule on the host system for traffic from IP: ${OCF_RESKEY_namespace_ip}"
-    ocf_run iptables -t nat -A POSTROUTING -s "${OCF_RESKEY_namespace_ip}" -j MASQUERADE -m comment --comment "masquerade-for-haproxy-namespace"
+    ocf_run iptables --wait -t nat -A POSTROUTING -s "${OCF_RESKEY_namespace_ip}" -j MASQUERADE -m comment --comment "masquerade-for-haproxy-namespace"
   fi
 
   ### Needed for ML2 routing ###
