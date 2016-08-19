@@ -481,6 +481,11 @@ class osnailyfacter::globals::globals {
   # TODO(sbog): change this when we will get rid of global hashes
   $ssl_hash = hiera_hash('use_ssl', {})
   $public_ssl_hash = hiera('public_ssl')
+
+  $num_networks = undef
+  $network_size = undef
+  $network_manager = undef
+
   $public_vnc_protocol = get_ssl_property($ssl_hash, $public_ssl_hash, 'nova', 'public', 'protocol', 'http')
   $real_nova_hash = merge($nova_hash, { 'vncproxy_protocol' => $public_vnc_protocol,
                                         'nova_rate_limits' => $nova_rate_limits,

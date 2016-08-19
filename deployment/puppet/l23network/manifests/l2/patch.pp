@@ -32,6 +32,7 @@ define l23network::l2::patch (
   if $bridge1_provider == 'ovs' and $bridge2_provider == 'ovs' {
     $act_bridges  = sort($bridges)
     $ovs2ovs = true
+    $lnx2lnx = false
     if $vlan_ids == undef {
       $act_vlan_ids = [0,0]
     } elsif $act_bridges == $bridges {
@@ -42,11 +43,16 @@ define l23network::l2::patch (
   } elsif $bridge1_provider == 'ovs' and $bridge2_provider == 'lnx' {
     $act_bridges  = [$bridges[0], $bridges[1]]
     $act_vlan_ids = undef
+    $ovs2ovs = false
+    $lnx2lnx = false
   } elsif $bridge1_provider == 'lnx' and $bridge2_provider == 'ovs' {
     $act_bridges  = [$bridges[1], $bridges[0]]
     $act_vlan_ids = undef
+    $ovs2ovs = false
+    $lnx2lnx = false
   } else {
     $lnx2lnx = true
+    $ovs2ovs = false
     $act_bridges = $bridges
   }
 
