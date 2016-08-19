@@ -9,6 +9,9 @@ respawn limit 10 5
 pre-start script
   mkdir -p /var/run/rabbitmq
   chown -R rabbitmq /var/run/rabbitmq
+
+  # TODO(dmburmistrov): remove this after fixing PID-file handling
+  rm -f /var/run/rabbitmq/rabbit-fence.pid
 end script
 
 exec /usr/bin/rabbit-fence.py
