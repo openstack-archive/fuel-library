@@ -38,7 +38,7 @@ describe manifest do
 
       it 'should declare ironic::conductor class correctly' do
         should contain_class('ironic::conductor').with(
-          api_url => "http://${baremetal_vip}:6385",
+          'api_url' => "http://#{baremetal_vip}:6385",
         )
       end
 
