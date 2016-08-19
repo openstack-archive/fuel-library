@@ -14,35 +14,35 @@ require 'spec_helper'
 require 'shared-examples'
 manifest = 'tools/tools.pp'
 
-tools = [
-  'screen',
-  'tmux',
-  'htop',
-  'tcpdump',
-  'strace',
-  'fuel-misc',
-  'man-db',
-]
-
-cloud_init_services = [
-  'cloud-config',
-  'cloud-final',
-  'cloud-init',
-  'cloud-init-container',
-  'cloud-init-local',
-  'cloud-init-nonet',
-  'cloud-log-shutdown',
-]
-
-atop_hash     = Noop.hiera 'atop', {}
-atop_enabled  = Noop.puppet_function 'pick', atop_hash['service_enabled'], true
-atop_interval = Noop.puppet_function 'pick', atop_hash['interval'], 20
-atop_rotate   = Noop.puppet_function 'pick', atop_hash['rotate'], 7
-
-puppet = Noop.hiera('puppet')
-
 describe manifest do
+  tools = %w(
+  screen
+  tmux
+  htop
+  tcpdump
+  strace
+  fuel-misc
+  man-db
+  )
+
+  cloud_init_services = %w(
+  cloud-config
+  cloud-final
+  cloud-init
+  cloud-init-container
+  cloud-init-local
+  cloud-init-nonet
+  cloud-log-shutdown
+  )
+
   shared_examples 'catalog' do
+    atop_hash     = Noop.hiera 'atop', {}
+    atop_enabled  = Noop.puppet_function 'pick', atop_hash['service_enabled'], true
+    atop_interval = Noop.puppet_function 'pick', atop_hash['interval'], 20
+    atop_rotate   = Noop.puppet_function 'pick', atop_hash['rotate'], 7
+
+    puppet = Noop.hiera('puppet')
+
     it "should contain ssh host keygen exec for Debian OS only" do
       if facts[:osfamily] == 'Debian'
         should contain_exec('host-ssh-keygen').with(
