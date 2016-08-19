@@ -154,8 +154,7 @@ class openstack_tasks::openstack_network::server_config {
     })
     $network_vlan_ranges = []
 
-    if $_path_mtu {
-      $path_mtu = $_path_mtu
+    if ! empty($_path_mtu) {
     } else {
       $path_mtu = pick(get_transformation_property('mtu', $iface[0]), '1500')
     }
