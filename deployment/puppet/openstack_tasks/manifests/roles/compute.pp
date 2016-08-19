@@ -325,6 +325,10 @@ class openstack_tasks::roles::compute {
   #   service #LP1398817. The orchestration will start and enable it back
   #   after the deployment is done.
   # NOTE(bogdando) This maybe be changed, if the host aggregates implemented, bp disable-new-computes
+
+  $passthrough_whitelist = get_nic_passthrough_whitelist('sriov')
+  $pci_passthrough = nic_whitelist_to_json($passthrough_whitelist)
+
   class { '::nova::compute':
     enabled                       => false,
     vncserver_proxyclient_address => get_network_role_property('nova/api', 'ipaddr'),
@@ -332,7 +336,7 @@ class openstack_tasks::roles::compute {
     vncproxy_host                 => $vncproxy_host,
     vncproxy_port                 => $nova_hash_real['vncproxy_port'],
     force_config_drive            => $force_config_drive,
-    pci_passthrough               => nic_whitelist_to_json(get_nic_passthrough_whitelist('sriov')),
+    pci_passthrough               => $pci_passthrough,
     network_device_mtu            => $network_device_mtu,
     instance_usage_audit          => $instance_usage_audit,
     instance_usage_audit_period   => $instance_usage_audit_period,
