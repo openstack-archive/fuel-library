@@ -9,7 +9,8 @@ EOS
     return
   end
 
-  nics = argv[0]
-  return nics.to_json
+  nic_whitelist = argv[0]
+  return nil unless nic_whitelist
+  nic_whitelist.to_json
 end
 
