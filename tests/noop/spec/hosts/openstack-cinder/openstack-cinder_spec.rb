@@ -195,15 +195,13 @@ describe manifest do
     end
   end
 
-  #TODO (iberezovskiy): uncomment this test if cinder module version
-  # is updated and includes commit https://review.openstack.org/#/c/334845/
-  #it 'should contain notification_driver option' do
-  #  if ceilometer_hash['enabled']
-  #    should contain_cinder_config('oslo_messaging_notifications/driver').with(:value => ceilometer_hash['notification_driver'])
-  #  else
-  #    should_not contain_cinder_config('oslo_messaging_notifications/driver')
-  #  end
-  #end
+  it 'should contain notification_driver option' do
+    if ceilometer_hash['enabled']
+      should contain_cinder_config('oslo_messaging_notifications/driver').with(:value => ceilometer_hash['notification_driver'])
+    else
+      should_not contain_cinder_config('oslo_messaging_notifications/driver')
+    end
+  end
 
     let (:bind_host) do
       Noop.puppet_function('get_network_role_property', 'cinder/api', 'ipaddr')
