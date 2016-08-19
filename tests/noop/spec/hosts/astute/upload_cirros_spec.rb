@@ -7,7 +7,8 @@ manifest = 'astute/upload_cirros.pp'
 describe manifest do
   shared_examples 'catalog' do
 
-    let(:test_vm_image) { Noop.hiera_hash('test_vm_image') }
+    let(:test_vm_images) { Noop.puppet_function 'flatten', [ Noop.hiera('test_vm_image') ] }
+    let(:glance_images) { Noop.puppet_function 'generate_glance_images', test_vm_images }
     it 'should contain upload_cirros class' do
       should contain_class('osnailyfacter::astute::upload_cirros')
     end
@@ -17,19 +18,23 @@ describe manifest do
     end
 
     it 'should use glance_image provider' do
-      should contain_glance_image(test_vm_image['img_name']).with(
-        :ensure => 'present',
-        :container_format => test_vm_image['container_format'],
-        :disk_format => test_vm_image['disk_format'],
-        :is_public => test_vm_image['public'],
-        :min_ram => test_vm_image['min_ram'],
-        :source => test_vm_image['img_path']
-      )
+      glance_images.each do |name,test_vm_image|
+        should contain_glance_image(name).with(
+          :ensure => 'present',
+          :container_format => test_vm_image['container_format'],
+          :disk_format => test_vm_image['disk_format'],
+          :is_public => test_vm_image['is_public'],
+          :min_ram => test_vm_image['min_ram'],
+          :source => test_vm_image['source']
+        )
+      end
     end
 
     it 'should have explicit ordering between LB classes and images' do
-      expect(graph).to ensure_transitive_dependency("Haproxy_backend_status[glance-api]", "Glance_image[#{test_vm_image['img_name']}]")
-      expect(graph).to ensure_transitive_dependency("Haproxy_backend_status[glance-registry]", "Glance_image[#{test_vm_image['img_name']}]")
+      glance_images.each do |name,test_vm_image|
+        expect(graph).to ensure_transitive_dependency("Haproxy_backend_status[glance-api]", "Glance_image[#{name}]")
+        expect(graph).to ensure_transitive_dependency("Haproxy_backend_status[glance-registry]", "Glance_image[#{name}]")
+      end
     end
   end
 
