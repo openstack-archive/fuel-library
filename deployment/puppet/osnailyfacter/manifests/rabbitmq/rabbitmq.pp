@@ -170,8 +170,18 @@ class osnailyfacter::rabbitmq::rabbitmq {
         Service_status['rabbitmq'] -> Staging::File['rabbitmqadmin']
       }
 
+      include ::rabbitmq::params
+      $service_name = $::rabbitmq::params::service_name
+      $package_name = $::rabbitmq::params::package_name
+
       # Make sure the various providers have their requirements in place.
-      Class['::rabbitmq::install'] -> Rabbitmq_plugin<| |> -> Rabbitmq_exchange<| |>
+      Class['::rabbitmq::install'] ->
+      Rabbitmq_plugin <| |> ->
+      Rabbitmq_exchange <| |>
+
+      Service <| title == $service_name or name == $service_name |> ->
+      Rabbitmq_plugin <| |> ->
+      Rabbitmq_exchange <| |>
 
       rabbitmq_user { $rabbit_hash['user']:
         admin    => true,
@@ -224,10 +234,9 @@ class osnailyfacter::rabbitmq::rabbitmq {
         }
       }
 
-      include ::rabbitmq::params
       tweaks::ubuntu_service_override { 'rabbitmq-server':
-        package_name => $rabbitmq::params::package_name,
-        service_name => $rabbitmq::params::service_name,
+        package_name => $package_name,
+        service_name => $service_name,
       }
     }
 
