@@ -1,4 +1,4 @@
-require_relative '../../../puppetx/l23_network_scheme'
+require_relative '../../../puppetx/loader/l23network'
 
 Puppet::Parser::Functions::newfunction(:get_transformation_property, :type => :rvalue, :doc => <<-EOS
     This function gets an properties from transformations

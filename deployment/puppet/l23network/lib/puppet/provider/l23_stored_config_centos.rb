@@ -1,4 +1,3 @@
-require_relative '../../puppetx/l23_ethtool_name_commands_mapping'
 require_relative 'l23_stored_config_base'
 
 class Puppet::Provider::L23_stored_config_centos < Puppet::Provider::L23_stored_config_base

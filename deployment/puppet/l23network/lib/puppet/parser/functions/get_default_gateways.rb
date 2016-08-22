@@ -1,6 +1,6 @@
 require 'ipaddr'
 require_relative 'lib/prepare_cidr'
-require_relative '../../../puppetx/l23_network_scheme'
+require_relative '../../../puppetx/loader/l23network'
 
 Puppet::Parser::Functions::newfunction(:get_default_gateways, :type => :rvalue, :doc => <<-EOS
     Parse network_scheme and return list of default gateways,
