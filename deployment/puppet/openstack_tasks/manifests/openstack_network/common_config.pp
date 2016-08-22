@@ -56,22 +56,28 @@ class openstack_tasks::openstack_network::common_config {
     $nets = $neutron_config['predefined_networks']
 
     if $segmentation_type == 'vlan' {
-      $net_role_property    = 'neutron/private'
+      $net_role_property = 'neutron/private'
     } else {
       $net_role_property = 'neutron/mesh'
     }
-    $iface           = get_network_role_property($net_role_property, 'phys_dev')
-    $physical_net_mtu = pick(get_transformation_property('mtu', $iface[0]), '1500')
 
-    $default_log_levels  = hiera_hash('default_log_levels')
+    $iface = get_network_role_property($net_role_property, 'phys_dev')
+
+    if $iface {
+      $physical_net_mtu = pick(get_transformation_property('mtu', $iface[0]), '1500')
+    } else {
+      $physical_net_mtu = '1500'
+    }
+
+    $default_log_levels = hiera_hash('default_log_levels')
 
     # manually add line to neutron_sudoers in case of UCA packages
     # because UCA doesn't have such line
     if $::os_package_type != 'debian' {
       file_line { 'root_helper_daemon':
-        line    => 'neutron ALL = (root) NOPASSWD: /usr/bin/neutron-rootwrap-daemon /etc/neutron/rootwrap.conf',
-        path    => '/etc/sudoers.d/neutron_sudoers',
-        match   => '^neutron ALL = (root) NOPASSWD: /usr/bin/neutron-rootwrap-daemon',
+        line  => 'neutron ALL = (root) NOPASSWD: /usr/bin/neutron-rootwrap-daemon /etc/neutron/rootwrap.conf',
+        path  => '/etc/sudoers.d/neutron_sudoers',
+        match => '^neutron ALL = (root) NOPASSWD: /usr/bin/neutron-rootwrap-daemon',
       }
       Package['neutron'] -> File_line[ 'root_helper_daemon'] -> Neutron_config<||>
     }
