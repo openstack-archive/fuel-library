@@ -101,8 +101,12 @@ namespace :common do
 
     $module_directories = []
 
-    $git_module_directories = %x[git diff --name-only HEAD~ 2>/dev/null |\
-      grep -o 'deployment/puppet/[^/]*/' | sort -u].split.select {|mod| File.directory? mod}
+    if ENV['SPEC_NO_GIT_MODULES']
+      $git_module_directories = []
+    else
+      $git_module_directories = %x[git diff --name-only HEAD~ 2>/dev/null |\
+        grep -o 'deployment/puppet/[^/]*/' | sort -u].split.select {|mod| File.directory? mod}
+    end
 
     if $git_module_directories.empty?
       Rake::Task["common:modules"].invoke(args[:skip_file])
@@ -188,6 +192,7 @@ namespace :spec do
     ENV['GEM_HOME']="#{library_dir}/.bundled_gems"
 
     status = true
+    report = {}
     $module_directories.each do |mod|
       next unless File.exists?("#{mod}/Gemfile")
       $stderr.puts '-'*80
@@ -198,9 +203,12 @@ namespace :spec do
         result = system("bundle exec rake spec")
         if !result
           status = false
+          report[mod] = false
           $stderr.puts "!"*80
           $stderr.puts "Unit tests failed for #{mod}"
           $stderr.puts "!"*80
+        else
+          report[mod] = true
         end
         rescue Exception => e
           $stderr.puts "ERROR: Unable to run tests for #{mod}, #{e.message}"
@@ -208,6 +216,12 @@ namespace :spec do
         end
         Dir.chdir(library_dir)
     end
+    $stdout.puts '=' * 80
+    max_module_length = report.keys.max_by { |key| key.length }.length
+    report.each do |mod, success|
+      $stdout.puts "#{mod.ljust(max_module_length)} - #{success.to_s.upcase}"
+    end
+    $stdout.puts '=' * 80
     fail unless status
   end
 end
@@ -353,4 +367,103 @@ namespace :syntax do
     end
     fail unless status
   end
+end
+
+def noop(options = {})
+  require_relative 'tests/noop/fuel-noop-fixtures/noop_tests'
+
+  ENV['SPEC_ROOT_DIR'] = 'tests/noop/fuel-noop-fixtures'
+  ENV['SPEC_DEPLOYMENT_DIR'] = 'deployment'
+  ENV['SPEC_HIERA_DIR'] = 'tests/noop/fuel-noop-fixtures/hiera'
+  ENV['SPEC_FACTS_DIR'] = 'tests/noop/fuel-noop-fixtures/facts'
+  ENV['SPEC_REPORTS_DIR'] = 'tests/noop/fuel-noop-fixtures/reports'
+  ENV['SPEC_SPEC_DIR'] = 'tests/noop/spec/hosts'
+  ENV['SPEC_TASK_DIR'] = 'deployment/puppet/osnailyfacter/modular'
+  ENV['SPEC_MODULE_PATH'] = 'deployment/puppet'
+
+  ARGV.shift
+  ARGV.shift if ARGV.first == '--'
+
+  ENV['SPEC_TASK_DEBUG'] = 'yes'
+
+  manager = Noop::Manager.new
+  manager.main options
+end
+
+# options can be passed like this:
+# rake noop:run:all -- -s apache/apache -y neut_tun.ceph.murano.sahara.ceil-controller
+
+desc 'Prepare the Noop environment and run all tests'
+task :noop => %w(noop:setup noop:run:bg noop:show:failed)
+
+namespace :noop do
+
+  desc 'Prepare the Noop tests environment'
+  task :setup do
+    system 'tests/noop/setup_and_diagnostics.sh'
+  end
+
+  desc 'Run Noop tests self-check'
+  task :test do
+    noop(self_check: true)
+  end
+
+  task :run => %w(noop:run:bg)
+
+  namespace :run do
+    desc 'Run all Noop test'
+    task :bg do
+      noop(parallel_run: 'auto', debug: true)
+    end
+
+    desc 'Run all Noop tests in the foreground'
+    task :fg do
+      noop(parallel_run: 0, debug: true)
+    end
+
+    desc 'Run only failed tasks'
+    task :failed do
+      noop(run_failed_tasks: true, debug: true)
+    end
+  end
+
+  task :show => %w(noop:show:all)
+
+  namespace :show do
+    desc 'Show all task manifests'
+    task :tasks do
+      noop(list_tasks: true)
+    end
+
+    desc 'Show all Hiera files'
+    task :hiera do
+      noop(list_hiera: true)
+    end
+
+    desc 'Show all facts files'
+    task :facts do
+      noop(list_facts: true)
+    end
+
+    desc 'Show all spec files'
+    task :specs do
+      noop(list_specs: true)
+    end
+
+    desc 'Show the tasks list'
+    task :all do
+      noop(pretend: true)
+    end
+
+    desc 'Show previous reports'
+    task :reports do
+      noop(load_saved_reports: true)
+    end
+
+    desc 'Show failed tasks'
+    task :failed do
+      noop(load_saved_reports: true, report_only_failed: true, report_only_tasks: true)
+    end
+  end
+
 end
