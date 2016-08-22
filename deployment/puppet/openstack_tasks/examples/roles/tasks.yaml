@@ -155,7 +155,7 @@
       $.get('kombu_compression'))
   cross-depends:
     - name: ironic
-    - name: /^(primary-)?database$/
+    - name: ironic-db
     - name: /^(primary-)?rabbitmq$/
   parameters:
     puppet_manifest: /etc/puppet/modules/openstack_tasks/examples/roles/ironic-conductor.pp
