@@ -1,6 +1,4 @@
 require 'ipaddr'
-# require 'yaml'
-# require 'puppetx/l23_utils'
 require_relative '../l3_base'
 
 Puppet::Type.type(:l3_route).provide(:lnx, :parent => Puppet::Provider::L3_base) do

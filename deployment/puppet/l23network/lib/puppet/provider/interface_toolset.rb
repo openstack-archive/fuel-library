@@ -1,5 +1,6 @@
+require_relative '../../puppetx/loader/l23network'
 require 'yaml'
-require_relative '../../puppetx/l23_utils'
+require 'json'
 
 class Puppet::Provider::InterfaceToolset < Puppet::Provider
 

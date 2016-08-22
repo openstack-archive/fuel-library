@@ -1,4 +1,4 @@
-require_relative '../../../puppetx/l23_utils'
+require_relative '../../../puppetx/loader/l23network'
 
 module Puppet::Parser::Functions
   newfunction(:get_pair_of_jack_names, :type => :rvalue) do |arguments|
