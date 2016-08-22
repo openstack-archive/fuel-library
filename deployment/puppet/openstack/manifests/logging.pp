@@ -403,7 +403,9 @@ class openstack::logging (
     }
   }
 
-  Rsyslog::Snippet <| |> -> Service[$::rsyslog::params::service_name]
+  include ::rsyslog::params
+  $rsyslog_service_name = $::rsyslog::params::service_name
+  Rsyslog::Snippet <| |> -> Service[$rsyslog_service_name]
 
   # Configure log rotation
   class { '::openstack::logrotate':
