@@ -5,8 +5,7 @@ require 'puppet/parser'
 require 'puppet/parser/templatewrapper'
 require 'puppet/resource/type_collection'
 require 'puppet/util/methodhelper'
-require_relative '../../../puppetx/l23_utils'
-require_relative '../../../puppetx/l23_network_scheme'
+require_relative '../../../puppetx/loader/l23network'
 
 module L23network
   def self.default_offload_set
