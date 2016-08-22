@@ -1,0 +1,15 @@
+# NETWORK VERIFICATION GRAPH METADATA
+#
+on_error:
+  node_attributes:
+    status: error
+    error_type: verification
+on_success:
+  node_attributes:
+    status: verified
+    pending_deletion: true
+on_stop:
+  node_attributes:
+    status: stopped
+node_filter: |
+  $.pending_addition
