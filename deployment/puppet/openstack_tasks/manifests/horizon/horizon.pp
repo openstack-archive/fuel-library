@@ -36,12 +36,12 @@ class openstack_tasks::horizon::horizon {
   # of the MOS package set. This should be contributed upstream and then we can
   # use this as the default.
   #if !$::os_package_type or $::os_package_type == 'debian' {
-  #  $cache_backend = dig($horizon_hash, ['cache_backend'], 'horizon.backends.memcached.HorizonMemcached')
+  #  $cache_backend = fetch_value($horizon_hash, ['cache_backend'], 'horizon.backends.memcached.HorizonMemcached')
   #} else {
-  #  $cache_backend = dig($horizon_hash, ['cache_backend'], 'django.core.cache.backends.memcached.MemcachedCache')
+  #  $cache_backend = fetch_value($horizon_hash, ['cache_backend'], 'django.core.cache.backends.memcached.MemcachedCache')
   #}
   # Don't use custom backend until its code lands to MOS 9.0.
-  $cache_backend = dig($horizon_hash, ['cache_backend'], 'django.core.cache.backends.memcached.MemcachedCache')
+  $cache_backend = fetch_value($horizon_hash, ['cache_backend'], 'django.core.cache.backends.memcached.MemcachedCache')
 
   #Changing from internal addressing to public should resolve any security concerns about exposing 'internal' to public facing login.
   #However, this should eventually be removed altogether from Horizon.
@@ -131,7 +131,7 @@ class openstack_tasks::horizon::horizon {
   }
 
   # Performance optimization for wsgi
-  if ($::memorysize_mb < 1200 or $::processorcount <= 3) {
+  if ( ($::memorysize_mb + 0) < 1200 or ($::processorcount + 0) <= 3) {
     $wsgi_processes = 2
     $wsgi_threads = 9
   } else {
@@ -146,6 +146,8 @@ class openstack_tasks::horizon::horizon {
 
   # 10G by default
   $file_upload_max_size = pick($horizon_hash['upload_max_size'], 10737418235)
+
+  include ::apache::params
 
   class { '::horizon::wsgi::apache':
     priority       => false,

@@ -226,7 +226,7 @@ class openstack_tasks::roles::compute {
       path    => '/etc/libvirt/qemu.conf',
       line    => $libvirt_hugetlbfs_mount,
       match   => '^hugetlbfs_mount =.*$',
-      require => Package[$::nova::params::libvirt_package_name],
+      require => Package['libvirt'],
       notify  => Service['libvirt'],
     }
     file_line { 'libvirt_1g_hugepages_apparmor':
@@ -234,7 +234,7 @@ class openstack_tasks::roles::compute {
       path    => '/etc/apparmor.d/abstractions/libvirt-qemu',
       after   => 'owner "/run/hugepages/kvm/libvirt/qemu/',
       line    => '  owner "/mnt/hugepages_1GB/libvirt/qemu/**" rw,',
-      require => Package[$::nova::params::libvirt_package_name],
+      require => Package['libvirt'],
       notify  => Exec['refresh_apparmor'],
     }
     file_line { '1g_hugepages_fstab':
@@ -325,6 +325,10 @@ class openstack_tasks::roles::compute {
   #   service #LP1398817. The orchestration will start and enable it back
   #   after the deployment is done.
   # NOTE(bogdando) This maybe be changed, if the host aggregates implemented, bp disable-new-computes
+
+  $passthrough_whitelist = get_nic_passthrough_whitelist('sriov')
+  $pci_passthrough = nic_whitelist_to_json($passthrough_whitelist)
+
   class { '::nova::compute':
     enabled                       => false,
     vncserver_proxyclient_address => get_network_role_property('nova/api', 'ipaddr'),
@@ -332,7 +336,7 @@ class openstack_tasks::roles::compute {
     vncproxy_host                 => $vncproxy_host,
     vncproxy_port                 => $nova_hash_real['vncproxy_port'],
     force_config_drive            => $force_config_drive,
-    pci_passthrough               => nic_whitelist_to_json(get_nic_passthrough_whitelist('sriov')),
+    pci_passthrough               => $pci_passthrough,
     network_device_mtu            => $network_device_mtu,
     instance_usage_audit          => $instance_usage_audit,
     instance_usage_audit_period   => $instance_usage_audit_period,
@@ -451,7 +455,7 @@ class openstack_tasks::roles::compute {
       file_line { 'qemu_selinux':
         path    => '/etc/libvirt/qemu.conf',
         line    => 'security_driver = "selinux"',
-        require => Package[$::nova::params::libvirt_package_name],
+        require => Package['libvirt'],
         notify  => Service['libvirt']
       }
     }
@@ -459,7 +463,7 @@ class openstack_tasks::roles::compute {
       file_line { 'qemu_apparmor':
         path    => '/etc/libvirt/qemu.conf',
         line    => 'security_driver = "apparmor"',
-        require => Package[$::nova::params::libvirt_package_name],
+        require => Package['libvirt'],
         notify  => Service['libvirt']
       }
 
