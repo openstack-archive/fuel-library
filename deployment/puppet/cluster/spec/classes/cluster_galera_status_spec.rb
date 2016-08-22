@@ -6,33 +6,17 @@ describe 'cluster::galera_status' do
 
   end
 
-    context 'on Debian platforms' do
-      let :facts do
-        { :osfamily => 'Debian',
-          :operatingsystem => 'Debian',
-          :hostname => 'hostname.example.com',
-          :physicalprocessorcount => 2,
-          :memorysize_mb => 1024,
-          :openstack_version => {'nova' => 'present' },
-        }
+  on_supported_os(supported_os: supported_os).each do |os, facts|
+    context "on #{os}" do
+      let(:facts) do
+        facts.merge(common_facts).merge(
+            {
+                :openstack_version => {'nova' => 'present'}
+            }
+        )
       end
-
       it_configures 'galera_status configuration'
     end
+  end
 
-    context 'on RedHat platforms' do
-      let :facts do
-        { :osfamily => 'RedHat',
-          :operatingsystem => 'RedHat',
-          :operatingsystemrelease => '7.1',
-          :operatingsystemmajrelease => '7',
-          :hostname => 'hostname.example.com',
-          :physicalprocessorcount => 2,
-          :memorysize_mb => 1024,
-          :openstack_version => {'nova' => 'present' },
-        }
-      end
-
-      it_configures 'galera_status configuration'
-    end
 end
