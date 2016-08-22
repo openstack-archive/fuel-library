@@ -1,4 +1,4 @@
-require_relative '../../../puppetx/l23_hash_tools'
+require_relative '../../../puppetx/loader/l23network'
 
 module Puppet::Parser::Functions
   newfunction(:sanitize_bool_in_hash, :type => :rvalue, :doc => <<-EOS
