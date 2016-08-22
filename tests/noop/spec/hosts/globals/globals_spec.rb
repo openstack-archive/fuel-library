@@ -10,6 +10,9 @@
 # ROLE: cinder-block-device
 # ROLE: cinder
 # ROLE: ceph-osd
+
+# FACTS: ubuntu14 ubuntu16
+
 require 'spec_helper'
 require 'shared-examples'
 
