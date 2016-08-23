@@ -1,15 +1,14 @@
 #!/usr/bin/env python
 
+from __future__ import print_function
+
 usage = """Help: this daemon fences dead rabbitmq nodes"""
 
 import daemon
-try:
-    import daemon.pidfile as daemon_pidfile
-except ImportError:
-    import daemon.pidlockfile as daemon_pidfile
 import dbus
 import dbus.decorators
 import dbus.mainloop.glib
+import fcntl
 import gobject
 import logging
 import logging.handlers
@@ -112,7 +111,26 @@ def sigterm_handler(_signo, _stack_frame):
     sys.exit(0)
 
 
+def acquire_lock(lock_file, logger=None):
+    global lock_file_obj
+    lock_file_obj = open(lock_file, "w")
+    try:
+        fcntl.lockf(lock_file_obj, fcntl.LOCK_EX | fcntl.LOCK_NB)
+        return True
+    except IOError:
+        msg = "Another copy of fuel-rabbit-fence is running!"
+        if logger:
+            my_logger.exception(msg)
+        else:
+            print(msg, file=sys.stderr)
+        return False
+
+
 def main():
+    lock_file = '/var/run/rabbitmq/rabbit-fence.lock'
+    if not acquire_lock(lock_file, logger=my_logger):
+        sys.exit(1)
+
     my_logger.info('Starting rabbit fence script main loop')
     dbus.mainloop.glib.DBusGMainLoop(set_as_default=True)
 
@@ -154,13 +172,9 @@ if __name__ == '__main__':
     env['HOME'] = HOME
     env['LOGNAME'] = LOGNAME
 
-    pidfilename = '/var/run/rabbitmq/rabbit-fence.pid'
-    pidfile = daemon_pidfile.TimeoutPIDLockFile(pidfilename, 10)
     try:
         with daemon.DaemonContext(files_preserve=[lh.socket.fileno()],
-                                  pidfile=pidfile, uid=uid,
-                                  gid=gid, umask=0o022):
-
+                                  uid=uid, gid=gid, umask=0o022):
             main()
     except Exception:
         my_logger.exception("A generic exception caught!")
