@@ -1,7 +1,7 @@
 source 'https://rubygems.org'
 
 group :development, :test do
-  gem 'puppetlabs_spec_helper'
+  gem 'puppetlabs_spec_helper', '1.1.1'
   gem 'puppet-lint', '~> 0.3.2'
   gem 'rspec-puppet', '~> 2.2.0'
   gem 'rspec-puppet-utils', '~> 2.0.0'
