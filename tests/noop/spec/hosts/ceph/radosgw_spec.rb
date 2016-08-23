@@ -30,6 +30,7 @@ describe manifest do
     if storage_hash['objects_ceph']
       rgw_large_pool_name = '.rgw'
       rgw_large_pool_pg_nums = storage_hash['per_pool_pg_nums'][rgw_large_pool_name]
+      auth_s3_keystone_ceph  = storage_hash['auth_s3_keystone_ceph']
       rgw_id = 'radosgw.gateway'
       radosgw_auth_key = "client.#{rgw_id}"
 
@@ -48,6 +49,7 @@ describe manifest do
       it { should contain_class('ceph::radosgw').with(
            'rgw_frontends'    => 'fastcgi socket_port=9000 socket_host=127.0.0.1',
            'rgw_keystone_url' => admin_url,
+           'rgw_s3_auth_use_keystone' => auth_s3_keystone_ceph,
            )
         }
 
