@@ -36,7 +36,7 @@
       )
   condition:
     yaql_exp: &network >
-      changedAny($.network_scheme, $.dpdk, $.get('use_ovs'),
+      changedAny($.network_scheme, $.get('dpdk'), $.get('use_ovs'),
       $.get('set_rps'), $.get('run_ping_checker'),
       $.network_scheme.endpoints.values().where(
         $.get('gateway') != null).gateway,
