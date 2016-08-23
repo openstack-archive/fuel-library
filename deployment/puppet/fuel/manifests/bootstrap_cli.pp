@@ -52,11 +52,12 @@ class fuel::bootstrap_cli(
 
   ensure_packages([$bootstrap_cli_package])
 
-  merge_yaml_settings { $config_path:
-    sample_settings   => $config_path,
-    override_settings => $custom_settings,
-    ensure            => present,
-    require           => Package[$bootstrap_cli_package],
+  merge_yaml_settings { $config_path :
+    ensure        => 'present',
+    path          => $config_path,
+    original_data => $config_path,
+    override_data => $custom_settings,
+    require       => Package[$bootstrap_cli_package],
   }
 
   if $config_wgetrc {
