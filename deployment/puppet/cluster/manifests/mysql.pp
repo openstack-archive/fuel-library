@@ -125,8 +125,16 @@ class cluster::mysql (
     onlyif  => 'test -f /tmp/wsrep-init-file',
   }
 
+  file { 'fix-log-dir':
+    ensure  => directory,
+    path    => '/var/log/mysql',
+    mode    => '0770',
+    require => Package['mysql-server'],
+  }
+
   Exec['create-init-file'] ->
-    Service<| title == $service_name |> ~>
-      Exec['wait-for-sync'] ->
-        Exec['rm-init-file']
+    File['fix-log-dir'] ->
+      Service<| title == $service_name |> ~>
+        Exec['wait-for-sync'] ->
+          Exec['rm-init-file']
 }
