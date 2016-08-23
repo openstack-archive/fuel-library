@@ -277,6 +277,15 @@ describe manifest do
       )
     end
 
+    it 'should have correct permissions for logging directory' do
+      should contain_file('fix-log-dir').with(
+        :ensure => 'directory',
+        :path   => '/var/log/mysql',
+        :mode   => '0770',
+      ).that_requires('Package[mysql-server]')
+      should contain_file('fix-log-dir').that_comes_before('Service[mysqld]')
+    end
+
     it 'should configure galera grants service and proper flow' do
       if primary_controller
         should contain_class('cluster::galera_grants').with(
