@@ -33,12 +33,21 @@ describe 'cluster::mysql' do
         should contain_exec('create-init-file').with_command(
           /'username'@'localhost' IDENTIFIED BY 'password'/
         )
-        should contain_exec('create-init-file').that_comes_before('Service[mysqld]')
+        should contain_exec('create-init-file').that_comes_before('File[fix-log-dir]')
         should contain_exec('create-init-file').that_notifies('Exec[wait-for-sync]')
       end
 
       it 'creates exec to remove init-file' do
         should contain_exec('rm-init-file')
+      end
+
+      it 'should have correct permissions for logging directory' do
+        should contain_file('fix-log-dir').with(
+          :ensure => 'directory',
+          :path   => '/var/log/mysql',
+          :mode   => '0770',
+        ).that_requires('Package[mysql-server]')
+        should contain_file('fix-log-dir').that_comes_before('Service[mysqld]')
       end
 
       it 'creates exec to wait initial database sync' do
