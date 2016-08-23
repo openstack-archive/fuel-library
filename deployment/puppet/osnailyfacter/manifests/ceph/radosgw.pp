@@ -60,7 +60,7 @@ class osnailyfacter::ceph::radosgw {
       rgw_keystone_token_cache_size    => '10',
       rgw_keystone_accepted_roles      => '_member_, Member, admin, swiftoperator',
       rgw_keystone_revocation_interval => '1000000',
-      rgw_s3_auth_use_keystone         => false,
+      rgw_s3_auth_use_keystone         => pick($storage_hash['auth_s3_keystone_ceph'], false)
       rgw_nss_db_path                  => '/etc/ceph/nss',
       rgw_large_pool_name              => $radosgw_large_pool_name,
       rgw_large_pool_pg_nums           => pick($storage_hash['per_pool_pg_nums'][$radosgw_large_pool_name], '512'),
