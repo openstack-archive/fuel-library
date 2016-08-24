@@ -70,7 +70,7 @@ describe manifest do
         %r{\n\s*vmware_image_transfer_timeout_secs=7200\n}
       )
       should contain_file('/etc/cinder/cinder.d/vmware-vcenter.conf').with_content(
-        %r{\n\s*vmware_insecure = True\n}
+        %r{\n\s*vmware_insecure=true\n}
       )
       should contain_file('/etc/cinder/cinder.d/vmware-vcenter.conf').with_content(
         %r{\n\s*vmware_max_objects_retrieval=100\n}

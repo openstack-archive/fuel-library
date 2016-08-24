@@ -8,3 +8,5 @@ fixtures:
     vmware: "#{source_dir}"
     oslo: "#{source_dir}/../oslo"
     cinder: "#{source_dir}/../cinder"
+    openstacklib: "#{source_dir}/../openstacklib"
+    tweaks: "#{source_dir}/../tweaks"
