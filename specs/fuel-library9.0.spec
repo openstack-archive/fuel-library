@@ -70,7 +70,6 @@ install -m 0755 %{fuel_utils_source}/dockerctl %{buildroot}/usr/bin
 install -m 0755 %{fuel_utils_source}/flat_yaml.py %{buildroot}/usr/bin
 install -m 0644 %{fuel_utils_source}/config %{buildroot}/etc/fuel-utils/config
 install -m 0644 %{fuel_utils_source}/functions.sh %{buildroot}/usr/share/fuel-utils/functions.sh
-install -m 0755 %{fuel_utils_source}/updates/update-master-node.sh %{buildroot}/usr/share/fuel-utils/update-master-node.sh
 #fuel-misc
 install -m 0755 %{files_source}/fuel-misc/centos_ifdown-local %{buildroot}/sbin/ifup-local
 install -m 0755 %{files_source}/fuel-misc/logrotate %{buildroot}/usr/bin/fuel-logrotate
@@ -175,7 +174,6 @@ This package contains a set of helpers to maintain Fuel services
 /usr/bin/fuel-utils
 /usr/bin/flat_yaml.py
 /usr/share/fuel-utils/functions.sh
-/usr/share/fuel-utils/update-master-node.sh
 
 %config(noreplace) /etc/fuel-utils/config
 
