@@ -86,6 +86,10 @@ sysctl::value{'net.ipv4.neigh.default.gc_thresh1': value => '256'}
 sysctl::value{'net.ipv4.neigh.default.gc_thresh2': value => '1024'}
 sysctl::value{'net.ipv4.neigh.default.gc_thresh3': value => '2048'}
 
+#Disable IPv6
+sysctl::value{'net.ipv6.conf.all.disable_ipv6': value => '1'}
+sysctl::value{'net.ipv6.conf.default.disable_ipv6': value => '1'}
+
 class { '::openstack::reserved_ports':
   ports => '35357,41055,61613',
 }
