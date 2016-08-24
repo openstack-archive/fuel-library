@@ -32,8 +32,7 @@ class fuel::keystone (
 
   ) inherits fuel::params {
 
-  ensure_packages(['crontabs', 'os-client-config', 'python-tablib',
-                  'python-unicodecsv', 'rubygem-thread_safe'])
+  ensure_packages(['crontabs', 'rubygem-thread_safe'])
 
   file { ['/etc/httpd/', '/etc/httpd/conf.ports.d/']: ensure  => directory }
   ->
