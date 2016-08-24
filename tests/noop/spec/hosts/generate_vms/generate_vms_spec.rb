@@ -17,7 +17,7 @@ describe manifest do
 
       vms.each do | vm |
         it "should define osnailyfacter::generate_vms::vm_config #{vm}" do
-          should contain_osnailyfacter__generate_vms__vm_config(vm).with(
+          should contain_osnailyfacter__generate_vms__vm_config(vm['id']).with(
             'template_dir' => template_dir,
             'before'       => 'Exec[generate_vms]',
             'require'      => "File[#{template_dir}]",

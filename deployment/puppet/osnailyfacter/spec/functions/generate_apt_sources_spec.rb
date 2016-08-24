@@ -1,11 +1,6 @@
 require 'spec_helper'
 
 describe 'generate_apt_sources' do
-  let(:scope) { PuppetlabsSpec::PuppetInternals.scope }
-
-  let(:subject) {
-    Puppet::Parser::Functions.function(:generate_apt_sources)
-  }
 
   let(:input) {
     [
@@ -54,18 +49,18 @@ describe 'generate_apt_sources' do
   }
 
   it 'should exist' do
-    expect(subject).to eq 'function_generate_apt_sources'
+    is_expected.not_to be_nil
   end
 
   it 'should expect 1 argument' do
-    expect { scope.function_generate_apt_sources([]) }.to raise_error(ArgumentError)
+    is_expected.to run.with_params().and_raise_error(ArgumentError)
   end
 
   it 'should expect array as given argument' do
-    expect { scope.function_generate_apt_sources(['foobar']) }.to raise_error(Puppet::ParseError)
+    is_expected.to run.with_params('foobar').and_raise_error(Puppet::ParseError)
   end
 
   it 'should return apt::source compatible hash' do
-    expect(scope.function_generate_apt_sources([input])).to eq(output)
+    is_expected.to run.with_params(input).and_return(output)
   end
 end
