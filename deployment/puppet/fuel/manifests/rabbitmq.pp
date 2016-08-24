@@ -180,18 +180,8 @@ class fuel::rabbitmq (
     tries       => 30,
     try_sleep   => 6,
   }
-  # TODO(bogdando) contribute this to puppetlabs-rabbitmq
-  # Start epmd as rabbitmq so it doesn't run as root when installing plugins
-  exec { 'epmd_daemon':
-    command => 'epmd -daemon',
-    path    => '/bin:/sbin:/usr/bin:/usr/sbin',
-    user    => 'rabbitmq',
-    group   => 'rabbitmq',
-    unless  => 'pgrep epmd',
-  }
   # Make sure the various providers have their requirements in place.
-  Class['::rabbitmq::install'] -> Exec['epmd_daemon']
-  -> Rabbitmq_plugin<| |> -> Rabbitmq_exchange<| |>
+  Class['::rabbitmq::install'] -> Rabbitmq_plugin<| |> -> Rabbitmq_exchange<| |>
 
   Anchor['rabbitmq-begin'] ->
   Class['::rabbitmq'] ->

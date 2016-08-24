@@ -200,10 +200,6 @@ describe manifest do
       should contain_class('rabbitmq').with_config_variables(/#{disk_free_limit}/)
     end
 
-    it "should start epmd before rabbitmq plugins" do
-      should contain_exec('epmd_daemon').that_comes_before('Rabbitmq_plugin[rabbitmq_management]')
-    end
-
     it "should override service on package install" do
       should contain_tweaks__ubuntu_service_override('rabbitmq-server')
     end
