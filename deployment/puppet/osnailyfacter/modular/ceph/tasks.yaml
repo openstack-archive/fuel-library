@@ -64,14 +64,15 @@
   requires: [apache, ceph-mon, primary-ceph-mon]
   condition:
     yaql_exp: &ceph_radosgw >
-      changedAny($.storage, $.keystone, $.network_metadata.vips,
+      ($.storage.objects_ceph and
+      (changedAny($.storage, $.keystone, $.network_metadata.vips,
       $.get('external_lb'),
       $.network_metadata.nodes.values().where(
         ('controller' in $.node_roles) or
         ('primary-controller' in $.node_roles)),
       $.get('use_ssl'), ('primary-controller' in $.roles), $.network_scheme,
       $.get('apache_ports'), $.get('use_syslog'),
-      $.get('syslog_log_facility_ceph'), $.get('syslog_log_level_ceph'))
+      $.get('syslog_log_facility_ceph'), $.get('syslog_log_level_ceph'))))
   parameters:
     puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/ceph/radosgw.pp
     puppet_modules: /etc/puppet/modules
@@ -108,8 +109,9 @@
   requires: [primary-keystone, keystone]
   condition:
     yaql_exp: >
-      changedAny($.storage, $.network_metadata.vips,
-      $.get('region', 'RegionOne'), $.public_ssl, $.get('use_ssl'))
+      ($.storage.objects_ceph and
+      (changedAny($.storage, $.network_metadata.vips,
+      $.get('region', 'RegionOne'), $.public_ssl, $.get('use_ssl'))))
   cross-depends:
     - name: /(primary-)?keystone/
       role: self
