@@ -69,7 +69,7 @@ class openstack_tasks::openstack_network::common_config {
 
   # manually add line to neutron_sudoers in case of UCA packages
   # because UCA doesn't have such line
-  if $::os_package_type != 'debian' {
+  if $::os_package_type == 'ubuntu' {
     file_line { 'root_helper_daemon':
       line  => 'neutron ALL = (root) NOPASSWD: /usr/bin/neutron-rootwrap-daemon /etc/neutron/rootwrap.conf',
       path  => '/etc/sudoers.d/neutron_sudoers',
