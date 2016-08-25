@@ -112,7 +112,6 @@ class fuel::nailgun::server (
 
   exec {"nailgun_syncdb":
     command     => "/usr/bin/nailgun_syncdb",
-    refreshonly => true,
     subscribe   => File["/etc/nailgun/settings.yaml"],
     tries       => 50,
     try_sleep   => 5,
