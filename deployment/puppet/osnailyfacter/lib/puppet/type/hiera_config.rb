@@ -15,6 +15,10 @@ Puppet::Type.newtype(:hiera_config) do
     defaultto 'plugins'
   end
 
+  newparam(:override_suffix) do
+    desc 'Add suffix to all override files'
+  end
+
   newparam(:metadata_yaml_file) do
     desc 'Look inside this YAML file for the list of enabled plugins.
           If this value is not defined or no file is present the list
