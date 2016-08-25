@@ -83,6 +83,9 @@ describe manifest do
       should contain_heat_config('oslo_messaging_rabbit/heartbeat_rate').with_value(rabbit_heartbeat_rate)
     end
 
+    kombu_compression = Noop.hiera 'kombu_compression', ''
+    ceilometer_hash = Noop.hiera 'ceilometer', { 'enabled' => false }
+
     it 'should install heat-docker package only after heat-engine' do
       if !facts.has_key?(:os_package_type) or facts[:os_package_type] != 'ubuntu'
         if facts[:osfamily] == 'RedHat'
@@ -223,6 +226,14 @@ describe manifest do
     it 'should configure kombu compression' do
       kombu_compression = Noop.hiera 'kombu_compression', facts[:os_service_default]
       should contain_heat_config('oslo_messaging_rabbit/kombu_compression').with(:value => kombu_compression)
+    end
+
+    it 'should configure notification driver' do
+      if ceilometer_hash['enabled']
+        should contain_heat_config('DEFAULT/notification_driver').with(:value => 'heat.openstack.common.notifier.rpc_notifier')
+      else
+        should contain_heat_config('DEFAULT/notification_driver').with(:value => '<SERVICE DEFAULT>')
+      end
     end
 
   end # end of shared_examples
