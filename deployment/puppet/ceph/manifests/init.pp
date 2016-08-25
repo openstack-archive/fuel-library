@@ -57,6 +57,8 @@ class ceph (
   $rgw_large_pool_name                = '.rgw',
   $rgw_large_pool_pg_nums             = '512',
 
+  $rgw_init_timeout                   = '360000',
+
 # Cinder settings
   $volume_driver                      = 'cinder.volume.drivers.rbd.RBDDriver',
   $glance_api_version                 = '2',

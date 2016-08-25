@@ -32,6 +32,8 @@ class ceph::radosgw (
   $rgw_large_pool_name              = $::ceph::rgw_large_pool_name,
   $rgw_large_pool_pg_nums           = $::ceph::rgw_large_pool_pg_nums,
 
+  $rgw_init_timeout                 = $::ceph::rgw_init_timeout,
+
   #rgw Log settings
   $use_syslog                       = $::ceph::use_syslog,
   $syslog_facility                  = $::ceph::syslog_log_facility,
@@ -89,6 +91,7 @@ class ceph::radosgw (
     "client.${rgw_id}/rgw_data":           value => $rgw_data;
     "client.${rgw_id}/rgw_dns_name":       value => $rgw_dns_name;
     "client.${rgw_id}/rgw_print_continue": value => $rgw_print_continue;
+    "client.${rgw_id}/rgw_init_timeout":   value => $rgw_init_timeout;
   }
 
   if ($use_ssl) {
