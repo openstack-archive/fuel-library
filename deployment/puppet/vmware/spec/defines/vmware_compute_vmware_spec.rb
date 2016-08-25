@@ -117,7 +117,7 @@ host_username=administrator@vsphere.local
 
 # If true, the vCenter server certificate is not verified. If false, then the
 # default CA truststore is used for verification. This option is ignored if
-# “ca_file” is set.
+# "ca_file" is set.
 #insecure = False
 insecure=false
 
@@ -306,7 +306,7 @@ host_username=administrator@vsphere.local
 
 # If true, the vCenter server certificate is not verified. If false, then the
 # default CA truststore is used for verification. This option is ignored if
-# “ca_file” is set.
+# "ca_file" is set.
 #insecure = False
 insecure=true
 
