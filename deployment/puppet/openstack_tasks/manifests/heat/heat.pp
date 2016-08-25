@@ -17,6 +17,7 @@ class openstack_tasks::heat::heat {
   $management_vip           = hiera('management_vip')
   $primary_controller       = hiera('primary_controller')
   $kombu_compression        = hiera('kombu_compression', '')
+  $ceilometer_hash          = hiera_hash('ceilometer', { 'enabled' => false })
 
   $public_auth_protocol     = get_ssl_property($ssl_hash, $public_ssl_hash, 'keystone', 'public', 'protocol', 'http')
   $public_auth_address      = get_ssl_property($ssl_hash, $public_ssl_hash, 'keystone', 'public', 'hostname', [$public_vip])
@@ -52,6 +53,10 @@ class openstack_tasks::heat::heat {
   $keystone_tenant          = pick($heat_hash['tenant'], 'services')
   $region                   = hiera('region', 'RegionOne')
   $external_lb              = hiera('external_lb', false)
+  $notification_drvier      = $ceilometer_hash['enabled'] ? {
+    true    => 'heat.openstack.common.notifier.rpc_notifier',
+    default => $::os_service_default,
+  }
 
   $override_configuration = hiera_hash('configuration', {})
 
@@ -230,7 +235,7 @@ class openstack_tasks::heat::heat {
 
     max_template_size      => '5440000',
     max_json_body_size     => '10880000',
-    notification_driver    => 'heat.openstack.common.notifier.rpc_notifier',
+    notification_driver    => $notification_drvier,
     heat_clients_url       => "${heat_protocol}://${public_vip}:${api_bind_port}/v1/%(tenant_id)s",
 
     database_max_pool_size => $max_pool_size,
