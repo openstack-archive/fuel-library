@@ -1,8 +1,7 @@
 require 'yaml'
 require 'digest'
 require 'ipaddr'
-require 'puppetx/l23_network_scheme'
-require 'puppetx/l23_hash_tools'
+require_relative '../../../loader/l23network'
 
 module Puppet::Parser::Functions
   newfunction(
