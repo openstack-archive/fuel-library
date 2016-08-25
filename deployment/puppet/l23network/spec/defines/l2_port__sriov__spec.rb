@@ -14,6 +14,10 @@ describe 'l23network::l2::port', :type => :define do
     definition_pre_condition
   end
 
+  before(:each) do
+    puppet_debug_override
+  end
+
   context 'Create SRIOV port' do
     let(:params) do
       {
@@ -24,10 +28,6 @@ describe 'l23network::l2::port', :type => :define do
               'physnet'      => 'physnet2'
           }
       }
-    end
-
-    before(:each) do
-      puppet_debug_override()
     end
 
     it do

@@ -1,6 +1,14 @@
 require 'spec_helper'
 
 describe 'l23network::l3::ifconfig', :type => :define do
+  let(:pre_condition) do
+    definition_pre_condition
+  end
+
+  before(:each) do
+    puppet_debug_override
+  end
+
   context 'without IP address definition' do
     let(:title) { 'without IP address definition' }
     let(:facts) { {
@@ -21,18 +29,10 @@ describe 'l23network::l3::ifconfig', :type => :define do
       :ipaddr => 'none'
     } }
 
-    let(:pre_condition) do
-      definition_pre_condition
-    end
-
     let(:rings) do
       {
         'rings' => facts[:netrings][params[:interface]]['maximums']
       }
-    end
-
-    before(:each) do
-      puppet_debug_override()
     end
 
     it do
@@ -80,10 +80,6 @@ describe 'l23network::l3::ifconfig', :type => :define do
       :gateway => '10.20.20.1',
     } }
 
-    before(:each) do
-      puppet_debug_override()
-    end
-
     it do
       should compile.with_all_deps
     end
@@ -130,10 +126,6 @@ describe 'l23network::l3::ifconfig', :type => :define do
       :gateway_metric => 321,
     } }
 
-    before(:each) do
-      puppet_debug_override()
-    end
-
     it do
       should compile.with_all_deps
     end
@@ -177,10 +169,6 @@ describe 'l23network::l3::ifconfig', :type => :define do
       :interface => 'eth4',
       :ipaddr  => ['10.20.20.2/24', '10.30.30.3/24', '10.40.40.4/24'],
     } }
-
-    before(:each) do
-      puppet_debug_override()
-    end
 
     it do
       should compile.with_all_deps
@@ -231,10 +219,6 @@ describe 'l23network::l3::ifconfig', :type => :define do
       :ipaddr  => ['10.10.10.1/24'],
     } }
 
-    before(:each) do
-      puppet_debug_override()
-    end
-
     it do
       should compile.with_all_deps
     end
@@ -253,20 +237,16 @@ describe 'l23network::l3::ifconfig', :type => :define do
       :kernel => 'Linux'
     } }
 
-    let :pre_condition do [
-      "class {'l23network': }",
-      'l23network::l2::bridge{"br-test":}'
-    ]
+    let(:pre_condition) do [
+        definition_pre_condition,
+        'l23network::l2::bridge{"br-test":}'
+      ]
     end
 
     let(:params) { {
       :interface => 'br-test',
       :ipaddr  => ['10.10.10.10/24'],
     } }
-
-    before(:each) do
-      puppet_debug_override()
-    end
 
     it do
       should compile.with_all_deps
@@ -287,10 +267,6 @@ describe 'l23network::l3::ifconfig', :type => :define do
       :l3_fqdn_hostname => 'stupid_hostname',
     } }
 
-    let(:pre_condition) { [
-      "class {'l23network': }"
-    ] }
-
     let :pre_condition do
       'l23network::l2::bond{"bond-test":
          interfaces      => ["eth2", "eth3"],
@@ -305,10 +281,6 @@ describe 'l23network::l3::ifconfig', :type => :define do
       :interface => 'bond-test',
       :ipaddr  => ['10.10.10.11/24'],
     } }
-
-    before(:each) do
-      puppet_debug_override()
-    end
 
     it do
       should compile.with_all_deps

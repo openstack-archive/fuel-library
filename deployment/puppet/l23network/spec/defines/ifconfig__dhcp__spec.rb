@@ -1,6 +1,14 @@
 require 'spec_helper'
 
 describe 'l23network::l3::ifconfig', :type => :define do
+  let(:pre_condition) do
+    definition_pre_condition
+  end
+
+  before(:each) do
+    puppet_debug_override
+  end
+
   context 'ifconfig with dhcp' do
     let(:title) { 'ifconfig simple test' }
     let(:facts) { {
@@ -21,18 +29,10 @@ describe 'l23network::l3::ifconfig', :type => :define do
       :ipaddr => 'dhcp'
     } }
 
-    let(:pre_condition) do
-      definition_pre_condition
-    end
-
     let(:rings) do
       {
         'rings' => facts[:netrings][params[:interface]]['maximums']
       }
-    end
-
-    before(:each) do
-      puppet_debug_override()
     end
 
     it do

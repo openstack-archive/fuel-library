@@ -14,15 +14,15 @@ describe 'l23network::l2::port', :type => :define do
     definition_pre_condition
   end
 
+  before(:each) do
+    puppet_debug_override
+  end
+
   context 'Port without anythyng' do
     let(:params) do
       {
         :name => 'eth4',
       }
-    end
-
-    before(:each) do
-      puppet_debug_override()
     end
 
     it do

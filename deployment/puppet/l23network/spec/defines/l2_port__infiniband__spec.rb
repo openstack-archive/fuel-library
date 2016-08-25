@@ -14,15 +14,15 @@ describe 'l23network::l2::port', :type => :define do
     definition_pre_condition
   end
 
+  before(:each) do
+    puppet_debug_override
+  end
+
   context 'Infiniband parent' do
     let(:params) do
       {
         :name => 'ib0',
       }
-    end
-
-    before(:each) do
-      puppet_debug_override()
     end
 
     it do
@@ -53,10 +53,6 @@ describe 'l23network::l2::port', :type => :define do
         :name     => 'ib0.8000',
         :vlan_dev => false
       }
-    end
-
-    before(:each) do
-      puppet_debug_override()
     end
 
     it do
