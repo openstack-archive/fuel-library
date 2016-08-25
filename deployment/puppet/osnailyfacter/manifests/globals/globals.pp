@@ -255,16 +255,16 @@ class osnailyfacter::globals::globals {
 
   $vips = $network_metadata['vips']
 
-  $public_vip             = dig($vips, ['public', 'ipaddr'],
+  $public_vip             = dig44($vips, ['public', 'ipaddr'],
                               get_network_role_property('public/vip', 'ipaddr')
                             )
-  $management_vip         = dig($vips, ['management', 'ipaddr'],
+  $management_vip         = dig44($vips, ['management', 'ipaddr'],
                               get_network_role_property('mgmt/vip', 'ipaddr')
                             )
-  $public_vrouter_vip     = dig($vips, ['vrouter_pub', 'ipaddr'], undef)
-  $management_vrouter_vip = dig($vips, ['vrouter', 'ipaddr'], undef)
-  $database_vip           = dig($vips, ['database', 'ipaddr'], $management_vip)
-  $service_endpoint       = dig($vips, ['service_endpoint', 'ipaddr'], $management_vip)
+  $public_vrouter_vip     = dig44($vips, ['vrouter_pub', 'ipaddr'], undef)
+  $management_vrouter_vip = dig44($vips, ['vrouter', 'ipaddr'], undef)
+  $database_vip           = dig44($vips, ['database', 'ipaddr'], $management_vip)
+  $service_endpoint       = dig44($vips, ['service_endpoint', 'ipaddr'], $management_vip)
 
   $neutron_config                = hiera_hash('quantum_settings')
   $network_provider              = 'neutron'
