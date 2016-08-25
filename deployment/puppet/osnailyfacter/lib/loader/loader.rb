@@ -22,7 +22,7 @@ module PuppetLoader
         false
       end
     end
-    fail "PuppetLoader: could not load any of these files: #{files.join ', '}" unless success
+    raise LoadError, "PuppetLoader: could not load any of these files: #{files.join ', '}" unless success
     success
   end
 end
