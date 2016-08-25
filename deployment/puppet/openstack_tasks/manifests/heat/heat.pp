@@ -6,7 +6,7 @@ class openstack_tasks::heat::heat {
   $heat_hash                = hiera_hash('heat', {})
   $sahara_hash              = hiera_hash('sahara', {})
   $rabbit_hash              = hiera_hash('rabbit', {})
-  $ceilometer_hash          = hiera_hash('ceilometer', {})
+  $ceilometer_hash          = hiera_hash('ceilometer', { 'enabled' => false })
   $max_retries              = hiera('max_retries')
   $max_pool_size            = hiera('max_pool_size')
   $max_overflow             = hiera('max_overflow')
@@ -57,6 +57,11 @@ class openstack_tasks::heat::heat {
   $keystone_tenant          = pick($heat_hash['tenant'], 'services')
   $region                   = hiera('region', 'RegionOne')
   $external_lb              = hiera('external_lb', false)
+
+  $notification_driver      = $ceilometer_hash['enabled'] ? {
+    true    => 'heat.openstack.common.notifier.rpc_notifier',
+    default => $::os_service_default,
+  }
 
   $rabbit_heartbeat_timeout_threshold = pick($heat_hash['rabbit_heartbeat_timeout_threshold'], $rabbit_hash['heartbeat_timeout_threshold'], 60)
   $rabbit_heartbeat_rate              = pick($heat_hash['rabbit_heartbeat_rate'], $rabbit_hash['rabbit_heartbeat_rate'], 2)
@@ -213,7 +218,7 @@ class openstack_tasks::heat::heat {
 
     max_template_size                  => '5440000',
     max_json_body_size                 => '10880000',
-    notification_driver                => $ceilometer_hash['notification_driver'],
+    notification_driver                => $notification_driver,
     heat_clients_url                   => "${heat_protocol}://${public_vip}:${api_bind_port}/v1/%(tenant_id)s",
 
     database_max_pool_size             => $max_pool_size,
