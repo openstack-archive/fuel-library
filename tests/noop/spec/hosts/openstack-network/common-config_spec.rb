@@ -67,7 +67,7 @@ describe manifest do
         it { should contain_class('neutron').with('bind_host' => bind_host)}
 
         it 'rootwrap daemon in neutron_sudoers' do
-          if facts[:os_package_type] != 'debian'
+          if facts[:os_package_type] == 'ubuntu'
             should contain_file_line('root_helper_daemon').with(
               :line  => 'neutron ALL = (root) NOPASSWD: /usr/bin/neutron-rootwrap-daemon /etc/neutron/rootwrap.conf',
               :path  => '/etc/sudoers.d/neutron_sudoers',
