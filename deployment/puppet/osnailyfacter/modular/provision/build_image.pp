@@ -1,0 +1,1 @@
+class { '::osnailyfacter::provision::build_image': }
