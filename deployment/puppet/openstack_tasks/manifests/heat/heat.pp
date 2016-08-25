@@ -18,6 +18,7 @@ class openstack_tasks::heat::heat {
   $management_vip           = hiera('management_vip')
   $primary_controller       = hiera('primary_controller')
   $kombu_compression        = hiera('kombu_compression', $::os_service_default)
+  $ceilometer_hash          = hiera_hash('ceilometer', { 'enabled' => false })
 
   $heat_domain_name          = pick($heat_hash['domain_name'], 'heat')
   $heat_domain_admin         = pick($heat_hash['domain_admin'], 'heat_admin')
@@ -56,6 +57,10 @@ class openstack_tasks::heat::heat {
   $keystone_tenant          = pick($heat_hash['tenant'], 'services')
   $region                   = hiera('region', 'RegionOne')
   $external_lb              = hiera('external_lb', false)
+  $notification_drvier      = $ceilometer_hash['enabled'] ? {
+    true    => 'heat.openstack.common.notifier.rpc_notifier',
+    default => $::os_service_default,
+  }
 
   $rabbit_heartbeat_timeout_threshold = pick($heat_hash['rabbit_heartbeat_timeout_threshold'], $rabbit_hash['heartbeat_timeout_threshold'], 60)
   $rabbit_heartbeat_rate              = pick($heat_hash['rabbit_heartbeat_rate'], $rabbit_hash['rabbit_heartbeat_rate'], 2)
@@ -192,6 +197,8 @@ class openstack_tasks::heat::heat {
 
   # Common configuration, logging and RPC
   class { '::heat':
+    auth_uri                           => $auth_uri,
+    identity_uri                       => $identity_uri,
     keystone_ec2_uri                   => $keystone_ec2_uri,
     region_name                        => $region,
 
@@ -220,6 +227,42 @@ class openstack_tasks::heat::heat {
     database_max_retries               => $max_retries,
 
     kombu_compression                  => $kombu_compression,
+    memcached_servers                  => $memcached_servers
+    auth_uri               => $auth_uri,
+    identity_uri           => $identity_uri,
+    keystone_ec2_uri       => $keystone_ec2_uri,
+    keystone_user          => $keystone_user,
+    keystone_tenant        => $keystone_tenant,
+    keystone_password      => $heat_hash['user_password'],
+    region_name            => $region,
+
+    database_connection    => $db_connection,
+    database_idle_timeout  => $idle_timeout,
+    sync_db                => $primary_controller,
+
+    rpc_backend            => 'rabbit',
+    rpc_response_timeout   => '600',
+    rabbit_hosts           => split(hiera('amqp_hosts',''), ','),
+    rabbit_userid          => $rabbit_hash['user'],
+    rabbit_password        => $rabbit_hash['password'],
+
+    log_dir                => '/var/log/heat',
+    verbose                => $verbose,
+    debug                  => $debug,
+    use_syslog             => $use_syslog,
+    use_stderr             => $use_stderr,
+    log_facility           => $syslog_log_facility,
+
+    max_template_size      => '5440000',
+    max_json_body_size     => '10880000',
+    notification_driver    => $notification_drvier,
+    heat_clients_url       => "${heat_protocol}://${public_vip}:${api_bind_port}/v1/%(tenant_id)s",
+
+    database_max_pool_size => $max_pool_size,
+    database_max_overflow  => $max_overflow,
+    database_max_retries   => $max_retries,
+
+    rabbit_heartbeat_timeout_threshold => $::os_service_default,
   }
 
   # Engine
