@@ -1,4 +1,4 @@
-require_relative '../../../puppetx/l23_network_scheme'
+require_relative '../../../puppetx/loader/l23network'
 
 module Puppet::Parser::Functions
   newfunction(:override_transformations, :type => :rvalue, :doc => <<-EOS

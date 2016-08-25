@@ -1,4 +1,3 @@
-require_relative '../../puppetx/l23_dpdk_ports_mapping'
 require_relative 'l23_stored_config_centos'
 
 class Puppet::Provider::L23_stored_config_dpdkovs_centos < Puppet::Provider::L23_stored_config_centos
