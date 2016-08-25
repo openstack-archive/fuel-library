@@ -21,7 +21,19 @@ and Codename. Repositories with no or empty priority are skipped.
     repositories.each do |repo|
       next unless repo['priority']
       uri = URI.parse "#{repo['uri']}/dists/#{repo['suite']}/Release"
-      response = Net::HTTP.get_response uri
+      response = nil
+      retry_count = 3
+
+      (1..retry_count).each do |try|
+        begin
+          response = Net::HTTP.get_response uri
+          break
+        rescue Timeout::Error => exception
+          info "Attempt '#{try}' of '#{retry_count}' has failed: #{exception.message}"
+          raise exception if try >= retry_count
+          sleep 5
+        end
+      end
 
       unless response.kind_of? Net::HTTPSuccess
         fail "GET HTTP request to: '#{uri.to_s}' have failed! (#{response.code} #{response.message})"
