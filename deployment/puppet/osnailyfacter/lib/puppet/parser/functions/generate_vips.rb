@@ -1,7 +1,7 @@
 require 'yaml'
 require 'digest'
-require 'puppetx/l23_network_scheme'
-require 'puppetx/l23_hash_tools'
+require 'ipaddr'
+require_relative '../../../loader/l23network'
 
 module Puppet::Parser::Functions
   newfunction(:generate_vips) do |args|
