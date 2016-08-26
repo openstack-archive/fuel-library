@@ -9,7 +9,7 @@ describe Puppet::Type.type(:hiera_config) do
   let(:params) do
     {
       :path => '/etc/hiera.yaml',
-      :hierarchy => %w(base additional),
+      :hierarchy_bottom => %w(base additional),
     }
   end
 
@@ -17,7 +17,7 @@ describe Puppet::Type.type(:hiera_config) do
     expect(subject.new params).not_to be_nil
   end
 
-  [:path, :logger, :backends, :data_dir, :hierarchy, :hierarchy_override, :merge_behavior, :metadata_yaml_file, :additions].each do |param|
+  [:path, :logger, :backends, :data_dir, :override_suffix, :hierarchy_top, :hierarchy_plugins, :hierarchy_bottom, :merge_behavior, :metadata_yaml_file, :additions].each do |param|
     it "should have a #{param} parameter" do
       expect(subject.valid_parameter?(param)).to be_truthy
     end
