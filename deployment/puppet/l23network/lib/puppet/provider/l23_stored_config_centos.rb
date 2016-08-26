@@ -1,5 +1,4 @@
-require 'puppetx/l23_ethtool_name_commands_mapping'
-require File.join(File.dirname(__FILE__), 'l23_stored_config_base')
+require_relative 'l23_stored_config_base'
 
 class Puppet::Provider::L23_stored_config_centos < Puppet::Provider::L23_stored_config_base
 

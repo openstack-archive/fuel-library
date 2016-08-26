@@ -1,7 +1,7 @@
 # type for managing runtime NIC states.
 
 require 'yaml'
-require 'puppetx/l23_utils'
+require_relative '../../puppetx/loader/l23network'
 
 Puppet::Type.newtype(:l2_port) do
     @doc = "Manage a network port abctraction."

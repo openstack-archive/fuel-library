@@ -1,7 +1,8 @@
 # type for managing persistent interface config options
 # Inspired by puppet-network module. Adrien, thanks.
 
-require 'puppetx/l23_utils'
+require_relative '../../puppetx/loader/l23network'
+require_relative '../../puppetx/loader/filemapper'
 
 class Puppet::Provider::L23_stored_config_base < Puppet::Provider
 

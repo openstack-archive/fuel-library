@@ -1,4 +1,4 @@
-require 'puppetx/l23_network_scheme'
+require_relative '../../../puppetx/loader/l23network'
 
 Puppet::Parser::Functions::newfunction(:get_nic_passthrough_whitelist, :type => :rvalue, :arity => 1, :doc => <<-EOS
     This function gets pci_passthrough_whitelist mapping from transformations
