@@ -143,9 +143,12 @@ mod 'corosync',
     :ref => '0.8.0-mos-rc3'
 
 # Pull in puppetlabs-rabbitmq
+# TODO(dmburmistrov) We should switch to the next "upstream tag" which will
+# include this change https://github.com/puppetlabs/puppetlabs-rabbitmq/pull/499
+# '5.4.0-mos-rc1' tag represents only one commit ahead of '5.4.0' tag.
 mod 'rabbitmq',
     :git => 'https://github.com/fuel-infra/puppetlabs-rabbitmq.git',
-    :ref => '5.4.0'
+    :ref => '5.4.0-mos-rc1'
 
 # Pull in puppetlabs-mysql
 # FIXME(mmalchuk) 498b085 (3.6.3-rc1) is a fix for the 3.6.x branch
