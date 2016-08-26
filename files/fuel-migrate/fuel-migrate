@@ -463,9 +463,9 @@ EOF
         sleep 20
     done
 
+    ssh "${admin_net_ip}" "rm -f /notready; touch /tmp/migration-done"
     # refresh log on destination node
     rsync ${migrate_log} ${admin_net_ip}:${migrate_log}
-    ssh "${admin_net_ip}" "rm -f /notready; touch /tmp/migration-done"
     while true ; do sleep 3600 ; done
 
 else
