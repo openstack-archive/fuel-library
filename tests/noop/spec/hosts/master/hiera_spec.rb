@@ -7,29 +7,35 @@ manifest = 'master/hiera.pp'
 
 describe manifest do
   shared_examples 'catalog' do
-    it 'should setup hiera' do
-      should contain_file('hiera_data_dir').with(
-        'ensure' => 'directory',
-        'path'   => '/etc/hiera',
-        'mode'   => '0750',
+    it do
+      is_expected.to contain_file('hiera_data_dir').with(
+          'ensure' => 'directory',
+          'path' => '/etc/hiera',
+          'mode' => '0750',
 
       )
-      should contain_file('hiera_config').with(
-        'ensure' => 'present',
-        'path'   => '/etc/hiera.yaml',
-        'mode'   => '0640',
-      )
+    end
 
-      # check symlinks
-      should contain_file('hiera_data_astute').with(
-        'ensure' => 'symlink',
-        'path'   => '/etc/hiera/astute.yaml',
-        'target' => '/etc/fuel/astute.yaml'
+    it do
+      is_expected.to contain_hiera_config('master_hiera_yaml').with(
+          'ensure' => 'present',
+          'path' => '/etc/hiera.yaml',
       )
-      should contain_file('hiera_puppet_config').with(
-        'ensure' => 'symlink',
-        'path'   => '/etc/puppet/hiera.yaml',
-        'target' => '/etc/hiera.yaml'
+    end
+
+    it do
+      is_expected.to contain_file('hiera_data_astute').with(
+          'ensure' => 'symlink',
+          'path' => '/etc/hiera/astute.yaml',
+          'target' => '/etc/fuel/astute.yaml'
+      )
+    end
+
+    it do
+      is_expected.to contain_file('hiera_puppet_config').with(
+          'ensure' => 'symlink',
+          'path' => '/etc/puppet/hiera.yaml',
+          'target' => '/etc/hiera.yaml'
       )
     end
   end
