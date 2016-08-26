@@ -3,8 +3,9 @@ require 'spec_helper'
 describe Puppet::Type.type(:hiera_config).provider(:ruby) do
   let(:params) do
     {
-        :name => '/etc/hiera.yaml',
-        :hierarchy => %w(additional base),
+        :path => '/etc/hiera.yaml',
+        :hierarchy_top => %w(top1 top2),
+        :hierarchy_bottom => %w(additional base),
         :merge_behavior => 'deeper',
         :additions => {
             'test' => '123',
@@ -29,7 +30,7 @@ describe Puppet::Type.type(:hiera_config).provider(:ruby) do
         :yaml => {
             :datadir => '/etc/hiera',
         },
-        :hierarchy => %w(plugins/a plugins/b plugins/c additional base),
+        :hierarchy => %w(top1 top2 plugins/a plugins/b plugins/c additional base),
         :backends => ['yaml'],
         :logger => 'noop',
         :merge_behavior => 'deeper',
@@ -42,7 +43,7 @@ describe Puppet::Type.type(:hiera_config).provider(:ruby) do
         :yaml => {
             :datadir => '/etc/hiera',
         },
-        :hierarchy => %w(plugins/plugin1 plugins/plugin2 additional base),
+        :hierarchy => %w(top1 top2 plugins/a plugins/b plugins/c plugins/plugin1 plugins/plugin2 plugins/l1 plugins/l2 plugins/l3 additional base),
         :backends => ['yaml'],
         :logger => 'noop',
         :merge_behavior => 'deeper',
@@ -55,8 +56,9 @@ describe Puppet::Type.type(:hiera_config).provider(:ruby) do
         :logger => 'noop',
         :backends => ['yaml'],
         :data_dir => '/etc/hiera',
-        :hierarchy => %w(additional base),
-        :hierarchy_override => %w(plugins/a plugins/b plugins/c),
+        :hierarchy_top => %w(top1 top2),
+        :hierarchy_plugins => %w(plugins/a plugins/b plugins/c),
+        :hierarchy_bottom => %w(additional base),
         :merge_behavior => 'deeper',
         :additions => {
             :test => '123',
@@ -64,19 +66,17 @@ describe Puppet::Type.type(:hiera_config).provider(:ruby) do
     }
   end
 
-  let(:override_dir) do
+  let(:plugins_dir_path) do
     '/etc/hiera/plugins'
-  end
-
-  let(:hierarchy_override) do
-    %w(plugins/a plugins/b plugins/c)
   end
 
   let(:plugin_metadata_structure) do
     {
         'plugin1' => {
             'metadata' => {
+                'hiera' => ['l3'],
             },
+            'hiera' => 'l2',
         },
         'plugin2' => {
             'metadata' => {
@@ -89,6 +89,7 @@ describe Puppet::Type.type(:hiera_config).provider(:ruby) do
         'plugins' => [
             {
                 'name' => 'plugin1',
+                'hiera' => 'l1',
             },
             {
                 'name' => 'plugin2',
@@ -100,15 +101,27 @@ describe Puppet::Type.type(:hiera_config).provider(:ruby) do
     }
   end
 
+  let(:reported_plugins_list) do
+    %w(plugins/l1 plugins/l2 plugins/l3)
+  end
+
   let(:metadata_plugins_list) do
     %w(plugins/plugin1 plugins/plugin2)
+  end
+
+  let(:hierarchy_plugins) do
+    %w(plugins/a plugins/b plugins/c)
+  end
+
+  let(:all_plugins_list) do
+    hierarchy_plugins + metadata_plugins_list + reported_plugins_list
   end
 
   before(:each) do
     provider.stubs(:yaml_load_file).with('/etc/hiera.yaml').returns(config_file_data)
     provider.stubs(:yaml_load_file).with('/etc/astute.yaml').returns(plugin_metadata_structure)
     provider.stubs(:yaml_load_file).with(nil).returns(nil)
-    provider.stubs(:dir_entries).with(override_dir).returns %w(a.yaml c.yaml b.yaml . .. 1.txt test)
+    provider.stubs(:dir_entries).with(plugins_dir_path).returns %w(a.yaml c.yaml b.yaml . .. 1.txt test)
   end
 
   context '#retreive' do
@@ -127,38 +140,59 @@ describe Puppet::Type.type(:hiera_config).provider(:ruby) do
       expect(provider.property_hash).to eq property_hash
     end
 
-    it 'can form the full override directory path' do
-      expect(provider.override_dir_path).to eq override_dir
+    it 'parses the retrieved data to the property_hash if there is no plugins' do
+      no_plugins_config_file_data = config_file_data
+      no_plugins_config_file_data[:hierarchy] = %w(top1 top2 plugins_placeholder additional base)
+      no_plugins_property_hash = property_hash
+      no_plugins_property_hash[:hierarchy_plugins] = ['plugins_placeholder']
+      provider.stubs(:yaml_load_file).with('/etc/hiera.yaml').returns(no_plugins_config_file_data)
+      expect(provider.load_configuration).to eq no_plugins_property_hash
+      expect(provider.property_hash).to eq no_plugins_property_hash
     end
 
-    it 'can get the list of found override elements' do
-      expect(provider.override_directory_entries).to eq hierarchy_override
+    it 'can form the full plugins directory path' do
+      expect(provider.plugins_dir_path).to eq plugins_dir_path
     end
 
-    it 'can get the list of elements from the metadata file' do
+    it 'can get the list of directory plugin elements' do
+      expect(provider.directory_plugin_entries).to eq hierarchy_plugins
+    end
+
+    it 'can get the list of enabled plugin elements' do
       resource[:metadata_yaml_file] = '/etc/astute.yaml'
-      expect(provider.metadata_plugin_entries).to eq metadata_plugins_list
+      expect(provider.enabled_plugin_entries).to eq metadata_plugins_list
     end
 
-    it 'will use metadata entries prior to directory entries' do
+    it 'can get the elements listed in the plugin settings and metadata' do
       resource[:metadata_yaml_file] = '/etc/astute.yaml'
-      expect(provider.generate_override_entries).to eq metadata_plugins_list
+      expect(provider.reported_plugin_entries).to eq reported_plugins_list
     end
 
-    it 'will use directory entries if there are is metadata file' do
+    it 'can return a placeholder if there are no plugins' do
+      provider.stubs(:dir_entries).with(plugins_dir_path).returns %w(. ..)
+      expect(provider.generate_plugins_entries).to eq ['plugins_placeholder']
+    end
+
+    it 'will use all available entries' do
       resource[:metadata_yaml_file] = '/etc/astute.yaml'
-      expect(provider.generate_override_entries).to eq metadata_plugins_list
+      expect(provider.generate_plugins_entries).to eq all_plugins_list
     end
 
-    it 'overwrites the hiera_override property with found values' do
+    it 'can add a special suffix to all elements' do
+      resource[:override_suffix] = '_test'
+      resource[:metadata_yaml_file] = '/etc/astute.yaml'
+      expect(provider.generate_plugins_entries).to eq(all_plugins_list.map { |e| e + '_test' })
+    end
+
+    it 'overwrites the hierarchy_plugins property with found values' do
       provider.load_configuration
-      expect(resource[:hierarchy_override]).to eq hierarchy_override
+      expect(resource[:hierarchy_plugins]).to eq hierarchy_plugins
     end
 
-    it 'will not rewrite the hiera_override property if it contains any data from catalog' do
-      resource[:hierarchy_override] = %w(a b)
+    it 'will not rewrite the hierarchy_plugins property if it contains any data from catalog' do
+      resource[:hierarchy_plugins] = %w(a b)
       provider.load_configuration
-      expect(resource[:hierarchy_override]).to eq %w(a b)
+      expect(resource[:hierarchy_plugins]).to eq %w(a b)
     end
 
   end
@@ -190,6 +224,7 @@ describe Puppet::Type.type(:hiera_config).provider(:ruby) do
     end
 
     it 'can create a new configuration file' do
+      provider.stubs(:enabled_plugin_entries).returns(hierarchy_plugins)
       provider.stubs(:read_configuration).returns({})
       provider.exists?
       provider.create
@@ -201,14 +236,14 @@ describe Puppet::Type.type(:hiera_config).provider(:ruby) do
   context '#both retrieve and generate' do
     it 'cat generate configuration with directory entries' do
       provider.load_configuration
-      provider.hierarchy_override = resource[:hierarchy_override]
+      provider.hierarchy_plugins = resource[:hierarchy_plugins]
       expect(provider.generate_configuration).to eq(config_file_data)
     end
 
     it 'cat generate configuration with metadata entries' do
       resource[:metadata_yaml_file] = '/etc/astute.yaml'
       provider.load_configuration
-      provider.hierarchy_override = resource[:hierarchy_override]
+      provider.hierarchy_plugins = resource[:hierarchy_plugins]
       expect(provider.generate_configuration).to eq(config_file_data_for_metadata_entries)
     end
   end
