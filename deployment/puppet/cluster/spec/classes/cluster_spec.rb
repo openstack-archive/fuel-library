@@ -33,28 +33,20 @@ describe 'cluster' do
 
   end
 
-  context 'on Debian platforms' do
-    let :facts do
-      { :osfamily => 'Debian',
-        :operatingsystem => 'Debian',
-        :operatingsystemrelease => '8',
-        :hostname => 'hostname.example.com', }
+  on_supported_os(supported_os: supported_os).each do |os, facts|
+    context "on #{os}" do
+      let(:facts) { facts.merge(common_facts) }
+
+      let :packages do
+        if facts[:osfamily] == 'Debian'
+          [ 'crmsh', 'pcs' ]
+        else
+          ['crmsh']
+        end
+      end
+
+      it_configures 'cluster configuration'
     end
-
-    let(:packages) { [ 'crmsh', 'pcs' ] }
-    it_configures 'cluster configuration'
-  end
-
-  context 'on RedHat platforms' do
-    let :facts do
-      { :osfamily => 'RedHat',
-        :operatingsystem => 'RedHat',
-        :operatingsystemrelease => '7.2',
-        :hostname => 'hostname.example.com', }
-    end
-
-    let(:packages) { ['crmsh'] }
-    it_configures 'cluster configuration'
   end
 
 end
