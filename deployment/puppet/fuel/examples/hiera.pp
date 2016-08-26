@@ -18,35 +18,20 @@ File {
   group => 'root',
 }
 
-$hiera_config_content = inline_template('
----
-:backends:
-  - yaml
-
-:hierarchy:
-<% @data.each do |name| -%>
-  - <%= name %>
-<% end -%>
-
-:yaml:
-  :datadir: <%= @data_dir %>
-
-:merge_behavior: deeper
-
-:logger: noop
-')
+hiera_config { 'master_hiera_yaml':
+  ensure           => 'present',
+  path             => $hiera_main_config,
+  data_dir         => $data_dir,
+  backends         => ['yaml'],
+  hierarchy_bottom => $data,
+  logger           => 'noop',
+  merge_behavior   => 'deeper',
+}
 
 file { 'hiera_data_dir' :
   ensure => 'directory',
   path   => $data_dir,
   mode   => '0750',
-}
-
-file { 'hiera_config' :
-  ensure  => 'present',
-  path    => $hiera_main_config,
-  mode    => '0640',
-  content => $hiera_config_content,
 }
 
 file { 'hiera_data_astute' :
@@ -60,3 +45,6 @@ file { 'hiera_puppet_config' :
   path   => $hiera_puppet_config,
   target => $hiera_main_config,
 }
+
+Hiera_config['master_hiera_yaml'] ->
+File['hiera_puppet_config']
