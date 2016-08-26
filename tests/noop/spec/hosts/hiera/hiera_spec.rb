@@ -39,7 +39,7 @@ describe manifest do
       should contain_hiera_config('/etc/hiera.yaml').with(
         'ensure' => 'present',
         'metadata_yaml_file' => '/etc/astute.yaml',
-        'override_dir' => 'plugins',
+        'plugins_dir' => 'plugins',
         'data_dir' => '/etc/hiera',
       )
 
