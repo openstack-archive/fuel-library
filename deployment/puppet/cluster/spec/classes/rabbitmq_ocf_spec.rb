@@ -132,15 +132,20 @@ describe 'cluster::rabbitmq_ocf' do
     end
   end
 
-  context 'on Debian platforms' do
-    let :facts do
-      { :osfamily => 'Debian',
-        :operatingsystem => 'Debian',
-        :lsbdistid => 'Debian'
-      }
-    end
+  on_supported_os(supported_os: supported_os).each do |os, facts|
+    context "on #{os}" do
+      let(:facts) { facts.merge(common_facts) }
 
-    it_configures 'rabbitmq_ocf configuration'
+      let :packages do
+        if facts[:osfamily] == 'Debian'
+          [ 'crmsh', 'pcs' ]
+        else
+          ['crmsh']
+        end
+      end
+
+      it_configures 'rabbitmq_ocf configuration'
+    end
   end
 
 end
