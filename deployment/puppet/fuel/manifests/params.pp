@@ -111,4 +111,6 @@ class fuel::params {
   $ostf_db_user                  = 'ostf'
   $ostf_db_password              = 'ostf'
   $ostf_db_name                  = 'ostf'
+
+  $workers_max                   = 16
 }
