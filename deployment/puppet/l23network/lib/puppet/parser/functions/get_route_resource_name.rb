@@ -1,4 +1,4 @@
-require_relative '../../../puppetx/loader/l23network'
+require_relative '../../loader/l23network'
 
 module Puppet::Parser::Functions
   newfunction(:get_route_resource_name, :type => :rvalue) do |argv|

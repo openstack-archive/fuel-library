@@ -1,6 +1,6 @@
 require 'ipaddr'
 require_relative 'lib/prepare_cidr'
-require_relative '../../../puppetx/loader/l23network'
+require_relative '../../loader/l23network'
 
 Puppet::Parser::Functions::newfunction(:get_network_role_property, :type => :rvalue, :doc => <<-EOS
     This function get get network the network_role name and mode --
