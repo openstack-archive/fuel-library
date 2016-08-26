@@ -36,6 +36,10 @@ describe manifest do
         )
       end
 
+      it 'should contain ipmitool package' do
+        should contain_package('ipmitool')
+      end
+
       it 'should declare ironic::conductor class correctly' do
         should contain_class('ironic::conductor').with(
           'api_url' => "http://#{baremetal_vip}:6385",

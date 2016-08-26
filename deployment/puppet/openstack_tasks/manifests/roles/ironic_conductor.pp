@@ -157,10 +157,7 @@ class openstack_tasks::roles::ironic_conductor {
     require   => File["${tftp_root}/map-file"],
   }
 
-  package { 'ipmitool':
-    ensure => 'present',
-    before => Class['::ironic::conductor'],
-  }
+  ensure_packages('ipmitool', { ensure => 'present' })
 
   file { '/etc/ironic/fuel_key':
     ensure  => present,
