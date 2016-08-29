@@ -90,6 +90,10 @@ $admin_iface = 'eth0',
   sysctl::value{'net.ipv4.neigh.default.gc_thresh2': value => '1024'}
   sysctl::value{'net.ipv4.neigh.default.gc_thresh3': value => '2048'}
 
+  #Disable IPv6
+  sysctl::value{'net.ipv6.conf.all.disable_ipv6': value => '1'}
+  sysctl::value{'net.ipv6.conf.default.disable_ipv6': value => '1'}
+
   #Deprecated dhcrelay config, but keep package installed
   package {'dhcp':
     ensure => installed,
