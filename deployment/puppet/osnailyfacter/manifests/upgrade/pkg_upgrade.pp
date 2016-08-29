@@ -1,18 +1,11 @@
 class osnailyfacter::upgrade::pkg_upgrade {
-  # hardcode with retries and sleeps for resolving lock issue
-  # should be rewritten
-  exec { 'do_upgrade':
-    command     => "apt-get dist-upgrade -y --force-yes -o 'APT::Get::AllowUnauthenticated=1' -o Dpkg::Options::='--force-confdef' -o Dpkg::Options::='--force-confold'",
-    environment => [ 'DEBIAN_FRONTEND=noninteractive' ],
-    path        => ['/usr/bin', '/usr/local/sbin', '/usr/sbin', '/sbin', '/bin' ],
-    timeout     => 1700,
-    try_sleep   => 10,
-    tries       => 5,
-    logoutput   => true,
-  }
+  $packages_to_upgrade = hiera_hash('upgrade_packages', get_packages_for_upgrade('/etc/fuel/maintenance/apt/sources.list.d/'))
 
-  $corosync_roles = hiera('corosync_roles', ['primary-controller', 'controller'])
-  if roles_include($corosync_roles) {
+  create_resources('package', $packages_to_upgrade)
+
+  $corosync_roles   = hiera('corosync_roles', ['primary-controller', 'controller'])
+  $corosync_upgrade = has_key($packages_to_upgrade, 'corosync') or has_key($packages_to_upgrade, 'pacemaker')
+  if roles_include($corosync_roles) and $corosync_upgrade {
     $content_policy = "#!/bin/bash\n[[ \"\$1\" == \"pacemaker\" ]] && exit 101\n"
     $policyrc_file  = '/usr/sbin/policy-rc.d'
 
