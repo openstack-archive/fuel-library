@@ -50,4 +50,5 @@ fuel::dnsmasq::dhcp_range {'default':
   dhcp_gateway       => $admin_network['dhcp_gateway'],
   next_server        => $admin_network['ipaddress'],
   notify             => Service['dnsmasq'],
+  listen_address     => $admin_network['ipaddress'],
 }

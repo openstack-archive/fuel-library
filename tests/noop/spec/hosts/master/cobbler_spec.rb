@@ -22,16 +22,16 @@ describe manifest do
           :cobbler_password            => fuel_settings['cobbler']['password'],
           :bootstrap_path              => bootstrap_settings.fetch('path', '/var/www/nailgun/bootstraps/active_bootstrap'),
           # :bootstrap_meta              => nil,
-          :server                      => fuel_settings['ADMIN_NETWORK']['ipaddress'],
-          :name_server                 => fuel_settings['ADMIN_NETWORK']['ipaddress'],
-          :next_server                 => fuel_settings['ADMIN_NETWORK']['ipaddress'],
+          :server                      => fuel_settings['fuel_settings['ADMIN_NETWORK']']['ipaddress'],
+          :name_server                 => fuel_settings['fuel_settings['ADMIN_NETWORK']']['ipaddress'],
+          :next_server                 => fuel_settings['fuel_settings['ADMIN_NETWORK']']['ipaddress'],
           :mco_user                    => fuel_settings['mcollective']['user'],
           :mco_pass                    => fuel_settings['mcollective']['password'],
           :dns_upstream                => fuel_settings['DNS_UPSTREAM'],
           :dns_domain                  => fuel_settings['DNS_DOMAIN'],
           :dns_search                  => fuel_settings['DNS_SEARCH'],
-          :dhcp_ipaddress              => fuel_settings['ADMIN_NETWORK']['ipaddress'],
-          :nailgun_api_url             => "http://#{fuel_settings['ADMIN_NETWORK']['ipaddress']}:8000/api",
+          :dhcp_ipaddress              => fuel_settings['fuel_settings['ADMIN_NETWORK']']['ipaddress'],
+          :nailgun_api_url             => "http://#{fuel_settings['fuel_settings['ADMIN_NETWORK']']['ipaddress']}:8000/api",
           :bootstrap_ethdevice_timeout => bootstrap_settings.fetch('ethdevice_timeout', '120'),
       }
       is_expected.to contain_class('fuel::cobbler').with parameters
@@ -49,8 +49,15 @@ describe manifest do
     end
 
     it 'should declare the "fuel::dnsmasq::dhcp_range" with "default" title and correct parameters' do
-      parameters = {}
+      parameters = {
+        dhcp_start_address => fuel_settings['ADMIN_NETWORK']['dhcp_pool_start'],
+        dhcp_end_address   => fuel_settings['ADMIN_NETWORK']['dhcp_pool_end'],
+        dhcp_netmask       => fuel_settings['ADMIN_NETWORK']['netmask'],
+        dhcp_gateway       => fuel_settings['ADMIN_NETWORK']['dhcp_gateway'],
+        next_server        => fuel_settings['ADMIN_NETWORK']['ipaddress'],
+      }
       is_expected.to contain_fuel__dnsmasq__dhcp_range('default').with parameters
+      is_expected.to contain_fuel__dnsmasq__dhcp_range('default').that_notifies 'Service[dnsmasq]'
     end
 
     it { is_expected.to contain_cobbler_profile('ubuntu_bootstrap').with_kopts(/\bip=frommedia\b/) }
