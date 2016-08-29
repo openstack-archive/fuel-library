@@ -1,8 +1,16 @@
 class osnailyfacter::upgrade::pkg_upgrade {
   # hardcode with retries and sleeps for resolving lock issue
   # should be rewritten
+  $apt_opts = [ "-o 'APT::Get::AllowUnauthenticated=1'",
+                "-o Dpkg::Options::='--force-confdef'",
+                "-o Dpkg::Options::='--force-confold'",
+                "-o Dir::etc::sourcelist='-'",
+                "-o Dir::Etc::sourceparts='/etc/fuel/maintenance/apt/sources.list.d/'" ]
+
+  $apt_opts_line = join($apt_opts, ' ')
+
   exec { 'do_upgrade':
-    command     => 'apt-get dist-upgrade -y -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold"',
+    command     => "apt-get dist-upgrade -y --no-remove --force-yes ${apt_opts_line}",
     environment => [ 'DEBIAN_FRONTEND=noninteractive' ],
     path        => ['/usr/bin', '/usr/local/sbin', '/usr/sbin', '/sbin', '/bin' ],
     timeout     => 1700,
