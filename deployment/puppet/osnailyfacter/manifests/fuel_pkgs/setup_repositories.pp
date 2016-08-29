@@ -6,6 +6,8 @@ class osnailyfacter::fuel_pkgs::setup_repositories {
   $repos      = $repo_setup_hash['repos']
   $repo_type  = pick($repo_setup_hash['repo_type'], 'fuel')
 
+  $update_repos = pick($repo_setup_hash['update_repos'], [])
+
   class { '::osnailyfacter::package_pins':
     repo_type    => $repo_type,
     pin_haproxy  => $repo_setup_hash['pin_haproxy'],
@@ -54,6 +56,19 @@ class osnailyfacter::fuel_pkgs::setup_repositories {
 
     Apt::Source<||> ~> Exec<| title == 'apt_update' |>
     Exec<| title == 'apt_update' |> -> Package<||>
+
+    file { [ '/etc/fuel/', '/etc/fuel/upgrades/', '/etc/fuel/upgrades/mu/', '/etc/fuel/upgrades/mu/apt/' ]:
+      ensure  => 'directory',
+    } ->
+
+    file { '/etc/fuel/maintenance/updates/apt/sources.list.d/':
+      ensure  => 'directory',
+      recurse => true,
+      purge   => true,
+    } ->
+
+    ::osnailyfacter::fuel_pkgs::update_repo { $update_repos: }
+
   }
 
 }

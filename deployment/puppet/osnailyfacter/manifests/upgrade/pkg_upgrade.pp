@@ -1,11 +1,31 @@
 class osnailyfacter::upgrade::pkg_upgrade {
   # hardcode with retries and sleeps for resolving lock issue
   # should be rewritten
+  exec { 'do_update_cache':
+    command     => 'apt-get -o Dir::etc::sourcelist="-"  -o Dir::Etc::sourceparts="/etc/fuel/maintenance/updates/apt/sources.list.d/" update',
+    environment => [ 'DEBIAN_FRONTEND=noninteractive' ],
+    path        => ['/usr/bin', '/usr/local/sbin', '/usr/sbin', '/sbin', '/bin' ],
+    timeout     => 120,
+    try_sleep   => 10,
+    tries       => 5,
+    logoutput   => true,
+  } ->
+
   exec { 'do_upgrade':
-    command     => 'apt-get dist-upgrade -y -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold"',
+    command     => 'apt-get --yes --no-remove --force-yes -o Dir::etc::sourcelist="-" -o Dir::Etc::sourceparts="/etc/fuel/maintenance/updates/apt/sources.list.d/" -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold" dist-upgrade',
     environment => [ 'DEBIAN_FRONTEND=noninteractive' ],
     path        => ['/usr/bin', '/usr/local/sbin', '/usr/sbin', '/sbin', '/bin' ],
     timeout     => 1700,
+    try_sleep   => 10,
+    tries       => 5,
+    logoutput   => true,
+  } ->
+
+  exec { 'do_restore_cache':
+    command     => 'apt-get update',
+    environment => [ 'DEBIAN_FRONTEND=noninteractive' ],
+    path        => ['/usr/bin', '/usr/local/sbin', '/usr/sbin', '/sbin', '/bin' ],
+    timeout     => 120,
     try_sleep   => 10,
     tries       => 5,
     logoutput   => true,
