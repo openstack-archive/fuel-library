@@ -345,11 +345,15 @@ class openstack_tasks::roles::compute {
     default_schedule_zone     => $nova_hash_real['default_schedule_zone'],
   }
 
-  if str2bool($::is_virtual) {
-    $libvirt_cpu_mode = 'none'
-  } else {
-    $libvirt_cpu_mode = 'host-model'
-  }
+  # CPU configuration created using host-model may not work as expected.
+  # The guest CPU may differ from the configuration and it may also confuse
+  # guest OS by using a combination of CPU features and other parameters (such
+  # as CPUID level) that don't work. Until these issues are fixed, it's a good
+  # idea to avoid using host-model
+  # http://libvirt.org/formatdomain.html#elementsCPU
+  # https://bugs.launchpad.net/mos/+bug/1618473
+  $libvirt_cpu_mode = 'none'
+
   # Install / configure nova-compute
 
   # From legacy ceilometer notifications for nova
