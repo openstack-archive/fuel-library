@@ -1,8 +1,9 @@
 class fuel::puppetsync (
-  $puppet_folder = '/etc/puppet',
-  $xinetd_config = '/etc/xinetd.d/rsync',
-  $rsync_config  = '/etc/rsyncd.conf',
-  $bind_address  = '0.0.0.0',
+  $puppet_folder    = '/etc/puppet',
+  $xinetd_config    = '/etc/xinetd.d/rsync',
+  $rsync_config     = '/etc/rsyncd.conf',
+  $rsync_config_dir = '/etc/rsyncd.conf.d',
+  $bind_address     = '0.0.0.0',
 ){
 
   File {
@@ -10,6 +11,10 @@ class fuel::puppetsync (
     owner  => 'root',
     group  => 'root',
     mode   => '0644',
+  }
+
+  file { $rsync_config_dir:
+    ensure => directory,
   }
 
   # template uses $bind_address and $puppet_folder
