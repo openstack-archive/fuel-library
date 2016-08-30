@@ -334,6 +334,7 @@ class openstack_tasks::keystone::keystone {
       rabbit_heartbeat_timeout_threshold => $rabbit_heartbeat_timeout_threshold,
       rabbit_heartbeat_rate              => $rabbit_heartbeat_rate,
       kombu_compression                  => $kombu_compression,
+      notification_format                => $keystone_hash['notification_format'],
     }
 
     Package<| title == 'keystone'|> ~> Service<| title == 'keystone'|>
