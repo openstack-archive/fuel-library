@@ -36,6 +36,7 @@ class openstack_tasks::keystone::keystone {
   $default_log_levels    = hiera_hash('default_log_levels')
   $primary_controller    = hiera('primary_controller')
   $kombu_compression     = hiera('kombu_compression', '')
+  $cadf_event            = hiera('cadf_event', {})
 
   $default_role = '_member_'
 
@@ -290,6 +291,12 @@ class openstack_tasks::keystone::keystone {
     }
   }
 
+  if $cadf_event {
+    $notification_format = $keystone_hash['notification_format']
+  } else {
+    $notification_format = []
+  }
+
   if $enabled {
     class { '::keystone':
       enable_bootstrap             => true,
@@ -327,6 +334,7 @@ class openstack_tasks::keystone::keystone {
       memcache_pool_unused_timeout => '60',
       cache_memcache_servers       => $memcache_servers,
       policy_driver                => 'keystone.policy.backends.sql.Policy',
+      notification_format          => $notification_format,
     }
 
     Package<| title == 'keystone'|> ~> Service<| title == 'keystone'|>
