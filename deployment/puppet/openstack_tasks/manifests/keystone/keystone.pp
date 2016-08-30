@@ -30,6 +30,7 @@ class openstack_tasks::keystone::keystone {
   $default_log_levels    = hiera_hash('default_log_levels')
   $primary_keystone      = has_primary_role(intersection(hiera('keystone_roles'), hiera('roles')))
   $kombu_compression     = hiera('kombu_compression', '')
+  $cadf_event            = hiera('cadf_event', {})
 
   $default_role = '_member_'
 
@@ -304,6 +305,12 @@ class openstack_tasks::keystone::keystone {
     }
   }
 
+  if $cadf_event {
+    $notification_format = $keystone_hash['notification_format']
+  } else {
+    $notification_format = []
+  }
+
   if $enabled {
     class { '::keystone':
       enable_bootstrap             => true,
@@ -343,6 +350,7 @@ class openstack_tasks::keystone::keystone {
       policy_driver                => 'keystone.policy.backends.sql.Policy',
       # Set revoke_by_id to false according to LP #1625077
       revoke_by_id                 => false,
+      notification_format          => $notification_format,
     }
 
     Package<| title == 'keystone'|> ~> Service<| title == 'keystone'|>
