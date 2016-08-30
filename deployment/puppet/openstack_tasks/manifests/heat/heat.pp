@@ -64,6 +64,9 @@ class openstack_tasks::heat::heat {
   # key in hiera doesn't match the Puppet resource name.
   # E.g. 'ceilometer' where it should be 'ceilometer_config'.
   $override_configuration = hiera_hash('configuration', {})
+
+  $cadf_event = hiera('cadf_event', {})
+
   # override heat.conf options
   override_resources { 'legacy-heat_config':
     configuration => {'heat_config' => pick($override_configuration['heat'], {})}

@@ -5,6 +5,20 @@ class openstack_tasks::openstack_controller::openstack_controller {
 
   notice('MODULAR: openstack_controller/openstack_controller.pp')
 
+  $cadf_event = hiera('cadf_event', {})
+
+  #enable CADF
+  if $cadf_event {
+    nova_paste_api_ini {
+      'filter:audit/paste.filter_factory': value => 'keystonemiddleware.audit:filter_factory';
+      'filter:audit/audit_map_file': value => '/etc/pycadf/nova_api_audit_map.conf';
+      'composite:openstack_compute_api_legacy_v2/keystone': value => 'cors compute_req_id faultwrap sizelimit authtoken keystonecontext audit legacy_ratelimit osapi_compute_app_legacy_v2';
+      'composite:openstack_compute_api_legacy_v2/keystone_nolimit': value => 'cors compute_req_id faultwrap sizelimit authtoken keystonecontext audit osapi_compute_app_legacy_v2';
+      'composite:openstack_compute_api_v21/keystone': value => 'cors compute_req_id faultwrap sizelimit authtoken keystonecontext audit osapi_compute_app_v21';
+      'composite:openstack_compute_api_v21_legacy_v2_compatible/keystone': value => 'cors compute_req_id faultwrap sizelimit authtoken keystonecontext audit legacy_v2_compatible osapi_compute_app_v21';
+    }
+  }
+
   $network_scheme = hiera_hash('network_scheme', {})
   $network_metadata = hiera_hash('network_metadata', {})
   prepare_network_config($network_scheme)
