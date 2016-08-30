@@ -39,9 +39,10 @@ class osnailyfacter::generate_vms::generate_vms {
     }
 
     exec { 'generate_vms':
-      command => "/usr/bin/generate_vms.sh ${libvirt_dir} ${template_dir}",
-      path    => ['/usr/sbin', '/usr/bin' , '/sbin', '/bin'],
-      require => [File[$template_dir], File["${libvirt_dir}/autostart"]],
+      command   => "/usr/bin/generate_vms.sh ${libvirt_dir} ${template_dir}",
+      path      => ['/usr/sbin', '/usr/bin' , '/sbin', '/bin'],
+      require   => [File[$template_dir], File["${libvirt_dir}/autostart"]],
+      logoutput => true,
     }
 
     if $::operatingsystem == 'Ubuntu' {
