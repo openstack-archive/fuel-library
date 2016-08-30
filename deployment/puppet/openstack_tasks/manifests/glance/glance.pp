@@ -55,6 +55,14 @@ class openstack_tasks::glance::glance {
 
   Override_resources <||> ~> Service <| tag == 'glance-service' |>
 
+  #enable CADF
+  glance_api_paste_ini {
+    'filter:audit/paste.filter_factory': value => 'keystonemiddleware.audit:filter_factory';
+    'filter:audit/audit_map_file': value => '/etc/pycadf/glance_api_audit_map.conf';
+    'pipeline:glance-api-keystone/pipeline': value => 'cors healthcheck versionnegotiation osprofiler authtoken audit context  rootapp';
+    'pipeline:glance-api-keystone+caching/pipeline': value => 'cors healthcheck versionnegotiation osprofiler authtoken audit context cache rootapp';
+    'pipeline:glance-api-keystone+cachemanagement/pipeline': value => 'cors healthcheck versionnegotiation osprofiler authtoken audit context cache cachemanage rootapp';
+  }
 
   $db_type     = 'mysql'
   $db_host     = pick($glance_hash['db_host'], $database_vip)
