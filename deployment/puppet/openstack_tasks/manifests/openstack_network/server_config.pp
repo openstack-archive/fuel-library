@@ -28,6 +28,8 @@ class openstack_tasks::openstack_network::server_config {
   $primary_controller               = roles_include($neutron_primary_controller_roles)
   $compute                          = roles_include($neutron_compute_roles)
 
+  $cadf_event = hiera('cadf_event', {})
+
   $db_type     = 'mysql'
   $db_password = $neutron_config['database']['passwd']
   $db_user     = dig44($neutron_config, ['database', 'user'], 'neutron')
@@ -55,6 +57,15 @@ class openstack_tasks::openstack_network::server_config {
   } else {
     $use_sriov = false
     $ml2_sriov_value = 'rm DAEMON_ARGS'
+  }
+
+  #enable CADF
+  if $cadf_event {
+    neutron_api_paste_ini {
+      'filter:audit/paste.filter_factory': value => 'keystonemiddleware.audit:filter_factory';
+      'filter:audit/audit_map_file': value => '/etc/pycadf/neutron_api_audit_map.conf';
+      'composite:neutronapi_v2_0/keystone': value => 'cors request_id catch_errors authtoken keystonecontext audit extensions neutronapiapp_v2_0';
+    }
   }
 
   $password                = $neutron_config['keystone']['admin_password']

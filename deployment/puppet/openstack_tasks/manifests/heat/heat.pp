@@ -59,6 +59,8 @@ class openstack_tasks::heat::heat {
 
   $override_configuration = hiera_hash('configuration', {})
 
+  $cadf_event = hiera('cadf_event', {})
+
   # override heat.conf options
   override_resources { 'heat_config':
     data => $override_configuration['heat']
@@ -69,6 +71,17 @@ class openstack_tasks::heat::heat {
   }
 
   Override_resources <||> ~> Service <| tag == 'heat-service' |>
+
+  #enable CADF
+  if $cadf_event {
+    heat_api_paste_ini {
+      'filter:audit/paste.filter_factory': value => 'keystonemiddleware.audit:filter_factory';
+      'filter:audit/audit_map_file': value => '/etc/pycadf/heat_api_audit_map.conf';
+      'pipeline:heat-api/pipeline': value => 'cors request_id faultwrap http_proxy_to_wsgi versionnegotiation osprofiler authurl authtoken audit context apiv1app';
+      'pipeline:heat-api-cfn/pipeline': value => 'cors cfnversionnegotiation osprofiler ec2authtoken authtoken audit context apicfnv1app';
+      'pipeline:heat-api-cloudwatch/pipeline': value => 'cors versionnegotiation osprofiler ec2authtoken authtoken audit context apicwapp';
+    }
+  }
 
   $storage_hash = hiera_hash('storage', {})
 
