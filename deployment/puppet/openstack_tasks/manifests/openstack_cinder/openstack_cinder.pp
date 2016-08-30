@@ -62,7 +62,17 @@ class openstack_tasks::openstack_cinder::openstack_cinder {
 
   Override_resources <||> ~> Service <| tag == 'cinder-service' |>
 
-
+  #enable CADF
+  cinder_api_paste_ini {
+    'filter:audit/paste.filter_factory': value => 'keystonemiddleware.audit:filter_factory';
+    'filter:audit/audit_map_file': value => '/etc/pycadf/cinder_api_audit_map.conf';
+    'composite:openstack_volume_api_v1/keystone': value => 'cors ssl request_id faultwrap sizelimit osprofiler authtoken keystonecontext audit apiv1';
+    'composite:openstack_volume_api_v1/keystone_nolimit': value => 'cors ssl request_id faultwrap sizelimit osprofiler authtoken keystonecontext audit apiv1';
+    'composite:openstack_volume_api_v2/keystone': value => 'cors ssl request_id faultwrap sizelimit osprofiler authtoken keystonecontext audit apiv2';
+    'composite:openstack_volume_api_v2/keystone_nolimit': value => 'cors ssl request_id faultwrap sizelimit osprofiler authtoken keystonecontext audit apiv2';
+    'composite:openstack_volume_api_v3/keystone': value => 'cors ssl request_id faultwrap sizelimit osprofiler authtoken keystonecontext audit apiv3';
+    'composite:openstack_volume_api_v3/keystone_nolimit': value => 'cors ssl request_id faultwrap sizelimit osprofiler authtoken keystonecontext audit apiv3';
+  }
 
   $keystone_auth_protocol = get_ssl_property($ssl_hash, {}, 'keystone', 'internal', 'protocol', 'http')
   $keystone_auth_host     = get_ssl_property($ssl_hash, {}, 'keystone', 'internal', 'hostname', [hiera('keystone_endpoint', ''), $service_endpoint, $management_vip])

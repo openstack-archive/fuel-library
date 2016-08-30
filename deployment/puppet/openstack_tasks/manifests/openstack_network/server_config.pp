@@ -57,6 +57,13 @@ class openstack_tasks::openstack_network::server_config {
     $ml2_sriov_value = 'rm DAEMON_ARGS'
   }
 
+  #enable CADF
+    neutron_api_paste_ini {
+      'filter:audit/paste.filter_factory': value => 'keystonemiddleware.audit:filter_factory';
+      'filter:audit/audit_map_file': value => '/etc/pycadf/neutron_api_audit_map.conf';
+      'composite:neutronapi_v2_0/keystone': value => 'cors request_id catch_errors authtoken keystonecontext audit extensions neutronapiapp_v2_0';
+    }
+
   $password                = $neutron_config['keystone']['admin_password']
   $username                = pick($neutron_config['keystone']['admin_user'], 'neutron')
   $project_name            = pick($neutron_config['keystone']['admin_tenant'], 'services')

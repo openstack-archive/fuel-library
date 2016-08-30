@@ -102,7 +102,8 @@ class osnailyfacter::globals::globals {
   $access_hash                    = hiera_hash('access', {})
   # mp_hash is actually an array, not a hash
   $mp_hash                        = hiera('mp', [])
-  $keystone_hash                  = merge({'service_token_off' => $service_token_off},
+  $keystone_hash                  = merge({'service_token_off' => $service_token_off,
+                                           'notification_format' => 'cadf',},
                                           hiera_hash('keystone', {}))
 
   $user_admin_role                = hiera('user_admin_role','admin')
