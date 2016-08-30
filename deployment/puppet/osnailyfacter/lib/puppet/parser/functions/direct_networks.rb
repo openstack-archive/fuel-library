@@ -1,12 +1,23 @@
-Puppet::Parser::Functions::newfunction(:direct_networks, :type => :rvalue, :doc => <<-EOS
-parses network scheme and returns networks
-directly attached to the host
+Puppet::Parser::Functions::newfunction(:direct_networks, :arity => -2, :type => :rvalue, :doc => <<-EOS
+  Parses network endpoints scheme and returns networks
+  directly attached to the host
 EOS
-) do |argv|
-  endpoints = argv[0]
-  filter  = argv[1]
-  netmask = argv[2]
-  networks = []
+) do |args|
+
+  endpoints, filter, netmask = args
+
+  allowed_netmask = ['cidr', 'netmask']
+  netmask ||= allowed_netmask.first
+
+  raise(
+    ArgumentError,
+    'direct_networks(): Requires hash as first argument'
+  ) unless endpoints.is_a? Hash
+
+  raise(
+    ArgumentError,
+    "direct_networks(): Expected a string with one of (#{allowed_netmask.join ','}), got #{netmask}"
+  ) unless allowed_netmask.include? netmask
 
   class IPAddr
     def mask_length
@@ -27,26 +38,16 @@ EOS
     end
   end
 
-  endpoints.each do |interface, parameters|
-    next unless parameters.has_key? 'IP' and parameters['IP'].is_a? Array
-    next if filter and interface != filter
-    parameters['IP'].each do |ip|
-      next unless ip
-      if netmask and netmask == 'netmask'
-        networks << IPAddr.new(ip).netmask
-      else
-        networks << IPAddr.new(ip).cidr
-      end
-    end
-    next unless parameters.has_key? 'routes' and parameters['routes'].is_a? Array
-    parameters['routes'].each do |route|
-      next unless route.has_key? 'net'
-      if netmask and netmask == 'netmask'
-        networks << IPAddr.new(route['net']).netmask
-      else
-        networks << IPAddr.new(route['net']).cidr
-      end
-    end
+  networks = []
+  get_network = lambda {|ip| networks << IPAddr.new(ip).send(netmask) rescue ''}
+
+  endpoints.each do |interface, opts|
+    next unless opts.is_a? Hash
+    next if filter && filter != interface
+
+    Array(opts.fetch('IP', [])).each(&get_network)
+    Array(opts.fetch('routes', [])).map {|route| route.fetch('net', nil)}.each(&get_network)
   end
-  return networks.join(' ')
+
+  networks.join(' ')
 end
