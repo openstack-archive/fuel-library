@@ -36,6 +36,9 @@ class openstack_tasks::glance::glance {
   # key in hiera doesn't match the Puppet resource name.
   # E.g. 'ceilometer' where it should be 'ceilometer_config'.
   $override_configuration = hiera_hash('configuration', {})
+
+  $cadf_event = hiera('cadf_event', {})
+
   # override glance api options
   override_resources { 'legacy-glance_api_config':
     configuration => {'glance_api_config' => pick($override_configuration['glance_api'], {})}
@@ -55,6 +58,18 @@ class openstack_tasks::glance::glance {
     configuration => {'glance_glare_config' => pick($override_configuration['glare_config'], {})}
   }
 
+  Override_resources <||> ~> Service <| tag == 'glance-service' |>
+
+  #enable CADF
+  if $cadf_event {
+    glance_api_paste_ini {
+      'filter:audit/paste.filter_factory': value => 'keystonemiddleware.audit:filter_factory';
+      'filter:audit/audit_map_file': value => '/etc/pycadf/glance_api_audit_map.conf';
+      'pipeline:glance-api-keystone/pipeline': value => 'cors healthcheck versionnegotiation osprofiler authtoken audit context  rootapp';
+      'pipeline:glance-api-keystone+caching/pipeline': value => 'cors healthcheck versionnegotiation osprofiler authtoken audit context cache rootapp';
+      'pipeline:glance-api-keystone+cachemanagement/pipeline': value => 'cors healthcheck versionnegotiation osprofiler authtoken audit context cache cachemanage rootapp';
+    }
+  }
 
   $db_type     = 'mysql'
   $db_host     = pick($glance_hash['db_host'], $database_vip)
