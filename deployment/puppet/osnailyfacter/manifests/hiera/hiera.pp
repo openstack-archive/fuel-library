@@ -38,8 +38,8 @@ class osnailyfacter::hiera::hiera {
   hiera_config { $hiera_main_config :
     ensure             => 'present',
     data_dir           => $data_dir,
-    hierarchy          => $data,
-    override_dir       => $override_dir,
+    hierarchy_bottom   => $data,
+    plugins_dir        => $override_dir,
     override_suffix    => '%{disable_globals_yaml}',
     metadata_yaml_file => $metadata_file,
     merge_behavior     => 'deeper',
