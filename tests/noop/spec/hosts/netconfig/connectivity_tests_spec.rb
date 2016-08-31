@@ -19,5 +19,8 @@ describe manifest do
       return true
     }
   }
+  shared_examples 'catalog' do
+    it { should contain_ping_host(default_gateway.join()).with('ensure' => 'up') }
+  end
   test_ubuntu_and_centos manifest
 end
