@@ -37,4 +37,22 @@ class osnailyfacter::upgrade::pkg_upgrade {
       require => Exec['remove_policy']
     })
   }
+
+  if roles_include(['controller', 'primary-controller']) {
+    $storage_hash = hiera_hash('storage', {})
+    if (!$storage_hash['images_ceph'] and !$storage_hash['objects_ceph'] and !$storage_hash['images_vcenter']) {
+      # Glance package update changes permissions for /var/lib/glance and makes
+      # it and its subdirectories owned by glance:glance (it executes in postinst stage).
+      # We use /var/lib/glance/node as swift storage, and we need to allow
+      # swift user to write into this directory. We should update all subdirectories
+      # in /var/lib/glance/node to be owned by swift:swift. This should be applied right
+      # after glance package update to decrease swift service downtime to minimum.
+
+      exec { 'fix_permissions':
+        command   => '/bin/chown -R swift:swift /var/lib/glance/node/',
+        onlyif    => '/usr/bin/test -d /var/lib/glance/node/',
+        logoutput => true,
+      }
+    }
+  }
 }
