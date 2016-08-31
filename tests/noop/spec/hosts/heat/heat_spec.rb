@@ -68,6 +68,7 @@ describe manifest do
     heat_db_user = Noop.hiera_structure 'heat/db_user', 'heat'
     heat_db_name = Noop.hiera('heat_db_name', 'heat')
     kombu_compression = Noop.hiera 'kombu_compression', ''
+    ceilometer_hash = Noop.hiera 'ceilometer', { 'enabled' => false }
 
     it 'should install heat-docker package only after heat-engine' do
       if !facts.has_key?(:os_package_type) or facts[:os_package_type] != 'ubuntu'
@@ -205,6 +206,14 @@ describe manifest do
 
     it 'should enable RabbitMQ heartbeats' do
       should contain_heat_config('oslo_messaging_rabbit/heartbeat_timeout_threshold').with(:value => '<SERVICE DEFAULT>')
+    end
+
+    it 'should configure notification driver' do
+      if ceilometer_hash['enabled']
+        should contain_heat_config('DEFAULT/notification_driver').with(:value => 'heat.openstack.common.notifier.rpc_notifier')
+      else
+        should contain_heat_config('DEFAULT/notification_driver').with(:value => '<SERVICE DEFAULT>')
+      end
     end
 
   end # end of shared_examples
