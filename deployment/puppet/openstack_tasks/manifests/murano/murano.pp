@@ -169,6 +169,12 @@ class openstack_tasks::murano::murano {
       sync_db      => false,
     }
 
+    if $::os_package_type == 'uca' {
+      Exec <| title == 'django_collectstatic' |> {
+        command     => "${::murano::dashboard::collect_static_script} collectstatic --noinput"
+      }
+    }
+
     $haproxy_stats_url = "http://${management_ip}:10000/;csv"
 
     $murano_protocol = get_ssl_property($ssl_hash, {}, 'murano', 'internal', 'protocol', 'http')
