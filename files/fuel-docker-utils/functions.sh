@@ -616,7 +616,7 @@ function backup {
   parse_backup_dir $1
   [[ $use_rsync -eq 1 ]] && ssh_copy_id
   mkdir -p $SYSTEM_DIRS $backup_dir
-  verify_disk_space "backup" "$fullbackup"
+  verify_disk_space "backup" "$fullbackup" "$backup_dir"
   if check_nailgun_tasks; then
     echo "There are currently running Fuel tasks. Please wait for them to \
 finish or cancel them." 1>&2
@@ -732,17 +732,29 @@ function backup_postgres_db {
 
 function backup_compress {
   echo "Compressing archives..."
-  component_tars=($backup_dir/*.tar)
-  ( cd $backup_dir && tar cf $backup_dir/fuel_backup${image_suffix}.tar *.tar *.sql)
-  rm -rf "${component_tars[@]}"
+
+  # Remember current dir just in case someone expecting that function
+  # wouldn't change directory. For legacy.
+  local cwd=`pwd`
+
+  cd ${backup_dir}
+  
+  local component_tars=(*.tar *.sql)
+  
+  echo "Compressing ${component_tars[@]}"
+
   #Improve compression on bare metal
   if [ -z "$(virt-what)" ] ; then
     lrzopts="-L2 -U"
   else
     lrzopts="-L2 -w 5"
   fi
-  lrzip $lrzopts "$backup_dir/fuel_backup${image_suffix}.tar" -o "$backup_dir/fuel_backup${image_suffix}.tar.lrz"
 
+  tar -c -O ${component_tars[@]} | lrzip ${lrzopts} -o fuel_backup${image_suffix}.tar.lrz
+  
+  rm -f "${component_tars[@]}"
+
+  cd ${cwd}
 }
 
 function backup_rsync_upload {
@@ -844,6 +856,20 @@ function update_ssh_keys {
   )
 }
 
+function restore_database {
+  local fuel_ver=$(fuel --version 2>&1)
+  local external_dir=/var/lib/fuel/container_data/${fuel_ver%\.[0-9]}/postgres/backups/
+  local internal_dir=/var/lib/pgsql/backups/
+  local log_file=${internal_dir}/restore.log
+
+  cp ${restoredir}/postgres_backup.sql $external_dir/ || exit 1
+
+  if ! shell_container postgres su - postgres -c "psql -f ${internal_dir}/postgres_backup.sql postgres > ${log_file} 2>&1"; then
+    echo "Failed to restore database"
+    exit 1;
+  fi;
+}
+
 function restore {
 #TODO(mattymo): Optionally not include system dirs during restore
 #TODO(mattymo): support remote file such as ssh://user@myhost/backup.tar.lrz
@@ -864,7 +890,6 @@ function restore {
 finish or cancel them. Run \"fuel task list\" for more details." 1>&2
     exit 1
   fi
-  verify_disk_space "restore" "$fullrestore"
   backupfile=$1
   if [ -z "$backupfile" ]; then
     #TODO(mattymo): Parse BACKUP_DIR for lrz files
@@ -883,6 +908,9 @@ finish or cancel them. Run \"fuel task list\" for more details." 1>&2
     exit 3
   fi
   restoredir="$BACKUP_ROOT/restore-$timestamp/"
+  mkdir -p "$restoredir" || exit 1
+
+  verify_disk_space "restore" "$fullrestore" $restoredir
   disable_supervisor
   if [ "$fullrestore" = "1" ]; then
     echo "Stopping and destroying existing containers..."
@@ -899,6 +927,9 @@ finish or cancel them. Run \"fuel task list\" for more details." 1>&2
   [ "$fullrestore" = "0" ] && update_ssh_keys
   restore_systemdirs "$restoredir"
   set +e
+  echo "Restore database"
+  start_container postgres
+  restore_database
   echo "Starting containers..."
   start_container all
   enable_supervisor
@@ -921,9 +952,7 @@ function unpack_archive {
 #feedback as everything restores
   backupfile="$1"
   restoredir="$2"
-  mkdir -p "$restoredir"
-  lrzip -d -o "$restoredir/fuel_backup.tar" $backupfile
-  tar -xf "$restoredir/fuel_backup.tar" -C "$restoredir" && rm -f "$restoredir/fuel_backup.tar"
+  lrzip -d  $backupfile -o - | tar -x -C "$restoredir" 
 }
 
 function restore_images {
@@ -985,21 +1014,24 @@ function enable_supervisor {
 }
 
 function verify_disk_space {
-  if [ -z "$1" ]; then
-    echo "Backup or restore operation not specified." 1>&2
+  if [[ $# -ne 3 ]]; then
+    echo "Function verify_disk_space require 3 arguments: "
+    echo "operation type, backup type, backup dir"
     exit 1
   fi
-  fullbackup=1
-  if [[ "$2" != "$fullbackup" ]]; then
+
+  echo "Checking space in $3 for $1"
+
+  if [[ "$2" != 1 ]]; then
     #2gb free space required for light backup
     (( required  = 2 * 1024 * 1024 ))
-    spaceerror="Insufficient disk space to perform $1. At least 2gb must be free on ${BACKUP_ROOT} partition."
+    spaceerror="Insufficient disk space to perform $1. At least 2gb must be free on ${3} partition."
   else
      #11gb free space required to backup and restore
      (( required = 11 * 1024 * 1024 ))
-    spaceerror="Insufficient disk space to perform $1. At least 11gb must be free on ${BACKUP_ROOT} partition."
+    spaceerror="Insufficient disk space to perform $1. At least 11gb must be free on ${3} partition."
   fi
-  avail=$(df --output=avail ${BACKUP_ROOT} | tail -1)
+  avail=$(df --output=avail ${3} | tail -1)
   if (( avail < required )); then
     echo "$spaceerror" 1>&2
     exit 1
