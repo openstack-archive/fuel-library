@@ -102,6 +102,15 @@ describe manifest do
       "#{murano_protocol}://#{murano_address}:#{api_bind_port}"
     }
 
+    let (:murano_dashboard_collectstatic_command) {
+      if facts[:os_package_type] == 'ubuntu'
+        extra_params = '--noinput'
+      else
+        extra_params = '--noinput --clear'
+      end
+      "/usr/share/openstack-dashboard/manage.py collectstatic #{extra_params}"
+    }
+
     primary_controller = Noop.hiera 'primary_controller'
     if Noop.hiera_structure('use_ssl', false)
       public_auth_protocol = 'https'
@@ -220,6 +229,7 @@ describe manifest do
                    'sync_db'  => false,
                    'enable_glare' => enable_glare
                )
+        should contain_exec('django_collectstatic').with('command' => murano_dashboard_collectstatic_command)
       end
 
       it { should_not contain_concat__fragment('murano_dashboard_section').with_content(/MURANO_API_URL = /)}
