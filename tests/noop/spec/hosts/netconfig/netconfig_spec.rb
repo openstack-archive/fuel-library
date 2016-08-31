@@ -15,7 +15,6 @@ manifest = 'netconfig/netconfig.pp'
 describe manifest do
   shared_examples 'catalog' do
 
-    default_gateway  = Noop.puppet_function, 'get_default_gateways'
     set_xps          = Noop.hiera 'set_xps', true
     set_rps          = Noop.hiera 'set_rps', true
     dpdk_config      = Noop.hiera_hash 'dpdk', {}
@@ -32,7 +31,6 @@ describe manifest do
     ) }
     it { should contain_sysctl__value('net.core.netdev_max_backlog').with('value' => '261144') }
     it { should contain_class('sysfs') }
-    it { should contain_ping_host(default_gateway.join()).with('ensure' => 'up') }
     it { should contain_exec('wait-for-interfaces').with(
       'path'    => '/usr/bin:/bin',
       'command' => 'sleep 32',
