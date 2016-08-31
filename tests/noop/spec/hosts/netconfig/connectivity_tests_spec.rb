@@ -19,5 +19,9 @@ describe manifest do
       return true
     }
   }
+  shared_examples 'catalog' do
+    default_gateway  = Noop.puppet_function, 'get_default_gateways'
+    it { should contain_ping_host(default_gateway.join()).with('ensure' => 'up') }
+  end
   test_ubuntu_and_centos manifest
 end

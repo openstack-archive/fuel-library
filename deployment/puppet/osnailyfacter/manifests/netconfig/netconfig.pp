@@ -105,22 +105,6 @@ class osnailyfacter::netconfig::netconfig {
     command => 'sleep 32',
   }
 
-  $run_ping_checker = hiera('run_ping_checker', true)
-
-  if $run_ping_checker {
-      # check that network was configured successfully
-      # and the default gateway is online
-      $default_gateway = get_default_gateways()
-
-      ping_host { $default_gateway :
-          ensure => 'up',
-      }
-      L2_port<||> -> Ping_host[$default_gateway]
-      L2_bond<||> -> Ping_host[$default_gateway]
-      L3_ifconfig<||> -> Ping_host[$default_gateway]
-      L3_route<||> -> Ping_host[$default_gateway]
-  }
-
   Class['::l23network'] ->
   Exec['wait-for-interfaces']
 
