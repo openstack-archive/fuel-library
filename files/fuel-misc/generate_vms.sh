@@ -93,7 +93,7 @@ do
   fi
 
   #Check if VM is already defined
-  DOMID=$(virsh domid $VM_NAME)
+  DOMID=$(virsh domid $VM_NAME 2>/dev/null)
   if [[ -z "$DOMID" ]]; then
 
     if [[ -f "${TEMPLATE_DIR}/${VM_NAME}.xml" ]]; then
@@ -115,10 +115,15 @@ do
     virsh define $TMP_FILE || exit 1
 
     #Start VM
-    virsh start $VM_NAME || exit 1
+    virsh start $VM_NAME
 
-    #Copy defined XML
-    cp -r $DST_XML ${TEMPLATE_DIR}/${VM_NAME}.xml
+    if [[ $? -eq 0 ]]; then
+      #Copy defined XML
+      cp -r $DST_XML ${TEMPLATE_DIR}/${VM_NAME}.xml
+    else
+      virsh undefine $VM_NAME
+      exit 1
+    fi
   fi
 
 done
