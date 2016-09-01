@@ -25,7 +25,6 @@ class osnailyfacter::rabbitmq::rabbitmq {
         'promote_timeout'     => '120',
         'demote_timeout'      => '120',
         'notify_timeout'      => '180',
-        'slave_mon_interval'  => '30',
         'master_mon_interval' => '27',
         'mon_interval'        => '35',
     }
@@ -218,7 +217,6 @@ class osnailyfacter::rabbitmq::rabbitmq {
           promote_timeout         => $rabbit_ocf['promote_timeout'],
           demote_timeout          => $rabbit_ocf['demote_timeout'],
           notify_timeout          => $rabbit_ocf['notify_timeout'],
-          slave_mon_interval      => $rabbit_ocf['slave_mon_interval'],
           master_mon_interval     => $rabbit_ocf['master_mon_interval'],
           mon_interval            => $rabbit_ocf['mon_interval'],
           require                 => Class['::rabbitmq::install'],
