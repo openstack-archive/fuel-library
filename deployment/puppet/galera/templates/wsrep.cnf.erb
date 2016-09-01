@@ -63,8 +63,7 @@ wsrep_sst_method=<%= @wsrep_sst_method %>
 wsrep_sst_auth=<%= @mysql_user %>:<%= @mysql_password %>
 <% end -%>
 wsrep_node_address=<%= @node_address %>
-wsrep_provider_options="gcache.size = <%= [256, @gcache_factor.to_i*64, 2048].sort[1] %>M"
-wsrep_provider_options="gmcast.listen_addr = tcp://<%= @node_address %>:<%= @gcomm_port.to_s %>"
+wsrep_provider_options="gcache.size = <%= [256, @gcache_factor.to_i*64, 2048].sort[1] %>M; gmcast.listen_addr = tcp://<%= @node_address %>:<%= @gcomm_port.to_s %>"
 
 <% if @wsrep_sst_method =~ /xtrabackup/ -%>
 [xtrabackup]
