@@ -29,9 +29,8 @@ describe 'cluster::rabbitmq_ocf' do
       :promote_timeout         => '120',
       :demote_timeout          => '120',
       :notify_timeout          => '120',
-      :slave_mon_interval      => '30',
       :master_mon_interval     => '27',
-      :mon_interval            => '35',
+      :mon_interval            => '30',
     }}
 
     let(:metadata) {{
@@ -59,13 +58,6 @@ describe 'cluster::rabbitmq_ocf' do
       'role'     => 'Master',
       'interval' => params[:master_mon_interval],
       'timeout'  => params[:mon_timeout]
-    }}
-
-    let(:monitor_slave) {{
-      'role'            => 'Slave',
-      'interval'        => params[:slave_mon_interval],
-      'timeout'         => params[:mon_timeout],
-      'OCF_CHECK_LEVEL' => '30'
     }}
 
     let(:start) {{
