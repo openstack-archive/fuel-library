@@ -18,7 +18,7 @@ def supported_os
       { 'operatingsystem'        => 'CentOS',
         'operatingsystemrelease' => [ '7.0' ] },
       { 'operatingsystem'        => 'Ubuntu',
-        'operatingsystemrelease' => [ '14.04' ] }
+        'operatingsystemrelease' => [ '16.04' ] }
     ]
 end
 

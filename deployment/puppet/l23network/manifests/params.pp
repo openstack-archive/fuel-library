@@ -14,10 +14,7 @@ class l23network::params {
       $lnx_bond_tools             = 'ifenslave'
       $lnx_ethernet_tools         = 'ethtool'
       $lnx_bridge_tools           = 'bridge-utils'
-      $ovs_datapath_package_name  = $::operatingsystemmajrelease ? {
-                                        /^14\./ =>'openvswitch-datapath-dkms',
-                                        default => undef
-                                    }
+      $ovs_datapath_package_name  = undef
       $ovs_common_package_name    = 'openvswitch-switch'
       $ovs_dpdk_package_name      = 'openvswitch-switch-dpdk'
       $ovs_dpdk_dkms_package_name = 'dpdk-dkms'
@@ -81,7 +78,7 @@ class l23network::params {
       $ovs_memory_channels        = undef
     }
     default: {
-      fail("Unsupported OS: ${l23_os}/${::operatingsystem}")
+      fail("Unsupported OS: ${::l23_os}/${::operatingsystem}")
     }
   }
 }
