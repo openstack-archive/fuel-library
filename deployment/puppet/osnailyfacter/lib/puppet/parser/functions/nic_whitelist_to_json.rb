@@ -11,6 +11,8 @@ EOS
 
   nic_whitelist = argv[0]
   return nil unless nic_whitelist
-  nic_whitelist.to_json
+  return nil if nic_whitelist == ''
+  data = nic_whitelist.to_json
+  debug "nic_whitelist_to_json() return: #{data.inspect}"
+  data
 end
-
