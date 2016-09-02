@@ -24,16 +24,9 @@ class osnailyfacter::ceph_nova_compute (
     content => template('osnailyfacter/ceph_secret.erb')
   }
 
-  if ($::operatingsystem == 'Ubuntu') and ($::operatingsystemrelease =~ /^16/) {
-    # This override is required only for 16.04 Ubuntu because we are using UCA libvirt package.
-    $libvirt_service_name  = 'libvirt-bin'
-  } else {
-    $libvirt_service_name  = $::nova::params::libvirt_service_name
-  }
-
   ensure_resource('service', 'libvirt', {
     ensure => 'running',
-    name   => $libvirt_service_name,
+    name   => 'libvirt-bin',
   })
 
   exec {'Set Ceph RBD secret for Nova':
@@ -41,8 +34,8 @@ class osnailyfacter::ceph_nova_compute (
     command => "virsh secret-define --file ${secret_xml} && \
       virsh secret-set-value --secret ${rbd_secret_uuid} \
       --base64 $(ceph auth get-key client.${user})",
-    path   => '/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin',
-    unless => "virsh secret-list | fgrep -qw ${rbd_secret_uuid}",
+    path    => '/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin',
+    unless  => "virsh secret-list | fgrep -qw ${rbd_secret_uuid}",
   }
 
   Nova_config<||> ~>
