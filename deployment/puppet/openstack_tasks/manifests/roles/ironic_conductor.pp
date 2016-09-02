@@ -124,25 +124,18 @@ class openstack_tasks::roles::ironic_conductor {
     require => Class['::ironic'],
   }
 
-  if $::operatingsystemmajrelease == '16.04' {
-    $pxelinux_source = '/usr/lib/PXELINUX/pxelinux.0'
-    $pxelinux_package = ['syslinux', 'pxelinux']
-    # TODO(vsaienko) remove provider hack when puppetlabs-tftp fixed issue with
-    # default provider.
-    Service <| title == 'tftpd-hpa' |> { provider => 'systemd'}
-  } else {
-    $pxelinux_source = '/usr/lib/syslinux/pxelinux.0'
-    $pxelinux_package = 'syslinux'
-  }
+  # TODO(vsaienko) remove provider hack when puppetlabs-tftp fixed issue with
+  # default provider.
+  Service <| title == 'tftpd-hpa' |> { provider => 'systemd'}
 
-  package { $pxelinux_package:
+  ensure_packages(['syslinux', 'pxelinux'], {
     ensure => 'present',
     before => File["${tftp_root}/pxelinux.0"]
-  }
+  })
 
   file { "${tftp_root}/pxelinux.0":
-    ensure  => present,
-    source  => $pxelinux_source,
+    ensure => present,
+    source => '/usr/lib/PXELINUX/pxelinux.0',
   }
 
   file { "${tftp_root}/map-file":
