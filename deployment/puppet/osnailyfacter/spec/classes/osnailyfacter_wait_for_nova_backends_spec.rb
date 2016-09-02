@@ -5,7 +5,7 @@ describe 'osnailyfacter::wait_for_nova_backends' do
     {
       :osfamily               => 'Debian',
       :operatingsystem        => 'Ubuntu',
-      :operatingsystemrelease => '14.04',
+      :operatingsystemrelease => '16.04',
       :concat_basedir         => '/var/lib/puppet/concat'
     }
   end

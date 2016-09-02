@@ -32,19 +32,7 @@ class fuel::cobbler(
 
   $real_server = $next_server
 
-  if $::osfamily == 'RedHat' {
-    case $operatingsystemmajrelease {
-      '6': {
-        $fence_ssh_source = 'puppet:///modules/fuel/cobbler/fence_ssh.centos6.py'
-      }
-      '7': {
-        $fence_ssh_source = 'puppet:///modules/fuel/cobbler/fence_ssh.centos7.py'
-      }
-      default: {
-        $fence_ssh_source = 'puppet:///modules/fuel/cobbler/fence_ssh.centos6.py'
-      }
-    }
-  }
+  $fence_ssh_source = 'puppet:///modules/fuel/cobbler/fence_ssh.centos7.py'
 
   class { '::cobbler':
     server           => $server,

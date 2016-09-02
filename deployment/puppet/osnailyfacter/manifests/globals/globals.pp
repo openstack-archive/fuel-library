@@ -65,13 +65,11 @@ class osnailyfacter::globals::globals {
 
     # TODO (iberezovskiy): Remove this workaround when
     # https://bugs.launchpad.net/ubuntu/+source/puppet/+bug/1570472 is resolved
-    if $::operatingsystemmajrelease == '16.04' {
-      file { "${facter_os_package_type_dir}/service_provider.txt":
-        ensure  => 'present',
-        mode    => '0640',
-        content => 'service_provider=systemd',
-        require => File[$facter_os_package_type_dir],
-      }
+    file { "${facter_os_package_type_dir}/service_provider.txt":
+      ensure  => 'present',
+      mode    => '0640',
+      content => 'service_provider=systemd',
+      require => File[$facter_os_package_type_dir],
     }
   }
 
