@@ -38,7 +38,6 @@ describe "fuel::keystone" do
           :priority               => '05',
           :threads                => 3,
           :vhost_custom_fragment  => 'LimitRequestFieldSize 81900',
-          :workers                => 1,
           :access_log_format      => 'forwarded',
         )
       end
@@ -47,11 +46,15 @@ describe "fuel::keystone" do
 
   end
 
-  on_supported_os(supported_os: supported_os).each do |os, facts|
-    context "on #{os}" do
-        let(:facts) { facts.merge!(@default_facts) }
-      it_configures "keystone configuration"
+  context 'on RedHat platforms' do
+    let :facts do
+      @default_facts.merge({
+        :osfamily               => 'RedHat',
+        :operatingsystem        => 'CentOS',
+        :operatingsystemrelease => '7.0',
+      })
     end
+    it_configures "keystone configuration"
   end
 
 end

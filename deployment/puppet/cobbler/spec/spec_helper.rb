@@ -25,7 +25,7 @@ def supported_os
       },
       {
           'operatingsystem' => 'Ubuntu',
-          'operatingsystemrelease' => ['14.04'],
+          'operatingsystemrelease' => ['16.04'],
       },
   ]
 end
