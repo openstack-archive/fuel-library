@@ -63,14 +63,7 @@ class openstack::galera::client (
         $mysql_client_name = 'MySQL-client-wsrep'
       }
       'Debian': {
-        # TODO(dmburmistrov): after dropping trusty support
-        # remove this if, only 'mysql-wsrep-client-5.6' should
-        # be preserved
-        if $::operatingsystemrelease =~ /^14/ {
-          $mysql_client_name = 'mysql-client-5.6'
-        } else {
-          $mysql_client_name = 'mysql-wsrep-client-5.6'
-        }
+        $mysql_client_name = 'mysql-wsrep-client-5.6'
       }
       default: {
         fail("Unsupported osfamily: ${::osfamily} operatingsystem: ${::operatingsystem}, module ${module_name} only support osfamily RedHat and Debian")
