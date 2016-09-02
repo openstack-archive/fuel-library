@@ -45,12 +45,7 @@ describe manifest do
       end
 
       it "should start libvirt service service" do
-        if facts[:operatingsystem] == 'Ubuntu' and facts[:operatingsystemrelease] =~ /^16/
-          libvirt_service = 'libvirt-bin'
-        else
-          libvirt_service = 'libvirtd'
-        end
-        should contain_service(libvirt_service).with(
+        should contain_service('libvirt-bin').with(
           'ensure' => 'running',
           'before' => 'Exec[generate_vms]',
         )
