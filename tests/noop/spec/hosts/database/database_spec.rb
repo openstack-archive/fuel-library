@@ -123,19 +123,11 @@ describe manifest do
     end
 
     let(:mysql_client_pkg) do
-      if facts[:operatingsystemrelease] =~ /^14/
-        'mysql-client-5.6'
-      else
-        'mysql-wsrep-client-5.6'
-      end
+      'mysql-wsrep-client-5.6'
     end
 
     let(:mysql_server_pkg) do
-      if facts[:operatingsystemrelease] =~ /^14/
-        'mysql-server-wsrep-5.6'
-      else
-        'mysql-wsrep-server-5.6'
-      end
+      'mysql-wsrep-server-5.6'
     end
 
     it 'should contain galera' do
