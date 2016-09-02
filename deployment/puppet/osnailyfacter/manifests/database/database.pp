@@ -109,15 +109,8 @@ class osnailyfacter::database::database {
         $vendor_type = 'MOS'
         $galera_package_name = 'galera-3'
 
-        # TODO(dmburmistrov): after dropping trusty support
-        # remove this if, only 'mysql-wsrep-*' should be preserved
-        if $::operatingsystemrelease =~ /^14/ {
-          $mysql_package_name  = 'mysql-server-wsrep-5.6'
-          $client_package_name = 'mysql-client-5.6'
-        } else {
-          $mysql_package_name  = 'mysql-wsrep-server-5.6'
-          $client_package_name = 'mysql-wsrep-client-5.6'
-        }
+        $mysql_package_name  = 'mysql-wsrep-server-5.6'
+        $client_package_name = 'mysql-wsrep-client-5.6'
 
         $vendor_override_options = {
           'mysqld'           => {
