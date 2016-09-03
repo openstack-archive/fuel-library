@@ -2,7 +2,7 @@ class osnailyfacter::upgrade::pkg_upgrade {
   # hardcode with retries and sleeps for resolving lock issue
   # should be rewritten
   exec { 'do_upgrade':
-    command     => 'apt-get dist-upgrade -y -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold"',
+    command     => "apt-get dist-upgrade -y --force-yes -o 'APT::Get::AllowUnauthenticated=1' -o Dpkg::Options::='--force-confdef' -o Dpkg::Options::='--force-confold'",
     environment => [ 'DEBIAN_FRONTEND=noninteractive' ],
     path        => ['/usr/bin', '/usr/local/sbin', '/usr/sbin', '/sbin', '/bin' ],
     timeout     => 1700,
