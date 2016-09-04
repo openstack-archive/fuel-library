@@ -180,7 +180,7 @@ class osnailyfacter::rabbitmq::rabbitmq {
         unless  => 'pgrep epmd',
       }
       # Make sure the various providers have their requirements in place.
-      Class['::rabbitmq::install'] -> Exec['epmd_daemon']
+      Class['::rabbitmq::install'] -> File['/etc/rabbitmq'] -> Exec['epmd_daemon']
         -> Rabbitmq_plugin<| |> -> Rabbitmq_exchange<| |>
 
       if ($use_pacemaker) {

@@ -17,7 +17,8 @@ class fuel::rabbitmq (
   $stomp              = false,
   ) inherits fuel::params {
 
-  include stdlib
+  include ::stdlib
+
   anchor { 'rabbitmq-begin' :}
   anchor { 'rabbitmq-end' :}
 
@@ -72,13 +73,13 @@ class fuel::rabbitmq (
     require              => [Class['::rabbitmq'], Rabbitmq_vhost['/']]
   }
 
-  file { "/etc/rabbitmq/enabled_plugins":
-    content => '[amqp_client,rabbitmq_stomp,rabbitmq_management].',
-    owner   => root,
-    group   => root,
-    mode    => 0644,
-    require => Package["rabbitmq-server"],
-    notify  => Service["rabbitmq-server"],
+  # enable plugins 'amqp_client' and 'rabbitmq_stomp'.
+  # plugin 'rabbitmq_management' would be enabled by the ::rabbitmq class
+  rabbitmq_plugin {['amqp_client','rabbitmq_stomp']:
+    ensure   => present,
+    require  => Package['rabbitmq-server'],
+    notify   => Service['rabbitmq-server'],
+    provider => 'rabbitmqplugins',
   }
 
   if $stomp {
@@ -186,6 +187,7 @@ class fuel::rabbitmq (
     tries       => 30,
     try_sleep   => 6,
   }
+
   # TODO(bogdando) contribute this to puppetlabs-rabbitmq
   # Start epmd as rabbitmq so it doesn't run as root when installing plugins
   exec { 'epmd_daemon':
@@ -196,7 +198,7 @@ class fuel::rabbitmq (
     unless  => 'pgrep epmd',
   }
   # Make sure the various providers have their requirements in place.
-  Class['::rabbitmq::install'] -> Exec['epmd_daemon']
+  Class['::rabbitmq::install'] -> File['/etc/rabbitmq'] -> Exec['epmd_daemon']
   -> Rabbitmq_plugin<| |> -> Rabbitmq_exchange<| |>
 
   Anchor['rabbitmq-begin'] ->
