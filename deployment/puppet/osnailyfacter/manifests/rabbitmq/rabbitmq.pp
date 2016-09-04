@@ -171,7 +171,7 @@ class osnailyfacter::rabbitmq::rabbitmq {
       }
 
       # Make sure the various providers have their requirements in place.
-      Class['::rabbitmq::install'] -> Rabbitmq_plugin<| |> -> Rabbitmq_exchange<| |>
+      Class['::rabbitmq::install'] -> File['/etc/rabbitmq'] -> Rabbitmq_plugin<| |> -> Rabbitmq_exchange<| |>
 
       rabbitmq_user { $rabbit_hash['user']:
         admin    => true,
