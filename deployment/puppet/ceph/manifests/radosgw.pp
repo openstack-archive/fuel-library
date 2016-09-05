@@ -234,5 +234,5 @@ class ceph::radosgw (
   Exec["Populate ${radosgw_auth_key} keyring"] ->
   File[$keyring_path] ->
   Firewall['012 RadosGW allow'] ~>
-  Service ['httpd']
+  Service['httpd']
 }

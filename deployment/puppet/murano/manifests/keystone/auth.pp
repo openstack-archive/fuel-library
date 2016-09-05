@@ -128,7 +128,6 @@ class murano::keystone::auth(
   $public_port         = undef,
   $public_protocol     = undef,
   $public_address      = undef,
-  $public_port         = undef,
   $internal_protocol   = undef,
   $internal_address    = undef,
   $admin_protocol      = undef,
