@@ -1,15 +1,7 @@
+# Update packages (Ubuntu case)
 class osnailyfacter::upgrade::pkg_upgrade {
-  # hardcode with retries and sleeps for resolving lock issue
-  # should be rewritten
-  exec { 'do_upgrade':
-    command     => 'apt-get dist-upgrade -y -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold"',
-    environment => [ 'DEBIAN_FRONTEND=noninteractive' ],
-    path        => ['/usr/bin', '/usr/local/sbin', '/usr/sbin', '/sbin', '/bin' ],
-    timeout     => 1700,
-    try_sleep   => 10,
-    tries       => 5,
-    logoutput   => true,
-  }
+
+  osnailyfacter::upgrade::pkgs{'do_upgrade':  }
 
   $corosync_roles = hiera('corosync_roles', ['primary-controller', 'controller'])
   if roles_include($corosync_roles) {
@@ -23,13 +15,13 @@ class osnailyfacter::upgrade::pkg_upgrade {
       mode    => '0755',
       owner   => 'root',
       group   => 'root',
-      before  => Exec['do_upgrade']
+      before  => Osnailyfacter::Upgrade::Pkgs['do_upgrade'],
     })
 
     exec { 'remove_policy':
       command => "rm -rf ${policyrc_file}",
       path    => '/bin',
-      require => Exec['do_upgrade'],
+      require => Osnailyfacter::Upgrade::Pkgs['do_upgrade'],
     }
 
     ensure_resource('service', 'pacemaker', {
