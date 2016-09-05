@@ -53,6 +53,6 @@ class osnailyfacter::mysql_access (
     # TODO(dilyin): ensuring the default file is present is required for the external db configurations
     # TODO(dilyin): but it causes duplicate declaration errors on the controller. Some solution should be found.
     # TODO(dilyin): https://bugs.launchpad.net/fuel/+bug/1618607
-    # ensure_resource(file, $default_file_path)
+    ensure_resource(file, $default_file_path)
   }
 }
