@@ -81,7 +81,7 @@ class openstack::keystone (
   $token_provider              = undef,
   $revoke_driver               = false,
   $ceilometer                  = false,
-  $service_workers             = $::processorcount,
+  $service_workers             = min(max($::processorcount, 2), 16),
   $fernet_src_repository       = undef,
   $fernet_key_repository       = '/etc/keystone/fernet-keys',
 ) {
