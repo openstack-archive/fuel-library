@@ -81,7 +81,7 @@ class openstack::keystone (
   $token_provider              = undef,
   $revoke_driver               = false,
   $ceilometer                  = false,
-  $service_workers             = $::processorcount,
+  $workers_max                 = 16,
   $fernet_src_repository       = undef,
   $fernet_key_repository       = '/etc/keystone/fernet-keys',
 ) {
@@ -136,6 +136,8 @@ class openstack::keystone (
       notify  => Service[httpd],
     }
   }
+
+  $service_workers = min(max($::processorcount, 2), $workers_max)
 
   if $enabled {
     class { '::keystone':
