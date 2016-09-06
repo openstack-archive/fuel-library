@@ -18,12 +18,16 @@ case $production {
 
     class {'docker::container': }
 
+    $service_workers = min(max($::processorcount, 2), 16)
+
     class { 'keystone':
       admin_token      => $::fuel_settings['keystone']['admin_token'],
       catalog_type     => 'sql',
       database_connection   => "postgresql://${::fuel_settings['postgres']['keystone_user']}:${::fuel_settings['postgres']['keystone_password']}@${::fuel_settings['ADMIN_NETWORK']['ipaddress']}/${::fuel_settings['postgres']['keystone_dbname']}",
       token_expiration => 86400,
       token_provider   => 'keystone.token.providers.uuid.Provider',
+      admin_workers    => $service_workers,
+      public_workers   => $service_workers,
     }
 
     #FIXME(mattymo): We should enable db_sync on every run inside keystone,
