@@ -1,6 +1,5 @@
 #!/usr/bin/env python
 
-import logging
 import logging.handlers
 import os
 import six
