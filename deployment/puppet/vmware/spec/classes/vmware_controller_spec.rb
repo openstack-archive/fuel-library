@@ -3,7 +3,7 @@ require 'spec_helper'
 describe 'vmware::controller' do
   on_supported_os.each do |os, facts|
     context "on #{os}" do
-      let(:facts) { facts }
+      let(:facts) { facts.merge(common_facts) }
 
       context 'with custom ca file' do
 

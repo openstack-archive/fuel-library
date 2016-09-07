@@ -3,7 +3,7 @@ require 'spec_helper'
 describe 'vmware::ceilometer::compute_vmware' do
   on_supported_os.each do |os, facts|
     context "on #{os}" do
-      let(:facts) { facts }
+      let(:facts) { facts.merge(common_facts) }
 
       context 'with custom ca file' do
 
@@ -130,7 +130,7 @@ describe 'vmware::ceilometer::compute_vmware' do
           .with_value(params[:vc_password]) }
 
         it { is_expected.to contain_ceilometer_config('vmware/ca_file') \
-          .with_value(nil) }
+          .with_value('<SERVICE DEFAULT>') }
 
         it { is_expected.to contain_ceilometer_config('vmware/insecure') \
           .with_value(params[:vc_insecure]) }

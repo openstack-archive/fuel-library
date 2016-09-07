@@ -3,7 +3,7 @@ require 'spec_helper'
 describe 'vmware::cinder::vmdk', type: :define do
   on_supported_os.each do |os, facts|
     context "on #{os}" do
-      let(:facts) { facts }
+      let(:facts) { facts.merge(common_facts) }
 
       let(:p_param) do
         case facts[:osfamily]

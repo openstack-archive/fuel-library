@@ -63,7 +63,7 @@ describe manifest do
       end
 
       it 'nova-compute.conf should have host set to "ironic-compute"' do
-        should contain_file('/etc/nova/nova-compute.conf').with('content'  => "[DEFAULT]\nhost=ironic-compute")
+        is_expected.to contain_nova_compute_config('DEFAULT/host').with_value('ironic-compute')
       end
 
       it 'nova-compute should manages by pacemaker, and should be disabled as system service' do
