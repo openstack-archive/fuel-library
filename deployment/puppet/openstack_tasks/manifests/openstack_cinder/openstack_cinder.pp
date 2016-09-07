@@ -51,17 +51,25 @@ class openstack_tasks::openstack_cinder::openstack_cinder {
   $queue_provider = hiera('queue_provider', 'rabbit')
   $override_configuration = hiera_hash('configuration', {})
 
-  # override cinder.conf options
-  override_resources { 'cinder_config':
-    data => $override_configuration['cinder']
-  }
+  $override_values = values($override_configuration)
+  if !empty($override_values) and has_key($override_values[0], 'data') {
+    # Create resources of type 'override_resources'. These, in turn,
+    # will either update existing resources in the catalog with new data,
+    # or create these resources, if they do not actually exist.
+    create_resources(override_resources, $override_configuration)
+  } else {
+    # override cinder.conf options
+    override_resources { 'cinder_config':
+      data => $override_configuration['cinder']
+    }
 
-  # override cinder api paste options
-  override_resources { 'cinder_api_paste_ini':
-    data => $override_configuration['cinder_api_paste_ini']
-  }
+    # override cinder api paste options
+    override_resources { 'cinder_api_paste_ini':
+      data => $override_configuration['cinder_api_paste_ini']
+    }
 
-  Override_resources <||> ~> Service <| tag == 'cinder-service' |>
+    Override_resources <||> ~> Service <| tag == 'cinder-service' |>
+  }
 
 
 
