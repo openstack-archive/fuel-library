@@ -23,22 +23,6 @@ describe manifest do
       Noop.puppet_function 'prepare_network_config', network_scheme
     end
 
-    let(:configuration_override) do
-      Noop.hiera_structure 'configuration'
-    end
-
-    let(:neutron_config_override_resources) do
-      configuration_override.fetch('neutron_config', {})
-    end
-
-    let(:neutron_api_config_override_resources) do
-      configuration_override.fetch('neutron_api_config', {})
-    end
-
-    let(:neutron_plugin_ml2_override_resources) do
-      configuration_override.fetch('neutron_plugin_ml2', {})
-    end
-
     context 'with Neutron-server' do
       neutron_config        = Noop.hiera_hash('neutron_config')
       neutron_server_enable = neutron_config.fetch('neutron_server_enable', true)
