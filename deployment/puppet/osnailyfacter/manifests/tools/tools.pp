@@ -12,6 +12,9 @@ class osnailyfacter::tools::tools {
   $puppet = hiera('puppet')
   $deployment_mode = hiera('deployment_mode')
 
+  # improve overall performance of the node
+  sysctl::value { 'vm.swappiness': value => '10' }
+
   class { '::osnailyfacter::atop':
     service_enabled  => $atop_enabled,
     interval         => $atop_interval,
