@@ -7,7 +7,8 @@ describe Puppet::Type.type(:override_resources) do
     @overres = Puppet::Type.type(:override_resources).new(
       :type     => 'keystone_config',
       :data     => {},
-      :defaults => {}
+      :defaults => {},
+      :create_res => true
     )
   end
 
@@ -58,4 +59,11 @@ describe Puppet::Type.type(:override_resources) do
     expect(@overres[:data]).to eq(data)
   end
 
+  it 'should not create resource' do
+    extect {
+      @overres[:create_res] = false
+      @overres.eval_generate
+    }.to have_keystone_config_resource_count(0)
+
+  end
 end

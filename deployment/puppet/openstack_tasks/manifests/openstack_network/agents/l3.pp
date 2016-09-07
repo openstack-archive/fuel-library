@@ -10,13 +10,10 @@ class openstack_tasks::openstack_network::agents::l3 {
   $controller               = roles_include($neutron_controller_roles)
   $compute                  = roles_include($neutron_compute_roles)
 
-  if $controller or ($dvr and $compute) {
-    # override neutron options
-    $override_configuration = hiera_hash('configuration', {})
-    override_resources { 'neutron_l3_agent_config':
-      data => $override_configuration['neutron_l3_agent_config']
-    } ~> Service['neutron-l3']
-  }
+  # override neutron options
+  $override_configuration = hiera_hash('configuration', {})
+  create_resources(override_resources, $override_configuration)
+  Override_resources <||> ~> Service <||>
 
   if $controller or ($dvr and $compute) {
     $debug                   = hiera('debug', true)

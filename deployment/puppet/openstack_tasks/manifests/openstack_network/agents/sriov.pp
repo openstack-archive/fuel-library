@@ -9,6 +9,10 @@ class openstack_tasks::openstack_network::agents::sriov {
 
   prepare_network_config($network_scheme)
   $pci_passthrough_whitelist = get_nic_passthrough_whitelist('sriov')
+  # override neutron options
+  $override_configuration = hiera_hash('configuration', {})
+  create_resources(override_resources, $override_configuration)
+  Override_resources <||> ~> Service <||>
 
   if $pci_passthrough_whitelist {
     $physical_device_mappings = nic_whitelist_to_mappings($pci_passthrough_whitelist)
@@ -26,11 +30,6 @@ class openstack_tasks::openstack_network::agents::sriov {
       ensure => 'installed',
     }
 
-    # override neutron options
-    $override_configuration = hiera_hash('configuration', {})
-    override_resources { 'neutron_sriov_agent_config':
-      data => $override_configuration['neutron_sriov_agent_config']
-    }
 
   }
 
