@@ -7,9 +7,17 @@ class openstack_tasks::openstack_network::plugins::ml2 {
   if $use_neutron {
     # override neutron options
     $override_configuration = hiera_hash('configuration', {})
-    override_resources { 'neutron_agent_ovs':
-      data => $override_configuration['neutron_agent_ovs']
-    } ~> Service['neutron-ovs-agent-service']
+    $override_values = values($override_configuration)
+    if !empty($override_values) and has_key($override_values[0], 'data') {
+      # Create resources of type 'override_resources'. These, in turn,
+      # will either update existing resources in the catalog with new data,
+      # or create these resources, if they do not actually exist.
+      create_resources(override_resources, $override_configuration)
+    } else {
+      override_resources { 'neutron_agent_ovs':
+        data => $override_configuration['neutron_agent_ovs']
+      } ~> Service['neutron-ovs-agent-service']
+    }
   }
 
   if $use_neutron {
