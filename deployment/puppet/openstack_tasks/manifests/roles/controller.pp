@@ -2,12 +2,10 @@ class openstack_tasks::roles::controller {
 
   notice('MODULAR: roles/controller.pp')
 
-  # Pulling hiera
   $primary_controller             = hiera('primary_controller')
   $neutron_mellanox               = hiera('neutron_mellanox', false)
   $use_neutron                    = hiera('use_neutron', false)
 
-  # Do the stuff
   if $neutron_mellanox {
     $mellanox_mode = $neutron_mellanox['plugin']
   } else {
@@ -36,18 +34,9 @@ class openstack_tasks::roles::controller {
     }
   }
 
-  # NOTE(bogdando) for nodes with pacemaker, we should use OCF instead of monit
-
   # BP https://blueprints.launchpad.net/mos/+spec/include-openstackclient
   package { 'python-openstackclient' :
     ensure => installed,
   }
-
-  # Reduce swapiness on controllers, see LP#1413702
-  sysctl::value { 'vm.swappiness':
-    value => '10'
-  }
-
-  # vim: set ts=2 sw=2 et :
 
 }
