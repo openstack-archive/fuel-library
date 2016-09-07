@@ -13,9 +13,14 @@ class openstack_tasks::openstack_network::agents::l3 {
   if $controller or ($dvr and $compute) {
     # override neutron options
     $override_configuration = hiera_hash('configuration', {})
-    override_resources { 'neutron_l3_agent_config':
-      data => $override_configuration['neutron_l3_agent_config']
-    } ~> Service['neutron-l3']
+  $override_values = values($override_configuration)
+    if has_key($override_values[0], 'data') {
+      create_resources(override_resources, $override_configuration)
+    } else {
+      override_resources { 'neutron_l3_agent_config':
+        data => $override_configuration['neutron_l3_agent_config']
+      } ~> Service['neutron-l3']
+    }
   }
 
   if $controller or ($dvr and $compute) {
