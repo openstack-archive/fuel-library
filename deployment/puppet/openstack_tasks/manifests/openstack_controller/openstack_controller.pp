@@ -6,16 +6,9 @@ class openstack_tasks::openstack_controller::openstack_controller {
   notice('MODULAR: openstack_controller/openstack_controller.pp')
 
   $override_configuration = hiera_hash('configuration', {})
-  # override nova options
-  override_resources { 'nova_config':
-    data => $override_configuration['nova_config']
-  }
-  # override nova-api options
-  override_resources { 'nova_paste_api_ini':
-    data => $override_configuration['nova_paste_api_ini']
-  }
 
-  Override_resources <||> ~> Service <| tag == 'nova-service' |>
+  create_resources(override_resources, $override_configuration)
+
 
   $network_scheme = hiera_hash('network_scheme', {})
   $network_metadata = hiera_hash('network_metadata', {})

@@ -51,17 +51,9 @@ class openstack_tasks::openstack_cinder::openstack_cinder {
   $queue_provider = hiera('queue_provider', 'rabbit')
   $override_configuration = hiera_hash('configuration', {})
 
-  # override cinder.conf options
-  override_resources { 'cinder_config':
-    data => $override_configuration['cinder']
-  }
 
-  # override cinder api paste options
-  override_resources { 'cinder_api_paste_ini':
-    data => $override_configuration['cinder_api_paste_ini']
-  }
+  create_resources(override_resources, $override_configuration)
 
-  Override_resources <||> ~> Service <| tag == 'cinder-service' |>
 
 
 

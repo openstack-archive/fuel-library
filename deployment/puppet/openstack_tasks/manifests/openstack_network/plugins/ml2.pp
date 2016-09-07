@@ -4,9 +4,8 @@ class openstack_tasks::openstack_network::plugins::ml2 {
 
   # override neutron options
   $override_configuration = hiera_hash('configuration', {})
-  override_resources { 'neutron_agent_ovs':
-    data => $override_configuration['neutron_agent_ovs']
-  } ~> Service['neutron-ovs-agent-service']
+  create_resources(override_resources, $override_configuration)
+
 
   include ::neutron::params
 
