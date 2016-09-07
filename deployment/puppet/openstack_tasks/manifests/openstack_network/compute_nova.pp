@@ -170,6 +170,12 @@ class openstack_tasks::openstack_network::compute_nova {
         osapi_compute_workers => '1',
       }
 
+      # tweak both 'nova-db-sync' and 'nova-db-sync-api' execs
+      Exec<| title == 'nova-db-sync' or title == 'nova-db-sync-api' |> {
+        tries     => '10',
+        try_sleep => '5',
+      }
+
       if $::operatingsystem == 'Ubuntu' {
         tweaks::ubuntu_service_override { 'nova-api':
           package_name => 'nova-api',
