@@ -99,6 +99,11 @@ describe manifest do
       should contain_package('cloud-init').with({
         'ensure' => 'absent'})
     end
+
+    it 'should set vm.swappiness sysctl to 10' do
+      should contain_sysctl('vm.swappiness').with('val' => '10')
+    end
+
   end
 
   test_ubuntu_and_centos manifest
