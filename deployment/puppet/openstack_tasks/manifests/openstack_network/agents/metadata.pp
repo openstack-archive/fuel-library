@@ -19,13 +19,10 @@ class openstack_tasks::openstack_network::agents::metadata {
                              min(max($::processorcount, 2), $workers_max))
   }
 
-  if $controller or ($dvr and $compute) {
-    # override neutron options
-    $override_configuration = hiera_hash('configuration', {})
-    override_resources { 'neutron_metadata_agent_config':
-      data => $override_configuration['neutron_metadata_agent_config']
-    } ~> Service['neutron-metadata']
-  }
+  # override neutron options
+  $override_configuration = hiera_hash('configuration', {})
+  create_resources(override_resources, $override_configuration)
+  Override_resources <||> ~> Service <||>
 
   if $controller or ($dvr and $compute) {
     $debug                  = hiera('debug', true)
