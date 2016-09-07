@@ -16,12 +16,8 @@ describe manifest do
   end
 
   shared_examples 'catalog' do
-    let(:node_role) do
-      Noop.hiera('role')
-    end
-
-    let(:configuration_override) do
-      Noop.hiera_structure 'configuration'
+    let(:node_roles) do
+      Noop.hiera('roles')
     end
 
     na_config                = Noop.hiera_hash('neutron_advanced_configuration', {})
@@ -41,15 +37,11 @@ describe manifest do
     let(:nova_internal_protocol) { Noop.puppet_function 'get_ssl_property', ssl_hash, {}, 'nova', 'internal', 'protocol', nova_metadata_protocol }
     let(:nova_internal_endpoint) { Noop.puppet_function 'get_ssl_property', ssl_hash, {}, 'nova', 'internal', 'hostname', nova_endpoint }
 
-    if neutron_compute_roles.include?(Noop.hiera('role'))
+    if not (neutron_compute_roles & Noop.hiera('roles')).empty?
       context 'neutron-metadata-agent on compute' do
         na_config = Noop.hiera_hash('neutron_advanced_configuration')
         dvr = na_config.fetch('neutron_dvr', false)
         if dvr
-          let(:neutron_metadata_agent_config_override_resources) do
-            configuration_override.fetch('neutron_metadata_agent_config', {})
-          end
-
           let(:metadata_workers) do
             neutron_config.fetch('workers', [facts[:processorcount].to_i/8+1, workers_max.to_i].min)
           end
@@ -75,40 +67,18 @@ describe manifest do
           it { should contain_class('neutron::agents::metadata').with(
             'metadata_workers' => metadata_workers
           )}
-          it 'neutron metadata agent config should be modified by override_resources' do
-            is_expected.to contain_override_resources('neutron_metadata_agent_config').with(:data => neutron_metadata_agent_config_override_resources)
-          end
-          it 'should use "override_resources" to update the catalog' do
-            ral_catalog = Noop.create_ral_catalog self
-            neutron_metadata_agent_config_override_resources.each do |title, params|
-              params['value'] = 'True' if params['value'].is_a? TrueClass
-              expect(ral_catalog).to contain_neutron_metadata_agent_config(title).with(params)
-            end
-          end
+
+          include_examples 'override_resources'
         else
           it { should_not contain_class('neutron::agents::metadata') }
         end
         it { should_not contain_class('cluster::neutron::metadata') }
       end
-    elsif neutron_controller_roles.include?(Noop.hiera('role'))
+    elsif not (neutron_controller_roles & Noop.hiera('roles')).empty?
       context 'with neutron-metadata-agent on controller' do
 
-        let(:neutron_metadata_agent_config_override_resources) do
-          configuration_override.fetch('neutron_metadata_agent_config', {})
-        end
         let(:metadata_workers) do
           neutron_config.fetch('workers', [[facts[:processorcount].to_i, 2].max, workers_max.to_i].min)
-        end
-
-        it 'neutron metadata agent config should be modified by override_resources' do
-          is_expected.to contain_override_resources('neutron_metadata_agent_config').with(:data => neutron_metadata_agent_config_override_resources)
-        end
-        it 'should use "override_resources" to update the catalog' do
-          ral_catalog = Noop.create_ral_catalog self
-          neutron_metadata_agent_config_override_resources.each do |title, params|
-            params['value'] = 'True' if params['value'].is_a? TrueClass
-            expect(ral_catalog).to contain_neutron_metadata_agent_config(title).with(params)
-          end
         end
 
         it { should contain_class('neutron::agents::metadata').with(
@@ -132,9 +102,10 @@ describe manifest do
         it { should contain_class('neutron::agents::metadata').with(
           'metadata_workers' => metadata_workers
         )}
+        include_examples 'override_resources'
         if ha_agent
           it { should contain_class('cluster::neutron::metadata').with(
-            'primary' => (node_role == 'primary-controller')
+            'primary' => (node_roles.include? 'primary-controller')
           )}
         else
           it { should_not contain_class('cluster::neutron::metadata') }
