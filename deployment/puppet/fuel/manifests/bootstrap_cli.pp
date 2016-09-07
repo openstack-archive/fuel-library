@@ -47,17 +47,54 @@ class fuel::bootstrap_cli(
   $config_wgetrc          = false,
   ) {
 
+  $default_settings = {
+    root_ssh_authorized_file => "/root/.ssh/id_rsa.pub",
+    extend_kopts =>  "biosdevname=0 net.ifnames=1 debug ignore_loglevel log_buf_len=10M print_fatal_signals=1 LOGLEVEL=8",
+    output_dir => "/tmp/",
+    ubuntu_release => "xenial",
+    kernel_flavor => "linux-image-generic-lts-xenial",
+    extra_dirs => ["/usr/share/fuel_bootstrap_cli/files/xenial"],
+    packages => [
+      "daemonize",
+      "fuel-agent",
+      "hwloc",
+      "i40e-dkms",
+      "linux-firmware",
+      "linux-headers-generic",
+      "live-boot",
+      "live-boot-initramfs-tools",
+      "mc",
+      "mcollective",
+      "msmtp-mta",
+      "multipath-tools",
+      "multipath-tools-boot",
+      "nailgun-agent",
+      "nailgun-mcagents",
+      "network-checker",
+      "ntp",
+      "ntpdate",
+      "openssh-client",
+      "openssh-server",
+      "puppet",
+      "squashfs-tools",
+      "ubuntu-minimal",
+      "vim",
+      "wget",
+      "xz-utils"
+    ],
+    bootstrap_images_dir => "/var/www/nailgun/bootstraps",
+    active_bootstrap_symlink => "/var/www/nailgun/bootstraps/active_bootstrap"
+  }
   $additional_settings = {'direct_repo_addresses' => $direct_repo_addresses}
-  $custom_settings = merge($settings, $additional_settings)
+  $custom_settings = merge($default_settings, $settings, $additional_settings)
 
   ensure_packages([$bootstrap_cli_package])
 
-  merge_yaml_settings { $config_path :
-    ensure        => 'present',
-    path          => $config_path,
-    original_data => $config_path,
-    override_data => $custom_settings,
-    require       => Package[$bootstrap_cli_package],
+  file { $config_path :
+    content => template('fuel/fuel_bootstrap_cli.yaml.erb'),
+    owner   => 'root',
+    group   => 'root',
+    mode    => '0644',
   }
 
   if $config_wgetrc {
