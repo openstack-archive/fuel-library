@@ -18,7 +18,7 @@ import copy
 import jsonschema
 import mock
 
-from unittest2.case import TestCase
+from unittest2 import case
 
 from tasklib import validator
 
@@ -43,7 +43,7 @@ TASKS = [
      'type': 'stage'}]
 
 
-class TestValidator61(TestCase):
+class TestValidator61(case.TestCase):
 
     def setUp(self):
         self.tasks = copy.deepcopy(TASKS)
@@ -103,7 +103,7 @@ class TestValidator61(TestCase):
                           valid_tasks.validate_graph)
 
 
-class TestValidatorClient(TestCase):
+class TestValidatorClient(case.TestCase):
 
     def test_no_dir(self):
         args = ['script/name']

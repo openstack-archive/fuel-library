@@ -13,12 +13,12 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
-from unittest2.case import TestCase
+from unittest2 import case
 
 from tasklib import graph
 
 
-class TestGraphs(TestCase):
+class TestGraphs(case.TestCase):
 
     def test_connectability(self):
         tasks = [
