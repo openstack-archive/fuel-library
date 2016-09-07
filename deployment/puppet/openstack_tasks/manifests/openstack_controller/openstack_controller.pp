@@ -267,7 +267,7 @@ class openstack_tasks::openstack_controller::openstack_controller {
   (POST, %(*/servers), ^/servers,  #{@post_servers_limit} , DAY);(PUT, %(*) , .*,  #{@put_limit}\
   , MINUTE);(GET, %(*changes-since*), .*changes-since.*, #{@get_limit}, MINUTE);(DELETE, %(*),\
   .*, #{@delete_limit} , MINUTE)" %>')
-  #  notice("will apply following limits: ${nova_rate_limits_string}")
+
   # Configure nova-api
   class { '::nova::api':
     enabled                              => true,
@@ -289,6 +289,14 @@ class openstack_tasks::openstack_controller::openstack_controller {
     default_floating_pool                => $default_floating_net,
     enable_proxy_headers_parsing         => true,
     require                              => Package['nova-common'],
+  }
+
+  # tweak both 'nova-db-sync' and 'nova-db-sync-api' execs
+  if $primary_controller {
+    Exec<| title == 'nova-db-sync' or title == 'nova-db-sync-api' |> {
+      tries => '10',
+      try_sleep => '5',
+    }
   }
 
   Package[$pymemcache_package_name] -> Nova::Generic_service <| title == 'api' |>
