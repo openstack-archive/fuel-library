@@ -95,9 +95,6 @@ describe manifest do
       elsif neutron_controller_roles.include?(Noop.hiera('role'))
         context 'with neutron-metadata-agent on controller' do
 
-          let(:neutron_metadata_agent_config_override_resources) do
-            configuration_override.fetch('neutron_metadata_agent_config', {})
-          end
           let(:metadata_workers) do
             neutron_config.fetch('workers', [[facts[:processorcount].to_i, 2].max, workers_max.to_i].min)
           end
@@ -141,6 +138,8 @@ describe manifest do
           else
             it { should_not contain_class('cluster::neutron::metadata') }
           end
+
+          include_examples 'override_resources'
         end
       end
     end
