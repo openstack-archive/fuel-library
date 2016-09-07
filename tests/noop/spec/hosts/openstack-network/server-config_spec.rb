@@ -20,22 +20,6 @@ describe manifest do
         Noop.hiera_hash('network_scheme', {})
       end
 
-      let(:configuration_override) do
-        Noop.hiera_structure 'configuration'
-      end
-
-      let(:neutron_config_override_resources) do
-        configuration_override.fetch('neutron_config', {})
-      end
-
-      let(:neutron_api_config_override_resources) do
-        configuration_override.fetch('neutron_api_config', {})
-      end
-
-      let(:neutron_plugin_ml2_override_resources) do
-        configuration_override.fetch('neutron_plugin_ml2', {})
-      end
-
       context 'with Neutron-server' do
         workers_max      = Noop.hiera 'workers_max'
         neutron_config   = Noop.hiera_hash('neutron_config')
@@ -316,34 +300,6 @@ describe manifest do
         it { should contain_class('neutron::plugins::ml2').with(
           'extension_drivers' => extension_drivers,
         )}
-
-        it 'neutron config should be modified by override_resources' do
-          is_expected.to contain_override_resources('neutron_config').with(:data => neutron_config_override_resources)
-        end
-
-        it 'neutron api config should be modified by override_resources' do
-          is_expected.to contain_override_resources('neutron_api_config').with(:data => neutron_api_config_override_resources)
-        end
-
-        it 'neutron plugin ml2 should be modified by override_resources' do
-          is_expected.to contain_override_resources('neutron_plugin_ml2').with(:data => neutron_plugin_ml2_override_resources)
-        end
-
-        it 'should use "override_resources" to update the catalog' do
-          ral_catalog = Noop.create_ral_catalog self
-          neutron_config_override_resources.each do |title, params|
-            params['value'] = ['True'] if params['value'].is_a? TrueClass
-            expect(ral_catalog).to contain_neutron_config(title).with(params)
-          end
-          neutron_api_config_override_resources.each do |title, params|
-            params['value'] = 'True' if params['value'].is_a? TrueClass
-            expect(ral_catalog).to contain_neutron_api_config(title).with(params)
-          end
-          neutron_plugin_ml2_override_resources.each do |title, params|
-            params['value'] = 'True' if params['value'].is_a? TrueClass
-            expect(ral_catalog).to contain_neutron_plugin_ml2(title).with(params)
-          end
-        end
 
       end
     end
