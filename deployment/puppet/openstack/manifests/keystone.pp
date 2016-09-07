@@ -78,7 +78,7 @@ class openstack::keystone (
   $cache_backend               = 'keystone.cache.memcache_pool',
   $revoke_driver               = false,
   $ceilometer                  = false,
-  $service_workers             = $::processorcount,
+  $workers_max                 = 16,
 ) {
 
   # Install and configure Keystone
@@ -123,6 +123,8 @@ class openstack::keystone (
       default => "https://${public_hostname}:5000",
     }
   }
+
+  $service_workers = min(max($::processorcount, 2), $workers_max)
 
   if $enabled {
     class { '::keystone':
