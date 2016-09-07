@@ -17,7 +17,7 @@
 
 from itertools import ifilter
 from novaclient.client import Client
-from optparse import OptionParser
+import optparse
 import subprocess
 import sys
 import yaml
@@ -80,7 +80,7 @@ def main():
     IP.append(get_data_from_hiera('management_vip'))
     AUTH_URL = "http://" + ifilter(None, IP).next() + ":5000/v2.0/"
 
-    parser = OptionParser()
+    parser = optparse.OptionParser()
     parser.add_option("--create_zones", action="store_true", help="Create \
                       needed availability zones and puts coresponding compute \
                       services in corresponding availability zones")
