@@ -66,16 +66,8 @@ class openstack_tasks::ceilometer::controller {
 
   $override_configuration = hiera_hash('configuration', {})
 
-  # override ceilometer.conf options
-  override_resources { 'ceilometer_config':
-    data => $override_configuration['ceilometer']
-  }
-  # override ceilometer api paste options
-  override_resources { 'ceilometer_api_paste_ini':
-    data => $override_configuration['ceilometer_api_paste_ini']
-  }
+  create_resources(override_resources, $override_configuration)
 
-  Override_resources <||> ~> Service <| tag == 'ceilometer-service' |>
 
 
   if $mongo_hash['enabled'] and $ceilometer_hash['enabled'] {
