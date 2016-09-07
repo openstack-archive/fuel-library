@@ -33,6 +33,7 @@ class cobbler::server (
   $dhcp_gateway   = unset,
   $dhcp_lease_max = '1800',
   $lease_time     = '120m',
+  $reqtimeout     = '120',
 ) {
   include ::cobbler::packages
 
@@ -141,8 +142,9 @@ class cobbler::server (
   #TODO(mattymo): refactor this into cobbler module and use OS-dependent
   #directories
   file { ['/etc/httpd',
-          '/etc/httpd/conf/',
-          '/etc/httpd/conf.d/',
+          '/etc/httpd/conf',
+          '/etc/httpd/conf.d',
+          '/etc/httpd/conf.modules.d',
           '/var/lib/fuel',
           '/var/lib/fuel/keys',
           '/var/lib/fuel/keys/master',
@@ -156,8 +158,8 @@ class cobbler::server (
     group   => 'root',
     mode    => '0644',
     require => [File['/etc/httpd'],
-                File['/etc/httpd/conf/'],
-                File['/etc/httpd/conf.d/']],
+                File['/etc/httpd/conf'],
+                File['/etc/httpd/conf.d']],
     notify  => Service[$cobbler_web_service],
   }
   openssl::certificate::x509 { 'cobbler':
@@ -184,8 +186,8 @@ class cobbler::server (
     group   => 'root',
     mode    => '0644',
     require => [File['/etc/httpd'],
-                File['/etc/httpd/conf/'],
-                File['/etc/httpd/conf.d/']],
+                File['/etc/httpd/conf'],
+                File['/etc/httpd/conf.d']],
     notify  => Service[$cobbler_web_service],
   }
   file { '/etc/httpd/conf/httpd.conf':
@@ -194,8 +196,8 @@ class cobbler::server (
     group   => 'root',
     mode    => '0644',
     require => [File['/etc/httpd'],
-                File['/etc/httpd/conf/'],
-                File['/etc/httpd/conf.d/']],
+                File['/etc/httpd/conf'],
+                File['/etc/httpd/conf.d']],
     notify  => Service[$cobbler_web_service],
   }
 
@@ -204,7 +206,7 @@ class cobbler::server (
     owner   => 'root',
     group   => 'root',
     mode    => '0644',
-    require => File['/etc/httpd/conf.d/'],
+    require => File['/etc/httpd/conf.d'],
     notify  => Service[$cobbler_web_service],
   }
 
@@ -215,6 +217,16 @@ class cobbler::server (
     path    => '/usr/share/cobbler/web/settings.py',
     line    => 'DEBUG = False',
     match   => "^DEBUG.*$",
+  }
+
+  # tempate uses $reqtimeout
+  file { '/etc/httpd/conf.modules.d/20-reqtimeout.conf':
+    content => template('cobbler/cobbler-reqtimeout.conf.erb'),
+    owner   => 'root',
+    group   => 'root',
+    mode    => '0644',
+    require => File['/etc/httpd/conf.modules.d'],
+    notify  => Service[$cobbler_web_service],
   }
 
   service { $cobbler_web_service:
