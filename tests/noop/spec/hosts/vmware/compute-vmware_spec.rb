@@ -12,27 +12,23 @@ describe manifest do
     computes = Noop.hiera_structure('vcenter/computes', [])
 
     it 'should have force_config_drive option set to False' do
-      should contain_file('/etc/nova/nova-compute.conf').with_content(%r{\n\s*force_config_drive=False\n})
+      is_expected.to contain_nova_compute_config('DEFAULT/force_config_drive').with_value(false)
     end
 
     if ceilometer_enabled and computes.any?
 
       it 'should have cache_prefix option set to $host' do
-        should contain_file('/etc/nova/nova-compute.conf').with_content(%r{\n\s*cache_prefix=\$host\n})
+        is_expected.to contain_nova_compute_config('vmware/cache_prefix').with_value('$host')
       end
 
       if network_manager == 'VlanManager'
         it 'should have vlan_interface option set to vmnic0' do
-          should contain_file('/etc/nova/nova-compute.conf').with_content(%r{\n\s*vlan_interface=vmnic0\n})
+          is_expected.to contain_nova_compute_config('vmware/vlan_interface').with_value('vmnic0')
         end
       end
 
       it 'should have /etc/ceilometer/ceilometer.conf' do
         should contain_file('/etc/ceilometer/ceilometer.conf').with_content(%r{\n\s*hypervisor_inspector=vsphere\n})
-      end
-
-      it 'should have force_config_drive option set to False' do
-        should contain_file('/etc/nova/nova-compute.conf').with_content(%r{\n\s*force_config_drive=False\n})
       end
 
     end

@@ -113,20 +113,19 @@ define vmware::compute_vmware(
   $target_node,
   $vlan_interface,
   $vc_insecure        = true,
-  $vc_ca_file         = undef,
-  $datastore_regex    = undef,
+  $vc_ca_file         = $::os_service_default,
+  $datastore_regex    = $::os_service_default,
   $api_retry_count    = '5',
   $maximum_objects    = '100',
-  $nova_compute_conf  = '/etc/nova/nova-compute.conf',
   $task_poll_interval = '5.0',
   $use_linked_clone   = true,
-  $wsdl_location      = undef,
+  $wsdl_location      = $::os_service_default,
   $service_enabled    = false,
 )
 {
   include ::nova::params
-  $vcenter_ca_file     = pick($vc_ca_file, {})
-  $vcenter_ca_content  = pick($vcenter_ca_file['content'], {})
+  $vcenter_ca_file     = pick($vc_ca_file, { })
+  $vcenter_ca_content  = pick($vcenter_ca_file['content'], { })
   $vcenter_ca_filepath = '/etc/nova/vmware-ca.pem'
 
   if $service_enabled {
@@ -153,21 +152,44 @@ define vmware::compute_vmware(
       $compute_vcenter_insecure_real = $vc_insecure
     }
 
-    file { $nova_compute_conf:
-      ensure  => present,
-      content => template('vmware/nova-compute.conf.erb'),
+    nova_compute_config {
+      'DEFAULT/compute_driver'          : value => 'vmwareapi.VMwareVCDriver';
+      'DEFAULT/log_file'                : value => "nova-compute-vmware-${availability_zone_name}-${service_name}.log";
+      'DEFAULT/host'                    : value => "${availability_zone_name}-${service_name}";
+      'DEFAULT/reserved_host_memory_mb' : value => 0;
+      'DEFAULT/force_config_drive'      : value => false;
+
+      'vmware/cache_prefix'             : value => '$host';
+      'vmware/cluster_name'             : value => $vc_cluster;
+      'vmware/host_ip'                  : value => $vc_host;
+      'vmware/host_username'            : value => $vc_user;
+      'vmware/host_password'            : value => $vc_password;
+      'vmware/insecure'                 : value => $compute_vcenter_insecure_real;
+      'vmware/api_retry_count'          : value => $api_retry_count;
+      'vmware/maximum_objects'          : value => $maximum_objects;
+      'vmware/task_poll_interval'       : value => $task_poll_interval;
+      'vmware/use_linked_clone'         : value => $use_linked_clone;
+      'vmware/ca_file'                  : value => $compute_vcenter_ca_filepath;
+      'vmware/datastore_regex'          : value => $datastore_regex;
+      'vmware/vlan_interface'           : value => $vlan_interface;
+      'vmware/wsdl_location'            : value => $wsdl_location;
+
+    }
+
+    file { 'nova_compute_conf' :
+      ensure  => 'present',
       mode    => '0600',
       owner   => 'nova',
       group   => 'nova',
     }
 
     package { 'nova-compute':
-      ensure => installed,
+      ensure => 'installed',
       name   => $::nova::params::compute_package_name,
     }
 
     package { 'python-oslo.vmware':
-      ensure => installed,
+      ensure => 'installed',
     }
 
     service { 'nova-compute':
@@ -176,9 +198,10 @@ define vmware::compute_vmware(
       enable => $service_enabled,
     }
 
-    Package['python-oslo.vmware']->
-    Package['nova-compute']->
-    File[$nova_compute_conf]->
+    Package['python-oslo.vmware'] ->
+    Package['nova-compute'] ->
+    File['nova_compute_conf'] ->
+    Nova_compute_config <||> ~>
     Service['nova-compute']
   }
 }
