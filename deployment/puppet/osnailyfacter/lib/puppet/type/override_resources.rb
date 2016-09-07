@@ -12,6 +12,10 @@ Puppet::Type.newtype(:override_resources) do
     defaultto {}
   end
 
+  newparam(:create_res) do
+    defaultto true
+  end
+
   def update_resource(type, title, parameters = {})
     fail 'First argument should be the type of the resource!' unless type and not type.empty?
     fail 'Second argument should be the title of the resource!' unless title and not title.empty?
@@ -38,6 +42,7 @@ Puppet::Type.newtype(:override_resources) do
     type = self[:type]
     data = self[:data] || {}
     defaults = self[:defaults] || {}
+    create_res = self[:create_res] || false
 
     fail 'Title should be a resource type to override!' unless type and not type.empty?
     fail 'Data should contain resource hash!' unless data.is_a? Hash
@@ -51,7 +56,7 @@ Puppet::Type.newtype(:override_resources) do
       if resource
         debug "#{type}[#{title}]: found in the catalog, updating it"
         update_resource type, title, parameters
-      else
+      elsif create_res
         debug "#{type}[#{title}]: was not found in the catalog, creating it"
         new_resources << create_resource(type, title, parameters)
       end

@@ -20,10 +20,6 @@ describe manifest do
       Noop.hiera('role')
     end
 
-    let(:configuration_override) do
-      Noop.hiera_structure 'configuration'
-    end
-
     na_config                = Noop.hiera_hash('neutron_advanced_configuration', {})
     neutron_config           = Noop.hiera_hash('neutron_config')
     neutron_controller_roles = Noop.hiera('neutron_controller_nodes', ['controller', 'primary-controller'])
@@ -46,10 +42,6 @@ describe manifest do
         na_config = Noop.hiera_hash('neutron_advanced_configuration')
         dvr = na_config.fetch('neutron_dvr', false)
         if dvr
-          let(:neutron_metadata_agent_config_override_resources) do
-            configuration_override.fetch('neutron_metadata_agent_config', {})
-          end
-
           let(:metadata_workers) do
             neutron_config.fetch('workers', [facts[:processorcount].to_i/8+1, workers_max.to_i].min)
           end
@@ -75,16 +67,6 @@ describe manifest do
           it { should contain_class('neutron::agents::metadata').with(
             'metadata_workers' => metadata_workers
           )}
-          it 'neutron metadata agent config should be modified by override_resources' do
-            is_expected.to contain_override_resources('neutron_metadata_agent_config').with(:data => neutron_metadata_agent_config_override_resources)
-          end
-          it 'should use "override_resources" to update the catalog' do
-            ral_catalog = Noop.create_ral_catalog self
-            neutron_metadata_agent_config_override_resources.each do |title, params|
-              params['value'] = 'True' if params['value'].is_a? TrueClass
-              expect(ral_catalog).to contain_neutron_metadata_agent_config(title).with(params)
-            end
-          end
         else
           it { should_not contain_class('neutron::agents::metadata') }
         end
@@ -93,22 +75,8 @@ describe manifest do
     elsif neutron_controller_roles.include?(Noop.hiera('role'))
       context 'with neutron-metadata-agent on controller' do
 
-        let(:neutron_metadata_agent_config_override_resources) do
-          configuration_override.fetch('neutron_metadata_agent_config', {})
-        end
         let(:metadata_workers) do
           neutron_config.fetch('workers', [[facts[:processorcount].to_i, 2].max, workers_max.to_i].min)
-        end
-
-        it 'neutron metadata agent config should be modified by override_resources' do
-          is_expected.to contain_override_resources('neutron_metadata_agent_config').with(:data => neutron_metadata_agent_config_override_resources)
-        end
-        it 'should use "override_resources" to update the catalog' do
-          ral_catalog = Noop.create_ral_catalog self
-          neutron_metadata_agent_config_override_resources.each do |title, params|
-            params['value'] = 'True' if params['value'].is_a? TrueClass
-            expect(ral_catalog).to contain_neutron_metadata_agent_config(title).with(params)
-          end
         end
 
         it { should contain_class('neutron::agents::metadata').with(

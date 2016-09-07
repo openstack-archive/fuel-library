@@ -22,14 +22,6 @@ describe manifest do
 
     let(:memcached_servers) { Noop.hiera 'memcached_servers' }
 
-    let(:configuration_override) do
-      Noop.hiera_structure 'configuration'
-    end
-
-    let(:keystone_config_override) do
-      configuration_override.fetch('keystone_config', {})
-    end
-
     admin_token = Noop.hiera_structure 'keystone/admin_token'
     public_vip = Noop.hiera('public_vip')
     management_vip= Noop.hiera('management_vip')
@@ -265,18 +257,6 @@ describe manifest do
      it 'should disable use_stderr for keystone' do
        should contain_keystone_config('DEFAULT/use_stderr').with(:value => 'false')
      end
-
-     it 'should create/update params with override_resources' do
-       is_expected.to contain_override_resources('keystone_config').with(:data => keystone_config_override)
-     end
-
-    it 'should use "override_resources" to update the catalog' do
-      ral_catalog = Noop.create_ral_catalog self
-      keystone_config_override.each do |title, params|
-        params['value'] = 'True' if params['value'].is_a? TrueClass
-        expect(ral_catalog).to contain_keystone_config(title).with(params)
-      end
-    end
 
     it 'should contain oslo_messaging_notifications "driver" option' do
       should contain_keystone_config('oslo_messaging_notifications/driver').with(:value => ceilometer_hash['notification_driver'])
