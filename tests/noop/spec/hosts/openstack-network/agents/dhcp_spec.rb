@@ -21,14 +21,6 @@ describe manifest do
         Noop.hiera('role')
       end
 
-      let(:configuration_override) do
-        Noop.hiera_structure 'configuration'
-      end
-
-      let(:neutron_dhcp_agent_config_override_resources) do
-        configuration_override.fetch('neutron_dhcp_agent_config', {})
-      end
-
       context 'with Neutron-l3-agent on controller' do
         na_config = Noop.hiera_hash('neutron_advanced_configuration')
         neutron_config = Noop.hiera_hash('neutron_config')
@@ -50,18 +42,6 @@ describe manifest do
         it { should contain_class('neutron::agents::dhcp').with(
           'enable_isolated_metadata' => isolated_metadata
         )}
-
-        it 'neutron dhcp agent config should be modified by override_resources' do
-          is_expected.to contain_override_resources('neutron_dhcp_agent_config').with(:data => neutron_dhcp_agent_config_override_resources)
-        end
-
-        it 'should use "override_resources" to update the catalog' do
-          ral_catalog = Noop.create_ral_catalog self
-          neutron_dhcp_agent_config_override_resources.each do |title, params|
-            params['value'] = 'True' if params['value'].is_a? TrueClass
-            expect(ral_catalog).to contain_neutron_dhcp_agent_config(title).with(params)
-          end
-        end
 
         if ha_agent
           it { should contain_class('cluster::neutron::dhcp').with(

@@ -16,8 +16,8 @@ describe manifest do
   end
 
   shared_examples 'catalog' do
-    let(:node_role) do
-      Noop.hiera('role')
+    let(:node_roles) do
+      Noop.hiera('roles')
     end
 
     let(:network_scheme) do
@@ -33,30 +33,11 @@ describe manifest do
       Noop.puppet_function('get_network_role_property', 'neutron/floating', 'interface')
     end
 
-    if Noop.hiera('role') == 'compute'
+    if Noop.hiera('roles').include? 'compute'
       context 'neutron-l3-agent on compute' do
         na_config = Noop.hiera_hash('neutron_advanced_configuration')
         dvr = na_config.fetch('neutron_dvr', false)
         if dvr
-          let(:configuration_override) do
-            Noop.hiera_structure 'configuration'
-          end
-
-          let(:neutron_l3_agent_config_override_resources) do
-            configuration_override.fetch('neutron_l3_agent_config', {})
-          end
-
-          it 'neutron l3 agent config should be modified by override_resources' do
-            is_expected.to contain_override_resources('neutron_l3_agent_config').with(:data => neutron_l3_agent_config_override_resources)
-          end
-
-          it 'should use "override_resources" to update the catalog' do
-            ral_catalog = Noop.create_ral_catalog self
-            neutron_l3_agent_config_override_resources.each do |title, params|
-              params['value'] = 'True' if params['value'].is_a? TrueClass
-              expect(ral_catalog).to contain_neutron_l3_agent_config(title).with(params)
-            end
-          end
 
           l2pop = na_config.fetch('neutron_l2_pop', false)
           it { should contain_class('neutron::agents::l3').with(
@@ -78,12 +59,14 @@ describe manifest do
             'external_network_bridge' => ' ' # should be present and empty
           )}
           it { should_not contain_cluster__neutron__l3('default-l3') }
+
+          include_examples 'override_resources'
         else
           it { should_not contain_class('neutron::agents::l3') }
         end
       end
 
-    elsif Noop.hiera('role') =~ /controller/
+    elsif not (Noop.hiera('roles') & ['controller', 'primary-controller']).empty?
       context 'with Neutron-l3-agent on controller' do
         na_config = Noop.hiera_hash('neutron_advanced_configuration')
         dvr = na_config.fetch('neutron_dvr', false)
@@ -91,26 +74,6 @@ describe manifest do
         ha_agent   = na_config.fetch('l3_agent_ha', true)
 
         l2pop = na_config.fetch('neutron_l2_pop', false)
-
-        let(:configuration_override) do
-          Noop.hiera_structure 'configuration'
-        end
-
-        let(:neutron_l3_agent_config_override_resources) do
-          configuration_override.fetch('neutron_l3_agent_config', {})
-        end
-
-        it 'neutron l3 agent config should be modified by override_resources' do
-          is_expected.to contain_override_resources('neutron_l3_agent_config').with(:data => neutron_l3_agent_config_override_resources)
-        end
-
-        it 'should use "override_resources" to update the catalog' do
-          ral_catalog = Noop.create_ral_catalog self
-          neutron_l3_agent_config_override_resources.each do |title, params|
-            params['value'] = 'True' if params['value'].is_a? TrueClass
-            expect(ral_catalog).to contain_neutron_l3_agent_config(title).with(params)
-          end
-        end
 
         it { should contain_class('neutron::agents::l3').with(
           'agent_mode' => agent_mode
@@ -133,11 +96,13 @@ describe manifest do
 
         if ha_agent
           it { should contain_cluster__neutron__l3('default-l3').with(
-            'primary' => (node_role == 'primary-controller')
+            'primary' => (node_roles.include? 'primary-controller')
           )}
         else
           it { should_not contain_cluster__neutron__l3('default-l3') }
         end
+
+          include_examples 'override_resources'
       end
     end
   end
