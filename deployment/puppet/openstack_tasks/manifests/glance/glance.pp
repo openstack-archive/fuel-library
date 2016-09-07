@@ -31,26 +31,8 @@ class openstack_tasks::glance::glance {
 
   $override_configuration = hiera_hash('configuration', {})
 
-  # override glance api options
-  override_resources { 'glance_api_config':
-    data => $override_configuration['glance_api']
-  }
-  # override glance registry options
-  override_resources { 'glance_registry_config':
-    data => $override_configuration['glance_registry']
-  }
-
-  # override glance cache options
-  override_resources { 'glance_cache_config':
-    data => $override_configuration['glance_cache']
-  }
-
-  # override glare config options
-  override_resources { 'glance_glare_config':
-    data => $override_configuration['glare_config']
-  }
-
-  Override_resources <||> ~> Service <| tag == 'glance-service' |>
+  create_resources(override_resources, $override_configuration)
+  Override_resources <||> ~> Service <||>
 
 
   $db_type     = 'mysql'

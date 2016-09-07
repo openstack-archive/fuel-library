@@ -4,19 +4,9 @@ class openstack_tasks::openstack_network::server_config {
 
   $use_neutron = hiera('use_neutron', false)
 
-  if $use_neutron {
-    # override neutron options
-    $override_configuration = hiera_hash('configuration', {})
-    override_resources { 'neutron_api_config':
-      data => $override_configuration['neutron_api_config']
-    } ~> Service['neutron-server']
-    override_resources { 'neutron_config':
-      data => $override_configuration['neutron_config']
-    } ~> Service['neutron-server']
-    override_resources { 'neutron_plugin_ml2':
-      data => $override_configuration['neutron_plugin_ml2']
-    } ~> Service['neutron-server']
-  }
+  $override_configuration = hiera_hash('configuration', {})
+  create_resources(override_resources, $override_configuration)
+  Override_resources <||> ~> Service <||>
 
   if $use_neutron {
 

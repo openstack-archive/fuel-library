@@ -4,13 +4,10 @@ class openstack_tasks::openstack_network::agents::dhcp {
 
   $use_neutron = hiera('use_neutron', false)
 
-  if $use_neutron {
-    # override neutron options
-    $override_configuration = hiera_hash('configuration', {})
-    override_resources { 'neutron_dhcp_agent_config':
-      data => $override_configuration['neutron_dhcp_agent_config']
-    } ~> Service['neutron-dhcp-service']
-  }
+  # override neutron options
+  $override_configuration = hiera_hash('configuration', {})
+  create_resources(override_resources, $override_configuration)
+  Override_resources <||> ~> Service <||>
 
   if $use_neutron {
 

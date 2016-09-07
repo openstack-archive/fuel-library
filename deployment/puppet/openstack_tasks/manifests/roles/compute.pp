@@ -9,17 +9,8 @@ class openstack_tasks::roles::compute {
   $nova_service_down_time = hiera('nova_service_down_time', '180')
   prepare_network_config($network_scheme)
 
-  # override nova options
-  override_resources { 'nova_config':
-    data => $override_configuration['nova_config']
-  }
-
-  # override nova-api options
-  override_resources { 'nova_paste_api_ini':
-    data => $override_configuration['nova_paste_api_ini']
-  }
-
-  Override_resources <||> ~> Service <| tag == 'nova-service' |>
+  create_resources(override_resources, $override_configuration)
+  Override_resources <||> ~> Service <||>
 
   # Pulling hiera
   $compute_hash                   = hiera_hash('compute', {})
