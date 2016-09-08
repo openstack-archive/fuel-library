@@ -1,7 +1,7 @@
 # type for managing runtime NIC states.
 
 require 'yaml'
-require_relative '../loader/l23network'
+require_relative '../../puppetx/loader/l23network'
 
 Puppet::Type.newtype(:l2_port) do
     @doc = "Manage a network port abctraction."
@@ -164,8 +164,11 @@ Puppet::Type.newtype(:l2_port) do
       #defaultto {}
       # provider-specific hash, validating only by type.
       validate do |val|
-        if ! val.is_a? Hash
-          fail("Ethtool should be a hash!")
+        unless val.is_a? Hash
+          fail 'Ethtool should be a hash!'
+          if val['rings'] and not val['rings'].is_a? Hash
+            fail 'Rings should be a Hash! Do you have "stringify_facts=false" in your puppet config?'
+          end
         end
       end
       munge do |value|
@@ -220,7 +223,9 @@ Puppet::Type.newtype(:l2_port) do
     end
 
     autorequire(:l2_bridge) do
-      [self[:bridge]]
+      bridge = self[:bridge]
+      next [] unless bridge
+      [bridge]
     end
 end
 # vim: set ts=2 sw=2 et :

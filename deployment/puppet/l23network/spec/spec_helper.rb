@@ -1,5 +1,7 @@
 require 'rubygems'
 require 'puppetlabs_spec_helper/module_spec_helper'
+require 'rspec-puppet-facts'
+include RspecPuppetFacts
 
 fixture_path = File.expand_path(File.join(__FILE__, '..', 'fixtures'))
 
@@ -26,4 +28,20 @@ def puppet_debug_override
   end
 end
 
-###
+def definition_pre_condition
+  <<-eof
+  class {'l23network': }
+
+  Package <||> {
+    provider => 'apt',
+  }
+  eof
+end
+
+def class_pre_condition
+  <<-eof
+  Package <||> {
+    provider => 'apt',
+  }
+  eof
+end

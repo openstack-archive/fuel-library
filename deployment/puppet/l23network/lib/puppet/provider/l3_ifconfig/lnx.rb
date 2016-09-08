@@ -1,4 +1,4 @@
-require File.join(File.dirname(__FILE__), '..','..','..','puppet/provider/l3_base')
+require_relative '../l3_base'
 
 Puppet::Type.type(:l3_ifconfig).provide(:lnx, :parent => Puppet::Provider::L3_base) do
   defaultfor :kernel => :linux

@@ -1,4 +1,4 @@
-require File.join(File.dirname(__FILE__), 'l2_base')
+require_relative 'l2_base'
 
 class Puppet::Provider::Lnx_base < Puppet::Provider::L2_base
 

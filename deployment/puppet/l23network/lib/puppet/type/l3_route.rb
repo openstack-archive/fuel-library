@@ -101,8 +101,5 @@ Puppet::Type.newtype(:l3_route) do
       desc "RO field, type of route"
     end
 
-    autorequire(:l2_port) do
-      [self[:interface]]
-    end
 end
 # vim: set ts=2 sw=2 et :

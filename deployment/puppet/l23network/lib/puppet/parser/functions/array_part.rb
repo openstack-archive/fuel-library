@@ -1,7 +1,3 @@
-#
-# array_part.rb
-#
-
 module Puppet::Parser::Functions
   newfunction(:array_part, :type => :rvalue, :doc => <<-EOS
 This function get array, start and end positions 

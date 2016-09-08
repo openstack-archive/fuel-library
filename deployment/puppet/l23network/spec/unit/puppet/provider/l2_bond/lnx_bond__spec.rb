@@ -73,8 +73,6 @@ describe Puppet::Type.type(:l2_bond).provider(:lnx) do
 
 end
 
-require 'spec_helper'
-
 describe Puppet::Type.type(:l2_bond).provider(:lnx) do
 
   let(:resource) {

@@ -1,6 +1,3 @@
-#
-# netmask_to_cidr.rb
-#
 require 'ipaddr'
 
 module Puppet::Parser::Functions

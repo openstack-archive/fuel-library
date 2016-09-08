@@ -63,12 +63,35 @@ end
         :kernel => 'Linux',
         :l23_os => 'ubuntu',
         :l3_fqdn_hostname => 'stupid_hostname',
+        :netrings => {
+          'eth1' => {
+              'maximums' => {'rx'=>'4096', 'tx'=>'4096'},
+              'current' => {'rx'=>'256', 'tx'=>'256'}
+          },
+          'eth2' => {
+            'maximums' => {'rx'=>'4096', 'tx'=>'4096'},
+            'current' => {'rx'=>'256', 'tx'=>'256'}
+          },
+          'eth3' => {
+            'maximums' => {'rx'=>'4096', 'tx'=>'4096'},
+            'current' => {'rx'=>'2048', 'tx'=>'2048'}
+          }
+        }
       }
     }
 
     let(:params) do {
       :settings_yaml => network_scheme,
     } end
+
+    let(:rings) do
+      {
+        'rings' => {
+          'rx' => '4096',
+          'tx' => '4096'
+        }
+      }
+    end
 
     before(:each) do
       puppet_debug_override()
@@ -135,7 +158,8 @@ end
               'offload' => {
                 'generic-receive-offload'      => false,
                 'generic-segmentation-offload' => false
-              }}
+              }
+         }.merge(rings)
       })
     end
 
@@ -147,7 +171,8 @@ end
                 'generic-receive-offload'      => false,
                 'generic-segmentation-offload' => false
               }
-        }})
+        }.merge(rings)
+      })
     end
 
     it do
@@ -169,7 +194,7 @@ end
                 'generic-receive-offload'      => false,
                 'generic-segmentation-offload' => false
               }
-            }
+           }.merge(rings)
         })
         should contain_l23_stored_config(iface).with({
           'ensure'  => 'present',
@@ -180,7 +205,7 @@ end
                 'generic-receive-offload'      => false,
                 'generic-segmentation-offload' => false
               }
-            }
+            }.merge(rings)
         })
       end
     end

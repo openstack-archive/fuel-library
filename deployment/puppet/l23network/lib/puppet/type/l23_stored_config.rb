@@ -318,8 +318,11 @@ Puppet::Type.newtype(:l23_stored_config) do
     desc "ethtool addition configuration for this interface"
     #defaultto {}  # no default value should be!!!
     validate do |val|
-      if ! val.is_a? Hash
-        fail("ethtool commands should be a hash!")
+      unless val.is_a? Hash
+        fail 'Ethtool should be a hash!'
+        if val['rings'] and not val['rings'].is_a? Hash
+          fail 'Rings should be a Hash! Do you have "stringify_facts=false" in your puppet config?'
+        end
       end
     end
 
@@ -403,11 +406,11 @@ Puppet::Type.newtype(:l23_stored_config) do
     # find routes, that should be applied while this interface UP
     if !['', 'none', 'absent'].include?(self[:ipaddr].to_s.downcase)
       l3_routes = self.catalog.resources.reject{|nnn| nnn.ref.split('[')[0]!='L3_route'}
-      my_network = IPAddr.new(self[:ipaddr].to_s.downcase) # only primary IP ADDR use !!!
+      my_networks = [IPAddr.new(self[:ipaddr].to_s.downcase)]
+      my_networks += self[:ipaddr_aliases].reject{|a| ['', 'none', 'dhcp', 'absent'].include? a.to_s.downcase}.map{|c| IPAddr.new(c.to_s.downcase)}
       my_route = {}
       l3_routes.each do |rou|
-        if my_network.include? rou[:gateway]
-          #self[:routes] = {} if self[:routes].nil?
+        if my_networks.map{|n| n.include? rou[:gateway]}.include? true
           my_route[rou[:name]] = {
             :gateway     => rou[:gateway],
             :destination => rou[:destination]
