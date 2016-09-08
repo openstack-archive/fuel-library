@@ -258,7 +258,7 @@ class openstack_tasks::roles::compute {
       path    => '/etc/libvirt/qemu.conf',
       line    => $libvirt_hugetlbfs_mount,
       match   => '^hugetlbfs_mount =.*$',
-      require => Package[$::nova::params::libvirt_package_name],
+      require => Package['libvirt'],
       notify  => Service['libvirt'],
     }
     file_line { 'libvirt_1g_hugepages_apparmor':
@@ -266,7 +266,7 @@ class openstack_tasks::roles::compute {
       path    => '/etc/apparmor.d/abstractions/libvirt-qemu',
       after   => 'owner "/run/hugepages/kvm/libvirt/qemu/',
       line    => '  owner "/mnt/hugepages_1GB/libvirt/qemu/**" rw,',
-      require => Package[$::nova::params::libvirt_package_name],
+      require => Package['libvirt'],
       notify  => Exec['refresh_apparmor'],
     }
     file_line { '1g_hugepages_fstab':
@@ -497,7 +497,7 @@ class openstack_tasks::roles::compute {
       file_line { 'qemu_selinux':
         path    => '/etc/libvirt/qemu.conf',
         line    => 'security_driver = "selinux"',
-        require => Package[$::nova::params::libvirt_package_name],
+        require => Package['libvirt'],
         notify  => Service['libvirt']
       }
     }
@@ -505,7 +505,7 @@ class openstack_tasks::roles::compute {
       file_line { 'qemu_apparmor':
         path    => '/etc/libvirt/qemu.conf',
         line    => 'security_driver = "apparmor"',
-        require => Package[$::nova::params::libvirt_package_name],
+        require => Package['libvirt'],
         notify  => Service['libvirt']
       }
 

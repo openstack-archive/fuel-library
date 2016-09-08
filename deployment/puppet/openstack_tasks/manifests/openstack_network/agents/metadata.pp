@@ -30,10 +30,10 @@ class openstack_tasks::openstack_network::agents::metadata {
 
   if $use_neutron and ($controller or ($dvr and $compute)) {
     $debug                  = hiera('debug', true)
-    $ha_agent               = try_get_value($neutron_advanced_config, 'metadata_agent_ha', true)
+    $ha_agent               = dig44($neutron_advanced_config, ['metadata_agent_ha'], true)
     $service_endpoint       = hiera('service_endpoint')
     $management_vip         = hiera('management_vip')
-    $shared_secret          = try_get_value($neutron_config, 'metadata/metadata_proxy_shared_secret')
+    $shared_secret          = dig44($neutron_config, ['metadata', 'metadata_proxy_shared_secret'])
     $nova_endpoint          = hiera('nova_endpoint', $management_vip)
     $nova_metadata_protocol = hiera('nova_metadata_protocol', 'http')
     $ssl_hash               = hiera_hash('use_ssl', {})

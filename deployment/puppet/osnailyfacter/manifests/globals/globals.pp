@@ -144,7 +144,13 @@ class osnailyfacter::globals::globals {
   if ($storage_hash['volumes_ceph'] or $storage_hash['images_ceph'] or $storage_hash['objects_ceph']) {
     # Ceph is enabled
     # Define Ceph tuning settings
-    $storage_tuning_settings = hiera($storage_hash['tuning_settings'], {})
+    $tuning_settings = $storage_hash['tuning_settings']
+    if $tuning_settings {
+      $storage_tuning_settings = hiera($tuning_settings, {})
+    } else {
+      $storage_tuning_settings = {}
+    }
+
     $ceph_tuning_settings = {
       'max_open_files'                       => pick($storage_tuning_settings['max_open_files'], '131072'),
       'osd_mkfs_type'                        => pick($storage_tuning_settings['osd_mkfs_type'], 'xfs'),
@@ -244,46 +250,24 @@ class osnailyfacter::globals::globals {
 
   $vips = $network_metadata['vips']
 
-  # TODO(mpolenchuk): try_get_value() is deprecated,
-  # replace with dig() once stdlib 4.12 will be available
-  $public_vip             = try_get_value($vips, 'public/ipaddr',
+  $public_vip             = dig44($vips, ['public', 'ipaddr'],
                               get_network_role_property('public/vip', 'ipaddr')
                             )
-  $management_vip         = try_get_value($vips, 'management/ipaddr',
+  $management_vip         = dig44($vips, ['management', 'ipaddr'],
                               get_network_role_property('mgmt/vip', 'ipaddr')
                             )
-  $public_vrouter_vip     = try_get_value($vips, 'vrouter_pub/ipaddr', undef)
-  $management_vrouter_vip = try_get_value($vips, 'vrouter/ipaddr', undef)
-  $database_vip           = try_get_value($vips, 'database/ipaddr', $management_vip)
-  $service_endpoint       = try_get_value($vips, 'service_endpoint/ipaddr', $management_vip)
+  $public_vrouter_vip     = dig44($vips, ['vrouter_pub', 'ipaddr'], undef)
+  $management_vrouter_vip = dig44($vips, ['vrouter', 'ipaddr'], undef)
+  $database_vip           = dig44($vips, ['database', 'ipaddr'], $management_vip)
+  $service_endpoint       = dig44($vips, ['service_endpoint', 'ipaddr'], $management_vip)
 
-  if $use_neutron {
-    $novanetwork_params            = {}
-    $neutron_config                = hiera_hash('quantum_settings')
-    $network_provider              = 'neutron'
-    $neutron_db_password           = $neutron_config['database']['passwd']
-    $neutron_user_password         = $neutron_config['keystone']['admin_password']
-    $neutron_metadata_proxy_secret = $neutron_config['metadata']['metadata_proxy_shared_secret']
-    $base_mac                      = $neutron_config['L2']['base_mac']
-    $management_network_range      = get_network_role_property('mgmt/vip', 'network')
-  } else {
-    $neutron_config     = {}
-    $novanetwork_params = hiera('novanetwork_parameters')
-    $network_size       = $novanetwork_params['network_size']
-    $num_networks       = $novanetwork_params['num_networks']
-    $network_provider   = 'nova'
-    if ( $novanetwork_params['network_manager'] == 'FlatDHCPManager') {
-      $private_int                  = get_network_role_property('novanetwork/fixed', 'interface')
-    } else {
-      $private_int                  = get_network_role_property('novanetwork/vlan', 'interface')
-      $vlan_start         = $novanetwork_params['vlan_start']
-      $network_config     = {
-        'vlan_start'      => $vlan_start,
-      }
-    }
-    $network_manager          = "nova.network.manager.${novanetwork_params['network_manager']}"
-    $management_network_range = hiera('management_network_range')
-  }
+  $neutron_config                = hiera_hash('quantum_settings')
+  $network_provider              = 'neutron'
+  $neutron_db_password           = $neutron_config['database']['passwd']
+  $neutron_user_password         = $neutron_config['keystone']['admin_password']
+  $neutron_metadata_proxy_secret = $neutron_config['metadata']['metadata_proxy_shared_secret']
+  $base_mac                      = $neutron_config['L2']['base_mac']
+  $management_network_range      = get_network_role_property('mgmt/vip', 'network')
 
   if roles_include('primary-controller') {
     $primary_controller = true

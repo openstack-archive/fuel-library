@@ -26,4 +26,3 @@ describe Puppet::Type.type(:l2_bridge) do
     end
   end
 end
-# vim: set ts=2 sw=2 et

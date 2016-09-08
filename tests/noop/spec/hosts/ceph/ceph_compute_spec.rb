@@ -19,26 +19,48 @@ describe manifest do
         storage_hash['objects_ceph'] or
         storage_hash['ephemeral_ceph']
        )
-      it { should contain_class('ceph').with(
-           'osd_pool_default_size'    => storage_hash['osd_pool_size'],
-           'osd_pool_default_pg_num'  => storage_hash['pg_num'],
-           'osd_pool_default_pgp_num' => storage_hash['pg_num'],)
-         }
-      it { should contain_class('ceph::conf') }
+      it 'should deploy ceph' do
+        should contain_class('ceph').with(
+          'fsid'                => fsid,
+          'mon_initial_members' => mon_hosts,
+          'mon_host'            => mon_ips,
+          'cluster_network'     => ceph_cluster_network,
+          'public_network'      => ceph_public_network,
+        )
+      end
 
-      it { should contain_ceph__pool('compute').with(
-          'pg_num'        => storage_hash['per_pool_pg_nums']['compute'],
-          'pgp_num'       => storage_hash['per_pool_pg_nums']['compute'],)
-        }
-      it { should contain_class('ceph::ephemeral').with(
-        'libvirt_images_type' => libvirt_images_type,)
-      }
-      it { should contain_ceph__pool('compute').that_requires('Class[ceph::conf]') }
-      it { should contain_ceph__pool('compute').that_comes_before('Class[ceph::nova_compute]') }
-      it { should contain_class('ceph::nova_compute').that_requires('Ceph::Pool[compute]') }
-      it { should contain_exec('Set Ceph RBD secret for Nova').that_requires('Service[libvirt]')}
-    else
-      it { should_not contain_class('ceph') }
+      it 'should configure compute pool' do
+        should contain_ceph__pool(compute_pool).with(
+          'pg_num'  => compute_pool_pg_nums,
+          'pgp_num' => compute_pool_pgp_nums,
+        ).that_requires('Class[ceph]')
+      end
+
+      it 'should add admin key' do
+        should contain_ceph__key('client.admin').with(
+          'secret'  => admin_key,
+          'cap_mon' => 'allow *',
+          'cap_osd' => 'allow *',
+          'cap_mds' => 'allow',
+        )
+      end
+
+      it 'should configure ceph compute keys' do
+        should contain_ceph__key("client.#{compute_user}").with(
+          'secret'  => secret,
+          'cap_mon' => 'allow r',
+          'cap_osd' => "allow class-read object_prefix rbd_children, allow rwx pool=#{cinder_pool}, allow rx pool=#{glance_pool}, allow rwx pool=#{compute_pool}",
+          'inject'  => true,
+        )
+      end
+
+      it 'should contain class osnailyfacter::ceph_nova_compute' do
+        should contain_class('osnailyfacter::ceph_nova_compute').with(
+          'user'                => compute_user,
+          'compute_pool'        => compute_pool,
+          'libvirt_images_type' => libvirt_images_type,
+        )
+      end 
     end
   end
   test_ubuntu_and_centos manifest

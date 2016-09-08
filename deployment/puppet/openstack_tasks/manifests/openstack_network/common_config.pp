@@ -30,16 +30,7 @@ class openstack_tasks::openstack_network::common_config {
     $ceilometer_hash  = hiera_hash('ceilometer', {})
     $network_scheme   = hiera_hash('network_scheme', {})
 
-    $verbose      = pick($openstack_network_hash['verbose'], hiera('verbose', true))
-    $debug        = pick($openstack_network_hash['debug'], hiera('debug', true))
-    # TODO(aschultz): LP#1499620 - neutron in UCA liberty fails to start with
-    # syslog enabled.
-    $use_syslog = $::os_package_type ? {
-      'ubuntu' => false,
-      default  => hiera('use_syslog', true)
-    }
-    $use_stderr   = hiera('use_stderr', false)
-    $log_facility = hiera('syslog_log_facility_neutron', 'LOG_LOCAL4')
+  $segmentation_type = dig44($neutron_config, ['L2', 'segmentation_type'])
 
     prepare_network_config($network_scheme)
     $bind_host = get_network_role_property('neutron/api', 'ipaddr')

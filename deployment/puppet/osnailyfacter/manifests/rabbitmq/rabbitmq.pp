@@ -170,14 +170,25 @@ class osnailyfacter::rabbitmq::rabbitmq {
         Service_status['rabbitmq'] -> Staging::File['rabbitmqadmin']
       }
 
-      # TODO(bogdando) contribute this to puppetlabs-rabbitmq
-      # Start epmd as rabbitmq so it doesn't run as root when installing plugins
-      exec { 'epmd_daemon':
-        command => 'epmd -daemon',
-        path    => '/bin:/sbin:/usr/bin:/usr/sbin',
-        user    => 'rabbitmq',
-        group   => 'rabbitmq',
-        unless  => 'pgrep epmd',
+      # Make sure the various providers have their requirements in place.
+      Class['::rabbitmq::install'] -> Rabbitmq_plugin<| |> -> Rabbitmq_exchange<| |>
+
+      rabbitmq_user { $rabbit_hash['user']:
+        admin    => true,
+        password => $rabbit_hash['password'],
+        provider => 'rabbitmqctl',
+      }
+
+      rabbitmq_user_permissions { "${rabbit_hash['user']}@/":
+        configure_permission => '.*',
+        write_permission     => '.*',
+        read_permission      => '.*',
+        provider             => 'rabbitmqctl',
+      }
+
+      $virtual_host = '/'
+      rabbitmq_vhost { $virtual_host:
+        provider => 'rabbitmqctl',
       }
       # Make sure the various providers have their requirements in place.
       Class['::rabbitmq::install'] -> File['/etc/rabbitmq'] -> Exec['epmd_daemon']

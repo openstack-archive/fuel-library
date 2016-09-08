@@ -23,7 +23,7 @@ network_scheme:
         mtu: 9000
         vendor_specific:
           disable_offloading: true
-  emdpoints: {}
+  endpoints: {}
   roles: {}
 eof
 end
@@ -37,6 +37,20 @@ end
         :kernel => 'Linux',
         :l23_os => 'ubuntu',
         :l3_fqdn_hostname => 'stupid_hostname',
+        :netrings => {
+          'eth1' => {
+            'maximums' => {'rx'=>'4096', 'tx'=>'4096'},
+            'current' => {'rx'=>'256', 'tx'=>'256'}
+          },
+          'eth2' => {
+            'maximums' => {'rx'=>'4096', 'tx'=>'4096'},
+            'current' => {'rx'=>'256', 'tx'=>'256'}
+          },
+          'eth3' => {
+            'maximums' => {'rx'=>'4096', 'tx'=>'4096'},
+            'current' => {'rx'=>'2048', 'tx'=>'2048'}
+          }
+        }
       }
     }
 
@@ -71,8 +85,12 @@ end
                 'generic-receive-offload'      => false,
                 'generic-segmentation-offload' => false
               }
-            }
+          }.merge!({'rings' => facts[:netrings][iface]['maximums']})
         })
+      end
+    end
+    ['eth2', 'eth3'].each do |iface|
+      it do
         should contain_l23_stored_config(iface).with({
           'ensure'  => 'present',
           'mtu'     => 9000,
@@ -82,7 +100,7 @@ end
                 'generic-receive-offload'      => false,
                 'generic-segmentation-offload' => false
               }
-            }
+          }.merge({'rings' => facts[:netrings][iface]['maximums']})
         })
       end
     end
@@ -116,7 +134,7 @@ network_scheme:
         vendor_specific:
           disable_offloading: true
       provider: ovs
-  emdpoints: {}
+  endpoints: {}
   roles: {}
 eof
 end

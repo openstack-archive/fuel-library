@@ -7,7 +7,13 @@ describe 'l23network::l3::ifconfig', :type => :define do
       :osfamily => 'Debian',
       :operatingsystem => 'Ubuntu',
       :l23_os => 'ubuntu',
-      :kernel => 'Linux'
+      :kernel => 'Linux',
+      :netrings => {
+        'eth4' => {
+          'maximums' => {'rx'=>'4096', 'tx'=>'4096'},
+          'current' => {'rx'=>'256', 'tx'=>'256'}
+        },
+      }
     } }
 
     let(:params) { {
@@ -15,9 +21,9 @@ describe 'l23network::l3::ifconfig', :type => :define do
       :ipaddr => 'dhcp'
     } }
 
-    let(:pre_condition) { [
-      "class {'l23network': }"
-    ] }
+    let(:pre_condition) do
+      definition_pre_condition
+    end
 
     before(:each) do
       puppet_debug_override()
@@ -41,7 +47,7 @@ describe 'l23network::l3::ifconfig', :type => :define do
     it do
       should contain_l3_ifconfig('eth4').with({
         'ensure'  => 'present',
-        'ipaddr'  => 'dhcp',
+        'ipaddr'  => ['dhcp'],
         'gateway' => nil,
       }).that_requires('L23_stored_config[eth4]')
     end
@@ -150,4 +156,3 @@ end
 #     should rv.without_content(/NETMASK=/)
 #   end
 # end
-# vim: set ts=2 sw=2 et

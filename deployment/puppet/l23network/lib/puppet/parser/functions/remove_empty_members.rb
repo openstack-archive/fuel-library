@@ -1,4 +1,4 @@
-require_relative '../../loader/l23network'
+require_relative '../../../puppetx/loader/l23network'
 
 module Puppet::Parser::Functions
   newfunction(:remove_empty_members, :type => :rvalue, :doc => <<-EOS

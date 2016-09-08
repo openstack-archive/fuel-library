@@ -1,6 +1,6 @@
 notice('MODULAR: host.pp')
 
-Exec  {path => '/usr/bin:/bin:/usr/sbin:/sbin'}
+Exec  { path => '/usr/bin:/bin:/usr/sbin:/sbin' }
 
 $fuel_settings = parseyaml($astute_settings_yaml)
 
@@ -91,12 +91,12 @@ file { '/etc/dhcp/dhclient.conf':
 }
 
 #Suppress kernel messages to console
-sysctl::value{'kernel.printk': value => '4 1 1 7'}
+sysctl::value{ 'kernel.printk': value => '4 1 1 7' }
 
 #Increase values for neighbour table
-sysctl::value{'net.ipv4.neigh.default.gc_thresh1': value => '256'}
-sysctl::value{'net.ipv4.neigh.default.gc_thresh2': value => '1024'}
-sysctl::value{'net.ipv4.neigh.default.gc_thresh3': value => '2048'}
+sysctl::value{ 'net.ipv4.neigh.default.gc_thresh1': value => '256' }
+sysctl::value{ 'net.ipv4.neigh.default.gc_thresh2': value => '1024' }
+sysctl::value{ 'net.ipv4.neigh.default.gc_thresh3': value => '2048' }
 
 #Disable IPv6
 sysctl::value{'net.ipv6.conf.all.disable_ipv6': value => '1'}
@@ -106,7 +106,7 @@ class { '::openstack::reserved_ports':
   ports => '35357,41055,61613',
 }
 
-service {'dhcrelay':
+service { 'dhcrelay':
   ensure => stopped,
 }
 
@@ -155,7 +155,7 @@ class { 'fuel::iptables':
 }
 
 # enable forwarding for the NAT/MASQUERADE configured by iptables
-sysctl::value{'net.ipv4.ip_forward': value=>'1'}
+sysctl::value{ 'net.ipv4.ip_forward': value=>'1' }
 
 # FIXME(kozhukalov): this should be a part of repo management tool
 class { 'fuel::auxiliaryrepos':
@@ -236,7 +236,7 @@ augeas { "Turn off sudo requiretty":
   ],
 }
 
-file {'/etc/fuel-utils/config':
+file { '/etc/fuel-utils/config':
   content => template('fuel/fuel_utils_config.erb'),
   owner   => 'root',
   group   => 'root',
@@ -245,7 +245,7 @@ file {'/etc/fuel-utils/config':
 
 # The requirement of former mcollective container.
 # This directory is used for building target OS images.
-file {['/var/lib/fuel', '/var/lib/fuel/ibp']:
+file { ['/var/lib/fuel', '/var/lib/fuel/ibp']:
   ensure => directory,
   owner => 'root',
   group => 'root',
@@ -254,7 +254,7 @@ file {['/var/lib/fuel', '/var/lib/fuel/ibp']:
 
 # The requirement of former mcollective container.
 # TODO(kozhukalov): make sure we need this
-file {'/var/lib/hiera':
+file { '/var/lib/hiera':
   ensure => directory,
   owner => 'root',
   group => 'root',
@@ -263,7 +263,7 @@ file {'/var/lib/hiera':
 
 # The requirement of former mcollective container.
 # TODO(kozhukalov): make sure we need this
-file {['/etc/puppet/hiera.yaml', '/var/lib/hiera/common.yaml']:
+file { ['/etc/puppet/hiera.yaml', '/var/lib/hiera/common.yaml']:
   ensure => present,
 }
 

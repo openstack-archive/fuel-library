@@ -3,14 +3,13 @@
 define l23network::l2::bond_interface (
   $bond,
   $use_ovs                 = $::l23network::use_ovs,
-  $ensure                  = present,
+  $ensure                  = 'present',
   $mtu                     = undef,
   $bond_is_master          = true,
   $interface_properties    = {},
   $provider                = undef,
 ) {
   include ::l23network::params
-  include ::stdlib
 
   if $bond_is_master {
     $master = $bond

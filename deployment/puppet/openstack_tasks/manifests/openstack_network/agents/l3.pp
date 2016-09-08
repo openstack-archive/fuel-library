@@ -37,7 +37,7 @@ class openstack_tasks::openstack_network::agents::l3 {
 
     prepare_network_config($network_scheme)
 
-    $ha_agent                = try_get_value($neutron_advanced_config, 'l3_agent_ha', true)
+    $ha_agent                = dig44($neutron_advanced_config, ['l3_agent_ha'], true)
 
     class { '::neutron::agents::l3':
       debug                    => $debug,

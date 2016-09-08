@@ -7,7 +7,7 @@ define l23network::l3::route (
     $vendor_specific   = undef,
     $by_network_scheme = false,
     $provider          = undef,
-    $ensure            = present,
+    $ensure            = 'present',
 ) {
   include ::l23network::params
 

@@ -4,7 +4,7 @@ class osnailyfacter::ssl::ssl_keys_saving {
 
   $public_ssl_hash = hiera_hash('public_ssl')
   $ssl_hash = hiera_hash('use_ssl', {})
-  $pub_certificate_content = try_get_value($public_ssl_hash, 'cert_data/content', '')
+  $pub_certificate_content = dig44($public_ssl_hash, ['cert_data', 'content'], '')
   $base_path = '/etc/pki/tls/certs'
   $pki_path = [ '/etc/pki', '/etc/pki/tls' ]
   $astute_base_path = '/var/lib/astute/haproxy'
@@ -28,6 +28,7 @@ class osnailyfacter::ssl::ssl_keys_saving {
     ){
     $service = $name
 
+<<<<<<< HEAD
     $public_service = try_get_value($ssl_hash, "${service}_public", false)
     $public_usercert = try_get_value($ssl_hash, "${service}_public_usercert", false)
     $public_certdata = try_get_value($ssl_hash, "${service}_public_certdata/content", '')
@@ -37,6 +38,17 @@ class osnailyfacter::ssl::ssl_keys_saving {
     $admin_service = try_get_value($ssl_hash, "${service}_admin", false)
     $admin_usercert = try_get_value($ssl_hash, "${service}_admin_usercert", false)
     $admin_certdata = try_get_value($ssl_hash, "${service}_admin_certdata/content", '')
+=======
+    $public_service = dig44($ssl_hash, ["${service}_public"], false)
+    $public_usercert = dig44($ssl_hash, ["${service}_public_usercert"], false)
+    $public_certdata = dig44($ssl_hash, ["${service}_public_certdata", 'content'], '')
+    $internal_service = dig44($ssl_hash, ["${service}_internal"], false)
+    $internal_usercert = dig44($ssl_hash, ["${service}_internal_usercert"], false)
+    $internal_certdata = dig44($ssl_hash, ["${service}_internal_certdata", 'content'], '')
+    $admin_service = dig44($ssl_hash, ["${service}_admin"], false)
+    $admin_usercert = dig44($ssl_hash, ["${service}_admin_usercert"], false)
+    $admin_certdata = dig44($ssl_hash, ["${service}_admin_certdata", 'content'], '')
+>>>>>>> 0bfc6fd... Puppet4 support: use dig44 function
 
     if $ssl_hash["${service}"] {
       if $public_service and $public_usercert and !empty($public_certdata) {

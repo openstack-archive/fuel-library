@@ -1,48 +1,30 @@
 require 'spec_helper'
 
-describe 'the cpu_affinity_hex function' do
-  let(:scope) { PuppetlabsSpec::PuppetInternals.scope }
-
+describe 'cpu_affinity_hex' do
   it 'should exist' do
-    expect(
-        Puppet::Parser::Functions.function('cpu_affinity_hex')
-    ).to eq('function_cpu_affinity_hex')
+    is_expected.not_to be_nil
   end
 
   it 'should calculate HEX affinity value' do
-    expect(
-        scope.function_cpu_affinity_hex(%w(12))
-    ).to eq 'fff'
-    expect(
-        scope.function_cpu_affinity_hex(%w(2))
-    ).to eq '3'
+    is_expected.to run.with_params(12).and_return('fff')
+    is_expected.to run.with_params(2).and_return('3')
   end
 
   it 'should calculate HEX affinity value for more 32 cpu' do
-    expect(
-        scope.function_cpu_affinity_hex(%w(32))
-    ).to eq 'ffffffff'
-    expect(
-        scope.function_cpu_affinity_hex(%w(33))
-    ).to eq 'ffffffff'
+    is_expected.to run.with_params(32).and_return('ffffffff')
+    is_expected.to run.with_params(33).and_return('ffffffff')
   end
 
   it 'should raise an error if there is less than 1 arguments' do
-    expect {
-      scope.function_cpu_affinity_hexs([])
-    }.to raise_error
+    is_expected.to run.with_params().and_raise_error(Puppet::Error)
   end
 
   it 'should raise an error if value is not integer' do
-    expect {
-      scope.function_cpu_affinity_hex(%w(abc))
-    }.to raise_error
+    is_expected.to run.with_params('abc').and_raise_error(Puppet::Error)
   end
 
   it 'should raise an error if value is negative integer' do
-    expect {
-      scope.function_cpu_affinity_hex(%w(-1))
-    }.to raise_error
+    is_expected.to run.with_params(-1).and_raise_error(Puppet::Error)
   end
 
 end

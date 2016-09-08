@@ -36,12 +36,14 @@ class { '::fuel::cobbler':
   bootstrap_ethdevice_timeout => $bootstrap_ethdevice_timeout,
 }
 
-fuel::systemd {['httpd', 'cobblerd', 'dnsmasq', 'xinetd']:
-  start         => true,
-  template_path => 'fuel/systemd/restart_template.erb',
-  config_name   => 'restart.conf',
-  require       => Class['fuel::cobbler'],
+Fuel::Systemd {
+  start          => true,
+  template_path  => 'fuel/systemd/restart_template.erb',
+  config_name    => 'restart.conf',
+  service_manage => false,
 }
+
+fuel::systemd { ['httpd', 'cobblerd', 'dnsmasq', 'xinetd'] :}
 
 fuel::dnsmasq::dhcp_range {'default':
   dhcp_start_address => $admin_network['dhcp_pool_start'],

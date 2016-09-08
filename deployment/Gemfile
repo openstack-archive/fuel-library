@@ -8,7 +8,7 @@ end
 if ENV['PUPPET_GEM_VERSION']
   gem 'puppet', ENV['PUPPET_GEM_VERSION'], :require => false
 else
-  gem 'puppet', '~> 3.8.0', :require => false
+  gem 'puppet', :require => false
 end
 
 #  vim: set ft=ruby ts=2 sw=2 tw=0 et :

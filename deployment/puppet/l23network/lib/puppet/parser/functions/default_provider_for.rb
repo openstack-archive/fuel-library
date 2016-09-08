@@ -6,6 +6,7 @@ module Puppet::Parser::Functions
     type_name = argv[0]
     fail 'No type name provided!' unless type_name
     type_name = type_name.to_s.downcase.to_sym
+    Puppet::Type.typeloader.load type_name unless Puppet::Type.typeloader.loaded? type_name
     type = Puppet::Type.type type_name
     return nil unless type
     provider = type.defaultprovider

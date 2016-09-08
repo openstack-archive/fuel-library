@@ -1,4 +1,3 @@
-
 module Puppet::Parser::Functions
   newfunction(:get_hash_with_defaults_and_deprecations, :type => :rvalue, :doc => <<-EOS
 This function get three hashes:

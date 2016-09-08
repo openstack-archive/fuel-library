@@ -218,11 +218,10 @@ describe manifest do
           end
         end
 
-        it 'should declare neutron::server class with 4 processess on 4 CPU & 32G system' do
-          should contain_class('neutron::server').with(
-            'api_workers' => '4',
-            'rpc_workers' => '4',
-          )
+          network_vlan_ranges = []
+          tunnel_id_ranges = [neutron_config.fetch('L2',{}).fetch('tunnel_id_ranges')]
+          should contain_class('neutron::plugins::ml2').with(
+          'path_mtu' => path_mtu,)
         end
 
         it 'worker count' do
