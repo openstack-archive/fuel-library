@@ -43,10 +43,9 @@ describe manifest do
 
     it "should wait until radosgw get ready" do
         ssl_hash = Noop.hiera_hash('use_ssl', {})
-        service_endpoint = Noop.hiera('service_endpoint', '')
         management_vip = Noop.hiera('management_vip', '')
         rgw_protocol = Noop.puppet_function 'get_ssl_property', ssl_hash, {}, 'radosgw', 'internal', 'protocol', 'http'
-        rgw_address = Noop.puppet_function 'get_ssl_property', ssl_hash, {}, 'radosgw', 'internal', 'hostname', [service_endpoint, management_vip]
+        rgw_address = Noop.puppet_function 'get_ssl_property', ssl_hash, {}, 'radosgw', 'internal', 'hostname', [management_vip]
         rgw_url = "#{rgw_protocol}://#{rgw_address}:8080"
 
         should contain_haproxy_backend_status('object-storage').with(
