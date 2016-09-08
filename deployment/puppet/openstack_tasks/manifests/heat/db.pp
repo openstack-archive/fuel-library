@@ -47,6 +47,12 @@ class openstack_tasks::heat::db {
       Class['::osnailyfacter::mysql_access'] ->
         Class['::heat::db::mysql']
 
+    # tweak 'heat-dbsync' exec
+    Exec<| title == 'heat-dbsync' |> {
+      tries     => '10',
+      try_sleep => '5',
+    }
+
   }
 
 }
