@@ -270,4 +270,11 @@ class openstack_tasks::heat::heat {
   }
   # Client
   class { '::heat::client' :  }
+
+  # tweak 'heat-dbsync' exec
+  Exec<| title == 'heat-dbsync' |> {
+    tries     => '10',
+    try_sleep => '5',
+  }
+
 }
