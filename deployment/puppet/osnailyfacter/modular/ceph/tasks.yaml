@@ -203,7 +203,7 @@
     cwd: /
 
 - id: ceph_ready_check
-  type: shell
+  type: puppet
   version: 2.1.0
   role: [primary-controller]
   condition:
@@ -211,8 +211,10 @@
   requires: [post_deployment_start]
   required_for: [enable_rados, upload_cirros]
   parameters:
-    cmd: ruby /etc/puppet/modules/osnailyfacter/modular/ceph/ceph_ready_check.rb
+    puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/ceph/ceph_ready_check.pp
+    puppet_modules: /etc/puppet/modules
     timeout: 1800
+    cwd: /
 
 - id: enable_rados
   type: puppet
