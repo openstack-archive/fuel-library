@@ -80,8 +80,23 @@ describe manifest do
     else
      debug = Noop.hiera 'debug', true
     end
+    let(:debug) do
+      Noop.puppet_function 'pick', storage_hash['debug'], Noop.hiera('debug', true)
+    end
+
+    let(:osd_max_backfills) do
+      Noop.puppet_function 'pick', storage_hash['osd_max_backfills'], 1
+    end
+
+    let(:osd_recovery_max_active) do
+      Noop.puppet_function 'pick', storage_hash['osd_recovery_max_active'], 1
+    end
 
     ceph_tuning_settings = Noop.hiera 'ceph_tuning_settings'
+
+    let(:osd_op_threads) do
+      ceph_tuning_settings['osd_op_threads']
+    end
 
     it 'should configure ceph' do
       should contain_class('ceph').with(
@@ -95,13 +110,14 @@ describe manifest do
         'osd_pool_default_pgp_num'  => osd_pool_default_pgp_num,
         'osd_pool_default_min_size' => '1',
         'osd_journal_size'          => '2048',
+        'osd_max_backfills'         => osd_max_backfills,
+        'osd_recovery_max_active'   => osd_recovery_max_active,
+        'osd_op_threads'            => osd_op_threads,
       )
     end
 
     it 'should add parameters to ceph.conf' do
       should contain_ceph_config('global/filestore_xattr_use_omap').with(:value => true)
-      should contain_ceph_config('global/osd_recovery_max_active').with(:value => '1')
-      should contain_ceph_config('global/osd_max_backfills').with(:value => '1')
       should contain_ceph_config('client/rbd_cache_writethrough_until_flush').with(:value => true)
       should contain_ceph_config('client/rbd_cache').with(:value => true)
       should contain_ceph_config('global/log_to_syslog').with(:value => true)
@@ -144,7 +160,6 @@ describe manifest do
         should contain_ceph_config('global/max_open_files').with(:value => ceph_tuning_settings['max_open_files'])
         should contain_ceph_config('osd/osd_mkfs_type').with(:value => ceph_tuning_settings['osd_mkfs_type'])
         should contain_ceph_config('osd/osd_mount_options_xfs').with(:value => ceph_tuning_settings['osd_mount_options_xfs'])
-        should contain_ceph_config('osd/osd_op_threads').with(:value => ceph_tuning_settings['osd_op_threads'])
         should contain_ceph_config('osd/filestore_queue_max_ops').with(:value => ceph_tuning_settings['filestore_queue_max_ops'])
         should contain_ceph_config('osd/filestore_queue_committing_max_ops').with(:value => ceph_tuning_settings['filestore_queue_committing_max_ops'])
         should contain_ceph_config('osd/journal_max_write_entries').with(:value => ceph_tuning_settings['journal_max_write_entries'])
