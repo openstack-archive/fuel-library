@@ -58,14 +58,14 @@ end
 
     it do
       should contain_l3_ifconfig('eth2').with({
-        'ipaddr'  => '192.168.101.3/24',
+        'ipaddr'  => ['192.168.101.3/24'],
         'gateway' => '192.168.101.1',
       })
     end
 
     it do
       should contain_l3_ifconfig('eth3').with({
-        'ipaddr'         => '172.16.55.34/24',
+        'ipaddr'         => ['172.16.55.34/24'],
         'gateway'        => '172.16.55.1',
         'gateway_metric' => '88',
       })

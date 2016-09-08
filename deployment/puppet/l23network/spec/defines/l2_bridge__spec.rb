@@ -9,9 +9,10 @@ describe 'l23network::l2::bridge', :type => :define do
     :l23_os => 'ubuntu',
     :l3_fqdn_hostname => 'stupid_hostname',
   } }
-  let(:pre_condition) { [
-    "class {'l23network': }"
-  ] }
+
+  let(:pre_condition) do
+    definition_pre_condition
+  end
 
   before(:each) do
     puppet_debug_override()
@@ -245,4 +246,3 @@ describe 'l23network::l2::bridge', :type => :define do
     end
   end
 end
-# vim: set ts=2 sw=2 et

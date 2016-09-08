@@ -9,9 +9,10 @@ describe 'l23network::l2::bond', :type => :define do
     :l23_os => 'ubuntu',
     :l3_fqdn_hostname => 'stupid_hostname',
   } }
-  let(:pre_condition) { [
-    "class {'l23network': }"
-  ] }
+
+  let(:pre_condition) do
+    definition_pre_condition
+  end
 
   before(:each) do
     puppet_debug_override()
@@ -446,7 +447,6 @@ describe 'l23network::l2::bond', :type => :define do
         'ensure'                => 'present',
         'bridge'                => 'br-bond-ovs',
         'if_type'               => 'bond',
-        'bond_lacp'             => 'off',
         'bond_mode'             => 'balance-tcp',
         'bond_lacp'             => 'active',
         'bond_lacp_rate'        => 'fast',
@@ -503,6 +503,4 @@ describe 'l23network::l2::bond', :type => :define do
 
   end
 
-
 end
-# vim: set ts=2 sw=2 et

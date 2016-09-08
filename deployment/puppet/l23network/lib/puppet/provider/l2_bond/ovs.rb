@@ -1,4 +1,4 @@
-require File.join(File.dirname(__FILE__), '..','..','..','puppet/provider/ovs_base')
+require_relative '../ovs_base'
 
 Puppet::Type.type(:l2_bond).provide(:ovs, :parent => Puppet::Provider::Ovs_base) do
   commands  :vsctl       => 'ovs-vsctl',

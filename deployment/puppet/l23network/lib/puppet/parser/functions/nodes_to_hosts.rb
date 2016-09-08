@@ -1,7 +1,3 @@
-#
-# array_or_string_to_array.rb
-#
-
 module Puppet::Parser::Functions
   newfunction(:nodes_to_hosts, :type => :rvalue, :doc => <<-EOS
               convert nodes array passed from Astute into

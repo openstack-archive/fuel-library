@@ -24,8 +24,8 @@
 #   Defaults to '2'
 #
 class l23network::l2::dpdk (
-  $use_dpdk                    = false,
-  $install_dpdk                = $use_dpdk,
+  $use_dpdk                    = $::l23network::use_dpdk,
+  $install_dpdk                = $::l23network::install_dpdk,
   $ovs_core_mask               = $::l23network::params::ovs_core_mask,
   $ovs_pmd_core_mask           = undef,
   $ovs_socket_mem              = $::l23network::params::ovs_socket_mem,
@@ -36,11 +36,11 @@ class l23network::l2::dpdk (
   $dpdk_conf_file              = $::l23network::params::dpdk_conf_file,
   $dpdk_interfaces_file        = $::l23network::params::dpdk_interfaces_file,
   $ovs_default_file            = $::l23network::params::ovs_default_file,
-  $install_ovs                 = true,
+  $install_ovs                 = $::l23network::l2::install_ovs,
   $ensure_package              = 'present',
-){
-  include ::stdlib
-  include ::l23network::params
+) inherits ::l23network::params {
+
+  $_install_dpdk = pick($install_dpdk, $use_dpdk)
 
   if $use_dpdk {
 
@@ -49,14 +49,14 @@ class l23network::l2::dpdk (
       $dpdk_interfaces = get_dpdk_interfaces()
 
       file {$dpdk_dir:
-        ensure => directory,
+        ensure => 'directory',
       } ->
       file {$dpdk_conf_file:
-        ensure => present,
+        ensure => 'present',
         source => 'puppet:///modules/l23network/dpdk.conf',
       } ->
       file {$dpdk_interfaces_file:
-        ensure  => present,
+        ensure  => 'present',
         content => template('l23network/dpdk_interfaces.erb'),
       }
       File[$dpdk_interfaces_file] ~> Service['dpdk']
@@ -70,7 +70,7 @@ class l23network::l2::dpdk (
     }
 
     # Install DPDK modules
-    if $install_dpdk and $ovs_dpdk_dkms_package_name {
+    if $_install_dpdk and $ovs_dpdk_dkms_package_name {
       package {'dpdk-dkms':
         ensure => $ensure_package,
         name   => $ovs_dpdk_dkms_package_name,
@@ -91,13 +91,13 @@ class l23network::l2::dpdk (
     # Configure OpenVSwitch to use DPDK
     if $ovs_default_file {
       file {$ovs_default_file:
-        ensure  => present,
+        ensure  => 'present',
         content => template('l23network/openvswitch_default_Debian.erb'),
       } ~> Service['openvswitch-service']
     }
 
     # Install DPDK-enabled OpenVSwitch
-    if $install_dpdk and $install_ovs and $ovs_dpdk_package_name {
+    if $_install_dpdk and $install_ovs and $ovs_dpdk_package_name {
       package {'openvswitch-dpdk':
         ensure => $ensure_package,
         name   => $ovs_dpdk_package_name,
@@ -125,13 +125,13 @@ class l23network::l2::dpdk (
     # Install ifupdown scripts
     if $::l23_os =~ /(?i)ubuntu/ {
       file {'/etc/network/if-pre-up.d/ovsdpdk':
-        ensure => present,
+        ensure => 'present',
         owner  => 'root',
         mode   => '0755',
         source => 'puppet:///modules/l23network/debian_ovsdpdk',
       } ->
       file {'/etc/network/if-post-down.d/ovsdpdk':
-        ensure => present,
+        ensure => 'present',
         owner  => 'root',
         mode   => '0755',
         source => 'puppet:///modules/l23network/debian_ovsdpdk',

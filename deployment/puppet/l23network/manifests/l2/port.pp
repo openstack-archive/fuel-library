@@ -29,7 +29,7 @@
 #   Must be true or false.
 #
 define l23network::l2::port (
-  $ensure                = present,
+  $ensure                = 'present',
   $use_ovs               = $::l23network::use_ovs,
   $port                  = $name,
   $if_type               = undef,
@@ -52,7 +52,6 @@ define l23network::l2::port (
 # $trunks                = [],
 ) {
 
-  include ::stdlib
   include ::l23network::params
 
   # Detect VLAN mode configuration
@@ -123,10 +122,29 @@ define l23network::l2::port (
     # the device is treated as an Ethernet device
     # https://access.redhat.com/documentation/en-US/Red_Hat_Enterprise_Linux/6/html/Deployment_Guide/s2-networkscripts-interfaces_network-bridge.html
 
-    if $provider =~ /ovs/ {
+    if $provider and $provider =~ /ovs/ {
       $real_if_type = 'ethernet'
     } else {
       $real_if_type = $if_type
+    }
+
+    # Merge offloading data with rings rx/tx
+    if is_hash($::netrings) {
+      $port_netrings = $::netrings[$port_name]
+
+      if is_hash($port_netrings) and $port_netrings['maximums'] {
+        $netrings_maximums = $port_netrings['maximums']
+      } else {
+        $netrings_maximums = undef
+      }
+
+      if $netrings_maximums {
+        $ethtool_opts = deep_merge({ 'rings' => $netrings_maximums }, $ethtool)
+      } else {
+        $ethtool_opts = $ethtool
+      }
+    } else {
+      $ethtool_opts = $ethtool
     }
 
     L23_stored_config <| title == $port_name |> {
@@ -139,7 +157,7 @@ define l23network::l2::port (
       bond_master     => $master,
       mtu             => $mtu,
       onboot          => $onboot,
-      ethtool         => $ethtool,
+      ethtool         => $ethtool_opts,
       delay_while_up  => $delay_while_up,
       vendor_specific => $vendor_specific,
       provider        => $config_provider,
@@ -158,7 +176,7 @@ define l23network::l2::port (
       onboot          => $onboot,
       #type           => $type,
       #trunks         => $trunks,
-      ethtool         => $ethtool,
+      ethtool         => $ethtool_opts,
       vendor_specific => $vendor_specific,
       provider        => $provider
     }
