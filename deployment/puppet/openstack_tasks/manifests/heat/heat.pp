@@ -293,4 +293,11 @@ class openstack_tasks::heat::heat {
       Heat_config<| title == 'oslo_messaging_rabbit/kombu_compression' |> { value => $kombu_compression }
     }
   }
+
+  # tweak 'heat-dbsync' exec
+  Exec<| title == 'heat-dbsync' |> {
+    tries     => '10',
+    try_sleep => '5',
+  }
+
 }
