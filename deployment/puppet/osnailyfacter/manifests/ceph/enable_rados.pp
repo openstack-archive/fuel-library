@@ -3,7 +3,6 @@ class osnailyfacter::ceph::enable_rados {
   notice('MODULAR: ceph/enable_rados.pp')
 
   $management_vip   = hiera('management_vip', '')
-  $service_endpoint = hiera('service_endpoint', '')
   $ssl_hash         = hiera_hash('use_ssl', {})
 
   include ::ceph::params
@@ -47,7 +46,7 @@ class osnailyfacter::ceph::enable_rados {
   }
 
   $rgw_protocol = get_ssl_property($ssl_hash, {}, 'radosgw', 'internal', 'protocol', 'http')
-  $rgw_address  = get_ssl_property($ssl_hash, {}, 'radosgw', 'internal', 'hostname', [$service_endpoint, $management_vip])
+  $rgw_address  = get_ssl_property($ssl_hash, {}, 'radosgw', 'internal', 'hostname', [$management_vip])
   $rgw_url = "${rgw_protocol}://${rgw_address}:8080"
 
   $lb_hash = {
