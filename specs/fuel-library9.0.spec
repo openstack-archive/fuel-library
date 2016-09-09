@@ -145,6 +145,11 @@ do
   ln -s /etc/puppet/%{openstack_version}/${i} /etc/puppet/${i}
 done
 
+# Create symlink for deployment graph
+# TODO(sbog): remove this when deployment graph will be splitted to separate
+# subgraphs
+ln -sf /etc/puppet/modules /etc/fuel/graphs/deploy
+
 if [ "$1" = 2 ]; then
   #Try to sync deployment tasks or notify user on upgrade
   taskdir=/etc/puppet/%{openstack_version}/

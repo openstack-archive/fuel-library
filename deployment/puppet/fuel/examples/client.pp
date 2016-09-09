@@ -18,3 +18,11 @@ exec {'sync_deployment_tasks':
   try_sleep => 10,
   require   => Class['fuel::nailgun::client']
 }
+
+exec {'upload_default_sequence':
+  command   => '/etc/puppet/modules/fuel/files/upload-default-sequence.sh',
+  path      => '/usr/bin',
+  tries     => 2,
+  try_sleep => 10,
+  require   => Exec['sync_deployment_tasks']
+}
