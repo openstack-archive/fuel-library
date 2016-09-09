@@ -53,12 +53,15 @@ class osnailyfacter::ceph::ceph_osd {
     osd_pool_default_pgp_num  => $osd_pool_default_pgp_num,
     osd_pool_default_min_size => $osd_pool_default_min_size,
     osd_journal_size          => $osd_journal_size,
+    osd_max_backfills         => $osd_max_backfills,
+    osd_recovery_max_active   => $osd_recovery_max_active,
+    osd_op_threads            => $ceph_tuning_settings['osd_op_threads'],
+    # TODO(mmalchuk) remove set_osd_params when deprecated
+    set_osd_params            => true,
   }
 
   ceph_config {
     'global/filestore_xattr_use_omap'           : value => $filestore_xattr_use_omap;
-    'global/osd_recovery_max_active'            : value => $osd_recovery_max_active;
-    'global/osd_max_backfills'                  : value => $osd_max_backfills;
     'client/rbd_cache_writethrough_until_flush' : value => $rbd_cache_writethrough_until_flush;
     'client/rbd_cache'                          : value => $rbd_cache;
     'global/log_to_syslog'                      : value => $log_to_syslog;
@@ -94,7 +97,6 @@ class osnailyfacter::ceph::ceph_osd {
       'global/max_open_files'                   : value => $ceph_tuning_settings['max_open_files'];
       'osd/osd_mkfs_type'                       : value => $ceph_tuning_settings['osd_mkfs_type'];
       'osd/osd_mount_options_xfs'               : value => $ceph_tuning_settings['osd_mount_options_xfs'];
-      'osd/osd_op_threads'                      : value => $ceph_tuning_settings['osd_op_threads'];
       'osd/filestore_queue_max_ops'             : value => $ceph_tuning_settings['filestore_queue_max_ops'];
       'osd/filestore_queue_committing_max_ops'  : value => $ceph_tuning_settings['filestore_queue_committing_max_ops'];
       'osd/journal_max_write_entries'           : value => $ceph_tuning_settings['journal_max_write_entries'];
@@ -102,7 +104,7 @@ class osnailyfacter::ceph::ceph_osd {
       'osd/objecter_inflight_ops'               : value => $ceph_tuning_settings['objecter_inflight_ops'];
       'osd/filestore_queue_max_bytes'           : value => $ceph_tuning_settings['filestore_queue_max_bytes'];
       'osd/filestore_queue_committing_max_bytes': value => $ceph_tuning_settings['filestore_queue_committing_max_bytes'];
-      'osd/journal_max_write_bytes'             : value => $ceph_tuning_settings['journal_queue_max_bytes'];
+      'osd/journal_max_write_bytes'             : value => $ceph_tuning_settings['journal_max_write_bytes'];
       'osd/journal_queue_max_bytes'             : value => $ceph_tuning_settings['journal_queue_max_bytes'];
       'osd/ms_dispatch_throttle_bytes'          : value => $ceph_tuning_settings['ms_dispatch_throttle_bytes'];
       'osd/objecter_infilght_op_bytes'          : value => $ceph_tuning_settings['objecter_infilght_op_bytes'];
