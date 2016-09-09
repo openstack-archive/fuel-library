@@ -77,6 +77,7 @@ class cluster::mysql (
     parameters         => $parameters,
     operations         => $operations,
     prefix             => true,
+    require            => Package['mysql-server'],
   }
 
   # NOTE(aschultz): strings must contain single quotes only, see the
