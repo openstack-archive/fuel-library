@@ -90,18 +90,13 @@
 #   String. Optional op demote timeout for lrmd.
 #   Defaults to '120'
 #
-# [*slave_mon_interval*]
-#   String. Optional slaves' op monitor interval for lrmd.
-#   Defaults to '30'
-#
 # [*master_mon_interval*]
 #   String. Optional op master's monitor interval for lrmd.
-#   Should as less overlap with the slave_mon_interval as
-#   possible. Defaults to '27'
+#   Should be different from mon_interval. Defaults to '27'
 #
 # [*mon_interval*]
-#   String. Optional op general monitor interval for lrmd.
-#   Defaults to 35
+#   String. Optional op slave's monitor interval for lrmd.
+#   Defaults to 30
 #
 class cluster::rabbitmq_ocf (
   $primitive_type          = 'rabbitmq-server',
@@ -125,9 +120,8 @@ class cluster::rabbitmq_ocf (
   $promote_timeout         = '120',
   $demote_timeout          = '120',
   $notify_timeout          = '120',
-  $slave_mon_interval      = '30',
   $master_mon_interval     = '27',
-  $mon_interval            = '35',
+  $mon_interval            = '30',
 ) inherits ::rabbitmq::service {
 
   if $host_ip == 'UNSET' or $host_ip == '0.0.0.0' {
@@ -177,12 +171,6 @@ class cluster::rabbitmq_ocf (
       'role' => 'Master',
       'interval' => $master_mon_interval,
       'timeout'  => $mon_timeout
-    },
-    'monitor:Slave'  => {
-      'role'            => 'Slave',
-      'interval'        => $slave_mon_interval,
-      'timeout'         => $mon_timeout,
-      'OCF_CHECK_LEVEL' => '30'
     },
     'start'     => {
       'interval' => '0',
