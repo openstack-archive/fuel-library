@@ -32,6 +32,8 @@ define l23network::l3::route (
     if ! $by_network_scheme {
       L3_ifconfig<||> -> L3_route<||>
     }
+    # L23_stored_config <| title == $interface |> { ... }
+    # not required here, because implemented into L23_stored_config::generate()
   }
   Anchor['l23network::init'] -> L3_route<||>
 
