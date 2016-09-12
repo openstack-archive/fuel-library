@@ -1,6 +1,8 @@
 class osnailyfacter::ceph::mon {
 
   notice('MODULAR: ceph/mon.pp')
+  $override_configuration = hiera_hash(configuration, {})
+  $override_configuration_options = hiera_hash(configuration_options, {})
 
   $storage_hash              = hiera('storage', {})
   $admin_key                 = $storage_hash['admin_key']
@@ -34,6 +36,11 @@ class osnailyfacter::ceph::mon {
   prepare_network_config(hiera_hash('network_scheme'))
   $ceph_cluster_network = get_network_role_property('ceph/replication', 'network')
   $ceph_public_network  = get_network_role_property('ceph/public', 'network')
+
+  override_resources {'override-resources':
+    configuration => $override_configuration,
+    options       => $override_configuration_options,
+  }
 
   if $primary_mon_hostname == $::hostname {
     $mon_initial_members = $primary_mon_hostname

@@ -1,6 +1,8 @@
 class osnailyfacter::ceph::radosgw_keystone {
 
   notice('MODULAR: ceph/radosgw_keystone.pp')
+  $override_configuration = hiera_hash(configuration, {})
+  $override_configuration_options = hiera_hash(configuration_options, {})
 
   $storage_hash = hiera_hash('storage', {})
 
@@ -26,6 +28,11 @@ class osnailyfacter::ceph::radosgw_keystone {
   $public_url_s3     = "${public_protocol}://${public_address}:8080"
   $internal_url_s3   = "${internal_protocol}://${internal_address}:8080"
   $admin_url_s3      = "${admin_protocol}://${admin_address}:8080"
+
+  override_resources {'override-resources':
+    configuration => $override_configuration,
+    options       => $override_configuration_options,
+  }
 
   class {'::osnailyfacter::wait_for_keystone_backends': }
 

@@ -1,9 +1,16 @@
 class osnailyfacter::generate_vms::generate_vms {
 
   notice('MODULAR: generate_vms/generate_vms.pp')
+  $override_configuration = hiera_hash(configuration, {})
+  $override_configuration_options = hiera_hash(configuration_options, {})
 
   $vms = hiera('vms_conf')
   $created = str2bool(inline_template('<%= @vms.all? {|x| x["created"]} %>'))
+
+  override_resources {'override-resources':
+    configuration => $override_configuration,
+    options       => $override_configuration_options,
+  }
 
   unless $created {
     $libvirt_dir = '/etc/libvirt/qemu'

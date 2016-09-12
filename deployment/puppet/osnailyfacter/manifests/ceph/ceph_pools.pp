@@ -1,6 +1,8 @@
 class osnailyfacter::ceph::ceph_pools {
 
   notice('MODULAR: ceph/ceph_pools')
+  $override_configuration = hiera_hash(configuration, {})
+  $override_configuration_options = hiera_hash(configuration_options, {})
 
   $storage_hash       = hiera('storage', {})
   $fsid               = $storage_hash['fsid']
@@ -13,6 +15,11 @@ class osnailyfacter::ceph::ceph_pools {
   $glance_pool        = 'images'
 
   $per_pool_pg_nums = $storage_hash['per_pool_pg_nums']
+
+  override_resources {'override-resources':
+    configuration => $override_configuration,
+    options       => $override_configuration_options,
+  }
 
   if ($storage_hash['volumes_ceph'] or
       $storage_hash['images_ceph'] or

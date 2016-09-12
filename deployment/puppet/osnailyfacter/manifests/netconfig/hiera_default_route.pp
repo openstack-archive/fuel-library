@@ -1,6 +1,8 @@
 class osnailyfacter::netconfig::hiera_default_route {
 
   notice('MODULAR: netconfig/hiera_default_route.pp')
+  $override_configuration = hiera_hash(configuration, {})
+  $override_configuration_options = hiera_hash(configuration_options, {})
 
   $loaded_network_scheme  = hiera_hash('network_scheme', {})
   $management_vrouter_vip = hiera('management_vrouter_vip')
@@ -15,6 +17,11 @@ class osnailyfacter::netconfig::hiera_default_route {
   $public_br = get_network_role_property('public/vip', 'interface')
   $admin_br  = get_network_role_property($admin_role, 'interface')
   $mgmt_br   = get_network_role_property($management_role, 'interface')
+
+  override_resources {'override-resources':
+    configuration => $override_configuration,
+    options       => $override_configuration_options,
+  }
 
   if (has_key($loaded_network_scheme['endpoints'], $public_br)
       or !is_ip_address($management_vrouter_vip)) {

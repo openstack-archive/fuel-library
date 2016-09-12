@@ -1,6 +1,8 @@
 class osnailyfacter::database::database {
 
   notice('MODULAR: database/database.pp')
+  $override_configuration = hiera_hash(configuration, {})
+  $override_configuration_options = hiera_hash(configuration_options, {})
 
   $network_scheme = hiera_hash('network_scheme', {})
   prepare_network_config($network_scheme)
@@ -44,6 +46,11 @@ class osnailyfacter::database::database {
   validate_string($status_password)
   validate_string($mysql_root_password)
   validate_string($status_password)
+
+  override_resources {'override-resources':
+    configuration => $override_configuration,
+    options       => $override_configuration_options,
+  }
 
   if $enabled {
 
