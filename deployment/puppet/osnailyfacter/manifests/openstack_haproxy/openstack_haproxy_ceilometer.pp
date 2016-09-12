@@ -1,6 +1,8 @@
 class osnailyfacter::openstack_haproxy::openstack_haproxy_ceilometer {
 
   notice('MODULAR: openstack_haproxy/openstack_haproxy_ceilometer.pp')
+  $override_configuration = hiera_hash(configuration, {})
+  create_resources(override_resources, $override_configuration)
 
   $ceilometer_hash         = hiera_hash('ceilometer', {})
   # NOT enabled by default
