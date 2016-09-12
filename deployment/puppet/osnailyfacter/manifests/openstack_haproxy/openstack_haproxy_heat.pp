@@ -1,6 +1,8 @@
 class osnailyfacter::openstack_haproxy::openstack_haproxy_heat {
 
   notice('MODULAR: openstack_haproxy/openstack_haproxy_heat.pp')
+  $override_configuration = hiera_hash(configuration, {})
+  create_resources(override_resources, $override_configuration)
 
   $heat_hash         = hiera_hash('heat', {})
   # enabled by default

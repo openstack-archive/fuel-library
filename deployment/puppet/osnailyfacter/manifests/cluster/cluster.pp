@@ -1,6 +1,8 @@
 class osnailyfacter::cluster::cluster {
 
   notice('MODULAR: cluster/cluster.pp')
+  $override_configuration = hiera_hash(configuration, {})
+  create_resources(override_resources, $override_configuration)
 
   if ! roles_include(hiera('corosync_roles')) {
     fail('The node role is not in corosync roles')

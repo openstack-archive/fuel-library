@@ -1,6 +1,8 @@
 class osnailyfacter::logging::logging {
 
   notice('MODULAR: logging/logging.pp')
+  $override_configuration = hiera_hash(configuration, {})
+  create_resources(override_resources, $override_configuration)
 
   $base_syslog_hash   = hiera('base_syslog')
   $syslog_hash        = hiera('syslog')

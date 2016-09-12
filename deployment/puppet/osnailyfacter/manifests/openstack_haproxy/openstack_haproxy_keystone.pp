@@ -1,6 +1,8 @@
 class osnailyfacter::openstack_haproxy::openstack_haproxy_keystone {
 
   notice('MODULAR: openstack_haproxy/openstack_haproxy_keystone.pp')
+  $override_configuration = hiera_hash(configuration, {})
+  create_resources(override_resources, $override_configuration)
 
   $keystone_hash     = hiera_hash('keystone', {})
   # enabled by default

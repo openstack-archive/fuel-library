@@ -1,6 +1,8 @@
 class osnailyfacter::openstack_haproxy::openstack_haproxy_ironic {
 
   notice('MODULAR: openstack_haproxy/openstack_haproxy_ironic.pp')
+  $override_configuration = hiera_hash(configuration, {})
+  create_resources(override_resources, $override_configuration)
 
   $network_metadata     = hiera_hash('network_metadata')
   $public_ssl_hash      = hiera_hash('public_ssl', {})

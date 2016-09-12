@@ -1,6 +1,8 @@
 class osnailyfacter::ceph::mon {
 
   notice('MODULAR: ceph/mon.pp')
+  $override_configuration = hiera_hash(configuration, {})
+  create_resources(override_resources, $override_configuration)
 
   $storage_hash              = hiera('storage', {})
   $admin_key                 = $storage_hash['admin_key']

@@ -1,6 +1,8 @@
 class osnailyfacter::openstack_haproxy::openstack_haproxy_radosgw {
 
   notice('MODULAR: openstack_haproxy/openstack_haproxy_radosgw.pp')
+  $override_configuration = hiera_hash(configuration, {})
+  create_resources(override_resources, $override_configuration)
 
   $storage_hash     = hiera_hash('storage', {})
   $public_ssl_hash  = hiera_hash('public_ssl', {})

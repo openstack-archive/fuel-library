@@ -1,6 +1,8 @@
 class osnailyfacter::openstack_haproxy::openstack_haproxy_glance {
 
   notice('MODULAR: openstack_haproxy/openstack_haproxy_glance.pp')
+  $override_configuration = hiera_hash(configuration, {})
+  create_resources(override_resources, $override_configuration)
 
   $glance_hash       = hiera_hash('glance', {})
   # enabled by default

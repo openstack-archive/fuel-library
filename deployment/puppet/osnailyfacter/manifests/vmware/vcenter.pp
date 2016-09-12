@@ -1,6 +1,8 @@
 class osnailyfacter::vmware::vcenter {
 
   notice('MODULAR: vmware/vcenter.pp')
+  $override_configuration = hiera_hash(configuration, {})
+  create_resources(override_resources, $override_configuration)
 
   $use_vcenter       = hiera('use_vcenter', false)
   $vcenter_hash      = hiera_hash('vcenter')

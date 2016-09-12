@@ -1,6 +1,8 @@
 class osnailyfacter::ceph::primary_mon_update {
 
   notice('MODULAR: ceph/primary_mon_update.pp')
+  $override_configuration = hiera_hash(configuration, {})
+  create_resources(override_resources, $override_configuration)
 
   $mon_address_map = get_node_to_ipaddr_map_by_network_role(hiera_hash('ceph_monitor_nodes'), 'ceph/public')
   $mon_ips         = join(sorted_hosts($mon_address_map, 'ip'), ',')

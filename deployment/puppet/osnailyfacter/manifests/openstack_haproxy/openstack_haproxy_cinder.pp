@@ -1,6 +1,8 @@
 class osnailyfacter::openstack_haproxy::openstack_haproxy_cinder {
 
   notice('MODULAR: openstack_haproxy/openstack_haproxy_cinder.pp')
+  $override_configuration = hiera_hash(configuration, {})
+  create_resources(override_resources, $override_configuration)
 
   $cinder_hash        = hiera_hash('cinder', {})
   # enabled by default

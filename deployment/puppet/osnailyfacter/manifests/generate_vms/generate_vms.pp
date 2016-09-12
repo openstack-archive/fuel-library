@@ -1,6 +1,8 @@
 class osnailyfacter::generate_vms::generate_vms {
 
   notice('MODULAR: generate_vms/generate_vms.pp')
+  $override_configuration = hiera_hash(configuration, {})
+  create_resources(override_resources, $override_configuration)
 
   $vms = hiera('vms_conf')
   $created = str2bool(inline_template('<%= @vms.all? {|x| x["created"]} %>'))

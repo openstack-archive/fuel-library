@@ -1,6 +1,8 @@
 class osnailyfacter::ceph::radosgw_keystone {
 
   notice('MODULAR: ceph/radosgw_keystone.pp')
+  $override_configuration = hiera_hash(configuration, {})
+  create_resources(override_resources, $override_configuration)
 
   $storage_hash = hiera_hash('storage', {})
 

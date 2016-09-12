@@ -1,6 +1,8 @@
 class osnailyfacter::openstack_haproxy::openstack_haproxy_mysqld {
 
   notice('MODULAR: openstack_haproxy/openstack_haproxy_mysqld.pp')
+  $override_configuration = hiera_hash(configuration, {})
+  create_resources(override_resources, $override_configuration)
 
   $mysql_hash               = hiera_hash('mysql', {})
   # enabled by default
