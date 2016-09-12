@@ -99,6 +99,11 @@ describe manifest do
     )
   end
 
+  let(:default_volume_type) { Noop.puppet_function 'pick', cinder_hash['default_volume_type'], facts[:os_service_default] }
+  it { should contain_class('cinder::api').with(
+      'default_volume_type' => default_volume_type,
+  )}
+
   it 'should declare ::cinder class with correct database_max_* parameters' do
     should contain_class('cinder').with(
       'database_max_pool_size' => max_pool_size,

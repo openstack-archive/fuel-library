@@ -4,6 +4,7 @@ class openstack_tasks::openstack_cinder::openstack_cinder {
 
   #Network stuff
   prepare_network_config(hiera_hash('network_scheme', {}))
+
   $cinder_hash            = hiera_hash('cinder', {})
   $management_vip         = hiera('management_vip')
   $volume_group           = hiera('cinder_volume_group', 'cinder')
@@ -23,7 +24,7 @@ class openstack_tasks::openstack_cinder::openstack_cinder {
   $proxy_port             = hiera('proxy_port', '8080')
   $kombu_compression      = hiera('kombu_compression', $::os_service_default)
   $memcached_servers      = hiera('memcached_servers')
-
+  $default_volume_type    = pick($cinder_hash['default_volume_type'], $::os_service_default)
   $db_type                = 'mysql'
   $db_host                = pick($cinder_hash['db_host'], hiera('database_vip'))
   $db_user                = pick($cinder_hash['db_user'], 'cinder')
@@ -183,19 +184,20 @@ class openstack_tasks::openstack_cinder::openstack_cinder {
     }
 
     class { 'cinder::api':
-      os_region_name               => $region,
-      bind_host                    => $bind_host,
-      ratelimits                   => hiera('cinder_rate_limits'),
-      service_workers              => $service_workers,
-      privileged_user              => true,
-      os_privileged_user_password  => $cinder_user_password,
-      os_privileged_user_tenant    => $keystone_tenant,
-      os_privileged_user_auth_url  => $privileged_auth_uri,
-      os_privileged_user_name      => $keystone_user,
-      keymgr_encryption_auth_url   => $keymgr_encryption_auth_url,
-      nova_catalog_admin_info      => 'compute:nova:adminURL',
-      nova_catalog_info            => 'compute:nova:internalURL',
-      sync_db                      => $primary_controller,
+      os_region_name              => $region,
+      bind_host                   => $bind_host,
+      ratelimits                  => hiera('cinder_rate_limits'),
+      service_workers             => $service_workers,
+      privileged_user             => true,
+      os_privileged_user_password => $cinder_user_password,
+      os_privileged_user_tenant   => $keystone_tenant,
+      os_privileged_user_auth_url => $privileged_auth_uri,
+      os_privileged_user_name     => $keystone_user,
+      keymgr_encryption_auth_url  => $keymgr_encryption_auth_url,
+      nova_catalog_admin_info     => 'compute:nova:adminURL',
+      nova_catalog_info           => 'compute:nova:internalURL',
+      sync_db                     => $primary_controller,
+      default_volume_type         => $default_volume_type,
     }
 
     class { 'cinder::scheduler': }
