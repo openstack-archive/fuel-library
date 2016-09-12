@@ -1,6 +1,8 @@
 class osnailyfacter::hosts::hosts {
 
   notice('MODULAR: hosts/hosts.pp')
+  $override_configuration = hiera_hash(configuration, {})
+  create_resources(override_resources, $override_configuration)
 
   $hosts_file = '/etc/hosts'
   $network_metadata = hiera_hash('network_metadata')

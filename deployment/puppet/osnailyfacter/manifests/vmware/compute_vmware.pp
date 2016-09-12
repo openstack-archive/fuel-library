@@ -1,6 +1,8 @@
 class osnailyfacter::vmware::compute_vmware {
 
   notice('MODULAR: vmware/compute_vmware.pp')
+  $override_configuration = hiera_hash(configuration, {})
+  create_resources(override_resources, $override_configuration)
 
   $debug         = hiera('debug', true)
 

@@ -1,6 +1,8 @@
 class osnailyfacter::cgroups::cgroups {
 
   notice('MODULAR: cgroups/cgroups.pp')
+  $override_configuration = hiera_hash(configuration, {})
+  create_resources(override_resources, $override_configuration)
 
   $cgroups_config = hiera('cgroups', {})
   $cgroups_set = prepare_cgroups_hash($cgroups_config)

@@ -1,6 +1,8 @@
 class osnailyfacter::hiera::hiera {
 
   notice('MODULAR: hiera/hiera.pp')
+  $override_configuration = hiera_hash(configuration, {})
+  create_resources(override_resources, $override_configuration)
 
   $data_dir            = '/etc/hiera'
   $override_dir        = 'plugins'

@@ -1,6 +1,8 @@
 class osnailyfacter::netconfig::configure_default_route {
 
   notice('MODULAR: netconfig/configure_default_route.pp')
+  $override_configuration = hiera_hash(configuration, {})
+  create_resources(override_resources, $override_configuration)
 
   $network_scheme         = hiera_hash('network_scheme', {})
   $management_vrouter_vip = hiera('management_vrouter_vip')
