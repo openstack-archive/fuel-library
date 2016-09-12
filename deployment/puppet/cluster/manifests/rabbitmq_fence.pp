@@ -79,8 +79,9 @@ class cluster::rabbitmq_fence(
   }
 
   Exec {
-    path   => [ '/bin', '/usr/bin' ],
-    before => Service['corosync-notifyd'],
+    path    => [ '/bin', '/usr/bin' ],
+    before  => Service['corosync-notifyd'],
+    require => Package['fuel-rabbit-fence']
   }
 
   exec { 'enable_corosync_notifyd':
