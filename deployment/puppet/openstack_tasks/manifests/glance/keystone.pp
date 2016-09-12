@@ -1,6 +1,8 @@
 class openstack_tasks::glance::keystone {
 
   notice('MODULAR: glance/keystone.pp')
+  $override_configuration = hiera_hash(configuration, {})
+  create_resources(override_resources, $override_configuration)
 
   $glance_hash               = hiera_hash('glance', {})
   $glance_glare_hash         = hiera_hash('glance_glare', {})

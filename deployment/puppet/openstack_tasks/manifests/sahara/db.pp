@@ -1,6 +1,8 @@
 class openstack_tasks::sahara::db {
 
   notice('MODULAR: sahara/db.pp')
+  $override_configuration = hiera_hash(configuration, {})
+  create_resources(override_resources, $override_configuration)
 
   $sahara_hash    = hiera_hash('sahara', {})
   $sahara_enabled = pick($sahara_hash['enabled'], false)
