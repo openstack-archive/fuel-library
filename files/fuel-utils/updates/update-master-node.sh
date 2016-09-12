@@ -36,7 +36,7 @@ cobblerd
 mcollective
 nailgun
 nginx
-openstack-keystone
+httpd
 ostf
 rabbitmq-server
 oswl_flavor_collectord
