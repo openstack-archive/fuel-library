@@ -1,6 +1,8 @@
 class osnailyfacter::firewall::firewall {
 
   notice('MODULAR: firewall/firewall.pp')
+  $override_configuration = hiera_hash(configuration, {})
+  $override_configuration_options = hiera_hash(configuration_options, {})
 
   $network_scheme   = hiera_hash('network_scheme', {})
   $network_metadata = hiera_hash('network_metadata')
@@ -73,6 +75,11 @@ class osnailyfacter::firewall::firewall {
     get_routable_networks_for_network_role($network_scheme, 'swift/replication'),
     get_routable_networks_for_network_role($network_scheme, 'ceph/replication')
   )
+
+  override_resources {'override-resources':
+    configuration => $override_configuration,
+    options       => $override_configuration_options,
+  }
 
   # Ordering
   Class['::firewall'] -> Firewall<||>

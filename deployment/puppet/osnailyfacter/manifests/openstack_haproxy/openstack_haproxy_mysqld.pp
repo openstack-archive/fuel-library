@@ -1,6 +1,8 @@
 class osnailyfacter::openstack_haproxy::openstack_haproxy_mysqld {
 
   notice('MODULAR: openstack_haproxy/openstack_haproxy_mysqld.pp')
+  $override_configuration = hiera_hash(configuration, {})
+  $override_configuration_options = hiera_hash(configuration_options, {})
 
   $mysql_hash               = hiera_hash('mysql', {})
   # enabled by default
@@ -9,6 +11,11 @@ class osnailyfacter::openstack_haproxy::openstack_haproxy_mysqld {
   $custom_mysql_setup_class = hiera('custom_mysql_setup_class', 'galera')
 
   $external_lb              = hiera('external_lb', false)
+
+  override_resources {'override-resources':
+    configuration => $override_configuration,
+    options       => $override_configuration_options,
+  }
 
   # only do this if mysql is enabled and we are using one of the galera/percona classes
   if !$external_lb and $use_mysql and ($custom_mysql_setup_class in ['galera', 'percona', 'percona_packages']) {

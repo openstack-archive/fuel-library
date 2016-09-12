@@ -1,6 +1,8 @@
 class osnailyfacter::rabbitmq::rabbitmq {
 
   notice('MODULAR: rabbitmq/rabbitmq.pp')
+  $override_configuration = hiera_hash(configuration, {})
+  $override_configuration_options = hiera_hash(configuration_options, {})
 
   $network_scheme = hiera_hash('network_scheme', {})
   $workers_max = hiera('workers_max', 50)
@@ -8,6 +10,11 @@ class osnailyfacter::rabbitmq::rabbitmq {
   prepare_network_config($network_scheme)
 
   $queue_provider = hiera('queue_provider', 'rabbitmq')
+
+  override_resources {'override-resources':
+    configuration => $override_configuration,
+    options       => $override_configuration_options,
+  }
 
   if $queue_provider == 'rabbitmq' {
     $erlang_cookie   = hiera('erlang_cookie', 'EOKOWXQREETZSHFNTPEY')

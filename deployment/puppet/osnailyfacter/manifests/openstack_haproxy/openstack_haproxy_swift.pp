@@ -1,6 +1,8 @@
 class osnailyfacter::openstack_haproxy::openstack_haproxy_swift {
 
   notice('MODULAR: openstack_haproxy/openstack_haproxy_swift.pp')
+  $override_configuration = hiera_hash(configuration, {})
+  $override_configuration_options = hiera_hash(configuration_options, {})
 
   $storage_hash      = hiera_hash('storage', {})
   $swift_proxies     = hiera_hash('swift_proxies', undef)
@@ -14,6 +16,11 @@ class osnailyfacter::openstack_haproxy::openstack_haproxy_swift {
   $internal_ssl_path = get_ssl_property($ssl_hash, {}, 'swift', 'internal', 'path', [''])
 
   $external_lb       = hiera('external_lb', false)
+
+  override_resources {'override-resources':
+    configuration => $override_configuration,
+    options       => $override_configuration_options,
+  }
 
   if (!$storage_hash['images_ceph'] and !$storage_hash['objects_ceph'] and !$storage_hash['images_vcenter']) {
     $use_swift = true

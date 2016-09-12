@@ -1,6 +1,8 @@
 class osnailyfacter::ceph::radosgw {
 
   notice('MODULAR: ceph/radosgw.pp')
+  $override_configuration = hiera_hash(configuration, {})
+  $override_configuration_options = hiera_hash(configuration_options, {})
 
   $storage_hash     = hiera_hash('storage', {})
   $keystone_hash    = hiera_hash('keystone', {})
@@ -14,6 +16,11 @@ class osnailyfacter::ceph::radosgw {
   $admin_identity_protocol = get_ssl_property($ssl_hash, {}, 'keystone', 'admin', 'protocol', 'http')
   $admin_identity_address  = get_ssl_property($ssl_hash, {}, 'keystone', 'admin', 'hostname', [$service_endpoint, $management_vip])
   $admin_identity_url      = "${admin_identity_protocol}://${admin_identity_address}:35357"
+
+  override_resources {'override-resources':
+    configuration => $override_configuration,
+    options       => $override_configuration_options,
+  }
 
   if $storage_hash['objects_ceph'] {
     $ceph_primary_monitor_node = hiera('ceph_primary_monitor_node')

@@ -1,6 +1,8 @@
 class osnailyfacter::openstack_haproxy::openstack_haproxy_neutron {
 
   notice('MODULAR: openstack_haproxy/openstack_haproxy_neutron.pp')
+  $override_configuration = hiera_hash(configuration, {})
+  $override_configuration_options = hiera_hash(configuration_options, {})
 
   # NOT enabled by default
   $use_neutron         = hiera('use_neutron', false)
@@ -16,6 +18,11 @@ class osnailyfacter::openstack_haproxy::openstack_haproxy_neutron {
   $external_lb         = hiera('external_lb', false)
 
   if ($use_neutron and !$external_lb) {
+    override_resources {'override-resources':
+      configuration => $override_configuration,
+      options       => $override_configuration_options,
+    }
+
     $neutron_address_map = get_node_to_ipaddr_map_by_network_role(hiera_hash('neutron_nodes'), 'neutron/api')
     $server_names        = hiera_array('neutron_names', keys($neutron_address_map))
     $ipaddresses         = hiera_array('neutron_ipaddresses', values($neutron_address_map))
