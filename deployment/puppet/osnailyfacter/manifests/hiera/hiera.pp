@@ -1,6 +1,8 @@
 class osnailyfacter::hiera::hiera {
 
   notice('MODULAR: hiera/hiera.pp')
+  $override_configuration = hiera_hash(configuration, {})
+  $override_configuration_options = hiera_hash(configuration_options, {})
 
   $data_dir            = '/etc/hiera'
   $override_dir        = 'plugins'
@@ -30,6 +32,11 @@ class osnailyfacter::hiera::hiera {
   $hiera_main_config   = '/etc/hiera.yaml'
   $hiera_puppet_config = '/etc/puppet/hiera.yaml'
   $hiera_data_file     = "${data_dir}/astute.yaml"
+
+  override_resources {'override-resources':
+    configuration => $override_configuration,
+    options       => $override_configuration_options,
+  }
 
   File {
     owner => 'root',

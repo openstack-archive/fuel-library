@@ -1,6 +1,8 @@
 class osnailyfacter::openstack_haproxy::openstack_haproxy_heat {
 
   notice('MODULAR: openstack_haproxy/openstack_haproxy_heat.pp')
+  $override_configuration = hiera_hash(configuration, {})
+  $override_configuration_options = hiera_hash(configuration_options, {})
 
   $heat_hash         = hiera_hash('heat', {})
   # enabled by default
@@ -15,6 +17,11 @@ class osnailyfacter::openstack_haproxy::openstack_haproxy_heat {
   $internal_ssl_path = get_ssl_property($ssl_hash, {}, 'heat', 'internal', 'path', [''])
 
   $external_lb       = hiera('external_lb', false)
+
+  override_resources {'override-resources':
+    configuration => $override_configuration,
+    options       => $override_configuration_options,
+  }
 
   if ($use_heat and !$external_lb) {
     $heat_address_map    = get_node_to_ipaddr_map_by_network_role(hiera_hash('heat_nodes'), 'heat/api')

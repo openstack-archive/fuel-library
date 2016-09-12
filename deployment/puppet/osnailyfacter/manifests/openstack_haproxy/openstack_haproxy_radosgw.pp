@@ -1,6 +1,8 @@
 class osnailyfacter::openstack_haproxy::openstack_haproxy_radosgw {
 
   notice('MODULAR: openstack_haproxy/openstack_haproxy_radosgw.pp')
+  $override_configuration = hiera_hash(configuration, {})
+  $override_configuration_options = hiera_hash(configuration_options, {})
 
   $storage_hash     = hiera_hash('storage', {})
   $public_ssl_hash  = hiera_hash('public_ssl', {})
@@ -10,6 +12,11 @@ class osnailyfacter::openstack_haproxy::openstack_haproxy_radosgw {
   $public_ssl_path  = get_ssl_property($ssl_hash, $public_ssl_hash, 'radosgw', 'public', 'path', [''])
 
   $external_lb      = hiera('external_lb', false)
+
+  override_resources {'override-resources':
+    configuration => $override_configuration,
+    options       => $override_configuration_options,
+  }
 
   if !$external_lb {
     if (!$storage_hash['images_ceph'] and !$storage_hash['objects_ceph'] and !$storage_hash['images_vcenter']) {

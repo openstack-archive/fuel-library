@@ -1,10 +1,17 @@
 class osnailyfacter::tools::tools {
 
   notice('MODULAR: tools/tools.pp')
+  $override_configuration = hiera_hash(configuration, {})
+  $override_configuration_options = hiera_hash(configuration_options, {})
 
   $custom_acct_file = hiera('custom_accounting_file', undef)
   $puppet = hiera('puppet')
   $deployment_mode = hiera('deployment_mode')
+
+  override_resources {'override-resources':
+    configuration => $override_configuration,
+    options       => $override_configuration_options,
+  }
 
   # improve overall performance of the node
   sysctl::value { 'vm.swappiness': value => '10' }

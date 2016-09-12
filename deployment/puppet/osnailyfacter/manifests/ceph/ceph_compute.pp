@@ -1,6 +1,8 @@
 class osnailyfacter::ceph::ceph_compute {
 
   notice('MODULAR: ceph/ceph_compute.pp')
+  $override_configuration = hiera_hash(configuration, {})
+  $override_configuration_options = hiera_hash(configuration_options, {})
 
   $mon_address_map          = get_node_to_ipaddr_map_by_network_role(hiera_hash('ceph_monitor_nodes'), 'ceph/public')
   $storage_hash             = hiera_hash('storage', {})
@@ -51,6 +53,11 @@ class osnailyfacter::ceph::ceph_compute {
     $ceph_public_network  = get_network_role_property('ceph/public', 'network')
 
     $per_pool_pg_nums = $storage_hash['per_pool_pg_nums']
+
+    override_resources {'override-resources':
+      configuration => $override_configuration,
+      options       => $override_configuration_options,
+    }
 
     class { '::ceph':
       primary_mon              => $primary_mon,

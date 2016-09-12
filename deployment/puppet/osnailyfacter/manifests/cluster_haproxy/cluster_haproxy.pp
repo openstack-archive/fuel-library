@@ -1,6 +1,8 @@
 class osnailyfacter::cluster_haproxy::cluster_haproxy {
 
   notice('MODULAR: cluster_haproxy/cluster_haproxy.pp')
+  $override_configuration = hiera_hash(configuration, {})
+  $override_configuration_options = hiera_hash(configuration_options, {})
 
   $network_scheme      = hiera_hash('network_scheme', {})
   $management_vip      = hiera('management_vip')
@@ -13,8 +15,11 @@ class osnailyfacter::cluster_haproxy::cluster_haproxy {
   $colocate_haproxy    = hiera('colocate_haproxy', true)
   $ssl_default_ciphers = hiera('ssl_default_ciphers', 'HIGH:!aNULL:!MD5:!kEDH')
 
-  $override_configuration = hiera_hash('configuration', {})
-  $user_defined_options = $override_configuration['haproxy']
+  override_resources {'override-resources':
+    configuration => $override_configuration,
+    options       => $override_configuration_options,
+  }
+
   if !$external_lb {
     #FIXME(mattymo): Replace with only VIPs for roles assigned to this node
     $stats_ipaddresses          = delete_undef_values([$management_vip, $database_vip, $service_endpoint, '127.0.0.1'])
@@ -27,7 +32,6 @@ class osnailyfacter::cluster_haproxy::cluster_haproxy {
       other_networks       => direct_networks($network_scheme['endpoints']),
       stats_ipaddresses    => $stats_ipaddresses,
       colocate_haproxy     => $colocate_haproxy,
-      user_defined_options => $user_defined_options,
       ssl_default_ciphers  => $ssl_default_ciphers,
     }
   }

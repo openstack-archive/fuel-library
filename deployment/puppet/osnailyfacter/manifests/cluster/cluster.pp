@@ -1,6 +1,8 @@
 class osnailyfacter::cluster::cluster {
 
   notice('MODULAR: cluster/cluster.pp')
+  $override_configuration = hiera_hash(configuration, {})
+  $override_configuration_options = hiera_hash(configuration_options, {})
 
   if ! roles_include(hiera('corosync_roles')) {
     fail('The node role is not in corosync roles')
@@ -20,6 +22,11 @@ class osnailyfacter::cluster::cluster {
   $corosync_nodes_processed = corosync_nodes_process($corosync_nodes)
 
   $cluster_recheck_interval = hiera('cluster_recheck_interval', '190s')
+
+  override_resources {'override-resources':
+    configuration => $override_configuration,
+    options       => $override_configuration_options,
+  }
 
   class { '::cluster':
     internal_address         => get_network_role_property('mgmt/corosync', 'ipaddr'),

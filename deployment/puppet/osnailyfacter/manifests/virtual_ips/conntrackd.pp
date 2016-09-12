@@ -1,6 +1,8 @@
 class osnailyfacter::virtual_ips::conntrackd {
 
   notice('MODULAR: virtual_ips/conntrackd.pp')
+  $override_configuration = hiera_hash(configuration, {})
+  create_resources(override_resources, $override_configuration)
 
   $network_metadata = hiera_hash('network_metadata', {})
   prepare_network_config(hiera_hash('network_scheme', {}))

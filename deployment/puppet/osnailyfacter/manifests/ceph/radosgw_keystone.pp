@@ -1,8 +1,15 @@
 class osnailyfacter::ceph::radosgw_keystone {
 
   notice('MODULAR: ceph/radosgw_keystone.pp')
+  $override_configuration = hiera_hash(configuration, {})
+  $override_configuration_options = hiera_hash(configuration_options, {})
 
   $storage_hash = hiera_hash('storage', {})
+
+  override_resources {'override-resources':
+    configuration => $override_configuration,
+    options       => $override_configuration_options,
+  }
 
     $public_vip      = hiera('public_vip')
     $region          = hiera('region', 'RegionOne')

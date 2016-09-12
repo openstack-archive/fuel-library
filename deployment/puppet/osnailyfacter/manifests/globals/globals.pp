@@ -1,6 +1,8 @@
 class osnailyfacter::globals::globals {
 
   notice('MODULAR: globals/globals.pp')
+  $override_configuration = hiera_hash(configuration, {})
+  $override_configuration_options = hiera_hash(configuration_options, {})
 
   $disable_globals_yaml = '_disabled'
 
@@ -33,6 +35,11 @@ class osnailyfacter::globals::globals {
   $node_name = regsubst($node_hash['fqdn'], '\..*$', '')
 
   prepare_network_config($network_scheme)
+
+  override_resources {'override-resources':
+    configuration => $override_configuration,
+    options       => $override_configuration_options,
+  }
 
   # MOS Ubuntu image uses Debian style packages. Since the introduction
   # of `$::os_package_type' fact avilable to use in project manifests,

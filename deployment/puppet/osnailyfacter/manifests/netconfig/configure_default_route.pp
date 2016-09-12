@@ -1,6 +1,8 @@
 class osnailyfacter::netconfig::configure_default_route {
 
   notice('MODULAR: netconfig/configure_default_route.pp')
+  $override_configuration = hiera_hash(configuration, {})
+  $override_configuration_options = hiera_hash(configuration_options, {})
 
   $network_scheme         = hiera_hash('network_scheme', {})
   $management_vrouter_vip = hiera('management_vrouter_vip')
@@ -9,6 +11,11 @@ class osnailyfacter::netconfig::configure_default_route {
 
   if ( $::l23_os =~ /(?i:centos6)/ and $::kernelmajversion == '3.10' ) {
     $ovs_datapath_package_name = 'kmod-openvswitch-lt'
+  }
+
+  override_resources {'override-resources':
+    configuration => $override_configuration,
+    options       => $override_configuration_options,
   }
 
   class { '::l23network' :
