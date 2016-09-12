@@ -1,6 +1,8 @@
 class osnailyfacter::fuel_pkgs::setup_repositories {
 
   notice('MODULAR: fuel_pkgs/setup_repositories.pp')
+  $override_configuration = hiera_hash(configuration, {})
+  create_resources(override_resources, $override_configuration)
 
   $repo_setup_hash = hiera_hash('repo_setup', {})
   $repos      = $repo_setup_hash['repos']
