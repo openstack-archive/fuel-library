@@ -1,6 +1,8 @@
 class osnailyfacter::apache::apache {
 
   notice('MODULAR: apache/apache.pp')
+  $override_configuration = hiera_hash(configuration, {})
+  create_resources(override_resources, $override_configuration)
 
   # adjustments to defaults for LP#1485644 for scale
   sysctl::value { 'net.core.somaxconn':           value => '4096' }

@@ -1,6 +1,8 @@
 class osnailyfacter::vmware::cinder_vmware {
 
   notice('MODULAR: vmware/cinder_vmware.pp')
+  $override_configuration = hiera_hash(configuration, {})
+  create_resources(override_resources, $override_configuration)
 
   $cinder_hash = hiera_hash('cinder', {})
 

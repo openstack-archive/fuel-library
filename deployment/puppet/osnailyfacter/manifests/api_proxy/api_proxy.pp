@@ -1,6 +1,8 @@
 class osnailyfacter::api_proxy::api_proxy {
 
   notice('MODULAR: api_proxy/api_proxy.pp')
+  $override_configuration = hiera_hash(configuration, {})
+  create_resources(override_resources, $override_configuration)
 
   $max_header_size        = hiera('max_header_size', '81900')
   $apache_api_proxy_ports = hiera('apache_api_proxy_ports',
