@@ -1,6 +1,8 @@
 class osnailyfacter::dns::dns_server {
 
   notice('MODULAR: dns/dns_server.pp')
+  $override_configuration = hiera_hash(configuration, {})
+  $override_configuration_options = hiera_hash(configuration_options, {})
 
   $dns_servers            = hiera('external_dns')
   $primary_controller     = hiera('primary_controller')
@@ -15,6 +17,11 @@ class osnailyfacter::dns::dns_server {
     $external_dns = any2array($dns_servers['dns_list'])
   } else {
     $external_dns = split($dns_servers['dns_list'], ',')
+  }
+
+  override_resources {'override-resources':
+    configuration => $override_configuration,
+    options       => $override_configuration_options,
   }
 
   # If VIP has namespace set to 'false' or 'undef' then we do not configure it

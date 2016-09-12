@@ -1,6 +1,8 @@
 class osnailyfacter::ceph::ceph_pools {
 
   notice('MODULAR: ceph/ceph_pools.pp')
+  $override_configuration = hiera_hash(configuration, {})
+  $override_configuration_options = hiera_hash(configuration_options, {})
 
   $storage_hash             = hiera_hash('storage', {})
   $osd_pool_default_pg_num  = $storage_hash['pg_num']
@@ -14,6 +16,11 @@ class osnailyfacter::ceph::ceph_pools {
   # Glance settings
   $glance_user              = 'images'
   $glance_pool              = 'images'
+
+  override_resources {'override-resources':
+    configuration => $override_configuration,
+    options       => $override_configuration_options,
+  }
 
   Exec { path    => [ '/bin/', '/sbin/' , '/usr/bin/', '/usr/sbin/' ],
     cwd     => '/root',

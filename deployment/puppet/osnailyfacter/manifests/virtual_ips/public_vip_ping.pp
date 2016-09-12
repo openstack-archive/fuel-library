@@ -1,12 +1,19 @@
 class osnailyfacter::virtual_ips::public_vip_ping {
 
   notice('MODULAR: virtual_ips/public_vip_ping.pp')
+  $override_configuration = hiera_hash(configuration, {})
+  $override_configuration_options = hiera_hash(configuration_options, {})
 
   $network_scheme = hiera_hash('network_scheme', {})
   prepare_network_config($network_scheme)
   $run_ping_checker = hiera('run_ping_checker', true)
   $public_iface = get_network_role_property('public/vip', 'interface')
   $ping_host_list = $network_scheme['endpoints'][$public_iface]['gateway']
+
+  override_resources {'override-resources':
+    configuration => $override_configuration,
+    options       => $override_configuration_options,
+  }
 
   if $run_ping_checker {
     $vip = 'vip__public'

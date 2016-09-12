@@ -1,6 +1,8 @@
 class osnailyfacter::openstack_haproxy::openstack_haproxy_sahara {
 
   notice('MODULAR: openstack_haproxy/openstack_haproxy_sahara.pp')
+  $override_configuration = hiera_hash(configuration, {})
+  $override_configuration_options = hiera_hash(configuration_options, {})
 
   $sahara_hash       = hiera_hash('sahara', {})
   # NOT enabled by default
@@ -15,6 +17,11 @@ class osnailyfacter::openstack_haproxy::openstack_haproxy_sahara {
   $internal_ssl_path = get_ssl_property($ssl_hash, {}, 'sahara', 'internal', 'path', [''])
 
   $external_lb       = hiera('external_lb', false)
+
+  override_resources {'override-resources':
+    configuration => $override_configuration,
+    options       => $override_configuration_options,
+  }
 
   if ($use_sahara and !$external_lb) {
     $sahara_address_map  = get_node_to_ipaddr_map_by_network_role(hiera('sahara_nodes'), 'sahara/api')

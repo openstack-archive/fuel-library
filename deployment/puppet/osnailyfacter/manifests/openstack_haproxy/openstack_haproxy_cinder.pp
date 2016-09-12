@@ -1,6 +1,8 @@
 class osnailyfacter::openstack_haproxy::openstack_haproxy_cinder {
 
   notice('MODULAR: openstack_haproxy/openstack_haproxy_cinder.pp')
+  $override_configuration = hiera_hash(configuration, {})
+  $override_configuration_options = hiera_hash(configuration_options, {})
 
   $cinder_hash        = hiera_hash('cinder', {})
   # enabled by default
@@ -15,6 +17,11 @@ class osnailyfacter::openstack_haproxy::openstack_haproxy_cinder {
   $internal_ssl_path  = get_ssl_property($ssl_hash, {}, 'cinder', 'internal', 'path', [''])
 
   $external_lb        = hiera('external_lb', false)
+
+  override_resources {'override-resources':
+    configuration => $override_configuration,
+    options       => $override_configuration_options,
+  }
 
   if ($use_cinder and !$external_lb) {
     $cinder_address_map  = get_node_to_ipaddr_map_by_network_role(hiera_hash('cinder_nodes'), 'cinder/api')

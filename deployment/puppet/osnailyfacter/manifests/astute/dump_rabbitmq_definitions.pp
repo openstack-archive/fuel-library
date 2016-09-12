@@ -1,6 +1,8 @@
 class osnailyfacter::astute::dump_rabbitmq_definitions {
 
   notice('MODULAR: astute/dump_rabbitmq_definitions.pp')
+  $override_configuration = hiera_hash(configuration, {})
+  $override_configuration_options = hiera_hash(configuration_options, {})
 
   $definitions_dump_file = '/etc/rabbitmq/definitions'
   $original_definitions_dump_file = '/etc/rabbitmq/definitions.full'
@@ -13,6 +15,11 @@ class osnailyfacter::astute::dump_rabbitmq_definitions {
   $rabbit_enabled = pick($rabbit_hash['enabled'], true)
   $management_bind_ip_address = hiera('management_bind_ip_address', '127.0.0.1')
   $management_port = hiera('rabbit_management_port', '15672')
+
+  override_resources {'override-resources':
+    configuration => $override_configuration,
+    options       => $override_configuration_options,
+  }
 
   if ($rabbit_enabled) {
     $rabbit_api_endpoint = "http://${management_bind_ip_address}:${management_port}/api/definitions"
