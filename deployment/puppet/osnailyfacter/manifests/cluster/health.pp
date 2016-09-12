@@ -1,6 +1,8 @@
 class osnailyfacter::cluster::health {
 
   notice('MODULAR: cluster/health.pp')
+  $override_configuration = hiera_hash(configuration, {})
+  $override_configuration_options = hiera_hash(configuration_options, {})
 
   if ! roles_include(hiera('corosync_roles')) {
     fail('The node role is not in corosync roles')
@@ -8,6 +10,11 @@ class osnailyfacter::cluster::health {
 
   # load the mounted filesystems from our custom fact and remove not needed
   $mount_points = delete($::mounts, ['/boot', '/var/lib/horizon'])
+
+  override_resources {'override-resources':
+    configuration => $override_configuration,
+    options       => $override_configuration_options,
+  }
 
   $disks            = hiera('corosync_disks', $mount_points)
   $min_disk_free    = hiera('corosync_min_disk_space', '512M')

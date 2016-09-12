@@ -1,6 +1,8 @@
 class osnailyfacter::ceph::radosgw {
 
   notice('MODULAR: ceph/radosgw.pp')
+  $override_configuration = hiera_hash(configuration, {})
+  $override_configuration_options = hiera_hash(configuration_options, {})
 
   $gateway_name                     = 'radosgw.gateway'
   $storage_hash                     = hiera('storage', {})
@@ -31,6 +33,11 @@ class osnailyfacter::ceph::radosgw {
   $mon_address_map = get_node_to_ipaddr_map_by_network_role(hiera_hash('ceph_monitor_nodes'), 'ceph/public')
   $mon_ips         = join(sorted_hosts($mon_address_map, 'ip'), ',')
   $mon_hosts       = join(sorted_hosts($mon_address_map, 'host'), ',')
+
+  override_resources {'override-resources':
+    configuration => $override_configuration,
+    options       => $override_configuration_options,
+  }
 
   if $storage_hash['objects_ceph'] {
 

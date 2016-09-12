@@ -1,6 +1,8 @@
 class osnailyfacter::vmware::compute_vmware {
 
   notice('MODULAR: vmware/compute_vmware.pp')
+  $override_configuration = hiera_hash(configuration, {})
+  $override_configuration_options = hiera_hash(configuration_options, {})
 
   $debug         = hiera('debug', true)
 
@@ -11,6 +13,11 @@ class osnailyfacter::vmware::compute_vmware {
   $defaults = {
     current_node   => hiera('node_name'),
     vlan_interface => $vcenter_hash['esxi_vlan_interface']
+  }
+
+  override_resources {'override-resources':
+    configuration => $override_configuration,
+    options       => $override_configuration_options,
   }
 
   create_resources(vmware::compute_vmware, $computes_hash, $defaults)
