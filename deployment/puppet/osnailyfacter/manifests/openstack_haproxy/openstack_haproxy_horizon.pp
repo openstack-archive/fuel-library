@@ -1,6 +1,8 @@
 class osnailyfacter::openstack_haproxy::openstack_haproxy_horizon {
 
   notice('MODULAR: openstack_haproxy/openstack_haproxy_horizon.pp')
+  $override_configuration = hiera_hash(configuration, {})
+  $override_configuration_options = hiera_hash(configuration_options, {})
 
   $horizon_hash        = hiera_hash('horizon', {})
   # enabled by default
@@ -12,6 +14,11 @@ class osnailyfacter::openstack_haproxy::openstack_haproxy_horizon {
   $public_ssl_path     = get_ssl_property($ssl_hash, $public_ssl_hash, 'horizon', 'public', 'path', [''])
 
   $external_lb = hiera('external_lb', false)
+
+  override_resources {'override-resources':
+    configuration => $override_configuration,
+    options       => $override_configuration_options,
+  }
 
   if ($use_horizon and !$external_lb) {
     $horizon_address_map = get_node_to_ipaddr_map_by_network_role(hiera_hash('horizon_nodes'), 'horizon')

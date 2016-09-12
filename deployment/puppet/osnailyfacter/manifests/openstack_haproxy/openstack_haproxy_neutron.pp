@@ -1,6 +1,8 @@
 class osnailyfacter::openstack_haproxy::openstack_haproxy_neutron {
 
   notice('MODULAR: openstack_haproxy/openstack_haproxy_neutron.pp')
+  $override_configuration = hiera_hash(configuration, {})
+  $override_configuration_options = hiera_hash(configuration_options, {})
 
   # NOT enabled by default
   $public_ssl_hash     = hiera_hash('public_ssl', {})
@@ -13,6 +15,11 @@ class osnailyfacter::openstack_haproxy::openstack_haproxy_neutron {
   $internal_ssl_path   = get_ssl_property($ssl_hash, {}, 'neutron', 'internal', 'path', [''])
 
   $external_lb         = hiera('external_lb', false)
+
+  override_resources {'override-resources':
+    configuration => $override_configuration,
+    options       => $override_configuration_options,
+  }
 
   if !$external_lb {
     $neutron_address_map = get_node_to_ipaddr_map_by_network_role(hiera_hash('neutron_nodes'), 'neutron/api')

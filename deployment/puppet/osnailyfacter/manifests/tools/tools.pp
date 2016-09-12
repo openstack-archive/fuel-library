@@ -1,6 +1,8 @@
 class osnailyfacter::tools::tools {
 
   notice('MODULAR: tools/tools.pp')
+  $override_configuration = hiera_hash(configuration, {})
+  $override_configuration_options = hiera_hash(configuration_options, {})
 
   $atop_hash     = hiera('atop', {})
   $atop_enabled  = pick($atop_hash['service_enabled'], true)
@@ -11,6 +13,11 @@ class osnailyfacter::tools::tools {
 
   $puppet = hiera('puppet')
   $deployment_mode = hiera('deployment_mode')
+
+  override_resources {'override-resources':
+    configuration => $override_configuration,
+    options       => $override_configuration_options,
+  }
 
   # improve overall performance of the node
   sysctl::value { 'vm.swappiness': value => '10' }

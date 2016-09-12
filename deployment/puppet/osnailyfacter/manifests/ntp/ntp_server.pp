@@ -1,6 +1,8 @@
 class osnailyfacter::ntp::ntp_server {
 
   notice('MODULAR: ntp/ntp_server.pp')
+  $override_configuration = hiera_hash(configuration, {})
+  $override_configuration_options = hiera_hash(configuration_options, {})
 
   $ntp_servers = hiera('external_ntp')
 
@@ -8,6 +10,11 @@ class osnailyfacter::ntp::ntp_server {
     $external_ntp = $ntp_servers['ntp_list']
   } else {
     $external_ntp = strip(split($ntp_servers['ntp_list'], ','))
+  }
+
+  override_resources {'override-resources':
+    configuration => $override_configuration,
+    options       => $override_configuration_options,
   }
 
   class { '::ntp':

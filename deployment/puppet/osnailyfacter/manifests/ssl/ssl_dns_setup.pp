@@ -1,6 +1,8 @@
 class osnailyfacter::ssl::ssl_dns_setup {
 
   notice('MODULAR: ssl/ssl_dns_setup.pp')
+  $override_configuration = hiera_hash(configuration, {})
+  $override_configuration_options = hiera_hash(configuration_options, {})
 
   $public_ssl_hash = hiera_hash('public_ssl')
   $ssl_hash = hiera_hash('use_ssl', {})
@@ -9,6 +11,11 @@ class osnailyfacter::ssl::ssl_dns_setup {
   $openstack_service_endpoints = hiera_hash('openstack_service_endpoints', {})
 
   $services = [ 'horizon', 'keystone', 'nova', 'heat', 'glance', 'cinder', 'neutron', 'swift', 'sahara', 'murano', 'ceilometer', 'radosgw']
+
+  override_resources {'override-resources':
+    configuration => $override_configuration,
+    options       => $override_configuration_options,
+  }
 
   #TODO(sbog): convert it to '.each' when moving to Puppet 4
   #TODO(anoskov): move it outside class 'osnailyfacter::ssl::ssl_dns_setup'
