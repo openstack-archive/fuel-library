@@ -94,7 +94,8 @@ class openstack_tasks::roles::ironic_conductor {
   class { '::ironic::client': }
 
   class { '::ironic::conductor':
-    api_url => "http://${baremetal_vip}:6385",
+    api_url            => "http://${baremetal_vip}:6385",
+    swift_temp_url_key => $ironic_swift_tempurl_key,
   }
 
   class { '::ironic::drivers::pxe':
@@ -113,13 +114,6 @@ class openstack_tasks::roles::ironic_conductor {
     'keystone_authtoken/memcached_servers': value => join(any2array($memcached_servers), ',');
     'glance/swift_endpoint_url':            value => "http://${baremetal_vip}:8080";
     'glance/temp_url_endpoint_type':        value => $temp_url_endpoint_type;
-  }
-
-  # TODO(iberezovskiy): remove this workaround when https://review.openstack.org/#/c/365236 is merged
-  if !defined(Ironic_config['glance/swift_temp_url_key']) {
-    ironic_config { 'glance/swift_temp_url_key': value => $ironic_swift_tempurl_key; }
-  } else {
-    Ironic_config<| title == 'glance/swift_temp_url_key' |> { value => $ironic_swift_tempurl_key }
   }
 
   file { $tftp_root:
