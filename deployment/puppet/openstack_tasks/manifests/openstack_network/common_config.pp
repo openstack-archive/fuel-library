@@ -1,6 +1,8 @@
 class openstack_tasks::openstack_network::common_config {
 
   notice('MODULAR: openstack_network/common_config.pp')
+  $override_configuration = hiera_hash(configuration, {})
+  create_resources(override_resources, $override_configuration)
 
   $openstack_network_hash  = hiera_hash('openstack_network', { })
   $neutron_config          = hiera_hash('neutron_config')

@@ -1,6 +1,8 @@
 class openstack_tasks::horizon::horizon {
 
   notice('MODULAR: horizon/horizon.pp')
+  $override_configuration = hiera_hash(configuration, {})
+  create_resources(override_resources, $override_configuration)
 
   prepare_network_config(hiera_hash('network_scheme', {}))
   $horizon_hash            = hiera_hash('horizon', {})

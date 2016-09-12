@@ -1,6 +1,8 @@
 class openstack_tasks::openstack_cinder::db {
 
   notice('MODULAR: openstack_cinder/db.pp')
+  $override_configuration = hiera_hash(configuration, {})
+  create_resources(override_resources, $override_configuration)
 
   $cinder_hash    = hiera_hash('cinder', {})
   $mysql_hash     = hiera_hash('mysql', {})

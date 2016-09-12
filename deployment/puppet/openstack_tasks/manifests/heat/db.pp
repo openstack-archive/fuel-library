@@ -1,6 +1,8 @@
 class openstack_tasks::heat::db {
 
   notice('MODULAR: heat/db.pp')
+  $override_configuration = hiera_hash(configuration, {})
+  create_resources(override_resources, $override_configuration)
 
   $heat_hash      = hiera_hash('heat', {})
   $mysql_hash     = hiera_hash('mysql', {})

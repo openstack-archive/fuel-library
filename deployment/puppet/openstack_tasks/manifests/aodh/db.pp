@@ -1,6 +1,8 @@
 class openstack_tasks::aodh::db {
 
   notice('MODULAR: aodh/db.pp')
+  $override_configuration = hiera_hash(configuration, {})
+  create_resources(override_resources, $override_configuration)
 
   $aodh_hash    = hiera_hash('aodh', { 'db_password' => 'aodh' })
   $database_vip = hiera('database_vip')

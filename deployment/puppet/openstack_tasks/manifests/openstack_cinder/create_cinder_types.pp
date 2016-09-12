@@ -1,6 +1,8 @@
 class openstack_tasks::openstack_cinder::create_cinder_types {
 
   notice('MODULAR: openstack_cinder/create_cinder_types.pp')
+  $override_configuration = hiera_hash(configuration, {})
+  create_resources(override_resources, $override_configuration)
 
   $storage_hash    = hiera_hash('storage', {})
   $backends        = $storage_hash['volume_backend_names']
