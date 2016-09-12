@@ -1,6 +1,8 @@
 class openstack_tasks::swift::proxy_storage {
 
   notice('MODULAR: swift/proxy_storage.pp')
+  $override_configuration = hiera_hash(configuration, {})
+  create_resources(override_resources, $override_configuration)
 
   $network_scheme             = hiera_hash('network_scheme', {})
   $network_metadata           = hiera_hash('network_metadata', {})

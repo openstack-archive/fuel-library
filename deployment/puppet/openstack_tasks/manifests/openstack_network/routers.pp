@@ -1,6 +1,8 @@
 class openstack_tasks::openstack_network::routers {
 
   notice('MODULAR: openstack_network/routers.pp')
+  $override_configuration = hiera_hash(configuration, {})
+  create_resources(override_resources, $override_configuration)
 
   $neutron_advanced_config  = hiera_hash('neutron_advanced_configuration', { })
   # In case of L3 HA enabled this task must be executed on a post-deployment stage.

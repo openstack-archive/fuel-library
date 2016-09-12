@@ -1,6 +1,8 @@
 class openstack_tasks::sahara::keystone {
 
   notice('MODULAR: sahara/keystone.pp')
+  $override_configuration = hiera_hash(configuration, {})
+  create_resources(override_resources, $override_configuration)
 
   $sahara_hash     = hiera_hash('sahara', {})
   $public_ssl_hash = hiera_hash('public_ssl')

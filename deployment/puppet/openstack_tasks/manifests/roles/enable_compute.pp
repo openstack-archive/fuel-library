@@ -1,6 +1,8 @@
 class openstack_tasks::roles::enable_compute {
 
   notice('MODULAR: roles/enable_compute.pp')
+  $override_configuration = hiera_hash(configuration, {})
+  create_resources(override_resources, $override_configuration)
   include ::nova::params
 
   $compute_service_name = $::nova::params::compute_service_name

@@ -1,6 +1,8 @@
 class openstack_tasks::murano::keystone_cfapi {
 
   notice('MODULAR: murano/keystone_cfapi.pp')
+  $override_configuration = hiera_hash(configuration, {})
+  create_resources(override_resources, $override_configuration)
 
   $murano_hash       = hiera_hash('murano', {})
   $public_ip         = hiera('public_vip')
