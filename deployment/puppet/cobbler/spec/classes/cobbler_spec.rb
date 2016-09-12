@@ -81,26 +81,13 @@ describe 'cobbler' do
 
   end
 
-  context 'on Debian platforms' do
-    let :facts do
-      @default_facts.merge({ :osfamily => 'Debian',
-        :operatingsystem => 'Debian',
-      })
+  on_supported_os(supported_os: supported_os).each do |os, facts|
+    context "on #{os}" do
+      let(:facts) { facts }
+      it_configures "cobbler configuration"
     end
-
-    it_configures 'cobbler configuration'
   end
 
-  context 'on RedHat platforms' do
-    let :facts do
-      @default_facts.merge({ :osfamily => 'RedHat',
-        :operatingsystem => 'RedHat',
-        :operatingsystemrelease => '7'
-      })
-    end
-
-    it_configures 'cobbler configuration'
-  end
 
 end
 
