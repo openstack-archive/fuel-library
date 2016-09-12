@@ -1,6 +1,8 @@
 class openstack_tasks::openstack_controller::keystone {
 
   notice('MODULAR: openstack_controller/keystone.pp')
+  $override_configuration = hiera_hash(configuration, {})
+  create_resources(override_resources, $override_configuration)
 
   $nova_hash           = hiera_hash('nova', {})
   $public_vip          = hiera('public_vip')

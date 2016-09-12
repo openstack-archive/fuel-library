@@ -1,6 +1,8 @@
 class openstack_tasks::openstack_network::db {
 
   notice('MODULAR: openstack_network/db.pp')
+  $override_configuration = hiera_hash(configuration, {})
+  create_resources(override_resources, $override_configuration)
 
   $neutron_hash   = hiera_hash('quantum_settings', {})
   $mysql_hash     = hiera_hash('mysql', {})

@@ -1,6 +1,8 @@
 class openstack_tasks::keystone::workloads_collector_add {
 
   notice('MODULAR: keystone/workloads_collector_add.pp')
+  $override_configuration = hiera_hash(configuration, {})
+  create_resources(override_resources, $override_configuration)
 
   $workloads_hash   = hiera_hash('workloads_collector', {})
   $external_lb      = hiera('external_lb', false)
