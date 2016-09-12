@@ -1,6 +1,8 @@
 class osnailyfacter::ntp::ntp_server {
 
   notice('MODULAR: ntp/ntp_server.pp')
+  $override_configuration = hiera_hash(configuration, {})
+  create_resources(override_resources, $override_configuration)
 
   $ntp_servers = hiera('external_ntp')
 

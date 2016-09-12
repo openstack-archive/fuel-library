@@ -1,6 +1,8 @@
 class osnailyfacter::globals::globals {
 
   notice('MODULAR: globals/globals.pp')
+  $override_configuration = hiera_hash(configuration, {})
+  create_resources(override_resources, $override_configuration)
 
   $disable_globals_yaml = '_disabled'
 
