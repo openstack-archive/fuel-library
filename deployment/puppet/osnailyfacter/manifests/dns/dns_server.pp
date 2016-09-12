@@ -1,6 +1,8 @@
 class osnailyfacter::dns::dns_server {
 
   notice('MODULAR: dns/dns_server.pp')
+  $override_configuration = hiera_hash(configuration, {})
+  create_resources(override_resources, $override_configuration)
 
   $dns_servers            = hiera('external_dns')
   $primary_controller     = hiera('primary_controller')

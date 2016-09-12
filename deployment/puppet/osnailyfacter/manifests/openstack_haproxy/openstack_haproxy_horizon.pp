@@ -1,6 +1,8 @@
 class osnailyfacter::openstack_haproxy::openstack_haproxy_horizon {
 
   notice('MODULAR: openstack_haproxy/openstack_haproxy_horizon.pp')
+  $override_configuration = hiera_hash(configuration, {})
+  create_resources(override_resources, $override_configuration)
 
   $horizon_hash        = hiera_hash('horizon', {})
   # enabled by default

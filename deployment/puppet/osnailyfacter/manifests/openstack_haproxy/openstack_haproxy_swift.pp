@@ -1,6 +1,8 @@
 class osnailyfacter::openstack_haproxy::openstack_haproxy_swift {
 
   notice('MODULAR: openstack_haproxy/openstack_haproxy_swift.pp')
+  $override_configuration = hiera_hash(configuration, {})
+  create_resources(override_resources, $override_configuration)
 
   $storage_hash      = hiera_hash('storage', {})
   $swift_proxies     = hiera_hash('swift_proxies', undef)

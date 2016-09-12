@@ -1,6 +1,8 @@
 class osnailyfacter::ceph::ceph_pools {
 
   notice('MODULAR: ceph/ceph_pools')
+  $override_configuration = hiera_hash(configuration, {})
+  create_resources(override_resources, $override_configuration)
 
   $storage_hash       = hiera('storage', {})
   $fsid               = $storage_hash['fsid']
