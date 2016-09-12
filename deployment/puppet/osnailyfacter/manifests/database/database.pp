@@ -116,6 +116,14 @@ class osnailyfacter::database::database {
           }
         }
         $mysql_socket = '/var/run/mysqld/mysqld.sock'
+
+        # TODO(mmalchuk) revert broken patches from LP#1578370 then remove pining
+        # pin mysql-wsrep-5.6 to the 9.0 stable version
+        apt::pin { 'mysql-wsrep-5.6-mos':
+          packages => ['mysql-client-5.6','mysql-client-core-5.6','mysql-server-wsrep-5.6','mysql-server-wsrep-core-5.6','mysql-wsrep-common-5.6'],
+          version  => '5.6.23*',
+          priority => '2000',
+        }
       }
     }
 
