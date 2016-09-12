@@ -1,6 +1,8 @@
 class osnailyfacter::ceph::updatedb {
 
   notice('MODULAR: ceph/updatedb.pp')
+  $override_configuration = hiera_hash(configuration, {})
+  create_resources(override_resources, $override_configuration)
 
   $storage_hash = hiera_hash('storage', {})
 

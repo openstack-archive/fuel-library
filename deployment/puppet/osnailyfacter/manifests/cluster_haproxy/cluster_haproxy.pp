@@ -1,6 +1,8 @@
 class osnailyfacter::cluster_haproxy::cluster_haproxy {
 
   notice('MODULAR: cluster_haproxy/cluster_haproxy.pp')
+  $override_configuration = hiera_hash(configuration, {})
+  create_resources(override_resources, $override_configuration)
 
   $network_scheme      = hiera_hash('network_scheme', {})
   $management_vip      = hiera('management_vip')

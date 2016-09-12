@@ -1,6 +1,8 @@
 class osnailyfacter::ceph::radosgw {
 
   notice('MODULAR: ceph/radosgw.pp')
+  $override_configuration = hiera_hash(configuration, {})
+  create_resources(override_resources, $override_configuration)
 
   $gateway_name                     = 'radosgw.gateway'
   $storage_hash                     = hiera('storage', {})

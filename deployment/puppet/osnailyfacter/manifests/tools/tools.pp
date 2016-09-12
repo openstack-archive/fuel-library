@@ -1,6 +1,8 @@
 class osnailyfacter::tools::tools {
 
   notice('MODULAR: tools/tools.pp')
+  $override_configuration = hiera_hash(configuration, {})
+  create_resources(override_resources, $override_configuration)
 
   $atop_hash     = hiera('atop', {})
   $atop_enabled  = pick($atop_hash['service_enabled'], true)
