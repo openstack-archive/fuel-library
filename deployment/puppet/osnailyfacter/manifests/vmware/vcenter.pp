@@ -1,6 +1,8 @@
 class osnailyfacter::vmware::vcenter {
 
   notice('MODULAR: vmware/vcenter.pp')
+  $override_configuration = hiera_hash(configuration, {})
+  $override_configuration_options = hiera_hash(configuration_options, {})
 
   $use_vcenter       = hiera('use_vcenter', false)
   $vcenter_hash      = hiera_hash('vcenter')
@@ -12,6 +14,11 @@ class osnailyfacter::vmware::vcenter {
   $vncproxy_protocol = get_ssl_property($ssl_hash, $public_ssl_hash, 'nova', 'public', 'protocol', [$nova_hash['vncproxy_protocol'], 'http'])
   $vncproxy_host     = get_ssl_property($ssl_hash, $public_ssl_hash, 'nova', 'public', 'hostname', [$public_vip])
   $debug             = pick($vcenter_hash['debug'], hiera('debug', false))
+
+  override_resources {'override-resources':
+    configuration => $override_configuration,
+    options       => $override_configuration_options,
+  }
 
   if $use_vcenter {
     class { '::vmware':

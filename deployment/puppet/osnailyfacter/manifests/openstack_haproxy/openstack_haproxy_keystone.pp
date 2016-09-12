@@ -1,6 +1,8 @@
 class osnailyfacter::openstack_haproxy::openstack_haproxy_keystone {
 
   notice('MODULAR: openstack_haproxy/openstack_haproxy_keystone.pp')
+  $override_configuration = hiera_hash(configuration, {})
+  $override_configuration_options = hiera_hash(configuration_options, {})
 
   $keystone_hash     = hiera_hash('keystone', {})
   # enabled by default
@@ -18,6 +20,11 @@ class osnailyfacter::openstack_haproxy::openstack_haproxy_keystone {
   $admin_ssl_path    = get_ssl_property($ssl_hash, {}, 'keystone', 'admin', 'path', [''])
 
   $external_lb       = hiera('external_lb', false)
+
+  override_resources {'override-resources':
+    configuration => $override_configuration,
+    options       => $override_configuration_options,
+  }
 
   if ($use_keystone and !$external_lb) {
     $keystone_address_map = get_node_to_ipaddr_map_by_network_role(hiera_hash('keystone_nodes'), 'keystone/api')

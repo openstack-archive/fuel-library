@@ -1,6 +1,8 @@
 class osnailyfacter::openstack_haproxy::openstack_haproxy_ironic {
 
   notice('MODULAR: openstack_haproxy/openstack_haproxy_ironic.pp')
+  $override_configuration = hiera_hash(configuration, {})
+  $override_configuration_options = hiera_hash(configuration_options, {})
 
   $network_metadata     = hiera_hash('network_metadata')
   $public_ssl_hash      = hiera_hash('public_ssl', {})
@@ -18,6 +20,11 @@ class osnailyfacter::openstack_haproxy::openstack_haproxy_ironic {
 
   $baremetal_virtual_ip = $network_metadata['vips']['baremetal']['ipaddr']
   $external_lb          = hiera('external_lb', false)
+
+  override_resources {'override-resources':
+    configuration => $override_configuration,
+    options       => $override_configuration_options,
+  }
 
   if !$external_lb {
     # configure ironic ha proxy

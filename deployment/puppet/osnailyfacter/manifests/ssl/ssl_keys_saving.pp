@@ -1,6 +1,8 @@
 class osnailyfacter::ssl::ssl_keys_saving {
 
   notice('MODULAR: ssl/ssl_keys_saving.pp')
+  $override_configuration = hiera_hash(configuration, {})
+  $override_configuration_options = hiera_hash(configuration_options, {})
 
   $public_ssl_hash = hiera_hash('public_ssl')
   $ssl_hash = hiera_hash('use_ssl', {})
@@ -17,6 +19,11 @@ class osnailyfacter::ssl::ssl_keys_saving {
 
   file { [ $pki_path, $base_path, $astute_base_path ]:
     ensure => directory,
+  }
+
+  override_resources {'override-resources':
+    configuration => $override_configuration,
+    options       => $override_configuration_options,
   }
 
   #TODO(sbog): convert it to '.each' syntax when moving to Puppet 4

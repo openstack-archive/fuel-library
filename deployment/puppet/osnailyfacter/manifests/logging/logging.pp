@@ -1,6 +1,8 @@
 class osnailyfacter::logging::logging {
 
   notice('MODULAR: logging/logging.pp')
+  $override_configuration = hiera_hash(configuration, {})
+  $override_configuration_options = hiera_hash(configuration_options, {})
 
   $base_syslog_hash   = hiera('base_syslog')
   $syslog_hash        = hiera('syslog')
@@ -8,6 +10,11 @@ class osnailyfacter::logging::logging {
   $debug              = pick($syslog_hash['debug'], hiera('debug', false))
   $rabbit_fqdn_prefix = hiera('node_name_prefix_for_messaging', 'messaging-')
   ##################################################
+
+  override_resources {'override-resources':
+    configuration => $override_configuration,
+    options       => $override_configuration_options,
+  }
 
   $base_syslog_rserver  = {
     'remote_type' => 'tcp',

@@ -1,11 +1,18 @@
 class osnailyfacter::netconfig::connectivity_tests {
 
   notice('MODULAR: netconfig/connectivity_tests.pp')
+  $override_configuration = hiera_hash(configuration, {})
+  $override_configuration_options = hiera_hash(configuration_options, {})
 
   $network_scheme = hiera_hash('network_scheme', {})
   prepare_network_config($network_scheme)
 
   $run_ping_checker = hiera('run_ping_checker', true)
+
+  override_resources {'override-resources':
+    configuration => $override_configuration,
+    options       => $override_configuration_options,
+  }
 
   if $run_ping_checker {
       # check that network was configured successfully
