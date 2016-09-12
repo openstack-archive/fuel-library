@@ -1,6 +1,8 @@
 class osnailyfacter::openstack_haproxy::openstack_haproxy_sahara {
 
   notice('MODULAR: openstack_haproxy/openstack_haproxy_sahara.pp')
+  $override_configuration = hiera_hash(configuration, {})
+  create_resources(override_resources, $override_configuration)
 
   $sahara_hash       = hiera_hash('sahara', {})
   # NOT enabled by default

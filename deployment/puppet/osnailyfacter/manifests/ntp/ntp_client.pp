@@ -1,6 +1,8 @@
 class osnailyfacter::ntp::ntp_client {
 
   notice('MODULAR: ntp/ntp_client.pp')
+  $override_configuration = hiera_hash(configuration, {})
+  create_resources(override_resources, $override_configuration)
 
   $management_vrouter_vip = hiera('management_vrouter_vip')
   $ntp_servers            = hiera_array('ntp_servers', [$management_vrouter_vip])

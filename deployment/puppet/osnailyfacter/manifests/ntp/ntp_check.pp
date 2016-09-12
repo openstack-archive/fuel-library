@@ -1,6 +1,8 @@
 class osnailyfacter::ntp::ntp_check {
 
   notice('MODULAR: ntp/ntp_check.pp')
+  $override_configuration = hiera_hash(configuration, {})
+  create_resources(override_resources, $override_configuration)
   # get the ntp configuration from hiera
   $ntp_servers = hiera('external_ntp')
 

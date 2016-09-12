@@ -1,6 +1,8 @@
 class osnailyfacter::astute::service_token_off {
 
   notice('MODULAR: astute/service_token_off.pp')
+  $override_configuration = hiera_hash(configuration, {})
+  create_resources(override_resources, $override_configuration)
 
   ####################################################################
   # Used as singular by post-deployment action to disable admin_token
