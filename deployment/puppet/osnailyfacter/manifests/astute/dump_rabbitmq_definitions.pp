@@ -1,6 +1,8 @@
 class osnailyfacter::astute::dump_rabbitmq_definitions {
 
   notice('MODULAR: astute/dump_rabbitmq_definitions.pp')
+  $override_configuration = hiera_hash(configuration, {})
+  create_resources(override_resources, $override_configuration)
 
   $definitions_dump_file = '/etc/rabbitmq/definitions'
   $original_definitions_dump_file = '/etc/rabbitmq/definitions.full'

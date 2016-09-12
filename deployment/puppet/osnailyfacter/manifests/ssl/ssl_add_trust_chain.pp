@@ -1,6 +1,8 @@
 class osnailyfacter::ssl::ssl_add_trust_chain {
 
   notice('MODULAR: ssl/ssl_add_trust_chain.pp')
+  $override_configuration = hiera_hash(configuration, {})
+  create_resources(override_resources, $override_configuration)
 
   $public_ssl_hash    = hiera_hash('public_ssl')
   $ssl_hash           = hiera_hash('use_ssl', {})

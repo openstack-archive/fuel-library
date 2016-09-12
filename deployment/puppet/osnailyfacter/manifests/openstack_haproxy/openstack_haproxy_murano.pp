@@ -1,6 +1,8 @@
 class osnailyfacter::openstack_haproxy::openstack_haproxy_murano {
 
   notice('MODULAR: openstack_haproxy/openstack_haproxy_murano.pp')
+  $override_configuration = hiera_hash(configuration, {})
+  create_resources(override_resources, $override_configuration)
 
   $murano_hash        = hiera_hash('murano', {})
   $murano_cfapi_hash  = hiera_hash('murano-cfapi', {})
