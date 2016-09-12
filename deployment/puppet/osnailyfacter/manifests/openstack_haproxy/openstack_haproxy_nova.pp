@@ -1,6 +1,8 @@
 class osnailyfacter::openstack_haproxy::openstack_haproxy_nova {
 
   notice('MODULAR: openstack_haproxy/openstack_haproxy_nova.pp')
+  $override_configuration = hiera_hash(configuration, {})
+  create_resources(override_resources, $override_configuration)
 
   $nova_hash         = hiera_hash('nova', {})
   # enabled by default

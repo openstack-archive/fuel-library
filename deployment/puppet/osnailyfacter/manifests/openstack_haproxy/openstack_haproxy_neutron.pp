@@ -1,6 +1,8 @@
 class osnailyfacter::openstack_haproxy::openstack_haproxy_neutron {
 
   notice('MODULAR: openstack_haproxy/openstack_haproxy_neutron.pp')
+  $override_configuration = hiera_hash(configuration, {})
+  create_resources(override_resources, $override_configuration)
 
   # NOT enabled by default
   $public_ssl_hash     = hiera_hash('public_ssl', {})

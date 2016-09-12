@@ -1,6 +1,8 @@
 class osnailyfacter::netconfig::netconfig {
 
   notice('MODULAR: netconfig/netconfig.pp')
+  $override_configuration = hiera_hash(configuration, {})
+  create_resources(override_resources, $override_configuration)
 
   $network_scheme = hiera_hash('network_scheme', {})
   prepare_network_config($network_scheme)
