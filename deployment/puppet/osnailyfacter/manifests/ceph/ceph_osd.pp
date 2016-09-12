@@ -1,6 +1,8 @@
 class osnailyfacter::ceph::ceph_osd {
 
   notice('MODULAR: ceph/ceph_osd.pp')
+  $override_configuration = hiera_hash(configuration, {})
+  $override_configuration_options = hiera_hash(configuration_options, {})
 
   # Pulling hiera
   $storage_hash              = hiera_hash('storage', {})
@@ -16,6 +18,11 @@ class osnailyfacter::ceph::ceph_osd {
   $ceph_cluster_network      = get_network_role_property('ceph/replication', 'network')
   $ceph_public_network       = get_network_role_property('ceph/public', 'network')
   $ceph_tuning_settings_hash = hiera_hash('ceph_tuning_settings', {})
+
+  override_resources {'override-resources':
+    configuration => $override_configuration,
+    options       => $override_configuration_options,
+  }
 
   class { '::ceph':
     primary_mon              => $primary_mon,

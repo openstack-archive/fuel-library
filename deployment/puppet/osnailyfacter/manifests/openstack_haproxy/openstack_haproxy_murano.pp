@@ -1,6 +1,8 @@
 class osnailyfacter::openstack_haproxy::openstack_haproxy_murano {
 
   notice('MODULAR: openstack_haproxy/openstack_haproxy_murano.pp')
+  $override_configuration = hiera_hash(configuration, {})
+  $override_configuration_options = hiera_hash(configuration_options, {})
 
   $murano_hash        = hiera_hash('murano', {})
   $murano_cfapi_hash  = hiera_hash('murano-cfapi', {})
@@ -17,6 +19,11 @@ class osnailyfacter::openstack_haproxy::openstack_haproxy_murano {
   $internal_ssl_path  = get_ssl_property($ssl_hash, {}, 'murano', 'internal', 'path', [''])
 
   $external_lb        = hiera('external_lb', false)
+
+  override_resources {'override-resources':
+    configuration => $override_configuration,
+    options       => $override_configuration_options,
+  }
 
   if ($use_murano and !$external_lb) {
     $murano_address_map  = get_node_to_ipaddr_map_by_network_role(hiera_hash('murano_nodes'), 'murano/api')

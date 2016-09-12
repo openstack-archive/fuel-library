@@ -1,6 +1,8 @@
 class osnailyfacter::ceph::mon {
 
   notice('MODULAR: ceph/mon.pp')
+  $override_configuration = hiera_hash(configuration, {})
+  $override_configuration_options = hiera_hash(configuration_options, {})
 
   $storage_hash                   = hiera_hash('storage', {})
   $use_neutron                    = hiera('use_neutron')
@@ -9,6 +11,11 @@ class osnailyfacter::ceph::mon {
   $syslog_log_facility_ceph       = hiera('syslog_log_facility_ceph','LOG_LOCAL0')
   $keystone_hash                  = hiera_hash('keystone', {})
   $mon_address_map                = get_node_to_ipaddr_map_by_network_role(hiera_hash('ceph_monitor_nodes'), 'ceph/public')
+
+  override_resources {'override-resources':
+    configuration => $override_configuration,
+    options       => $override_configuration_options,
+  }
 
   if ($storage_hash['images_ceph']) {
     $glance_backend = 'ceph'

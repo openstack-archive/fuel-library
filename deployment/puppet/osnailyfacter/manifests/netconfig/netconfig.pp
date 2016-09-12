@@ -1,6 +1,8 @@
 class osnailyfacter::netconfig::netconfig {
 
   notice('MODULAR: netconfig/netconfig.pp')
+  $override_configuration = hiera_hash(configuration, {})
+  $override_configuration_options = hiera_hash(configuration_options, {})
 
   $network_scheme = hiera_hash('network_scheme', {})
   prepare_network_config($network_scheme)
@@ -10,6 +12,11 @@ class osnailyfacter::netconfig::netconfig {
   }
 
   $dpdk_options = hiera_hash('dpdk', {})
+
+  override_resources {'override-resources':
+    configuration => $override_configuration,
+    options       => $override_configuration_options,
+  }
 
   class { '::l23network' :
     use_ovs                      => hiera('use_ovs', false),
