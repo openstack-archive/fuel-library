@@ -1,6 +1,8 @@
 class osnailyfacter::ceph::ceph_osd {
 
   notice('MODULAR: ceph-osd.pp')
+  $override_configuration = hiera_hash(configuration, {})
+  $override_configuration_options = hiera_hash(configuration_options, {})
 
   $storage_hash              = hiera('storage', {})
   $admin_key                 = $storage_hash['admin_key']
@@ -40,6 +42,11 @@ class osnailyfacter::ceph::ceph_osd {
   }
   if empty($fsid) {
     fail('Please provide fsid')
+  }
+
+  override_resources {'override-resources':
+    configuration => $override_configuration,
+    options       => $override_configuration_options,
   }
 
   class { '::ceph':
