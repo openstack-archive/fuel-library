@@ -149,6 +149,11 @@ describe manifest do
     let(:ironic_endpoint_default) { Noop.hiera 'ironic_endpoint', management_vip }
     let(:ironic_protocol) { Noop.puppet_function 'get_ssl_property',ssl_hash,{},'ironic','internal','protocol','http' }
     let(:ironic_endpoint) { Noop.puppet_function 'get_ssl_property',ssl_hash,{},'ironic','internal','hostname', ironic_endpoint_default}
+    let(:region_name) { Noop.hiera 'region', 'RegionOne' }
+
+    it 'should configure region name in cinder section' do
+       should contain_nova_config('cinder/os_region_name').with_value(region_name)
+    end
 
     # TODO All this stuff should be moved to shared examples controller* tests.
 

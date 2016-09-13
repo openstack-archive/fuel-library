@@ -59,7 +59,7 @@ class openstack_tasks::openstack_controller::openstack_controller {
 
   $keystone_user                = pick($nova_hash['user'], 'nova')
   $keystone_tenant              = pick($nova_hash['tenant'], 'services')
-  $region                       = hiera('region', 'RegionOne')
+  $region_name                  = hiera('region', 'RegionOne')
   $workers_max                  = hiera('workers_max', 16)
   $service_workers              = pick($nova_hash['workers'],
                                         min(max($::processorcount, 2), $workers_max))
@@ -209,6 +209,7 @@ class openstack_tasks::openstack_controller::openstack_controller {
     database_max_overflow              => $max_overflow,
     rabbit_heartbeat_timeout_threshold => $::os_service_default,
     notify_on_state_change             => $notify_on_state_change,
+    os_region_name                     => $region_name,
   }
 
   # TODO(aschultz): this is being removed in M, do we need it?
