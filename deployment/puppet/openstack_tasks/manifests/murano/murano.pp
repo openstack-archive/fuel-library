@@ -10,7 +10,7 @@ class openstack_tasks::murano::murano {
   $neutron_config             = hiera_hash('neutron_config', {})
   $public_ip                  = hiera('public_vip')
   $database_ip                = hiera('database_vip')
-  $management_ip              = hiera('management_vip')
+  $management_vip             = hiera('management_vip')
   $region                     = hiera('region', 'RegionOne')
   $use_neutron                = hiera('use_neutron', false)
   $service_endpoint           = hiera('service_endpoint')
