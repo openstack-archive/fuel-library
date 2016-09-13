@@ -79,6 +79,8 @@ class openstack_tasks::ironic::ironic_compute {
   $neutron_protocol = get_ssl_property($ssl_hash, {}, 'neutron', 'internal', 'protocol', 'http')
   $neutron_endpoint = get_ssl_property($ssl_hash, {}, 'neutron', 'internal', 'hostname', $neutron_endpoint_default)
 
+  $region_name = hiera('region', 'RegionOne')
+
   if $nova_hash['notification_driver'] {
     $nova_notification_driver = $nova_hash['notification_driver']
   } else {
@@ -118,6 +120,7 @@ class openstack_tasks::ironic::ironic_compute {
     notify_on_state_change             => $notify_on_state_change,
     memcached_servers                  => $memcached_addresses,
     rabbit_heartbeat_timeout_threshold => $::os_service_default,
+    os_region_name                     => $region_name,
   }
 
   class { '::nova::compute':

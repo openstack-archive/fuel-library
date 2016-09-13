@@ -86,6 +86,7 @@ describe manifest do
     let(:log_facility) { Noop.hiera 'syslog_log_facility_nova', 'LOG_LOCAL6' }
 
     let(:use_cache) { Noop.puppet_function 'pick', nova_hash['use_cache'], true }
+    let(:region_name) { Noop.hiera 'region', 'RegionOne' }
 
     # Legacy openstack-compute tests
 
@@ -93,6 +94,10 @@ describe manifest do
       compute_driver = 'ironic.IronicDriver'
     else
       compute_driver = 'libvirt.LibvirtDriver'
+    end
+
+    it 'should configure region name in cinder section' do
+       should contain_nova_config('cinder/os_region_name').with_value(region_name)
     end
 
     it 'should explicitly disable libvirt_inject_partition for compute node' do
