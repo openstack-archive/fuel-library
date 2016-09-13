@@ -22,4 +22,4 @@
   parameters:
     puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/upgrade/pkg_upgrade.pp
     puppet_modules: /etc/puppet/modules
-    timeout: 1800
+    timeout: 3600
