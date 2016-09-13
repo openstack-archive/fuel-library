@@ -49,24 +49,11 @@ describe 'openstack::logrotate' do
     end
   end
 
-  context 'on Debian platforms' do
-    let :facts do
-      { :osfamily => 'Debian',
-        :operatingsystem => 'Debian',
-        :hostname => 'hostname.example.com', }
+  on_supported_os(supported_os: supported_os).each do |os, facts|
+    context "on #{os}" do
+      let(:facts) { facts }
+      it_configures 'logrotate configuration'
     end
-
-    it_configures 'logrotate configuration'
-  end
-
-  context 'on RedHat platforms' do
-    let :facts do
-      { :osfamily => 'RedHat',
-        :operatingsystem => 'RedHat',
-        :hostname => 'hostname.example.com', }
-    end
-
-    it_configures 'logrotate configuration'
   end
 
 end
