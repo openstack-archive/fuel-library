@@ -50,6 +50,7 @@ class openstack_tasks::roles::compute {
   $libvirt_type                   = hiera('libvirt_type', undef)
   $kombu_compression              = hiera('kombu_compression', $::os_service_default)
   $nova_cache                     = pick($nova_hash['use_cache'], true)
+  $region_name                    = hiera('region', 'RegionOne')
 
   $dpdk_config                    = hiera_hash('dpdk', {})
   $enable_dpdk                    = pick($dpdk_config['enabled'], false)
@@ -286,6 +287,7 @@ class openstack_tasks::roles::compute {
     block_device_allocate_retries_interval => $block_device_allocate_retries_interval,
     rabbit_heartbeat_timeout_threshold     => $rabbit_heartbeat_timeout_threshold,
     rabbit_heartbeat_rate                  => $rabbit_heartbeat_rate,
+    os_region_name                         => $region_name,
   }
 
   class { '::nova::cache':
