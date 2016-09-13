@@ -80,6 +80,12 @@ describe manifest do
     let(:rabbit_heartbeat_timeout_threshold) { Noop.puppet_function 'pick', nova_hash['rabbit_heartbeat_timeout_threshold'], rabbit_hash['heartbeat_timeout_treshold'], 60 }
     let(:rabbit_heartbeat_rate) { Noop.puppet_function 'pick', nova_hash['rabbit_heartbeat_rate'], rabbit_hash['heartbeat_rate'], 2 }
 
+    let(:region_name) { Noop.hiera 'region', 'RegionOne' }
+
+    it 'should configure region name in cinder section' do
+       should contain_nova_config('cinder/os_region_name').with_value(region_name)
+    end
+
     it 'should configure RabbitMQ Heartbeat parameters' do
       should contain_nova_config('oslo_messaging_rabbit/heartbeat_timeout_threshold').with_value(rabbit_heartbeat_timeout_threshold)
       should contain_nova_config('oslo_messaging_rabbit/heartbeat_rate').with_value(rabbit_heartbeat_rate)

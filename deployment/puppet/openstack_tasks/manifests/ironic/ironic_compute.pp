@@ -77,6 +77,8 @@ class openstack_tasks::ironic::ironic_compute {
   $neutron_protocol = get_ssl_property($ssl_hash, {}, 'neutron', 'internal', 'protocol', 'http')
   $neutron_endpoint = get_ssl_property($ssl_hash, {}, 'neutron', 'internal', 'hostname', $neutron_endpoint_default)
 
+  $region_name = hiera('region', 'RegionOne')
+
   if $nova_hash['notification_driver'] {
     $nova_notification_driver = $nova_hash['notification_driver']
   } else {
@@ -89,31 +91,32 @@ class openstack_tasks::ironic::ironic_compute {
   }
 
   class { '::nova':
-      ensure_package         => installed,
-      database_connection    => $db_connection,
-      rpc_backend            => 'nova.openstack.common.rpc.impl_kombu',
-      #FIXME(bogdando) we have to split amqp_hosts until all modules synced
-      rabbit_hosts           => split($amqp_hosts, ','),
-      rabbit_userid          => $rabbit_hash['user'],
-      rabbit_password        => $rabbit_hash['password'],
-      image_service          => 'nova.image.glance.GlanceImageService',
-      glance_api_servers     => $glance_api_servers,
-      verbose                => $verbose,
-      debug                  => $debug,
-      use_syslog             => $use_syslog,
-      use_stderr             => $use_stderr,
-      notification_driver    => $nova_notification_driver,
-      cinder_catalog_info    => pick($nova_hash['cinder_catalog_info'], 'volumev2:cinderv2:internalURL'),
-      database_max_overflow  => $max_overflow,
-      database_idle_timeout  => $idle_timeout,
-      database_max_retries   => $max_retries,
-      database_max_pool_size => $max_pool_size,
-      log_facility           => $syslog_log_facility_nova,
-      state_path             => $nova_hash['state_path'],
-      report_interval        => $nova_report_interval,
-      service_down_time      => $nova_service_down_time,
-      notify_on_state_change => $notify_on_state_change,
-      memcached_servers      => $memcached_servers,
+    ensure_package         => installed,
+    database_connection    => $db_connection,
+    rpc_backend            => 'nova.openstack.common.rpc.impl_kombu',
+    #FIXME(bogdando) we have to split amqp_hosts until all modules synced
+    rabbit_hosts           => split($amqp_hosts, ','),
+    rabbit_userid          => $rabbit_hash['user'],
+    rabbit_password        => $rabbit_hash['password'],
+    image_service          => 'nova.image.glance.GlanceImageService',
+    glance_api_servers     => $glance_api_servers,
+    verbose                => $verbose,
+    debug                  => $debug,
+    use_syslog             => $use_syslog,
+    use_stderr             => $use_stderr,
+    notification_driver    => $nova_notification_driver,
+    cinder_catalog_info    => pick($nova_hash['cinder_catalog_info'], 'volumev2:cinderv2:internalURL'),
+    database_max_overflow  => $max_overflow,
+    database_idle_timeout  => $idle_timeout,
+    database_max_retries   => $max_retries,
+    database_max_pool_size => $max_pool_size,
+    log_facility           => $syslog_log_facility_nova,
+    state_path             => $nova_hash['state_path'],
+    report_interval        => $nova_report_interval,
+    service_down_time      => $nova_service_down_time,
+    notify_on_state_change => $notify_on_state_change,
+    memcached_servers      => $memcached_servers,
+    os_region_name         => $region_name,
   }
 
   class { '::nova::compute':
