@@ -24,6 +24,7 @@ class osnailyfacter::hiera::hiera {
     'nodes%{disable_globals_yaml}',
     'old_admin_user%{disable_globals_yaml}',
     'globals%{disable_globals_yaml}',
+    'node',
     'astute',
   ]
 
