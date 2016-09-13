@@ -5,7 +5,7 @@ class osnailyfacter::hiera::hiera {
   $data_dir            = '/etc/hiera'
   $override_dir        = 'plugins'
   $override_dir_path   = "${data_dir}/${override_dir}"
-  $metadata_file       = '/etc/astute.yaml'
+  $metadata_file       = '/etc/hiera/cluster.yaml'
 
   $data = [
     'override/node/%{::fqdn}%{disable_globals_yaml}',
@@ -23,13 +23,12 @@ class osnailyfacter::hiera::hiera {
     'nodes%{disable_globals_yaml}',
     'old_admin_user%{disable_globals_yaml}',
     'globals%{disable_globals_yaml}',
-    'astute',
+    'node',
+    'cluster',
   ]
 
-  $astute_data_file    = '/etc/astute.yaml'
   $hiera_main_config   = '/etc/hiera.yaml'
   $hiera_puppet_config = '/etc/puppet/hiera.yaml'
-  $hiera_data_file     = "${data_dir}/astute.yaml"
 
   File {
     owner => 'root',
@@ -62,12 +61,6 @@ class osnailyfacter::hiera::hiera {
     ensure => 'present',
     path   => $hiera_main_config,
     mode   => '0640',
-  }
-
-  file { 'hiera_data_astute' :
-    ensure => 'symlink',
-    path   => $hiera_data_file,
-    target => $astute_data_file,
   }
 
   file { 'hiera_puppet_config' :
