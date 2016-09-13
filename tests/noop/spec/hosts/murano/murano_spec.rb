@@ -82,7 +82,7 @@ describe manifest do
 
     let(:admin_auth_address) {
       Noop.puppet_function 'get_ssl_property',ssl_hash,{},'keystone','admin',
-        'hostname',[Noop.hiera('service_endpoint', ''), Noop.hiera('management_vip')]
+        'hostname',[Noop.hiera('service_endpoint', ''), management_ip]
     }
 
     let(:admin_url) { "#{admin_auth_protocol}://#{admin_auth_address}:35357" }
@@ -95,7 +95,7 @@ describe manifest do
     let (:murano_address){
       Noop.puppet_function 'get_ssl_property', ssl_hash, {}, 'murano',
         'internal', 'hostname',
-        [Noop.hiera('service_endpoint', ''), Noop.hiera('management_vip')]
+        [Noop.hiera('service_endpoint', ''), management_ip]
     }
 
     let (:murano_url){
