@@ -127,14 +127,16 @@ class openstack_tasks::roles::ironic_conductor {
     owner   => 'ironic',
     group   => 'ironic',
     mode    => '0755',
-    require => Class['::ironic'],
+    source  => "/usr/lib/syslinux/modules/bios/",
+    recurse => true,
+    require => [Class['::ironic'], Package['syslinux-common']],
   }
 
   # TODO(vsaienko) remove provider hack when puppetlabs-tftp fixed issue with
   # default provider.
   Service <| title == 'tftpd-hpa' |> { provider => 'systemd'}
 
-  ensure_packages(['syslinux', 'pxelinux'], {
+  ensure_packages(['syslinux', 'pxelinux', syslinux-common], {
     ensure => 'present',
     before => File["${tftp_root}/pxelinux.0"]
   })
