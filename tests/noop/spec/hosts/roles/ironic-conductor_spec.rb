@@ -97,6 +97,17 @@ describe manifest do
         ).that_requires('Package[syslinux]')
       end
 
+      it "should create #{tftp_root}" do
+        should contain_file("#{tftp_root}").with(
+          'ensure'  => 'directory',
+          'owner'   => 'ironic',
+          'group'   => 'ironic',
+          'mode'    => '0755',
+          'source'  => "/usr/lib/syslinux/modules/bios/",
+          'recurse' => 'true',
+        ).that_requires(["Class['::ironic']", "Package[syslinux-common]"])
+      end
+
     end #end of ironic_enabled
   end #end of catalog
 
