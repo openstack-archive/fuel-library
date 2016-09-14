@@ -47,7 +47,7 @@ class osnailyfacter::package_pins (
     if $pin_haproxy {
       apt::pin { 'haproxy-mos':
         packages => 'haproxy',
-        version  => '1.5.3-*',
+        version  => '1.6.3-*',
         priority => $pin_priority,
       }
     }
