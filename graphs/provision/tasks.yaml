@@ -92,7 +92,7 @@
   required_for: [node_reboot]
   parameters:
     cmd:
-      yaql_exp: 'concat("sh /etc/puppet/modules/osnailyfacter/modular/provision/netboot disable ", $.network_metadata.nodes.values().where($.uid = new($.uid)).name.first())'
+      yaql_exp: 'concat("sh /etc/puppet/modules/osnailyfacter/modular/provision/netboot disable ", $.provision.name)'
     timeout: 180
 
 - id: node_reboot
