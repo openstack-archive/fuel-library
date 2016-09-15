@@ -4,16 +4,7 @@ describe 'openstack::galera::client' do
 
   shared_examples_for 'openstack::galera::client config' do
     context 'default parameters' do
-      let(:mysql_client_name) do
-        case facts[:osfamily]
-        when 'Debian'
-          'mysql-wsrep-client-5.6'
-        when 'RedHat'
-          'MySQL-client-wsrep'
-        else
-          'mysql-client'
-        end
-      end
+      let(:mysql_client_name) { 'mysql-wsrep-client-5.6' }
 
       it 'contains galera client' do
         should contain_class('mysql::client').with(
