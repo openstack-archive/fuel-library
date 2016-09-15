@@ -39,10 +39,16 @@ class cluster::galera_status (
   $backend_timeout = '10',
 ) {
 
+  $group = $::osfamily ? {
+    'redhat' => 'nobody',
+    'debian' => 'nogroup',
+    default  => 'nobody',
+  }
+
   file { '/etc/wsrepclustercheckrc':
     content => template('openstack/galera_clustercheck.erb'),
     owner   => 'nobody',
-    group   => 'nogroup',
+    group   => $group,
     mode    => '0400',
     require => Anchor['mysql::server::end'],
   }
@@ -56,12 +62,6 @@ class cluster::galera_status (
       "set /files/etc/services/service-name[port = '${port}']/#comment 'Galera Cluster Check'",
     ],
     require => Anchor['mysql::server::end'],
-  }
-
-  $group = $::osfamily ? {
-    'redhat' => 'nobody',
-    'debian' => 'nogroup',
-    default  => 'nobody',
   }
 
   contain ::xinetd
