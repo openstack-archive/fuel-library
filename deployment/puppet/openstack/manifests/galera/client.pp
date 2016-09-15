@@ -58,17 +58,7 @@ class openstack::galera::client (
       }
     }
   } else {
-    case $::osfamily {
-      'RedHat': {
-        $mysql_client_name = 'MySQL-client-wsrep'
-      }
-      'Debian': {
-        $mysql_client_name = 'mysql-wsrep-client-5.6'
-      }
-      default: {
-        fail("Unsupported osfamily: ${::osfamily} operatingsystem: ${::operatingsystem}, module ${module_name} only support osfamily RedHat and Debian")
-      }
-    }
+    $mysql_client_name = 'mysql-wsrep-client-5.6'
   }
 
   class { 'mysql::client':
