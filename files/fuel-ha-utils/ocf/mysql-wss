@@ -428,7 +428,7 @@ get_master() {
     [ "${MASTER_GTID}" ] || MASTER_GTID=$ZEROID
     ocf_log info "${LH} The most seen GTID is: ${MASTER_GTID}"
     for NODE in $NODES; do
-        NODE_SCORE=`crm_simulate -Ls |  awk "/${OCF_RESOURCE_INSTANCE}/ && /clone_color/ && !/${OCF_RESOURCE_INSTANCE}:/ && /${NODE}/"  | sed  -r -e 's/.*score on (.*)/\1/' | awk -F ':' '{print $2}' | tr -d '[:space:]'`
+        NODE_SCORE=$(crm_simulate -Ls | awk "/${OCF_RESOURCE_INSTANCE}/ && /clone_color/ && ! /${OCF_RESOURCE_INSTANCE}:/ && /${NODE}/ {print \$NF}")
         if [[ $NODE_SCORE =~ ^-?[0-9]+$ && $NODE_SCORE -le 0 || $NODE_SCORE = "-INFINITY" || -z $NODE_SCORE ]]
         then
             ocf_log info "${LH} Skipping node $NODE as it is not eligible for running the resource. Its score is ${NODE_SCORE:-NULL}"
