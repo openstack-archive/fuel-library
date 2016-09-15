@@ -113,12 +113,23 @@ class osnailyfacter::database::database {
         $mysql_package_name = 'mysql-server-wsrep-5.6'
         $galera_package_name = 'galera-3'
         $client_package_name = 'mysql-client-5.6'
-        $vendor_override_options = {
-          'mysqld'           => {
-            'wsrep_provider' => '/usr/lib/galera/libgalera_smm.so'
+
+        case $::osfamily {
+          'Debian': {
+            $wsrep_provider = '/usr/lib/galera/libgalera_smm.so'
+            $mysql_socket = '/var/run/mysqld/mysqld.sock'
+          }
+          'RedHat': {
+            $wsrep_provider = '/usr/lib64/galera-3/libgalera_smm.so'
+            $mysql_socket = '/var/lib/mysql/mysql.sock'
           }
         }
-        $mysql_socket = '/var/run/mysqld/mysqld.sock'
+
+        $vendor_override_options = {
+          'mysqld'           => {
+            'wsrep_provider' => $wsrep_provider
+          }
+        }
       }
     }
 
