@@ -28,10 +28,11 @@ class osnailyfacter::apache_api_proxy(
     action  => 'accept',
   }
 
-  class {"::apache::mod::proxy": }
-  class {"::apache::mod::proxy_connect": }
-  class {"::apache::mod::proxy_http": }
-  class {"::apache::mod::headers": }
+  include ::apache::mod::proxy
+  include ::apache::mod::proxy_connect
+  include ::apache::mod::proxy_http
+  include ::apache::mod::headers
+  include ::apache::mod::reqtimeout
 
   $apache_api_proxy_address = hiera('apache_api_proxy_address', '0.0.0.0')
 
