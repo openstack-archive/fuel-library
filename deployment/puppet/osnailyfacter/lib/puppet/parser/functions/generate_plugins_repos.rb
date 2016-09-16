@@ -2,14 +2,13 @@ module Puppet::Parser::Functions
   newfunction(
     :generate_plugins_repos,
     :type  => :rvalue,
-    :arity => -1,
+    :arity => 1,
     :docs  => <<-EOS
 Transforms plugins array provided by astute.yaml to a form easily
 usable with create_resources and the puppetlabs/apt's apt::source type.
     EOS
   ) do |args|
     plugins = args[0]
-    addprios = args[1]
 
     raise(Puppet::ParseError, "generate_plugins_repos(): Requires array to " +
           "work with") unless plugins.is_a?(Array)
@@ -23,9 +22,6 @@ usable with create_resources and the puppetlabs/apt's apt::source type.
           'release'  => repo['suite'],
           'location' => repo['uri'],
         }
-        if addprios
-          result[repo['name']]['priority'] = repo['priority']
-        end
       end
     end
 
