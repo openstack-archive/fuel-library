@@ -17,7 +17,6 @@ class osnailyfacter::hiera::hiera {
     'override/configuration/role%{disable_globals_yaml}',
     'override/configuration/cluster%{disable_globals_yaml}',
     'override/configuration/default_route%{disable_globals_yaml}',
-    'override/configuration/remove_ovs_usage%{disable_globals_yaml}',
     'class/%{calling_class}%{disable_globals_yaml}',
     'module/%{calling_module}%{disable_globals_yaml}',
     'deleted_nodes%{disable_globals_yaml}',
