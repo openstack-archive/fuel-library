@@ -1,4 +1,0 @@
-# NETWORK VERIFICATION GRAPH METADATA
-#
-node_filter: |
-  $.pending_addition
