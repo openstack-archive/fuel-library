@@ -175,15 +175,19 @@ class openstack_tasks::swift::proxy_storage {
       log_facility                => 'LOG_SYSLOG',
     }
 
-    service { 'swift-container-reconciler':
-      ensure  => stopped,
-      enable  => false,
-      require => Package['swift-container'],
-    }
-    service { 'swift-object-reconstructor':
-      ensure  => stopped,
-      enable  => false,
-      require => Package['swift-object'],
+    # TODO(mmalchuk) remove this UCA workaround made for LP#1610947 after switching
+    # the 'swift-object' package to the upstream version that doesn't contain these services
+    if $::os_package_type == 'debian' {
+      service { 'swift-container-reconciler':
+        ensure  => stopped,
+        enable  => false,
+        require => Package['swift-container'],
+      }
+      service { 'swift-object-reconstructor':
+        ensure  => stopped,
+        enable  => false,
+        require => Package['swift-object'],
+      }
     }
   }
 
