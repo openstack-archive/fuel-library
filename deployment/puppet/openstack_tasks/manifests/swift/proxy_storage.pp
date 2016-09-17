@@ -174,15 +174,21 @@ class openstack_tasks::swift::proxy_storage {
       log_facility                => 'LOG_SYSLOG',
     }
 
-    service { 'swift-container-reconciler':
-      ensure  => stopped,
-      enable  => false,
-      require => Package['swift-container'],
-    }
-    service { 'swift-object-reconstructor':
-      ensure  => stopped,
-      enable  => false,
-      require => Package['swift-object'],
+    # TODO(mmalchuk) remove this 'unless' workaround made for LP#1610947 after
+    # corresponding Trusty packages in upstream backported from Xenial or even
+    # the whole block with services when they would be controlled by the swift
+    # puppet module (for example as in the LP#1554835) in Xenial or later
+    unless ($::os_package_type == 'ubuntu' and $::operatingsystemrelease =~ /^14/) {
+      service { 'swift-container-reconciler':
+        ensure  => stopped,
+        enable  => false,
+        require => Package['swift-container'],
+      }
+      service { 'swift-object-reconstructor':
+        ensure  => stopped,
+        enable  => false,
+        require => Package['swift-object'],
+      }
     }
   }
 
