@@ -63,6 +63,8 @@ class openstack::corosync (
     debug                    => false,
     log_stderr               => false,
     log_function_name        => true,
+    # NOTE(scsnow) workaround for rhel7.2
+    cluster_name             => 'openstack',
   } ->
   Anchor['corosync-done']
 
