@@ -176,6 +176,11 @@ describe manifest do
         should contain_class('keystone').with('sync_db' => primary_controller)
     end
 
+    it 'should declare keystone class with revoke_by_id set to false' do
+      # Set revoke_by_id to false according to LP #1625077
+      should contain_class('keystone').with('revoke_by_id' => false)
+    end
+
     it 'should configure keystone with paramters' do
       should contain_keystone_config('token/caching').with(:value => 'false')
       should contain_keystone_config('cache/enabled').with(:value => 'true')

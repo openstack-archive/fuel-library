@@ -327,6 +327,8 @@ class openstack_tasks::keystone::keystone {
       memcache_pool_unused_timeout => '60',
       cache_memcache_servers       => $memcache_servers,
       policy_driver                => 'keystone.policy.backends.sql.Policy',
+      # Set revoke_by_id to false according to LP #1625077
+      revoke_by_id                 => false,
     }
 
     Package<| title == 'keystone'|> ~> Service<| title == 'keystone'|>
