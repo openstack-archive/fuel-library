@@ -30,7 +30,8 @@ describe manifest do
       configuration_override.fetch('keystone_config', {})
     end
 
-    admin_token = Noop.hiera_structure 'keystone/admin_token'
+    let(:admin_token) { Noop.hiera_structure 'keystone/admin_token' }
+    let(:admin_password) { Noop.hiera_structure 'access/password' }
     public_vip = Noop.hiera('public_vip')
     management_vip= Noop.hiera('management_vip')
     public_ssl_hash = Noop.hiera_hash('public_ssl')
@@ -116,9 +117,10 @@ describe manifest do
         )
     end
 
-    it 'should declare keystone class with admin_token' do
+    it 'should declare keystone class with admin_token and admin_password' do
       should contain_class('keystone').with(
-        'admin_token' => admin_token
+        'admin_token' => admin_token,
+        'admin_password' => admin_password
       )
     end
 
