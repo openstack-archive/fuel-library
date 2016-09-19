@@ -52,15 +52,6 @@ class openstack_tasks::roles::compute {
   $nova_cache                     = pick($nova_hash['use_cache'], true)
   $region_name                    = hiera('region', 'RegionOne')
 
-  $dpdk_config                    = hiera_hash('dpdk', {})
-  $enable_dpdk                    = pick($dpdk_config['enabled'], false)
-  if $enable_dpdk {
-    # LP 1533876
-    $network_device_mtu = false
-  } else {
-    $network_device_mtu = 65000
-  }
-
   # get glance api servers list
   $glance_endpoint_default        = hiera('glance_endpoint', $management_vip)
   $glance_protocol                = get_ssl_property($ssl_hash, {}, 'glance', 'internal', 'protocol', 'http')
@@ -344,7 +335,6 @@ class openstack_tasks::roles::compute {
     vncproxy_port                 => $nova_hash_real['vncproxy_port'],
     force_config_drive            => $force_config_drive,
     pci_passthrough               => nic_whitelist_to_json(get_nic_passthrough_whitelist('sriov')),
-    network_device_mtu            => $network_device_mtu,
     instance_usage_audit          => $instance_usage_audit,
     instance_usage_audit_period   => $instance_usage_audit_period,
     reserved_host_memory          => $nova_hash_real['reserved_host_memory'],
