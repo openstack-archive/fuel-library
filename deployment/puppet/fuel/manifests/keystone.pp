@@ -51,6 +51,7 @@ class fuel::keystone (
     # be updated and 'keystone-manage bootstrap' command will be available
     enable_bootstrap    => false,
     admin_token         => $admin_token,
+    admin_password      => $admin_password,
     catalog_type        => 'sql',
     database_connection => "${db_engine}://${db_user}:${db_password}@${db_host}:${db_port}/${db_name}",
     token_expiration    => $token_expiration,
