@@ -334,6 +334,8 @@ class openstack_tasks::keystone::keystone {
       rabbit_heartbeat_timeout_threshold => $rabbit_heartbeat_timeout_threshold,
       rabbit_heartbeat_rate              => $rabbit_heartbeat_rate,
       kombu_compression                  => $kombu_compression,
+      # Set revoke_by_id to false according to LP #1625077
+      revoke_by_id                       => false,
     }
 
     Package<| title == 'keystone'|> ~> Service<| title == 'keystone'|>
