@@ -156,18 +156,6 @@ describe manifest do
       should contain_package('qemu-kvm').with('ensure' => 'present')
     end
 
-    enable_dpdk = Noop.hiera_structure 'dpdk/enabled', false
-    if enable_dpdk
-      network_device_mtu = false
-    else
-      network_device_mtu = 65000
-    end
-    it 'should configure network_device_mtu for nova-compute' do
-      should contain_class('nova::compute').with(
-        'network_device_mtu' => network_device_mtu
-      )
-    end
-
     let(:node_hash) { Noop.hiera_hash 'node' }
     let(:enable_hugepages) { node_hash.fetch('nova_hugepages_enabled', false) }
     let(:enable_cpu_pinning) { node_hash.fetch('nova_cpu_pinning_enabled', false) }
