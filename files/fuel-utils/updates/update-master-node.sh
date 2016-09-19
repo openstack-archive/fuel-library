@@ -59,6 +59,8 @@ for service in $SERVICES; do
     systemctl restart "$service"
 done
 
+echo "Rebuilding bootstrap images"
+fuel-bootstrap build
 
 echo; echo
 echo "Master node update is <successfully complete> (log: ${LOGFILE} )"
