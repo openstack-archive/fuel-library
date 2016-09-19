@@ -15,6 +15,7 @@ describe manifest do
     it 'should declare "fuel::keystone" class correctly' do
       parameters = {
           :admin_token => fuel_settings['keystone']['admin_token'],
+          :admin_password => fuel_settings['keystone']['admin_passsword'],
           :host => fuel_settings['ADMIN_NETWORK']['ipaddress'],
           :db_host => fuel_settings['ADMIN_NETWORK']['ipaddress'],
           :db_name => fuel_settings['postgres']['keystone_dbname'],
