@@ -92,7 +92,8 @@ describe Puppet::Type.type(:l23_stored_config).provider(:ovs_ubuntu) do
       it { expect(cfg_file).to match(/iface\s+br-ovs1\s+inet\s+manual/) }
       it { expect(cfg_file).to match(/ovs_type\s+OVSBridge/) }
       it { expect(cfg_file).to match(/ovs_ports\s+p_33470efd-0/) }
-      it { expect(cfg_file.split(/\n/).reject{|x| x=~/(^\s*$)|(^#.*$)/}.length). to eq(5) }
+      it { expect(cfg_file).to match(/ovs_extra\s+--\s+set\s+Bridge\s+br-ovs1\s+fail-mode=secure/) }
+      it { expect(cfg_file.split(/\n/).reject{|x| x=~/(^\s*$)|(^#.*$)/}.length). to eq(6) }
     end
 
     context 'for OVS bridge br-ovs2' do
