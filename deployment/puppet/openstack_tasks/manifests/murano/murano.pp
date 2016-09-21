@@ -117,6 +117,11 @@ class openstack_tasks::murano::murano {
       $enable_glare     = false
     }
 
+    Exec<| title == 'murano-dbmanage' |> {
+      tries => '10',
+      try_sleep => '5'
+    }
+
     class { '::murano' :
       verbose             => $verbose,
       debug               => $debug,
