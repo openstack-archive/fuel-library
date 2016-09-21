@@ -397,6 +397,10 @@ class openstack::logging (
       content => '$EscapeControlCharactersOnReceive off'
     }
 
+    ::rsyslog::snippet{ '01-maxopenfiles':
+      content => '$MaxOpenFiles 16384'
+    }
+
     # Fuel specific config for logging parse formats used for /var/log/remote
     ::rsyslog::snippet { '30-remote-log':
         content => template("${module_name}/30-server-remote-log.conf.erb"),
