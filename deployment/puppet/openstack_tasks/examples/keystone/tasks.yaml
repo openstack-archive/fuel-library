@@ -151,7 +151,7 @@
   condition:
     yaql_exp: &changed_username >
       changed($.access.user)
-  requires: [upload_configuration]
+  requires: [copy_cluster_configuration]
   required_for: [pre_deployment_end]
   parameters:
     path: /etc/fuel/cluster/{CLUSTER_ID}/old_admin_user.yaml
