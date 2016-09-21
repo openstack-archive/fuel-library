@@ -1,6 +1,8 @@
 # file is managed by puppet
 #
 
+$MaxOpenFiles 16384
+
 <% if @log_auth_local or @log_local -%>
 # Log auth messages locally
 auth,authpriv.*                 /var/log/auth.log
