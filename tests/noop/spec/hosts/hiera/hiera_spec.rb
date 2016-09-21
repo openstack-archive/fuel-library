@@ -36,17 +36,11 @@ describe manifest do
       # ensure hiera_config is taking plugin overrides from the astute.yaml
       should contain_hiera_config('/etc/hiera.yaml').with(
         'ensure' => 'present',
-        'metadata_yaml_file' => '/etc/astute.yaml',
+        'metadata_yaml_file' => '/etc/hiera/cluster.yaml',
         'plugins_dir' => 'plugins',
         'data_dir' => '/etc/hiera',
       )
 
-      # check symlinks
-      should contain_file('hiera_data_astute').with(
-        'ensure' => 'symlink',
-        'path'   => '/etc/hiera/astute.yaml',
-        'target' => '/etc/astute.yaml'
-      )
       should contain_file('hiera_puppet_config').with(
         'ensure' => 'symlink',
         'path'   => '/etc/puppet/hiera.yaml',
