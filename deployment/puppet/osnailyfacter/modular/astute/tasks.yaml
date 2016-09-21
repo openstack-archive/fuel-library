@@ -48,7 +48,7 @@
   role: ['/.*/']
   requires: [post_deployment_start]
 
-- id: upload_configuration
+- id: upload_node_configuration
   type: upload_file
   version: 2.1.0
   role: ['master', '/.*/']
@@ -58,24 +58,86 @@
   required_for: [pre_deployment_start]
   refresh_on: ['*']
   parameters:
-    path: /etc/fuel/cluster/{CLUSTER_ID}/astute.yaml
+    path: /etc/fuel/cluster/{CLUSTER_ID}/node.yaml
     permissions: '0640'
     dir_permissions: '0750'
     timeout: 180
     data:
-      yaql_exp: '$.toYaml()'
+      yaql_exp: '$node.toYaml()'
 
-- id: configuration_symlink
+- id: upload_cluster_configuration
+  type: upload_file
+  version: 2.1.0
+  role: ['master']
+  condition:
+    yaql_exp: 'changed($)'
+  requires: []
+  required_for: [copy_cluster_configuration]
+  refresh_on: ['*']
+  parameters:
+    path: /var/lib/fuel/configs/{CLUSTER_ID}/cluster.yaml
+    permissions: '0640'
+    dir_permissions: '0750'
+    timeout: 180
+    data:
+      yaql_exp: '$common.toYaml()'
+
+- id: copy_cluster_configuration
+  type: copy_files
+  version: 2.1.0
+  role: ['master', '/.*/']
+  condition:
+    yaql_exp: 'changed($)'
+  required_for: [pre_deployment_start]
+  requires: [upload_cluster_configuration]
+  cross-depends:
+      - name: upload_cluster_configuration
+        role: master
+  parameters:
+    files:
+      - src: /var/lib/fuel/configs/{CLUSTER_ID}/cluster.yaml
+        dst: /etc/fuel/cluster/{CLUSTER_ID}/cluster.yaml
+    permissions: '0644'
+    dir_permissions: '0755'
+
+- id: configuration_symlink_cluster
   type: shell
   version: 2.1.0
   role: ['/.*/']
   condition:
     yaql_exp: '$.uid in added($.network_metadata.nodes.values()).uid'
-  requires: [upload_configuration]
+  requires: [copy_cluster_configuration]
   required_for: [pre_deployment_start]
   parameters:
-    cmd: ln -sf /etc/fuel/cluster/{CLUSTER_ID}/astute.yaml /etc/astute.yaml
+    cmd: ln -sf /etc/fuel/cluster/{CLUSTER_ID}/cluster.yaml /etc/hiera/cluster.yaml
     timeout: 180
+
+- id: configuration_symlink_node
+  type: shell
+  version: 2.1.0
+  role: ['/.*/']
+  condition:
+    yaql_exp: '$.uid in added($.nodes).uid'
+  requires: [upload_node_configuration]
+  required_for: [pre_deployment_start]
+  parameters:
+    cmd: ln -sf /etc/fuel/cluster/{CLUSTER_ID}/node.yaml /etc/hiera/node.yaml
+    timeout: 180
+
+- id: upload_deprecated_astute_conf
+  type: upload_file
+  version: 2.1.0
+  role: ['master', '/.*/']
+  condition:
+    yaql_exp: 'changed($)'
+  requires: []
+  required_for: [copy_cluster_configuration]
+  refresh_on: ['*']
+  parameters:
+    path: /etc/astute.yaml
+    permissions: '0644'
+    timeout: 180
+    data: "# This file is deprecated and deployment info can be got via hiera."
 
 - id: update_hosts
   type: puppet
@@ -388,7 +450,7 @@
   role: master
   condition:
     yaql_exp: &deleted_nodes 'changed($.network_metadata.nodes)'
-  requires: [upload_configuration]
+  requires: [copy_cluster_configuration]
   required_for: [pre_deployment_end]
   parameters:
     path: /etc/fuel/cluster/{CLUSTER_ID}/deleted_nodes.yaml
