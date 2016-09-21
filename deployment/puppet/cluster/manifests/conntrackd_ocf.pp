@@ -82,5 +82,10 @@ class cluster::conntrackd_ocf (
     content => template('openstack/95-conntrackd.conf.erb'),
   }
 
+  file {'/var/log/conntrackd-stats.log':
+    ensure => absent,
+  }
+
+  Package[$conntrackd_package] -> File['/var/log/conntrackd-stats.log']
   Package[$conntrackd_package] -> File['/etc/logrotate.d/conntrackd']
 }
