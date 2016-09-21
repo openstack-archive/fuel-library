@@ -300,8 +300,11 @@ class openstack_tasks::openstack_controller::openstack_controller {
 
   Package[$pymemcache_package_name] -> Nova::Generic_service <| title == 'api' |>
 
-  nova_config {
-    'DEFAULT/allow_resize_to_same_host':  value => pick($nova_hash['allow_resize_to_same_host'], true);
+  # TODO(mkarpin): remove this workaround when https://review.openstack.org/#/c/373648 is merged
+  if !defined(Nova_config['DEFAULT/allow_resize_to_same_host']) {
+    nova_config { 'DEFAULT/allow_resize_to_same_host': value => pick($nova_hash['allow_resize_to_same_host'], true); }
+  } else {
+    Nova_config<| title == 'DEFAULT/allow_resize_to_same_host' |> { value => pick($nova_hash['allow_resize_to_same_host'], true) }
   }
 
   class { '::nova::conductor':
