@@ -2,7 +2,7 @@
   type: puppet
   version: 2.1.0
   groups: ['/.*/']
-  requires: [configuration_symlink]
+  requires: [configuration_symlink_cluster]
   required_for: [pre_deployment_start]
   condition:
     yaql_exp: &have_plugins "len($.plugins) > 0"
