@@ -755,7 +755,7 @@ mysql_stop() {
         shutdown_timeout=$(( ($OCF_RESKEY_CRM_meta_timeout/1000)-5 ))
     fi
 
-    proc_stop "${OCF_RESKEY_pid_file}" "mysqld.*${OCF_RESKEY_datadir}" SIGTERM 5 $(( $shutdown_timeout/5 ))
+    proc_stop "${OCF_RESKEY_pid}" "mysqld.*${OCF_RESKEY_datadir}" SIGTERM 5 $(( $shutdown_timeout/5 ))
     mysql_cleanup
     return $OCF_SUCCESS
 }
