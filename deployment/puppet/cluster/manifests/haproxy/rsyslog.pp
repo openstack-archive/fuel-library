@@ -12,7 +12,7 @@ class cluster::haproxy::rsyslog (
 ) {
   include ::rsyslog::params
 
-  file { '/etc/rsyslog.d/haproxy.conf':
+  file { '/etc/rsyslog.d/49-haproxy.conf':
     ensure  => present,
     content => template("${module_name}/haproxy.conf.erb"),
     notify  => Service[$::rsyslog::params::service_name],
