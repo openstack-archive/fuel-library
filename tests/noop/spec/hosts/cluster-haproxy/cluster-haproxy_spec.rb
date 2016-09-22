@@ -28,7 +28,7 @@ describe manifest do
       end
 
       it "should setup rsyslog configuration for haproxy" do
-        expect(subject).to contain_file('/etc/rsyslog.d/haproxy.conf')
+        expect(subject).to contain_file('/etc/rsyslog.d/49-haproxy.conf')
       end
 
       if Noop.hiera('colocate_haproxy', true)
