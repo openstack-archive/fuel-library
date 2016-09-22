@@ -8,7 +8,7 @@ class openstack_tasks::keystone::keystone {
     data => $override_configuration['keystone_config']
   } ~> Service['httpd']
 
-  $network_scheme = hiera_hash('network_scheme', {})
+  $network_scheme   = hiera_hash('network_scheme', {})
   $network_metadata = hiera_hash('network_metadata', {})
   prepare_network_config($network_scheme)
 
@@ -67,10 +67,10 @@ class openstack_tasks::keystone::keystone {
   $admin_password = $access_hash['password']
   $region         = hiera('region', 'RegionOne')
 
-  $public_ssl_hash         = hiera_hash('public_ssl')
-  $ssl_hash                = hiera_hash('use_ssl', {})
+  $public_ssl_hash = hiera_hash('public_ssl')
+  $ssl_hash        = hiera_hash('use_ssl', {})
 
-  $public_cert             = get_ssl_property($ssl_hash, $public_ssl_hash, 'keystone', 'public', 'path', [''])
+  $public_cert = get_ssl_property($ssl_hash, $public_ssl_hash, 'keystone', 'public', 'path', [''])
 
   $public_protocol = get_ssl_property($ssl_hash, $public_ssl_hash, 'keystone', 'public', 'protocol', 'http')
   $public_address  = get_ssl_property($ssl_hash, $public_ssl_hash, 'keystone', 'public', 'hostname', [$public_vip])
@@ -86,13 +86,13 @@ class openstack_tasks::keystone::keystone {
 
   $local_address_for_bind = get_network_role_property('keystone/api', 'ipaddr')
 
-  $memcache_pool_maxsize  = '100'
-  $memcache_servers       = hiera('memcached_servers')
-  $cache_backend          = 'keystone.cache.memcache_pool'
-  $token_caching          = false
-  $token_driver           = 'keystone.token.persistence.backends.memcache_pool.Token'
-  $token_provider = hiera('token_provider')
-  $revoke_driver = 'keystone.contrib.revoke.backends.sql.Revoke'
+  $memcache_pool_maxsize = '100'
+  $memcache_servers      = hiera('memcached_servers')
+  $cache_backend         = 'oslo_cache.memcache_pool'
+  $token_caching         = false
+  $token_driver          = 'keystone.token.persistence.backends.memcache_pool.Token'
+  $token_provider        = hiera('token_provider')
+  $revoke_driver         = 'keystone.contrib.revoke.backends.sql.Revoke'
 
   $public_url   = "${public_protocol}://${public_address}:${public_port}"
   $admin_url    = "${admin_protocol}://${admin_address}:${admin_port}"
@@ -102,18 +102,18 @@ class openstack_tasks::keystone::keystone {
   $auth_url     = "${internal_url}${auth_suffix}"
 
   $enabled = true
-  $ssl = false
+  $ssl     = false
 
   $vhost_limit_request_field_size = 'LimitRequestFieldSize 81900'
 
-  $rabbit_password     = $rabbit_hash['password']
-  $rabbit_user         = $rabbit_hash['user']
-  $rabbit_hosts        = split(hiera('amqp_hosts',''), ',')
+  $rabbit_password = $rabbit_hash['password']
+  $rabbit_user     = $rabbit_hash['user']
+  $rabbit_hosts    = split(hiera('amqp_hosts',''), ',')
 
-  $max_pool_size = hiera('max_pool_size')
-  $max_overflow  = hiera('max_overflow')
-  $max_retries   = '-1'
-  $database_idle_timeout  = '3600'
+  $max_pool_size         = hiera('max_pool_size')
+  $max_overflow          = hiera('max_overflow')
+  $max_retries           = '-1'
+  $database_idle_timeout = '3600'
 
   $murano_settings_hash = hiera_hash('murano_settings', {})
   if has_key($murano_settings_hash, 'murano_repo_url') {
