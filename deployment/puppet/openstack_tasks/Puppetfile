@@ -79,7 +79,7 @@ mod 'nova',
 # Pull in puppet-murano
 mod 'murano',
     :git => 'https://github.com/fuel-infra/puppet-murano.git',
-    :ref => '8c9c4342471921f847ef2ecaff8bd6a6f9d7a06e'
+    :ref => '8a8e45008ac491cb559e11aef081a54cf06ec249'
 
 # Pull in puppet-sahara
 mod 'sahara',
