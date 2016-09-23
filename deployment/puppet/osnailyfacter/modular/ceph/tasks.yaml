@@ -53,6 +53,16 @@
   test_post:
     cmd: ruby /etc/puppet/modules/osnailyfacter/modular/ceph/radosgw_post.rb
 
+- id: radosgw-keystone
+  type: puppet
+  groups: [primary-controller]
+  required_for: [ceph-radosgw]
+  requires: [keystone]
+  parameters:
+    puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/ceph/radosgw_keystone.pp
+    puppet_modules: /etc/puppet/modules
+    timeout: 1800
+
 - id: ceph-mon
   type: puppet
   groups: [primary-controller, controller]
