@@ -13,8 +13,8 @@ class GlobalsPostTest(unittest.TestCase):
         globals_file = open(self.FILE, 'r')
         globals_data = globals_file.read()
         globals_file.close()
-        self.assertTrue('use_neutron' in globals_data,
-                        'use_neutron was not found in globals!')
+        self.assertIn('use_neutron', globals_data,
+                      'use_neutron was not found in globals!')
 
 
 if __name__ == '__main__':
