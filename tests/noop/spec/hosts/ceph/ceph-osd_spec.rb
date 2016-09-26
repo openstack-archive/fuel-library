@@ -6,7 +6,6 @@ describe manifest do
   shared_examples 'catalog' do
     storage_hash = Noop.hiera 'storage'
     ceph_monitor_nodes = Noop.hiera 'ceph_monitor_nodes'
-    service_endpoint   = Noop.hiera 'service_endpoint'
     if storage_hash['debug']
       debug = storage_hash['debug']
     else
@@ -21,7 +20,6 @@ describe manifest do
            'osd_pool_default_pg_num'  => storage_hash['pg_num'],
            'osd_pool_default_pgp_num' => storage_hash['pg_num'],
            'ephemeral_ceph'           => storage_hash['ephemeral_ceph'],
-           'rgw_keystone_url'         => "#{service_endpoint}:35357"
            )
          }
 

@@ -4,7 +4,6 @@ $mon_address_map          = get_node_to_ipaddr_map_by_network_role(hiera_hash('c
 $storage_hash             = hiera_hash('storage_hash', {})
 $use_neutron              = hiera('use_neutron')
 $public_vip               = hiera('public_vip')
-$management_vip           = hiera('management_vip')
 $use_syslog               = hiera('use_syslog', true)
 $syslog_log_facility_ceph = hiera('syslog_log_facility_ceph','LOG_LOCAL0')
 $keystone_hash            = hiera_hash('keystone_hash', {})
@@ -54,9 +53,6 @@ if $use_ceph {
     osd_pool_default_pgp_num => $storage_hash['pg_num'],
     use_rgw                  => false,
     glance_backend           => $glance_backend,
-    rgw_pub_ip               => $public_vip,
-    rgw_adm_ip               => $management_vip,
-    rgw_int_ip               => $management_vip,
     cluster_network          => $ceph_cluster_network,
     public_network           => $ceph_public_network,
     use_syslog               => $use_syslog,
