@@ -11,12 +11,8 @@ describe manifest do
     storage_hash     = Noop.hiera_hash 'storage'
     swift_hash       = Noop.hiera_hash 'swift'
     network_scheme   = Noop.hiera_hash 'network_scheme'
-    network_metadata = Noop.hiera_hash 'network_metadata'
 
-    memcached_nodes     = Noop.puppet_function('get_nodes_hash_by_roles', network_metadata, ['primary-controller', 'controller'])
-    memcached_addresses = Noop.hiera 'memcached_addresses'
-    memcached_port      = Noop.hiera 'memcache_server_port', '11211'
-    memcached_servers   = memcached_addresses.map{ |n| n = n + ':' + memcached_port }
+    let(:memcached_servers) { Noop.hiera 'memcached_servers' }
     management_vip = Noop.hiera('management_vip')
 
     swift_operator_roles = storage_hash.fetch('swift_operator_roles', ['admin', 'SwiftOperator', '_member_'])
@@ -171,6 +167,12 @@ describe manifest do
             :rabbit_user     => rabbit_user,
             :rabbit_password => rabbit_password,
             :rabbit_hosts    => rabbit_hosts.split(', '),
+          )
+        end
+
+        it 'should contain memcached params' do
+          should contain_class('openstack_tasks::swift::parts::proxy').with(
+            :memcached_servers => memcached_servers
           )
         end
 
