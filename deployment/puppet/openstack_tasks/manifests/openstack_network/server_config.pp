@@ -68,6 +68,7 @@ class openstack_tasks::openstack_network::server_config {
     $project_name            = pick($neutron_config['keystone']['admin_tenant'], 'services')
     $region_name             = hiera('region', 'RegionOne')
     $auth_endpoint_type      = 'internalURL'
+    $memcached_servers       = hiera('memcached_servers')
 
     $ssl_hash                = hiera_hash('use_ssl', {})
 
@@ -190,6 +191,10 @@ class openstack_tasks::openstack_network::server_config {
       sriov_agent_required      => $use_sriov,
       enable_security_group     => true,
       firewall_driver           => 'neutron.agent.linux.iptables_firewall.OVSHybridIptablesFirewallDriver',
+    }
+
+    class { '::neutron':
+      memcache_servers => $memcached_servers,
     }
 
     class { '::neutron::server':
