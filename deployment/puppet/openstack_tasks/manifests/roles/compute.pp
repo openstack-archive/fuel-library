@@ -180,6 +180,8 @@ class openstack_tasks::roles::compute {
       # From legacy params
       $libvirt_type_kvm             = 'qemu-kvm'
       $guestmount_package_name      = 'guestmount'
+
+      package {'python-guestfs': ensure => 'present' }
     }
   default: { fail("Unsupported osfamily: ${::osfamily}") }
   }
