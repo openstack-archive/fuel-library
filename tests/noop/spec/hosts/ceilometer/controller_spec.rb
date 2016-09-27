@@ -51,6 +51,8 @@ describe manifest do
     keystone_auth_uri      = "#{internal_auth_protocol}://#{internal_auth_endpoint}:5000/"
     kombu_compression      = Noop.hiera 'kombu_compression', ''
 
+    let(:memcached_servers) { Noop.hiera 'memcached_servers' }
+
     # Ceilometer
     if ceilometer_hash['enabled']
       it 'should properly build connection string' do
@@ -152,6 +154,7 @@ describe manifest do
             'keystone_user'     => ceilometer_hash['user'],
             'keystone_password' => ceilometer_hash['user_password'],
             'keystone_tenant'   => ceilometer_hash['tenant'],
+            'memcached_servers' => memcached_servers,
             'host'              => bind_address,
         )
       end
