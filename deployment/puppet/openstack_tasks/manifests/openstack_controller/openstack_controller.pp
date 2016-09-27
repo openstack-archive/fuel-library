@@ -69,8 +69,6 @@ class openstack_tasks::openstack_controller::openstack_controller {
 
   $ironic_hash                  = hiera_hash('ironic', {})
 
-  $memcached_server             = hiera('memcached_addresses')
-  $memcached_port               = hiera('memcache_server_port', '11211')
   $openstack_controller_hash    = hiera_hash('openstack_controller', {})
 
   $external_lb                  = hiera('external_lb', false)
@@ -164,7 +162,7 @@ class openstack_tasks::openstack_controller::openstack_controller {
     }
   }
 
-  $memcached_addresses =  suffix($memcached_server, inline_template(":<%= @memcached_port %>"))
+  $memcached_servers = hiera('memcached_servers')
 
   # FIXME(bogdando) replace queue_provider for rpc_backend once all modules synced with upstream
   $rpc_backend   = 'nova.openstack.common.rpc.impl_kombu'
@@ -202,7 +200,7 @@ class openstack_tasks::openstack_controller::openstack_controller {
     service_down_time                  => $nova_service_down_time,
     notify_api_faults                  => pick($nova_hash['notify_api_faults'], false),
     notification_driver                => $ceilometer_hash['notification_driver'],
-    memcached_servers                  => $memcached_addresses,
+    memcached_servers                  => $memcached_servers,
     cinder_catalog_info                => pick($nova_hash['cinder_catalog_info'], 'volumev2:cinderv2:internalURL'),
     database_max_pool_size             => $max_pool_size,
     database_max_retries               => $max_retries,
@@ -216,6 +214,16 @@ class openstack_tasks::openstack_controller::openstack_controller {
     nova_config {
       'DEFAULT/use_syslog_rfc_format':  value => true;
     }
+  }
+
+  if pick($nova_hash['use_cache'], true) {
+    class { '::nova::cache':
+      enabled          => true,
+      backend          => 'oslo_cache.memcache_pool',
+      memcache_servers => $memcached_servers,
+    }
+  } else {
+    ensure_packages($pymemcache_package_name)
   }
 
   class { '::nova::quota':
@@ -287,13 +295,7 @@ class openstack_tasks::openstack_controller::openstack_controller {
     try_sleep => '5',
   }
 
-  # From legacy init.pp
-  if !defined(Package[$pymemcache_package_name]) {
-    package { $pymemcache_package_name:
-      ensure => present,
-    } ->
-    Nova::Generic_service <| title == 'api' |>
-  }
+  Package[$pymemcache_package_name] -> Nova::Generic_service <| title == 'api' |>
 
   nova_config {
     'DEFAULT/allow_resize_to_same_host':  value => pick($nova_hash['allow_resize_to_same_host'], true);
