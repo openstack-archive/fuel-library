@@ -46,6 +46,8 @@ class openstack_tasks::ceilometer::controller {
   $keystone_identity_uri      = "${internal_auth_protocol}://${internal_auth_endpoint}:35357/"
   $keystone_auth_uri          = "${internal_auth_protocol}://${internal_auth_endpoint}:5000/"
 
+  $memcached_servers = hiera('memcached_servers')
+
   prepare_network_config(hiera_hash('network_scheme', {}))
   $api_bind_address           = get_network_role_property('ceilometer/api', 'ipaddr')
 
@@ -144,6 +146,7 @@ class openstack_tasks::ceilometer::controller {
       use_stderr                         => $use_stderr,
       log_facility                       => $syslog_log_facility,
       rabbit_heartbeat_timeout_threshold => $::os_service_default,
+      memcached_servers                  => $memcached_servers,
     }
 
     # Configure authentication for agents
