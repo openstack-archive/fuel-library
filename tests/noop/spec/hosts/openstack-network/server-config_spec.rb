@@ -15,7 +15,16 @@ describe manifest do
   end
 
   shared_examples 'catalog' do
+    # TODO(aschultz): this entire test needs to be cleaned up, LP#1598296
     if (Noop.hiera('use_neutron') == true and Noop.hiera('role') =~ /controller/)
+      let(:memcached_servers) { Noop.hiera 'memcached_servers' }
+
+      it 'should configure memcache servers' do
+        should contain_class('neutron::server').with(
+          'memcached_servers' => memcached_servers,
+        )
+      end
+
       let(:network_scheme) do
         Noop.hiera_hash('network_scheme', {})
       end
@@ -192,9 +201,14 @@ describe manifest do
           end
         end
 
-        it { should contain_class('neutron::server').with('manage_service' => 'true')}
-        it { should contain_class('neutron::server').with('enabled' => 'true')}
-        it { should contain_class('neutron::server').with('agent_down_time' => neutron_config['neutron_agent_down_time'])}
+        it 'configures neutron::server' do
+          should contain_class('neutron::server').with(
+            'manage_service'    => 'true',
+            'enabled'           => 'true',
+            'agent_down_time'   => neutron_config['neutron_agent_down_time'],
+          )
+
+        end
 
         it 'dvr' do
           should contain_class('neutron::server').with('router_distributed' => dvr)
