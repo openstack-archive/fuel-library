@@ -61,7 +61,7 @@ class openstack::ha::heat (
     internal_ssl_path      => $internal_ssl_path,
     require_service        => 'heat-api',
     haproxy_config_options => {
-      'option'       => ['httpchk', 'httplog', 'httpclose', 'http-buffer-request'],
+      'option'       => ['httpchk', 'httplog', 'forceclose', 'http-buffer-request'],
       'timeout'      => ['server 660s', 'http-request 10s'],
       'http-request' => 'set-header X-Forwarded-Proto https if { ssl_fc }',
     },
