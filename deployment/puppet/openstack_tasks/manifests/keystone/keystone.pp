@@ -4,14 +4,7 @@ class openstack_tasks::keystone::keystone {
 
   # Override confguration options
   $override_configuration = hiera_hash('configuration', {})
-  $override_values = values($override_configuration)
-  if !empty($override_values) and has_key($override_values[0], 'data') {
-    create_resources(override_resources, $override_configuration)
-  } else {
-    override_resources { 'keystone_config':
-      data => $override_configuration['keystone_config']
-    } ~> Service['httpd']
-  }
+  create_resources(override_resources, $override_configuration)
 
   $network_scheme = hiera_hash('network_scheme', {})
   $network_metadata = hiera_hash('network_metadata', {})
