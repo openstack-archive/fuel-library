@@ -14,6 +14,10 @@ class cluster::conntrackd_ocf (
     ensure => 'installed',
   } ->
 
+  service {'conntrackd':
+    ensure => stopped,
+  } ->
+
   file { '/etc/conntrackd/conntrackd.conf':
     content => template('cluster/conntrackd.conf.erb'),
   } ->
