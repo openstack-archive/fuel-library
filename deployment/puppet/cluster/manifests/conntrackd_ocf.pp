@@ -23,6 +23,8 @@ class cluster::conntrackd_ocf (
     enable   => true,
   }
 
+  tweaks::ubuntu_service_override { 'conntrackd': }
+
   $primitive_class    = 'ocf'
   $primitive_provider = 'fuel'
   $primitive_type     = 'ns_conntrackd'
