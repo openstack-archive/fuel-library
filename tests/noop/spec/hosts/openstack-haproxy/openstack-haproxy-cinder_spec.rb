@@ -36,7 +36,7 @@ describe manifest do
           'public_ssl'             => public_ssl_cinder,
           'require_service'        => 'cinder-api',
           'haproxy_config_options' => {
-            'option'       => ['httpchk', 'httplog', 'httpclose', 'http-buffer-request'],
+            'option'       => ['httpchk', 'httplog', 'forceclose', 'http-buffer-request'],
             'timeout'      => 'http-request 10s',
             'http-request' => 'set-header X-Forwarded-Proto https if { ssl_fc }',
           },
