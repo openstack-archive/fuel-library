@@ -15,7 +15,7 @@
         $.network_metadata.nodes.values().where(
           ('controller' in $.node_roles) or
           ('primary-controller' in $.node_roles)),
-        $.get('proxy_port'), $.storage, $.debug, $.get('verbose'),
+        $.get('proxy_port'), $.storage, $.debug,
         $.get('swift_ring_min_part_hours'), $.get('deploy_swift_proxy'),
         $.get('use_ssl'), $.rabbit,
         $.network_metadata.nodes.values().where(

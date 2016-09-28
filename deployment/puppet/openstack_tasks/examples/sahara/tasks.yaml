@@ -8,7 +8,7 @@
       $.public_ssl, $.ceilometer,
       ('primary-controller' in $.roles), $.network_metadata.vips,
       $.get('database_vip'), $.quantum_settings, $.quantum, $.network_scheme,
-      $.get('syslog_log_facility_sahara'), $.debug, $.get('verbose'),
+      $.get('syslog_log_facility_sahara'), $.debug,
       $.get('default_log_levels'), $.get('use_syslog'), $.get('use_stderr'),
       $.get('rabbit_ha_queues'), $.get('amqp_port'),
       $.network_metadata.nodes.values().where(

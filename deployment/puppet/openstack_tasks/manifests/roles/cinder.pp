@@ -12,7 +12,6 @@ class openstack_tasks::roles::cinder {
   $iscsi_bind_host            = get_network_role_property('cinder/iscsi', 'ipaddr')
   $public_vip                 = hiera('public_vip')
   $management_vip             = hiera('management_vip')
-  $verbose                    = pick($cinder_hash['verbose'], true)
   $debug                      = pick($cinder_hash['debug'], hiera('debug', true))
   $node_volumes               = hiera('node_volumes', [])
   $storage_hash               = hiera_hash('storage', {})
@@ -176,7 +175,6 @@ class openstack_tasks::roles::cinder {
     rabbit_password        => $rabbit_hash['password'],
     rabbit_ha_queues       => hiera('rabbit_ha_queues', false),
     database_connection    => $db_connection,
-    verbose                => $verbose,
     use_syslog             => $use_syslog,
     use_stderr             => $use_stderr,
     log_facility           => hiera('syslog_log_facility_cinder', 'LOG_LOCAL3'),

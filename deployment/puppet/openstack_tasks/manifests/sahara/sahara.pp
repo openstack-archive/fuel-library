@@ -16,7 +16,6 @@ class openstack_tasks::sahara::sahara {
   $service_endpoint           = hiera('service_endpoint')
   $syslog_log_facility_sahara = hiera('syslog_log_facility_sahara')
   $debug                      = pick($sahara_hash['debug'], hiera('debug', false))
-  $verbose                    = pick($sahara_hash['verbose'], hiera('verbose', true))
   $default_log_levels         = hiera_hash('default_log_levels')
   $use_syslog                 = hiera('use_syslog', true)
   $use_stderr                 = hiera('use_stderr', false)
@@ -88,7 +87,6 @@ class openstack_tasks::sahara::sahara {
     class { '::sahara' :
       host                   => $api_bind_host,
       port                   => $api_bind_port,
-      verbose                => $verbose,
       debug                  => $debug,
       use_syslog             => $use_syslog,
       use_stderr             => $use_stderr,
