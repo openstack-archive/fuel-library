@@ -62,6 +62,17 @@ describe manifest do
     rabbit_heartbeat_timeout_threshold = Noop.puppet_function 'pick', aodh_hash['rabbit_heartbeat_timeout_threshold'], rabbit_hash['heartbeat_timeout_treshold'], 60
     rabbit_heartbeat_rate = Noop.puppet_function 'pick', aodh_hash['rabbit_heartbeat_rate'], rabbit_hash['heartbeat_rate'], 2
 
+    it 'should declare aodh::keystone::authtoken class with correct parameters' do
+      should contain_class('aodh::keystone::authtoken').with(
+        'username'          => user,
+        'password'          => password,
+        'project_name'      => tenant,
+        'auth_uri'          => keystone_auth_uri,
+        'auth_url'          => keystone_auth_url,
+        'memcached_servers' => memcached_servers,
+      )
+    end
+
     it 'should configure RabbitMQ Heartbeat parameters' do
       should contain_aodh_config('oslo_messaging_rabbit/heartbeat_timeout_threshold').with_value(rabbit_heartbeat_timeout_threshold)
       should contain_aodh_config('oslo_messaging_rabbit/heartbeat_rate').with_value(rabbit_heartbeat_rate)
