@@ -272,6 +272,7 @@ class openstack_tasks::heat::heat {
   class { '::heat::client' :  }
 
   # tweak 'heat-dbsync' exec
+  # TODO(mmalchuk) remove this after LP#1628580 merged
   Exec<| title == 'heat-dbsync' |> {
     tries     => '10',
     try_sleep => '5',

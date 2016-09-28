@@ -293,6 +293,7 @@ class openstack_tasks::openstack_controller::openstack_controller {
   }
 
   # tweak both 'nova-db-sync' and 'nova-db-sync-api' execs
+  # TODO(mmalchuk) remove this after LP#1628580 merged
   Exec<| title == 'nova-db-sync' or title == 'nova-db-sync-api' |> {
     tries     => '10',
     try_sleep => '5',
