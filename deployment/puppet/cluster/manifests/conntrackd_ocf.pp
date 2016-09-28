@@ -14,6 +14,13 @@ class cluster::conntrackd_ocf (
     ensure => 'installed',
   } ->
 
+## Don't remove this! Pacemaker service provider is unable to stop it.
+## 'service conntrackd stop' will fail with 'Invalid interface' error
+## after we change config file
+  service { 'conntrackd':
+    ensure => stopped,
+  } ->
+
   file { '/etc/conntrackd/conntrackd.conf':
     content => template('cluster/conntrackd.conf.erb'),
   } ->
