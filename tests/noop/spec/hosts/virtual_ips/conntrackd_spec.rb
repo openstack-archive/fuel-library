@@ -20,6 +20,9 @@ describe manifest do
       end
     }
 
+    it 'should override conntrackd service' do
+      should contain_tweaks__ubuntu_service_override('conntrackd')
+    end
   end
   test_ubuntu_and_centos manifest
 end
