@@ -4,11 +4,7 @@ class cluster::conntrackd_ocf (
   $mgmt_bridge,
 ) {
   $service_name = 'p_conntrackd'
-
-  case $operatingsystem {
-    'Centos': { $conntrackd_package = 'conntrack-tools' }
-    'Ubuntu': { $conntrackd_package = 'conntrackd' }
-  }
+  $conntrackd_package = 'conntrackd'
 
   package { $conntrackd_package:
     ensure => 'installed',
@@ -22,6 +18,8 @@ class cluster::conntrackd_ocf (
     ensure   => 'running',
     enable   => true,
   }
+
+  tweaks::ubuntu_service_override { 'conntrackd': }
 
   $primitive_class    = 'ocf'
   $primitive_provider = 'fuel'
