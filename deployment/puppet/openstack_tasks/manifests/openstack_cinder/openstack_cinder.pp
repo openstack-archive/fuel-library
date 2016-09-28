@@ -50,25 +50,7 @@ class openstack_tasks::openstack_cinder::openstack_cinder {
 
   $queue_provider = hiera('queue_provider', 'rabbit')
   $override_configuration = hiera_hash('configuration', {})
-
-  $override_values = values($override_configuration)
-  if !empty($override_values) and has_key($override_values[0], 'data') {
-    create_resources(override_resources, $override_configuration)
-  } else {
-    # override cinder.conf options
-    override_resources { 'cinder_config':
-      data => $override_configuration['cinder']
-    }
-
-    # override cinder api paste options
-    override_resources { 'cinder_api_paste_ini':
-      data => $override_configuration['cinder_api_paste_ini']
-    }
-
-    Override_resources <||> ~> Service <| tag == 'cinder-service' |>
-  }
-
-
+  create_resources(override_resources, $override_configuration)
 
   $keystone_auth_protocol = get_ssl_property($ssl_hash, {}, 'keystone', 'internal', 'protocol', 'http')
   $keystone_auth_host     = get_ssl_property($ssl_hash, {}, 'keystone', 'internal', 'hostname', [hiera('keystone_endpoint', ''), $service_endpoint, $management_vip])
