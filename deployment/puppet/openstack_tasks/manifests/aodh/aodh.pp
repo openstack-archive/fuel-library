@@ -136,18 +136,21 @@ class openstack_tasks::aodh::aodh {
     user => $db_user,
   }
 
+  class { 'aodh::keystone::authtoken':
+    username          => $aodh_user_name,
+    password          => $aodh_user_password,
+    project_name      => $tenant,
+    auth_uri          => $keystone_auth_uri,
+    auth_url          => $keystone_auth_url,
+    memcached_servers => $memcached_servers,
+  }
+
   class { '::aodh::api':
     enabled           => true,
     manage_service    => true,
     package_ensure    => 'present',
-    keystone_user     => $aodh_user_name,
-    keystone_password => $aodh_user_password,
-    keystone_tenant   => $tenant,
-    keystone_auth_uri => $keystone_auth_uri,
-    keystone_auth_url => $keystone_auth_url,
     host              => $aodh_api_bind_host,
     port              => $aodh_api_bind_port,
-    memcached_servers => $memcached_servers,
   }
 
   $haproxy_stats_url = "http://${management_vip}:10000/;csv"
