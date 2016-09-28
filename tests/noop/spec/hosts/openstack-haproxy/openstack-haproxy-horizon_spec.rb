@@ -47,7 +47,7 @@ describe manifest do
             'balancermember_port'    => 80,
             'public_ssl'             => public_ssl_horizon,
             'haproxy_config_options' => {
-              'option'      => ['forwardfor', 'httpchk', 'httpclose', 'httplog', 'http-buffer-request'],
+              'option'      => ['forwardfor', 'httpchk', 'forceclose', 'httplog', 'http-buffer-request'],
               'timeout'     => ['client 3h', 'server 3h', 'http-request 10s'],
               'stick-table' => 'type ip size 200k expire 30m',
               'stick'       => 'on src',
@@ -64,7 +64,7 @@ describe manifest do
             'ipaddresses'            => ipaddresses,
             'server_names'           => server_names,
             'haproxy_config_options' => {
-              'option'  => [ 'forwardfor', 'httpchk', 'httpclose', 'httplog', 'http-buffer-request'],
+              'option'  => [ 'forwardfor', 'httpchk', 'forceclose', 'httplog', 'http-buffer-request'],
               'timeout' => ['client 3h', 'server 3h', 'http-request 10s'],
               'balance' => 'source',
               'capture' => 'cookie vgnvisitor= len 32',
