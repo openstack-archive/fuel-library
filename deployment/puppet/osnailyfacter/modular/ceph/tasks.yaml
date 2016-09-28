@@ -54,6 +54,7 @@
   groups: [primary-controller]
   required_for: [deploy_end, controller_remaining_tasks]
   requires: [apache, ceph-mon, primary-ceph-mon]
+  condition: "settings:storage.objects_ceph.value == true"
   parameters:
     puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/ceph/radosgw.pp
     puppet_modules: /etc/puppet/modules
@@ -71,6 +72,7 @@
     - name: primary-ceph-radosgw
   required_for: [deploy_end, controller_remaining_tasks]
   requires: [apache, ceph-mon, primary-ceph-mon]
+  condition: "settings:storage.objects_ceph.value == true"
   parameters:
     puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/ceph/radosgw.pp
     puppet_modules: /etc/puppet/modules
@@ -86,6 +88,7 @@
   groups: [primary-controller]
   required_for: [primary-ceph-radosgw, ceph-radosgw]
   requires: [primary-keystone, keystone]
+  condition: "settings:storage.objects_ceph.value == true"
   cross-depends:
     - name: keystone
   parameters:
