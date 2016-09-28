@@ -67,7 +67,7 @@ class openstack::ha::glance (
     internal_ssl_path      => $internal_ssl_path,
     require_service        => 'glance-api',
     haproxy_config_options => {
-      'option'       => ['httpchk GET /healthcheck', 'httplog', 'httpclose', 'http-buffer-request'],
+      'option'       => ['httpchk GET /healthcheck', 'httplog', 'forceclose', 'http-buffer-request'],
       'timeout'      => ['server 11m', 'http-request 10s'],
       'http-request' => 'set-header X-Forwarded-Proto https if { ssl_fc }',
     },
@@ -86,7 +86,7 @@ class openstack::ha::glance (
     require_service        => 'glance-glare',
     haproxy_config_options => {
       # TODO degorenko: check for ability for 'httpchk GET /healthcheck' for Glare
-      'option'       => ['httpchk /versions', 'httplog', 'httpclose', 'http-buffer-request'],
+      'option'       => ['httpchk /versions', 'httplog', 'http-server-close', 'http-buffer-request'],
       'timeout'      => ['server 11m', 'http-request 10s'],
       'http-request' => 'set-header X-Forwarded-Proto https if { ssl_fc }',
     },
