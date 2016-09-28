@@ -58,22 +58,7 @@ class openstack_tasks::heat::heat {
   $rabbit_heartbeat_rate              = pick($heat_hash['rabbit_heartbeat_rate'], $rabbit_hash['rabbit_heartbeat_rate'], 2)
 
   $override_configuration = hiera_hash('configuration', {})
-
-  $override_values = values($override_configuration)
-  if !empty($override_values) and has_key($override_values[0], 'data') {
-    create_resources(override_resources, $override_configuration)
-  } else {
-    # override heat.conf options
-    override_resources { 'heat_config':
-      data => $override_configuration['heat']
-    }
-    # override heat api paste options
-    override_resources { 'heat_api_paste_ini':
-      data => $override_configuration['heat_api_paste_ini']
-    }
-
-    Override_resources <||> ~> Service <| tag == 'heat-service' |>
-  }
+  create_resources(override_resources, $override_configuration)
 
   $storage_hash = hiera_hash('storage', {})
 
