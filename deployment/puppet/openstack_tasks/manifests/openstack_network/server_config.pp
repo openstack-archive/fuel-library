@@ -228,6 +228,12 @@ class openstack_tasks::openstack_network::server_config {
     memcached_servers                => $memcached_servers,
   }
 
+  # TODO(mmalchuk) remove this after LP#1628580 merged
+  Exec<| title == 'neutron-db-sync' |> {
+    tries     => '10',
+    try_sleep => '5'
+  }
+
   include ::neutron::params
   tweaks::ubuntu_service_override { $::neutron::params::server_service:
     package_name => $neutron::params::server_package ? {

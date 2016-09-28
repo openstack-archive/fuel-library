@@ -113,6 +113,7 @@ class openstack_tasks::murano::murano {
       $enable_glare     = false
     }
 
+    # TODO(mmalchuk) remove this after LP#1628580 merged
     Exec<| title == 'murano-dbmanage' |> {
       tries => '10',
       try_sleep => '5'
