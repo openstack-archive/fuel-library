@@ -26,7 +26,6 @@ class openstack_tasks::openstack_network::common_config {
   $ceilometer_hash  = hiera_hash('ceilometer', {})
   $network_scheme   = hiera_hash('network_scheme', {})
 
-  $verbose      = pick($openstack_network_hash['verbose'], hiera('verbose', true))
   $debug        = pick($openstack_network_hash['debug'], hiera('debug', true))
   # TODO(aschultz): LP#1499620 - neutron in UCA liberty fails to start with
   # syslog enabled.

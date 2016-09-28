@@ -51,7 +51,6 @@ describe manifest do
     let(:amqp_port) { Noop.hiera('amqp_port') }
     let(:amqp_hosts) { Noop.hiera('amqp_hosts') }
     let(:debug) { Noop.hiera('debug', false) }
-    let(:verbose) { Noop.hiera('verbose', true) }
     let(:use_syslog) { Noop.hiera('use_syslog', true) }
     let(:log_facility_sahara) { Noop.hiera('syslog_log_facility_sahara') }
     let(:rabbit_ha_queues) { Noop.hiera('rabbit_ha_queues') }
@@ -120,7 +119,6 @@ describe manifest do
                    'rpc_backend'            => 'rabbit',
                    'use_neutron'            => true,
                    'admin_user'             => sahara_user,
-                   'verbose'                => verbose,
                    'debug'                  => debug,
                    'use_syslog'             => use_syslog,
                    'use_stderr'             => 'false',

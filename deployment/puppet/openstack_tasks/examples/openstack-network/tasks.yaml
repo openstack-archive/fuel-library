@@ -57,7 +57,7 @@
   requires: [openstack-network-start]
   condition:
     yaql_exp: >
-      changedAny($.get('openstack_network'), $.get('verbose'), $.debug,
+      changedAny($.get('openstack_network'), $.debug,
       $.quantum_settings, $.neutron_advanced_configuration, $.rabbit,
       $.ceilometer, $.network_scheme, $.get('use_syslog'),
       $.get('use_stderr'), $.get('syslog_log_facility_neutron'),
