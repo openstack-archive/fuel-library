@@ -16,7 +16,7 @@
           $.get('mgmt/messaging')),
       $.get('amqp_hosts'), $.get('amqp_port'),
       $.get('kombu_compression'), $.network_scheme, $.aodh,
-      $.get('region', 'RegionOne'), $.debug, $.get('verbose'),
+      $.get('region', 'RegionOne'), $.debug,
       $.get('database_vip'), $.get('external_lb'), $.network_metadata.vips,
       $.public_ssl, $.get('use_ssl'), $.ceilometer)
   parameters:

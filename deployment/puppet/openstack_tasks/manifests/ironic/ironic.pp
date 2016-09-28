@@ -13,7 +13,6 @@ class openstack_tasks::ironic::ironic {
   $keystone_endpoint          = hiera('service_endpoint')
   $glance_api_servers         = hiera('glance_api_servers', "${management_vip}:9292")
   $debug                      = hiera('debug', false)
-  $verbose                    = hiera('verbose', true)
   $default_log_levels         = hiera_hash('default_log_levels')
   $use_syslog                 = hiera('use_syslog', true)
   $syslog_log_facility_ironic = hiera('syslog_log_facility_ironic', 'LOG_USER')
@@ -73,7 +72,6 @@ class openstack_tasks::ironic::ironic {
   $baremetal_vip = $network_metadata['vips']['baremetal']['ipaddr']
 
   class { '::ironic':
-    verbose                            => $verbose,
     debug                              => $debug,
     rabbit_hosts                       => $rabbit_hosts,
     rabbit_port                        => $amqp_port,

@@ -48,7 +48,6 @@ describe manifest do
     let(:service_endpoint) { Noop.hiera('service_endpoint') }
     let(:syslog_log_facility_murano) { Noop.hiera('syslog_log_facility_murano') }
     let(:debug) { Noop.hiera('debug', false) }
-    let(:verbose) { Noop.hiera('verbose', true) }
     let(:use_syslog) { Noop.hiera('use_syslog', true) }
     let(:rabbit_ha_queues) { Noop.hiera('rabbit_ha_queues') }
     let(:amqp_port) { Noop.hiera('amqp_port') }
@@ -165,7 +164,6 @@ describe manifest do
 
       it 'should declare murano class correctly' do
         should contain_class('murano').with(
-                   'verbose'             => verbose,
                    'debug'               => debug,
                    'use_syslog'          => use_syslog,
                    'use_stderr'          => 'false',
