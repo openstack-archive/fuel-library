@@ -22,7 +22,7 @@ require 'spec_helper'
         'public_ssl'             => true,
         'public_ssl_path'        => '/var/lib/fuel/haproxy/public_ironic.pem',
         'haproxy_config_options' => {
-          'option'       => ['httpchk GET /', 'httplog','httpclose', 'http-buffer-request'],
+          'option'       => ['httpchk GET /', 'httplog','forceclose', 'http-buffer-request'],
           'timeout'      => 'http-request 10s',
           'http-request' => 'set-header X-Forwarded-Proto https if { ssl_fc }',
         },
@@ -36,7 +36,7 @@ require 'spec_helper'
         'public_ssl'             => false,
         'internal_virtual_ip'    => '192.168.0.2',
         'haproxy_config_options' => {
-          'option'       => ['httpchk GET /', 'httplog','httpclose', 'http-buffer-request'],
+          'option'       => ['httpchk GET /', 'httplog','forceclose', 'http-buffer-request'],
           'timeout'      => 'http-request 10s',
           'http-request' => 'set-header X-Forwarded-Proto https if { ssl_fc }',
         },

@@ -79,7 +79,7 @@ class openstack::ha::swift (
       'option'       => [
         $http_check,
         'httplog',
-        'httpclose',
+        'forceclose',
         'http-buffer-request',
         'tcp-smart-accept',
         'tcp-smart-connect',
