@@ -16,7 +16,6 @@ class openstack_tasks::murano::murano {
   $service_endpoint           = hiera('service_endpoint')
   $syslog_log_facility_murano = hiera('syslog_log_facility_murano')
   $debug                      = pick($murano_hash['debug'], hiera('debug', false))
-  $verbose                    = pick($murano_hash['verbose'], hiera('verbose', true))
   $default_log_levels         = hiera_hash('default_log_levels')
   $use_syslog                 = hiera('use_syslog', true)
   $use_stderr                 = hiera('use_stderr', false)
@@ -114,7 +113,6 @@ class openstack_tasks::murano::murano {
     }
 
     class { '::murano' :
-      verbose             => $verbose,
       debug               => $debug,
       use_syslog          => $use_syslog,
       use_stderr          => $use_stderr,
