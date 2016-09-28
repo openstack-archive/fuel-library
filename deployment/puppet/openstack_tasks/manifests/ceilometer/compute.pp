@@ -43,22 +43,7 @@ class openstack_tasks::ceilometer::compute {
   $rabbit_heartbeat_rate              = pick($ceilometer_hash['rabbit_heartbeat_rate'], $rabbit_hash['rabbit_heartbeat_rate'], 2)
 
   $override_configuration = hiera_hash('configuration', {})
-
-  $override_values = values($override_configuration)
-  if !empty($override_values) and has_key($override_values[0], 'data') {
-    create_resources(override_resources, $override_configuration)
-  } else {
-    # override ceilometer.conf options
-    override_resources { 'ceilometer_config':
-      data => $override_configuration['ceilometer']
-    }
-    # override ceilometer api paste options
-    override_resources { 'ceilometer_api_paste_ini':
-      data => $override_configuration['ceilometer_api_paste_ini']
-    }
-
-    Override_resources <||> ~> Service <| tag == 'ceilometer-service' |>
-  }
+  create_resources(override_resources, $override_configuration)
 
   if ($ceilometer_enabled) {
 
