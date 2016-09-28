@@ -3,6 +3,7 @@
   groups: [primary-controller, controller]
   required_for: [deploy_end, controller_remaining_tasks]
   requires: [openstack-controller]
+  condition: (!$storage_hash['images_ceph'] and !$storage_hash['objects_ceph'] and !$storage_hash['images_vcenter'])
   parameters:
     puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/swift/swift.pp
     puppet_modules: /etc/puppet/modules
@@ -17,6 +18,7 @@
   groups: [primary-controller, controller]
   required_for: [deploy_end]
   requires: [swift]
+  condition: (!$storage_hash['images_ceph'] and !$storage_hash['objects_ceph'] and !$storage_hash['images_vcenter'])
   parameters:
     puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/swift/rebalance_cronjob.pp
     puppet_modules: /etc/puppet/modules
@@ -31,6 +33,7 @@
   groups: [primary-controller]
   required_for: [swift]
   requires: [keystone]
+  condition: (!$storage_hash['images_ceph'] and !$storage_hash['objects_ceph'] and !$storage_hash['images_vcenter'])
   parameters:
     puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/swift/keystone.pp
     puppet_modules: /etc/puppet/modules
