@@ -14,7 +14,6 @@ class openstack_tasks::ironic::ironic_compute {
   $database_vip                   = hiera('database_vip')
   $service_endpoint               = hiera('service_endpoint')
   $debug                          = hiera('debug', false)
-  $verbose                        = hiera('verbose', true)
   $use_syslog                     = hiera('use_syslog', true)
   $use_stderr                     = hiera('use_stderr', false)
   $syslog_log_facility_ironic     = hiera('syslog_log_facility_ironic', 'LOG_LOCAL0')
@@ -100,7 +99,6 @@ class openstack_tasks::ironic::ironic_compute {
     rabbit_password        => $rabbit_hash['password'],
     image_service          => 'nova.image.glance.GlanceImageService',
     glance_api_servers     => $glance_api_servers,
-    verbose                => $verbose,
     debug                  => $debug,
     use_syslog             => $use_syslog,
     use_stderr             => $use_stderr,

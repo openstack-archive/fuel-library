@@ -7,7 +7,7 @@
   condition:
     yaql_exp: >
       changedAny($.network_scheme, $.network_metadata, $.glance,
-      $.get('verbose'), $.debug, $.get('database_vip'), $.storage,
+      $.debug, $.get('database_vip'), $.storage,
       $.get('use_syslog'), $.get('use_stderr'),
       $.get('syslog_log_facility_glance'), $.rabbit,
       $.get('max_pool_size'), $.get('max_overflow'), $.ceilometer,
