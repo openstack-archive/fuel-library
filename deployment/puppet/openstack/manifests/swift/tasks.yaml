@@ -1,0 +1,61 @@
+- id: primary-swift-proxy_storage
+  type: puppet
+  version: 2.0.0
+  groups: [primary-controller]
+  required_for: [deploy_end, controller_remaining_tasks]
+  requires: [openstack-controller, primary-rabbitmq, memcached]
+  condition: "settings:storage.objects_ceph.value == false and settings:storage.images_ceph.value == false and settings:storage.images_vcenter.value == false"
+  cross-depends:
+    - name: /glance/
+      role: self
+    - name: swift-keystone
+    - name: ceilometer-controller
+      role: self
+  parameters:
+    puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/swift/swift.pp
+    puppet_modules: /etc/puppet/modules
+    timeout: 3600
+
+- id: swift-proxy_storage
+  type: puppet
+  version: 2.0.0
+  groups: [controller]
+  required_for: [deploy_end, controller_remaining_tasks]
+  requires: [openstack-controller, rabbitmq, memcached]
+  condition: "settings:storage.objects_ceph.value == false and settings:storage.images_ceph.value == false and settings:storage.images_vcenter.value == false"
+  cross-depends:
+    - name: primary-swift-proxy_storage
+    - name: /glance/
+      role: self
+    - name: swift-keystone
+    - name: ceilometer-controller
+      role: self
+  parameters:
+    puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/swift/swift.pp
+    puppet_modules: /etc/puppet/modules
+    timeout: 3600
+
+- id: swift-rebalance-cron
+  type: puppet
+  version: 2.0.0
+  groups: [primary-controller, controller]
+  required_for: [deploy_end]
+  requires: [swift-proxy_storage, primary-swift-proxy_storage]
+  condition: "settings:storage.objects_ceph.value == false and settings:storage.images_ceph.value == false and settings:storage.images_vcenter.value == false"
+  parameters:
+    puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/swift/rebalance_cronjob.pp
+    puppet_modules: /etc/puppet/modules
+    timeout: 300
+
+- id: swift-keystone
+  type: puppet
+  version: 2.0.0
+  groups: [primary-controller]
+  requires: [primary-keystone]
+  required_for: [swift-proxy_storage]
+  condition: "settings:storage.objects_ceph.value == false and settings:storage.images_ceph.value == false and settings:storage.images_vcenter.value == false"
+  parameters:
+    puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/swift/keystone.pp
+    puppet_modules: /etc/puppet/modules
+    timeout: 1800
+
