@@ -186,7 +186,7 @@ check_ns() {
   local LH="${LL} check_ns():"
   local ns=`ip netns list | grep "$OCF_RESKEY_ns"`
   ocf_log debug "${LH} recieved netns list: ${ns}"
-  [[ $ns != $OCF_RESKEY_ns ]] && return $OCF_ERR_GENERIC
+  [[ "$ns" != $OCF_RESKEY_ns ]] && return $OCF_ERR_GENERIC
   return $OCF_SUCCESS
 }
 
@@ -197,6 +197,7 @@ get_ns() {
 
   ocf_run ip netns add $OCF_RESKEY_ns
   rc=$?
+  ocf_run $RUN_IN_NS /sbin/sysctl -w net.ipv4.ip_nonlocal_bind=1
   ocf_run $RUN_IN_NS ip link set up dev lo
   ocf_log debug "${LH} added netns ${OCF_RESKEY_ns} and set up lo"
 
