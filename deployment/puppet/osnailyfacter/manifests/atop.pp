@@ -28,7 +28,7 @@
 #
 class osnailyfacter::atop (
   $service_enabled  = true,
-  $service_state    = 'running',
+  $service_state    = $service_enabled ? { false => 'stopped', default => 'running' },
   $interval         = '20',
   $logpath          = '/var/log/atop',
   $rotate           = '7',
@@ -50,6 +50,7 @@ class osnailyfacter::atop (
   }
 
   $atop_retention = '/etc/cron.daily/atop_retention'
+  $atop_retention_ensure = $service_enabled ? { false => 'absent', default => 'file' }
 
   File {
     ensure => file,
@@ -102,13 +103,17 @@ class osnailyfacter::atop (
   # - $rotate
   # - $logpath
   file { $atop_retention:
+    ensure  => $atop_retention_ensure,
     mode    => '0755',
     content => template('osnailyfacter/atop_retention.erb'),
-  } ~>
+  }
 
-  exec { 'initialize atop_current':
-    command     => $atop_retention,
-    refreshonly => true,
+  if $service_enabled {
+    exec { 'initialize atop_current':
+      command     => $atop_retention,
+      refreshonly => true,
+      subscribe   => File[$atop_retention],
+    }
   }
 
 }
