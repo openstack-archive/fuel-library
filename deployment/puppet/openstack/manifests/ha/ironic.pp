@@ -49,7 +49,7 @@ class openstack::ha::ironic (
     public_virtual_ip      => $public_virtual_ip,
     server_names           => $server_names,
     haproxy_config_options => {
-      'option'       => ['httpchk GET /', 'httplog', 'httpclose', 'http-buffer-request'],
+      'option'       => ['httpchk GET /', 'httplog', 'forceclose', 'http-buffer-request'],
       'timeout'      => 'http-request 10s',
       'http-request' => 'set-header X-Forwarded-Proto https if { ssl_fc }',
     },
