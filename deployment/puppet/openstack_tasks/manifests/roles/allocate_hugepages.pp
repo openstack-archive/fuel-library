@@ -1,6 +1,8 @@
 class openstack_tasks::roles::allocate_hugepages {
 
   notice('MODULAR: roles/allocate_hugepages.pp')
+  $override_configuration = hiera_hash(configuration, {})
+  create_resources(override_resources, $override_configuration)
 
   $hugepages = hiera('hugepages', [])
 

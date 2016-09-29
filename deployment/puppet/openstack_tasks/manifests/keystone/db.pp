@@ -1,6 +1,8 @@
 class openstack_tasks::keystone::db {
 
   notice('MODULAR: keystone/db.pp')
+  $override_configuration = hiera_hash(configuration, {})
+  create_resources(override_resources, $override_configuration)
 
   $network_metadata = hiera_hash('network_metadata', {})
 

@@ -1,6 +1,8 @@
 class openstack_tasks::openstack_network::networks {
 
   notice('MODULAR: openstack_network/networks.pp')
+  $override_configuration = hiera_hash(configuration, {})
+  create_resources(override_resources, $override_configuration)
 
   $access_hash           = hiera_hash('access', {})
   $keystone_admin_tenant = $access_hash['tenant']

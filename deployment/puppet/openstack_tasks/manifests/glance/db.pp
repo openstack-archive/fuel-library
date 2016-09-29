@@ -1,6 +1,8 @@
 class openstack_tasks::glance::db {
 
   notice('MODULAR: glance/db.pp')
+  $override_configuration = hiera_hash(configuration, {})
+  create_resources(override_resources, $override_configuration)
 
   $glance_hash    = hiera_hash('glance', {})
   $mysql_hash     = hiera_hash('mysql', {})
