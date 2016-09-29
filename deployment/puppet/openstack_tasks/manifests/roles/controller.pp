@@ -1,6 +1,8 @@
 class openstack_tasks::roles::controller {
 
   notice('MODULAR: roles/controller.pp')
+  $override_configuration = hiera_hash(configuration, {})
+  create_resources(override_resources, $override_configuration)
 
   $primary_controller = hiera('primary_controller')
 

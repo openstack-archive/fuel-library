@@ -1,6 +1,8 @@
 class openstack_tasks::ironic::db {
 
   notice('MODULAR: ironic/db.pp')
+  $override_configuration = hiera_hash(configuration, {})
+  create_resources(override_resources, $override_configuration)
 
   $ironic_hash    = hiera_hash('ironic', {})
   $mysql_hash     = hiera_hash('mysql', {})

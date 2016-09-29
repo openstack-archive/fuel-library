@@ -1,6 +1,8 @@
 class openstack_tasks::roles::mongo {
 
   notice('MODULAR: roles/mongo.pp')
+  $override_configuration = hiera_hash(configuration, {})
+  create_resources(override_resources, $override_configuration)
 
   prepare_network_config(hiera_hash('network_scheme', {}))
   $mongo_hash          = hiera_hash('mongo', {})

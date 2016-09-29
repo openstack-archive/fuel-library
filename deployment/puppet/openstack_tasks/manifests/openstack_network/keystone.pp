@@ -1,6 +1,8 @@
 class openstack_tasks::openstack_network::keystone {
 
   notice('MODULAR: openstack_network/keystone.pp')
+  $override_configuration = hiera_hash(configuration, {})
+  create_resources(override_resources, $override_configuration)
 
   $neutron_hash        = hiera_hash('quantum_settings', {})
   $public_vip          = hiera('public_vip')

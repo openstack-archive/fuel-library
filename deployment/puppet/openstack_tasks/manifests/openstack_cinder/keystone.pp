@@ -1,6 +1,8 @@
 class openstack_tasks::openstack_cinder::keystone {
 
   notice('MODULAR: openstack_cinder/keystone.pp')
+  $override_configuration = hiera_hash(configuration, {})
+  create_resources(override_resources, $override_configuration)
 
   $cinder_hash         = hiera_hash('cinder', {})
   $public_ssl_hash     = hiera_hash('public_ssl')

@@ -1,6 +1,8 @@
 class openstack_tasks::openstack_network::server_nova {
 
   notice('MODULAR: openstack_network/server_nova.pp')
+  $override_configuration = hiera_hash(configuration, {})
+  create_resources(override_resources, $override_configuration)
 
   $neutron_config            = hiera_hash('neutron_config')
   $management_vip            = hiera('management_vip')

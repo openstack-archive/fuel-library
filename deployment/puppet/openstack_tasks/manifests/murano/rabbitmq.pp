@@ -1,6 +1,8 @@
 class openstack_tasks::murano::rabbitmq {
 
   notice('MODULAR: murano/rabbitmq.pp')
+  $override_configuration = hiera_hash(configuration, {})
+  create_resources(override_resources, $override_configuration)
 
   $murano_hash          = hiera_hash('murano', {})
   $rabbit_user          = pick($murano_hash['rabbit']['user'], 'murano')
