@@ -1,6 +1,8 @@
 class openstack_tasks::ceilometer::keystone {
 
   notice('MODULAR: ceilometer/keystone.pp')
+  $override_configuration = hiera_hash(configuration, {})
+  create_resources(override_resources, $override_configuration)
 
   $ceilometer_hash     = hiera_hash('ceilometer', {})
   $public_vip          = hiera('public_vip')

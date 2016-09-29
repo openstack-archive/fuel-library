@@ -1,6 +1,8 @@
 class openstack_tasks::murano::db {
 
   notice('MODULAR: murano/db.pp')
+  $override_configuration = hiera_hash(configuration, {})
+  create_resources(override_resources, $override_configuration)
 
   $node_name      = hiera('node_name')
   $murano_hash    = hiera_hash('murano', {})

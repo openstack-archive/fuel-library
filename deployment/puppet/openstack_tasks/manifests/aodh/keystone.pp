@@ -1,6 +1,8 @@
 class openstack_tasks::aodh::keystone {
 
   notice('MODULAR: aodh/keystone.pp')
+  $override_configuration = hiera_hash(configuration, {})
+  create_resources(override_resources, $override_configuration)
 
   $aodh_hash            = hiera_hash('aodh', {})
   $aodh_user_name       = pick($aodh_hash['user'], 'aodh')
