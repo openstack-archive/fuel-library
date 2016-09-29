@@ -1,6 +1,8 @@
 class openstack_tasks::ceilometer::keystone {
 
   notice('MODULAR: ceilometer/keystone.pp')
+  $override_configuration = hiera_hash(configuration, {})
+  $override_configuration_options = hiera_hash(configuration_options, {})
 
   $ceilometer_hash     = hiera_hash('ceilometer', {})
   $public_vip          = hiera('public_vip')
@@ -33,6 +35,11 @@ class openstack_tasks::ceilometer::keystone {
   $public_url          = "${public_protocol}://${public_address}:8777"
   $internal_url        = "${internal_protocol}://${internal_address}:8777"
   $admin_url           = "${admin_protocol}://${admin_address}:8777"
+
+  override_resources {'override-resources':
+    configuration => $override_configuration,
+    options       => $override_configuration_options,
+  }
 
   class { '::osnailyfacter::wait_for_keystone_backends':}
 

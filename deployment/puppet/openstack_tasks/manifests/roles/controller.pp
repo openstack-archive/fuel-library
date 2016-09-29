@@ -1,8 +1,15 @@
 class openstack_tasks::roles::controller {
 
   notice('MODULAR: roles/controller.pp')
+  $override_configuration = hiera_hash(configuration, {})
+  $override_configuration_options = hiera_hash(configuration_options, {})
 
   $primary_controller = hiera('primary_controller')
+                                                                                               
+  override_resources {'override-resources':
+    configuration => $override_configuration,                                                  
+    options       => $override_configuration_options,                                          
+  }
 
   if $primary_controller {
     package { 'cirros-testvm' :

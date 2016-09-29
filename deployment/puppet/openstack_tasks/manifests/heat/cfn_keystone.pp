@@ -1,6 +1,8 @@
 class openstack_tasks::heat::cfn_keystone {
 
   notice('MODULAR: heat/cfn_keystone.pp')
+  $override_configuration = hiera_hash(configuration, {})
+  $override_configuration_options = hiera_hash(configuration_options, {})
 
   $heat_hash         = hiera_hash('heat', {})
   $public_vip        = hiera('public_vip')
@@ -35,6 +37,11 @@ class openstack_tasks::heat::cfn_keystone {
   $public_url_cfn      = "${public_protocol}://${public_address}:8000/v1"
   $internal_url_cfn    = "${internal_protocol}://${internal_address}:8000/v1"
   $admin_url_cfn       = "${admin_protocol}://${admin_address}:8000/v1"
+
+  override_resources {'override-resources':
+    configuration => $override_configuration,
+    options       => $override_configuration_options,
+  }
 
   class { '::osnailyfacter::wait_for_keystone_backends': }
 

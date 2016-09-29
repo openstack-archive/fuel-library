@@ -1,6 +1,8 @@
 class openstack_tasks::openstack_network::networks {
 
   notice('MODULAR: openstack_network/networks.pp')
+  $override_configuration = hiera_hash(configuration, {})
+  $override_configuration_options = hiera_hash(configuration_options, {})
 
   $access_hash           = hiera_hash('access', {})
   $keystone_admin_tenant = $access_hash['tenant']
@@ -42,6 +44,11 @@ class openstack_tasks::openstack_network::networks {
   }
 
   $tenant_name         = dig44($access_hash, ['tenant'], 'admin')
+                                                                                               
+  override_resources {'override-resources':
+    configuration => $override_configuration,                                                  
+    options       => $override_configuration_options,                                          
+  }
 
   neutron_network { $floating_net :
     ensure                    => 'present',

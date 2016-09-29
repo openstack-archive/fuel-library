@@ -1,8 +1,15 @@
 class openstack_tasks::roles::allocate_hugepages {
 
   notice('MODULAR: roles/allocate_hugepages.pp')
+  $override_configuration = hiera_hash(configuration, {})
+  $override_configuration_options = hiera_hash(configuration_options, {})
 
   $hugepages = hiera('hugepages', [])
+                                                                                               
+  override_resources {'override-resources':
+    configuration => $override_configuration,                                                  
+    options       => $override_configuration_options,                                          
+  }
 
   # TODO: (vvalyavskiy) currently, it was decided to not include 'hugepages' mapping data into
   # deployment info if 1GB hugepages is enabled. So, it means that no hugepages count should
