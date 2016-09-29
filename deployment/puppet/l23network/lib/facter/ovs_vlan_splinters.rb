@@ -1,6 +1,6 @@
 # Fact: l2_ovs_vlan_splinters_need_for
 #
-# Purpose: Return list of intefaces, that needs for enable OVS VLAN splinters.
+# Purpose: Return list of interfaces, that needs for enable OVS VLAN splinters.
 #
 Facter.add(:l2_ovs_vlan_splinters_need_for) do
   need = Facter.value(:kernelmajversion) =~ /^(2.\d|3.[0-2])/
