@@ -1,6 +1,8 @@
 class openstack_tasks::swift::proxy_storage {
 
   notice('MODULAR: swift/proxy_storage.pp')
+  $override_configuration = hiera_hash(configuration, {})
+  $override_configuration_options = hiera_hash(configuration_options, {})
 
   $network_scheme             = hiera_hash('network_scheme', {})
   $network_metadata           = hiera_hash('network_metadata', {})
@@ -60,6 +62,11 @@ class openstack_tasks::swift::proxy_storage {
   $master_swift_proxy_ip         = regsubst($master_swift_proxy_nodes_list[0]['network_roles']['swift/api'], '\/\d+$', '')
   $master_swift_replication_ip   = regsubst($master_swift_proxy_nodes_list[0]['network_roles']['swift/replication'], '\/\d+$', '')
   $swift_partition               = hiera('swift_partition', '/var/lib/glance/node')
+                                                                                               
+  override_resources {'override-resources':
+    configuration => $override_configuration,                                                  
+    options       => $override_configuration_options,                                          
+  }
 
   if $is_primary_swift_proxy {
     ring_devices {'all':

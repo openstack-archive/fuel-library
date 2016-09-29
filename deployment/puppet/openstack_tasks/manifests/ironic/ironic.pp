@@ -1,6 +1,8 @@
 class openstack_tasks::ironic::ironic {
 
   notice('MODULAR: ironic/ironic.pp')
+  $override_configuration = hiera_hash(configuration, {})
+  $override_configuration_options = hiera_hash(configuration_options, {})
 
   $ironic_hash                = hiera_hash('ironic', {})
   $public_vip                 = hiera('public_vip')
@@ -64,6 +66,11 @@ class openstack_tasks::ironic::ironic {
   prepare_network_config(hiera_hash('network_scheme', {}))
 
   $baremetal_vip = $network_metadata['vips']['baremetal']['ipaddr']
+
+  override_resources {'override-resources':
+    configuration => $override_configuration,
+    options       => $override_configuration_options,
+  }
 
   class { '::ironic':
     verbose              => $verbose,
