@@ -1,6 +1,8 @@
 class openstack_tasks::murano::murano {
 
   notice('MODULAR: murano/murano.pp')
+  $override_configuration = hiera_hash(configuration, {})
+  $override_configuration_options = hiera_hash(configuration_options, {})
 
   prepare_network_config(hiera_hash('network_scheme', {}))
 
@@ -43,6 +45,11 @@ class openstack_tasks::murano::murano {
   $murano_plugins             = pick($murano_hash['plugins'], {})
 
   #################################################################
+
+  override_resources {'override-resources':
+    configuration => $override_configuration,
+    options       => $override_configuration_options,
+  }
 
   if $murano_hash['enabled'] {
 

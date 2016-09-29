@@ -1,6 +1,8 @@
 class openstack_tasks::aodh::aodh {
 
   notice('MODULAR: aodh/aodh.pp')
+  $override_configuration = hiera_hash(configuration, {})
+  $override_configuration_options = hiera_hash(configuration_options, {})
 
   $notification_topics = 'notifications'
 
@@ -101,6 +103,11 @@ class openstack_tasks::aodh::aodh {
   $ssl = false
 
   #################################################################
+
+  override_resources {'override-resources':
+    configuration => $override_configuration,
+    options       => $override_configuration_options,
+  }
 
   class { '::aodh':
     debug                              => $debug,

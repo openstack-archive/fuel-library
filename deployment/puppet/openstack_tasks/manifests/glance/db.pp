@@ -1,6 +1,8 @@
 class openstack_tasks::glance::db {
 
   notice('MODULAR: glance/db.pp')
+  $override_configuration = hiera_hash(configuration, {})
+  $override_configuration_options_options = hiera_hash(configuration_options, {})
 
   $glance_hash    = hiera_hash('glance', {})
   $mysql_hash     = hiera_hash('mysql', {})
@@ -24,6 +26,11 @@ class openstack_tasks::glance::db {
 
   validate_string($mysql_root_user)
   validate_string($database_vip)
+
+  override_resources {'override-resources':
+    configuration => $override_configuration,
+    options       => $override_configuration_options,
+  }
 
   if $db_create {
     class { '::openstack::galera::client':

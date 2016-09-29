@@ -1,6 +1,8 @@
 class openstack_tasks::roles::mongo {
 
   notice('MODULAR: roles/mongo.pp')
+  $override_configuration = hiera_hash(configuration, {})
+  $override_configuration_options = hiera_hash(configuration_options, {})
 
   prepare_network_config(hiera_hash('network_scheme', {}))
   $mongo_hash          = hiera_hash('mongo', {})
@@ -36,6 +38,11 @@ class openstack_tasks::roles::mongo {
   } else {
     # undef to use defaults
     $oplog_size = undef
+  }
+                                                                                               
+  override_resources {'override-resources':
+    configuration => $override_configuration,                                                  
+    options       => $override_configuration_options,                                          
   }
 
   file { $keyfile:

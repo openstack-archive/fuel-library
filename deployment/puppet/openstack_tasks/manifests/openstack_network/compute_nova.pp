@@ -1,6 +1,8 @@
 class openstack_tasks::openstack_network::compute_nova {
 
   notice('MODULAR: openstack_network/compute_nova.pp')
+  $override_configuration = hiera_hash(configuration, {})
+  $override_configuration_options = hiera_hash(configuration_options, {})
 
   $network_scheme = hiera_hash('network_scheme', {})
   prepare_network_config($network_scheme)
@@ -30,6 +32,11 @@ class openstack_tasks::openstack_network::compute_nova {
   $neutron_url                = "${neutron_internal_protocol}://${neutron_internal_endpoint}:9696"
 
   $nova_migration_ip          =  get_network_role_property('nova/migration', 'ipaddr')
+                                                                                               
+  override_resources {'override-resources':
+    configuration => $override_configuration,                                                  
+    options       => $override_configuration_options,                                          
+  }
 
   service { 'libvirt' :
     ensure   => 'running',

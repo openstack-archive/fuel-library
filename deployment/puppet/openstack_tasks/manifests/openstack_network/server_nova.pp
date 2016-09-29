@@ -1,6 +1,8 @@
 class openstack_tasks::openstack_network::server_nova {
 
   notice('MODULAR: openstack_network/server_nova.pp')
+  $override_configuration = hiera_hash(configuration, {})
+  $override_configuration_options = hiera_hash(configuration_options, {})
 
   $neutron_config            = hiera_hash('neutron_config')
   $management_vip            = hiera('management_vip')
@@ -24,6 +26,11 @@ class openstack_tasks::openstack_network::server_nova {
   $neutron_ovs_bridge        = 'br-int'
   $conf_nova                 = pick($neutron_config['conf_nova'], true)
   $floating_net              = pick($neutron_config['default_floating_net'], 'net04_ext')
+                                                                                               
+  override_resources {'override-resources':
+    configuration => $override_configuration,                                                  
+    options       => $override_configuration_options,                                          
+  }
 
   class { '::nova::network::neutron' :
     neutron_password     => $admin_password,
