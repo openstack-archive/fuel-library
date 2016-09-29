@@ -1,6 +1,8 @@
 class openstack_tasks::openstack_controller::db {
 
   notice('MODULAR: openstack_controller/db.pp')
+  $override_configuration = hiera_hash(configuration, {})
+  create_resources(override_resources, $override_configuration)
 
   $nova_hash      = hiera_hash('nova', {})
   $mysql_hash     = hiera_hash('mysql', {})
