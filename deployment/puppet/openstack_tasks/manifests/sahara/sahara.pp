@@ -1,6 +1,8 @@
 class openstack_tasks::sahara::sahara {
 
   notice('MODULAR: sahara/sahara.pp')
+  $override_configuration = hiera_hash(configuration, {})
+  $override_configuration_options = hiera_hash(configuration_options, {})
 
   prepare_network_config(hiera_hash('network_scheme', {}))
 
@@ -36,6 +38,11 @@ class openstack_tasks::sahara::sahara {
   $kombu_compression          = hiera('kombu_compression', '')
 
   #################################################################
+                                                                                               
+  override_resources {'override-resources':
+    configuration => $override_configuration,                                                  
+    options       => $override_configuration_options,                                          
+  }
 
   if $sahara_hash['enabled'] {
     $firewall_rule   = '201 sahara-api'

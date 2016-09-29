@@ -1,6 +1,8 @@
 class openstack_tasks::aodh::keystone {
 
   notice('MODULAR: aodh/keystone.pp')
+  $override_configuration = hiera_hash(configuration, {})
+  $override_configuration_options = hiera_hash(configuration_options, {})
 
   $aodh_hash            = hiera_hash('aodh', {})
   $aodh_user_name       = pick($aodh_hash['user'], 'aodh')
@@ -28,6 +30,11 @@ class openstack_tasks::aodh::keystone {
   $admin_url              = "${internal_auth_protocol}://${management_vip}:${aodh_api_bind_port}"
 
   #################################################################
+
+  override_resources {'override-resources':
+    configuration => $override_configuration,
+    options       => $override_configuration_options,
+  }
 
   Class['::osnailyfacter::wait_for_keystone_backends'] -> Class['::aodh::keystone::auth']
 

@@ -1,6 +1,8 @@
 class openstack_tasks::horizon::horizon {
 
   notice('MODULAR: horizon/horizon.pp')
+  $override_configuration = hiera_hash(configuration, {})
+  $override_configuration_options = hiera_hash(configuration_options, {})
 
   prepare_network_config(hiera_hash('network_scheme', {}))
   $horizon_hash            = hiera_hash('horizon', {})
@@ -88,6 +90,11 @@ class openstack_tasks::horizon::horizon {
     $log_level = 'INFO'
   } else {
     $log_level = 'WARNING'
+  }
+
+  override_resources {'override-resources':
+    configuration => $override_configuration,
+    options       => $override_configuration_options,
   }
 
   # Listen directives with host required for ip_based vhosts
