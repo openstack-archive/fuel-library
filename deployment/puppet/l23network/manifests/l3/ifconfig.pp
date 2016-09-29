@@ -19,7 +19,7 @@
 #   if it lies through this interface now.
 #
 ## [*other_nets*]
-##   Optional. Defines additional networks that this inteface can reach in CIDR
+##   Optional. Defines additional networks that this interface can reach in CIDR
 ##   format.
 ##   It will be used to add additional routes to this interface.
 ##   other_nets => ['10.10.2.0/24', '10.10.4.0/24']
@@ -70,7 +70,7 @@ define l23network::l3::ifconfig (
 ) {
   include ::l23network::params
 
-  # setup configure method for inteface
+  # setup configure method for interface
   if is_array($ipaddr) {
     # getting array of IP addresses for one interface
     $method = 'static'
