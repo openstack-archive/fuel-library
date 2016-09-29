@@ -1,6 +1,8 @@
 class openstack_tasks::aodh::db {
 
   notice('MODULAR: aodh/db.pp')
+  $override_configuration = hiera_hash(configuration, {})
+  $override_configuration_options = hiera_hash(configuration_options, {})
 
   $aodh_hash    = hiera_hash('aodh', { 'db_password' => 'aodh' })
   $database_vip = hiera('database_vip')
@@ -20,6 +22,11 @@ class openstack_tasks::aodh::db {
   $mysql_root_password = $mysql_hash['root_password']
   $db_root_user        = pick($aodh_hash['db_root_user'], $mysql_root_user)
   $db_root_password    = pick($aodh_hash['db_root_password'], $mysql_root_password)
+
+  override_resources {'override-resources':
+    configuration => $override_configuration,
+    options       => $override_configuration_options,
+  }
 
   class { '::openstack::galera::client':
     custom_setup_class => hiera('mysql_custom_setup_class', 'galera'),

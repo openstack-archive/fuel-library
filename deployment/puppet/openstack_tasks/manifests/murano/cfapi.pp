@@ -1,6 +1,8 @@
 class openstack_tasks::murano::cfapi {
 
   notice('MODULAR: murano/cfapi.pp')
+  $override_configuration = hiera_hash(configuration, {})
+  $override_configuration_options = hiera_hash(configuration_options, {})
 
   prepare_network_config(hiera_hash('network_scheme', {}))
 
@@ -21,6 +23,11 @@ class openstack_tasks::murano::cfapi {
   $external_lb                = hiera('external_lb', false)
 
   #################################################################
+
+  override_resources {'override-resources':
+    configuration => $override_configuration,
+    options       => $override_configuration_options,
+  }
 
   if $murano_cfapi_hash['enabled'] {
 

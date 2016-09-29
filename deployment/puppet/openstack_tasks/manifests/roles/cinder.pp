@@ -1,6 +1,8 @@
 class openstack_tasks::roles::cinder {
 
   notice('MODULAR: roles/cinder.pp')
+  $override_configuration = hiera_hash(configuration, {})
+  $override_configuration_options = hiera_hash(configuration_options, {})
 
   # Pulling hiera
   $network_scheme   = hiera_hash('network_scheme', {})
@@ -112,6 +114,11 @@ class openstack_tasks::roles::cinder {
     $physical_volumes = false
     $manage_volumes = false
     $volume_backend_name = false
+  }
+                                                                                               
+  override_resources {'override-resources':
+    configuration => $override_configuration,                                                  
+    options       => $override_configuration_options,                                          
   }
 
   Exec { logoutput => true }

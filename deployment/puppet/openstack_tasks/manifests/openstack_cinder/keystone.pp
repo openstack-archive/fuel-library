@@ -1,6 +1,8 @@
 class openstack_tasks::openstack_cinder::keystone {
 
   notice('MODULAR: openstack_cinder/keystone.pp')
+  $override_configuration = hiera_hash(configuration, {})
+  $override_configuration_options = hiera_hash(configuration_options, {})
 
   $cinder_hash         = hiera_hash('cinder', {})
   $public_ssl_hash     = hiera_hash('public_ssl')
@@ -38,6 +40,11 @@ class openstack_tasks::openstack_cinder::keystone {
   validate_string($internal_address)
   validate_string($admin_address)
   validate_string($password)
+                                                                                               
+  override_resources {'override-resources':
+    configuration => $override_configuration,                                                  
+    options       => $override_configuration_options,                                          
+  }
 
   class { '::osnailyfacter::wait_for_keystone_backends':}
   class { '::cinder::keystone::auth':

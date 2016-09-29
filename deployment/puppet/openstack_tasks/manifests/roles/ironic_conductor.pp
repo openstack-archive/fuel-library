@@ -1,6 +1,8 @@
 class openstack_tasks::roles::ironic_conductor {
 
   notice('MODULAR: roles/ironic_conductor.pp')
+  $override_configuration = hiera_hash(configuration, {})
+  $override_configuration_options = hiera_hash(configuration_options, {})
 
   $network_scheme = hiera_hash('network_scheme', {})
   prepare_network_config($network_scheme)
@@ -57,6 +59,11 @@ class openstack_tasks::roles::ironic_conductor {
   $temp_url_endpoint_type = $storage_hash['images_ceph'] ? {
     true    => 'radosgw',
     default => 'swift'
+  }
+                                                                                               
+  override_resources {'override-resources':
+    configuration => $override_configuration,                                                  
+    options       => $override_configuration_options,                                          
   }
 
   package { 'ironic-fa-deploy':
