@@ -1,6 +1,8 @@
 class openstack_tasks::openstack_network::common_config {
 
   notice('MODULAR: openstack_network/common_config.pp')
+  $override_configuration = hiera_hash(configuration, {})
+  $override_configuration_options = hiera_hash(configuration_options, {})
 
   $openstack_network_hash  = hiera_hash('openstack_network', { })
   $neutron_config          = hiera_hash('neutron_config')
@@ -65,6 +67,11 @@ class openstack_tasks::openstack_network::common_config {
   }
 
   $default_log_levels = hiera_hash('default_log_levels')
+                                                                                               
+  override_resources {'override-resources':
+    configuration => $override_configuration,                                                  
+    options       => $override_configuration_options,                                          
+  }
 
   # manually add line to neutron_sudoers in case of UCA packages
   # because UCA doesn't have such line
