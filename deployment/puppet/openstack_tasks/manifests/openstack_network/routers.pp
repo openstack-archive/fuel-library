@@ -1,6 +1,8 @@
 class openstack_tasks::openstack_network::routers {
 
   notice('MODULAR: openstack_network/routers.pp')
+  $override_configuration = hiera_hash(configuration, {})
+  $override_configuration_options = hiera_hash(configuration_options, {})
 
   $use_neutron              = hiera('use_neutron', false)
   $neutron_advanced_config  = hiera_hash('neutron_advanced_configuration', { })
@@ -10,6 +12,11 @@ class openstack_tasks::openstack_network::routers {
   $dvr                      = pick($neutron_advanced_config['neutron_dvr'], false)
   $neutron_controller_roles = hiera('neutron_controller_roles', ['controller', 'primary-controller'])
   $controllers_num          = size(get_nodes_hash_by_roles(hiera_hash('network_metadata'), $neutron_controller_roles))
+
+  override_resources {'override-resources':
+    configuration => $override_configuration,                                                  
+    options       => $override_configuration_options,                                          
+  }
 
   if $use_neutron {
 

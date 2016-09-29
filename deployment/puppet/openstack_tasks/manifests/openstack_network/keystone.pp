@@ -1,6 +1,8 @@
 class openstack_tasks::openstack_network::keystone {
 
   notice('MODULAR: openstack_network/keystone.pp')
+  $override_configuration = hiera_hash(configuration, {})
+  $override_configuration_options = hiera_hash(configuration_options, {})
 
   $use_neutron         = hiera('use_neutron', false)
   $neutron_hash        = hiera_hash('quantum_settings', {})
@@ -37,6 +39,11 @@ class openstack_tasks::openstack_network::keystone {
   validate_string($public_address)
   validate_string($internal_address)
   validate_string($password)
+                                                                                               
+  override_resources {'override-resources':
+    configuration => $override_configuration,                                                  
+    options       => $override_configuration_options,                                          
+  }
 
   if $use_neutron {
 

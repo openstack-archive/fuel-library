@@ -1,6 +1,8 @@
 class openstack_tasks::openstack_controller::keystone {
 
   notice('MODULAR: openstack_controller/keystone.pp')
+  $override_configuration = hiera_hash(configuration, {})
+  $override_configuration_options = hiera_hash(configuration_options, {})
 
   $nova_hash           = hiera_hash('nova', {})
   $public_vip          = hiera('public_vip')
@@ -34,6 +36,11 @@ class openstack_tasks::openstack_controller::keystone {
 
   validate_string($public_address)
   validate_string($password)
+                                                                                               
+  override_resources {'override-resources':
+    configuration => $override_configuration,                                                  
+    options       => $override_configuration_options,                                          
+  }
 
   class { '::osnailyfacter::wait_for_keystone_backends':}->
   class { '::nova::keystone::auth':

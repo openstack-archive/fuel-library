@@ -1,6 +1,8 @@
 class openstack_tasks::ironic::db {
 
   notice('MODULAR: ironic/db.pp')
+  $override_configuration = hiera_hash(configuration, {})
+  $override_configuration_options = hiera_hash(configuration_options, {})
 
   $ironic_hash    = hiera_hash('ironic', {})
   $mysql_hash     = hiera_hash('mysql', {})
@@ -23,6 +25,11 @@ class openstack_tasks::ironic::db {
 
   validate_string($mysql_root_user)
   validate_string($database_vip)
+
+  override_resources {'override-resources':
+    configuration => $override_configuration,
+    options       => $override_configuration_options,
+  }
 
   if $db_create {
     class { '::openstack::galera::client':

@@ -1,6 +1,8 @@
 class openstack_tasks::keystone::db {
 
   notice('MODULAR: keystone/db.pp')
+  $override_configuration = hiera_hash(configuration, {})
+  $override_configuration_options = hiera_hash(configuration_options, {})
 
   $network_metadata = hiera_hash('network_metadata', {})
 
@@ -22,6 +24,11 @@ class openstack_tasks::keystone::db {
   $db_root_password = pick($keystone_hash['root_password'], $mysql_root_password)
 
   $allowed_hosts = [ 'localhost', '127.0.0.1', '%' ]
+
+  override_resources {'override-resources':
+    configuration => $override_configuration,
+    options       => $override_configuration_options,
+  }
 
   if $db_create {
 

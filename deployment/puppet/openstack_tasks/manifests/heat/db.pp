@@ -1,6 +1,8 @@
 class openstack_tasks::heat::db {
 
   notice('MODULAR: heat/db.pp')
+  $override_configuration = hiera_hash(configuration, {})
+  $override_configuration_options = hiera_hash(configuration_options, {})
 
   $heat_hash      = hiera_hash('heat', {})
   $mysql_hash     = hiera_hash('mysql', {})
@@ -23,6 +25,11 @@ class openstack_tasks::heat::db {
   $allowed_hosts = [ 'localhost', '127.0.0.1', '%' ]
 
   validate_string($mysql_root_user)
+
+  override_resources {'override-resources':
+    configuration => $override_configuration,
+    options       => $override_configuration_options,
+  }
 
   if $db_create {
 

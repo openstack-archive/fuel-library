@@ -1,6 +1,13 @@
 class openstack_tasks::openstack_network::networks {
 
   notice('MODULAR: openstack_network/networks.pp')
+  $override_configuration = hiera_hash(configuration, {})
+  $override_configuration_options = hiera_hash(configuration_options, {})
+
+  override_resources {'override-resources':
+    configuration => $override_configuration,                                                  
+    options       => $override_configuration_options,                                          
+  }
 
   if hiera('use_neutron', false) {
     $access_hash           = hiera_hash('access', {})
