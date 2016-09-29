@@ -1,6 +1,8 @@
 class openstack_tasks::sahara::keystone {
 
   notice('MODULAR: sahara/keystone.pp')
+  $override_configuration = hiera_hash(configuration, {})
+  $override_configuration_options = hiera_hash(configuration_options, {})
 
   $sahara_hash     = hiera_hash('sahara', {})
   $public_ssl_hash = hiera_hash('public_ssl')
@@ -22,6 +24,11 @@ class openstack_tasks::sahara::keystone {
   }
   $public_url      = "${public_protocol}://${public_address}:${api_bind_port}/v1.1/%(tenant_id)s"
   $admin_url       = "http://${admin_address}:${api_bind_port}/v1.1/%(tenant_id)s"
+                                                                                               
+  override_resources {'override-resources':
+    configuration => $override_configuration,                                                  
+    options       => $override_configuration_options,                                          
+  }
 
   Class['::osnailyfacter::wait_for_keystone_backends'] -> Class['::sahara::keystone::auth']
 

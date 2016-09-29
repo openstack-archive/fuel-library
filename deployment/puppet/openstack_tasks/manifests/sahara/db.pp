@@ -1,6 +1,8 @@
 class openstack_tasks::sahara::db {
 
   notice('MODULAR: sahara/db.pp')
+  $override_configuration = hiera_hash(configuration, {})
+  $override_configuration_options = hiera_hash(configuration_options, {})
 
   $sahara_hash    = hiera_hash('sahara', {})
   $sahara_enabled = pick($sahara_hash['enabled'], false)
@@ -24,6 +26,11 @@ class openstack_tasks::sahara::db {
   $allowed_hosts = [ 'localhost', '127.0.0.1', '%' ]
 
   validate_string($mysql_root_user)
+                                                                                               
+  override_resources {'override-resources':
+    configuration => $override_configuration,                                                  
+    options       => $override_configuration_options,                                          
+  }
 
   if $sahara_enabled and $db_create {
 

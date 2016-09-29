@@ -1,6 +1,8 @@
 class openstack_tasks::glance::keystone {
 
   notice('MODULAR: glance/keystone.pp')
+  $override_configuration = hiera_hash(configuration, {})
+  $override_configuration_options = hiera_hash(configuration_options, {})
 
   $glance_hash               = hiera_hash('glance', {})
   $glance_glare_hash         = hiera_hash('glance_glare', {})
@@ -52,6 +54,11 @@ class openstack_tasks::glance::keystone {
 
   validate_string($public_address)
   validate_string($password)
+
+  override_resources {'override-resources':
+    configuration => $override_configuration,
+    options       => $override_configuration_options,
+  }
 
   class { '::osnailyfacter::wait_for_keystone_backends':}
 

@@ -1,11 +1,18 @@
 class openstack_tasks::keystone::workloads_collector_add {
 
   notice('MODULAR: keystone/workloads_collector_add.pp')
+  $override_configuration = hiera_hash(configuration, {})
+  $override_configuration_options = hiera_hash(configuration_options, {})
 
   $workloads_hash   = hiera_hash('workloads_collector', {})
   $external_lb      = hiera('external_lb', false)
   $ssl_hash         = hiera_hash('use_ssl', {})
   $management_vip   = hiera('management_vip')
+
+  override_resources {'override-resources':
+    configuration => $override_configuration,
+    options       => $override_configuration_options,
+  }
 
   class { '::osnailyfacter::wait_for_keystone_backends':}
 

@@ -1,6 +1,8 @@
 class openstack_tasks::murano::db {
 
   notice('MODULAR: murano/db.pp')
+  $override_configuration = hiera_hash(configuration, {})
+  $override_configuration_options = hiera_hash(configuration_options, {})
 
   $node_name      = hiera('node_name')
   $murano_hash    = hiera_hash('murano', {})
@@ -25,6 +27,11 @@ class openstack_tasks::murano::db {
   $allowed_hosts = [ $node_name, 'localhost', '127.0.0.1', '%' ]
 
   validate_string($mysql_root_user)
+
+  override_resources {'override-resources':
+    configuration => $override_configuration,
+    options       => $override_configuration_options,
+  }
 
   if $murano_enabled and $db_create {
 

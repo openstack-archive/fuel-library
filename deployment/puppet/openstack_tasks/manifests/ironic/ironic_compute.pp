@@ -7,6 +7,8 @@ class openstack_tasks::ironic::ironic_compute {
   #####################################################################################
 
   notice('MODULAR: ironic/ironic_compute.pp')
+  $override_configuration = hiera_hash(configuration, {})
+  $override_configuration_options = hiera_hash(configuration_options, {})
 
   $ironic_hash                    = hiera_hash('ironic', {})
   $nova_hash                      = hiera_hash('nova', {})
@@ -86,6 +88,11 @@ class openstack_tasks::ironic::ironic_compute {
   ####### Disable upstart startup on install #######
   tweaks::ubuntu_service_override { 'nova-compute':
     package_name => 'nova-compute',
+  }
+
+  override_resources {'override-resources':
+    configuration => $override_configuration,
+    options       => $override_configuration_options,
   }
 
   class { '::nova':

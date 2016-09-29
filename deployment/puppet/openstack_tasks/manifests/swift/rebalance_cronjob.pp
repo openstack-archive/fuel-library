@@ -1,12 +1,19 @@
 class openstack_tasks::swift::rebalance_cronjob {
 
   notice('MODULAR: swift/rebalance_cronjob.pp')
+  $override_configuration = hiera_hash(configuration, {})
+  $override_configuration_options = hiera_hash(configuration_options, {})
 
   $network_metadata = hiera_hash('network_metadata')
 
   $storage_hash        = hiera('storage')
   $swift_master_role   = hiera('swift_master_role', 'primary-controller')
   $ring_min_part_hours = hiera('swift_ring_min_part_hours', 1)
+                                                                                               
+  override_resources {'override-resources':
+    configuration => $override_configuration,                                                  
+    options       => $override_configuration_options,                                          
+  }
 
   # Use Swift if it isn't replaced by vCenter, Ceph for BOTH images and objects
   if !($storage_hash['images_ceph'] and $storage_hash['objects_ceph']) and !$storage_hash['images_vcenter'] {
