@@ -7,6 +7,8 @@ class openstack_tasks::ironic::ironic_compute {
   #####################################################################################
 
   notice('MODULAR: ironic/ironic_compute.pp')
+  $override_configuration = hiera_hash(configuration, {})
+  create_resources(override_resources, $override_configuration)
 
   $ironic_hash                    = hiera_hash('ironic', {})
   $nova_hash                      = hiera_hash('nova', {})

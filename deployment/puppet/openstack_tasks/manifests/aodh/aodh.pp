@@ -1,6 +1,8 @@
 class openstack_tasks::aodh::aodh {
 
   notice('MODULAR: aodh/aodh.pp')
+  $override_configuration = hiera_hash(configuration, {})
+  create_resources(override_resources, $override_configuration)
 
   $notification_topics = 'notifications'
 

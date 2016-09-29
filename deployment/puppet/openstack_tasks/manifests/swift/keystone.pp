@@ -1,6 +1,8 @@
 class openstack_tasks::swift::keystone {
 
   notice('MODULAR: swift/keystone.pp')
+  $override_configuration = hiera_hash(configuration, {})
+  create_resources(override_resources, $override_configuration)
 
   $swift_hash         = hiera_hash('swift', {})
   $public_vip         = hiera('public_vip')

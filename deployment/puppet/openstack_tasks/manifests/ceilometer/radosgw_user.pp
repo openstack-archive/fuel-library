@@ -1,6 +1,8 @@
 class openstack_tasks::ceilometer::radosgw_user {
 
   notice('MODULAR: ceilometer/radosgw_user.pp')
+  $override_configuration = hiera_hash(configuration, {})
+  create_resources(override_resources, $override_configuration)
 
   $default_ceilometer_hash = {
     'enabled' => false,

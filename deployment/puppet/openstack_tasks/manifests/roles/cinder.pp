@@ -1,6 +1,8 @@
 class openstack_tasks::roles::cinder {
 
   notice('MODULAR: roles/cinder.pp')
+  $override_configuration = hiera_hash(configuration, {})
+  create_resources(override_resources, $override_configuration)
 
   # Pulling hiera
   $network_scheme   = hiera_hash('network_scheme', {})
