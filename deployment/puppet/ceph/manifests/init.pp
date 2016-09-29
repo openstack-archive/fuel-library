@@ -52,6 +52,8 @@ class ceph (
       $rgw_print_continue                 = true,
       $rgw_nss_db_path                    = '/etc/ceph/nss',
 
+      $rgw_init_timeout                   = '360000',
+
       # Cinder settings
       $volume_driver                      = 'cinder.volume.drivers.rbd.RBDDriver',
       $glance_api_version                 = '2',

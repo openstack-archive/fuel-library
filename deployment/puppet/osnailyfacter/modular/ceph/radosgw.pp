@@ -29,6 +29,8 @@ if $storage_hash['objects_ceph'] {
 
   class { 'ceph::radosgw':
     # RadosGW settings
+
+    rgw_init_timeout                 => '360000',
     rgw_host                         => $::hostname,
     rgw_ip                           => $rgw_ip_address,
     rgw_port                         => '6780',
