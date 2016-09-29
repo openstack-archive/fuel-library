@@ -18,22 +18,57 @@
 from itertools import ifilter
 from novaclient.client import Client
 from optparse import OptionParser
+import logging
 import subprocess
-import sys
 import yaml
 
+from itertools import ifilter
+from novaclient.client import Client
+from optparse import OptionParser
 
-def get_data_from_hiera(key, resolution_type=':priority'):
-    cmd = 'ruby -r hiera -r yaml -e \'hiera = Hiera.new(:config => \
-          "/etc/puppet/hiera.yaml"); data = hiera.lookup "'+key+'", \
-          [], {}, nil, '+resolution_type+';  puts YAML.dump data\''
+
+def get_data_from_hiera(hiera_key, lookup_type='priority'):
+    """Extract the data from Hiera using the Ruby call.
+
+    Yes, it looks funny but other ways to do it are worse.
+    I have to use the Ruby implementation of hiera here
+    with the Puppet config file.
+
+    :param lookup_type: Which lookup type should be used?
+    # priority, hash, array
+    :type lookup_type: str
+    :param hiera_key: the key to search
+    :type hiera_key: str
+    :return: hiera data
+    :rtype: None, str, list, dict
+    """
+
+    hiera_lookup = '''
+    ruby -r hiera -r yaml -e '
+    hiera = Hiera.new(:config => "/etc/puppet/hiera.yaml");
+    data = hiera.lookup("{hiera_key}", nil, {{}}, nil, :{lookup_type});
+    puts YAML.dump data;
+    '
+    '''
     try:
-        cmd_data = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE)
-    except subprocess.CalledProcessError as err:
-        print("Error code", err.returncode, err.output)
-        sys.exit(1)
-    data = yaml.load(cmd_data.stdout.read())
-    return data
+        command = hiera_lookup.format(
+            hiera_key=hiera_key,
+            lookup_type=lookup_type,
+        )
+        response = subprocess.Popen(
+            command,
+            shell=True,
+            stdout=subprocess.PIPE,
+        )
+        yaml_data = yaml.load(response.stdout.read())
+        return yaml_data
+    except subprocess.CalledProcessError as exception:
+        logging.warn('Could not get Hiera data: {} Code: {} Output: {}'.format(
+            hiera_key,
+            exception.returncode,
+            exception.output,
+        ))
+        return None
 
 
 def check_availability_zones(nova_client, compute):
@@ -69,7 +104,8 @@ def check_host_in_zone(nova_client, compute):
 
 
 def main():
-    credentials = get_data_from_hiera('access', ':hash')
+    credentials = get_data_from_hiera('access', 'hash')
+    ssl = get_data_from_hiera('use_ssl', 'hash')
     USERNAME = credentials['user']
     PASSWORD = credentials['password']
     PROJECT_ID = credentials['tenant']
@@ -78,7 +114,16 @@ def main():
     IP.append(get_data_from_hiera('keystone_vip'))
     IP.append(get_data_from_hiera('service_endpoint'))
     IP.append(get_data_from_hiera('management_vip'))
-    AUTH_URL = "http://" + ifilter(None, IP).next() + ":5000/v2.0/"
+    if ssl:
+        auth_protocol = 'https://'
+        auth_url = ssl['keystone_internal_hostname']
+        auth_port = ':5000/v2.0/'
+    else:
+        auth_protocol = 'http://'
+        auth_url = ifilter(None, IP).next()
+        auth_port = ':5000/v2.0/'
+
+    AUTH_URL = auth_protocol + auth_url + auth_port
 
     parser = OptionParser()
     parser.add_option("--create_zones", action="store_true", help="Create \
@@ -88,7 +133,7 @@ def main():
 
     nova = Client(VERSION, USERNAME, PASSWORD, PROJECT_ID, AUTH_URL,
                   endpoint_type='internalURL')
-    vcenter_settings = get_data_from_hiera('vcenter', ':hash')
+    vcenter_settings = get_data_from_hiera('vcenter', 'hash')
 
     if options.create_zones:
         for compute in vcenter_settings['computes']:
