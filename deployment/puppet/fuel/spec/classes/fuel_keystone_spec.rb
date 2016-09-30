@@ -5,6 +5,7 @@ describe "fuel::keystone" do
   let :global_facts do
     {
       :processorcount => 42,
+      :os_workers     => 8,
     }
   end
 

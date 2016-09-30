@@ -91,7 +91,7 @@ describe manifest do
     enable = Noop.hiera_structure('sahara/enabled')
     context 'if sahara is enabled', :if => enable do
       it 'should declare sahara class correctly' do
-        facts[:processorcount] = 10
+        facts[:os_workers] = 8
         sahara_plugins = %w(ambari cdh mapr spark vanilla)
         sahara_user = Noop.hiera_structure('sahara/user', 'sahara')
         sahara_password = Noop.hiera_structure('sahara/user_password')
@@ -101,8 +101,8 @@ describe manifest do
         db_name = Noop.hiera_structure('sahara/db_name', 'sahara')
         db_password = Noop.hiera_structure('sahara/db_password')
         db_host = Noop.hiera_structure('sahara/db_host', database_vip)
-        max_pool_size =[facts[:processorcount] * 5 + 0, 30 + 0].min
-        max_overflow = [facts[:processorcount] * 5 + 0, 60 + 0].min
+        max_pool_size =[facts[:os_workers] * 5 + 0, 30 + 0].min
+        max_overflow = [facts[:os_workers] * 5 + 0, 60 + 0].min
         max_retries  = '-1'
         idle_timeout = '3600'
         read_timeout = '60'

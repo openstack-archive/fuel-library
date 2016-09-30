@@ -30,7 +30,7 @@ class openstack_tasks::swift::proxy_storage {
   $keystone_user              = pick($swift_hash['user'], 'swift')
   $keystone_password          = pick($swift_hash['user_password'], 'passsword')
   $keystone_tenant            = pick($swift_hash['tenant'], 'services')
-  $workers_max                = hiera('workers_max', 16)
+  $workers_max                = hiera('workers_max', $::os_workers)
   $service_workers            = pick($swift_hash['workers'], min(max($::processorcount, 2), $workers_max))
   $ssl_hash                   = hiera_hash('use_ssl', {})
   $rabbit_hash                = hiera_hash('rabbit')

@@ -51,8 +51,8 @@ class openstack_tasks::sahara::sahara {
     $sahara_user     = pick($sahara_hash['user'], 'sahara')
     $sahara_password = pick($sahara_hash['user_password'])
     $tenant          = pick($sahara_hash['tenant'], 'services')
-    $max_pool_size   = min($::processorcount * 5 + 0, 30 + 0)
-    $max_overflow    = min($::processorcount * 5 + 0, 60 + 0)
+    $max_pool_size   = min($::os_workers * 5 + 0, 30 + 0)
+    $max_overflow    = min($::os_workers * 5 + 0, 60 + 0)
     $max_retries     = '-1'
     $idle_timeout    = '3600'
 

@@ -44,7 +44,7 @@ class openstack::cinder(
   $keystone_user          = 'cinder',
   $region                 = 'RegionOne',
   $notification_driver    = undef,
-  $service_workers        = $::processorcount,
+  $service_workers        = $::os_workers,
   $vmware_host_ip         = '10.10.10.10',
   $vmware_host_username   = 'administrator@vsphere.local',
   $vmware_host_password   = 'password',

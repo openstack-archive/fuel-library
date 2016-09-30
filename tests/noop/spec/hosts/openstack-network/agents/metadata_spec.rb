@@ -51,7 +51,8 @@ describe manifest do
           end
 
           let(:metadata_workers) do
-            neutron_config.fetch('workers', [facts[:processorcount].to_i/8+1, workers_max.to_i].min)
+            facts[:os_workers] = 8
+            neutron_config.fetch('workers', [facts[:os_workers].to_i/8+1, workers_max.to_i].min)
           end
 
           it { should contain_class('neutron::agents::metadata').with(
@@ -97,7 +98,8 @@ describe manifest do
           configuration_override.fetch('neutron_metadata_agent_config', {})
         end
         let(:metadata_workers) do
-          neutron_config.fetch('workers', [[facts[:processorcount].to_i, 2].max, workers_max.to_i].min)
+          facts[:os_workers] = 8
+          neutron_config.fetch('workers', [[facts[:os_workers].to_i, 2].max, workers_max.to_i].min)
         end
 
         it 'neutron metadata agent config should be modified by override_resources' do

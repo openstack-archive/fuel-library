@@ -216,6 +216,7 @@ describe manifest do
 
      it 'should declare keystone::wsgi::apache class with 6 processes and 3 threads on 48 CPU system' do
        facts[:processorcount] = 48
+       facts[:os_workers] = 8
        should contain_class('keystone::wsgi::apache').with(
          'threads' => '3',
          'workers' => '6'
@@ -224,6 +225,7 @@ describe manifest do
 
      it 'should declare keystone::wsgi::apache class with 1 process and 3 threads on 1 CPU system' do
        facts[:processorcount] = 1
+       facts[:os_workers] = 2
        should contain_class('keystone::wsgi::apache').with(
          'threads' => '3',
          'workers' => '1'

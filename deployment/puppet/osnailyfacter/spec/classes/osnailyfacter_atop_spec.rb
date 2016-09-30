@@ -73,6 +73,7 @@ describe 'osnailyfacter::atop' do
         :osfamily        => 'Debian',
         :operatingsystem => 'Debian',
         :processorcount  => 2,
+        :os_workers      => 2,
         :memorysize_mb   => 4096,
       }
     end
@@ -86,6 +87,7 @@ describe 'osnailyfacter::atop' do
         :osfamily        => 'RedHat',
         :operatingsystem => 'RedHat',
         :processorcount  => 2,
+        :os_workers      => 2,
         :memorysize_mb   => 4096,
       }
     end
