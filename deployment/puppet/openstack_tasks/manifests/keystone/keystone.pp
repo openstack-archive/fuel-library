@@ -33,7 +33,7 @@ class openstack_tasks::keystone::keystone {
   $syslog_log_facility   = hiera('syslog_log_facility_keystone')
   $rabbit_hash           = hiera_hash('rabbit', {})
   $neutron_user_password = hiera('neutron_user_password', false)
-  $workers_max           = hiera('workers_max', 16)
+  $workers_max           = hiera('workers_max', $::os_workers)
   $service_workers       = pick($keystone_hash['workers'],
                                 min(max($::processorcount, 2), $workers_max))
   $default_log_levels    = hiera_hash('default_log_levels')

@@ -45,7 +45,7 @@ describe manifest do
         db_user     = neutron_config.fetch('database', {}).fetch('user', 'neutron')
         db_name     = neutron_config.fetch('database', {}).fetch('name', 'neutron')
         db_host     = neutron_config.fetch('database', {}).fetch('host', database_vip)
-        
+
         if facts[:os_package_type] == 'debian'
           extra_params = { 'charset' => 'utf8', 'read_timeout' => 60 }
         else
@@ -101,7 +101,7 @@ describe manifest do
       auth_uri            = "#{internal_auth_protocol}://#{internal_auth_endpoint}:5000/"
       nova_admin_auth_url = "#{admin_auth_protocol}://#{admin_auth_endpoint}:35357/"
 
-      workers_max = Noop.hiera('workers_max', '16')
+      workers_max = Noop.hiera 'workers_max'
 
       it {
         service_workers =  neutron_config.fetch('workers', [[facts[:processorcount].to_i, 1].max, workers_max.to_i].min)

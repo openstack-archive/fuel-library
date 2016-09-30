@@ -26,7 +26,7 @@ class openstack_tasks::swift::parts::proxy (
     'account_quotas',
     'slo',
     'proxy-server'],
-  $proxy_workers                     = $::processorcount,
+  $proxy_workers                     = $::os_workers,
   $proxy_port                        = '8080',
   $proxy_allow_account_management    = true,
   $proxy_account_autocreate          = true,

@@ -34,8 +34,8 @@ class openstack_tasks::ironic::ironic_compute {
   $db_name                        = pick($nova_hash['db_name'], 'nova')
   $db_password                    = pick($nova_hash['db_password'], 'nova')
 
-  $max_pool_size = hiera('max_pool_size', min($::processorcount * 5 + 0, 30 + 0))
-  $max_overflow = hiera('max_overflow', min($::processorcount * 5 + 0, 60 + 0))
+  $max_pool_size = hiera('max_pool_size', min($::os_workers * 5 + 0, 30 + 0))
+  $max_overflow = hiera('max_overflow', min($::os_workers * 5 + 0, 60 + 0))
   $idle_timeout = hiera('idle_timeout', '3600')
   $max_retries = hiera('max_retries', '-1')
 
