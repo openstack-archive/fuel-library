@@ -7,7 +7,7 @@ class openstack_tasks::roles::mongo {
   $mongodb_port        = hiera('mongodb_port', '27017')
   $mongo_nodes         = get_nodes_hash_by_roles(hiera_hash('network_metadata'), hiera('mongo_roles'))
   $mongo_address_map   = get_node_to_ipaddr_map_by_network_role($mongo_nodes, 'mongo/db')
-  $mongo_hosts         = suffix(values($mongo_address_map), ":${mongodb_port}")
+  $mongo_hosts         = suffix(sorted_hosts($mongo_address_map, 'ip', 'ip'), ":${mongodb_port}")
   $bind_address        = get_network_role_property('mongo/db', 'ipaddr')
   $use_syslog          = hiera('use_syslog', true)
   $debug               = pick($mongo_hash['debug'], hiera('debug', false))

@@ -19,7 +19,8 @@ class osnailyfacter::database::database {
   $enabled                   = pick($mysql_hash['enabled'], true)
 
   $galera_node_address       = get_network_role_property('mgmt/database', 'ipaddr')
-  $galera_nodes              = values(get_node_to_ipaddr_map_by_network_role(hiera_hash('database_nodes'), 'mgmt/database'))
+  $galera_nodes_map          = get_node_to_ipaddr_map_by_network_role(hiera_hash('database_nodes'), 'mgmt/database')
+  $galera_nodes              = sorted_hosts($galera_nodes_map, 'ip', 'ip')
   $galera_primary_controller = hiera('primary_database', $primary_controller)
   $galera_cluster_name       = 'openstack'
 
