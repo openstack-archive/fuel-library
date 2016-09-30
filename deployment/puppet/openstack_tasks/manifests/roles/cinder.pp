@@ -80,8 +80,8 @@ class openstack_tasks::roles::cinder {
   }
 
   # SQLAlchemy backend configuration
-  $max_pool_size = min($::processorcount * 5 + 0, 30 + 0)
-  $max_overflow = min($::processorcount * 5 + 0, 60 + 0)
+  $max_pool_size = min($::os_workers * 5 + 0, 30 + 0)
+  $max_overflow = min($::os_workers * 5 + 0, 60 + 0)
   $max_retries = '-1'
   $idle_timeout = '3600'
 
