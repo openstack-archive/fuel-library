@@ -18,9 +18,9 @@ class osnailyfacter::openstack_haproxy::openstack_haproxy_aodh {
   $external_lb             = hiera('external_lb', false)
 
   if ($use_aodh and !$external_lb) {
-    $aodh_address_map = get_node_to_ipaddr_map_by_network_role(hiera_hash('aodh_nodes'), 'aodh/api')
-    $server_names           = hiera_array('aodh_names', keys($aodh_address_map))
-    $ipaddresses            = hiera_array('aodh_ipaddresses', values($aodh_address_map))
+    $aodh_address_map       = get_node_to_ipaddr_map_by_network_role(hiera_hash('aodh_nodes'), 'aodh/api')
+    $server_names           = hiera_array('aodh_names', sorted_hosts($aodh_address_map, 'host'))
+    $ipaddresses            = hiera_array('aodh_ipaddresses', sorted_hosts($aodh_address_map, 'ip'))
     $public_virtual_ip      = hiera('public_vip')
     $internal_virtual_ip    = hiera('management_vip')
 

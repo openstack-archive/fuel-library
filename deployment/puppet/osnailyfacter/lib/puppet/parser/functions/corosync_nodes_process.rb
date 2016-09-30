@@ -9,11 +9,13 @@ EOS
 ) do |argv|
   data = {
    'ips' => [],
-   'ids' => [] }
+   'ids' => [],
+  }
 
-  struct = *argv[0]
-  struct.each do |host,attrs|
-    next unless attrs['ip']
+  argv.first.sort_by do |host, attrs|
+    attrs['id'].to_i
+  end.each do |host, attrs|
+    next unless attrs['ip'] and attrs['id']
     data['ips'] << attrs['ip']
     data['ids'] << attrs['id']
   end
