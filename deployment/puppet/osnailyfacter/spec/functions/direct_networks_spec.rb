@@ -45,7 +45,7 @@ describe 'direct_networks' do
   it { is_expected.to run.with_params([{'br-ex' => 'routes'}]).and_raise_error(ArgumentError, /Requires hash/) }
   it { is_expected.to run.with_params(endpoints, 'br-ex', 'cidra').and_raise_error(ArgumentError, /Expected a string with one of/) }
 
-  it { is_expected.to run.with_params(endpoints).and_return('10.109.0.0/24 10.109.1.0/24 10.109.242.0/24 10.109.2.0/24 10.109.3.0/24')}
+  it { is_expected.to run.with_params(endpoints).and_return('10.109.0.0/24 10.109.1.0/24 10.109.2.0/24 10.109.3.0/24 10.109.242.0/24')}
   it { is_expected.to run.with_params(endpoints, 'br-mgmt').and_return('10.109.1.0/24 10.109.242.0/24')}
   it { is_expected.to run.with_params(endpoints, 'br-mgmt', 'netmask').and_return('10.109.1.0/255.255.255.0 10.109.242.0/255.255.255.0')}
 
