@@ -317,8 +317,8 @@ class osnailyfacter::globals::globals {
 
   # MySQL and SQLAlchemy backend configuration
   $custom_mysql_setup_class = hiera('custom_mysql_setup_class', 'galera')
-  $max_pool_size            = hiera('max_pool_size', min($::processorcount * 5 + 0, 30 + 0))
-  $max_overflow             = hiera('max_overflow', min($::processorcount * 5 + 0, 60 + 0))
+  $max_pool_size            = hiera('max_pool_size', min($::os_workers * 5 + 0, 30 + 0))
+  $max_overflow             = hiera('max_overflow', min($::os_workers * 5 + 0, 60 + 0))
   $max_retries              = hiera('max_retries', '-1')
   $idle_timeout             = hiera('idle_timeout','3600')
   $nova_db_password         = $nova_hash['db_password']

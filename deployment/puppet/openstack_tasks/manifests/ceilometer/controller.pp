@@ -35,7 +35,7 @@ class openstack_tasks::ceilometer::controller {
   $service_endpoint           = hiera('service_endpoint', $management_vip)
   $ha_mode                    = pick($ceilometer_hash['ha_mode'], true)
   $ssl_hash                   = hiera_hash('use_ssl', {})
-  $workers_max                = hiera('workers_max', 16)
+  $workers_max                = hiera('workers_max', $::os_workers)
   $service_workers            = pick($ceilometer_hash['workers'],
   min(max($::processorcount, 2), $workers_max))
 
