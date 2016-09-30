@@ -18,8 +18,8 @@ class osnailyfacter::openstack_haproxy::openstack_haproxy_cinder {
 
   if ($use_cinder and !$external_lb) {
     $cinder_address_map  = get_node_to_ipaddr_map_by_network_role(hiera_hash('cinder_nodes'), 'cinder/api')
-    $server_names        = hiera_array('cinder_names', keys($cinder_address_map))
-    $ipaddresses         = hiera_array('cinder_ipaddresses', values($cinder_address_map))
+    $server_names        = hiera_array('cinder_names', sorted_hosts($cinder_address_map, 'host'))
+    $ipaddresses         = hiera_array('cinder_ipaddresses', sorted_hosts($cinder_address_map, 'ip'))
     $public_virtual_ip   = hiera('public_vip')
     $internal_virtual_ip = hiera('management_vip')
 
