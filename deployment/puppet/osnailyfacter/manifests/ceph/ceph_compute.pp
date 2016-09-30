@@ -20,8 +20,8 @@ class osnailyfacter::ceph::ceph_compute {
   $ceph_public_network  = get_network_role_property('ceph/public', 'network')
 
   $mon_address_map = get_node_to_ipaddr_map_by_network_role(hiera_hash('ceph_monitor_nodes'), 'ceph/public')
-  $mon_ips         = join(values($mon_address_map), ',')
-  $mon_hosts       = join(keys($mon_address_map), ',')
+  $mon_ips         = join(sorted_hosts($mon_address_map, 'ip'), ',')
+  $mon_hosts       = join(sorted_hosts($mon_address_map, 'host'), ',')
 
   if !($storage_hash['ephemeral_ceph']) {
     $libvirt_images_type = 'default'
