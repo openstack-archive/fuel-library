@@ -9,15 +9,12 @@ class osnailyfacter::hosts::hosts {
   $messaging_host_resources = network_metadata_to_hosts($network_metadata, 'mgmt/messaging', $messaging_prefix)
   $host_hash = merge($host_resources, $messaging_host_resources)
 
-  $deleted_nodes = hiera('deleted_nodes', [])
-  $deleted_messaging_nodes = prefix($deleted_nodes, $messaging_prefix)
-
-  Host {
-      target => $hosts_file
+  file { $hosts_file:
+    ensure  => file,
+    owner   => 'root',
+    group   => 'root',
+    mode    => '0644',
+    content => template('osnailyfacter/hosts.erb'),
   }
 
-  create_resources(host, $host_hash)
-  if !empty($deleted_nodes) {
-    ensure_resource(host, unique(concat($deleted_nodes, $deleted_messaging_nodes)), {ensure => absent})
-  }
 }
