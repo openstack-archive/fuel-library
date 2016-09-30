@@ -49,5 +49,5 @@ EOS
     Array(opts.fetch('routes', [])).map {|route| route.fetch('net', nil)}.each(&get_network)
   end
 
-  networks.join(' ')
+  networks.sort.join(' ')
 end
