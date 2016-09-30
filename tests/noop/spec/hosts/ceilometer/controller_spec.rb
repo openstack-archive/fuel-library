@@ -32,7 +32,7 @@ describe manifest do
       ceilometer_db_user     = 'ceilometer'
       ceilometer_db_password = ceilometer_hash['db_password']
       ceilometer_db_dbname   = 'ceilometer'
-      addresses              = Noop.puppet_function 'values',mongo_address_map
+      addresses              = Noop.puppet_function 'sorted_hosts', mongo_address_map, 'ip', 'ip'
       db_hosts               = Noop.puppet_function 'join',addresses,','
       mongo_replicaset       = 'ceilometer'
     end

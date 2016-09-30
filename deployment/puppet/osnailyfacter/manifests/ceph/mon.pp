@@ -25,11 +25,11 @@ class osnailyfacter::ceph::mon {
   $mon_address_map = get_node_to_ipaddr_map_by_network_role(hiera_hash('ceph_monitor_nodes'), 'ceph/public')
   $primary_mon     = get_node_to_ipaddr_map_by_network_role(hiera_hash('ceph_primary_monitor_node'), 'ceph/public')
 
-  $mon_ips   = join(values($mon_address_map), ',')
-  $mon_hosts = join(keys($mon_address_map), ',')
+  $mon_ips   = join(sorted_hosts($mon_address_map, 'ip'), ',')
+  $mon_hosts = join(sorted_hosts($mon_address_map, 'host'), ',')
 
-  $primary_mon_hostname = join(keys($primary_mon))
-  $primary_mon_ip       = join(values($primary_mon))
+  $primary_mon_ip       = join(sorted_hosts($primary_mon, 'ip'), ',')
+  $primary_mon_hostname = join(sorted_hosts($primary_mon, 'host'), ',')
 
   prepare_network_config(hiera_hash('network_scheme'))
   $ceph_cluster_network = get_network_role_property('ceph/replication', 'network')
