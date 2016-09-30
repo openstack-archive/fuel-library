@@ -9,7 +9,7 @@ class openstack_tasks::openstack_network::agents::metadata {
   $neutron_advanced_config  = hiera_hash('neutron_advanced_configuration', { })
   $neutron_config           = hiera_hash('neutron_config')
   $dvr                      = pick($neutron_advanced_config['neutron_dvr'], false)
-  $workers_max              = hiera('workers_max', 16)
+  $workers_max              = hiera('workers_max', $::os_workers)
 
   if $compute {
     $metadata_workers = pick($neutron_config['workers'],

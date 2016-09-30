@@ -135,7 +135,7 @@ class openstack_tasks::horizon::horizon {
     $wsgi_processes = 2
     $wsgi_threads = 9
   } else {
-    $wsgi_processes = $::processorcount
+    $wsgi_processes = $::os_workers
     $wsgi_threads = 15
   }
 
