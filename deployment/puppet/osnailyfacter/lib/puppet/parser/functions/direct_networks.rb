@@ -1,3 +1,5 @@
+require 'ipaddr'
+
 Puppet::Parser::Functions::newfunction(:direct_networks, :arity => -2, :type => :rvalue, :doc => <<-EOS
   Parses network endpoints scheme and returns networks
   directly attached to the host
@@ -49,5 +51,7 @@ EOS
     Array(opts.fetch('routes', [])).map {|route| route.fetch('net', nil)}.each(&get_network)
   end
 
-  networks.join(' ')
+  networks.sort_by do |net|
+    IPAddr.new net
+  end.join(' ')
 end

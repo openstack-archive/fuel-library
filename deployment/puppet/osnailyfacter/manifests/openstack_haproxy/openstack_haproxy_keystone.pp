@@ -21,8 +21,8 @@ class osnailyfacter::openstack_haproxy::openstack_haproxy_keystone {
 
   if ($use_keystone and !$external_lb) {
     $keystone_address_map = get_node_to_ipaddr_map_by_network_role(hiera_hash('keystone_nodes'), 'keystone/api')
-    $server_names         = hiera_array('keystone_names', keys($keystone_address_map))
-    $ipaddresses          = hiera_array('keystone_ipaddresses', values($keystone_address_map))
+    $server_names         = hiera_array('keystone_names', sorted_hosts($keystone_address_map, 'host'))
+    $ipaddresses          = hiera_array('keystone_ipaddresses', sorted_hosts($keystone_address_map, 'ip'))
     $public_virtual_ip    = pick(hiera('public_service_endpoint', undef), hiera('public_vip'))
     $internal_virtual_ip  = pick(hiera('service_endpoint', undef), hiera('management_vip'))
     $keystone_federation  = pick($keystone_hash['federation'], false)

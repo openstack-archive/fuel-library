@@ -18,8 +18,8 @@ class osnailyfacter::openstack_haproxy::openstack_haproxy_glance {
 
   if ($use_glance and !$external_lb) {
     $glance_address_map  = get_node_to_ipaddr_map_by_network_role(hiera_hash('glance_nodes'), 'glance/api')
-    $server_names        = hiera_array('glance_names', keys($glance_address_map))
-    $ipaddresses         = hiera_array('glance_ipaddresses', values($glance_address_map))
+    $server_names        = hiera_array('glance_names', sorted_hosts($glance_address_map, 'host'))
+    $ipaddresses         = hiera_array('glance_ipaddresses', sorted_hosts($glance_address_map, 'ip'))
     $public_virtual_ip   = hiera('public_vip')
     $internal_virtual_ip = hiera('management_vip')
 

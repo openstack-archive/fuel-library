@@ -29,8 +29,8 @@ class osnailyfacter::ceph::ceph_osd {
   $ceph_public_network  = get_network_role_property('ceph/public', 'network')
 
   $mon_address_map     = get_node_to_ipaddr_map_by_network_role(hiera_hash('ceph_monitor_nodes'), 'ceph/public')
-  $mon_host            = join(values($mon_address_map), ',')
-  $mon_initial_members = join(keys($mon_address_map), ',')
+  $mon_host            = join(sorted_hosts($mon_address_map, 'ip'), ',')
+  $mon_initial_members = join(sorted_hosts($mon_address_map, 'host'), ',')
 
   if empty($admin_key) {
     fail('Please provide admin_key')
