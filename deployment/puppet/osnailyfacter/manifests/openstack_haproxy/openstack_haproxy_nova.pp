@@ -18,8 +18,8 @@ class osnailyfacter::openstack_haproxy::openstack_haproxy_nova {
 
   if ($use_nova and !$external_lb) {
     $nova_api_address_map = get_node_to_ipaddr_map_by_network_role(hiera('nova_api_nodes'), 'nova/api')
-    $server_names         = hiera_array('nova_names', keys($nova_api_address_map))
-    $ipaddresses          = hiera_array('nova_ipaddresses', values($nova_api_address_map))
+    $server_names         = hiera_array('nova_names', sorted_hosts($nova_api_address_map, 'host'))
+    $ipaddresses          = hiera_array('nova_ipaddresses', sorted_hosts($nova_api_address_map, 'ip'))
     $public_virtual_ip    = hiera('public_vip')
     $internal_virtual_ip  = hiera('management_vip')
 

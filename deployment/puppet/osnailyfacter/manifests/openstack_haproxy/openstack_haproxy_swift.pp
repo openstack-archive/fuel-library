@@ -23,8 +23,8 @@ class osnailyfacter::openstack_haproxy::openstack_haproxy_swift {
 
   if ($use_swift and !$external_lb) {
     $swift_proxy_address_map = get_node_to_ipaddr_map_by_network_role($swift_proxies, 'swift/api')
-    $server_names            = hiera_array('swift_server_names', keys($swift_proxy_address_map))
-    $ipaddresses             = hiera_array('swift_ipaddresses', values($swift_proxy_address_map))
+    $server_names            = hiera_array('swift_server_names', sorted_hosts($swift_proxy_address_map, 'host'))
+    $ipaddresses             = hiera_array('swift_ipaddresses', sorted_hosts($swift_proxy_address_map, 'ip'))
     $public_virtual_ip       = hiera('public_vip')
     $internal_virtual_ip     = hiera('management_vip')
 

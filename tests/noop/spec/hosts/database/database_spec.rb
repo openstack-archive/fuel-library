@@ -54,8 +54,12 @@ describe manifest do
       Noop.puppet_function 'get_network_role_property', 'mgmt/database', 'ipaddr'
     end
 
+    let(:galera_nodes_map) do
+      Noop.puppet_function 'get_node_to_ipaddr_map_by_network_role', database_nodes, 'mgmt/database'
+    end
+
     let(:galera_nodes) do
-      (Noop.puppet_function 'get_node_to_ipaddr_map_by_network_role', database_nodes, 'mgmt/database').values
+      Noop.puppet_function 'sorted_hosts', galera_nodes_map, 'ip', 'ip'
     end
 
     let(:galera_gcache_size) do

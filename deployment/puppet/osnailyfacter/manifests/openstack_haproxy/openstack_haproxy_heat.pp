@@ -18,8 +18,8 @@ class osnailyfacter::openstack_haproxy::openstack_haproxy_heat {
 
   if ($use_heat and !$external_lb) {
     $heat_address_map    = get_node_to_ipaddr_map_by_network_role(hiera_hash('heat_nodes'), 'heat/api')
-    $server_names        = hiera_array('heat_names', keys($heat_address_map))
-    $ipaddresses         = hiera_array('heat_ipaddresses', values($heat_address_map))
+    $server_names        = hiera_array('heat_names', sorted_hosts($heat_address_map, 'host'))
+    $ipaddresses         = hiera_array('heat_ipaddresses', sorted_hosts($heat_address_map, 'ip'))
     $public_virtual_ip   = hiera('public_vip')
     $internal_virtual_ip = hiera('management_vip')
 

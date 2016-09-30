@@ -83,7 +83,7 @@ class openstack_tasks::ceilometer::controller {
     $db_user             = $external_mongo_hash['mongo_user']
     $db_password         = $external_mongo_hash['mongo_password']
     $db_name             = $external_mongo_hash['mongo_db_name']
-    $db_host             = $external_mongo_hash['hosts_ip']
+    $db_host             = sort($external_mongo_hash['hosts_ip'])
     if $external_mongo_hash['mongo_replset'] {
       $mongo_replicaset  = $external_mongo_hash['mongo_replset']
     } else {
@@ -93,7 +93,7 @@ class openstack_tasks::ceilometer::controller {
     $db_user             = 'ceilometer'
     $db_password         = $ceilometer_hash['db_password']
     $db_name             = 'ceilometer'
-    $db_host             = join(values($mongo_address_map), ',')
+    $db_host             = join(sorted_hosts($mongo_address_map, 'ip', 'ip'), ',')
     # MongoDB is alsways configured with replica set
     $mongo_replicaset    = 'ceilometer'
   }

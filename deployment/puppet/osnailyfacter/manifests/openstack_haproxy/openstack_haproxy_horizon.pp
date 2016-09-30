@@ -15,8 +15,8 @@ class osnailyfacter::openstack_haproxy::openstack_haproxy_horizon {
 
   if ($use_horizon and !$external_lb) {
     $horizon_address_map = get_node_to_ipaddr_map_by_network_role(hiera_hash('horizon_nodes'), 'horizon')
-    $server_names        = hiera_array('horizon_names', keys($horizon_address_map))
-    $ipaddresses         = hiera_array('horizon_ipaddresses', values($horizon_address_map))
+    $server_names        = hiera_array('horizon_names', sorted_hosts($horizon_address_map, 'host'))
+    $ipaddresses         = hiera_array('horizon_ipaddresses', sorted_hosts($horizon_address_map, 'ip'))
     $public_virtual_ip   = hiera('public_vip')
     $internal_virtual_ip = hiera('management_vip')
 
