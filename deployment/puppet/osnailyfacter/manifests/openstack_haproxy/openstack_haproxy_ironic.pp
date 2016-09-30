@@ -11,8 +11,8 @@ class osnailyfacter::openstack_haproxy::openstack_haproxy_ironic {
 
   $ironic_address_map   = get_node_to_ipaddr_map_by_network_role(hiera('ironic_api_nodes'), 'ironic/api')
 
-  $server_names         = hiera_array('ironic_server_names', keys($ironic_address_map))
-  $ipaddresses          = hiera_array('ironic_ipaddresses', values($ironic_address_map))
+  $server_names         = hiera_array('ironic_server_names', sorted_hosts($ironic_address_map, 'host'))
+  $ipaddresses          = hiera_array('ironic_ipaddresses', sorted_hosts($ironic_address_map, 'ip'))
   $public_virtual_ip    = hiera('public_vip')
   $internal_virtual_ip  = hiera('management_vip')
 

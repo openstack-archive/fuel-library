@@ -13,8 +13,8 @@ class osnailyfacter::openstack_haproxy::openstack_haproxy_mysqld {
   # only do this if mysql is enabled and we are using one of the galera/percona classes
   if !$external_lb and $use_mysql and ($custom_mysql_setup_class in ['galera', 'percona', 'percona_packages']) {
     $database_address_map = get_node_to_ipaddr_map_by_network_role(hiera_hash('database_nodes'), 'mgmt/database')
-    $server_names         = hiera_array('mysqld_names', keys($database_address_map))
-    $ipaddresses          = hiera_array('mysqld_ipaddresses', values($database_address_map))
+    $server_names         = hiera_array('mysqld_names', sorted_hosts($database_address_map, 'host'))
+    $ipaddresses          = hiera_array('mysqld_ipaddresses', sorted_hosts($database_address_map, 'ip'))
     $public_virtual_ip    = hiera('public_vip')
     $internal_virtual_ip  = pick(hiera('database_vip', undef), hiera('management_vip'))
 
