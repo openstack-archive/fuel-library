@@ -2,8 +2,8 @@ class osnailyfacter::logging::logging {
 
   notice('MODULAR: logging/logging.pp')
 
-  $base_syslog_hash   = hiera('base_syslog')
-  $syslog_hash        = hiera('syslog')
+  $base_syslog_hash   = hiera_hash('base_syslog')
+  $syslog_hash        = hiera_hash('syslog')
   $use_syslog         = hiera('use_syslog', true)
   $debug              = pick($syslog_hash['debug'], hiera('debug', false))
   $rabbit_fqdn_prefix = hiera('node_name_prefix_for_messaging', 'messaging-')
