@@ -222,8 +222,30 @@ describe manifest do
      end
 
      it 'keystone::wsgi::apache should configure keystone_wsgi_admin and keystone_wsgi_main files' do
-       should contain_file('keystone_wsgi_admin')
-       should contain_file('keystone_wsgi_main')
+       case facts[:operatingsystem]
+       when 'Ubuntu'
+         should contain_file('keystone_wsgi_admin').with(
+           'ensure'  => 'link',
+           'path'    => '/usr/lib/cgi-bin/keystone/keystone-admin',
+           'target'  => '/usr/bin/keystone-wsgi-admin',
+         )
+         should contain_file('keystone_wsgi_main').with(
+           'ensure'  => 'link',
+           'path'    => '/usr/lib/cgi-bin/keystone/keystone-public',
+           'target'  => '/usr/bin/keystone-wsgi-public',
+         )
+       when 'CentOS'
+         should contain_file('keystone_wsgi_admin').with(
+           'ensure'  => 'link',
+           'path'    => '/var/www/cgi-bin/keystone/keystone-admin',
+           'target'  => '/usr/bin/keystone-wsgi-admin',
+         )
+         should contain_file('keystone_wsgi_main').with(
+           'ensure'  => 'link',
+           'path'    => '/var/www/cgi-bin/keystone/keystone-public',
+           'target'  => '/usr/bin/keystone-wsgi-public',
+         )
+       end
      end
 
      it 'should not run keystone service' do
