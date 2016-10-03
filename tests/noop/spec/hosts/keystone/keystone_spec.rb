@@ -215,26 +215,26 @@ describe manifest do
         should contain_keystone_config('eventlet_server/admin_workers').with(:value => service_workers)
      end
 
-     it 'should declare keystone::wsgi::apache class with 4 processess and 3 threads on 4 CPU system' do
+     it 'should declare keystone::wsgi::apache class with 4 processess and 1 threads on 4 CPU system' do
        should contain_class('keystone::wsgi::apache').with(
-         'threads'               => '3',
+         'threads'               => '1',
          'workers'               => '4',
          'vhost_custom_fragment' => 'LimitRequestFieldSize 81900'
        )
      end
 
-     it 'should declare keystone::wsgi::apache class with 6 processes and 3 threads on 48 CPU system' do
+     it 'should declare keystone::wsgi::apache class with 6 processes and 1 threads on 48 CPU system' do
        facts[:processorcount] = 48
        should contain_class('keystone::wsgi::apache').with(
-         'threads' => '3',
+         'threads' => '1',
          'workers' => '6'
        )
      end
 
-     it 'should declare keystone::wsgi::apache class with 1 process and 3 threads on 1 CPU system' do
+     it 'should declare keystone::wsgi::apache class with 1 process and 1 threads on 1 CPU system' do
        facts[:processorcount] = 1
        should contain_class('keystone::wsgi::apache').with(
-         'threads' => '3',
+         'threads' => '1',
          'workers' => '1'
        )
      end
