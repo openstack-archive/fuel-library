@@ -293,11 +293,17 @@ class osnailyfacter::database::database {
       only_from       => "127.0.0.1 240.0.0.2 ${management_networks}",
     }
 
+    if $::osfamily == 'RedHat' {
+      $mysql_config = '/etc/my.cnf'
+    } else {
+      $mysql_config = '/etc/mysql/my.cnf'
+    }
+
     # include our integration with pacemaker
     class { '::cluster::mysql':
       mysql_user     => $status_user,
       mysql_password => $status_password,
-      mysql_config   => '/etc/mysql/my.cnf',
+      mysql_config   => $mysql_config,
       mysql_socket   => $mysql_socket,
     }
 
