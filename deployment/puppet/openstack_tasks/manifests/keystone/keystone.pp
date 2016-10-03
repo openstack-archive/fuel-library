@@ -151,7 +151,7 @@ class openstack_tasks::keystone::keystone {
 
   class { '::keystone::wsgi::apache':
     priority              => '05',
-    threads               => 3,
+    threads               => 1,
     workers               => min($::processorcount, 6),
     ssl                   => $ssl,
     vhost_custom_fragment => $vhost_limit_request_field_size,
