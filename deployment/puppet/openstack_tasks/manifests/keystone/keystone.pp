@@ -156,17 +156,7 @@ class openstack_tasks::keystone::keystone {
     admin_port            => $admin_port,
     bind_host             => $local_address_for_bind,
 
-    wsgi_script_ensure    => $::osfamily ? {
-      'RedHat' => 'link',
-      default  => 'file',
-    },
-    wsgi_script_source    => $::osfamily ? {
-    # TODO: (adidenko) use file from package for Debian, when
-    # https://bugs.launchpad.net/fuel/+bug/1476688 is fixed.
-    # 'Debian'      => '/usr/share/keystone/wsgi.py',
-      'RedHat' => '/usr/share/keystone/keystone.wsgi',
-      default  => undef,
-    },
+    wsgi_script_ensure    => 'link',
   }
 
   include ::tweaks::apache_wrappers
