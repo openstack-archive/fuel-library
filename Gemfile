@@ -6,7 +6,6 @@ group :development, :test do
   gem 'rspec-puppet',                         :require => 'false'
   gem 'librarian-puppet-simple',              :require => 'false'
   gem 'metadata-json-lint',                   :require => 'false'
-  gem 'mime-types', '2.6.2',                  :require => 'false' # 3.0+ requires ruby 2.0
   gem 'puppet-lint-param-docs',               :require => 'false'
   gem 'puppet-lint-absolute_classname-check', :require => 'false'
   gem 'puppet-lint-absolute_template_path',   :require => 'false'
@@ -20,8 +19,7 @@ group :development, :test do
   gem 'simplecov',                            :require => 'false'
   gem 'webmock', '1.22.6',                    :require => 'false'
   gem 'fakefs',                               :require => 'false'
-  gem 'fog-google', '0.1.0',                  :require => 'false' # 0.1.1+ requires ruby 2.0
-  gem 'google-api-client', '0.9.4',           :require => 'false' # 0.9.5 requires ruby 2.0
+  gem 'beaker', '2.50.0',                     :require => 'false' # 3.1.0 requires ruby version >= 2.2.5
   gem 'beaker-rspec',                         :require => 'false'
   gem 'beaker-puppet_install_helper',         :require => 'false'
   gem 'psych',                                :require => 'false'
