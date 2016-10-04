@@ -438,11 +438,13 @@ class openstack_tasks::roles::compute {
 
   case $::osfamily {
     'RedHat': {
-      file_line { 'qemu_selinux':
-        path    => '/etc/libvirt/qemu.conf',
-        line    => 'security_driver = "selinux"',
-        require => Package['libvirt'],
-        notify  => Service['libvirt']
+      if $::selinux == 'true' {
+        file_line { 'qemu_selinux':
+          path    => '/etc/libvirt/qemu.conf',
+          line    => 'security_driver = "selinux"',
+          require => Package['libvirt'],
+          notify  => Service['libvirt']
+        }
       }
     }
     'Debian': {
