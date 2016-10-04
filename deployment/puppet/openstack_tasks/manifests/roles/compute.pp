@@ -490,18 +490,33 @@ class openstack_tasks::roles::compute {
 
   case $::osfamily {
     'RedHat': {
-      file_line { 'qemu_selinux':
-        path    => '/etc/libvirt/qemu.conf',
-        line    => 'security_driver = "selinux"',
-        require => Package[$::nova::params::libvirt_package_name],
-        notify  => Service['libvirt']
+      if str2bool("${::selinux}") {
+        file_line { 'qemu_selinux':
+          path    => '/etc/libvirt/qemu.conf',
+          line    => 'security_driver = "selinux"',
+          require => Package[$::nova::params::libvirt_package_name],
+          notify  => Service['libvirt']
+        }
+      } else {
+        file_line { 'qemu_selinux_disabled':
+          ensure            => absent,
+          path              => '/etc/libvirt/qemu.conf',
+          match             => '^security_driver',
+          match_for_absence => true,
+          require           => Package[$::nova::params::libvirt_package_name],
+          notify            => Service['libvirt']
+        }
       }
     }
     'Debian': {
+      service { 'apparmor':
+        ensure => running,
+      }
+
       file_line { 'qemu_apparmor':
         path    => '/etc/libvirt/qemu.conf',
         line    => 'security_driver = "apparmor"',
-        require => Package[$::nova::params::libvirt_package_name],
+        require => [Package[$::nova::params::libvirt_package_name], Service['apparmor']],
         notify  => Service['libvirt']
       }
 
