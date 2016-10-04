@@ -133,7 +133,7 @@ describe manifest do
     end
     let(:packages_service) do
       if murano_glance_artifacts_plugin and murano_glance_artifacts_plugin['enabled'] and facts[:os_package_type] == 'debian'
-        'glance'
+        'glare'
       else
         'murano'
       end
