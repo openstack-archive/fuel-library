@@ -22,8 +22,7 @@ if $storage_hash['objects_ceph'] {
   $admin_url         = "${admin_protocol}://${admin_address}:8080/swift/v1"
 
   $public_url_s3     = "${public_protocol}://${public_address}:8080"
-  $internal_url_s3   = "${internal_protocol}://${internal_address}:8080"
-  $admin_url_s3      = "${admin_protocol}://${admin_address}:8080"
+  $admin_url_s3      = "http://${admin_address}:8080"
 
   class {'::osnailyfacter::wait_for_keystone_backends': }
 
@@ -48,7 +47,7 @@ if $storage_hash['objects_ceph'] {
     region              => $region,
     public_url          => $public_url_s3,
     admin_url           => $admin_url_s3,
-    internal_url        => $internal_url_s3,
+    internal_url        => $admin_url_s3,
   }
 
   Class['::osnailyfacter::wait_for_keystone_backends'] -> Keystone::Resource::Service_Identity['radosgw']
