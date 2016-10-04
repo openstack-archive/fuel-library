@@ -22,6 +22,7 @@ describe manifest do
       Noop.ubuntu_facts.merge({
         :libvirt_uuid        => '0251bf3e0a3f48da8cdf8daad5473a7f',
         :allocated_hugepages => '{"1G":true,"2M":true}',
+        :selinux             => 'true',
       })
     }
 
@@ -243,14 +244,27 @@ describe manifest do
     # libvirt/qemu with(out) selinux/apparmor
     it 'libvirt/qemu config should have proper security_driver and apparmor configuration' do
       if facts[:osfamily] == 'RedHat'
-        should contain_file_line('qemu_selinux').with(
-          'path' => '/etc/libvirt/qemu.conf',
-          'line' => 'security_driver = "selinux"',
-        ).that_notifies('Service[libvirt]')
+        if facts[:selinux] == 'true'
+          should contain_file_line('qemu_selinux').with(
+            'path' => '/etc/libvirt/qemu.conf',
+            'line' => 'security_driver = "selinux"',
+          ).that_notifies('Service[libvirt]')
+        else
+          should contain_file_line('qemu_selinux_disabled').with(
+            'ensure'            => 'absent',
+            'path'              => '/etc/libvirt/qemu.conf',
+            'match'             => '^security_driver',
+            'match_for_absence' => 'true',
+          ).that_notifies('Service[libvirt]')
+        end
       elsif facts[:osfamily] == 'Debian'
+        should contain_service('apparmor').with(
+          'ensure' => 'running',
+        )
         should contain_file_line('qemu_apparmor').with(
-          'path' => '/etc/libvirt/qemu.conf',
-          'line' => 'security_driver = "apparmor"',
+          'path'    => '/etc/libvirt/qemu.conf',
+          'line'    => 'security_driver = "apparmor"',
+          'require' => ['Package[libvirt]', 'Service[apparmor]'],
         ).that_notifies('Service[libvirt]')
         should contain_file_line('apparmor_libvirtd').with(
           'path' => '/etc/apparmor.d/usr.sbin.libvirtd',
