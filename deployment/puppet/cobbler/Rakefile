@@ -1,0 +1,18 @@
+require 'puppet-lint/tasks/puppet-lint'
+
+Rake::Task[:lint].clear
+PuppetLint::RakeTask.new :lint do |config|
+  config.ignore_paths = ["spec/**/*.pp", "vendor/**/*.pp"]
+  config.fail_on_warnings = false
+  config.log_format = '%{path}:%{linenumber}:%{KIND}: %{message}'
+  config.disable_checks = [
+      "80chars",
+      "autoloader_layout",
+      "nested_classes_or_defines",
+      "only_variable_string",
+      "2sp_soft_tabs",
+      "hard_tabs",
+      "trailing_whitespace",
+
+   ]
+end
