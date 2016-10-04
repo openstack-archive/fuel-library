@@ -7,7 +7,7 @@ class osnailyfacter::hiera::hiera {
   $override_dir_path   = "${data_dir}/${override_dir}"
   $metadata_file       = '/etc/astute.yaml'
 
-  $data = [
+  $hierarchy_bottom = [
     'override/node/%{::fqdn}%{disable_globals_yaml}',
     'override/class/%{calling_class}%{disable_globals_yaml}',
     'override/module/%{calling_module}%{disable_globals_yaml}',
@@ -27,6 +27,13 @@ class osnailyfacter::hiera::hiera {
     'astute',
   ]
 
+  $hierarchy_top = [
+    'external/%{::environment}/nodes/%{::fqdn}',
+    'external/%{::environment}/roles/%{::roles}',
+    'external/%{::environment}/cluster',
+    'external/%{::environment}/global',
+  ]
+
   $astute_data_file    = '/etc/astute.yaml'
   $hiera_main_config   = '/etc/hiera.yaml'
   $hiera_puppet_config = '/etc/puppet/hiera.yaml'
@@ -40,7 +47,8 @@ class osnailyfacter::hiera::hiera {
   hiera_config { $hiera_main_config :
     ensure             => 'present',
     data_dir           => $data_dir,
-    hierarchy_bottom   => $data,
+    hierarchy_bottom   => $hierarchy_bottom,
+    hierarchy_top      => $hierarchy_top,
     plugins_dir        => $override_dir,
     override_suffix    => '%{disable_globals_yaml}',
     metadata_yaml_file => $metadata_file,
