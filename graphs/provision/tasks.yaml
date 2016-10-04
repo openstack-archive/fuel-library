@@ -17,7 +17,7 @@
     path: /tmp/provision.yaml
     timeout: 180
     data:
-      yaql_exp: "($.provision.set('packages', $.provision.packages.split('\n')) + $.repo_setup + dict('output' => '/var/www/nailgun/targetimages') + $).toYaml()"
+      yaql_exp: "($.provision + $.repo_setup + dict('output' => '/var/www/nailgun/targetimages') + $common).toYaml()"
 
 - id: generate_ironic_bootstrap_keys
   type: shell
