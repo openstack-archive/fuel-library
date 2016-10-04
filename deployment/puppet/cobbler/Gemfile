@@ -1,0 +1,11 @@
+source 'https://rubygems.org'
+
+group :development, :test do
+  gem 'puppet-lint', '~> 1.1.0', :require => 'false'
+end
+
+if puppetversion = ENV['PUPPET_GEM_VERSION']
+  gem 'puppet', puppetversion, :require => false
+else
+  gem 'puppet', '<4.0',        :require => false
+end
