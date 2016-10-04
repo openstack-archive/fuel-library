@@ -97,7 +97,7 @@ class openstack_tasks::murano::murano {
     # we can remove the os_package_type once UCA provides the package
     # TODO(aschultz): switch to dig at some point
     if $murano_plugins and $murano_plugins['glance_artifacts_plugin'] and $murano_plugins['glance_artifacts_plugin']['enabled'] and ($::os_package_type == 'debian') {
-      $packages_service = 'glance'
+      $packages_service = 'glare'
       $enable_glare     = true
 
       package {'murano-glance-artifacts-plugin':
