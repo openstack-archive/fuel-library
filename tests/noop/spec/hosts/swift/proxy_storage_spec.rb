@@ -135,7 +135,7 @@ describe manifest do
         it 'should allow swift user to write into /var/lib/glance directory' do
           should contain_file('/var/lib/glance').with(
             'ensure' => 'directory',
-            'group'  => 'swift',
+            'group'  => 'glance',
           ).that_requires('Package[swift]')
         end
       end
