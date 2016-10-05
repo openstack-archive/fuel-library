@@ -147,13 +147,13 @@ class openstack_tasks::swift::proxy_storage {
     if !defined(File['/var/lib/glance']) {
       file {'/var/lib/glance':
         ensure  => 'directory',
-        group   => 'swift',
+        group   => 'glance',
         require => Package['swift'],
       } -> Service <| tag == 'swift-service' |>
     } else {
       File['/var/lib/glance'] {
         ensure  => 'directory',
-        group   => 'swift',
+        group   => 'glance',
         require +> Package['swift'],
       }
       File['/var/lib/glance'] -> Service <| tag == 'swift-service' |>
@@ -191,6 +191,9 @@ class openstack_tasks::swift::proxy_storage {
       }
     }
   }
+
+  # We need this line for proper upgrade process LP#1619282
+  User <| title == swift |> { groups +> ['glance'] }
 
   # swift_container_sync_realms file specifying
   # the allowable clusters and their information.
