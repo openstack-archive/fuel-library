@@ -3,8 +3,8 @@ define openstack_tasks::swift::parts::device_directory($devices) {
   if (!defined(File[$devices])) {
     file { $devices:
       ensure       => 'directory',
-      owner        => 'swift',
-      group        => 'swift',
+      owner        => 'glance',
+      group        => 'glance',
       recurse      => true,
       recurselimit => 1,
     }
