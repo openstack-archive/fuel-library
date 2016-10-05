@@ -131,7 +131,7 @@ describe manifest do
         it 'should allow swift user to write into /var/lib/glance directory' do
           should contain_file('/var/lib/glance').with(
             'ensure' => 'directory',
-            'group'  => 'swift',
+            'group'  => 'glance',
           ).that_requires('Package[swift]')
         end
       end
@@ -143,8 +143,8 @@ describe manifest do
       it 'should configure swift on separate partition' do
         should contain_file(swift_partition).with(
           'ensure' => 'directory',
-          'owner'  => 'swift',
-          'group'  => 'swift',
+          'owner'  => 'glance',
+          'group'  => 'glance',
         )
       end
 
