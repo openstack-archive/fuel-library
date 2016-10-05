@@ -143,8 +143,8 @@ describe manifest do
       it 'should configure swift on separate partition' do
         should contain_file(swift_partition).with(
           'ensure' => 'directory',
-          'owner'  => 'swift',
-          'group'  => 'swift',
+          'owner'  => 'glance',
+          'group'  => 'glance',
         )
       end
 
