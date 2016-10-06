@@ -1,3 +1,6 @@
+# ROLE : controller
+# ROLE : primary-controller
+
 # TODO: DEPRECATED
 require 'spec_helper'
 require 'shared-examples'
