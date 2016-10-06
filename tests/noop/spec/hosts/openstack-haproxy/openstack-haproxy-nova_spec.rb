@@ -36,7 +36,7 @@ describe manifest do
           'public_ssl'             => public_ssl_nova,
           'require_service'        => 'nova-api',
           'haproxy_config_options' => {
-            'option'       => ['httpchk', 'httplog', 'httpclose','http-buffer-request'],
+            'option'       => ['httpchk', 'httplog', 'forceclose','http-buffer-request'],
             'timeout'      => ['server 600s', 'http-request 10s'],
             'http-request' => 'set-header X-Forwarded-Proto https if { ssl_fc }',
           },
@@ -50,7 +50,7 @@ describe manifest do
           'server_names'           => server_names,
           'listen_port'            => 8775,
           'haproxy_config_options' => {
-            'option'  => ['httpchk', 'httplog', 'httpclose', 'http-buffer-request'],
+            'option'  => ['httpchk', 'httplog', 'forceclose', 'http-buffer-request'],
             'timeout' => 'http-request 10s',
           },
           'balancermember_options' => 'check inter 10s fastinter 2s downinter 3s rise 3 fall 3',
