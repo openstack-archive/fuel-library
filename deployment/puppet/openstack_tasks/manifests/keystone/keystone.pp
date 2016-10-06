@@ -302,6 +302,7 @@ class openstack_tasks::keystone::keystone {
       debug                              => $debug,
       catalog_type                       => 'sql',
       admin_token                        => $admin_token,
+      admin_password                     => $admin_password,
       enabled                            => false,
       database_connection                => $db_connection,
       database_max_retries               => $max_retries,
