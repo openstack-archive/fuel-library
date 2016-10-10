@@ -77,6 +77,13 @@ class fuel::params {
     }
   ]
 
+  $tftp_options         = {}
+  $tftp_default_options = {
+    'server_args' => '-B 1380 -t 30 -v -s $args',
+    'per_source'  => '11',
+    'cps'         => '100 2',
+  }
+
   $ks_system_timezone            = 'Etc/UTC'
   $dns_upstream                  = ['8.8.8.8']
   $dns_domain                    = 'domain.tld'

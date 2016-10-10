@@ -1,0 +1,21 @@
+# Managed by Puppet
+#
+# default: off
+# description: The tftp server serves files using the trivial file transfer \
+#       protocol.  The tftp protocol is often used to boot diskless \
+#       workstations, download configuration files to network-aware printers, \
+#       and to start the installation process for some operating systems.
+service tftp
+{
+        disable                 = no
+        socket_type             = dgram
+        protocol                = udp
+        wait                    = yes
+        user                    = $user
+        server                  = $binary
+        server_args             = <%= @tftp_config['server_args'] %>
+        per_source              = <%= @tftp_config['per_source'] %>
+        cps                     = <%= @tftp_config['cps'] %>
+        flags                   = IPv4
+}
+
