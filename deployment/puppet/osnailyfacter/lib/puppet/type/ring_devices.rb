@@ -13,7 +13,7 @@ Puppet::Type.newtype(:ring_devices) do
     end
 
     munge do |value|
-      value.values.each {|h| h['storage_address']=h['network_roles']['swift/replication'].gsub(/\/\d+$/,''); h.delete('network_roles')}
+      value.values.each {|h| h['storage_address']=h['network_roles']['swift/replication'].gsub(/\/\d+$/,'')}
     end
   end
 
