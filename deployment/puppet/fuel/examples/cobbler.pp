@@ -13,6 +13,7 @@ $dns_domain                  = $::fuel_settings['DNS_DOMAIN']
 $dns_search                  = $::fuel_settings['DNS_SEARCH']
 $dns_upstream                = split($::fuel_settings['DNS_UPSTREAM'], ',')
 $cobbler_host                = $::fuel_settings['ADMIN_NETWORK']['ipaddress']
+$tftp_options                = pick($fuel_settings['TFTP'], {})
 
 # TODO(mmalchuk): the right way with updated loadyaml function
 # $bootstrap_meta = loadyaml("${bootstrap_path}/metadata.yaml", {})
@@ -47,6 +48,7 @@ class { '::fuel::cobbler':
   dhcp_ipaddress              => $::fuel_settings['ADMIN_NETWORK']['ipaddress'],
   nailgun_api_url             => $nailgun_api_url,
   bootstrap_ethdevice_timeout => $bootstrap_ethdevice_timeout,
+  tftp_options                => $tftp_options,
 } ->
 
 file { '/etc/resolv.conf':

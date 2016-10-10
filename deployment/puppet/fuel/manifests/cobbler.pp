@@ -21,6 +21,7 @@ class fuel::cobbler(
   $nailgun_api_url               = "http://${::fuel::params::nailgun_host}:${::fuel::params::nailgun_port}/api",
   # default password is 'r00tme'
   $ks_encrypted_root_password    = $::fuel::params::ks_encrypted_root_password,
+  $tftp_options                  = $::fuel::params::tftp_options,
   ) inherits fuel::params {
 
   anchor { 'nailgun-cobbler-begin': }
@@ -96,6 +97,18 @@ class fuel::cobbler(
     --profile=${bootstrap_profile} --netboot-enabled=True",
     unless  => "cobbler system report --name default 2>/dev/null | grep -q -E '^Profile\\s*:\\s*${bootstrap_profile}'",
     require => Cobbler_profile[$bootstrap_profile],
+  }
+
+  # Merge settings provided in astute.yaml with default options
+  # astute.yaml options are optional but overwrite default options
+  $tftp_config = merge($tftp_default_options, $tftp_options)
+  file { '/etc/cobbler/tftpd.template':
+    ensure  => file,
+    owner   => 'root',
+    group   => 'root',
+    mode    => '0644',
+    content => template('fuel/cobbler/tftpd.template.erb'),
+    notify  => Exec['nailgun_cobbler_sync'],
   }
 
   exec { 'nailgun_cobbler_sync':
