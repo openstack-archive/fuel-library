@@ -76,10 +76,15 @@ class osnailyfacter::atop (
       refreshonly => true,
     }
 
+    package { $acct_package:
+      ensure => present,
+      before => File[$conf_file],
+    }
+
     Package[$acct_package] -> Exec['turns process accounting on'] -> Service['atop']
   }
 
-  package { ['atop', $acct_package]:
+  package { 'atop':
     ensure => 'installed',
   } ->
 
