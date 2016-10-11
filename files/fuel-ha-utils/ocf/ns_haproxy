@@ -292,6 +292,9 @@ check_ns() {
   local ns=`ip netns list | grep "$OCF_RESKEY_ns"`
   ocf_log debug "${LH} recieved netns list: ${ns}"
   [ "${ns}" != "${OCF_RESKEY_ns}" ] && return $OCF_ERR_GENERIC
+  if [ "`$RUN_IN_NS /sbin/sysctl net.ipv4.ip_nonlocal_bind --values`" -eq "0" ]; then
+    ocf_run $RUN_IN_NS /sbin/sysctl -w net.ipv4.ip_nonlocal_bind=1
+  fi
   return $OCF_SUCCESS
 }
 
