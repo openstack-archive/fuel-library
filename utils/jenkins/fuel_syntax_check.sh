@@ -53,10 +53,13 @@ bundle --version || exit 1
 function check_lint {
   MODULE=`basename $(pwd)`
 
+  # Prepare gems for puppet and rake lint checks
+  GEM_HOME=$WORKSPACE/.bundled_gems
+  bundle update
+
   if grep -qs puppet-lint Gemfile && ! grep -qxs $MODULE $WORKSPACE/utils/jenkins/modules.disable_rake-lint ; then
     echo 'Using rake lint'
-    GEM_HOME=$WORKSPACE/.bundled_gems bundle update
-    GEM_HOME=$WORKSPACE/.bundled_gems bundle exec rake lint --trace
+    bundle exec rake lint --trace
     RETURNVAL=$?
     if [ "${RETURNVAL}" -ne "0" ]; then
         echo "FAILED rake lint, return value was ${RETURNVAL}"
