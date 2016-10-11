@@ -5,9 +5,7 @@ class osnailyfacter::firewall::firewall {
   $network_scheme   = hiera_hash('network_scheme', {})
   $network_metadata = hiera_hash('network_metadata')
   $ironic_hash      = hiera_hash('ironic', {})
-  $ssh_hash         = hiera_hash('ssh', {})
   $roles            = hiera('roles')
-  $storage_hash     = hiera('storage', {})
 
   $aodh_port                    = 8042
   $ceilometer_port              = 8777
@@ -54,17 +52,12 @@ class osnailyfacter::firewall::firewall {
   $pcsd_port                    = 2224
   $rsync_port                   = 873
   $ssh_port                     = 22
-  $ssh_rseconds                 = 60
-  $ssh_rhitcount                = 4
   $swift_account_port           = 6002
   $swift_container_port         = 6001
   $swift_object_port            = 6000
   $swift_proxy_check_port       = 49001
   $swift_proxy_port             = 8080
   $vxlan_udp_port               = 4789
-  $ceph_mon_port                = 6789
-  $ceph_osd_port                = '6800-7100'
-  $radosgw_port                 = 6780
 
   $corosync_networks = get_routable_networks_for_network_role($network_scheme, 'mgmt/corosync')
   $memcache_networks = get_routable_networks_for_network_role($network_scheme, 'mgmt/memcache')
@@ -80,6 +73,9 @@ class osnailyfacter::firewall::firewall {
     get_routable_networks_for_network_role($network_scheme, 'swift/replication'),
     get_routable_networks_for_network_role($network_scheme, 'ceph/replication')
   )
+
+  $public_network_assignment = hiera('public_network_assignment')
+  $assign_to_all_nodes       = $public_network_assignment[assign_to_all_nodes]
 
   # Ordering
   Class['::firewall'] -> Firewall<||>
@@ -111,64 +107,11 @@ class osnailyfacter::firewall::firewall {
     action => 'accept',
   }
 
-  $all_networks = concat($admin_nets, $management_nets, $storage_nets)
-
-  if $ssh_hash['security_enabled'] {
-    $ssh_networks = pick($ssh_hash['security_networks'], $all_networks)
-  } else {
-    $ssh_networks = $all_networks
-  }
-
   openstack::firewall::multi_net {'020 ssh':
     port        => $ssh_port,
     proto       => 'tcp',
     action      => 'accept',
-    source_nets => $ssh_networks,
-  }
-
-  $brute_force_protection = $ssh_hash['brute_force_protection'] ? {
-    true    => 'present',
-    default => 'absent',
-  }
-
-  firewall { '021 ssh: new pipe for a sessions':
-    ensure => $brute_force_protection,
-    proto  => 'tcp',
-    dport  => $ssh_port,
-    state  => 'NEW',
-    recent => 'set',
-  }
-
-  firewall { '022 ssh: more than allowed attempts logged':
-    ensure     => $brute_force_protection,
-    proto      => 'tcp',
-    dport      => $ssh_port,
-    state      => 'NEW',
-    recent     => 'update',
-    rseconds   => $ssh_rseconds,
-    rhitcount  => $ssh_rhitcount,
-    jump       => 'LOG',
-    log_prefix => 'iptables SSH brute-force: ',
-    log_level  => '7',
-  }
-
-  firewall { '023 ssh: block more than allowed attempts':
-    ensure    => $brute_force_protection,
-    proto     => 'tcp',
-    dport     => $ssh_port,
-    state     => 'NEW',
-    recent    => 'update',
-    rseconds  => $ssh_rseconds,
-    rhitcount => $ssh_rhitcount,
-    action    => 'drop',
-  }
-
-  firewall { '024 ssh: accept allowed new session':
-    ensure => $brute_force_protection,
-    proto  => 'tcp',
-    dport  => $ssh_port,
-    state  => 'NEW',
-    action => 'accept',
+    source_nets => concat($admin_nets, $management_nets, $storage_nets),
   }
 
   openstack::firewall::multi_net {'109 iscsi':
@@ -200,7 +143,7 @@ class osnailyfacter::firewall::firewall {
   }
 
   firewall {'340 vxlan_udp_port':
-    dport  => $vxlan_udp_port,
+    port   => $vxlan_udp_port,
     proto  => 'udp',
     action => 'accept',
   }
@@ -245,7 +188,7 @@ class osnailyfacter::firewall::firewall {
     }
 
     firewall { '100 http':
-      dport  => [$http_port, $https_port],
+      port   => [$http_port, $https_port],
       proto  => 'tcp',
       action => 'accept',
     }
@@ -265,19 +208,19 @@ class osnailyfacter::firewall::firewall {
     }
 
     firewall {'103 swift':
-      dport  => [$swift_proxy_port, $swift_object_port, $swift_container_port, $swift_account_port, $swift_proxy_check_port],
+      port   => [$swift_proxy_port, $swift_object_port, $swift_container_port, $swift_account_port, $swift_proxy_check_port],
       proto  => 'tcp',
       action => 'accept',
     }
 
     firewall {'104 glance':
-      dport  => [$glance_api_port, $glance_glare_port, $glance_reg_port, $glance_nova_api_ec2_port,],
+      port   => [$glance_api_port, $glance_glare_port, $glance_reg_port, $glance_nova_api_ec2_port,],
       proto  => 'tcp',
       action => 'accept',
     }
 
     firewall {'105 nova':
-      dport  => [$nova_api_compute_port, $nova_api_volume_port, $nova_vncproxy_port],
+      port   => [$nova_api_compute_port, $nova_api_volume_port, $nova_vncproxy_port],
       proto  => 'tcp',
       action => 'accept',
     }
@@ -339,7 +282,7 @@ class osnailyfacter::firewall::firewall {
     }
 
     firewall {'111 dhcp-server':
-      dport  => $dhcp_server_port,
+      port   => $dhcp_server_port,
       proto  => 'udp',
       action => 'accept',
     }
@@ -373,13 +316,13 @@ class osnailyfacter::firewall::firewall {
     }
 
     firewall {'121 ceilometer':
-      dport  => $ceilometer_port,
+      port   => $ceilometer_port,
       proto  => 'tcp',
       action => 'accept',
     }
 
     firewall {'122 aodh':
-      dport  => $aodh_port,
+      port   => $aodh_port,
       proto  => 'tcp',
       action => 'accept',
     }
@@ -391,19 +334,19 @@ class osnailyfacter::firewall::firewall {
     }
 
     firewall {'204 heat-api':
-      dport  => $heat_api_port,
+      port   => $heat_api_port,
       proto  => 'tcp',
       action => 'accept',
     }
 
     firewall {'205 heat-api-cfn':
-      dport  => $heat_api_cfn_port,
+      port   => $heat_api_cfn_port,
       proto  => 'tcp',
       action => 'accept',
     }
 
     firewall {'206 heat-api-cloudwatch':
-      dport  => $heat_api_cloudwatch_port,
+      port   => $heat_api_cloudwatch_port,
       proto  => 'tcp',
       action => 'accept',
     }
@@ -436,7 +379,7 @@ class osnailyfacter::firewall::firewall {
 
   if member($roles, 'primary-mongo') or member($roles, 'mongo') {
     firewall {'120 mongodb':
-      dport  => $mongodb_port,
+      port   => $mongodb_port,
       proto  => 'tcp',
       action => 'accept',
     }
@@ -518,39 +461,147 @@ class osnailyfacter::firewall::firewall {
     }
   }
 
-  if ($storage_hash['volumes_ceph'] or
-      $storage_hash['images_ceph'] or
-      $storage_hash['objects_ceph'] or
-      $storage_hash['ephemeral_ceph']
-  ) {
-    if member($roles, 'primary-controller') or member($roles, 'controller') {
-      firewall {'010 ceph-mon allow':
-        chain  => 'INPUT',
-        dport  => $ceph_mon_port,
-        proto  => 'tcp',
-        action => accept,
-      }
+# Additional ddos-protection rules
+  if $assign_to_all_nodes or member($roles, 'primary-controller') or member($roles, 'controller') {  
+    firewall {'001 block invalid packets':
+      chain   => 'PREROUTING',
+      table   => 'mangle',
+      proto   => 'all',
+      ctstate => 'INVALID',
+      iniface => 
+      action  => 'drop',
     }
 
-    if member($roles, 'ceph-osd') {
-      firewall { '011 ceph-osd allow':
-        chain  => 'INPUT',
-        dport  => $ceph_osd_port,
-        proto  => 'tcp',
-        action => accept,
-      }
+    firewall {'002 block not-syn new packets':
+      chain     => 'PREROUTING',
+      table     => 'mangle',
+      proto     => 'tcp',
+      ctstate   => 'NEW',
+      tcp_flags => '! SYN,RST,ACK,FIN SYN',
+      action    => 'drop',
     }
 
-    if $storage_hash['objects_ceph'] {
-      if member($roles, 'primary-controller') or member($roles, 'controller') {
-        firewall {'012 RadosGW allow':
-          chain  => 'INPUT',
-          dport  => [ $radosgw_port, $swift_proxy_port ],
-          proto  => 'tcp',
-          action => accept,
-        }
-      }
+    firewall {'003 block uncommon mss values':
+      chain     => 'PREROUTING',
+      table     => 'mangle',
+      proto     => 'tcp',
+      ctstate   => 'NEW',
+      mss       => '! 536:65535',
+      action    => 'drop',
+    }
+
+    firewall {'004 block packets with bogus tcp flags':
+      chain     => 'PREROUTING',
+      table     => 'mangle',
+      proto     => 'tcp',
+      tcp_flags => 'FIN,SYN,RST,PSH,ACK,URG NONE',
+      action    => 'drop',
+    }
+
+    firewall {'005 block packets with bogus tcp flags':
+      chain     => 'PREROUTING',
+      table     => 'mangle',
+      proto     => 'tcp',
+      tcp_flags => 'FIN,SYN FIN,SYN',
+      action    => 'drop',
+    }
+
+    firewall {'006 block packets with bogus tcp flags':
+      chain     => 'PREROUTING',
+      table     => 'mangle',
+      proto     => 'tcp',
+      tcp_flags => 'SYN,RST SYN,RST',
+      action    => 'drop',
+    }
+
+    firewall {'007 block packets with bogus tcp flags':
+      chain     => 'PREROUTING',
+      table     => 'mangle',
+      proto     => 'tcp',
+      tcp_flags => 'SYN,FIN SYN,FIN',
+      action    => 'drop',
+    }
+
+    firewall {'008 block packets with bogus tcp flags':
+      chain     => 'PREROUTING',
+      table     => 'mangle',
+      proto     => 'tcp',
+      tcp_flags => 'FIN,RST FIN,RST',
+      action    => 'drop',
+    }
+
+    firewall {'009 block packets with bogus tcp flags':
+      chain     => 'PREROUTING',
+      table     => 'mangle',
+      proto     => 'tcp',
+      tcp_flags => 'FIN,ACK FIN',
+      action    => 'drop',
+    }
+
+    firewall {'010 block packets with bogus tcp flags':
+      chain     => 'PREROUTING',
+      table     => 'mangle',
+      proto     => 'tcp',
+      tcp_flags => 'ACK,URG URG',
+      action    => 'drop',
+    }
+
+    firewall {'011 block packets with bogus tcp flags':
+      chain     => 'PREROUTING',
+      table     => 'mangle',
+      proto     => 'tcp',
+      tcp_flags => 'ACK,FIN FIN',
+      action    => 'drop',
+    }
+
+    firewall {'012 block packets with bogus tcp flags':
+      chain     => 'PREROUTING',
+      table     => 'mangle',
+      proto     => 'tcp',
+      tcp_flags => 'ACK,PSH PSH',
+      action    => 'drop',
+    }
+
+    firewall {'013 block packets with bogus tcp flags':
+      chain     => 'PREROUTING',
+      table     => 'mangle',
+      proto     => 'tcp',
+      tcp_flags => 'ALL ALL',
+      action    => 'drop',
+    }
+
+    firewall {'014 block packets with bogus tcp flags':
+      chain     => 'PREROUTING',
+      table     => 'mangle',
+      proto     => 'tcp',
+      tcp_flags => 'ALL NONE',
+      action    => 'drop',
+    }
+
+    firewall {'015 block packets with bogus tcp flags':
+      chain     => 'PREROUTING',
+      table     => 'mangle',
+      proto     => 'tcp',
+      tcp_flags => 'ALL FIN,PSH,URG',
+      action    => 'drop',
+    }
+
+    firewall {'016 block packets with bogus tcp flags':
+      chain     => 'PREROUTING',
+      table     => 'mangle',
+      proto     => 'tcp',
+      tcp_flags => 'ALL SYN,FIN,PSH,URG',
+      action    => 'drop',
+    }
+
+    firewall {'017 block packets with bogus tcp flags':
+      chain     => 'PREROUTING',
+      table     => 'mangle',
+      proto     => 'tcp',
+      tcp_flags => 'ALL SYN,RST,ACK,FIN,URG',
+      action    => 'drop',
     }
   }
 
 }
+
