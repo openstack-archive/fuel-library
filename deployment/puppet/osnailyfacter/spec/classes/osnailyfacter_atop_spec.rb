@@ -14,6 +14,8 @@ describe 'osnailyfacter::atop' do
     end
 
     context "with default params" do
+      let(:params) { {:custom_acct_file => '/tmp/test'} }
+
       it 'should setup with platform specific' do
         case facts[:osfamily]
         when 'Debian'
