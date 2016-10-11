@@ -24,8 +24,6 @@ describe 'osnailyfacter::atop' do
           acct_package = 'psacct'
         end
 
-        is_expected.to contain_package(acct_package)
-
         is_expected.to contain_file(conf_file).with(
           file_default_opts.merge(:mode => '0644')
         )
