@@ -24,8 +24,6 @@ describe 'osnailyfacter::atop' do
           acct_package = 'psacct'
         end
 
-        is_expected.to contain_package(acct_package)
-
         is_expected.to contain_file(conf_file).with(
           file_default_opts.merge(:mode => '0644')
         )
@@ -49,6 +47,17 @@ describe 'osnailyfacter::atop' do
         {
           :custom_acct_file => '/tmp/atop.d/atop.acct',
         }
+      end
+
+      it 'should setup with platform specific' do
+        case facts[:osfamily]
+        when 'Debian'
+          acct_package = 'acct'
+        when 'RedHat'
+          acct_package = 'psacct'
+        end
+
+        is_expected.to contain_package(acct_package)
       end
 
       it { is_expected.to contain_file(File.dirname(params[:custom_acct_file])).with(
