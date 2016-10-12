@@ -224,6 +224,11 @@ class openstack_tasks::openstack_network::server_config {
       manage_service                   => true,
     }
 
+    Exec<| title == 'neutron-db-sync' |> {
+      tries     => '10',
+      try_sleep => '5'
+    }
+
     include ::neutron::params
     tweaks::ubuntu_service_override { $::neutron::params::server_service:
       package_name => $neutron::params::server_package ? {
