@@ -35,6 +35,10 @@ if ! [ -d "$WORKSPACE" ] ; then
   exit 1
 fi
 
+# recreate directory if not exists
+mkdir -p "${WORKSPACE}/.bundled_gems"
+export GEM_HOME="${WORKSPACE}/.bundled_gems"
+
 # determine the location of this script
 export SCRIPT_PATH=$(cd `dirname $0` && pwd -P)
 # determine the fuel-library base directory
@@ -55,8 +59,8 @@ function check_lint {
 
   if grep -qs puppet-lint Gemfile && ! grep -qxs $MODULE $WORKSPACE/utils/jenkins/modules.disable_rake-lint ; then
     echo 'Using rake lint'
-    GEM_HOME=$WORKSPACE/.bundled_gems bundle update
-    GEM_HOME=$WORKSPACE/.bundled_gems bundle exec rake lint --trace
+    bundle update
+    bundle exec rake lint --trace
     RETURNVAL=$?
     if [ "${RETURNVAL}" -ne "0" ]; then
         echo "FAILED rake lint, return value was ${RETURNVAL}"
@@ -132,7 +136,7 @@ failed_modules=""
 if [ "$ALL" == '1' ] ; then
   modules=`ls -d $WORKSPACE/deployment/puppet/*`
 elif ! [ -z "$MODULES" ] ; then
-  modules=$MODULES
+  modules="${MODULES/ /}"
 else
   git diff --name-only HEAD~ &>/dev/null || exit 1
   modules=$(git diff --name-only HEAD~ | grep -o 'deployment/puppet/[^/]*/' | sort -u)

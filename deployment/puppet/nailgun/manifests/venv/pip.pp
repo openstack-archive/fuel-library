@@ -6,18 +6,18 @@ define nailgun::venv::pip(
   $owner = undef,
   $group = undef,
   ) {
-    
+
   $grep_regex = $package ? {
     /==/ => "^${package}\$",
     default => "^${package}==",
   }
-    
+
   Exec {
     user => $owner,
     group => $group,
     cwd => "/tmp",
   }
-  
+
   if $ensure == 'present' {
     exec { "$venv/bin/pip install $name":
       command => "$venv/bin/pip install $opts $package",

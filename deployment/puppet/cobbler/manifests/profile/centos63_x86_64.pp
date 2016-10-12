@@ -13,7 +13,7 @@
 #    under the License.
 #
 #
-# 
+#
 # This class is intended to make cobbler profile centos63_x86_64.
 #
 # [distro] The name of cobbler distro to bind profile to.

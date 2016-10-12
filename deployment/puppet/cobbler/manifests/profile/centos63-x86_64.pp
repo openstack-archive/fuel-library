@@ -37,7 +37,7 @@ class cobbler::profile::centos63-x86_64(
               "name" => "Stanford",
               "url"  => "http://mirror.stanford.edu/yum/pub/centos/6.3/os/x86_64",
               }],
-              
+
   $ks_system_timezone         = "America/Los_Angeles",
 
   # default password is 'r00tme'
@@ -51,7 +51,7 @@ class cobbler::profile::centos63-x86_64(
       $ks_dir = "/var/lib/cobbler/kickstarts"
     }
   }
-  
+
   file { "${ks_dir}/centos63-x86_64.ks":
     content => template("cobbler/kickstart/centos.ks.erb"),
     owner => root,
@@ -66,6 +66,6 @@ class cobbler::profile::centos63-x86_64(
     ksmeta => "",
     menu => true,
   }
-  
+
 }
 

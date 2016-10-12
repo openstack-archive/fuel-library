@@ -13,7 +13,7 @@
 #    under the License.
 #
 #
-# 
+#
 # This class is intended to make cobbler distro centos64_x86_64. It will
 # download and mount centos ISO image.
 #
