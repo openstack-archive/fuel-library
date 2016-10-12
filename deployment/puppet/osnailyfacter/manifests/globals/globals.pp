@@ -141,6 +141,7 @@ class osnailyfacter::globals::globals {
   $keystone_api                   = hiera('keystone_api', 'v3')
   $keystone_api_address           = get_network_role_property('keystone/api', 'ipaddr')
   $ceilometer_api_address         = get_network_role_property('ceilometer/api', 'ipaddr')
+  $aodh_api_address               = get_network_role_property('aodh/api', 'ipaddr')
 
   $token_provider                 = hiera('token_provider','keystone.token.providers.fernet.Provider')
 
@@ -439,7 +440,7 @@ class osnailyfacter::globals::globals {
 
   $apache_ports = hiera_array('apache_ports', unique(
     $use_ceilometer ? {
-      true => concat($apache_ports_defaults, "${ceilometer_api_address}:8777"),
+      true => concat($apache_ports_defaults, "${ceilometer_api_address}:8777","${aodh_api_address}:8042"),
       false => $apache_ports_defaults,
     })
   )
