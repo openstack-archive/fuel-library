@@ -446,7 +446,7 @@ class osnailyfacter::globals::globals {
   $sahara_roles = hiera('sahara_roles', ['primary-controller', 'controller'])
   $sahara_nodes = get_nodes_hash_by_roles($network_metadata, $sahara_roles)
 
-  # Define ceilometer-releated parameters
+  # Define ceilometer-related parameters
   $ceilometer = hiera('ceilometer', {})
   $use_ceilometer  = $ceilometer['enabled']
 
