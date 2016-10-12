@@ -95,6 +95,11 @@ class openstack_tasks::aodh::aodh {
   $rabbit_heartbeat_timeout_threshold = pick($aodh_hash['rabbit_heartbeat_timeout_threshold'], $rabbit_hash['heartbeat_timeout_threshold'], 60)
   $rabbit_heartbeat_rate              = pick($aodh_hash['rabbit_heartbeat_rate'], $rabbit_hash['rabbit_heartbeat_rate'], 2)
 
+#as $ssl default value in aodh::wsgi::apache is true and
+#we use SSL at HAproxy, but not the API host we should set 'false'
+#value for $ssl.
+  $ssl = false
+
   #################################################################
 
   class { '::aodh':
@@ -138,16 +143,25 @@ class openstack_tasks::aodh::aodh {
 
   class { '::aodh::api':
     enabled           => true,
-    manage_service    => true,
     package_ensure    => 'present',
     keystone_user     => $aodh_user_name,
     keystone_password => $aodh_user_password,
     keystone_tenant   => $tenant,
     keystone_auth_uri => $keystone_auth_uri,
     keystone_auth_url => $keystone_auth_url,
-    host              => $aodh_api_bind_host,
-    port              => $aodh_api_bind_port,
     memcached_servers => $memcached_servers,
+    service_name      => 'httpd',
+  }
+
+  class { 'osnailyfacter::apache':
+      listen_ports => hiera_array('apache_ports', ['0.0.0.0:80', '0.0.0.0:8888', '0.0.0.0:5000', '0.0.0.0:35357', '0.0.0.0:8777','0.0.0.0:8042']),
+  }
+
+  class { '::aodh::wsgi::apache':
+    ssl       => $ssl,
+    priority  => '15',
+    port      => $aodh_api_bind_port,
+    bind_host => $aodh_api_bind_host,
   }
 
   $haproxy_stats_url = "http://${management_vip}:10000/;csv"
@@ -187,5 +201,5 @@ class openstack_tasks::aodh::aodh {
     Package[$::aodh::params::evaluator_package_name] -> Class['::cluster::aodh_evaluator']
   }
 
-  Service['aodh-api'] -> ::Osnailyfacter::Wait_for_backend['aodh']
+  Service<| title == 'httpd' |> -> ::Osnailyfacter::Wait_for_backend['aodh']
 }

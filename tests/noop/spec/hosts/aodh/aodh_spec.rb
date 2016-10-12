@@ -18,7 +18,7 @@ describe manifest do
     let(:memcached_servers) { Noop.hiera 'memcached_servers' }
 
     let(:aodh_api_bind_host) do
-      Noop.puppet_function 'get_network_role_property', 'aodh/api', 'ipaddr'
+      aodh_api_bind_host = Noop.puppet_function 'get_network_role_property', 'aodh/api', 'ipaddr'
     end
 
     ssl_hash = Noop.hiera_structure 'use_ssl', {}
@@ -62,6 +62,17 @@ describe manifest do
     rabbit_heartbeat_timeout_threshold = Noop.puppet_function 'pick', aodh_hash['rabbit_heartbeat_timeout_threshold'], rabbit_hash['heartbeat_timeout_treshold'], 60
     rabbit_heartbeat_rate = Noop.puppet_function 'pick', aodh_hash['rabbit_heartbeat_rate'], rabbit_hash['heartbeat_rate'], 2
 
+    ssl = 'false'
+
+    it 'should declare aodh::wsgi::apache class with correct parameters' do
+      should contain_class('aodh::wsgi::apache').with(
+        'ssl'       => ssl,
+        'priority'  => '15',
+        'port'      => 8042,
+        'bind_host' => aodh_api_bind_host,
+      )
+    end
+
     it 'should configure RabbitMQ Heartbeat parameters' do
       should contain_aodh_config('oslo_messaging_rabbit/heartbeat_timeout_threshold').with_value(rabbit_heartbeat_timeout_threshold)
       should contain_aodh_config('oslo_messaging_rabbit/heartbeat_rate').with_value(rabbit_heartbeat_rate)
@@ -74,8 +85,6 @@ describe manifest do
     end
 
     it 'should configure "api/" section ' do
-      should contain_aodh_config('api/host').with(:value => "#{aodh_api_bind_host}")
-      should contain_aodh_config('api/port').with(:value => '8042')
       should contain_aodh_config('api/pecan_debug').with(:value => api_pecan_debug)
     end
 
