@@ -18,7 +18,7 @@ description:
   are not available for some reason (e.g. on vacation).
 
   [1] https://specs.openstack.org/openstack/fuel-specs/policy/team-structure
-  [2] https://review.openstack.org/#/admin/groups/659,members
+  [2] https://review.openstack.org/#/admin/groups/658,members
   [3] http://lists.openstack.org/pipermail/openstack-dev/2015-August/072406.html
 
   Please keep this file in YAML format in order to allow helper scripts
@@ -43,6 +43,10 @@ maintainers:
     - name:   Stanislaw Bogatkin
       email:  sbogatkin@mirantis.com
       IRC:    sbog
+
+    - name:   Maksim Malchuk
+      email:  mmalchuk@mirantis.com
+      IRC:    mmalchuk
 
 - debian/: &MOS_packaging_team
 
