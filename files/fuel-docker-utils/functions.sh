@@ -683,8 +683,11 @@ function backup_system_dirs {
 #Pauses containers, backs up system dirs, and then unpauses
 #--full option includes $FULL_BACKUP_DIRS
 
+  local running=$(${DOCKER} ps -q --filter=status=running)
+  local alreadypaused=$(${DOCKER} ps -q --filter=status=paused)
+
   echo "Pausing containers..."
-  ${DOCKER} ps -q | xargs -n1 --no-run-if-empty ${DOCKER} pause
+  for i in ${running}; do ${DOCKER} pause $i; done;
 
   echo "Archiving system folders"
   tar cf $backup_dir/system-dirs.tar -C / $SYSTEM_DIRS
@@ -693,8 +696,13 @@ function backup_system_dirs {
     tar rf $backup_dir/system-dirs.tar -C / $FULL_BACKUP_DIRS
   fi
 
-  echo "Unpausing containers..."
-  ${DOCKER} ps -a | grep Paused | cut -d' ' -f1 | xargs -n1 --no-run-if-empty ${DOCKER} unpause
+  echo "Unpausing previously paused containers..."
+  for i in ${running}; do ${DOCKER} unpause $i; done;
+
+  if [[ -n ${alreadypaused} ]]; then 
+	echo "NOTE: Following containers was not unpaused because they were paused before backup"
+	echo ${alreadypaused}
+  fi
 }
 
 function backup_containers {
