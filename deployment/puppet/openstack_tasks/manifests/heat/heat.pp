@@ -42,7 +42,6 @@ class openstack_tasks::heat::heat {
   $watch_server_url         = "${heat_protocol}://${heat_endpoint}:${api_cloudwatch_bind_port}"
 
   $debug                    = pick($heat_hash['debug'], hiera('debug', false))
-  $verbose                  = pick($heat_hash['verbose'], hiera('verbose', true))
   $use_stderr               = hiera('use_stderr', false)
   $use_syslog               = hiera('use_syslog', true)
   $syslog_log_facility      = hiera('syslog_log_facility_heat')
@@ -212,7 +211,6 @@ class openstack_tasks::heat::heat {
     rabbit_heartbeat_rate              => $rabbit_heartbeat_rate,
 
     log_dir                            => '/var/log/heat',
-    verbose                            => $verbose,
     debug                              => $debug,
     use_syslog                         => $use_syslog,
     use_stderr                         => $use_stderr,

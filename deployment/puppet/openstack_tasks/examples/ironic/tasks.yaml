@@ -6,7 +6,7 @@
     yaql_exp: >
       $.ironic.enabled and changedAny($.ironic,
       $.get('service_endpoint'), $.get('database_vip'),
-      $.get('neutron_endpoint'), $.debug, $.get('verbose'), $.network_metadata,
+      $.get('neutron_endpoint'), $.debug, $.network_metadata,
       $.get('glance_api_servers'), $.get('default_log_levels'),
       $.get('use_syslog'), $.get('syslog_log_facility_ironic'), $.rabbit,
       $.network_metadata.nodes.values().where(
@@ -69,7 +69,7 @@
       $.ironic.enabled and changedAny($.ironic, $.nova,
       $.network_metadata.vips, $.get('database_vip'),
       $.get('neutron_endpoint'), $.get('ironic_endpoint'),
-      $.get('glance_api_servers'), $.debug, $.get('verbose'),
+      $.get('glance_api_servers'), $.debug,
       $.get('use_syslog'), $.get('syslog_log_facility_ironic'),
       $.get('syslog_log_facility_nova'),
       $.network_metadata.nodes.values().where(
