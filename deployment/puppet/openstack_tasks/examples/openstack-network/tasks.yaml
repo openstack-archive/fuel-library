@@ -19,6 +19,22 @@
     puppet_modules: /etc/puppet/modules
     timeout: 1800
 
+- id: neutron-sync-db
+  type: puppet
+  version: 2.2.0
+  tags: [primary-neutron]
+  requires: [nuetron-db]
+  cross-depends:
+    - name: neutron-db
+  condition:
+    yaql_exp: >
+      roleRelocated($.network_metadata.nodes, 'primary-database') and
+      not roleRelocated($.network_metadata.nodes, 'primary-neutron')
+  parameters:
+    puppet_manifest: /etc/puppet/modules/openstack_tasks/examples/openstack-network/sync_db.pp
+    puppet_modules: /etc/puppet/modules
+    timeout: 1800
+
 - id: neutron-keystone
   type: puppet
   version: 2.2.0
