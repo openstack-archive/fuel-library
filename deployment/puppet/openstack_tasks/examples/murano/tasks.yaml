@@ -51,6 +51,27 @@
     puppet_modules: /etc/puppet/modules
     timeout: 1800
 
+- id: murano-sync-db
+  type: puppet
+  version: 2.2.0
+  tags: [primary-controller]
+  requires: [murano-db]
+  required_for: [murano]
+  cross-depends:
+    - name: murano-db
+  cross-depended-by:
+    - name: murano
+      role: self
+  condition:
+    yaql_exp:
+      $.murano.enabled and roleRelocated($.network_metadata.nodes, 'primary-database') and
+      old($.murano.enabled) = $.murano.enabled 
+  parameters:
+    puppet_manifest: /etc/puppet/modules/openstack_tasks/examples/murano/sync_db.pp
+    puppet_modules: /etc/puppet/modules
+    timeout: 1800
+ 
+
 - id: murano-keystone
   type: puppet
   version: 2.2.0

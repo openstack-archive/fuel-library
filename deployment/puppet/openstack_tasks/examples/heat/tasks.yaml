@@ -75,6 +75,25 @@
     puppet_modules: /etc/puppet/modules
     timeout: 1800
 
+- id: heat-sync-db
+  type: puppet
+  version: 2.2.0
+  tags: [primary-controller]
+  requires: [heat-db]
+  required_for: [primary-heat]
+  cross-depends:
+    - name: heat-db
+  cross-depended-by:
+    - name: primary-heat
+      role: self
+  condition:
+    yaql_exp: roleRelocated($.network_metadata.nodes, 'primary-database')
+  parameters:
+    puppet_manifest: /etc/puppet/modules/openstack_tasks/examples/heat/sync_db.pp
+    puppet_modules: /etc/puppet/modules
+    timeout: 1800
+
+
 - id: heat-keystone
   type: puppet
   version: 2.2.0

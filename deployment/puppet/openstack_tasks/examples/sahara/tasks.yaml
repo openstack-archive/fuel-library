@@ -55,6 +55,26 @@
     puppet_modules: /etc/puppet/modules
     timeout: 1800
 
+- id: sahara-sync-db
+  type: puppet
+  version: 2.2.0
+  tags: [primary-controller]
+  requires: [sahara-db]
+  required_for: [sahara]
+  cross-depends:
+    - name: sahara-db
+  cross-depended-by:
+    - name: sahara
+      role: self
+  condition:
+    yaql_ext:
+      $.sahara.enabled and roleRelocated($.network_metadata.nodes, 'primary-database') and
+      old($.sahara.enabled) = $.sahara.enabled
+  parameters:
+    puppet_manifest: /etc/puppet/modules/openstack_tasks/examples/sahara/sync_db.pp
+    puppet_modules: /etc/puppet/modules
+    timeout: 1800
+
 - id: sahara-keystone
   type: puppet
   version: 2.2.0

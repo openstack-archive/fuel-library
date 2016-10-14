@@ -67,3 +67,24 @@
     puppet_manifest: /etc/puppet/modules/openstack_tasks/examples/aodh/db.pp
     puppet_modules: /etc/puppet/modules
     timeout: 1800
+
+- id: aodh-sync-db
+  type: puppet
+  version: 2.2.0
+  tags: [primary-controller]
+  requires: [aodh-db]
+  required_for: [aodh]
+  cross-depends:
+    - name: aodh-db
+  cross-depended-by:
+    - name: aodh
+      role: self
+  condition:
+    yaql_exp: 
+      $.ceilometer.enabled and roleRelocated($.network_metadata.nodes, 'primary-database') and
+      old($.ceilometer.enabled) = $.ceilometer.enabled
+  parameters:
+    puppet_manifest: /etc/puppet/modules/openstack_tasks/examples/aodh/sync_db.pp
+    puppet_modules: /etc/puppet/modules
+    timeout: 1800
+
