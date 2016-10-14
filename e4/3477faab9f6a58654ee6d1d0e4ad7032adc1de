@@ -1,0 +1,9 @@
+Code-Review+2: Denis Egorenko <degorenko@mirantis.com>
+Verified+1: Fuel CI <fuel-ci-bot@mirantis.com>
+Workflow+1: Denis Egorenko <degorenko@mirantis.com>
+Verified+2: Jenkins
+Submitted-by: Jenkins
+Submitted-at: Fri, 14 Oct 2016 11:31:05 +0000
+Reviewed-on: https://review.openstack.org/386498
+Project: openstack/fuel-library
+Branch: refs/heads/stable/mitaka
