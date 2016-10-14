@@ -76,3 +76,21 @@
     puppet_manifest: /etc/puppet/modules/openstack_tasks/examples/glance/keystone.pp
     puppet_modules: /etc/puppet/modules
     timeout: 1800
+
+- id: glance-sync-db
+  type: puppet
+  version: 2.2.0
+  tags: [primary-controller]
+  requires: [glance-db]
+  required_for: [glance]
+  cross-depends:
+    - name: glance-db
+  cross-depends-by:
+    - name: glance
+      role: self
+  condition:
+    yaql_exp: roleRelocated($.network_metadata.nodes, 'primary-database')
+  parameters:
+    puppet_manifest: /etc/puppet/modules/openstack_tasks/examples/glance/sync_db.pp
+    puppet_modules: /etc/puppet/modules
+    timeout: 1800
