@@ -29,6 +29,9 @@ http {
     #keepalive_timeout  0;
     keepalive_timeout  65;
 
+    client_header_timeout 3s;
+    client_body_timeout 3s;
+
     server_tokens off;
     #gzip  on;
 
