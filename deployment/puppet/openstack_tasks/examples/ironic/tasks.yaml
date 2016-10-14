@@ -45,6 +45,25 @@
     puppet_modules: /etc/puppet/modules
     timeout: 1800
 
+- id: ironic-sync-db
+  type: puppet
+  version: 2.2.0
+  tags: [primary-controller]
+  requires: [ironic-db]
+  required_for: [ironic-compute]
+  cross-depends:
+    - name: ironic-db
+  cross-depended-by:
+    - name: ironic-compute
+      role: self
+  condition:
+    yaql_exp: >
+      $.ironic.enabled and roleRelocated($.network_metadata.nodes, 'primary-database') and
+      not changed($.ironic.enabled)
+  parameters:
+    puppet_manifest: /etc/puppet/modules/openstack_tasks/examples/ironic/sync_db.pp
+    puppet_modules: /etc/puppet/modules
+
 - id: ironic-keystone
   type: puppet
   version: 2.2.0
