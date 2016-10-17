@@ -66,23 +66,6 @@
     puppet_modules: /etc/puppet/modules
     timeout: 1800
 
-- id: murano-rabbitmq
-  type: puppet
-  version: 2.1.0
-  groups: [primary-controller, controller]
-  condition:
-    yaql_exp: >
-      $.murano.enabled and changedAny($.rabbit, $.murano)
-  required_for: [murano]
-  cross-depends:
-    - name: /^(primary-)?rabbitmq$/
-      role: self
-  requires: [rabbitmq, primary-rabbitmq]
-  parameters:
-    puppet_manifest: /etc/puppet/modules/openstack_tasks/examples/murano/rabbitmq.pp
-    puppet_modules: /etc/puppet/modules
-    timeout: 1800
-
 - id: murano-cfapi
   type: puppet
   version: 2.1.0

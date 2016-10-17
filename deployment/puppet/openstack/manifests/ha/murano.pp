@@ -97,6 +97,7 @@ class openstack::ha::murano (
   openstack::ha::haproxy_service { 'murano_rabbitmq':
     order                  => '191',
     listen_port            => 55572,
+    balancermember_port    => 5673,
     define_backups         => true,
     internal               => false,
     haproxy_config_options => {
