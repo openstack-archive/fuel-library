@@ -174,7 +174,8 @@ if __name__ == '__main__':
 
     try:
         with daemon.DaemonContext(files_preserve=[lh.socket.fileno()],
-                                  uid=uid, gid=gid, umask=0o022):
+                                  uid=uid, gid=gid, umask=0o022,
+				  detach_process=True):
             main()
     except Exception:
         my_logger.exception("A generic exception caught!")
