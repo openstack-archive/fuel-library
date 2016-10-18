@@ -24,79 +24,79 @@
 # Pull in puppet-aodh
 mod 'aodh',
     :git => 'https://github.com/fuel-infra/puppet-aodh.git',
-    :ref => '9.4.0'
+    :ref => 'master'
 
 # Pull in puppet-ceilometer
 mod 'ceilometer',
     :git => 'https://github.com/fuel-infra/puppet-ceilometer.git',
-    :ref => '9.4.0'
+    :ref => 'master'
 
 # Pull in openstack-cinder
 mod 'cinder',
     :git => 'https://github.com/fuel-infra/openstack-cinder.git',
-    :ref => '9.4.0'
+    :ref => 'master'
 
 # Pull in puppet-glance
 mod 'glance',
     :git => 'https://github.com/fuel-infra/puppet-glance.git',
-    :ref => '9.4.0'
+    :ref => 'master'
 
 # Pull in puppet-heat
 mod 'heat',
     :git => 'https://github.com/fuel-infra/puppet-heat.git',
-    :ref => '9.4.1'
+    :ref => 'master'
 
 # Pull in puppet-horizon
 mod 'horizon',
     :git => 'https://github.com/fuel-infra/puppet-horizon.git',
-    :ref => '9.4.0'
+    :ref => 'master'
 
 # Pull in puppet-ironic
 mod 'ironic',
     :git => 'https://github.com/fuel-infra/puppet-ironic.git',
-    :ref => '9.4.0'
+    :ref => 'master'
 
 # Pull in puppet-keystone
 mod 'keystone',
     :git => 'https://github.com/fuel-infra/puppet-keystone.git',
-    :ref => '9.4.0'
+    :ref => 'master'
 
 # Pull in puppet-openstacklib
 mod 'openstacklib',
     :git => 'https://github.com/fuel-infra/puppet-openstacklib.git',
-    :ref => '9.4.0'
+    :ref => 'master'
 
 # Pull in puppet-oslo
 mod 'oslo',
     :git => 'https://github.com/fuel-infra/puppet-oslo.git',
-    :ref => '9.4.0'
+    :ref => 'master'
 
 # Pull in puppet-neutron
 mod 'neutron',
     :git => 'https://github.com/fuel-infra/puppet-neutron.git',
-    :ref => '9.4.0'
+    :ref => 'master'
 
 # Pull in puppet-nova
 mod 'nova',
     :git => 'https://github.com/fuel-infra/puppet-nova.git',
-    :ref => '9.4.0'
+    :ref => 'master'
 
 # Pull in puppet-murano
 mod 'murano',
     :git => 'https://github.com/fuel-infra/puppet-murano.git',
-    :ref => '9.4.0'
+    :ref => 'master'
 
 # Pull in puppet-sahara
 mod 'sahara',
     :git => 'https://github.com/fuel-infra/puppet-sahara.git',
-    :ref => '9.4.0'
+    :ref => 'master'
 
 # Pull in puppet-swift
 mod 'swift',
     :git => 'https://github.com/fuel-infra/puppet-swift.git',
-    :ref => '9.4.1'
+    :ref => 'master'
 
 # Pull in puppet-ceph
 mod 'ceph',
     :git => 'https://github.com/fuel-infra/puppet-ceph.git',
-    :ref => '2.2.1'
+    :ref => 'master'
