@@ -24,8 +24,8 @@ class osnailyfacter::cluster::cluster {
   class { '::cluster':
     internal_address         => get_network_role_property('mgmt/corosync', 'ipaddr'),
     quorum_members           => $corosync_nodes_processed['ips'],
-    unicast_addresses        => $corosync_nodes_processed['ips'],
     quorum_members_ids       => $corosync_nodes_processed['ids'],
+    unicast_addresses        => sort($corosync_nodes_processed['ips']),
     cluster_recheck_interval => $cluster_recheck_interval,
   }
 

@@ -299,7 +299,7 @@ class osnailyfacter::globals::globals {
     # using RabbitMQ servers on controllers
     # todo(sv): switch from 'controller' nodes to 'rmq' nodes as soon as it was implemented as additional node-role
     $controllers_with_amqp_server = get_node_to_ipaddr_map_by_network_role($controller_nodes, 'mgmt/messaging')
-    $amqp_nodes = ipsort(values($controllers_with_amqp_server))
+    $amqp_nodes = sorted_hosts($controllers_with_amqp_server, 'ip', 'ip')
     # amqp_hosts() randomize order of RMQ endpoints and put local one first
     $amqp_hosts = amqp_hosts($amqp_nodes, $amqp_port, get_network_role_property('mgmt/messaging', 'ipaddr'))
   }
@@ -500,7 +500,7 @@ class osnailyfacter::globals::globals {
     $memcached_addresses = hiera('memcached_addresses')
   } else {
     $memcache_nodes = get_nodes_hash_by_roles($network_metadata, $memcache_roles)
-    $memcached_addresses = ipsort(values(get_node_to_ipaddr_map_by_network_role($memcache_nodes, 'mgmt/memcache')))
+    $memcached_addresses = sorted_hosts(get_node_to_ipaddr_map_by_network_role($memcache_nodes, 'mgmt/memcache'), 'ip', 'ip')
   }
   $memcached_port    = hiera('memcache_server_port', '11211')
   $memcached_servers = suffix($memcached_addresses, ":${memcached_port}")
