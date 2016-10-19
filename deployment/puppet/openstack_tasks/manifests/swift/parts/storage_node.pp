@@ -49,6 +49,7 @@ class openstack_tasks::swift::parts::storage_node (
   $qpid_user                  = 'nova',
   $qpid_nodes                 = ['127.0.0.1'],
   $log_facility               = 'LOG_LOCAL2',
+  $rsync_group                = 'glance',
 ) {
   if !defined(Class['swift']) {
     class { 'swift':
@@ -86,16 +87,18 @@ class openstack_tasks::swift::parts::storage_node (
   # override log_name defaults for Swift::Storage::Server
   # TODO (adidenko) move this into Hiera when it's ready
   Swift::Storage::Server <| title == '6000' |> {
+    group    => $rsync_group,
     log_name => 'swift-object-server',
   }
   Swift::Storage::Server <| title == '6001' |> {
+    group          => $rsync_group,
     log_name       => 'swift-container-server',
     allow_versions => true,
   }
   Swift::Storage::Server <| title == '6002' |> {
+    group    => $rsync_group,
     log_name => 'swift-account-server',
   }
-
   Swift::Storage::Server <| |> {
     incoming_chmod => $incoming_chmod,
     outgoing_chmod => $outgoing_chmod,
