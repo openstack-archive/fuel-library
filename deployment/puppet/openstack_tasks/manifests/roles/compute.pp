@@ -385,6 +385,16 @@ class openstack_tasks::roles::compute {
     override_uuid => true,
   }
 
+  # To live migrate, user nova has to ssh to another compute node, so user nova should
+  # have a login shell, but rpm install process creates user nova don't have a login shell
+  if $::osfamily == 'RedHat' {
+    user { 'nova':
+      name   => 'nova',
+      ensure => 'present',
+      shell  => '/bin/bash',
+    }
+  }
+
   # From legacy libvirt.pp
   if $::operatingsystem == 'Ubuntu' {
     package { 'cpufrequtils':
