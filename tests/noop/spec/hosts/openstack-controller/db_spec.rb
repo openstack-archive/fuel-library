@@ -7,7 +7,7 @@ describe manifest do
     nova_db_user = 'nova'
     nova_db_password = Noop.hiera_structure 'nova/db_password'
     nova_db_dbname = 'nova'
-    allowed_hosts = [Noop.hostname,'localhost','127.0.0.1','%']
+    allowed_hosts = ['localhost','127.0.0.1','%']
 
     it 'should install proper mysql-client' do
       if facts[:osfamily] == 'RedHat'
