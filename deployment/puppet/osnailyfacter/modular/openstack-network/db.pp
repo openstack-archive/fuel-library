@@ -1,6 +1,5 @@
 notice('MODULAR: openstack-network/db.pp')
 
-$node_name      = hiera('node_name')
 $use_neutron    = hiera('use_neutron', false)
 $neutron_hash   = hiera_hash('quantum_settings', {})
 $mysql_hash     = hiera_hash('mysql', {})
@@ -22,7 +21,7 @@ $db_create        = pick($neutron_db['db_create'], $mysql_db_create)
 $db_root_user     = pick($neutron_db['root_user'], $mysql_root_user)
 $db_root_password = pick($neutron_db['root_password'], $mysql_root_password)
 
-$allowed_hosts = [ $node_name, 'localhost', '127.0.0.1', '%' ]
+$allowed_hosts = [ 'localhost', '127.0.0.1', '%' ]
 
 validate_string($mysql_root_user)
 

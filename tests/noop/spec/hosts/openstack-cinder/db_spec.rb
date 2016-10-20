@@ -7,7 +7,7 @@ describe manifest do
     cinder_db_user = 'cinder'
     cinder_db_password = Noop.hiera_structure 'cinder/db_password'
     cinder_db_dbname = 'cinder'
-    allowed_hosts = [Noop.hostname,'localhost','127.0.0.1','%']
+    allowed_hosts = ['localhost','127.0.0.1','%']
 
     it 'should install proper mysql-client' do
       if facts[:osfamily] == 'RedHat'

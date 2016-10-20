@@ -134,7 +134,7 @@ class openstack::controller (
   $db_type                        = 'mysql',
   $mysql_account_security         = true,
   $mysql_bind_address             = '0.0.0.0',
-  $allowed_hosts                  = [ '%', $::hostname ],
+  $allowed_hosts                  = [ '%' ],
   $status_check                   = false,
   $status_user                    = false,
   $status_password                = false,

@@ -10,7 +10,7 @@ describe manifest do
       ironic_db_user = 'ironic'
       ironic_db_dbname = 'ironic'
       ironic_db_password = Noop.hiera_structure 'ironic/db_password'
-      allowed_hosts = [Noop.hostname,'localhost','127.0.0.1','%']
+      allowed_hosts = ['localhost','127.0.0.1','%']
 
       it 'should install proper mysql-client' do
         if facts[:osfamily] == 'RedHat'

@@ -1,6 +1,5 @@
 notice('MODULAR: keystone/db.pp')
 
-$node_name = hiera('node_name')
 $network_metadata = hiera_hash('network_metadata', {})
 
 $keystone_hash  = hiera_hash('keystone', {})
@@ -20,7 +19,7 @@ $db_create        = pick($keystone_hash['db_create'], $mysql_db_create)
 $db_root_user     = pick($keystone_hash['root_user'], $mysql_root_user)
 $db_root_password = pick($keystone_hash['root_password'], $mysql_root_password)
 
-$allowed_hosts = [ $node_name, 'localhost', '127.0.0.1', '%' ]
+$allowed_hosts = [ 'localhost', '127.0.0.1', '%' ]
 
 if $db_create {
 
