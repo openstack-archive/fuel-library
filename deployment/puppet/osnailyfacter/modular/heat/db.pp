@@ -18,7 +18,7 @@ $db_create        = pick($heat_hash['db_create'], $mysql_db_create)
 $db_root_user     = pick($heat_hash['root_user'], $mysql_root_user)
 $db_root_password = pick($heat_hash['root_password'], $mysql_root_password)
 
-$allowed_hosts = [ $::hostname, 'localhost', '127.0.0.1', '%' ]
+$allowed_hosts = [ 'localhost', '127.0.0.1', '%' ]
 
 validate_string($mysql_root_user)
 
