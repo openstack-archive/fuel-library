@@ -64,6 +64,17 @@ describe manifest do
 
     ssl = 'false'
 
+    it 'should declare aodh::keystone::authtoken class with correct parameters' do
+      should contain_class('aodh::keystone::authtoken').with(
+        'username'          => user,
+        'password'          => password,
+        'project_name'      => tenant,
+        'auth_uri'          => keystone_auth_uri,
+        'auth_url'          => keystone_auth_url,
+        'memcached_servers' => memcached_servers,
+      )
+    end
+
     it 'should declare aodh::wsgi::apache class with correct parameters' do
       should contain_class('aodh::wsgi::apache').with(
         'ssl'       => ssl,
