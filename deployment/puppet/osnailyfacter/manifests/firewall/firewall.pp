@@ -553,4 +553,145 @@ class osnailyfacter::firewall::firewall {
     }
   }
 
+# Additional ddos-protection rules
+  if $assign_to_all_nodes or member($roles, 'primary-controller') or member($roles, 'controller') {  
+    firewall {'001 block invalid packets':
+      chain   => 'PREROUTING',
+      table   => 'mangle',
+      proto   => 'all',
+      ctstate => 'INVALID',
+      action  => 'drop',
+    }
+
+    firewall {'002 block not-syn new packets':
+      chain     => 'PREROUTING',
+      table     => 'mangle',
+      proto     => 'tcp',
+      ctstate   => 'NEW',
+      tcp_flags => '! SYN,RST,ACK,FIN SYN',
+      action    => 'drop',
+    }
+
+    firewall {'003 block uncommon mss values':
+      chain     => 'PREROUTING',
+      table     => 'mangle',
+      proto     => 'tcp',
+      ctstate   => 'NEW',
+      mss       => '! 536:65535',
+      action    => 'drop',
+    }
+
+    firewall {'004 block packets with bogus tcp flags':
+      chain     => 'PREROUTING',
+      table     => 'mangle',
+      proto     => 'tcp',
+      tcp_flags => 'FIN,SYN,RST,PSH,ACK,URG NONE',
+      action    => 'drop',
+    }
+
+    firewall {'005 block packets with bogus tcp flags':
+      chain     => 'PREROUTING',
+      table     => 'mangle',
+      proto     => 'tcp',
+      tcp_flags => 'FIN,SYN FIN,SYN',
+      action    => 'drop',
+    }
+
+    firewall {'006 block packets with bogus tcp flags':
+      chain     => 'PREROUTING',
+      table     => 'mangle',
+      proto     => 'tcp',
+      tcp_flags => 'SYN,RST SYN,RST',
+      action    => 'drop',
+    }
+
+    firewall {'007 block packets with bogus tcp flags':
+      chain     => 'PREROUTING',
+      table     => 'mangle',
+      proto     => 'tcp',
+      tcp_flags => 'SYN,FIN SYN,FIN',
+      action    => 'drop',
+    }
+
+    firewall {'008 block packets with bogus tcp flags':
+      chain     => 'PREROUTING',
+      table     => 'mangle',
+      proto     => 'tcp',
+      tcp_flags => 'FIN,RST FIN,RST',
+      action    => 'drop',
+    }
+
+    firewall {'009 block packets with bogus tcp flags':
+      chain     => 'PREROUTING',
+      table     => 'mangle',
+      proto     => 'tcp',
+      tcp_flags => 'FIN,ACK FIN',
+      action    => 'drop',
+    }
+
+    firewall {'010 block packets with bogus tcp flags':
+      chain     => 'PREROUTING',
+      table     => 'mangle',
+      proto     => 'tcp',
+      tcp_flags => 'ACK,URG URG',
+      action    => 'drop',
+    }
+
+    firewall {'011 block packets with bogus tcp flags':
+      chain     => 'PREROUTING',
+      table     => 'mangle',
+      proto     => 'tcp',
+      tcp_flags => 'ACK,FIN FIN',
+      action    => 'drop',
+    }
+
+    firewall {'012 block packets with bogus tcp flags':
+      chain     => 'PREROUTING',
+      table     => 'mangle',
+      proto     => 'tcp',
+      tcp_flags => 'ACK,PSH PSH',
+      action    => 'drop',
+    }
+
+    firewall {'013 block packets with bogus tcp flags':
+      chain     => 'PREROUTING',
+      table     => 'mangle',
+      proto     => 'tcp',
+      tcp_flags => 'ALL ALL',
+      action    => 'drop',
+    }
+
+    firewall {'014 block packets with bogus tcp flags':
+      chain     => 'PREROUTING',
+      table     => 'mangle',
+      proto     => 'tcp',
+      tcp_flags => 'ALL NONE',
+      action    => 'drop',
+    }
+
+    firewall {'015 block packets with bogus tcp flags':
+      chain     => 'PREROUTING',
+      table     => 'mangle',
+      proto     => 'tcp',
+      tcp_flags => 'ALL FIN,PSH,URG',
+      action    => 'drop',
+    }
+
+    firewall {'016 block packets with bogus tcp flags':
+      chain     => 'PREROUTING',
+      table     => 'mangle',
+      proto     => 'tcp',
+      tcp_flags => 'ALL SYN,FIN,PSH,URG',
+      action    => 'drop',
+    }
+
+    firewall {'017 block packets with bogus tcp flags':
+      chain     => 'PREROUTING',
+      table     => 'mangle',
+      proto     => 'tcp',
+      tcp_flags => 'ALL SYN,RST,ACK,FIN,URG',
+      action    => 'drop',
+    }
+  }
+
 }
