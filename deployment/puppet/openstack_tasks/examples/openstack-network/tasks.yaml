@@ -70,14 +70,14 @@
     puppet_modules: /etc/puppet/modules
     timeout: 1800
 
-- id: openstack-network-server-config
+- id: primary-openstack-network-server-config
   type: puppet
   version: 2.1.0
-  groups: [primary-controller,controller]
+  groups: [primary-controller]
   required_for: [openstack-network-end]
   requires: [openstack-network-start, openstack-network-common-config]
   condition:
-    yaql_exp: >
+    yaql_exp: &server_config >
       changedAny($.quantum, $.configuration, $.quantum_settings,
       $.get('database_vip'), $.network_metadata.vips, $.nova,
       $.get('neutron_primary_controller_roles'),
@@ -89,12 +89,28 @@
     puppet_modules: /etc/puppet/modules
     timeout: 1800
 
+- id: openstack-network-server-config
+  type: puppet
+  version: 2.1.0
+  groups: [controller]
+  required_for: [openstack-network-end]
+  requires: [openstack-network-start, openstack-network-common-config]
+  condition:
+    yaql_exp: *server_config
+  refresh_on: [neutron_plugin_ml2, neutron_config, neutron_api_config]
+  cross-depends:
+    - name: primary-openstack-network-server-config
+  parameters:
+    puppet_manifest: /etc/puppet/modules/openstack_tasks/examples/openstack-network/server-config.pp
+    puppet_modules: /etc/puppet/modules
+    timeout: 1800
+
 - id: primary-openstack-network-plugins-l2
   type: puppet
   version: 2.1.0
   groups: [primary-controller]
   required_for: [openstack-network-end]
-  requires: [openstack-network-start, openstack-network-common-config, openstack-network-server-config]
+  requires: [openstack-network-start, openstack-network-common-config, primary-openstack-network-server-config]
   condition:
     yaql_exp: &network_plugins_l2 >
       changedAny($.quantum, $.configuration, $.fqdn,
@@ -130,7 +146,7 @@
   version: 2.1.0
   groups: [primary-controller]
   required_for: [openstack-network-end]
-  requires: [openstack-network-start, openstack-network-common-config, openstack-network-server-config, primary-openstack-network-plugins-l2]
+  requires: [openstack-network-start, openstack-network-common-config, primary-openstack-network-server-config, primary-openstack-network-plugins-l2]
   condition:
     yaql_exp: "changedAny($.access, $.quantum_settings, $.quantum)"
   parameters:
@@ -249,7 +265,7 @@
   version: 2.1.0
   groups: [primary-controller]
   required_for: [openstack-network-end]
-  requires: [openstack-network-start, openstack-network-common-config, openstack-network-server-config, openstack-network-server-nova, openstack-network-agents-l3]
+  requires: [openstack-network-start, openstack-network-common-config, primary-openstack-network-server-config, openstack-network-server-nova, openstack-network-agents-l3]
   condition:
     yaql_exp: &network_agents_dhcp >
       changedAny($.quantum, $.configuration, $.debug,
@@ -287,7 +303,7 @@
   version: 2.1.0
   groups: [primary-controller]
   required_for: [openstack-network-end]
-  requires: [openstack-network-start, openstack-network-common-config, openstack-network-server-config, openstack-network-server-nova, openstack-network-agents-l3]
+  requires: [openstack-network-start, openstack-network-common-config, primary-openstack-network-server-config, openstack-network-server-nova, openstack-network-agents-l3]
   refresh_on: [neutron_metadata_agent_config]
   condition:
     yaql_exp: &network_agents_metadata >
