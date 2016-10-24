@@ -220,28 +220,32 @@ class openstack_tasks::keystone::keystone {
     murano_glare_plugin => $murano_glare_plugin,
   }
 
-  osnailyfacter::credentials_file { "${operator_user_homedir}/openrc":
-    admin_user          => $admin_user,
-    admin_password      => $admin_password,
-    admin_tenant        => $admin_tenant,
-    region_name         => $region,
-    auth_url            => $auth_url,
-    murano_repo_url     => $murano_repo_url,
-    murano_glare_plugin => $murano_glare_plugin,
-    owner               => $operator_user_name,
-    group               => $operator_user_name,
+  if !defined(Osnailyfacter::Credentials_file("${operator_user_homedir}/openrc") {
+    osnailyfacter::credentials_file { "${operator_user_homedir}/openrc":
+      admin_user          => $admin_user,
+      admin_password      => $admin_password,
+      admin_tenant        => $admin_tenant,
+      region_name         => $region,
+      auth_url            => $auth_url,
+      murano_repo_url     => $murano_repo_url,
+      murano_glare_plugin => $murano_glare_plugin,
+      owner               => $operator_user_name,
+      group               => $operator_user_name,
+    }
   }
 
-  osnailyfacter::credentials_file { "${service_user_homedir}/openrc":
-    admin_user          => $admin_user,
-    admin_password      => $admin_password,
-    admin_tenant        => $admin_tenant,
-    region_name         => $region,
-    auth_url            => $auth_url,
-    murano_repo_url     => $murano_repo_url,
-    murano_glare_plugin => $murano_glare_plugin,
-    owner               => $service_user_name,
-    group               => $service_user_name,
+  if !defined(Osnailyfacter::Credentials_file("${service_user_homedir}/openrc") {
+    osnailyfacter::credentials_file { "${service_user_homedir}/openrc":
+      admin_user          => $admin_user,
+      admin_password      => $admin_password,
+      admin_tenant        => $admin_tenant,
+      region_name         => $region,
+      auth_url            => $auth_url,
+      murano_repo_url     => $murano_repo_url,
+      murano_glare_plugin => $murano_glare_plugin,
+      owner               => $service_user_name,
+      group               => $service_user_name,
+    }
   }
 
   # Get paste.ini source
