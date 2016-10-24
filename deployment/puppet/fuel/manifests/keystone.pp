@@ -56,6 +56,7 @@ class fuel::keystone (
     database_connection => "${db_engine}://${db_user}:${db_password}@${db_host}:${db_port}/${db_name}",
     token_expiration    => $token_expiration,
     token_provider      => 'keystone.token.providers.uuid.Provider',
+    enable_fernet_setup => false,
     default_domain      => $keystone_domain,
     service_name        => 'httpd',
     use_syslog          => true,

@@ -31,6 +31,10 @@ describe manifest do
       is_expected.to contain_class('fuel::keystone').with parameters
     end
 
+    it 'should declare keystone class with enable_fernet_setup set to false' do
+      should contain_class('keystone').with('enable_fernet_setup' => false)
+    end
+
     it {
       should contain_service('httpd').with(
         :ensure => 'running',
