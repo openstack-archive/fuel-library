@@ -322,6 +322,8 @@ class openstack_tasks::keystone::keystone {
       memcache_servers                   => $memcache_servers,
       token_driver                       => $token_driver,
       token_provider                     => $token_provider,
+      # Fernet keys are generated on master
+      enable_fernet_setup                => false,
       notification_driver                => $ceilometer_hash['notification_driver'],
       token_caching                      => $token_caching,
       cache_backend                      => $cache_backend,

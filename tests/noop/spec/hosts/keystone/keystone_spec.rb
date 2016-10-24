@@ -174,6 +174,11 @@ describe manifest do
       should contain_class('keystone').with('revoke_by_id' => false)
     end
 
+    it 'should declare keystone class with enable_fernet_setup set to false' do
+      # Fernet keys are generated on master
+      should contain_class('keystone').with('enable_fernet_setup' => false)
+    end
+
     it 'should configure keystone with paramters' do
       should contain_keystone_config('token/caching').with(:value => 'false')
       should contain_keystone_config('cache/enabled').with(:value => 'true')
