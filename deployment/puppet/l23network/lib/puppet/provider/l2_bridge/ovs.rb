@@ -28,6 +28,11 @@ Puppet::Type.type(:l2_bridge).provide(:ovs, :parent => Puppet::Provider::Ovs_bas
     cmd = ['add-br', @resource[:bridge]]
     cmd += ['--', 'set', 'Bridge', @resource[:bridge], "datapath_type=#{datapath_type}"] if datapath_type
     vsctl(cmd)
+
+    # set vxlan id
+    vlan_id = vendor_specific['vlan_id']
+    vsctl('set', 'Port', @resource[:bridge], "tag=#{vlan_id}") if vlan_id
+
     self.class.interface_up(@resource[:bridge])
     notice("bridge '#{@resource[:bridge]}' created.")
   end
@@ -56,6 +61,12 @@ Puppet::Type.type(:l2_bridge).provide(:ovs, :parent => Puppet::Provider::Ovs_bas
         end
       end
       #
+      # handle vxlan tag changes
+      if @property_flush[:vendor_specific] and @property_flush[:vendor_specific] != :absent
+        vlan_id = @property_flush[:vendor_specific]['vlan_id'] || []
+        vsctl('set', 'Port', @resource[:bridge], "tag=#{vlan_id}")
+      end
+
       @property_hash = resource.to_hash
     end
   end
