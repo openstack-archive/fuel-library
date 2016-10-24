@@ -225,28 +225,53 @@ class openstack_tasks::keystone::keystone {
     murano_glare_plugin => $murano_glare_plugin,
   }
 
-  osnailyfacter::credentials_file { "${operator_user_homedir}/openrc":
-    admin_user          => $admin_user,
-    admin_password      => $admin_password,
-    admin_tenant        => $admin_tenant,
-    region_name         => $region,
-    auth_url            => $auth_url,
-    murano_repo_url     => $murano_repo_url,
-    murano_glare_plugin => $murano_glare_plugin,
-    owner               => $operator_user_name,
-    group               => $operator_user_name,
+  if ("${operator_user_homedir}/openrc" == "${service_user_homedir}/openrc") {
+    if ("${operator_user_homedir}/openrc" != "/root/openrc") {
+      $create_operator_openrc = true
+      $create_service_openrc = false
+    } else {
+      $create_operator_openrc = false
+      $create_service_openrc = false
+    }
+  } else {
+    if ("${operator_user_homedir}/openrc" != "/root/openrc") {
+      $create_operator_openrc = true
+    } else {
+      $create_operator_openrc = false
+    }
+    if ("${service_user_homedir}/openrc" != "/root/openrc") {
+      $create_service_openrc = true
+    } else {
+      $create_service_openrc = false
+    }
   }
 
-  osnailyfacter::credentials_file { "${service_user_homedir}/openrc":
-    admin_user          => $admin_user,
-    admin_password      => $admin_password,
-    admin_tenant        => $admin_tenant,
-    region_name         => $region,
-    auth_url            => $auth_url,
-    murano_repo_url     => $murano_repo_url,
-    murano_glare_plugin => $murano_glare_plugin,
-    owner               => $service_user_name,
-    group               => $service_user_name,
+  if $create_operator_openrc {
+    osnailyfacter::credentials_file { "${operator_user_homedir}/openrc":
+      admin_user          => $admin_user,
+      admin_password      => $admin_password,
+      admin_tenant        => $admin_tenant,
+      region_name         => $region,
+      auth_url            => $auth_url,
+      murano_repo_url     => $murano_repo_url,
+      murano_glare_plugin => $murano_glare_plugin,
+      owner               => $operator_user_name,
+      group               => $operator_user_name,
+    }
+  }
+
+  if $create_service_openrc {
+    osnailyfacter::credentials_file { "${service_user_homedir}/openrc":
+      admin_user          => $admin_user,
+      admin_password      => $admin_password,
+      admin_tenant        => $admin_tenant,
+      region_name         => $region,
+      auth_url            => $auth_url,
+      murano_repo_url     => $murano_repo_url,
+      murano_glare_plugin => $murano_glare_plugin,
+      owner               => $service_user_name,
+      group               => $service_user_name,
+    }
   }
 
   # Get paste.ini source
