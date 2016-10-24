@@ -139,6 +139,7 @@ describe provider_class do
                 :stp => false,
                 :vendor_specific => {
                     :datapath_type=>"netdev",
+                    :vlan_id => "10",
                     :external_ids => {
                         :"bridge-id" => "br-dpdk"
                     },
@@ -184,6 +185,7 @@ describe provider_class do
               :name=>"br-dpdk",
               :vendor_specific=>{
                   :datapath_type=>"netdev",
+                  :vlan_id => "10",
                   :external_ids=>{
                       :"bridge-id"=>"br-dpdk"
                   },
