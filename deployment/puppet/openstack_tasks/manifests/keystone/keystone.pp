@@ -215,14 +215,16 @@ class openstack_tasks::keystone::keystone {
     }
   }
 
-  osnailyfacter::credentials_file { '/root/openrc':
-    admin_user          => $admin_user,
-    admin_password      => $admin_password,
-    admin_tenant        => $admin_tenant,
-    region_name         => $region,
-    auth_url            => $auth_url,
-    murano_repo_url     => $murano_repo_url,
-    murano_glare_plugin => $murano_glare_plugin,
+  if $operator_user_homedir != '/root' {
+    osnailyfacter::credentials_file { '/root/openrc':
+      admin_user          => $admin_user,
+      admin_password      => $admin_password,
+      admin_tenant        => $admin_tenant,
+      region_name         => $region,
+      auth_url            => $auth_url,
+      murano_repo_url     => $murano_repo_url,
+      murano_glare_plugin => $murano_glare_plugin,
+    }
   }
 
   osnailyfacter::credentials_file { "${operator_user_homedir}/openrc":
