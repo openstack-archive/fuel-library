@@ -129,12 +129,12 @@ describe manifest do
       it {
         if enable_qos
           qos_notification_drivers = 'message_queue'
-          extension_drivers = ['port_security', 'qos']
+          extension_drivers = ['dns', 'port_security', 'qos']
 
           should contain_class('neutron::server').with(
             'qos_notification_drivers' => qos_notification_drivers,)
         else
-          extension_drivers = ['port_security']
+          extension_drivers = ['dns', 'port_security']
         end
 
         should contain_class('neutron::plugins::ml2').with(
