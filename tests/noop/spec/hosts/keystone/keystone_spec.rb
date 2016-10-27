@@ -273,18 +273,6 @@ describe manifest do
        should contain_keystone_config('DEFAULT/use_stderr').with(:value => 'false')
      end
 
-     it 'should create/update params with override_resources' do
-       is_expected.to contain_override_resources('keystone_config').with(:data => keystone_config_override)
-     end
-
-    it 'should use "override_resources" to update the catalog' do
-      ral_catalog = Noop.create_ral_catalog self
-      keystone_config_override.each do |title, params|
-        params['value'] = 'True' if params['value'].is_a? TrueClass
-        expect(ral_catalog).to contain_keystone_config(title).with(params)
-      end
-    end
-
     it 'should contain oslo_messaging_notifications "driver" option' do
       should contain_keystone_config('oslo_messaging_notifications/driver').with(:value => ceilometer_hash['notification_driver'])
     end
