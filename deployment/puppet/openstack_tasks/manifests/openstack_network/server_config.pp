@@ -97,10 +97,10 @@ class openstack_tasks::openstack_network::server_config {
 
   if $enable_qos {
     $qos_notification_drivers = 'message_queue'
-    $extension_drivers = ['port_security', 'qos']
+    $extension_drivers = ['dns', 'port_security', 'qos']
   } else {
     $qos_notification_drivers = undef
-    $extension_drivers = ['port_security']
+    $extension_drivers = ['dns', 'port_security']
   }
 
   $nova_auth_user          = pick($nova_hash['user'], 'nova')
