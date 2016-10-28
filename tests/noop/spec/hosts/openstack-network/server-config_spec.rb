@@ -27,7 +27,7 @@ describe manifest do
         service_endpoint = Noop.hiera('service_endpoint', management_vip)
         l3_ha            = Noop.hiera_hash('neutron_advanced_configuration', {}).fetch('neutron_l3_ha', false)
         sync_db          = Noop.puppet_function('has_primary_role', Noop.puppet_function('intersection', Noop.hiera('neutron_roles'), Noop.hiera('roles')))
-        extension_drivers = ['port_security']
+        extension_drivers = ['dns','port_security']
         segmentation_type = neutron_config.fetch('L2',{}).fetch('segmentation_type')
         pnets = neutron_config.fetch('L2',{}).fetch('phys_nets',{})
         role = Noop.hiera('role')
