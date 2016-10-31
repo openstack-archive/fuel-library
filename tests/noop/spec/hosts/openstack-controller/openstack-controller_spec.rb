@@ -41,6 +41,10 @@ describe manifest do
       end
     end
 
+    let(:memcached_port) { Noop.hiera 'memcached_server_port', '11211' }
+    let(:memcached_address) { Noop.puppet_function 'get_network_role_property', 'mgmt/memcache', 'ipaddr' }
+    let(:memcached_authtoken_server) { "#{memcached_address}:#{memcached_port}" }
+
     primary_controller = Noop.hiera 'primary_controller'
     service_endpoint = Noop.hiera 'service_endpoint'
     management_vip = Noop.hiera 'management_vip'
@@ -186,7 +190,7 @@ describe manifest do
 
     it 'nova config should contain right memcached servers list' do
       should contain_nova_config('keystone_authtoken/memcached_servers').with(
-        'value' => memcache_servers,
+        'value' => memcached_authtoken_server,
       )
     end
 
@@ -225,6 +229,7 @@ describe manifest do
         :database_max_retries   => max_retries,
         :database_max_overflow  => max_overflow,
         :notify_on_state_change => 'vm_and_task_state',
+        :memcached_servers      => memcached_authtoken_server,
       )
     end
 
