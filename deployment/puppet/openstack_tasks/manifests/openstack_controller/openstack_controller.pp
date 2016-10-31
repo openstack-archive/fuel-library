@@ -172,6 +172,14 @@ class openstack_tasks::openstack_controller::openstack_controller {
 
   $memcached_servers = hiera('memcached_servers')
 
+  # LP1621541 In order to increase nova performance after failover,
+  # we need to point nova to local memcached instance for keystone tokens,
+  # in future we can consider moving memcached under HAproxy
+  $memcached_port = hiera('memcache_server_port', '11211')
+  $memcached_address = get_network_role_property('mgmt/memcache', 'ipaddr')
+  $memcached_server = "${memcached_address}:${memcached_port}"
+
+
   $rpc_backend   = 'nova.openstack.common.rpc.impl_kombu'
   $amqp_hosts    = hiera('amqp_hosts','')
   $amqp_user     = $rabbit_hash['user']
@@ -209,7 +217,7 @@ class openstack_tasks::openstack_controller::openstack_controller {
     notify_api_faults                  => pick($nova_hash['notify_api_faults'], false),
     notification_driver                => $ceilometer_hash['notification_driver'],
     notify_on_state_change             => $notify_on_state_change,
-    memcached_servers                  => $memcached_servers,
+    memcached_servers                  => $memcached_server,
     cinder_catalog_info                => pick($nova_hash['cinder_catalog_info'], 'volumev2:cinderv2:internalURL'),
     database_max_pool_size             => $max_pool_size,
     database_max_retries               => $max_retries,
