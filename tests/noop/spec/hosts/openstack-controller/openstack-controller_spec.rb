@@ -256,6 +256,7 @@ describe manifest do
         :api_paste_config => '/etc/nova/api-paste.ini',
         :default_floating_pool => default_floating_net,
         :enable_proxy_headers_parsing => true,
+        :allow_resize_to_same_host => Noop.puppet_function('pick', nova_hash['allow_resize_to_same_host'], true),
       )
       if facts[:operatingsystem] == 'Ubuntu'
         should contain_tweaks__ubuntu_service_override('nova-api').with(
