@@ -83,7 +83,7 @@ function check_ready {
           retry_checker "ps waux | grep -q nginx"
           ;;
       keystone)
-          retry_checker "keystone  --os-auth-url \"http://$ADMIN_IP:35357/v2.0\" --os-username \"$keystone_nailgun_user\" --os-password \"$keystone_nailgun_password\" token-get &>/dev/null"
+          retry_checker "openstack --os-auth-url \"http://$ADMIN_IP:35357/v2.0\" --os-username \"$keystone_nailgun_user\" --os-password \"$keystone_nailgun_password\" token issue &>/dev/null"
           ;;
       *)
           echo "No defined test for determining if $1 is ready."
