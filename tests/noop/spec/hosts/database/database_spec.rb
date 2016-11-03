@@ -203,6 +203,10 @@ describe manifest do
       )
     end
 
+    it 'should install mysql client package' do
+      should contain_class('openstack::galera::client')
+    end
+
     it 'should configure pacemaker with mysql service' do
       should contain_class('cluster::mysql').with(
         :mysql_user => 'clustercheck',
