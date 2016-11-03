@@ -311,14 +311,14 @@ class osnailyfacter::globals::globals {
   # The default value assumes there are 20 different types of workers limited by 100Mb each.
   $workers_ratio = hiera('workers_ratio', 2000)
   # Defines the maximum allowed number of workers for each service by RAM limits. Cannot exceed the value of 30.
-  $workers_max = inline_template("<%= [(@memorysize_mb.to_i / @workers_ratio.to_i).floor + 1, 30].min %>")
+  $workers_max = inline_template("<%= [(@memorysize_mb.to_i / @workers_ratio.to_i).floor + 1, $::os_workers].min %>")
 
   $node_name_prefix_for_messaging = hiera('node_name_prefix_for_messaging', 'messaging-')
 
   # MySQL and SQLAlchemy backend configuration
   $custom_mysql_setup_class = hiera('custom_mysql_setup_class', 'galera')
-  $max_pool_size            = hiera('max_pool_size', min($::processorcount * 5 + 0, 30 + 0))
-  $max_overflow             = hiera('max_overflow', min($::processorcount * 5 + 0, 60 + 0))
+  $max_pool_size            = hiera('max_pool_size', min($::os_workers * 5 + 0, 30 + 0))
+  $max_overflow             = hiera('max_overflow', min($::os_workers * 5 + 0, 60 + 0))
   $max_retries              = hiera('max_retries', '-1')
   $idle_timeout             = hiera('idle_timeout','3600')
   $nova_db_password         = $nova_hash['db_password']

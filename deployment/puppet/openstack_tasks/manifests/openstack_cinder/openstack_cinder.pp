@@ -13,7 +13,7 @@ class openstack_tasks::openstack_cinder::openstack_cinder {
   $sahara_hash            = hiera_hash('sahara', {})
   $rabbit_hash            = hiera_hash('rabbit', {})
   $service_endpoint       = hiera('service_endpoint')
-  $workers_max            = hiera('workers_max', 16)
+  $workers_max            = hiera('workers_max', $::os_workers)
   $service_workers        = pick($cinder_hash['workers'], min(max($::processorcount, 2), $workers_max))
   $cinder_user_password   = $cinder_hash[user_password]
   $keystone_user          = pick($cinder_hash['user'], 'cinder')
@@ -107,8 +107,8 @@ class openstack_tasks::openstack_cinder::openstack_cinder {
   }
 
   # SQLAlchemy backend configuration
-  $max_pool_size = min($::processorcount * 5 + 0, 30 + 0)
-  $max_overflow = min($::processorcount * 5 + 0, 60 + 0)
+  $max_pool_size = min($::os_workers * 5 + 0, 30 + 0)
+  $max_overflow = min($::os_workers * 5 + 0, 60 + 0)
   $max_retries = '-1'
   $idle_timeout = '3600'
 

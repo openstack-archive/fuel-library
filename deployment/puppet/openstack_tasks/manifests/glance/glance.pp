@@ -21,7 +21,7 @@ class openstack_tasks::glance::glance {
   $max_overflow        = hiera('max_overflow')
   $ceilometer_hash     = hiera_hash('ceilometer', {})
   $region              = hiera('region','RegionOne')
-  $workers_max         = hiera('workers_max', 16)
+  $workers_max         = hiera('workers_max', $::os_workers)
   $service_workers     = pick($glance_hash['glance_workers'],
                               min(max($::processorcount, 2), $workers_max))
   $ironic_hash         = hiera_hash('ironic', {})

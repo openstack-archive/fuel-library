@@ -68,7 +68,7 @@ class openstack_tasks::openstack_controller::openstack_controller {
   $keystone_user                = pick($nova_hash['user'], 'nova')
   $keystone_tenant              = pick($nova_hash['tenant'], 'services')
   $region_name                  = hiera('region', 'RegionOne')
-  $workers_max                  = hiera('workers_max', 16)
+  $workers_max                  = hiera('workers_max', $::os_workers)
   $service_workers              = pick($nova_hash['workers'],
                                         min(max($::processorcount, 2), $workers_max))
   $compute_nodes                = get_nodes_hash_by_roles($network_metadata, ['compute'])
@@ -137,8 +137,8 @@ class openstack_tasks::openstack_controller::openstack_controller {
   })
 
   # SQLAlchemy backend configuration
-  $max_pool_size = hiera('max_pool_size', min($::processorcount * 5 + 0, 30 + 0))
-  $max_overflow = hiera('max_overflow', min($::processorcount * 5 + 0, 60 + 0))
+  $max_pool_size = hiera('max_pool_size', min($::os_workers * 5 + 0, 30 + 0))
+  $max_overflow = hiera('max_overflow', min($::os_workers * 5 + 0, 60 + 0))
   $idle_timeout = hiera('idle_timeout', '3600')
   $max_retries = hiera('max_retries', '-1')
 

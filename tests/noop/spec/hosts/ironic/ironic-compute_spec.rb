@@ -100,11 +100,11 @@ describe manifest do
         else
           extra_params = '?charset=utf8'
         end
-        facts[:processorcount] = 10
-        max_overflow = Noop.hiera 'max_overflow', [facts[:processorcount] * 5 + 0, 60 + 0].min
+        facts[:os_workers] = 8
+        max_overflow = Noop.hiera 'max_overflow', [facts[:os_workers] * 5 + 0, 60 + 0].min
         idle_timeout = Noop.hiera 'idle_timeout', '3600'
         max_retries = Noop.hiera 'max_retries', '-1'
-        max_pool_size = Noop.hiera 'max_pool_size', [facts[:processorcount] * 5 + 0, 30 + 0].min
+        max_pool_size = Noop.hiera 'max_pool_size', [facts[:os_workers] * 5 + 0, 30 + 0].min
 
         should contain_class('nova').with(
           :database_connection    => "mysql://#{nova_db_user}:#{nova_db_password}@#{database_vip}/#{nova_db_name}#{extra_params}",

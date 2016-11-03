@@ -11,7 +11,7 @@ class osnailyfacter::apache_mpm inherits ::osnailyfacter::apache {
   if ($::processorcount + 0) <= 2 {
     $startservers = 2
   } else {
-    $startservers = $::processorcount
+    $startservers = $::os_workers
   }
 
   $maxrequestsperchild = 0

@@ -85,7 +85,7 @@ class openstack_tasks::openstack_network::server_config {
   $auth_url                = "${internal_auth_protocol}://${internal_auth_endpoint}:35357/"
   $nova_admin_auth_url     = "${admin_auth_protocol}://${admin_auth_endpoint}:35357/"
 
-  $workers_max             = hiera('workers_max', 16)
+  $workers_max             = hiera('workers_max', $::os_workers)
   $service_workers         = pick($neutron_config['workers'], min(max($::processorcount, 1), $workers_max))
 
   $neutron_advanced_config = hiera_hash('neutron_advanced_configuration', { })

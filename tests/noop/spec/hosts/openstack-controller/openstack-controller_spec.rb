@@ -178,9 +178,9 @@ describe manifest do
     end
 
     it 'should configure nova with the basics' do
-      facts[:processorcount] = 10
-      max_pool_size = Noop.hiera 'max_pool_size', [facts[:processorcount] * 5 + 0, 30 + 0].min
-      max_overflow = Noop.hiera 'max_overflow', [facts[:processorcount] * 5 + 0, 60 + 0].min
+      facts[:os_workers] = 10
+      max_pool_size = Noop.hiera 'max_pool_size', [facts[:os_workers] * 5 + 0, 30 + 0].min
+      max_overflow = Noop.hiera 'max_overflow', [facts[:os_workers] * 5 + 0, 60 + 0].min
       idle_timeout = Noop.hiera 'idle_timeout', '3600'
       max_retries = Noop.hiera 'max_retries', '-1'
 
