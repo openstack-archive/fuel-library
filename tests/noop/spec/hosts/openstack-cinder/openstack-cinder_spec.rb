@@ -16,9 +16,9 @@ describe manifest do
 
   shared_examples 'catalog' do
 
-  max_pool_size = 20
+  max_pool_size = 10
   max_retries = '-1'
-  max_overflow = 20
+  max_overflow = 10
   cinder_hash = Noop.hiera_structure 'cinder'
   ceilometer_hash = Noop.hiera_structure 'ceilometer'
   workers_max = Noop.hiera 'workers_max'
