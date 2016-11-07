@@ -94,6 +94,14 @@ describe manifest do
       Noop.puppet_function 'mysql_password', mysql_database_password
     end
 
+    let(:deb_sysmaint_password) do
+      Noop.hiera_hash('mysql', {}).fetch('wsrep_password', '')
+    end
+
+    let(:deb_sysmaint_password_hash) do
+      Noop.puppet_function 'mysql_password', deb_sysmaint_password
+    end
+
     let(:status_database_password) do
        Noop.hiera_hash('mysql', {}).fetch('wsrep_password', '')
     end
@@ -295,9 +303,24 @@ describe manifest do
           :status_password => status_database_password,
           :status_allow => galera_node_address
         )
+
+        if facts[:osfamily] == 'Debian'
+          should contain_mysql_user('debian-sys-maint@localhost').with(
+            :ensure        => 'present',
+            :password_hash => deb_sysmaint_password_hash,
+            :provider      => 'mysql',
+          ).that_requires('File[/root/.my.cnf]')
+
+          should contain_mysql_grant('debian-sys-maint@localhost/*.*').with(
+            :ensure     => 'present',
+            :options    => ['GRANT'],
+            :privileges => ['ALL'],
+            :table      => '*.*',
+            :user       => 'debian-sys-maint@localhost',
+          )
+        end
       end
     end
-
   end
   test_ubuntu_and_centos manifest
 end
