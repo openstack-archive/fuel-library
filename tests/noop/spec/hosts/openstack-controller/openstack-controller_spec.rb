@@ -20,18 +20,6 @@ describe manifest do
       Noop.puppet_function 'get_network_role_property', 'nova/api', 'ipaddr'
     end
 
-    let(:configuration_override) do
-      Noop.hiera_structure 'configuration'
-    end
-
-    let(:nova_config_override_resources) do
-      configuration_override.fetch('nova_config', {})
-    end
-
-    let(:nova_paste_api_ini_override_resources) do
-      configuration_override.fetch('nova_paste_api_ini', {})
-    end
-
     workers_max          = Noop.hiera 'workers_max'
     network_metadata     = Noop.hiera_hash('network_metadata')
     memcache_roles       = Noop.hiera 'memcache_roles'
@@ -384,30 +372,6 @@ describe manifest do
         end
       else
         should contain_class('nova::quota').with('quota_driver' => 'nova.quota.NoopQuotaDriver')
-      end
-    end
-
-    it 'nova config should be modified by override_resources' do
-       is_expected.to contain_override_resources('nova_config').with(:data => nova_config_override_resources)
-    end
-
-    it 'should use "override_resources" to update the catalog' do
-      ral_catalog = Noop.create_ral_catalog self
-      nova_config_override_resources.each do |title, params|
-        params['value'] = 'True' if params['value'].is_a? TrueClass
-        expect(ral_catalog).to contain_nova_config(title).with(params)
-      end
-    end
-
-    it 'nova_paste_api_ini should be modified by override_resources' do
-      is_expected.to contain_override_resources('nova_paste_api_ini').with(:data => nova_paste_api_ini_override_resources)
-    end
-
-    it 'should use override_resources to update nova_paste_api_ini' do
-      ral_catalog = Noop.create_ral_catalog self
-      nova_paste_api_ini_override_resources.each do |title, params|
-       params['value'] = 'True' if params['value'].is_a? TrueClass
-       expect(ral_catalog).to contain_nova_paste_api_ini(title).with(params)
       end
     end
 
