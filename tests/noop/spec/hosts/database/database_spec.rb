@@ -291,9 +291,22 @@ describe manifest do
           :status_password => status_database_password,
           :status_allow => galera_node_address
         )
+
+        should contain_mysql_user('debian-sys-maint@localhost').with(
+          :ensure        => 'present',
+          :password_hash => mysql_password($deb_sysmaint_password),
+          :provider      => 'mysql',
+        ).that_require('File[/root/.my.cnf]')
+
+        should contain_mysql_grant('debian-sys-maint@localhost/*.*').with(
+          :ensure     => 'present',
+          :options    => ['GRANT'],
+          :privileges => ['ALL'],
+          :table      => '*.*',
+          :user       => 'debian-sys-maint@localhost',
+        )
       end
     end
-
   end
   test_ubuntu_and_centos manifest
 end
