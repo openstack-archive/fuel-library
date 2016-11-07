@@ -18,6 +18,7 @@ class osnailyfacter::database::database {
 
   $primary_db                = has_primary_role(intersection(hiera('database_roles'), hiera('roles')))
   $mysql_root_password       = $mysql_hash['root_password']
+  $deb_sysmaint_password     = $mysql_hash['wsrep_password']
   $enabled                   = pick($mysql_hash['enabled'], true)
 
   $galera_node_address       = get_network_role_property('mgmt/database', 'ipaddr')
@@ -277,6 +278,7 @@ class osnailyfacter::database::database {
       local_ip              => $galera_node_address,
       wsrep_sst_method      => 'xtrabackup-v2',
       override_options      => $override_options,
+      deb_sysmaint_password => $deb_sysmaint_password,
     }
 
     # Make sure the mysql service is stopped with upstart as we will be starting
@@ -346,6 +348,24 @@ class osnailyfacter::database::database {
         status_password => $status_password,
         status_allow    => $galera_node_address,
       }
+
+      if $::osfamily == 'Debian' {
+        mysql_user { 'debian-sys-maint@localhost':
+          ensure        => 'present',
+          password_hash => mysql_password($deb_sysmaint_password),
+          provider      => 'mysql',
+          require       => File['/root/.my.cnf'],
+        }
+
+        mysql_grant { 'debian-sys-maint@localhost/*.*':
+          ensure     => 'present',
+          options    => ['GRANT'],
+          privileges => ['ALL'],
+          table      => '*.*',
+          user       => 'debian-sys-maint@localhost',
+        }
+      }
+
       Class['::cluster::mysql'] ->
         Class['::cluster::galera_grants'] ->
           Class['::cluster::galera_status']
