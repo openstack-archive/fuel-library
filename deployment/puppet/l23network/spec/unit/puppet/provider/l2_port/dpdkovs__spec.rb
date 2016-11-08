@@ -3,11 +3,12 @@ require 'spec_helper'
 describe Puppet::Type.type(:l2_port).provider(:dpdkovs) do
   let(:resource_br1) {
     Puppet::Type.type(:l2_bridge).new(
-      :provider => 'ovs',
+      :provider => 'dpdkovs',
       :name     => 'br1',
       :bridge   => 'br1',
       :vendor_specific => {
-          :datapath_type => 'netdev',
+        :datapath_type => 'netdev',
+        :vlan_id       => '10',
       }
     )
   }
@@ -33,7 +34,7 @@ describe Puppet::Type.type(:l2_port).provider(:dpdkovs) do
       puppet_debug_override()
       provider_br1.class.stubs(:vsctl).with(['add-br', 'br1', '--', 'set', 'Bridge', 'br1', 'datapath_type=netdev']).returns(true)
       provider_br1.class.stubs(:vsctl).with('set', 'Bridge', 'br1', 'stp_enable=false').returns(true)
-      provider_br1.class.stubs(:vsctl).with('set', 'Port', 'br1', 'tag=[]').returns(true)
+      provider_br1.class.stubs(:vsctl).with('set', 'Port', 'br1', 'tag=10').returns(true)
       provider_br1.class.stubs(:interface_up).with('br1').returns(true)
     end
 
