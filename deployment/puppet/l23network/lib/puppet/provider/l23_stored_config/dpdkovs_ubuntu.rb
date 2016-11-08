@@ -84,15 +84,35 @@ Puppet::Type.type(:l23_stored_config).provide(:dpdkovs_ubuntu, :parent => Puppet
   def oneline_properties
     self.class.collected_properties
   end
+
+  def self.collected_properties
+    super.merge(
+      :datapath_type  => {
+        :detect_re    => /(ovs_)?extra\s+set\s+Bridge\s+([a-z][0-9a-z\-]*[0-9a-z])\s+datapath_type=([a-z]+)/,
+        :detect_shift => 3,
+      },
+    )
+  end
+
   def self.iface_file_header(provider)
     header = []
     props  = {}
-    bridge = provider.bridge[0]
-    props[:bridge] = bridge
+
     header << self.puppet_header
-    header << "allow-#{bridge} #{provider.name}"
+    bridge = provider.bridge[0]
+
+    if provider.if_type == :bridge
+      header << "auto #{provider.name}" if provider.onboot
+      header << "allow-ovs #{provider.name}"
+      props[:bridge]   = nil
+    else
+      header << "allow-#{bridge} #{provider.name}"
+      props[:bridge] = bridge
+    end
+
     header << "iface #{provider.name} inet #{provider.method}"
-    return header, props
+
+    [header, props]
   end
 
   def dpdk_port
@@ -121,10 +141,26 @@ Puppet::Type.type(:l23_stored_config).provide(:dpdkovs_ubuntu, :parent => Puppet
   end
 
   def self.unmangle__if_type(provider, val)
-    val = 'DPDKOVSPort' if val.to_s == 'ethernet'
-    val = 'DPDKOVSBond' if val.to_s == 'bond'
-    val
+    case val
+    when :ethernet; 'DPDKOVSPort'
+    when :bond; 'DPDKOVSBond'
+    else "OVS#{val.to_s.capitalize}"
+    end
   end
+
+  def self.mangle__if_type(val)
+    val.sub(/^OVS/, '').downcase.to_sym
+  end
+
+  def self.unmangle__datapath_type(provider, val)
+    ["ovs_extra set Bridge #{provider.name} datapath_type=#{provider.datapath_type}"] \
+    if provider.if_type == :bridge && provider.datapath_type
+  end
+
+  def self.mangle__datapath_type(data)
+    data.join
+  end
+
 end
 
 # vim: set ts=2 sw=2 et :

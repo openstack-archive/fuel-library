@@ -4,7 +4,8 @@
 # however changes to interfaces that are being managed by Puppet will
 # be overwritten.
 # *********************************************************************
-allow-ovs br9
-iface br9 inet manual
+auto br0
+allow-ovs br0
+iface br0 inet manual
   ovs_type OVSBridge
-  mtu 9000
+  ovs_extra set Bridge br0 datapath_type=netdev
