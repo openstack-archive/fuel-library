@@ -256,13 +256,14 @@ describe manifest do
       end
 
       it 'should have correct auth options' do
-        should contain_class('neutron::server').with(
-          'password'     => password,
-          'project_name' => project_name,
-          'region_name'  => region_name,
-          'username'     => username,
-          'auth_url'     => auth_url,
-          'auth_uri'     => auth_uri,)
+        should contain_class('neutron::keystone::authtoken').with(
+          'password'          => password,
+          'project_name'      => project_name,
+          'region_name'       => region_name,
+          'username'          => username,
+          'auth_url'          => auth_url,
+          'auth_uri'          => auth_uri,
+          'memcached_servers' => memcached_servers,)
       end
 
       it 'should have agent related settings' do
@@ -277,8 +278,7 @@ describe manifest do
         should contain_class('neutron::server').with(
           'router_distributed' => dvr,
           'enabled'            => true,
-          'manage_service'     => true,
-          'memcached_servers'  => memcached_servers,)
+          'manage_service'     => true,)
       }
 
       it 'should configure neutron::server::notifications' do

@@ -206,13 +206,6 @@ class openstack_tasks::openstack_network::server_config {
   class { '::neutron::server':
     sync_db                          => $primary_controller,
 
-    username                         => $username,
-    password                         => $password,
-    project_name                     => $project_name,
-    region_name                      => $region_name,
-    auth_url                         => $auth_url,
-    auth_uri                         => $auth_uri,
-
     database_connection              => $db_connection,
     database_max_retries             => hiera('max_retries'),
     database_idle_timeout            => hiera('idle_timeout'),
@@ -233,7 +226,16 @@ class openstack_tasks::openstack_network::server_config {
     qos_notification_drivers         => $qos_notification_drivers,
     enabled                          => true,
     manage_service                   => true,
-    memcached_servers                => $memcached_servers,
+  }
+
+  class { '::neutron::keystone::authtoken':
+    username          => $username,
+    password          => $password,
+    project_name      => $project_name,
+    region_name       => $region_name,
+    auth_url          => $auth_url,
+    auth_uri          => $auth_uri,
+    memcached_servers => $memcached_servers,
   }
 
   # TODO(mmalchuk) remove this after LP#1628580 merged
