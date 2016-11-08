@@ -220,6 +220,19 @@ class openstack_tasks::keystone::keystone {
     murano_glare_plugin => $murano_glare_plugin,
   }
 
+  group { 'operator_group' :
+    name   => $operator_user_name,
+    ensure => present,
+  }
+
+  user { 'operator_user':
+    name       => $operator_user_name,
+    gid        => $operator_user_name,
+    ensure     => present,
+    managehome => true,
+    home       => $operator_user_homedir,
+  }
+
   osnailyfacter::credentials_file { "${operator_user_homedir}/openrc":
     admin_user          => $admin_user,
     admin_password      => $admin_password,
@@ -230,6 +243,20 @@ class openstack_tasks::keystone::keystone {
     murano_glare_plugin => $murano_glare_plugin,
     owner               => $operator_user_name,
     group               => $operator_user_name,
+    require             => User['operator_user'],
+  }
+
+  group { 'service_group' :
+    name   => $service_user_name,
+    ensure => present,
+  }
+
+  user { 'service_user':
+    name       => $service_user_name,
+    gid        => $service_user_name,
+    ensure     => present,
+    managehome => true,
+    home       => $service_user_homedir,
   }
 
   osnailyfacter::credentials_file { "${service_user_homedir}/openrc":
@@ -242,6 +269,7 @@ class openstack_tasks::keystone::keystone {
     murano_glare_plugin => $murano_glare_plugin,
     owner               => $service_user_name,
     group               => $service_user_name,
+    require             => User['service_user'],
   }
 
   # Get paste.ini source
