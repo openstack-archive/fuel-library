@@ -84,6 +84,16 @@ Puppet::Type.type(:l23_stored_config).provide(:dpdkovs_ubuntu, :parent => Puppet
   def oneline_properties
     self.class.collected_properties
   end
+
+  def self.collected_properties
+    super.merge(
+      :datapath_type  => {
+        :detect_re    => /(ovs_)?extra\s+set\s+Bridge\s+([a-z][0-9a-z\-]*[0-9a-z])\s+datapath_type=([a-z]+)/,
+        :detect_shift => 3,
+      },
+    )
+  end
+
   def self.iface_file_header(provider)
     header = []
     props  = {}
@@ -125,6 +135,20 @@ Puppet::Type.type(:l23_stored_config).provide(:dpdkovs_ubuntu, :parent => Puppet
     val = 'DPDKOVSBond' if val.to_s == 'bond'
     val
   end
+
+  def self.unmangle__datapath_type(provider, val)
+    if provider.if_type.to_s == 'bridge'
+      if provider.datapath_type
+        rv = []
+        rv << "ovs_extra set Bridge #{provider.name} datapath_type=#{provider.datapath_type}"
+      end
+    end
+  end
+
+  def self.mangle__datapath_type(data)
+    data.join()
+  end
+
 end
 
 # vim: set ts=2 sw=2 et :
