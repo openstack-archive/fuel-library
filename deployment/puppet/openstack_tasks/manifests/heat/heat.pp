@@ -58,23 +58,13 @@ class openstack_tasks::heat::heat {
     default => $::os_service_default,
   }
 
-  $override_configuration = hiera_hash('configuration', {})
-
-  $override_values = values($override_configuration)
-  if !empty($override_values) and has_key($override_values[0], 'data') {
-    create_resources(override_resources, $override_configuration)
-  } else {
-    # override heat.conf options
-    override_resources { 'heat_config':
-      data => $override_configuration['heat']
-    }
-    # override heat api paste options
-    override_resources { 'heat_api_paste_ini':
-      data => $override_configuration['heat_api_paste_ini']
-    }
-
-    Override_resources <||> ~> Service <| tag == 'heat-service' |>
-  }
+  $override_configuration = hiera_hash(configuration, {})
+  $override_configuration_options = hiera_hash(configuration_options, {})
+  
+  override_resources {'override-resources':
+    configuration => $override_configuration,
+    options       => $override_configuration_options,
+  }   
 
   $storage_hash = hiera_hash('storage', {})
 

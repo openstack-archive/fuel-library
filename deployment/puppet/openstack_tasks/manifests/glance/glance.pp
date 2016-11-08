@@ -29,36 +29,13 @@ class openstack_tasks::glance::glance {
   $primary_controller  = hiera('primary_controller')
   $kombu_compression   = hiera('kombu_compression', '')
 
-  $override_configuration = hiera_hash('configuration', {})
-
-  $override_values = values($override_configuration)
-  if !empty($override_values) and has_key($override_values[0], 'data') {
-    # Create resources of type 'override_resources'. These, in turn,
-    # will either update existing resources in the catalog with new data,
-    # or create these resources, if they do not actually exist.
-    create_resources(override_resources, $override_configuration)
-  } else {
-    # override glance api options
-    override_resources { 'glance_api_config':
-      data => $override_configuration['glance_api']
-    }
-    # override glance registry options
-    override_resources { 'glance_registry_config':
-      data => $override_configuration['glance_registry']
-    }
-
-    # override glance cache options
-    override_resources { 'glance_cache_config':
-      data => $override_configuration['glance_cache']
-    }
-
-    # override glare config options
-    override_resources { 'glance_glare_config':
-      data => $override_configuration['glare_config']
-    }
-
-    Override_resources <||> ~> Service <| tag == 'glance-service' |>
-  }
+  $override_configuration = hiera_hash(configuration, {})
+  $override_configuration_options = hiera_hash(configuration_options, {})
+  
+  override_resources {'override-resources':
+    configuration => $override_configuration,
+    options       => $override_configuration_options,
+  }   
 
 
   $db_type     = 'mysql'
