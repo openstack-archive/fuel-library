@@ -64,27 +64,13 @@ class openstack_tasks::ceilometer::controller {
   $rabbit_heartbeat_timeout_threshold = pick($ceilometer_hash['rabbit_heartbeat_timeout_threshold'], $rabbit_hash['heartbeat_timeout_threshold'], 60)
   $rabbit_heartbeat_rate              = pick($ceilometer_hash['rabbit_heartbeat_rate'], $rabbit_hash['rabbit_heartbeat_rate'], 2)
 
-  $override_configuration = hiera_hash('configuration', {})
-
-  $override_values = values($override_configuration)
-  if !empty($override_values) and has_key($override_values[0], 'data') {
-    # Create resources of type 'override_resources'. These, in turn,
-    # will either update existing resources in the catalog with new data,
-    # or create these resources, if they do not actually exist.
-    create_resources(override_resources, $override_configuration)
-  } else {
-    # override ceilometer.conf options
-    override_resources { 'ceilometer_config':
-      data => $override_configuration['ceilometer']
-    }
-    # override ceilometer api paste options
-    override_resources { 'ceilometer_api_paste_ini':
-      data => $override_configuration['ceilometer_api_paste_ini']
-    }
-
-    Override_resources <||> ~> Service <| tag == 'ceilometer-service' |>
-  }
-
+  $override_configuration = hiera_hash(configuration, {})
+  $override_configuration_options = hiera_hash(configuration_options, {})
+  
+  override_resources {'override-resources':
+    configuration => $override_configuration,
+    options       => $override_configuration_options,
+  }   
 
   if $mongo_hash['enabled'] and $ceilometer_hash['enabled'] {
     $external_mongo_hash = hiera_hash('external_mongo')
