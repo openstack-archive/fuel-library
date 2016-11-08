@@ -68,7 +68,7 @@ class openstack::ha::horizon (
       public_ssl             => $use_ssl,
       public_ssl_path        => $public_ssl_path,
       haproxy_config_options => {
-        'option'      => ['forwardfor', 'httpchk', 'httpclose', 'httplog', 'http-buffer-request'],
+        'option'      => ['forwardfor', 'httpchk', 'forceclose', 'httplog', 'http-buffer-request'],
         'timeout'     => ['client 3h', 'server 3h', 'http-request 10s'],
         'stick-table' => 'type ip size 200k expire 30m',
         'stick'       => 'on src',
@@ -85,7 +85,7 @@ class openstack::ha::horizon (
       listen_port            => 80,
       define_cookies         => true,
       haproxy_config_options => {
-        'option'  => ['forwardfor', 'httpchk', 'httpclose', 'httplog', 'http-buffer-request'],
+        'option'  => ['forwardfor', 'httpchk', 'forceclose', 'httplog', 'http-buffer-request'],
         'timeout' => ['client 3h', 'server 3h', 'http-request 10s'],
         'rspidel' => '^Set-cookie:\ IP=',
         'balance' => 'source',
