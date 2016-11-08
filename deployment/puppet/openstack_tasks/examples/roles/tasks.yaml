@@ -154,7 +154,7 @@
       $.get('syslog_log_facility_ironic'), $.rabbit, $.storage,
       $.get('kombu_compression'))
   cross-depends:
-    - name: ironic
+    - name: ironic-api
     - name: ironic-db
     - name: /^(primary-)?rabbitmq$/
   parameters:
