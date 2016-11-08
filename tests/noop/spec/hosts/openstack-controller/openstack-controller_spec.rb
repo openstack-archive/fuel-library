@@ -55,7 +55,9 @@ describe manifest do
     let(:admin_auth_address) { Noop.puppet_function 'get_ssl_property',ssl_hash,{},'keystone','admin','hostname',[service_endpoint, management_vip] }
 
     let(:keystone_auth_uri) { "#{internal_auth_protocol}://#{internal_auth_address}:5000/" }
-    let(:keystone_identity_uri) { "#{admin_auth_protocol}://#{admin_auth_address}:35357/" }
+    let(:keystone_auth_url) { "#{admin_auth_protocol}://#{admin_auth_address}:35357/" }
+    let(:project_name) { Noop.puppet_function('pick', nova_hash['admin_tenant_name'], keystone_tenant) }
+    let(:auth_version) { Noop.puppet_function('pick', nova_hash['auth_version'], facts[:os_service_default]) }
     let(:keystone_ec2_url) { "#{keystone_auth_uri}v2.0/ec2tokens" }
 
     default_log_levels_hash = Noop.hiera_hash 'default_log_levels'
@@ -205,7 +207,6 @@ describe manifest do
         :database_max_retries   => max_retries,
         :database_max_overflow  => max_overflow,
         :notify_on_state_change => 'vm_and_task_state',
-        :memcached_servers      => memcached_servers,
       )
     end
 
@@ -235,18 +236,34 @@ describe manifest do
       )
     end
 
+    it 'should configure nova::keystone::authtoken' do
+      should contain_class('nova::keystone::authtoken').with(
+        :username          => keystone_user,
+        :password          => nova_hash['user_password'],
+        :project_name      => project_name,
+        :auth_url          => keystone_auth_url,
+        :auth_uri          => keystone_auth_uri,
+        :auth_version      => auth_version,
+        :memcached_servers => memcached_servers,
+      )
+    end
+
+    it 'should correctly configure authtoken parameters' do
+      should contain_nova_config('keystone_authtoken/username').with(:value => keystone_user)
+      should contain_nova_config('keystone_authtoken/password').with(:value => nova_hash['user_password'])
+      should contain_nova_config('keystone_authtoken/project_name').with(:value => project_name)
+      should contain_nova_config('keystone_authtoken/auth_url').with(:value => keystone_auth_url)
+      should contain_nova_config('keystone_authtoken/auth_uri').with(:value => keystone_auth_uri)
+      should contain_nova_config('keystone_authtoken/auth_version').with(:value => auth_version)
+      should contain_nova_config('keystone_authtoken/memcached_servers').with(:value => memcached_servers.join(','))
+    end
+
     it 'should configure nova::api' do
       # FIXME(aschultz): check rate limits
       should contain_class('nova::api').with(
         :enabled => true,
         :api_bind_address => api_bind_address,
         :metadata_listen => api_bind_address,
-        :admin_user => keystone_user,
-        :admin_password => nova_hash['user_password'],
-        :admin_tenant_name => Noop.puppet_function('pick', nova_hash['admin_tenant_name'], keystone_tenant),
-        :identity_uri => keystone_identity_uri,
-        :auth_uri => keystone_auth_uri,
-        :auth_version => Noop.puppet_function('pick', nova_hash['auth_version'], facts[:os_service_default]),
         :neutron_metadata_proxy_shared_secret => neutron_metadata_proxy_secret,
         :osapi_compute_workers => service_workers,
         :metadata_workers => service_workers,
@@ -367,7 +384,7 @@ describe manifest do
           'admin_username'    => ironic_user,
           'admin_password'    => ironic_password,
           'admin_tenant_name' => ironic_tenant,
-          'admin_url'         => "#{keystone_identity_uri}v2.0",
+          'admin_url'         => "#{keystone_auth_url}v2.0",
           'api_endpoint'      => "#{ironic_protocol}://#{ironic_endpoint}:6385/v1",
         )
       end

@@ -279,7 +279,6 @@ class openstack_tasks::roles::compute {
     service_down_time                      => $nova_service_down_time,
     notify_on_state_change                 => $notify_on_state_change,
     notification_driver                    => $ceilometer_hash['notification_driver'],
-    memcached_servers                      => $memcached_servers,
     cinder_catalog_info                    => pick($nova_hash_real['cinder_catalog_info'], 'volumev2:cinderv2:internalURL'),
     kombu_compression                      => $kombu_compression,
     block_device_allocate_retries          => $block_device_allocate_retries,
