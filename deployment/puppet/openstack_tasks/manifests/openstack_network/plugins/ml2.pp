@@ -6,18 +6,59 @@ class openstack_tasks::openstack_network::plugins::ml2 {
 
   if $use_neutron {
     # override neutron options
-    $override_configuration = hiera_hash('configuration', {})
-    $override_values = values($override_configuration)
-    if !empty($override_values) and has_key($override_values[0], 'data') {
-      # Create resources of type 'override_resources'. These, in turn,
-      # will either update existing resources in the catalog with new data,
-      # or create these resources, if they do not actually exist.
-      create_resources(override_resources, $override_configuration)
-    } else {
-      override_resources { 'neutron_agent_ovs':
-        data => $override_configuration['neutron_agent_ovs']
-      } ~> Service['neutron-ovs-agent-service']
-    }
+    $override_configuration = hiera_hash(configuration, {})
+    $override_configuration_options = hiera_hash(configuration_options, {})
+    
+    override_resources {'override-resources':
+      configuration => $override_configuration,
+      options       => $override_configuration_options,
+    }   
+  }
+
+  include ::neutron::params
+
+  $node_name = hiera('node_name')
+  $neutron_primary_controller_roles = hiera('neutron_primary_controller_roles', ['primary-controller'])
+  $neutron_compute_roles            = hiera('neutron_compute_nodes', ['compute'])
+  $primary_controller               = roles_include($neutron_primary_controller_roles)
+  $compute                          = roles_include($neutron_compute_roles)
+
+  $neutron_config = hiera_hash('neutron_config')
+  $neutron_server_enable = pick($neutron_config['neutron_server_enable'], true)
+  $neutron_nodes = hiera_hash('neutron_nodes')
+
+  $dpdk_config = hiera_hash('dpdk', {})
+  $enable_dpdk = pick($dpdk_config['enabled'], false)
+
+  $management_vip         = hiera('management_vip')
+  $service_endpoint       = hiera('service_endpoint', $management_vip)
+  $ssl_hash               = hiera_hash('use_ssl', {})
+  $internal_auth_protocol = get_ssl_property($ssl_hash, {}, 'keystone', 'internal', 'protocol', 'http')
+  $internal_auth_address  = get_ssl_property($ssl_hash, {}, 'keystone', 'internal', 'hostname', [$service_endpoint])
+
+  $auth_api_version   = 'v2.0'
+  $identity_uri       = "${internal_auth_protocol}://${internal_auth_address}:5000"
+  $auth_url           = "${identity_uri}/${auth_api_version}"
+  $auth_password      = $neutron_config['keystone']['admin_password']
+  $auth_user          = pick($neutron_config['keystone']['admin_user'], 'neutron')
+  $auth_tenant        = pick($neutron_config['keystone']['admin_tenant'], 'services')
+  $auth_region        = hiera('region', 'RegionOne')
+  $auth_endpoint_type = 'internalURL'
+
+  $network_scheme = hiera_hash('network_scheme', {})
+  prepare_network_config($network_scheme)
+
+  $neutron_advanced_config = hiera_hash('neutron_advanced_configuration', { })
+  $l2_population     = dig44($neutron_advanced_config, ['neutron_l2_pop'], false)
+  $dvr               = dig44($neutron_advanced_config, ['neutron_dvr'], false)
+  $enable_qos        = pick($neutron_advanced_config['neutron_qos'], false)
+  $segmentation_type = dig44($neutron_config, ['L2', 'segmentation_type'])
+
+  if $compute and ! $dvr {
+    $do_floating = false
+  } else {
+    $do_floating = true
+>>>>>>> 74cb5ec... Refactoring of the override_resources type for the IaC feature
   }
 
   if $use_neutron {

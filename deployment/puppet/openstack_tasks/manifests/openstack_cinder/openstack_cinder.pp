@@ -51,28 +51,13 @@ class openstack_tasks::openstack_cinder::openstack_cinder {
     $rpc_backend = $queue_provider
   }
 
-  $override_configuration = hiera_hash('configuration', {})
-
-  $override_values = values($override_configuration)
-  if !empty($override_values) and has_key($override_values[0], 'data') {
-    # Create resources of type 'override_resources'. These, in turn,
-    # will either update existing resources in the catalog with new data,
-    # or create these resources, if they do not actually exist.
-    create_resources(override_resources, $override_configuration)
-  } else {
-    # override cinder.conf options
-    override_resources { 'cinder_config':
-      data => $override_configuration['cinder']
-    }
-
-    # override cinder api paste options
-    override_resources { 'cinder_api_paste_ini':
-      data => $override_configuration['cinder_api_paste_ini']
-    }
-
-    Override_resources <||> ~> Service <| tag == 'cinder-service' |>
-  }
-
+  $override_configuration = hiera_hash(configuration, {})
+  $override_configuration_options = hiera_hash(configuration_options, {})
+  
+  override_resources {'override-resources':
+    configuration => $override_configuration,
+    options       => $override_configuration_options,
+  }   
 
   $keystone_auth_protocol = get_ssl_property($ssl_hash, {}, 'keystone', 'internal', 'protocol', 'http')
   $keystone_auth_host     = get_ssl_property($ssl_hash, {}, 'keystone', 'internal', 'hostname', [hiera('keystone_endpoint', ''), $service_endpoint, $management_vip])
