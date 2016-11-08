@@ -317,11 +317,6 @@ describe manifest do
         'value' => 'false',
       )
     end
-    it 'nova config should contain right memcached servers list' do
-      should contain_class('nova').with(
-        :memcached_servers => memcached_servers
-      )
-    end
 
     it 'should configure nova cache correctly' do
       should contain_class('nova::cache').with(
