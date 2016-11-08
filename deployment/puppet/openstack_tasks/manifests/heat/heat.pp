@@ -31,7 +31,7 @@ class openstack_tasks::heat::heat {
   $public_ssl               = get_ssl_property($ssl_hash, {}, 'heat', 'public', 'usage', false)
 
   $auth_uri                 = "${public_auth_protocol}://${public_auth_address}:5000/v2.0/"
-  $identity_uri             = "${admin_auth_protocol}://${admin_auth_address}:35357/"
+  $auth_url                 = "${admin_auth_protocol}://${admin_auth_address}:35357/"
   $keystone_ec2_uri         = "${internal_auth_protocol}://${internal_auth_address}:5000/v2.0"
 
   $api_bind_port            = '8004'
@@ -193,14 +193,18 @@ class openstack_tasks::heat::heat {
     }
   }
 
+  class { '::heat::keystone::authtoken':
+    username          => $keystone_user,
+    password          => $heat_hash['user_password'],
+    project_name      => $keystone_tenant,
+    auth_uri          => $auth_uri,
+    auth_url          => $auth_url,
+    memcached_servers => $memcached_servers,
+  }
+
   # Common configuration, logging and RPC
   class { '::heat':
-    auth_uri                           => $auth_uri,
-    identity_uri                       => $identity_uri,
     keystone_ec2_uri                   => $keystone_ec2_uri,
-    keystone_user                      => $keystone_user,
-    keystone_tenant                    => $keystone_tenant,
-    keystone_password                  => $heat_hash['user_password'],
     region_name                        => $region,
 
     database_connection                => $db_connection,
@@ -231,7 +235,6 @@ class openstack_tasks::heat::heat {
     database_max_retries               => $max_retries,
 
     kombu_compression                  => $kombu_compression,
-    memcached_servers                  => $memcached_servers
   }
 
   # Engine

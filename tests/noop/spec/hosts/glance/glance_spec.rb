@@ -21,6 +21,7 @@ describe manifest do
     # TODO All this stuff should be moved to shared examples controller* tests.
     workers_max = Noop.hiera 'workers_max'
     glance_config = Noop.hiera_structure 'glance'
+    glance_glare_config = Noop.hiera_structure 'glance_glare'
     storage_config = Noop.hiera_structure 'storage'
     max_pool_size = Noop.hiera('max_pool_size')
     max_overflow = Noop.hiera('max_overflow')
@@ -51,6 +52,14 @@ describe manifest do
     glance_vc_insecure = Noop.hiera_structure 'glance/vc_insecure', 'false'
     glance_vc_ca_file = Noop.hiera_structure 'glance/vc_ca_file', {'content' => 'RSA', 'name' => 'vcenter-ca.pem'}
 
+    glance_password     = glance_config.fetch('user_password')
+    glance_username     = glance_config.fetch('user', 'glance')
+    glance_project_name = glance_config.fetch('tenant', 'services')
+
+    glance_glare_password     = glance_glare_config.fetch('user_password')
+    glance_glare_username     = glance_glare_config.fetch('user', 'glare')
+    glance_glare_project_name = glance_glare_config.fetch('tenant', 'services')
+
     rabbit_hash = Noop.hiera_structure 'rabbit', {}
 
     let(:ceilometer_hash) { Noop.hiera_structure 'ceilometer' }
@@ -67,7 +76,7 @@ describe manifest do
 
     let(:auth_uri) { "#{internal_auth_protocol}://#{internal_auth_address}:5000/" }
 
-    let(:identity_uri) { "#{admin_auth_protocol}://#{admin_auth_address}:35357/" }
+    let(:auth_url) { "#{admin_auth_protocol}://#{admin_auth_address}:35357/" }
 
     let(:memcached_servers) { Noop.hiera 'memcached_servers' }
 
@@ -81,11 +90,36 @@ describe manifest do
       should contain_glance_registry_config('oslo_messaging_rabbit/heartbeat_rate').with_value(rabbit_heartbeat_rate)
     end
 
-    it 'should select right protocols and addresses for auth' do
-      should contain_class('glance::api').with(
-        'auth_uri'     => auth_uri,
-        'identity_uri' => identity_uri,
-      )
+    it 'should have correct auth options for Glance API' do
+      should contain_class('glance::api::authtoken').with(
+        'username'          => glance_username,
+        'password'          => glance_password,
+        'project_name'      => glance_project_name,
+        'auth_url'          => auth_url,
+        'auth_uri'          => auth_uri,
+        'token_cache_time'  => '-1',
+        'memcached_servers' => memcached_servers)
+    end
+
+    it 'should have correct auth options for Glance Glare' do
+      should contain_class('glance::glare::authtoken').with(
+        'username'          => glance_glare_username,
+        'password'          => glance_glare_password,
+        'project_name'      => glance_glare_project_name,
+        'auth_url'          => auth_url,
+        'auth_uri'          => auth_uri,
+        'token_cache_time'  => '-1',
+        'memcached_servers' => memcached_servers)
+    end
+
+    it 'should have correct auth options for Glance Registry' do
+      should contain_class('glance::registry::authtoken').with(
+        'username'          => glance_username,
+        'password'          => glance_password,
+        'project_name'      => glance_project_name,
+        'auth_url'          => auth_url,
+        'auth_uri'          => auth_uri,
+        'memcached_servers' => memcached_servers)
     end
 
     it 'should configure workers for API, registry services' do
@@ -124,14 +158,13 @@ describe manifest do
       should contain_glance_api_config('DEFAULT/scrub_time').with_value('43200')
       should contain_glance_api_config('DEFAULT/scrubber_datadir').with_value('/var/lib/glance/scrubber')
       should contain_glance_api_config('glance_store/os_region_name').with_value(region)
+      should contain_glance_api_config('keystone_authtoken/auth_type').with_value('password')
+      should contain_glance_api_config('keystone_authtoken/auth_url').with_value(auth_url)
+      should contain_glance_api_config('keystone_authtoken/auth_uri').with_value(auth_uri)
+      should contain_glance_api_config('keystone_authtoken/username').with_value(glance_username)
+      should contain_glance_api_config('keystone_authtoken/password').with_value(glance_password)
+      should contain_glance_api_config('keystone_authtoken/project_name').with_value(glance_project_name)
       should contain_glance_api_config('keystone_authtoken/token_cache_time').with_value('-1')
-      # TODO(aderyugin): Enable this test after https://review.openstack.org/#/c/348826/ merge
-      # should contain_glance_api_config('keystone_authtoken/auth_type').with_value('password')
-      # should contain_glance_api_config('keystone_authtoken/auth_url').with_value(identity_uri)
-      # should contain_glance_api_config('keystone_authtoken/username').with_value(glance_config.fetch('user', 'glance'))
-      # should contain_glance_api_config('keystone_authtoken/password').with_value(glance_config.fetch('user_password'))
-      # should contain_glance_api_config('keystone_authtoken/project_name').with_value(glance_config.fetch('project_name', 'services'))
-
       should contain_glance_api_config('keystone_authtoken/memcached_servers').with_value(memcached_servers.join(','))
     end
 
@@ -141,6 +174,12 @@ describe manifest do
       should contain_glance_glare_config('database/max_overflow').with_value(max_overflow)
       should contain_glance_glare_config('database/max_retries').with_value(max_retries)
       should contain_glance_glare_config('glance_store/os_region_name').with_value(region)
+      should contain_glance_glare_config('keystone_authtoken/auth_type').with_value('password')
+      should contain_glance_glare_config('keystone_authtoken/auth_url').with_value(auth_url)
+      should contain_glance_glare_config('keystone_authtoken/auth_uri').with_value(auth_uri)
+      should contain_glance_glare_config('keystone_authtoken/username').with_value(glance_glare_username)
+      should contain_glance_glare_config('keystone_authtoken/password').with_value(glance_glare_password)
+      should contain_glance_glare_config('keystone_authtoken/project_name').with_value(glance_glare_project_name)
       should contain_glance_glare_config('keystone_authtoken/token_cache_time').with_value('-1')
       should contain_glance_glare_config('keystone_authtoken/memcached_servers').with_value(memcached_servers.join(','))
     end
@@ -170,6 +209,12 @@ describe manifest do
       should contain_glance_registry_config('database/max_overflow').with_value(max_overflow)
       should contain_glance_registry_config('database/max_retries').with_value(max_retries)
       should contain_glance_registry_config('glance_store/os_region_name').with_value(region)
+      should contain_glance_registry_config('keystone_authtoken/auth_type').with_value('password')
+      should contain_glance_registry_config('keystone_authtoken/auth_url').with_value(auth_url)
+      should contain_glance_registry_config('keystone_authtoken/auth_uri').with_value(auth_uri)
+      should contain_glance_registry_config('keystone_authtoken/username').with_value(glance_username)
+      should contain_glance_registry_config('keystone_authtoken/password').with_value(glance_password)
+      should contain_glance_registry_config('keystone_authtoken/project_name').with_value(glance_project_name)
       should contain_glance_registry_config('keystone_authtoken/memcached_servers').with_value(memcached_servers.join(','))
     end
 

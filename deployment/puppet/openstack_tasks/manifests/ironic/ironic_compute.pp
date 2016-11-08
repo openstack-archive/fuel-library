@@ -55,7 +55,6 @@ class openstack_tasks::ironic::ironic_compute {
     'extra'    => $extra_params
   })
 
-  $memcached_servers              = hiera('memcached_servers')
   $notify_on_state_change         = 'vm_and_task_state'
 
   $ssl_hash                       = hiera_hash('use_ssl', {})
@@ -113,7 +112,6 @@ class openstack_tasks::ironic::ironic_compute {
     report_interval        => $nova_report_interval,
     service_down_time      => $nova_service_down_time,
     notify_on_state_change => $notify_on_state_change,
-    memcached_servers      => $memcached_servers,
     os_region_name         => $region_name,
   }
 

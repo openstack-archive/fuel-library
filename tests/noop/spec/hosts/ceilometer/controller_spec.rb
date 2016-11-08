@@ -50,7 +50,7 @@ describe manifest do
     ssl_hash               = Noop.hiera_structure('use_ssl', {})
     internal_auth_protocol = Noop.puppet_function 'get_ssl_property',ssl_hash,{},'keystone','internal','protocol','http'
     internal_auth_endpoint = Noop.puppet_function 'get_ssl_property',ssl_hash,{},'keystone','internal','hostname',[service_endpoint]
-    keystone_identity_uri  = "#{internal_auth_protocol}://#{internal_auth_endpoint}:35357/"
+    keystone_auth_url      = "#{internal_auth_protocol}://#{internal_auth_endpoint}:35357/"
     keystone_auth_uri      = "#{internal_auth_protocol}://#{internal_auth_endpoint}:5000/"
     kombu_compression      = Noop.hiera 'kombu_compression', ''
     rabbit_hash            = Noop.hiera_structure 'rabbit', {}
@@ -94,25 +94,31 @@ describe manifest do
         )
       end
 
+      it 'should declare ceilometer::keystone::authtoken class with correct parameters' do
+        should contain_class('ceilometer::keystone::authtoken').with(
+          'username'          => ceilometer_user,
+          'password'          => ceilometer_user_password,
+          'project_name'      => ceilometer_tenant,
+          'auth_url'          => keystone_auth_url,
+          'auth_uri'          => keystone_auth_uri,
+          'memcached_servers' => memcached_servers,
+        )
+      end
+
       it 'should declare ceilometer::api class with correct parameters' do
         should contain_class('ceilometer::api').with(
-          'auth_uri'          => keystone_auth_uri,
-          # TODO(aschultz): uncomment these and fix calling class
-          # once https://review.openstack.org/#/c/345789/ has landed
-          #'auth_url'         => keystone_identity_uri,
-          #'username'         => ceilometer_user,
-          #'password'         => ceilometer_user_password,
-          #'project_name'     => ceilometer_tenant,
-          'memcached_servers' => memcached_servers,
           'host'              => api_bind_address,
           'service_name'      => 'httpd',
         )
       end
 
-      it 'should configure auth and identity uri' do
+      it 'should correctly configure authtoken parameters' do
+        should contain_ceilometer_config('keystone_authtoken/username').with(:value => ceilometer_user)
+        should contain_ceilometer_config('keystone_authtoken/password').with(:value => ceilometer_user_password)
+        should contain_ceilometer_config('keystone_authtoken/project_name').with(:value => ceilometer_tenant)
         should contain_ceilometer_config('keystone_authtoken/auth_uri').with(:value => keystone_auth_uri)
-        # TODO(aschultz): uncomment this once https://review.openstack.org/#/c/345789/ has landed
-        #should contain_ceilometer_config('keystone_authtoken/auth_url').with(:value => keystone_identity_uri)
+        should contain_ceilometer_config('keystone_authtoken/auth_url').with(:value => keystone_auth_url)
+        should contain_ceilometer_config('keystone_authtoken/memcached_servers').with(:value => memcached_servers.join(','))
       end
 
       it 'should configure interface (ex. OS ENDPOINT TYPE) for ceilometer' do
@@ -186,17 +192,6 @@ describe manifest do
           'auth_region'      => ceilometer_region,
           'auth_tenant_name' => auth_tenant_name,
           'auth_user'        => auth_user,
-        )
-      end
-
-      it 'configures ceilometer::api' do
-        should contain_class('ceilometer::api').with(
-            'auth_uri'          => keystone_auth_uri,
-            'identity_uri'      => keystone_identity_uri,
-            'keystone_user'     => ceilometer_hash['user'],
-            'keystone_password' => ceilometer_hash['user_password'],
-            'keystone_tenant'   => ceilometer_hash['tenant'],
-            'host'              => bind_address,
         )
       end
 

@@ -72,6 +72,14 @@ describe manifest do
     heat_db_name = Noop.hiera('heat_db_name', 'heat')
 
     heat_hash = Noop.hiera_structure 'heat', {}
+
+    keystone_auth_uri = "#{public_auth_protocol}://#{public_auth_address}:5000/v2.0/"
+    keystone_auth_url = "#{admin_auth_protocol}://#{admin_auth_address}:35357/"
+
+    tenant = heat_hash.fetch('tenant', 'services')
+    user = heat_hash.fetch('user', 'heat')
+    password = heat_hash['user_password']
+
     rabbit_hash = Noop.hiera_structure 'rabbit', {}
 
     rabbit_heartbeat_timeout_threshold = Noop.puppet_function 'pick', heat_hash['rabbit_heartbeat_timeout_threshold'], rabbit_hash['heartbeat_timeout_treshold'], 60
@@ -123,10 +131,19 @@ describe manifest do
       end
     end
 
-    it 'should use auth_uri and identity_uri' do
+    it 'should declare heat::keystone::authtoken class with correct parameters' do
+      should contain_class('heat::keystone::authtoken').with(
+        'username'          => user,
+        'password'          => password,
+        'project_name'      => tenant,
+        'auth_uri'          => keystone_auth_uri,
+        'auth_url'          => keystone_auth_url,
+        'memcached_servers' => memcached_servers,
+      )
+    end
+
+    it 'should configure heat class' do
       should contain_class('heat').with(
-        'auth_uri'         => "#{public_auth_protocol}://#{public_auth_address}:5000/v2.0/",
-        'identity_uri'     => "#{admin_auth_protocol}://#{admin_auth_address}:35357/",
         'sync_db'          => primary_controller,
         'heat_clients_url' => "#{public_heat_protocol}://#{public_vip}:8004/v1/%(tenant_id)s",
       )

@@ -74,14 +74,19 @@ if ironic_enabled
         )
       end
 
+      it 'should declare ironic::api::authtoken class correctly' do
+        should contain_class('ironic::api::authtoken').with(
+          'username'          => admin_user,
+          'password'          => admin_password,
+          'project_name'      => admin_tenant,
+          'auth_url'          => admin_auth_uri,
+          'auth_uri'          => internal_auth_url,
+          'memcached_servers' => memcached_servers,
+        )
+      end
+
       it 'should declare ironic::api class correctly' do
         should contain_class('ironic::api').with(
-          'auth_uri'             => internal_auth_url,
-          'identity_uri'         => admin_auth_uri,
-          'admin_tenant_name'    => admin_tenant,
-          'admin_user'           => admin_user,
-          'admin_password'       => admin_password,
-          'memcached_servers'    => memcached_servers,
           'neutron_url'          => "#{neutron_protocol}://#{neutron_address}:9696",
           'public_endpoint'      => "#{public_protocol}://#{public_address}:6385"
         )
