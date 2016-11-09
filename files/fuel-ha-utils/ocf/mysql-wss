@@ -686,15 +686,11 @@ mysql_start() {
     # Regardless of whether we just created the directory or it
     # already existed, check whether it is writable by the configured
     # user
-    groups=($(groups $OCF_RESKEY_user))
-
     for dir in $pid_dir $socket_dir; do
-        read -a dir_stats < <(stat -Lc "%U %G %A" $dir)
-        [ "${dir_stats[2]:8:1}" == "w" ] && continue
-        [ "${dir_stats[0]}" == ${OCF_RESKEY_user} ] && [ "${dir_stats[2]:2:1}" == "w" ] && continue
-        [ "${dir_stats[2]:5:1}" == "w" ] && [[ "${groups[*]:2}" =~ ^(.* |)${dir_stats[1]}( .*|)$ ]] && continue
-        ocf_log err "${LH} Directory $dir is not writable by $OCF_RESKEY_user"
-        exit $OCF_ERR_PERM;
+        if ! su -s /bin/sh - $OCF_RESKEY_user -c "test -w $dir"; then
+            ocf_log err "${LH} Directory $dir is not writable by $OCF_RESKEY_user"
+            exit $OCF_ERR_PERM;
+        fi
     done
 
     if [ -f /tmp/wsrep-init-file ]; then
