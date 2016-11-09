@@ -23,6 +23,7 @@ class openstack_tasks::openstack_cinder::openstack_cinder {
   $primary_controller     = hiera('primary_controller')
   $proxy_port             = hiera('proxy_port', '8080')
   $kombu_compression      = hiera('kombu_compression', '')
+  $memcached_servers      = hiera('memcached_servers')
   $default_volume_type    = pick($cinder_hash['default_volume_type'], $::os_service_default)
   $db_type                = 'mysql'
   $db_host                = pick($cinder_hash['db_host'], hiera('database_vip'))
@@ -182,6 +183,7 @@ class openstack_tasks::openstack_cinder::openstack_cinder {
       nova_catalog_info           => 'compute:nova:internalURL',
       sync_db                     => $primary_controller,
       default_volume_type         => $default_volume_type,
+      memcached_servers           => $memcached_servers,
     }
 
     class { 'cinder::scheduler': }
