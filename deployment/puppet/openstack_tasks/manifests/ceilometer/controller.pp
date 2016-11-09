@@ -46,6 +46,8 @@ class openstack_tasks::ceilometer::controller {
   $keystone_identity_uri      = "${internal_auth_protocol}://${internal_auth_endpoint}:35357/"
   $keystone_auth_uri          = "${internal_auth_protocol}://${internal_auth_endpoint}:5000/"
 
+  $memcached_servers          = hiera('memcached_servers')
+
   prepare_network_config(hiera_hash('network_scheme', {}))
   $api_bind_address           = get_network_role_property('ceilometer/api', 'ipaddr')
 
@@ -187,6 +189,7 @@ class openstack_tasks::ceilometer::controller {
       keystone_user     => $ceilometer_hash['user'],
       keystone_password => $ceilometer_hash['user_password'],
       keystone_tenant   => $ceilometer_hash['tenant'],
+      memcached_servers => $memcached_servers,
       host              => $api_bind_address,
       port              => '8777',
       api_workers       => $service_workers,
