@@ -116,10 +116,7 @@ class openstack_tasks::roles::compute {
 
   ##CALCULATED PARAMETERS
 
-  # TODO(xarses): Wait Nova compute uses memcache?
-  $cache_server_ip     = hiera('memcached_addresses')
-  $cache_server_port   = hiera('memcache_server_port', '11211')
-  $memcached_addresses =  suffix($cache_server_ip, inline_template(':<%= @cache_server_port %>'))
+  $memcached_servers = hiera('memcached_servers')
 
   # TODO(xarses): We need to validate this is needed
   if ($storage_hash['volumes_lvm']) {
@@ -318,6 +315,7 @@ class openstack_tasks::roles::compute {
     service_down_time                  => $nova_service_down_time,
     notify_on_state_change             => $notify_on_state_change,
     notification_driver                => $ceilometer_hash['notification_driver'],
+    memcached_servers                  => $memcached_servers,
     memcached_servers                  => $memcached_addresses,
     cinder_catalog_info                => pick($nova_hash_real['cinder_catalog_info'], 'volumev2:cinderv2:internalURL'),
     rabbit_heartbeat_timeout_threshold => $::os_service_default,
