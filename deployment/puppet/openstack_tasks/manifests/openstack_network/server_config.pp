@@ -53,6 +53,7 @@ class openstack_tasks::openstack_network::server_config {
     $project_name            = pick($neutron_config['keystone']['admin_tenant'], 'services')
     $region_name             = hiera('region', 'RegionOne')
     $auth_endpoint_type      = 'internalURL'
+    $memcached_servers       = hiera('memcached_servers')
 
     $ssl_hash                = hiera_hash('use_ssl', {})
 
@@ -220,6 +221,7 @@ class openstack_tasks::openstack_network::server_config {
       qos_notification_drivers         => $qos_notification_drivers,
       enabled                          => true,
       manage_service                   => true,
+      memcached_servers                => $memcached_servers,
     }
 
     Exec<| title == 'neutron-db-sync' |> {
