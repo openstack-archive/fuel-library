@@ -22,24 +22,8 @@ describe manifest do
 
     workers_max          = Noop.hiera 'workers_max'
     network_metadata     = Noop.hiera_hash('network_metadata')
-    memcache_roles       = Noop.hiera 'memcache_roles'
-    memcache_addresses   = Noop.hiera 'memcached_addresses', false
-    memcache_server_port = Noop.hiera 'memcache_server_port', '11211'
-    let(:memcache_nodes) do
-      Noop.puppet_function 'get_nodes_hash_by_roles', network_metadata, memcache_roles
-    end
 
-    let(:memcache_address_map) do
-      Noop.puppet_function 'get_node_to_ipaddr_map_by_network_role', memcache_nodes, 'mgmt/memcache'
-    end
-
-    let (:memcache_servers) do
-      if not memcache_addresses
-        memcache_address_map.values.map { |server| "#{server}:#{memcache_server_port}" }.join(",")
-      else
-        memcache_addresses.map { |server| "#{server}:#{memcache_server_port}" }.join(",")
-      end
-    end
+    let(:memcached_servers) { Noop.hiera 'memcached_servers' }
 
     let(:memcached_port) { Noop.hiera 'memcached_server_port', '11211' }
     let(:memcached_address) { Noop.puppet_function 'get_network_role_property', 'mgmt/memcache', 'ipaddr' }
@@ -190,7 +174,7 @@ describe manifest do
 
     it 'nova config should contain right memcached servers list' do
       should contain_nova_config('keystone_authtoken/memcached_servers').with(
-        'value' => memcached_authtoken_server,
+               'value' => memcached_authtoken_server,
       )
     end
 
@@ -503,4 +487,3 @@ describe manifest do
 
   test_ubuntu_and_centos manifest
 end
-
