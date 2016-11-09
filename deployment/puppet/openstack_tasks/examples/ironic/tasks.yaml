@@ -78,11 +78,11 @@
       $.get('amqp_hosts'), $.rabbit,
       $.get('nova_report_interval', '60'),
       $.get('nova_service_down_time', '180'), $.quantum_settings,
-      $.get('memcached_addresses'),
+      $.get('memcached_servers'),
       $.network_metadata.nodes.values().where(
         ('controller' in $.node_roles) or
         ('primary-controller' in $.node_roles)),
-      $.get('memcache_server_port'), $.get('use_ssl'))
+      $.get('use_ssl'))
   required_for: [deploy_end]
   requires: [primary-openstack-controller, openstack-controller, ironic-api]
   refresh_on: [nova_config, nova_paste_api_ini]
