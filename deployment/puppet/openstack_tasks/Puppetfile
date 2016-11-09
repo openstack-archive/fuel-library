@@ -29,12 +29,12 @@ mod 'aodh',
 # Pull in puppet-ceilometer
 mod 'ceilometer',
     :git => 'https://github.com/fuel-infra/puppet-ceilometer.git',
-    :ref => '8.2.0'
+    :ref => '1bcac4e50abad3381046accf80986eb5aed453d1'
 
 # Pull in openstack-cinder
 mod 'cinder',
     :git => 'https://github.com/fuel-infra/openstack-cinder.git',
-    :ref => '8.2.0'
+    :ref => '72ef0ce90cfc828a9f0202a2c9970a15417ec4b5'
 
 # Pull in puppet-glance
 mod 'glance',
