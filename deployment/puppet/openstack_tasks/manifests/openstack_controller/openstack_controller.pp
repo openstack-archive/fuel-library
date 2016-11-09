@@ -57,8 +57,6 @@ class openstack_tasks::openstack_controller::openstack_controller {
 
   $ironic_hash                  = hiera_hash('ironic', {})
 
-  $memcached_server             = hiera('memcached_addresses')
-  $memcached_port               = hiera('memcache_server_port', '11211')
   $openstack_controller_hash    = hiera_hash('openstack_controller', {})
 
   $external_lb                  = hiera('external_lb', false)
@@ -152,7 +150,7 @@ class openstack_tasks::openstack_controller::openstack_controller {
     }
   }
 
-  $memcached_addresses =  suffix($memcached_server, inline_template(":<%= @memcached_port %>"))
+  $memcached_servers = hiera('memcached_servers')
 
   # LP1621541 In order to increase nova performance after failover,
   # we need to point nova to local memcached instance for keystone tokens,
@@ -196,7 +194,7 @@ class openstack_tasks::openstack_controller::openstack_controller {
     service_down_time                  => $nova_service_down_time,
     notify_api_faults                  => pick($nova_hash['notify_api_faults'], false),
     notification_driver                => $ceilometer_hash['notification_driver'],
-    memcached_servers                  => $memcached_authtoken_server,
+    memcached_servers                  => $memcached_servers,
     cinder_catalog_info                => pick($nova_hash['cinder_catalog_info'], 'volumev2:cinderv2:internalURL'),
     database_max_pool_size             => $max_pool_size,
     database_max_retries               => $max_retries,
