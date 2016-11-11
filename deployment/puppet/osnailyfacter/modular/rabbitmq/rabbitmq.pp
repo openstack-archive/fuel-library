@@ -98,12 +98,10 @@ if $queue_provider == 'rabbitmq' {
       'listener'   => "[{port, 15672}, {ip,\"${management_bind_ip_address}\"}]",
     }
   )
-  # NOTE(bogdando) to get the limit for threads, the max amount of worker processess will be doubled
-  $thread_pool_calc = min($workers_max*2,max(12*$physicalprocessorcount,30))
 
   $environment_variables_init = hiera('rabbit_environment_variables',
     {
-      'SERVER_ERL_ARGS'     => "\"+K true +A${thread_pool_calc} +P 1048576\"",
+      'SERVER_ERL_ARGS'     => "\"+K true +P 1048576\"",
       'ERL_EPMD_ADDRESS'    => $epmd_bind_ip_address,
       'PID_FILE'            => $pid_file,
     }
