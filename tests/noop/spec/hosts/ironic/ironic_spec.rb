@@ -75,14 +75,28 @@ if ironic_enabled
         )
       end
 
+      it 'should declare ironic::api::authtoken class correctly' do
+        should contain_class('ironic::api::authtoken').with(
+          'username'          => admin_user,
+          'password'          => admin_password,
+          'project_name'      => admin_tenant,
+          'auth_url'          => admin_auth_uri,
+          'auth_uri'          => internal_auth_url,
+          'memcached_servers' => memcached_servers,
+        )
+      end
+
+      it 'should correctly configure authtoken parameters' do
+        should contain_ironic_config('keystone_authtoken/username').with(:value => admin_user)
+        should contain_ironic_config('keystone_authtoken/password').with(:value => admin_password)
+        should contain_ironic_config('keystone_authtoken/project_name').with(:value => admin_tenant)
+        should contain_ironic_config('keystone_authtoken/auth_url').with(:value => admin_auth_uri)
+        should contain_ironic_config('keystone_authtoken/auth_uri').with(:value => internal_auth_url)
+        should contain_ironic_config('keystone_authtoken/memcached_servers').with(:value => memcached_servers.join(','))
+      end
+
       it 'should declare ironic::api class correctly' do
         should contain_class('ironic::api').with(
-          'auth_uri'             => internal_auth_url,
-          'identity_uri'         => admin_auth_uri,
-          'admin_tenant_name'    => admin_tenant,
-          'admin_user'           => admin_user,
-          'admin_password'       => admin_password,
-          'memcached_servers'    => memcached_servers,
           'neutron_url'          => "#{neutron_protocol}://#{neutron_address}:9696",
           'public_endpoint'      => "#{public_protocol}://#{public_address}:6385"
         )

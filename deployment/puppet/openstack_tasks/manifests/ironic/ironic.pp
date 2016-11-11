@@ -92,15 +92,18 @@ class openstack_tasks::ironic::ironic {
 
   class { '::ironic::client': }
 
+  class { '::ironic::api::authtoken':
+    username          => $ironic_user,
+    password          => $ironic_user_password,
+    project_name      => $ironic_tenant,
+    auth_url          => $admin_identity_uri,
+    auth_uri          => $internal_auth_url,
+    memcached_servers => $memcached_servers,
+  }
+
   class { '::ironic::api':
     host_ip           => get_network_role_property('ironic/api', 'ipaddr'),
-    auth_uri          => $internal_auth_url,
-    identity_uri      => $admin_identity_uri,
-    admin_tenant_name => $ironic_tenant,
-    admin_user        => $ironic_user,
-    admin_password    => $ironic_user_password,
     neutron_url       => "${neutron_protocol}://${neutron_endpoint}:9696",
     public_endpoint   => "${public_protocol}://${public_address}:6385",
-    memcached_servers => $memcached_servers,
   }
 }

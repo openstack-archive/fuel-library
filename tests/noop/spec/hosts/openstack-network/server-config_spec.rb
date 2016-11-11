@@ -61,6 +61,7 @@ describe manifest do
 
         should contain_class('neutron::server').with(
           'sync_db'                 => sync_db,
+          'auth_strategy'           => 'keystone',
           'database_retry_interval' => '2',
           'database_connection'     => db_connection,
           'database_max_retries'    => Noop.hiera('max_retries'),
@@ -256,13 +257,24 @@ describe manifest do
       end
 
       it 'should have correct auth options' do
-        should contain_class('neutron::server').with(
-          'password'     => password,
-          'project_name' => project_name,
-          'region_name'  => region_name,
-          'username'     => username,
-          'auth_url'     => auth_url,
-          'auth_uri'     => auth_uri,)
+        should contain_class('neutron::keystone::authtoken').with(
+          'username'          => username,
+          'password'          => password,
+          'project_name'      => project_name,
+          'region_name'       => region_name,
+          'auth_url'          => auth_url,
+          'auth_uri'          => auth_uri,
+          'memcached_servers' => memcached_servers,)
+      end
+
+      it 'should correctly configure authtoken parameters' do
+        should contain_neutron_config('keystone_authtoken/username').with(:value => username)
+        should contain_neutron_config('keystone_authtoken/password').with(:value => password)
+        should contain_neutron_config('keystone_authtoken/project_name').with(:value => project_name)
+        should contain_neutron_config('keystone_authtoken/region_name').with(:value => region_name)
+        should contain_neutron_config('keystone_authtoken/auth_url').with(:value => auth_url)
+        should contain_neutron_config('keystone_authtoken/auth_uri').with(:value => auth_uri)
+        should contain_neutron_config('keystone_authtoken/memcached_servers').with(:value => memcached_servers.join(','))
       end
 
       it 'should have agent related settings' do
@@ -277,8 +289,7 @@ describe manifest do
         should contain_class('neutron::server').with(
           'router_distributed' => dvr,
           'enabled'            => true,
-          'manage_service'     => true,
-          'memcached_servers'  => memcached_servers,)
+          'manage_service'     => true,)
       }
 
       it 'should configure neutron::server::notifications' do

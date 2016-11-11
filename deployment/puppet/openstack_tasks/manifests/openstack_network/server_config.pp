@@ -203,15 +203,20 @@ class openstack_tasks::openstack_network::server_config {
     firewall_driver           => 'neutron.agent.linux.iptables_firewall.OVSHybridIptablesFirewallDriver',
   }
 
+  class { '::neutron::keystone::authtoken':
+    username          => $username,
+    password          => $password,
+    project_name      => $project_name,
+    region_name       => $region_name,
+    auth_url          => $auth_url,
+    auth_uri          => $auth_uri,
+    memcached_servers => $memcached_servers,
+  }
+
   class { '::neutron::server':
     sync_db                          => $primary_controller,
 
-    username                         => $username,
-    password                         => $password,
-    project_name                     => $project_name,
-    region_name                      => $region_name,
-    auth_url                         => $auth_url,
-    auth_uri                         => $auth_uri,
+    auth_strategy                    => 'keystone',
 
     database_connection              => $db_connection,
     database_max_retries             => hiera('max_retries'),
@@ -233,7 +238,6 @@ class openstack_tasks::openstack_network::server_config {
     qos_notification_drivers         => $qos_notification_drivers,
     enabled                          => true,
     manage_service                   => true,
-    memcached_servers                => $memcached_servers,
   }
 
   # TODO(mmalchuk) remove this after LP#1628580 merged

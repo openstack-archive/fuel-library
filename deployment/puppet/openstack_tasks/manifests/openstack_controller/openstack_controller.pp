@@ -55,9 +55,9 @@ class openstack_tasks::openstack_controller::openstack_controller {
   $admin_auth_protocol    = get_ssl_property($ssl_hash, {}, 'keystone', 'admin', 'protocol', [$nova_hash['auth_protocol'], 'http'])
   $admin_auth_address     = get_ssl_property($ssl_hash, {}, 'keystone', 'admin', 'hostname', [$service_endpoint, $management_vip])
 
-  $keystone_auth_uri     = "${internal_auth_protocol}://${internal_auth_address}:5000/"
-  $keystone_identity_uri = "${admin_auth_protocol}://${admin_auth_address}:35357/"
-  $keystone_ec2_url      = "${keystone_auth_uri}v2.0/ec2tokens"
+  $keystone_auth_uri = "${internal_auth_protocol}://${internal_auth_address}:5000/"
+  $keystone_auth_url = "${admin_auth_protocol}://${admin_auth_address}:35357/"
+  $keystone_ec2_url  = "${keystone_auth_uri}v2.0/ec2tokens"
 
   # get glance api servers list
   $glance_endpoint_default      = hiera('glance_endpoint', $management_vip)
@@ -209,7 +209,6 @@ class openstack_tasks::openstack_controller::openstack_controller {
     notify_api_faults                  => pick($nova_hash['notify_api_faults'], false),
     notification_driver                => $ceilometer_hash['notification_driver'],
     notify_on_state_change             => $notify_on_state_change,
-    memcached_servers                  => $memcached_servers,
     cinder_catalog_info                => pick($nova_hash['cinder_catalog_info'], 'volumev2:cinderv2:internalURL'),
     database_max_pool_size             => $max_pool_size,
     database_max_retries               => $max_retries,
@@ -277,17 +276,21 @@ class openstack_tasks::openstack_controller::openstack_controller {
   , MINUTE);(GET, %(*changes-since*), .*changes-since.*, #{@get_limit}, MINUTE);(DELETE, %(*),\
   .*, #{@delete_limit} , MINUTE)" %>')
 
+  class { '::nova::keystone::authtoken':
+    username          => $keystone_user,
+    password          => $nova_hash['user_password'],
+    project_name      => pick($nova_hash['admin_tenant_name'], $keystone_tenant),
+    auth_url          => $keystone_auth_url,
+    auth_uri          => $keystone_auth_uri,
+    auth_version      => pick($nova_hash['auth_version'], $::os_service_default),
+    memcached_servers => $memcached_servers,
+  }
+
   # Configure nova-api
   class { '::nova::api':
     enabled                              => true,
     api_bind_address                     => $api_bind_address,
     metadata_listen                      => $api_bind_address,
-    admin_user                           => $keystone_user,
-    admin_password                       => $nova_hash['user_password'],
-    admin_tenant_name                    => pick($nova_hash['admin_tenant_name'], $keystone_tenant),
-    identity_uri                         => $keystone_identity_uri,
-    auth_uri                             => $keystone_auth_uri,
-    auth_version                         => pick($nova_hash['auth_version'], $::os_service_default),
     ratelimits                           => $nova_rate_limits_string,
     neutron_metadata_proxy_shared_secret => $neutron_metadata_proxy_secret,
     osapi_compute_workers                => $service_workers,
@@ -379,7 +382,7 @@ class openstack_tasks::openstack_controller::openstack_controller {
     class { '::nova::ironic::common':
       admin_username    => pick($ironic_hash['auth_name'],'ironic'),
       admin_password    => pick($ironic_hash['user_password'],'ironic'),
-      admin_url         => "${keystone_identity_uri}v2.0",
+      admin_url         => "${keystone_auth_url}v2.0",
       admin_tenant_name => pick($ironic_hash['tenant'],'services'),
       api_endpoint      => "${ironic_protocol}://${ironic_endpoint}:6385/v1",
     }
