@@ -27,45 +27,29 @@ class openstack_tasks::keystone::openrc_generate {
   $murano_hash         = hiera_hash('murano', {})
   $murano_glare_plugin = dig44($murano_hash, ['plugins', 'glance_artifacts_plugin', 'enabled'], false)
 
-  osnailyfacter::credentials_file { '/root/openrc':
-    admin_user          => $admin_user,
-    admin_password      => $admin_password,
-    admin_tenant        => $admin_tenant,
-    region_name         => $region,
-    auth_url            => $auth_url,
-    murano_repo_url     => $murano_repo_url,
-    murano_glare_plugin => $murano_glare_plugin,
-  }
-
   $operator_user_hash    = hiera_hash('operator_user', {})
   $operator_user_name    = pick($operator_user_hash['name'], 'fueladmin')
   $operator_user_homedir = pick($operator_user_hash['homedir'], '/home/fueladmin')
-
-  osnailyfacter::credentials_file { "${operator_user_homedir}/openrc":
-    admin_user          => $admin_user,
-    admin_password      => $admin_password,
-    admin_tenant        => $admin_tenant,
-    region_name         => $region,
-    auth_url            => $auth_url,
-    murano_repo_url     => $murano_repo_url,
-    murano_glare_plugin => $murano_glare_plugin,
-    owner               => $operator_user_name,
-    group               => $operator_user_name,
-  }
 
   $service_user_hash     = hiera_hash('service_user', {})
   $service_user_name     = pick($service_user_hash['name'], 'fuel')
   $service_user_homedir  = pick($service_user_hash['homedir'], '/var/lib/fuel')
 
-  osnailyfacter::credentials_file { "${service_user_homedir}/openrc":
-    admin_user          => $admin_user,
-    admin_password      => $admin_password,
-    admin_tenant        => $admin_tenant,
-    region_name         => $region,
-    auth_url            => $auth_url,
-    murano_repo_url     => $murano_repo_url,
-    murano_glare_plugin => $murano_glare_plugin,
-    owner               => $service_user_name,
-    group               => $service_user_name,
+  $cred_users = {
+    '/root/openrc' => 'root',
+    "${operator_user_homedir}/openrc" => $operator_user_name,
+    "${service_user_homedir}/openrc" => $service_user_name,
   }
+  $common_cred_params = {
+    'admin_user'          => $admin_user,
+    'admin_password'      => $admin_password,
+    'admin_tenant'        => $admin_tenant,
+    'region_name'         => $region,
+    'auth_url'            => $auth_url,
+    'murano_repo_url'     => $murano_repo_url,
+    'murano_glare_plugin' => $murano_glare_plugin
+  }
+
+  create_cred_files($cred_users, $common_cred_params)
+
 }
