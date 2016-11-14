@@ -37,6 +37,8 @@ describe manifest do
       is_expected.to contain_class('fuel::cobbler').with parameters
     end
 
+    it { is_expected.to contain_file '/etc/resolv.conf' }
+
     %w(httpd cobblerd dnsmasq xinetd).each do |service|
       it "should containt '#{service}' fuel::systemd service with correct parameters" do
         parameters = {
