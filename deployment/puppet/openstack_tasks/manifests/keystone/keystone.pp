@@ -209,40 +209,23 @@ class openstack_tasks::keystone::keystone {
       try_sleep => '5',
     }
   }
-
-  osnailyfacter::credentials_file { '/root/openrc':
-    admin_user          => $admin_user,
-    admin_password      => $admin_password,
-    admin_tenant        => $admin_tenant,
-    region_name         => $region,
-    auth_url            => $auth_url,
-    murano_repo_url     => $murano_repo_url,
-    murano_glare_plugin => $murano_glare_plugin,
+  
+  $users = {
+    '/root/openrc' => 'root',
+    "${operator_user_homedir}/openrc" => $operator_user_name,
+    "${service_user_homedir}/openrc" => $service_user_name,
+  }
+  $params = {
+    'admin_user'          => $admin_user,
+    'admin_password'      => $admin_password,
+    'admin_tenant'        => $admin_tenant,
+    'region_name'         => $region,
+    'auth_url'            => $auth_url,
+    'murano_repo_url'     => $murano_repo_url,
+    'murano_glare_plugin' => $murano_glare_plugin
   }
 
-  osnailyfacter::credentials_file { "${operator_user_homedir}/openrc":
-    admin_user          => $admin_user,
-    admin_password      => $admin_password,
-    admin_tenant        => $admin_tenant,
-    region_name         => $region,
-    auth_url            => $auth_url,
-    murano_repo_url     => $murano_repo_url,
-    murano_glare_plugin => $murano_glare_plugin,
-    owner               => $operator_user_name,
-    group               => $operator_user_name,
-  }
-
-  osnailyfacter::credentials_file { "${service_user_homedir}/openrc":
-    admin_user          => $admin_user,
-    admin_password      => $admin_password,
-    admin_tenant        => $admin_tenant,
-    region_name         => $region,
-    auth_url            => $auth_url,
-    murano_repo_url     => $murano_repo_url,
-    murano_glare_plugin => $murano_glare_plugin,
-    owner               => $service_user_name,
-    group               => $service_user_name,
-  }
+  create_cred_files($users, $params)
 
   # Get paste.ini source
   include ::keystone::params
