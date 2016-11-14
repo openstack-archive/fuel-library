@@ -677,6 +677,13 @@ mysql_start() {
         fi
     done
 
+   for dir in $pid_dir $socket_dir; do
+       if ! /usr/bin/sudo -n -u $OCF_RESKEY_user "/usr/bin/test -w $dir"; then
+           ocf_log err "${LH} Directory $dir is not writable by $OCF_RESKEY_user"
+           exit $OCF_ERR_PERM;
+       fi
+   done
+
     if [ -f /tmp/wsrep-init-file ]; then
         mysql_extra_params="--init-file=/tmp/wsrep-init-file"
     else
