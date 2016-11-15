@@ -1,0 +1,10 @@
+Verified+1: Fuel CI <fuel-ci-bot@mirantis.com>
+Code-Review+1: Alexey Stupnikov <astupnikov@mirantis.com>
+Code-Review+2: Alex Schultz <aschultz@redhat.com>
+Workflow+1: Denis V. Meltsaykin <dmeltsaykin@mirantis.com>
+Verified+2: Jenkins
+Submitted-by: Jenkins
+Submitted-at: Tue, 15 Nov 2016 10:10:46 +0000
+Reviewed-on: https://review.openstack.org/397224
+Project: openstack/fuel-library
+Branch: refs/heads/stable/7.0
