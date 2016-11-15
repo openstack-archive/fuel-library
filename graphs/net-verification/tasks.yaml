@@ -72,8 +72,7 @@
 - id: v_hiera
   type: puppet
   version: 2.1.0
-  groups: [primary-controller, controller, cinder, cinder-block-device,
-           cinder-vmware, compute, compute-vmware, ceph-osd, primary-mongo, mongo, virt, ironic]
+  groups: ['/.*/']
   required_for: [v_setup_repositories]
   parameters:
     puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/hiera/hiera.pp
@@ -93,7 +92,7 @@
 - id: v_fuel_pkgs
   type: puppet
   version: 2.1.0
-  groups: [primary-controller, controller, cinder, cinder-block-device, cinder-vmware, compute, ceph-osd, primary-mongo, mongo, ironic]
+  groups: ['/.*/']
   required_for: [v_mangle_ovs]
   parameters:
     puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/fuel_pkgs/fuel_pkgs.pp
@@ -103,7 +102,7 @@
 - id: v_mangle_ovs
   type: puppet
   version: 2.1.0
-  groups: [primary-controller, controller, cinder, cinder-block-device, cinder-vmware, compute, ceph-osd, primary-mongo, mongo, ironic]
+  groups: ['/.*/']
   requires: [v_fuel_pkgs]
   required_for: [v_netconfig]
   parameters:
@@ -113,7 +112,7 @@
 - id: v_netconfig
   type: puppet
   version: 2.1.0
-  groups: [primary-controller, controller, cinder, cinder-block-device, cinder-vmware, compute, ceph-osd, primary-mongo, mongo, virt, ironic]
+  groups: ['/.*/']
   parameters:
     puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/netconfig/netconfig.pp
     puppet_modules: /etc/puppet/modules
