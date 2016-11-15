@@ -56,28 +56,6 @@ class openstack_tasks::ceilometer::controller {
   $mongo_hash = hiera_hash('mongo', $default_mongo_hash)
   $db_type    = 'mongodb'
 
-  $override_configuration = hiera_hash('configuration', {})
-
-  $override_values = values($override_configuration)
-  if !empty($override_values) and has_key($override_values[0], 'data') {
-    # Create resources of type 'override_resources'. These, in turn,
-    # will either update existing resources in the catalog with new data,
-    # or create these resources, if they do not actually exist.
-    create_resources(override_resources, $override_configuration)
-  } else {
-    # override ceilometer.conf options
-    override_resources { 'ceilometer_config':
-      data => $override_configuration['ceilometer']
-    }
-    # override ceilometer api paste options
-    override_resources { 'ceilometer_api_paste_ini':
-      data => $override_configuration['ceilometer_api_paste_ini']
-    }
-
-    Override_resources <||> ~> Service <| tag == 'ceilometer-service' |>
-  }
-
-
   if $mongo_hash['enabled'] and $ceilometer_hash['enabled'] {
     $external_mongo_hash = hiera_hash('external_mongo')
     $db_user             = $external_mongo_hash['mongo_user']

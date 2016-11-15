@@ -5,3 +5,4 @@ class mysql::server {}
 class mysql::config {}
 include mysql::server
 include mysql::config
+class { '::osnailyfacter::override_resources': }

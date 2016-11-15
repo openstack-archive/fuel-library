@@ -75,14 +75,7 @@ class osnailyfacter::rabbitmq::rabbitmq {
       $epmd_bind_ip_address = $rabbitmq_bind_ip_address
     }
 
-    $configuration = hiera_hash('configuration', {})
-
-    $config_vars = pick($configuration['rabbitmq'], {})
-
-    $config_kernel_variables = pick(
-      $config_vars['kernel'],
-      hiera_hash('rabbit_config_kernel_variables', {})
-    )
+    $config_kernel_variables = hiera_hash('rabbit_config_kernel_variables', {})
     $config_kernel_variables_default =       {
         'inet_dist_listen_min'         => '41055',
         'inet_dist_listen_max'         => '41055',
@@ -101,10 +94,10 @@ class osnailyfacter::rabbitmq::rabbitmq {
       'disk_free_limit'              => '5000000', # Corosync checks for disk space, reduce rabbitmq check to 5M see LP#1493520 comment #15
     }
 
-    $config_variables = pick($config_vars['application'], hiera_hash('rabbit_config_variables', {}))
+    $config_variables = hiera_hash('rabbit_config_variables', {})
     $config_variables_merged = merge($config_variables_default, $config_variables)
 
-    $config_management_variables = pick($config_vars['management'], hiera_hash('rabbit_config_management_variables', {}))
+    $config_management_variables = hiera_hash('rabbit_config_management_variables', {})
 
     $config_management_variables_default ={
         'rates_mode' => 'none',
