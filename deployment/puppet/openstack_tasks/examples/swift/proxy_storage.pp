@@ -11,3 +11,4 @@ include ceilometer
 # need to add this stub here.
 class memcached {}
 include memcached
+class { '::osnailyfacter::override_resources': }
