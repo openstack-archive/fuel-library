@@ -412,13 +412,20 @@ class openstack_tasks::roles::compute {
     override_uuid => true,
   }
 
-  # From legacy libvirt.pp
+  # From legacy libvirt.pp and cpu
+
   if $::operatingsystem == 'Ubuntu' {
+    $governor = "performance"
+    service { 'ondemand':
+      ensure => stopped,
+      enable => false,
+    }
     package { 'cpufrequtils':
-      ensure => present;
+      ensure  => present,
+      require => Service['ondemand'],
     }
     file { '/etc/default/cpufrequtils':
-      content => "GOVERNOR=\"performance\"\n",
+      content => "GOVERNOR=\"$governor\"\n",
       require => Package['cpufrequtils'],
       notify  => Service['cpufrequtils'],
     }
@@ -428,7 +435,8 @@ class openstack_tasks::roles::compute {
       status => '/bin/true',
     }
 
-    Package<| title == 'cpufrequtils'|> ~> Service<| title == 'cpufrequtils'|>
+    Package<| title == 'cpufrequtils'|>  File<|title == '/etc/default/cpufrequtils'|> ~> 
+    Service<| title == 'cpufrequtils'|>
     if !defined(Service['cpufrequtils']) {
       notify{ "Module ${module_name} cannot notify service cpufrequtils on package update": }
     }
