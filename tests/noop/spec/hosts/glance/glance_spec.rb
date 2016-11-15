@@ -190,11 +190,19 @@ describe manifest do
     end
 
     if storage_config && storage_config.has_key?('images_ceph') && storage_config['images_ceph']
-      if glance_config && glance_config.has_key?('show_image_direct_url')
-        show_image_direct_url = glance_config['show_image_direct_url']
-      else
-        show_image_direct_url = true
+      if glance_config
+        if glance_config.has_key?('show_image_direct_url')
+          show_image_direct_url = glance_config['show_image_direct_url']
+        else
+          show_image_direct_url = true
+        end
+        if glance_config.has_key?('show_multiple_locations')
+          show_multiple_locations = glance_config['show_multiple_locations']
+        else
+          show_multiple_locations = true
+        end
       end
+
       if ironic_enabled
         it 'should declare swift backend' do
           should contain_class('glance::backend::swift').with(:glare_enabled => true)
@@ -207,11 +215,19 @@ describe manifest do
       it 'should configure show_image_direct_url' do
         should contain_glance_api_config('DEFAULT/show_image_direct_url').with_value(show_image_direct_url)
       end
+      it 'should configure show_multiple_locations' do
+        should contain_glance_api_config('DEFAULT/show_multiple_locations').with_value(show_multiple_locations)
+      end
     elsif storage_config && storage_config.has_key?('images_vcenter') && storage_config['images_vcenter']
-      if glance_config && glance_config.has_key?('show_image_direct_url')
-        show_image_direct_url = glance_config['show_image_direct_url']
-      else
-        show_image_direct_url = true
+      if glance_config
+        if glance_config.has_key?('show_image_direct_url')
+          show_image_direct_url = glance_config['show_image_direct_url']
+        else
+          show_image_direct_url = true
+        if glance_config.has_key?('show_multiple_locations')
+          show_multiple_locations = glance_config['show_multiple_locations']
+        else
+          show_multiple_locations = true
       end
       let :params do { :glance_backend => 'vmware', } end
       it 'should declare vmware backend' do
@@ -268,11 +284,21 @@ describe manifest do
       it 'should configure show_image_direct_url' do
         should contain_glance_api_config('DEFAULT/show_image_direct_url').with_value(show_image_direct_url)
       end
+      it 'should configure show_multiple_locations' do
+        should contain_glance_api_config('DEFAULT/show_multiple_locations').with_value(show_multiple_locations)
+      end
     else
-      if glance_config && glance_config.has_key?('show_image_direct_url')
-        show_image_direct_url = glance_config['show_image_direct_url']
-      else
-        show_image_direct_url = false
+      if glance_config
+        if glance_config.has_key?('show_image_direct_url')
+          show_image_direct_url = glance_config['show_image_direct_url']
+        else
+          show_image_direct_url = false
+        end
+        if glance_config.has_key?('show_multiple_locations')
+          show_multiple_locations = glance_config['show_multiple_locations']
+        else
+          show_multiple_locations = false
+        end
       end
       let :params do { :glance_backend => 'swift', } end
       it 'should declare swift backend' do
@@ -284,6 +310,9 @@ describe manifest do
       end
       it 'should configure show_image_direct_url' do
         should contain_glance_api_config('DEFAULT/show_image_direct_url').with_value(show_image_direct_url)
+      end
+      it 'should configure show_multiple_locations' do
+        should contain_glance_api_config('DEFAULT/show_multiple_locations').with_value(show_multiple_locations)
       end
     end
 
