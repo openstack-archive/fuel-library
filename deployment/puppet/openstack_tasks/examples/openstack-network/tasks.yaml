@@ -80,7 +80,7 @@
     yaql_exp: >
       changedAny($.quantum, $.configuration, $.quantum_settings,
       $.get('database_vip'), $.network_metadata.vips, $.nova,
-      $.get('neutron_primary_controller_roles'),
+      $.get('neutron_primary_controller_roles'), $.get('security_groups'),
       $.get('neutron_compute_nodes'), $.get('region', 'RegionOne'),
       $.get('use_ssl'), $.neutron_advanced_configuration, $.network_scheme)
   refresh_on: [neutron_plugin_ml2, neutron_config, neutron_api_config]
@@ -101,7 +101,7 @@
       $.get('neutron_primary_controller_roles'),
       $.get('neutron_compute_nodes'), $.quantum_settings, $.public_ssl,
       $.get('use_ssl'), $.get('region'), $.network_scheme,
-      $.neutron_advanced_configuration)
+      $.neutron_advanced_configuration, $.get('security_groups'))
   refresh_on: [neutron_agent_ovs]
   parameters:
     puppet_manifest: /etc/puppet/modules/openstack_tasks/examples/openstack-network/plugins/ml2.pp

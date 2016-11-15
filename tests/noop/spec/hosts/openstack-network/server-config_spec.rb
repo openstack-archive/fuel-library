@@ -252,7 +252,7 @@ describe manifest do
           'vxlan_group'           => vxlan_group,
           'sriov_agent_required'  => use_sriov,
           'enable_security_group' => true,
-          'firewall_driver'       => 'neutron.agent.linux.iptables_firewall.OVSHybridIptablesFirewallDriver',
+          'firewall_driver'       => 'iptables_hybrid',
         )
       end
 
