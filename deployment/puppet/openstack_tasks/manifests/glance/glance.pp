@@ -129,15 +129,18 @@ class openstack_tasks::glance::glance {
   if ($storage_hash['images_ceph'] and !$ironic_hash['enabled']) {
     $glance_backend = 'ceph'
     $known_stores   = [ 'glance.store.rbd.Store', 'glance.store.http.Store' ]
+    $show_multiple_locations = pick($glance_hash['show_multiple_locations'], true)
     $show_image_direct_url = pick($glance_hash['show_image_direct_url'], true)
   } elsif ($storage_hash['images_vcenter']) {
     $glance_backend = 'vmware'
     $known_stores   = [ 'glance.store.vmware_datastore.Store', 'glance.store.http.Store' ]
+    $show_multiple_locations = pick($glance_hash['show_multiple_locations'], true)
     $show_image_direct_url = pick($glance_hash['show_image_direct_url'], true)
   } else {
     $glance_backend = 'swift'
     $known_stores   = [ 'glance.store.swift.Store', 'glance.store.http.Store' ]
     $swift_store_large_object_size = $glance_large_object_size
+    $show_multiple_locations = pick($glance_hash['show_multiple_locations'], false)
     $show_image_direct_url = pick($glance_hash['show_image_direct_url'], false)
   }
 
@@ -166,28 +169,29 @@ class openstack_tasks::glance::glance {
 
   # Install and configure glance-api
   class { '::glance::api':
-    debug                  => $debug,
-    bind_host              => $api_bind_host,
-    auth_strategy          => 'keystone',
-    database_connection    => $db_connection,
-    enabled                => $enabled,
-    workers                => $service_workers,
-    registry_host          => $glance_endpoint,
-    use_syslog             => $use_syslog,
-    use_stderr             => $use_stderr,
-    log_facility           => $syslog_log_facility,
-    database_idle_timeout  => $idle_timeout,
-    database_max_pool_size => $max_pool_size,
-    database_max_retries   => $max_retries,
-    database_max_overflow  => $max_overflow,
-    show_image_direct_url  => $show_image_direct_url,
-    pipeline               => $pipeline,
-    stores                 => $known_stores,
-    os_region_name         => $region,
-    delayed_delete         => false,
-    scrub_time             => '43200',
-    image_cache_stall_time => '86400',
-    image_cache_max_size   => $glance_image_cache_max_size,
+    debug                   => $debug,
+    bind_host               => $api_bind_host,
+    auth_strategy           => 'keystone',
+    database_connection     => $db_connection,
+    enabled                 => $enabled,
+    workers                 => $service_workers,
+    registry_host           => $glance_endpoint,
+    use_syslog              => $use_syslog,
+    use_stderr              => $use_stderr,
+    log_facility            => $syslog_log_facility,
+    database_idle_timeout   => $idle_timeout,
+    database_max_pool_size  => $max_pool_size,
+    database_max_retries    => $max_retries,
+    database_max_overflow   => $max_overflow,
+    show_image_direct_url   => $show_image_direct_url,
+    show_multiple_locations => $show_multiple_locations,
+    pipeline                => $pipeline,
+    stores                  => $known_stores,
+    os_region_name          => $region,
+    delayed_delete          => false,
+    scrub_time              => '43200',
+    image_cache_stall_time  => '86400',
+    image_cache_max_size    => $glance_image_cache_max_size,
   }
 
   class { '::glance::glare::logging':
