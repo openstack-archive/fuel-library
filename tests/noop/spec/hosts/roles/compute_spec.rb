@@ -499,14 +499,19 @@ describe manifest do
 
     it 'should contain cpufrequtils' do
       if facts[:operatingsystem] == 'Ubuntu'
+        governor = 'performance'
+        should contain_service('ondemand').with(
+          'ensure' => 'stopped',
+          'enable' => 'false',
+        )
         should contain_package('cpufrequtils').with(
-          'ensure' => 'present'
+          'ensure'  => 'present',
+          'require' => 'Service[ondemand]',
         )
         should contain_file('/etc/default/cpufrequtils').with(
-          'content' => "GOVERNOR=\"performance\"\n",
+          'content' => "GOVERNOR=\"#{governor}\"\n",
           'require' => 'Package[cpufrequtils]',
-          'notify'  => 'Service[cpufrequtils]',
-        )
+          ).that_notifies('Service[cpufrequtils]')
         should contain_service('cpufrequtils').with(
           'ensure' => 'running',
           'enable' => 'true',
