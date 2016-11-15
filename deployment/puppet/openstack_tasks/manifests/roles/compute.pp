@@ -9,32 +9,23 @@ class openstack_tasks::roles::compute {
   $nova_service_down_time = hiera('nova_service_down_time', '180')
   prepare_network_config($network_scheme)
 
-  $override_values = values($override_configuration)
-  if !empty($override_values) and has_key($override_values[0], 'data') {
-    # Create resources of type 'override_resources'. These, in turn,
-    # will either update existing resources in the catalog with new data,
-    # or create these resources, if they do not actually exist.
-    create_resources(override_resources, $override_configuration)
-  } else {
-    # override nova options
-    override_resources { 'nova_config':
-      data => $override_configuration['nova_config']
-    }
-
-    # override nova-api options
-    override_resources { 'nova_paste_api_ini':
-      data => $override_configuration['nova_paste_api_ini']
-    }
-
-    Override_resources <||> ~> Service <| tag == 'nova-service' |>
+  # override nova options
+  override_resources { 'nova_config':
+    data => $override_configuration['nova_config']
   }
+
+  # override nova-api options
+  override_resources { 'nova_paste_api_ini':
+    data => $override_configuration['nova_paste_api_ini']
+  }
+
+  Override_resources <||> ~> Service <| tag == 'nova-service' |>
 
   # Pulling hiera
   $compute_hash                   = hiera_hash('compute', {})
   $public_vip                     = hiera('public_vip')
   $management_vip                 = hiera('management_vip')
   $mp_hash                        = hiera('mp')
-  $verbose                        = pick($compute_hash['verbose'], true)
   $debug                          = pick($compute_hash['debug'], hiera('debug', true))
   $storage_hash                   = hiera_hash('storage', {})
   $nova_hash                      = hiera_hash('nova', {})
@@ -43,7 +34,6 @@ class openstack_tasks::roles::compute {
   $cinder_hash                    = hiera_hash('cinder', {})
   $ceilometer_hash                = hiera_hash('ceilometer', {})
   $access_hash                    = hiera_hash('access', {})
-  $neutron_mellanox               = hiera('neutron_mellanox', false)
   $syslog_hash                    = hiera_hash('syslog', {})
   $base_syslog_hash               = hiera_hash('base_syslog', {})
   $use_syslog                     = hiera('use_syslog', true)
@@ -58,18 +48,9 @@ class openstack_tasks::roles::compute {
   $use_2m_huge_pages              = $allocated_hugepages['2M']
   $use_1g_huge_pages              = $allocated_hugepages['1G']
   $libvirt_type                   = hiera('libvirt_type', undef)
-  $kombu_compression              = hiera('kombu_compression', '')
+  $kombu_compression              = hiera('kombu_compression', $::os_service_default)
   $nova_cache                     = pick($nova_hash['use_cache'], true)
   $region_name                    = hiera('region', 'RegionOne')
-
-  $dpdk_config                    = hiera_hash('dpdk', {})
-  $enable_dpdk                    = pick($dpdk_config['enabled'], false)
-  if $enable_dpdk {
-    # LP 1533876
-    $network_device_mtu = false
-  } else {
-    $network_device_mtu = 65000
-  }
 
   # get glance api servers list
   $glance_endpoint_default        = hiera('glance_endpoint', $management_vip)
@@ -83,43 +64,15 @@ class openstack_tasks::roles::compute {
   $block_device_allocate_retries          = hiera('block_device_allocate_retries', 300)
   $block_device_allocate_retries_interval = hiera('block_device_allocate_retries_interval', 3)
 
-  $rpc_backend = hiera('queue_provider', 'rabbit')
-
-  # FIXME(xarses) Should be removed after
-  # https://bugs.launchpad.net/fuel/+bug/1555284
-  if $rpc_backend == 'rabbitmq' {
-    $rpc_backend_real = 'rabbit'
-  } else {
-    $rpc_backend_real = $rpc_backend
-  }
-
-  # Do the stuff
-  if $neutron_mellanox {
-    $mellanox_mode = $neutron_mellanox['plugin']
-  } else {
-    $mellanox_mode = 'disabled'
-  }
+  $queue_provider = hiera('queue_provider', 'rabbit')
 
   include ::osnailyfacter::test_compute
-
-  if ($::mellanox_mode == 'ethernet') {
-    $neutron_config      = hiera_hash('quantum_settings')
-    $neutron_private_net = pick($neutron_config['default_private_net'], 'net04')
-    $physnet             = $neutron_config['predefined_networks'][$neutron_private_net]['L2']['physnet']
-    class { '::mellanox_openstack::compute':
-      physnet => $physnet,
-      physifc => $neutron_mellanox['physical_port'],
-    }
-  }
 
   $floating_hash = {}
 
   ##CALCULATED PARAMETERS
 
-  # TODO(xarses): Wait Nova compute uses memcache?
-  $cache_server_ip     = hiera('memcached_addresses')
-  $cache_server_port   = hiera('memcache_server_port', '11211')
-  $memcached_addresses =  suffix($cache_server_ip, inline_template(':<%= @cache_server_port %>'))
+  $memcached_servers = hiera('memcached_servers')
 
   # TODO(xarses): We need to validate this is needed
   if ($storage_hash['volumes_lvm']) {
@@ -152,8 +105,6 @@ class openstack_tasks::roles::compute {
   $nova_config_hash = {
     'DEFAULT/resume_guests_state_on_host_boot'       => { value => hiera('resume_guests_state_on_host_boot', 'False') },
     'DEFAULT/use_cow_images'                         => { value => hiera('use_cow_images', 'True') },
-    'DEFAULT/block_device_allocate_retries'          => { value => $block_device_allocate_retries },
-    'DEFAULT/block_device_allocate_retries_interval' => { value => $block_device_allocate_retries_interval },
     'libvirt/libvirt_inject_key'                     => { value => true },
     'libvirt/libvirt_inject_password'                => { value => true },
   }
@@ -163,6 +114,9 @@ class openstack_tasks::roles::compute {
   class { '::nova::config':
     nova_config => $nova_complete_hash,
   }
+
+  $rabbit_heartbeat_timeout_threshold = pick($nova_hash['rabbit_heartbeat_timeout_threshold'], $rabbit_hash['heartbeat_timeout_threshold'], 60)
+  $rabbit_heartbeat_rate              = pick($nova_hash['rabbit_heartbeat_rate'], $rabbit_hash['rabbit_heartbeat_rate'], 2)
 
   ########################################################################
 
@@ -267,7 +221,7 @@ class openstack_tasks::roles::compute {
       path    => '/etc/libvirt/qemu.conf',
       line    => $libvirt_hugetlbfs_mount,
       match   => '^hugetlbfs_mount =.*$',
-      require => Package[$::nova::params::libvirt_package_name],
+      require => Package['libvirt'],
       notify  => Service['libvirt'],
     }
     file_line { 'libvirt_1g_hugepages_apparmor':
@@ -275,7 +229,7 @@ class openstack_tasks::roles::compute {
       path    => '/etc/apparmor.d/abstractions/libvirt-qemu',
       after   => 'owner "/run/hugepages/kvm/libvirt/qemu/',
       line    => '  owner "/mnt/hugepages_1GB/libvirt/qemu/**" rw,',
-      require => Package[$::nova::params::libvirt_package_name],
+      require => Package['libvirt'],
       notify  => Exec['refresh_apparmor'],
     }
     file_line { '1g_hugepages_fstab':
@@ -302,52 +256,35 @@ class openstack_tasks::roles::compute {
   $notify_on_state_change = 'vm_and_task_state'
 
   class { '::nova':
-    rpc_backend                        => $rpc_backend_real,
+    rpc_backend                            => $queue_provider,
     #FIXME(bogdando) we have to split amqp_hosts until all modules synced
-    rabbit_hosts                       => split(hiera('amqp_hosts',''), ','),
-    rabbit_userid                      => pick($rabbit_hash['user'], 'nova'),
-    rabbit_password                    => $rabbit_hash['password'],
-    glance_api_servers                 => $glance_api_servers,
-    verbose                            => $verbose,
-    debug                              => $debug,
-    use_syslog                         => $use_syslog,
-    use_stderr                         => $use_stderr,
-    log_facility                       => $syslog_log_facility,
-    state_path                         => $nova_hash_real['state_path'],
-    report_interval                    => $nova_report_interval,
-    service_down_time                  => $nova_service_down_time,
-    notify_on_state_change             => $notify_on_state_change,
-    notification_driver                => $ceilometer_hash['notification_driver'],
-    memcached_servers                  => $memcached_addresses,
-    cinder_catalog_info                => pick($nova_hash_real['cinder_catalog_info'], 'volumev2:cinderv2:internalURL'),
-    rabbit_heartbeat_timeout_threshold => $::os_service_default,
-    os_region_name                     => $region_name,
+    rabbit_hosts                           => split(hiera('amqp_hosts',''), ','),
+    rabbit_userid                          => pick($rabbit_hash['user'], 'nova'),
+    rabbit_password                        => $rabbit_hash['password'],
+    glance_api_servers                     => $glance_api_servers,
+    debug                                  => $debug,
+    use_syslog                             => $use_syslog,
+    use_stderr                             => $use_stderr,
+    log_facility                           => $syslog_log_facility,
+    state_path                             => $nova_hash_real['state_path'],
+    report_interval                        => $nova_report_interval,
+    service_down_time                      => $nova_service_down_time,
+    notify_on_state_change                 => $notify_on_state_change,
+    notification_driver                    => $ceilometer_hash['notification_driver'],
+    memcached_servers                      => $memcached_servers,
+    cinder_catalog_info                    => pick($nova_hash_real['cinder_catalog_info'], 'volumev2:cinderv2:internalURL'),
+    kombu_compression                      => $kombu_compression,
+    block_device_allocate_retries          => $block_device_allocate_retries,
+    block_device_allocate_retries_interval => $block_device_allocate_retries_interval,
+    rabbit_heartbeat_timeout_threshold     => $rabbit_heartbeat_timeout_threshold,
+    rabbit_heartbeat_rate                  => $rabbit_heartbeat_rate,
+    os_region_name                         => $region_name,
   }
 
-  if $nova_cache {
-    case $::osfamily {
-      'RedHat': {
-        $pymemcache_package_name      = 'python-memcached'
-      }
-      'Debian': {
-        $pymemcache_package_name      = 'python-memcache'
-      }
-      default: {
-        fail("Unsupported osfamily: ${::osfamily} operatingsystem: ${::operatingsystem},\
-        module ${module_name} only support osfamily RedHat and Debian")
-      }
-    }
-    # needed for cache/backend, managed in oslo::cache in newton
-    ensure_packages('python-memcache', {
-      ensure => present,
-      name   => $pymemcache_package_name
-    })
-  }
-
-  nova_config {
-    'cache/enabled':          value => $nova_cache;
-    'cache/backend':          value => 'oslo_cache.memcache_pool';
-    'cache/memcache_servers': value => join(any2array($memcached_addresses), ',');
+  class { '::nova::cache':
+    enabled          => $nova_cache,
+    backend          => 'oslo_cache.memcache_pool',
+    memcache_servers => $memcached_servers,
   }
 
   class { '::nova::availability_zone':
@@ -355,11 +292,15 @@ class openstack_tasks::roles::compute {
     default_schedule_zone     => $nova_hash_real['default_schedule_zone'],
   }
 
-  if str2bool($::is_virtual) {
-    $libvirt_cpu_mode = 'none'
-  } else {
-    $libvirt_cpu_mode = 'host-model'
-  }
+  # CPU configuration created using host-model may not work as expected.
+  # The guest CPU may differ from the configuration and it may also confuse
+  # guest OS by using a combination of CPU features and other parameters (such
+  # as CPUID level) that don't work. Until these issues are fixed, it's a good
+  # idea to avoid using host-model
+  # http://libvirt.org/formatdomain.html#elementsCPU
+  # https://bugs.launchpad.net/mos/+bug/1618473
+  $libvirt_cpu_mode = 'none'
+
   # Install / configure nova-compute
 
   # From legacy ceilometer notifications for nova
@@ -370,17 +311,6 @@ class openstack_tasks::roles::compute {
   if($::operatingsystem == 'Ubuntu') {
     tweaks::ubuntu_service_override { 'nova-compute':
       package_name => "nova-compute-${libvirt_type}",
-    }
-
-    # TODO(aschultz): work around until https://review.openstack.org/#/c/306677/
-    # lands.
-    if $::os_package_type == 'ubuntu' {
-      ensure_resource('service', ['virtlogd','virtlockd'], {
-        ensure => running,
-        enable => true,
-        require => Package[$::nova::params::libvirt_package_name],
-        before => Service['libvirt']
-      })
     }
   }
 
@@ -396,7 +326,7 @@ class openstack_tasks::roles::compute {
   # NOTE(bogdando) deploy compute node with disabled nova-compute
   #   service #LP1398817. The orchestration will start and enable it back
   #   after the deployment is done.
-  # FIXME(bogdando) This should be changed once the host aggregates implemented, bp disable-new-computes
+  # NOTE(bogdando) This maybe be changed, if the host aggregates implemented, bp disable-new-computes
   class { '::nova::compute':
     enabled                       => false,
     vncserver_proxyclient_address => get_network_role_property('nova/api', 'ipaddr'),
@@ -405,7 +335,6 @@ class openstack_tasks::roles::compute {
     vncproxy_port                 => $nova_hash_real['vncproxy_port'],
     force_config_drive            => $force_config_drive,
     pci_passthrough               => nic_whitelist_to_json(get_nic_passthrough_whitelist('sriov')),
-    network_device_mtu            => $network_device_mtu,
     instance_usage_audit          => $instance_usage_audit,
     instance_usage_audit_period   => $instance_usage_audit_period,
     reserved_host_memory          => $nova_hash_real['reserved_host_memory'],
@@ -418,6 +347,13 @@ class openstack_tasks::roles::compute {
     'libvirt/live_migration_flag':  value => 'VIR_MIGRATE_UNDEFINE_SOURCE,VIR_MIGRATE_PEER2PEER,VIR_MIGRATE_LIVE,VIR_MIGRATE_PERSIST_DEST';
     'libvirt/block_migration_flag': value => 'VIR_MIGRATE_UNDEFINE_SOURCE,VIR_MIGRATE_PEER2PEER,VIR_MIGRATE_LIVE,VIR_MIGRATE_NON_SHARED_INC';
     'DEFAULT/connection_type':      value => 'libvirt';
+  }
+
+  # TODO (iberezovskiy): rework this option management once it's available in puppet-nova module
+  if !defined(Nova_config['privsep_osbrick/helper_command']) {
+    nova_config {
+      'privsep_osbrick/helper_command': value => 'sudo nova-rootwrap /etc/nova/rootwrap.conf privsep-helper --config-file /etc/nova/nova.conf'
+    }
   }
 
   if $use_syslog {
@@ -440,7 +376,9 @@ class openstack_tasks::roles::compute {
     libvirt_inject_partition                   => $libvirt_inject_partition,
     vncserver_listen                           => '0.0.0.0',
     remove_unused_original_minimum_age_seconds => pick($nova_hash_real['remove_unused_original_minimum_age_seconds'], '86400'),
-    libvirt_service_name                       => $::nova::params::libvirt_service_name,
+    libvirt_service_name                       => 'libvirt-bin',
+    virtlock_service_name                      => 'virtlockd',
+    virtlog_service_name                       => 'virtlogd',
   }
 
   class { '::nova::migration::libvirt':
@@ -474,6 +412,7 @@ class openstack_tasks::roles::compute {
       unless  => "cpufreq-info --policy | grep -q $governor",
       require => [Package['cpufrequtils'], Service['cpufrequtils']],
     }
+
     Package<| title == 'cpufrequtils'|> ~> Service<| title == 'cpufrequtils'|>
     if !defined(Service['cpufrequtils']) {
       notify{ "Module ${module_name} cannot notify service cpufrequtils on package update": }
@@ -514,7 +453,7 @@ class openstack_tasks::roles::compute {
       file_line { 'qemu_selinux':
         path    => '/etc/libvirt/qemu.conf',
         line    => 'security_driver = "selinux"',
-        require => Package[$::nova::params::libvirt_package_name],
+        require => Package['libvirt'],
         notify  => Service['libvirt']
       }
     }
@@ -522,7 +461,7 @@ class openstack_tasks::roles::compute {
       file_line { 'qemu_apparmor':
         path    => '/etc/libvirt/qemu.conf',
         line    => 'security_driver = "apparmor"',
-        require => Package[$::nova::params::libvirt_package_name],
+        require => Package['libvirt'],
         notify  => Service['libvirt']
       }
 
@@ -567,37 +506,6 @@ class openstack_tasks::roles::compute {
   }
 
   ensure_packages([$scp_package, $multipath_tools_package])
-
-  $ssh_private_key   = '/var/lib/astute/nova/nova'
-  $ssh_public_key    = '/var/lib/astute/nova/nova.pub'
-
-  # Install ssh keys and config file
-  install_ssh_keys {'nova_ssh_key_for_migration':
-    ensure           => present,
-    user             => 'nova',
-    private_key_path => $ssh_private_key,
-    public_key_path  => $ssh_public_key,
-    private_key_name => 'id_rsa',
-    public_key_name  => 'id_rsa.pub',
-    authorized_keys  => 'authorized_keys',
-  } ->
-  file { '/var/lib/nova/.ssh/config':
-    ensure  => present,
-    owner   => 'nova',
-    group   => 'nova',
-    mode    => '0600',
-    content => "Host *\n  StrictHostKeyChecking no\n  UserKnownHostsFile=/dev/null\n",
-  }
-
-  # TODO (iberezovskiy): remove this workaround in N when nova module
-  # will be switched to puppet-oslo usage for rabbit configuration
-  if $kombu_compression in ['gzip','bz2'] {
-    if !defined(Oslo::Messaging_rabbit['nova_config']) and !defined(Nova_config['oslo_messaging_rabbit/kombu_compression']) {
-      nova_config { 'oslo_messaging_rabbit/kombu_compression': value => $kombu_compression; }
-    } else {
-      Nova_config<| title == 'oslo_messaging_rabbit/kombu_compression' |> { value => $kombu_compression }
-    }
-  }
 
   # vim: set ts=2 sw=2 et :
 
