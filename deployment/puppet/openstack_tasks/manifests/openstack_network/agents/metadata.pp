@@ -20,22 +20,6 @@ class openstack_tasks::openstack_network::agents::metadata {
   }
 
   if $controller or ($dvr and $compute) {
-    # override neutron options
-    $override_configuration = hiera_hash('configuration', {})
-  $override_values = values($override_configuration)
-    if !empty($override_values) and has_key($override_values[0], 'data') {
-      # Create resources of type 'override_resources'. These, in turn,
-      # will either update existing resources in the catalog with new data,
-      # or create these resources, if they do not actually exist.
-      create_resources(override_resources, $override_configuration)
-    } else {
-      override_resources { 'neutron_metadata_agent_config':
-        data => $override_configuration['neutron_metadata_agent_config']
-      } ~> Service['neutron-metadata']
-    }
-  }
-
-  if $controller or ($dvr and $compute) {
     $debug                  = hiera('debug', true)
     $ha_agent               = dig44($neutron_advanced_config, ['metadata_agent_ha'], true)
     $service_endpoint       = hiera('service_endpoint')
