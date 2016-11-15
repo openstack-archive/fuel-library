@@ -219,7 +219,6 @@ describe manifest do
         end
 
         l2_population = adv_neutron_config.fetch('neutron_l2_pop', false)
-
         default_mechanism_drivers = ['openvswitch']
         l2_population_mech_driver = ['l2population']
         sriov_mech_driver         = ['sriovnicswitch']
@@ -259,7 +258,7 @@ describe manifest do
           'enable_security_group' => 'true',
         )}
         it { should contain_class('neutron::plugins::ml2').with(
-          'firewall_driver' => 'neutron.agent.linux.iptables_firewall.OVSHybridIptablesFirewallDriver',
+          'firewall_driver' => 'iptables_hybrid',
         )}
         it { should contain_class('neutron::plugins::ml2').with(
           'flat_networks' => '*',

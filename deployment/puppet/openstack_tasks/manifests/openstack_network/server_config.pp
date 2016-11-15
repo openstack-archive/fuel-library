@@ -197,7 +197,7 @@ class openstack_tasks::openstack_network::server_config {
       supported_pci_vendor_devs => $pci_vendor_devs,
       sriov_agent_required      => $use_sriov,
       enable_security_group     => true,
-      firewall_driver           => 'neutron.agent.linux.iptables_firewall.OVSHybridIptablesFirewallDriver',
+      firewall_driver           => hiera('security_groups', 'iptables_hybrid'),
     }
 
     class { '::neutron::server':
