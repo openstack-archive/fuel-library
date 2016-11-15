@@ -49,29 +49,6 @@ class openstack_tasks::openstack_cinder::openstack_cinder {
   $rabbit_heartbeat_rate              = pick($cinder_hash['rabbit_heartbeat_rate'], $rabbit_hash['rabbit_heartbeat_rate'], 2)
 
   $queue_provider = hiera('queue_provider', 'rabbit')
-  $override_configuration = hiera_hash('configuration', {})
-
-  $override_values = values($override_configuration)
-  if !empty($override_values) and has_key($override_values[0], 'data') {
-    # Create resources of type 'override_resources'. These, in turn,
-    # will either update existing resources in the catalog with new data,
-    # or create these resources, if they do not actually exist.
-    create_resources(override_resources, $override_configuration)
-  } else {
-    # override cinder.conf options
-    override_resources { 'cinder_config':
-      data => $override_configuration['cinder']
-    }
-
-    # override cinder api paste options
-    override_resources { 'cinder_api_paste_ini':
-      data => $override_configuration['cinder_api_paste_ini']
-    }
-
-    Override_resources <||> ~> Service <| tag == 'cinder-service' |>
-  }
-
-
 
   $keystone_auth_protocol = get_ssl_property($ssl_hash, {}, 'keystone', 'internal', 'protocol', 'http')
   $keystone_auth_host     = get_ssl_property($ssl_hash, {}, 'keystone', 'internal', 'hostname', [hiera('keystone_endpoint', ''), $service_endpoint, $management_vip])
