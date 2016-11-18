@@ -15,3 +15,4 @@ class memcached {}
 include memcached
 
 warning('osnailyfacter/modular/swift/swift.pp is deprecated in Mitaka and will be removed in Newton. See new storage.pp and proxy.pp tasks')
+include ::osnailyfacter::override_resources
