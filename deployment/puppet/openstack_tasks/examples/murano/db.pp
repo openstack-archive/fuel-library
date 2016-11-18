@@ -6,3 +6,4 @@ class mysql::server {}
 include mysql::server
 class murano::api {}
 include murano::api
+include ::osnailyfacter::override_resources
