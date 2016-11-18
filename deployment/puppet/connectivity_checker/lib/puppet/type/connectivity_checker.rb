@@ -19,6 +19,10 @@ Puppet::Type.newtype(:connectivity_checker) do
     desc 'Actual network_metadata hash from Hiera'
   end
 
+  newparam(:exclude_network_roles) do
+    desc 'List of network roles which should be excluded from check'
+  end
+
   newparam(:non_destructive) do
     desc "Define whether we should fail on connectivity issues"
     newvalues(:true, :yes, :on, :false, :no, :off)
