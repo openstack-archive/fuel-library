@@ -41,16 +41,16 @@ define cluster::virtual_ip_ping (
     primitive => $vip_name,
     rules     => [
       {
-        'score'   => '-inf',
+        'score'   => '50',
         'expressions' => [
           {
             'attribute' => "pingd",
-            'operation' => 'not_defined',
+            'operation' => 'defined',
           },
           {
             'attribute' => "pingd",
-            'operation'=>'lte',
-            'value' => '0',
+            'operation' => 'gte',
+            'value'     => '1',
           },
         ],
       },
