@@ -25,7 +25,7 @@
 
 #######################################################################
 # Fill in some defaults if no values are specified
-OCF_RESKEY_binary_default="/usr/bin/mysqld_safe"
+OCF_RESKEY_binary_default="/usr/sbin/mysqld"
 OCF_RESKEY_client_binary_default="/usr/bin/mysql"
 OCF_RESKEY_config_default="/etc/mysql/my.cnf"
 OCF_RESKEY_datadir_default="/var/lib/mysql"
@@ -298,7 +298,7 @@ update_node_gtid() {
         GTID="$CLUSTER_ID:$COMMIT_ID"
     else
         GTID=$(${OCF_RESKEY_binary} --wsrep-recover \
-            --log-error=/dev/stdout 2>&1 | grep -e 'Recovered position' -e 'wsrep_start_position' | grep -Eo "${UUID_REGEX}")
+            --user=${OCF_RESKEY_user} 2>&1 | grep -e 'Recovered position' -e 'wsrep_start_position' | grep -Eo "${UUID_REGEX}")
         [ -z "${GTID}" ] && GTID=$(cat ${OCF_RESKEY_datadir}/grastate.dat \
             | awk '/uuid/ { uuid = $NF} /seqno/ { seqno = $NF} END {print uuid":"seqno}')
     fi
