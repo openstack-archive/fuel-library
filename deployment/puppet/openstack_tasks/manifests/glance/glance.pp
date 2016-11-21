@@ -29,35 +29,28 @@ class openstack_tasks::glance::glance {
   $primary_controller  = hiera('primary_controller')
   $kombu_compression   = hiera('kombu_compression', '')
 
+  # This block is present for compatibility with the old
+  # override data format. This is only needed if overrides
+  # key in hiera doesn't match the Puppet resource name.
+  # E.g. 'ceilometer' where it should be 'ceilometer_config'.
   $override_configuration = hiera_hash('configuration', {})
+  # override glance api options
+  override_resources { 'legacy-glance_api_config':
+    configuration => {'glance_api_config' => $override_configuration['glance_api']}
+  }
+  # override glance registry options
+  override_resources { 'legacy-glance_registry_config':
+    configuration => {'glance_registry_config' => $override_configuration['glance_registry']}
+  }
 
-  $override_values = values($override_configuration)
-  if !empty($override_values) and has_key($override_values[0], 'data') {
-    # Create resources of type 'override_resources'. These, in turn,
-    # will either update existing resources in the catalog with new data,
-    # or create these resources, if they do not actually exist.
-    create_resources(override_resources, $override_configuration)
-  } else {
-    # override glance api options
-    override_resources { 'glance_api_config':
-      data => $override_configuration['glance_api']
-    }
-    # override glance registry options
-    override_resources { 'glance_registry_config':
-      data => $override_configuration['glance_registry']
-    }
+  # override glance cache options
+  override_resources { 'legacy-glance_cache_config':
+    configuration => {'glance_cache_config' => $override_configuration['glance_cache']}
+  }
 
-    # override glance cache options
-    override_resources { 'glance_cache_config':
-      data => $override_configuration['glance_cache']
-    }
-
-    # override glare config options
-    override_resources { 'glance_glare_config':
-      data => $override_configuration['glare_config']
-    }
-
-    Override_resources <||> ~> Service <| tag == 'glance-service' |>
+  # override glare config options
+  override_resources { 'legacy-glance_glare_config':
+    configuration => {'glance_glare_config' => $override_configuration['glare_config']}
   }
 
 

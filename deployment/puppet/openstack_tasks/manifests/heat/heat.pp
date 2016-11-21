@@ -58,22 +58,14 @@ class openstack_tasks::heat::heat {
     default => $::os_service_default,
   }
 
+  # This block is present for compatibility with the old
+  # override data format. This is only needed if overrides
+  # key in hiera doesn't match the Puppet resource name.
+  # E.g. 'ceilometer' where it should be 'ceilometer_config'.
   $override_configuration = hiera_hash('configuration', {})
-
-  $override_values = values($override_configuration)
-  if !empty($override_values) and has_key($override_values[0], 'data') {
-    create_resources(override_resources, $override_configuration)
-  } else {
-    # override heat.conf options
-    override_resources { 'heat_config':
-      data => $override_configuration['heat']
-    }
-    # override heat api paste options
-    override_resources { 'heat_api_paste_ini':
-      data => $override_configuration['heat_api_paste_ini']
-    }
-
-    Override_resources <||> ~> Service <| tag == 'heat-service' |>
+  # override heat.conf options
+  override_resources { 'legacy-heat_config':
+    configuration => {'heat_config' => $override_configuration['heat']}
   }
 
   $storage_hash = hiera_hash('storage', {})
