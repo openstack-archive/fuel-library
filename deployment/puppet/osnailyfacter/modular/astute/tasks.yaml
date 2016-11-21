@@ -112,14 +112,30 @@
     timeout: 180
     cwd: /
 
-- id: public_vip_ping
+- id: primary_public_vip_ping
   type: puppet
   version: 2.1.0
-  role: [primary-controller, controller]
+  role: [primary-controller]
   requires: [post_deployment_start]
   required_for: [post_deployment_end]
   condition:
-    yaql_exp: "changed($.network_scheme) or changed($.get('run_ping_checker'))"
+    yaql_exp: &pub_viping "changed($.network_scheme) or changed($.get('run_ping_checker'))"
+  parameters:
+    puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/virtual_ips/public_vip_ping.pp
+    puppet_modules: /etc/puppet/modules
+    timeout: 120
+    cwd: /
+
+- id: public_vip_ping
+  type: puppet
+  version: 2.1.0
+  role: [controller]
+  requires: [post_deployment_start]
+  required_for: [post_deployment_end]
+  condition:
+    yaql_exp: *pub_viping
+  cross-depends:
+    - name: primary_public_vip_ping
   parameters:
     puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/virtual_ips/public_vip_ping.pp
     puppet_modules: /etc/puppet/modules
