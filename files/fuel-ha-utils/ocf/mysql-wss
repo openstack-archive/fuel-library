@@ -25,7 +25,7 @@
 
 #######################################################################
 # Fill in some defaults if no values are specified
-OCF_RESKEY_binary_default="/usr/bin/mysqld_safe"
+OCF_RESKEY_binary_default="/usr/sbin/mysqld"
 OCF_RESKEY_client_binary_default="/usr/bin/mysql"
 OCF_RESKEY_config_default="/etc/mysql/my.cnf"
 OCF_RESKEY_datadir_default="/var/lib/mysql"
