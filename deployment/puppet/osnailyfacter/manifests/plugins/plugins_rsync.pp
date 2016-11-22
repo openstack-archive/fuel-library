@@ -2,16 +2,13 @@ class osnailyfacter::plugins::plugins_rsync {
 
   notice('MODULAR: plugins/plugins_rsync.pp')
 
-  $plugins    = hiera('plugins', {})
-  $rsync_data = generate_plugins_rsync($plugins)
-
-  if ! empty($rsync_data) {
-    file { '/etc/fuel/plugins/':
-      ensure => directory,
-    }
-
-    create_resources(rsync::get, $rsync_data)
+  exec { 'run-plugins-pull' :
+    command   => '/usr/bin/plugins-pull',
+    logoutput => 'on_failure',
+    tries     => '3',
+    try_sleep => '3',
+    timeout   => '600',
+    require   => File['plugins-pull'],
   }
 
-  File <| |> -> Rsync::Get <| |>
 }
