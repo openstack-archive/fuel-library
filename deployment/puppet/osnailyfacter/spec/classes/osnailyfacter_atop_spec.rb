@@ -15,14 +15,11 @@ describe 'osnailyfacter::atop' do
 
     context "with default params" do
       it 'should setup with platform specific' do
-        case facts[:osfamily]
-        when 'Debian'
-          conf_file    = '/etc/default/atop'
-          acct_package = 'acct'
-        when 'RedHat'
-          conf_file    = '/etc/sysconfig/atop'
-          acct_package = 'psacct'
-        end
+        conf_file =
+          case facts[:osfamily]
+          when 'Debian'; '/etc/default/atop'
+          when 'RedHat'; '/etc/sysconfig/atop'
+          end
 
         is_expected.to contain_file(conf_file).with(
           file_default_opts.merge(:mode => '0644')
@@ -50,12 +47,11 @@ describe 'osnailyfacter::atop' do
       end
 
       it {
-        case facts[:osfamily]
-        when 'Debian'
-          acct_package = 'acct'
-        when 'RedHat'
-          acct_package = 'psacct'
-        end
+        acct_package =
+          case facts[:osfamily]
+          when 'Debian'; 'acct'
+          when 'RedHat'; 'psacct'
+          end
 
         is_expected.to contain_package(acct_package)
       }
