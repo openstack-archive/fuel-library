@@ -49,7 +49,7 @@ if $queue_provider == 'rabbitmq' {
   $mnesia_table_loading_timeout = hiera('mnesia_table_loading_timeout', '10000')
   $rabbitmq_bind_ip_address     = pick(get_network_role_property('mgmt/messaging', 'ipaddr'), 'UNSET')
   $management_bind_ip_address   = hiera('management_bind_ip_address', '127.0.0.1')
-  $enable_rpc_ha                = hiera('enable_rpc_ha', 'true')
+  $enable_rpc_ha                = hiera('enable_rpc_ha', 'false')
   $enable_notifications_ha      = hiera('enable_notifications_ha', 'true')
   $fqdn_prefix                  = hiera('node_name_prefix_for_messaging', 'messaging-')
 

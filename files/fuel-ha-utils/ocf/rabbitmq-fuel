@@ -1,6 +1,6 @@
 #!/bin/bash
 
-OCF_RESKEY_enable_rpc_ha_default=true
+OCF_RESKEY_enable_rpc_ha_default=false
 : ${OCF_RESKEY_enable_rpc_ha=${OCF_RESKEY_enable_rpc_ha_default}}
 
 OCF_RESKEY_enable_notifications_ha_default=true
