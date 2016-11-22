@@ -1,4 +1,4 @@
-require_relative '../../loader/l23network'
+require 'puppetx/l23network'
 
 module Puppet::Parser::Functions
   newfunction(:prepare_network_config, :doc => <<-EOS

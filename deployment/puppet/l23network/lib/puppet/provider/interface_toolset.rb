@@ -1,4 +1,4 @@
-require_relative '../loader/l23network'
+require 'puppetx/l23network'
 require 'yaml'
 require 'json'
 
