@@ -1,0 +1,11 @@
+Verified+1: Fuel CI <fuel-ci-bot@mirantis.com>
+Code-Review+1: Stanislaw Bogatkin <sbogatkin@mirantis.com>
+Code-Review+2: Denis Egorenko <degorenko@mirantis.com>
+Code-Review+2: Aleksandr Didenko <adidenko@mirantis.com>
+Workflow+1: Stanislaw Bogatkin <sbogatkin@mirantis.com>
+Verified+2: Jenkins
+Submitted-by: Jenkins
+Submitted-at: Tue, 22 Nov 2016 14:24:10 +0000
+Reviewed-on: https://review.openstack.org/400272
+Project: openstack/fuel-library
+Branch: refs/heads/stable/mitaka
