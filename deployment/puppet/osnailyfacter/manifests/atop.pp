@@ -63,10 +63,6 @@ class osnailyfacter::atop (
     validate_absolute_path($custom_acct_file)
     $acct_file_dir = dirname($custom_acct_file)
 
-    package { $acct_package:
-      ensure => installed,
-    }
-
     # Manage the parent directory
     file { $acct_file_dir:
       ensure => directory,
@@ -84,7 +80,13 @@ class osnailyfacter::atop (
     Package[$acct_package] -> Exec['turns process accounting on'] -> Service['atop']
   }
 
-  package { 'atop':
+  # pick packages to install
+  $atop_packages = $custom_acct_file ? {
+    undef   => 'atop',
+    default => ['atop', $acct_package],
+  }
+
+  package { $atop_packages:
     ensure => 'installed',
   } ->
 
