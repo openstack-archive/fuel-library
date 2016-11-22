@@ -1,6 +1,6 @@
 require 'ipaddr'
 require 'pp'
-require_relative '../../../loader/l23network'
+require 'puppetx/l23network'
 
 Puppet::Parser::Functions::newfunction(:configure_default_route, :type => :rvalue, :doc => <<-EOS
 This function gets hash of network endpoints configuration and check if fw-admin endpoint has gateway
