@@ -3,3 +3,4 @@ include ::osnailyfacter::upgrade::restart_services
 
 class openstack::firewall {}
 include openstack::firewall
+include ::osnailyfacter::override_resources
