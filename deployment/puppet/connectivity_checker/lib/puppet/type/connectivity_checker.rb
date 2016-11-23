@@ -23,6 +23,21 @@ Puppet::Type.newtype(:connectivity_checker) do
     desc 'List of network roles which should be excluded from check'
   end
 
+  newparam(:parallel_amount) do
+    desc 'Amount of package senders run in parallel'
+    defaultto 20
+
+    validate do |val|
+      if val.to_i <= 0
+        raise ArgumentError, "parallel_amount should be positive integer, not '#{val}'"
+      end
+    end
+
+    munge do |val|
+      val.to_i
+    end
+  end
+
   newparam(:non_destructive) do
     desc "Define whether we should fail on connectivity issues"
     newvalues(:true, :yes, :on, :false, :no, :off)

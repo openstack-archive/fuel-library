@@ -9,6 +9,6 @@ connectivity_checker { 'netconfig':
   non_destructive       => pick($network_checker_settings['non_destructive'], false),
   ping_tries            => pick($network_checker_settings['ping_tries'], 5),
   ping_timeout          => pick($network_checker_settings['ping_timeout'], 20),
+  parallel_amount       => pick($network_checker_settings['parallel_amount'], 20),
   exclude_network_roles => $exclude_network_roles,
 }
-
