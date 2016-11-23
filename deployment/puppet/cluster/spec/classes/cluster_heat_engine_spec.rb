@@ -3,9 +3,11 @@ require 'spec_helper'
 describe 'cluster::heat_engine' do
   let(:pre_condition) do
     <<-eof
-    class { '::heat' :
-      keystone_password => 'test',
+    class { '::heat::keystone::authtoken' :
+      password => 'test',
     }
+
+    class { '::heat' : }
 
     class { '::heat::engine' :
       auth_encryption_key => 'deadb33fdeadb33f',
