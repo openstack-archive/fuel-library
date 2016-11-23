@@ -65,6 +65,12 @@ class openstack::logrotate (
     after => '^minsize',
   }
 
+  file_line { 'logrotate-date-extension':
+    line  => 'dateformat -%Y%m%d-%s',
+    match => '^dateformat ',
+    after => '^dateext',
+  }
+
   if $debug {
     $interval = '10'
   } else {

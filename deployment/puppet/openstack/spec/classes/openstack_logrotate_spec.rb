@@ -31,7 +31,8 @@ describe 'openstack::logrotate' do
          'logrotate-compress',
          'logrotate-delaycompress',
          'logrotate-minsize',
-         'logrotate-maxsize',].each do |item|
+         'logrotate-maxsize',
+         'logrotate-date-extension',].each do |item|
           should contain_file_line(item)
         end
         should contain_cron('fuel-logrotate').with_minute('*/30')
