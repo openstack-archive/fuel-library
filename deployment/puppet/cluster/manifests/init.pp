@@ -56,5 +56,5 @@ class cluster (
     }
     Package['corosync'] -> File['ocf-fuel-path']
     Package<| title == 'pacemaker' |> -> File['ocf-fuel-path']
-
+    Package<| title == 'pacemaker' |> ~> Service['pacemaker']
 }
