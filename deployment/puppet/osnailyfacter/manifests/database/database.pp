@@ -308,12 +308,17 @@ class osnailyfacter::database::database {
       $mysql_config = '/etc/mysql/my.cnf'
     }
 
+    class { '::openstack::galera::client':
+      custom_setup_class => $custom_setup_class,
+    }
+
     # include our integration with pacemaker
     class { '::cluster::mysql':
       mysql_user     => $status_user,
       mysql_password => $status_password,
       mysql_config   => $mysql_config,
       mysql_socket   => $mysql_socket,
+      require        => Class['::openstack::galera::client'],
     }
 
     # this overrides /root/.my.cnf created by mysql::server::root_password
