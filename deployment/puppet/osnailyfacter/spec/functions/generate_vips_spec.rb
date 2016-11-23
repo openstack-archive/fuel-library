@@ -1,6 +1,7 @@
 require 'puppet'
 require 'spec_helper'
 require 'yaml'
+require 'rspec-puppet-utils'
 
 describe 'generate_vips' do
 
@@ -136,7 +137,7 @@ describe 'generate_vips' do
     }
   end
 
-  describe 'basic tests' do
+  context 'basic tests' do
 
     it 'should exist' do
       is_expected.not_to be_nil
@@ -153,34 +154,24 @@ describe 'generate_vips' do
   end
 
   before(:each) do
-    scope.stubs(:function_prepare_network_config)
+    Puppet::Parser::Functions.autoloader.load :prepare_network_config
+    MockFunction.new('prepare_network_config') { |_f| }
 
-    scope.stubs(:function_get_network_role_property).with(['public/vip', 'interface']).returns('br-ex')
-    scope.stubs(:call_function).with('get_network_role_property').with('public/vip', 'interface').returns('br-ex')
+    Puppet::Parser::Functions.autoloader.load :get_network_role_property
+    MockFunction.new('get_network_role_property') { |f|
+      f.stubs(:call).with(%w(public/vip interface)).returns('br-ex')
+      f.stubs(:call).with(%w(public/vip netmask)).returns('255.255.255.0')
+      f.stubs(:call).with(%w(public/vip gateway)).returns('10.109.1.1')
+      f.stubs(:call).with(%w(public/vip gateway_metric)).returns('0')
 
-    scope.stubs(:function_get_network_role_property).with(['public/vip', 'netmask']).returns('255.255.255.0')
-    scope.stubs(:call_function).with('get_network_role_property').with('public/vip', 'netmask').returns('255.255.255.0')
-
-    scope.stubs(:function_get_network_role_property).with(['public/vip', 'gateway']).returns('10.109.1.1')
-    scope.stubs(:call_function).with('get_network_role_property').with('public/vip', 'gateway').returns('10.109.1.1')
-
-    scope.stubs(:function_get_network_role_property).with(['public/vip', 'gateway_metric']).returns('0')
-    scope.stubs(:call_function).with('get_network_role_property').with('public/vip', 'gateway_metric').returns('0')
-
-    scope.stubs(:function_get_network_role_property).with(['mgmt/vip', 'interface']).returns('br-mgmt')
-    scope.stubs(:call_function).with('get_network_role_property').with('mgmt/vip', 'interface').returns('br-mgmt')
-
-    scope.stubs(:function_get_network_role_property).with(['mgmt/vip', 'netmask']).returns('255.255.255.0')
-    scope.stubs(:call_function).with('get_network_role_property').with('mgmt/vip', 'netmask').returns('255.255.255.0')
-
-    scope.stubs(:function_get_network_role_property).with(['mgmt/vip', 'gateway']).returns('')
-    scope.stubs(:call_function).with('get_network_role_property').with('mgmt/vip', 'gateway').returns('')
-
-    scope.stubs(:function_get_network_role_property).with(['mgmt/vip', 'gateway_metric']).returns('0')
-    scope.stubs(:call_function).with('get_network_role_property').with('mgmt/vip', 'gateway_metric').returns('0')
+      f.stubs(:call).with(%w(mgmt/vip interface)).returns('br-mgmt')
+      f.stubs(:call).with(%w(mgmt/vip netmask)).returns('255.255.255.0')
+      f.stubs(:call).with(%w(mgmt/vip gateway)).returns('')
+      f.stubs(:call).with(%w(mgmt/vip gateway_metric)).returns('0')
+    }
   end
 
-  describe 'when creating native types' do
+  context 'when creating native types' do
 
     it 'should generate data for cluster::virtual_ip resources' do
       is_expected.to run.with_params(network_metadata, network_scheme, 'primary-controller').and_return(generated_data)

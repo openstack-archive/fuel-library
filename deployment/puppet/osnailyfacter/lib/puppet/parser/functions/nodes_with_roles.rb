@@ -10,12 +10,18 @@ EOS
   ) do |args|
     raise Puppet::ParseError, 'Only one or 2 arguments allowed.' if args.size < 1 or args.size > 2
     roles, attr = args
-    raise Puppet::ParseError, 'Roles should be provided as array' if ! roles.is_a?(Array)
-    raise Puppet::ParseError, 'Attribute "name" should be provided as string' if ! (attr.is_a?(String) or attr == nil)
-    n_metadata = function_hiera_hash(['network_metadata', {}])
-    n_metadata.fetch('nodes', {}).select {|k,v|
+    raise Puppet::ParseError, 'Roles should be provided as array' unless roles.is_a? Array
+    raise Puppet::ParseError, 'Attribute "name" should be provided as string' unless (attr.is_a?(String) or attr == nil)
+
+    if Puppet.version.to_f >= 4.0
+      network_metadata = call_function 'hiera_hash', 'network_metadata'
+    else
+      network_metadata = function_hiera_hash ['network_metadata']
+    end
+
+    network_metadata.fetch('nodes', {}).select {|_k, v|
       (roles & v.fetch('node_roles',[])).any?
-    }.map {|k,v|
+    }.map {|_k, v|
       attr ? v[attr] : v
     }
   end

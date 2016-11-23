@@ -1,5 +1,6 @@
 require 'spec_helper'
 require 'yaml'
+require 'rspec-puppet-utils'
 
 describe 'roles_include' do
 
@@ -67,13 +68,15 @@ describe 'roles_include' do
   end
 
   before(:each) do
-    scope.stubs(:function_hiera_hash).with(['network_metadata']).returns(YAML.load(network_metadata))
-    scope.stubs(:call_function).with('hiera_hash', 'network_metadata').returns(YAML.load(network_metadata))
-  end
+    Puppet::Parser::Functions.autoloader.load :hiera_hash
+    MockFunction.new('hiera_hash') { |f|
+      f.stubs(:call).with(%w(network_metadata)).returns(YAML.load network_metadata)
+    }
 
-  before(:each) do
-    scope.stubs(:function_get_node_key_name).with([]).returns('node-4')
-    scope.stubs(:call_function).with('get_node_key_name').returns('node-4')
+    Puppet::Parser::Functions.autoloader.load :get_node_key_name
+    MockFunction.new('get_node_key_name') { |f|
+      f.stubs(:call).with([]).returns('node-4')
+    }
   end
 
   it 'should exist' do
