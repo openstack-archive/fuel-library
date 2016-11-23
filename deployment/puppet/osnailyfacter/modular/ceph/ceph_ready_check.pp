@@ -10,3 +10,4 @@ exec { 'ceph_ready_check' :
   logoutput => true,
 }
 
+class { '::osnailyfacter::override_resources': }
