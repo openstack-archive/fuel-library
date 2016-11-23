@@ -25,10 +25,12 @@ class osnailyfacter::upgrade::pkg_upgrade {
 
     ensure_resource('service', 'pacemaker', { ensure  => running })
 
-    File['create-policy-rc.d'] ->
-      Package<| title == 'corosync' or title == 'pacemaker' |> ->
-        Exec['remove_policy'] ->
-          Service['pacemaker']
+    Package<| title == 'corosync' |> ->
+      Service['corosync'] -> 
+        File['create-policy-rc.d'] ->
+          Package<| title == 'pacemaker' |> ->
+            Exec['remove_policy'] ->
+              Service['pacemaker']
   }
 
   if roles_include(['controller', 'primary-controller']) {
