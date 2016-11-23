@@ -131,6 +131,7 @@
   parameters:
     puppet_manifest: /etc/puppet/modules/osnailyfacter/manifests/connectivity-checker.pp
     puppet_modules: /etc/puppet/modules
-    timeout: 300
-  strategy:
-    type: parallel
+    timeout: 3600
+    strategy:
+      type: parallel
+      amount: 50

@@ -11,6 +11,7 @@ Puppet::Type.type(:connectivity_checker).provide(:threaded) do
   def ensure=(value)
     # calculate host hash
     network_scheme        = @resource[:network_scheme]
+    parallel_amount       = @resource[:parallel_amount]
     network_metadata      = @resource[:network_metadata]
     exclude_network_roles = @resource[:exclude_network_roles]
 
@@ -39,46 +40,63 @@ Puppet::Type.type(:connectivity_checker).provide(:threaded) do
         }
       end
     end
-    #puts test_plan.to_yaml()
 
-    # test (ping) neighboors
-    work = {}
-    # fork per-host worker for parallel pinging.
+    workers = {}
+    # Tasks for verification.
+    ping_in_q = Queue.new
+    # Contains connectivity errors.
+    ping_err_q = Queue.new
+
     test_plan.each do |nodename, networks|
-      work[nodename] = {}
-      work[nodename][:thr] = Thread.new(nodename, networks) do |nodename, networks|
-        #Thread.current[:nodename] = nodename
-        Thread.current[:errors] = []
-        networks.each do |netname, netattrs|
-          Thread.current[:cmd] = "ping -n -q -c #{netattrs[:tries]} -w #{netattrs[:timeout]} #{netattrs[:host]}"
-          Thread.current[:rc] = 0
-          if ! system(Thread.current[:cmd], {:out => :close, :err => :close})
-            Thread.current[:rc] = $?.exitstatus()
-            Thread.current[:errors] << {
-              :rc  => Thread.current[:rc],
-              :cmd => "command `#{Thread.current[:cmd]}` was failed with code #{Thread.current[:rc]}",
-              :net => netname
-            }
-          end
-        end
+      networks.each do |netname, netattrs|
+        ping_in_q.push({
+          :netname => netname,
+          :nodename => nodename,
+          :cmd => "ping -n -q -c #{netattrs[:tries]} -w #{netattrs[:timeout]} #{netattrs[:host]}"})
       end
     end
-    # waitall only for all pinger threads
-    work.each do |nodename, rrr|
-      rrr[:thr].join()
-    end
-    # process results
-    err_report = {}
-    work.each do |nodename, rrr|
-      if ! rrr[:thr][:errors].empty?
-        err_report[nodename] = []
-        rrr[:thr][:errors].each do |err|
-          err_report[nodename] << "Unaccessible through '#{err[:net]}', #{err[:cmd]}"
+
+    (0..parallel_amount).each do |n|
+      workers[n] = Thread.new do
+        begin
+          while task = ping_in_q.pop(true)
+            unless system(task[:cmd], {:out => :close, :err => :close})
+              exit_status = $?.exitstatus()
+              ping_err_q << {
+                :rc  => exit_status,
+                :cmd => "command `#{task[:cmd]}` was failed with code #{exit_status}",
+                :net => task[:netname],
+                :nodename => task[:nodename]
+              }
+            end
+          end
+        rescue ThreadError
+          # If Queue is empty, it reaises ThreadError, we are not interested
+          # in proceeding after we checked all addresses in queue.
         end
       end
     end
 
-    if ! err_report.empty?
+    # Wait all for all threads to finish.
+    workers.each do |_, worker|
+      worker.join()
+    end
+
+    # Process results.
+    err_report = {}
+    unless ping_err_q.empty?
+      begin
+        while err = ping_err_q.pop(true)
+          unless err_report[err[:nodename]]
+            err_report[err[:nodename]] = []
+          end
+          err_report[err[:nodename]] << "Unaccessible through '#{err[:net]}', #{err[:cmd]}"
+        end
+      rescue ThreadError
+      end
+    end
+
+    unless err_report.empty?
       msg = "Connectivity check error. Nodes: #{err_report.to_yaml.sub!('---','')}"
       if @resource[:non_destructive].to_s == 'true'
         warn(msg)
