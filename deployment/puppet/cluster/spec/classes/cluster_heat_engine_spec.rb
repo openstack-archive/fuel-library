@@ -3,10 +3,6 @@ require 'spec_helper'
 describe 'cluster::heat_engine' do
   let(:pre_condition) do
     <<-eof
-    class { '::heat' :
-      keystone_password => 'test',
-    }
-
     class { '::heat::engine' :
       auth_encryption_key => 'deadb33fdeadb33f',
     }
