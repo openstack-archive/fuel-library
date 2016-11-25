@@ -44,7 +44,7 @@ mod 'glance',
 # Pull in puppet-heat
 mod 'heat',
     :git => 'https://github.com/fuel-infra/puppet-heat.git',
-    :ref => '8.2.0'
+    :ref => '2c5dc330287e0d9300bc4917ed4058fa9a1fb6c4'
 
 # Pull in puppet-horizon
 mod 'horizon',
