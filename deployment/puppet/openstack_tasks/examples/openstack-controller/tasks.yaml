@@ -23,7 +23,6 @@
       $.get('amqp_hosts'), $.debug, $.use_cow_images, $.get('nova_endpoint'))
   cross-depends:
     - name: /^(primary-)?rabbitmq$/
-      role: self
     - name: nova-db
     - name: nova-keystone
     - name: memcached
@@ -44,7 +43,6 @@
   cross-depends:
     - name: primary-openstack-controller
     - name: /^(primary-)?rabbitmq$/
-      role: self
   refresh_on: [nova_config, nova_paste_api_ini]
   parameters:
     puppet_manifest: /etc/puppet/modules/openstack_tasks/examples/openstack-controller/openstack-controller.pp
