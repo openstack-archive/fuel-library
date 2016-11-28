@@ -65,7 +65,7 @@ class openstack_tasks::heat::heat {
   $override_configuration = hiera_hash('configuration', {})
   # override heat.conf options
   override_resources { 'legacy-heat_config':
-    configuration => {'heat_config' => $override_configuration['heat']}
+    configuration => {'heat_config' => pick($override_configuration['heat'], {})}
   }
 
   $storage_hash = hiera_hash('storage', {})

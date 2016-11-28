@@ -36,21 +36,21 @@ class openstack_tasks::glance::glance {
   $override_configuration = hiera_hash('configuration', {})
   # override glance api options
   override_resources { 'legacy-glance_api_config':
-    configuration => {'glance_api_config' => $override_configuration['glance_api']}
+    configuration => {'glance_api_config' => pick($override_configuration['glance_api'], {})}
   }
   # override glance registry options
   override_resources { 'legacy-glance_registry_config':
-    configuration => {'glance_registry_config' => $override_configuration['glance_registry']}
+    configuration => {'glance_registry_config' => pick($override_configuration['glance_registry'], {})}
   }
 
   # override glance cache options
   override_resources { 'legacy-glance_cache_config':
-    configuration => {'glance_cache_config' => $override_configuration['glance_cache']}
+    configuration => {'glance_cache_config' => pick($override_configuration['glance_cache'], {})}
   }
 
   # override glare config options
   override_resources { 'legacy-glance_glare_config':
-    configuration => {'glance_glare_config' => $override_configuration['glare_config']}
+    configuration => {'glance_glare_config' => pick($override_configuration['glare_config'], {})}
   }
 
 
