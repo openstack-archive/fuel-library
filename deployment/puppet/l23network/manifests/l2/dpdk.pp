@@ -22,6 +22,9 @@
 # [*ovs_memory_channels*]
 #   (optional) Number of memory channels in CPU
 #   Defaults to '2'
+# [*ovs_queues_count*]
+#   (optional) OpenVSwitch rx queues count
+#   Defaults to undef
 #
 class l23network::l2::dpdk (
   $use_dpdk                    = $::l23network::use_dpdk,
@@ -30,6 +33,7 @@ class l23network::l2::dpdk (
   $ovs_pmd_core_mask           = undef,
   $ovs_socket_mem              = $::l23network::params::ovs_socket_mem,
   $ovs_memory_channels         = $::l23network::params::ovs_memory_channels,
+  $ovs_queues_count            = undef,
   $ovs_dpdk_package_name       = $::l23network::params::ovs_dpdk_package_name,
   $ovs_dpdk_dkms_package_name  = $::l23network::params::ovs_dpdk_dkms_package_name,
   $dpdk_dir                    = $::l23network::params::dpdk_dir,
@@ -110,6 +114,13 @@ class l23network::l2::dpdk (
       warning('OpenVSwitch DPDK was not installed')
     }
 
+    # TODO(mpolenchuk): replace below execs with native provider
+    Exec {
+      path    => '/bin:/usr/bin:/usr/local/bin',
+      require => Service['openvswitch-service'],
+      before  => Anchor['l23network::l2::dpdk'],
+    }
+
     # Configure OVS DPDK PMD in runtime (it's safe to re-set it)
     if $ovs_pmd_core_mask {
       $ovs_pmd_core_mask_cmd = "ovs-vsctl set Open_vSwitch . other_config:pmd-cpu-mask=${$ovs_pmd_core_mask}"
@@ -118,9 +129,17 @@ class l23network::l2::dpdk (
     }
     exec { 'ovs_pmd_core_mask':
       command => $ovs_pmd_core_mask_cmd,
-      path    => '/bin:/usr/bin:/usr/local/bin',
-      require => Service['openvswitch-service'],
-    } -> Anchor['l23network::l2::dpdk']
+    }
+
+    # handle ovs/dpdk rx queues count
+    $ovs_queues_count_cmd = $ovs_queues_count ? {
+      true    => "ovs-vsctl set Open_vSwitch . other_config:n-dpdk-rxqs=${$ovs_queues_count}",
+      default => 'ovs-vsctl remove Open_vSwitch . other_config n-dpdk-rxqs',
+    }
+
+    exec { 'ovs_queues_count':
+      command => $ovs_queues_count_cmd,
+    }
 
     # Install ifupdown scripts
     if $::l23_os =~ /(?i)ubuntu/ {

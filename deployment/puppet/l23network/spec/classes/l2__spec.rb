@@ -214,6 +214,29 @@ describe 'l23network::l2' do
       it { should contain_k_mod('openvswitch').with_ensure('present') }
 
     end
+
+    context 'use_ovs, use_dpdk with default parameters' do
+
+      let :params do
+        {
+          :ensure_package => 'present',
+          :use_lnx        => true,
+          :use_ovs        => true,
+          :use_dpdk       => true,
+        }
+      end
+
+      it { should contain_package('dpdk-dkms').with_name('dpdk-dkms') }
+      it { should contain_package('dpdk-dkms').that_comes_before('Service[dpdk]') }
+
+      it { should contain_package('openvswitch-dpdk').with_name('openvswitch-switch-dpdk') }
+      it { should contain_package('openvswitch-dpdk').that_notifies('Service[openvswitch-service]') }
+      it { should contain_package('openvswitch-dpdk').that_comes_before('File[/etc/default/openvswitch-switch]') }
+
+      it { should contain_exec('ovs_pmd_core_mask') }
+      it { should contain_exec('ovs_queues_count') }
+
+    end
   end
 
 

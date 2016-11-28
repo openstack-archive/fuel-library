@@ -70,6 +70,7 @@ class l23network::l2 (
       ovs_core_mask     => $dpdk_options['ovs_core_mask'],
       ovs_pmd_core_mask => $dpdk_options['ovs_pmd_core_mask'],
       ovs_socket_mem    => $dpdk_options['ovs_socket_mem'],
+      ovs_queues_count  => $dpdk_options['ovs_queues_count'],
       install_ovs       => $_install_ovs,
       ensure_package    => $ensure_package,
     } -> Anchor['l23network::l2::init']
