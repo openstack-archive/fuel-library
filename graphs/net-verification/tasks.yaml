@@ -73,37 +73,17 @@
   type: puppet
   version: 2.1.0
   groups: ['/.*/']
-  required_for: [v_setup_repositories]
+  required_for: [v_mangle_ovs]
   parameters:
     puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/hiera/hiera.pp
     puppet_modules: /etc/puppet/modules
     timeout: 120
 
-- id: v_setup_repositories
-  type: puppet
-  version: 2.1.0
-  groups: ['/.*/']
-  required_for: [v_fuel_pkgs]
-  parameters:
-    puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/fuel_pkgs/setup_repositories.pp
-    puppet_modules: /etc/puppet/modules
-    timeout: 600
-
-- id: v_fuel_pkgs
-  type: puppet
-  version: 2.1.0
-  groups: ['/.*/']
-  required_for: [v_mangle_ovs]
-  parameters:
-    puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/fuel_pkgs/fuel_pkgs.pp
-    puppet_modules: /etc/puppet/modules
-    timeout: 600
-
 - id: v_mangle_ovs
   type: puppet
   version: 2.1.0
   groups: ['/.*/']
-  requires: [v_fuel_pkgs]
+  requires: [v_hiera]
   required_for: [v_netconfig]
   parameters:
     puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/netconfig/remove_ovs_usage.pp
