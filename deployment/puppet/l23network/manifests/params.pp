@@ -9,7 +9,6 @@ class l23network::params {
       $interfaces_file            = '/etc/network/interfaces'
       $ovs_service_name           = 'openvswitch-switch'
       $ovs_status_cmd             = '/etc/init.d/openvswitch-switch status'
-      $ovs_default_file           = '/etc/default/openvswitch-switch'
       $lnx_vlan_tools             = 'vlan'
       $lnx_bond_tools             = 'ifenslave'
       $lnx_ethernet_tools         = 'ethtool'
@@ -27,13 +26,14 @@ class l23network::params {
       $ovs_core_mask              = 0x1
       $ovs_socket_mem             = [256]
       $ovs_memory_channels        = 2
+      $ovs_vhost_owner            = 'libvirt-qemu:kvm'
+      $ovs_vhost_perm             = '0664'
     }
     /(?i)redhat|centos|oraclelinux/: {
       $interfaces_dir             = '/etc/sysconfig/network-scripts'
       $interfaces_file            = undef
       $ovs_service_name           = 'openvswitch'
       $ovs_status_cmd             = '/etc/init.d/openvswitch status'
-      $ovs_default_file           = undef
       $lnx_vlan_tools             = undef
       $lnx_bond_tools             = undef
       $lnx_ethernet_tools         = 'ethtool'
@@ -54,12 +54,13 @@ class l23network::params {
       $ovs_core_mask              = 0x1
       $ovs_socket_mem             = [256]
       $ovs_memory_channels        = 2
+      $ovs_vhost_owner            = 'libvirt-qemu:kvm'
+      $ovs_vhost_perm             = '0664'
     }
     /(?i)darwin/: {
       $interfaces_dir             = '/tmp/1'
       $interfaces_file            = undef
       $ovs_service_name           = undef
-      $ovs_default_file           = undef
       $lnx_vlan_tools             = undef
       $lnx_bond_tools             = undef
       $lnx_ethernet_tools         = undef
@@ -76,6 +77,8 @@ class l23network::params {
       $ovs_core_mask              = undef
       $ovs_socket_mem             = undef
       $ovs_memory_channels        = undef
+      $ovs_vhost_owner            = undef
+      $ovs_vhost_perm             = undef
     }
     default: {
       fail("Unsupported OS: ${l23_os}/${::operatingsystem}")
