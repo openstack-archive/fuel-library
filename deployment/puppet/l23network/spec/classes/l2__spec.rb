@@ -285,15 +285,11 @@ describe 'l23network::l2' do
       it { should contain_package('dpdk-dkms').with_name('dpdk-dkms') }
       it { should contain_package('dpdk-dkms').that_comes_before('Service[dpdk]') }
 
-      it { should contain_file('/etc/dpdk/interfaces').that_comes_before('File[/etc/default/openvswitch-switch]') }
       it { should contain_file('/etc/dpdk/interfaces').that_notifies('Service[dpdk]') }
       it { should contain_file('/etc/dpdk/interfaces').that_notifies('Service[openvswitch-service]') }
 
       it { should contain_package('openvswitch-dpdk').with_name('openvswitch-switch-dpdk') }
       it { should contain_package('openvswitch-dpdk').that_notifies('Service[openvswitch-service]') }
-      it { should contain_package('openvswitch-dpdk').that_comes_before('File[/etc/default/openvswitch-switch]') }
-
-      it { should contain_file('/etc/default/openvswitch-switch').that_notifies('Service[openvswitch-service]') }
 
       it { should contain_service('openvswitch-service') }
 
