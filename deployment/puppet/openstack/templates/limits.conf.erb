@@ -1,0 +1,5 @@
+# Raising open file limit for OpenStack services
+root      soft    nofile          <%= general_mof_limit %>
+root      hard    nofile          <%= general_mof_limit %>
+*         soft    nofile          <%= general_mof_limit %>
+*         hard    nofile          <%= general_mof_limit %>
