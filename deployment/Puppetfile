@@ -158,3 +158,8 @@ mod 'mysql',
 mod 'galera',
     :git => 'https://github.com/fuel-infra/puppet-galera.git',
     :ref => '0.0.3-rc1'
+
+# Pull in puppet-vswitch
+mod 'vswitch',
+    :git => 'https://github.com/fuel-infra/puppet-vswitch.git',
+    :ref => '6.0.0'
