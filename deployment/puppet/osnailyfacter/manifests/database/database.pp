@@ -349,23 +349,6 @@ class osnailyfacter::database::database {
         status_allow    => $galera_node_address,
       }
 
-      if $::osfamily == 'Debian' {
-        mysql_user { 'debian-sys-maint@localhost':
-          ensure        => 'present',
-          password_hash => mysql_password($deb_sysmaint_password),
-          provider      => 'mysql',
-          require       => File['/root/.my.cnf'],
-        }
-
-        mysql_grant { 'debian-sys-maint@localhost/*.*':
-          ensure     => 'present',
-          options    => ['GRANT'],
-          privileges => ['ALL'],
-          table      => '*.*',
-          user       => 'debian-sys-maint@localhost',
-        }
-      }
-
       Class['::cluster::mysql'] ->
         Class['::cluster::galera_grants'] ->
           Class['::cluster::galera_status']
