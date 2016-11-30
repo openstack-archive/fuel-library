@@ -22,6 +22,12 @@
 # [*ovs_memory_channels*]
 #   (optional) Number of memory channels in CPU
 #   Defaults to '2'
+# [*ovs_vhost_owner*]
+#   (optional) vhost_user sockets owner/group
+#   Defaults to 'libvirt-qemu:kvm'
+# [*ovs_vhost_perm*]
+#   (optional) vhost_user sockets permissions
+#   Defaults to '0664'
 #
 class l23network::l2::dpdk (
   $use_dpdk                    = $::l23network::use_dpdk,
@@ -30,12 +36,13 @@ class l23network::l2::dpdk (
   $ovs_pmd_core_mask           = undef,
   $ovs_socket_mem              = $::l23network::params::ovs_socket_mem,
   $ovs_memory_channels         = $::l23network::params::ovs_memory_channels,
+  $ovs_vhost_owner             = $::l23network::params::ovs_vhost_owner,
+  $ovs_vhost_perm              = $::l23network::params::ovs_vhost_perm,
   $ovs_dpdk_package_name       = $::l23network::params::ovs_dpdk_package_name,
   $ovs_dpdk_dkms_package_name  = $::l23network::params::ovs_dpdk_dkms_package_name,
   $dpdk_dir                    = $::l23network::params::dpdk_dir,
   $dpdk_conf_file              = $::l23network::params::dpdk_conf_file,
   $dpdk_interfaces_file        = $::l23network::params::dpdk_interfaces_file,
-  $ovs_default_file            = $::l23network::params::ovs_default_file,
   $install_ovs                 = $::l23network::l2::install_ovs,
   $ensure_package              = 'present',
 ) inherits ::l23network::params {
@@ -61,10 +68,6 @@ class l23network::l2::dpdk (
       }
       File[$dpdk_interfaces_file] ~> Service['dpdk']
       File[$dpdk_interfaces_file] ~> Service['openvswitch-service']
-
-      if $ovs_default_file {
-        File[$dpdk_interfaces_file] -> File[$ovs_default_file]
-      }
     } else {
       warning('DPDK was not configured')
     }
@@ -88,39 +91,37 @@ class l23network::l2::dpdk (
       hasstatus => true,
     } -> Anchor['l23network::l2::dpdk']
 
-    # Configure OpenVSwitch to use DPDK
-    if $ovs_default_file {
-      file {$ovs_default_file:
-        ensure  => 'present',
-        content => template('l23network/openvswitch_default_Debian.erb'),
-      } ~> Service['openvswitch-service']
-    }
-
     # Install DPDK-enabled OpenVSwitch
     if $_install_dpdk and $install_ovs and $ovs_dpdk_package_name {
       package {'openvswitch-dpdk':
         ensure => $ensure_package,
         name   => $ovs_dpdk_package_name,
       } ~> Service['openvswitch-service']
-
-      if $ovs_default_file {
-        Package['openvswitch-dpdk'] -> File[$ovs_default_file]
-      }
     } else {
       warning('OpenVSwitch DPDK was not installed')
     }
 
     # Configure OVS DPDK PMD in runtime (it's safe to re-set it)
     if $ovs_pmd_core_mask {
-      $ovs_pmd_core_mask_cmd = "ovs-vsctl set Open_vSwitch . other_config:pmd-cpu-mask=${$ovs_pmd_core_mask}"
+      $ovs_pmd_core_mask_opts = { value => $ovs_pmd_core_mask }
     } else {
-      $ovs_pmd_core_mask_cmd = 'ovs-vsctl remove Open_vSwitch . other_config pmd-cpu-mask'
+      $ovs_pmd_core_mask_opts = { ensure => 'absent' }
     }
-    exec { 'ovs_pmd_core_mask':
-      command => $ovs_pmd_core_mask_cmd,
-      path    => '/bin:/usr/bin:/usr/local/bin',
-      require => Service['openvswitch-service'],
-    } -> Anchor['l23network::l2::dpdk']
+
+    $dpdk_extra_opts = "-n ${ovs_memory_channels} --vhost-owner ${ovs_vhost_owner} --vhost-perm ${ovs_vhost_perm}"
+
+    # Configure OpenVSwitch to use DPDK
+    $vs_config = {
+      'other_config:dpdk-init'       => { value => 'true' },
+      'other_config:dpdk-socket-mem' => { value => $ovs_socket_mem },
+      'other_config:dpdk-lcore-mask' => { value => $ovs_core_mask },
+      'other_config:dpdk-extra'      => { value => $dpdk_extra_opts },
+      'other_config:pmd-cpu-mask'    => $ovs_pmd_core_mask_opts,
+    }
+
+    create_resources('vs_config', $vs_config)
+
+    Service['dpdk'] -> Vs_config<||> ~> Service['openvswitch-service']
 
     # Install ifupdown scripts
     if $::l23_os =~ /(?i)ubuntu/ {
