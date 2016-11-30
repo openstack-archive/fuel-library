@@ -159,3 +159,9 @@ mod 'mysql',
 mod 'galera',
     :git => 'https://github.com/fuel-infra/puppet-galera.git',
     :ref => '0.0.3-rc1'
+
+# Pull in saz-limits
+mod 'limits',
+    :git => 'https://github.com/fuel-infra/puppet-limits.git',
+    :ref => 'v2.5.0'
+
