@@ -74,14 +74,16 @@ describe manifest do
         end
 
         if role == 'compute' and enable_dpdk
+          enable_security_group = false
           it 'should set dpdk-specific options for OVS agent' do
             should contain_class('neutron::agents::ml2::ovs').with(
-              'firewall_driver'      => 'openvswitch',
+              'firewall_driver'      => 'noop',
               'datapath_type'        => 'netdev',
               'vhostuser_socket_dir' => '/var/run/openvswitch',
             )
           end
         else
+          enable_security_group = true
           it 'should skip dpdk-specific options for OVS agent' do
             should contain_class('neutron::agents::ml2::ovs').with(
               'firewall_driver' => 'iptables_hybrid',
@@ -90,7 +92,7 @@ describe manifest do
         end
 
         it { should contain_neutron_agent_ovs(
-          'securitygroup/enable_security_group').with_value('true')
+          'securitygroup/enable_security_group').with_value(enable_security_group)
         }
 
         it { should contain_class('neutron::agents::ml2::ovs').with(
