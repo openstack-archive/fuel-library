@@ -2,8 +2,8 @@
   type: puppet
   version: 2.2.0
   tags: [primary-controller, controller, cinder, cinder-block-device, cinder-vmware,
-         compute, ceph-osd, primary-mongo, mongo, virt, ironic,
-         primary-rabbitmq, rabbitmq]
+         compute, compute-vmware, ceph-osd, primary-mongo, mongo, virt, ironic,
+         primary-rabbitmq, rabbitmq, primary-database, database]
   requires: [deploy_start, rsync_core_puppet]
   required_for: [setup_repositories]
   condition:

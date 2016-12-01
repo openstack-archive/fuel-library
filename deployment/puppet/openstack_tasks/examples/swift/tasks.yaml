@@ -80,7 +80,6 @@
         $.get('region', 'RegionOne'), $.public_ssl, $.get('use_ssl')))
   cross-depends:
     - name: keystone
-      role: self
   requires: [primary-keystone, keystone]
   parameters:
     puppet_manifest: /etc/puppet/modules/openstack_tasks/examples/swift/keystone.pp
