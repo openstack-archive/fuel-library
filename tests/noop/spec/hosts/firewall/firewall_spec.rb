@@ -55,20 +55,6 @@ describe manifest do
     mongodb_port = Noop.hiera('mongodb_port', '27017')
 
     if Noop.puppet_function 'member', roles, 'primary-controller' or Noop.puppet_function 'member', roles, 'controller'
-      it 'should properly restrict rabbitmq admin traffic' do
-        should contain_firewall('005 local rabbitmq admin').with(
-          'sport'   => [ 15672 ],
-          'iniface' => 'lo',
-          'proto'   => 'tcp',
-          'action'  => 'accept'
-        )
-        should contain_firewall('006 reject non-local rabbitmq admin').with(
-          'sport'   => [ 15672 ],
-          'proto'   => 'tcp',
-          'action'  => 'drop'
-        )
-      end
-
       it 'should accept connections to mysql using network with mgmt/database role' do
         should contain_openstack__firewall__multi_net('101 mysql').with(
           'port'        => [ 3306, 3307, 4567, 4568, 4444, 49000 ],
@@ -155,6 +141,20 @@ describe manifest do
         should contain_firewall('030 allow connections from haproxy namespace').with(
           'source'      => '240.0.0.2',
           'action'      => 'accept',
+        )
+      end
+    elsif  Noop.puppet_function 'member', roles, 'primary-rabbitmq' or Noop.puppet_function 'member', roles, 'rabbitmq'
+      it 'should properly restrict rabbitmq admin traffic' do
+        should contain_firewall('005 local rabbitmq admin').with(
+          'sport'   => [ 15672 ],
+          'iniface' => 'lo',
+          'proto'   => 'tcp',
+          'action'  => 'accept'
+        )
+        should contain_firewall('006 reject non-local rabbitmq admin').with(
+          'sport'   => [ 15672 ],
+          'proto'   => 'tcp',
+          'action'  => 'drop'
         )
       end
     elsif Noop.puppet_function 'member', roles, 'compute'

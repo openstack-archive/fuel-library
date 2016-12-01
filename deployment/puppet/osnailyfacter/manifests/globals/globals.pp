@@ -295,6 +295,7 @@ class osnailyfacter::globals::globals {
   $mountpoints      = filter_hash($mp_hash, 'point')
 
   # AMQP configuration
+  $amqp_roles = ['primary-rabbitmq', 'rabbitmq']
   $queue_provider   = hiera('queue_provider','rabbitmq')
   $rabbit_ha_queues = true
 
@@ -309,12 +310,11 @@ class osnailyfacter::globals::globals {
     # using pre-defined in astute.yaml RabbitMQ servers
     $amqp_hosts = hiera('amqp_hosts')
   } else {
-    # using RabbitMQ servers on controllers
-    # todo(sv): switch from 'controller' nodes to 'rmq' nodes as soon as it was implemented as additional node-role
-    $controllers_with_amqp_server = get_node_to_ipaddr_map_by_network_role($controller_nodes, 'mgmt/messaging')
-    $amqp_nodes = ipsort(values($controllers_with_amqp_server))
+    # choose RabbitMQ servers by role
+    $amqp_nodes = get_nodes_hash_by_roles($network_metadata, $amqp_roles)
+    $amqp_ips = values(get_node_to_ipaddr_map_by_network_role($amqp_nodes, 'mgmt/messaging'))
     # amqp_hosts() randomize order of RMQ endpoints and put local one first
-    $amqp_hosts = amqp_hosts($amqp_nodes, $amqp_port, get_network_role_property('mgmt/messaging', 'ipaddr'))
+    $amqp_hosts = amqp_hosts($amqp_ips, $amqp_port, get_network_role_property('mgmt/messaging', 'ipaddr'))
   }
 
   # Generic workers limits by RAM
@@ -400,7 +400,8 @@ class osnailyfacter::globals::globals {
   $memcache_roles = hiera('memcache_roles', ['primary-controller', 'controller'])
 
   # Define node roles, that will carry corosync/pacemaker
-  $corosync_roles = hiera('corosync_roles', ['primary-controller', 'controller'])
+  $corosync_roles = hiera('corosync_roles', ['primary-controller', 'controller',
+                                             'primary-rabbitmq', 'rabbitmq'])
 
   # Define cinder-related variables
   # todo: use special node-roles instead controllers in the future

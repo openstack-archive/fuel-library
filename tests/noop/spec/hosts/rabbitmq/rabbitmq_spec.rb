@@ -1,5 +1,5 @@
-# ROLE: primary-controller
-# ROLE: controller
+# ROLE: primary-rabbitmq
+# ROLE: rabbitmq
 
 require 'spec_helper'
 require 'shared-examples'
