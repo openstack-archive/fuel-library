@@ -59,7 +59,7 @@
 - id: primary-ceph-radosgw
   version: 2.1.0
   type: puppet
-  groups: [primary-controller]
+  tags: [primary-controller]
   required_for: [deploy_end, controller_remaining_tasks]
   requires: [apache, ceph-mon, primary-ceph-mon]
   condition:
@@ -84,8 +84,8 @@
 
 - id: ceph-radosgw
   type: puppet
-  version: 2.1.0
-  groups: [controller]
+  version: 2.2.0
+  tags: [controller]
   cross-depends:
     - name: primary-ceph-radosgw
   required_for: [deploy_end, controller_remaining_tasks]
@@ -104,7 +104,7 @@
 - id: radosgw-keystone
   type: puppet
   version: 2.1.0
-  groups: [primary-controller]
+  tags: [primary-controller]
   required_for: [primary-ceph-radosgw, ceph-radosgw]
   requires: [primary-keystone, keystone]
   condition:
