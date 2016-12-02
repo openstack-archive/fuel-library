@@ -76,7 +76,6 @@
   required_for: [murano]
   cross-depends:
     - name: /^(primary-)?rabbitmq$/
-      role: self
   requires: [rabbitmq, primary-rabbitmq]
   parameters:
     puppet_manifest: /etc/puppet/modules/openstack_tasks/examples/murano/rabbitmq.pp
