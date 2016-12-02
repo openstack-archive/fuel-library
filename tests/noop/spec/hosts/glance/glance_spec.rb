@@ -240,10 +240,12 @@ describe manifest do
           show_image_direct_url = glance_config['show_image_direct_url']
         else
           show_image_direct_url = true
+        end
         if glance_config.has_key?('show_multiple_locations')
           show_multiple_locations = glance_config['show_multiple_locations']
         else
           show_multiple_locations = true
+        end
       end
 
       if ironic_enabled
@@ -267,10 +269,12 @@ describe manifest do
           show_image_direct_url = glance_config['show_image_direct_url']
         else
           show_image_direct_url = true
+        end
         if glance_config.has_key?('show_multiple_locations')
           show_multiple_locations = glance_config['show_multiple_locations']
         else
           show_multiple_locations = true
+        end
       end
       let :params do { :glance_backend => 'vmware', } end
       it 'should declare vmware backend' do
@@ -336,10 +340,12 @@ describe manifest do
           show_image_direct_url = glance_config['show_image_direct_url']
         else
           show_image_direct_url = false
+        end
         if glance_config.has_key?('show_multiple_locations')
           show_multiple_locations = glance_config['show_multiple_locations']
         else
           show_multiple_locations = false
+        end
       end
       let :params do { :glance_backend => 'swift', } end
       it 'should declare swift backend' do
