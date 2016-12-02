@@ -48,7 +48,7 @@ class openstack_tasks::ceilometer::compute {
   $override_configuration = hiera_hash('configuration', {})
   # override ceilometer.conf options
   override_resources { 'legacy-ceilometer_config':
-    configuration => {'ceilometer_config' => $override_configuration['ceilometer']}
+    configuration => {'ceilometer_config' => pick($override_configuration['ceilometer'], {})}
   }
 
   if ($ceilometer_enabled) {

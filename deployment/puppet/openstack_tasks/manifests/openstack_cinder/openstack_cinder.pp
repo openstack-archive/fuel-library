@@ -58,7 +58,7 @@ class openstack_tasks::openstack_cinder::openstack_cinder {
   $override_configuration = hiera_hash('configuration', {})
   # override cinder.conf options
   override_resources { 'legacy-cinder_config':
-    configuration => {'cinder_config' => $override_configuration['cinder']}
+    configuration => {'cinder_config' => pick($override_configuration['cinder'], {})}
   }
 
 
