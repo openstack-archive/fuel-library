@@ -12,7 +12,9 @@ describe manifest do
 
     context 'on primary controller', :if => enable do
       it 'should declare murano::application resource correctly' do
-        should contain_murano__application('io.murano')
+        should contain_murano__application('io.murano').with(
+          'exists_action' => 'u'
+        )
       end
     end
   end # end of shared_examples
