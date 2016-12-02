@@ -13,7 +13,7 @@
         ('primary-controller' in $.node_roles)),
       ('primary-controller' in $.roles))
   cross-depends:
-    - name: /(primary-)?ceph-mon/
+    - name: /^(primary-)?ceph-mon$/
   parameters:
     puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/ceph/ceph-osd.pp
     puppet_modules: /etc/puppet/modules
@@ -61,7 +61,7 @@
   condition:
     yaql_exp: *ceph_mon
   cross-depends:
-    - name: /(primary-)?ceph-mon/
+    - name: /^(primary-)?ceph-mon$/
   parameters:
     puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/ceph/primary_mon_update.pp
     puppet_modules: /etc/puppet/modules
@@ -113,7 +113,7 @@
   version: 2.1.0
   groups: [compute]
   cross-depends:
-    - name: /(primary-)?ceph-mon/
+    - name: /^(primary-)?ceph-mon$/
   requires: [top-role-compute]
   required_for: [deploy_end]
   condition:

@@ -54,10 +54,14 @@
 
 - id: heat-db
   type: puppet
-  version: 2.1.0
-  groups: [primary-controller]
+  version: 2.2.0
+  tags: [primary-database]
   required_for: [primary-heat, heat]
   requires: [primary-database, database]
+  cross-depends:
+    - name: /^(primary-)?database$/
+  cross-depended-by:
+    - name: /^(primary-)?heat$/
   condition:
     yaql_exp: >
       changedAny($.heat, $.mysql,
