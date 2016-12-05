@@ -70,7 +70,7 @@ class osnailyfacter::ceph::ceph_compute {
       group   => 'nova',
       secret  => $secret,
       cap_mon => 'allow r',
-      cap_osd => "allow class-read object_prefix rbd_children, allow rwx pool=${cinder_pool}, allow rx pool=${glance_pool}, allow rwx pool=${compute_pool}",
+      cap_osd => "allow class-read object_prefix rbd_children, allow rwx pool=${cinder_pool}, allow rwx pool=${glance_pool}, allow rwx pool=${compute_pool}",
       inject  => true,
     }
 
