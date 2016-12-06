@@ -7,6 +7,9 @@ manifest = 'ceph/ceph_compute.pp'
 describe manifest do
   shared_examples 'catalog' do
     storage_hash = Noop.hiera_hash 'storage'
+    glance_pool  = 'images'
+    cinder_pool  = 'volumes'
+    compute_pool = 'compute'
 
     if (storage_hash['ephemeral_ceph'])
       libvirt_images_type = 'rbd'
@@ -27,8 +30,9 @@ describe manifest do
       it { should contain_class('ceph::conf') }
 
       it { should contain_ceph__pool('compute').with(
-          'pg_num'        => storage_hash['per_pool_pg_nums']['compute'],
-          'pgp_num'       => storage_hash['per_pool_pg_nums']['compute'],)
+          'acl'     => "mon 'allow r' osd 'allow class-read object_prefix rbd_children, allow rwx pool=#{cinder_pool}, allow rwx pool=#{glance_pool}, allow rwx pool=#{compute_pool}'",
+          'pg_num'  => storage_hash['per_pool_pg_nums']['compute'],
+          'pgp_num' => storage_hash['per_pool_pg_nums']['compute'],)
         }
       it { should contain_class('ceph::ephemeral').with(
         'libvirt_images_type' => libvirt_images_type,)
