@@ -10,8 +10,17 @@ describe manifest do
     storage_hash       = Noop.hiera_hash 'storage'
     glance_pool        = 'images'
     cinder_pool        = 'volumes'
+    compute_pool        = 'compute'
     cinder_backup_pool = 'backups'
 
+
+    if storage_hash['ephemeral_ceph']
+      it { should contain_ceph__pool("#{compute_pool}").with(
+              'acl'     => "mon 'allow r' osd 'allow class-read object_prefix rbd_children, allow rwx pool=#{cinder_pool}, allow rwx pool=#{glance_pool}, allow rwx pool=#{compute_pool}'",
+              'pg_num'  => storage_hash['per_pool_pg_nums']['compute'],
+              'pgp_num' => storage_hash['per_pool_pg_nums']['compute'],)
+        }
+    end
 
     if (storage_hash['images_ceph'] or storage_hash['objects_ceph'])
       it { should contain_ceph__pool("#{glance_pool}").with(

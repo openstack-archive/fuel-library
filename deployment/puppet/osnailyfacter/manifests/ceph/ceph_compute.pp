@@ -84,7 +84,7 @@ class osnailyfacter::ceph::ceph_compute {
 
     ceph::pool { $compute_pool:
       user          => $compute_user,
-      acl           => "mon 'allow r' osd 'allow class-read object_prefix rbd_children, allow rwx pool=${cinder_pool}, allow rx pool=${glance_pool}, allow rwx pool=${compute_pool}'",
+      acl           => "mon 'allow r' osd 'allow class-read object_prefix rbd_children, allow rwx pool=${cinder_pool}, allow rwx pool=${glance_pool}, allow rwx pool=${compute_pool}'",
       keyring_owner => 'nova',
       pg_num        => pick($per_pool_pg_nums[$compute_pool], '1024'),
       pgp_num       => pick($per_pool_pg_nums[$compute_pool], '1024'),
