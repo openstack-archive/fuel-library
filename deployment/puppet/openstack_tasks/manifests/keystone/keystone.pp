@@ -208,39 +208,54 @@ class openstack_tasks::keystone::keystone {
     }
   }
 
-  osnailyfacter::credentials_file { '/root/openrc':
-    admin_user          => $admin_user,
-    admin_password      => $admin_password,
-    admin_tenant        => $admin_tenant,
-    region_name         => $region,
-    auth_url            => $auth_url,
-    murano_repo_url     => $murano_repo_url,
-    murano_glare_plugin => $murano_glare_plugin,
+  group { 'operator_group' :
+    name   => $operator_user_name,
+    ensure => present,
   }
 
-  osnailyfacter::credentials_file { "${operator_user_homedir}/openrc":
-    admin_user          => $admin_user,
-    admin_password      => $admin_password,
-    admin_tenant        => $admin_tenant,
-    region_name         => $region,
-    auth_url            => $auth_url,
-    murano_repo_url     => $murano_repo_url,
-    murano_glare_plugin => $murano_glare_plugin,
-    owner               => $operator_user_name,
-    group               => $operator_user_name,
+  user { 'operator_user':
+    name       => $operator_user_name,
+    gid        => $operator_user_name,
+    ensure     => present,
+    managehome => true,
+    home       => $operator_user_homedir,
   }
 
-  osnailyfacter::credentials_file { "${service_user_homedir}/openrc":
-    admin_user          => $admin_user,
-    admin_password      => $admin_password,
-    admin_tenant        => $admin_tenant,
-    region_name         => $region,
-    auth_url            => $auth_url,
-    murano_repo_url     => $murano_repo_url,
-    murano_glare_plugin => $murano_glare_plugin,
-    owner               => $service_user_name,
-    group               => $service_user_name,
+  group { 'service_group' :
+    name   => $service_user_name,
+    ensure => present,
   }
+
+  user { 'service_user':
+    name       => $service_user_name,
+    gid        => $service_user_name,
+    ensure     => present,
+    managehome => true,
+    home       => $service_user_homedir,
+  }
+
+  $users = {
+    "${operator_user_name}" => 'operator_user',
+    "${service_user_name}"  => 'service_user',
+  }
+
+  $cred_users = {
+    '/root/openrc'                    => 'root',
+    "${operator_user_homedir}/openrc" => $operator_user_name,
+    "${service_user_homedir}/openrc"  => $service_user_name,
+  }
+
+  $cred_params = {
+    'admin_user'          => $admin_user,
+    'admin_password'      => $admin_password,
+    'admin_tenant'        => $admin_tenant,
+    'region_name'         => $region,
+    'auth_url'            => $auth_url,
+    'murano_repo_url'     => $murano_repo_url,
+    'murano_glare_plugin' => $murano_glare_plugin
+  }
+
+  create_resources('osnailyfacter::credentials_file', get_cred_files_hash($cred_users, $cred_params, $users))
 
   # Get paste.ini source
   include ::keystone::params
