@@ -106,12 +106,12 @@ class l23network::l2::dpdk (
       'other_config:dpdk-socket-mem' => { value => $ovs_socket_mem },
       'other_config:dpdk-lcore-mask' => { value => $ovs_core_mask },
       'other_config:dpdk-extra'      => { value => "-n ${ovs_memory_channels}" },
-      'other_config:pmd-cpu-mask'    => { value => $ovs_pmd_core_mask_opts },
+      'other_config:pmd-cpu-mask'    => $ovs_pmd_core_mask_opts,
     }
 
     create_resources('vs_config', $vs_config)
 
-    Package<| title=='openvswitch-common' |> -> Vs_config<||> ~> Service['openvswitch-service']
+    Service['dpdk'] -> Vs_config<||> ~> Service['openvswitch-service']
 
     # Install ifupdown scripts
     if $::l23_os =~ /(?i)ubuntu/ {
