@@ -26,6 +26,8 @@ class l23network::params {
       $ovs_core_mask              = 0x1
       $ovs_socket_mem             = [256]
       $ovs_memory_channels        = 2
+      $ovs_vhost_owner            = 'libvirt-qemu:kvm'
+      $ovs_vhost_perm             = '0664'
     }
     /(?i)redhat|centos|oraclelinux/: {
       $interfaces_dir             = '/etc/sysconfig/network-scripts'
@@ -52,6 +54,8 @@ class l23network::params {
       $ovs_core_mask              = 0x1
       $ovs_socket_mem             = [256]
       $ovs_memory_channels        = 2
+      $ovs_vhost_owner            = 'libvirt-qemu:kvm'
+      $ovs_vhost_perm             = '0664'
     }
     /(?i)darwin/: {
       $interfaces_dir             = '/tmp/1'
@@ -73,6 +77,8 @@ class l23network::params {
       $ovs_core_mask              = undef
       $ovs_socket_mem             = undef
       $ovs_memory_channels        = undef
+      $ovs_vhost_owner            = undef
+      $ovs_vhost_perm             = undef
     }
     default: {
       fail("Unsupported OS: ${::l23_os}/${::operatingsystem}")
