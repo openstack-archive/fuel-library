@@ -22,6 +22,12 @@
 # [*ovs_memory_channels*]
 #   (optional) Number of memory channels in CPU
 #   Defaults to '2'
+# [*ovs_vhost_owner*]
+#   (optional) vhost_user sockets owner/group
+#   Defaults to 'libvirt-qemu:kvm'
+# [*ovs_vhost_perm*]
+#   (optional) vhost_user sockets permissions
+#   Defaults to '0664'
 #
 class l23network::l2::dpdk (
   $use_dpdk                    = $::l23network::use_dpdk,
@@ -30,6 +36,8 @@ class l23network::l2::dpdk (
   $ovs_pmd_core_mask           = undef,
   $ovs_socket_mem              = $::l23network::params::ovs_socket_mem,
   $ovs_memory_channels         = $::l23network::params::ovs_memory_channels,
+  $ovs_vhost_owner             = $::l23network::params::ovs_vhost_owner,
+  $ovs_vhost_perm              = $::l23network::params::ovs_vhost_perm,
   $ovs_dpdk_package_name       = $::l23network::params::ovs_dpdk_package_name,
   $ovs_dpdk_dkms_package_name  = $::l23network::params::ovs_dpdk_dkms_package_name,
   $dpdk_dir                    = $::l23network::params::dpdk_dir,
@@ -95,23 +103,25 @@ class l23network::l2::dpdk (
 
     # Configure OVS DPDK PMD in runtime (it's safe to re-set it)
     if $ovs_pmd_core_mask {
-      $ovs_pmd_core_mask_opts = { value => $ovs_pmd_core_mask }
+      $ovs_pmd_core_mask_opts = { value => "$ovs_pmd_core_mask" }
     } else {
       $ovs_pmd_core_mask_opts = { ensure => 'absent' }
     }
 
+    $dpdk_extra_opts = "-n ${ovs_memory_channels} --vhost-owner ${ovs_vhost_owner} --vhost-perm ${ovs_vhost_perm}"
+
     # Configure OpenVSwitch to use DPDK
     $vs_config = {
       'other_config:dpdk-init'       => { value => 'true' },
-      'other_config:dpdk-socket-mem' => { value => $ovs_socket_mem },
-      'other_config:dpdk-lcore-mask' => { value => $ovs_core_mask },
-      'other_config:dpdk-extra'      => { value => "-n ${ovs_memory_channels}" },
-      'other_config:pmd-cpu-mask'    => { value => $ovs_pmd_core_mask_opts },
+      'other_config:dpdk-socket-mem' => { value => "$ovs_socket_mem" },
+      'other_config:dpdk-lcore-mask' => { value => "$ovs_core_mask" },
+      'other_config:dpdk-extra'      => { value => $dpdk_extra_opts },
+      'other_config:pmd-cpu-mask'    => $ovs_pmd_core_mask_opts,
     }
 
     create_resources('vs_config', $vs_config)
 
-    Package<| title=='openvswitch-common' |> -> Vs_config<||> ~> Service['openvswitch-service']
+    Service['dpdk'] -> Vs_config<||> ~> Service['openvswitch-service']
 
     # Install ifupdown scripts
     if $::l23_os =~ /(?i)ubuntu/ {
