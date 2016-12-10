@@ -101,6 +101,14 @@ class fuel::nailgun::server (
     mode => 0755,
   }
 
+  # NOTE(eli): In order for plugins to be run on master node
+  # without a need to hardcode full path, create a symlink
+  # so Nailgun can set CWD during execution of plugin tasks.
+  file {'/etc/fuel/plugins':
+    ensure => link,
+    target => '/var/www/nailgun/plugins',
+  }
+
   file { "/etc/nailgun/settings.yaml":
     content => template("fuel/nailgun/settings.yaml.erb"),
     owner => 'root',
