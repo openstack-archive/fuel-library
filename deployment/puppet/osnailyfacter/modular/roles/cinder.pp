@@ -2,6 +2,7 @@ notice('MODULAR: cinder.pp')
 
 # Pulling hiera
 prepare_network_config(hiera('network_scheme', {}))
+$volume_group                   = hiera('cinder_volume_group', 'cinder')
 $storage_address                = get_network_role_property('cinder/iscsi', 'ipaddr')
 $public_vip                     = hiera('public_vip')
 $management_vip                 = hiera('management_vip')
@@ -134,6 +135,23 @@ $idle_timeout = '3600'
 
 if (member($roles, 'cinder') and $storage_hash['volumes_lvm']) {
   $manage_volumes = 'iscsi'
+  $cinder_lvm_filter = "\"r|^/dev/${volume_group}/.*|\""
+
+  file_line { 'lvm-conf-set-cinder-filter':
+    ensure => present,
+    path   => '/etc/lvm/lvm.conf',
+    line   => "global_filter = ${cinder_lvm_filter}",
+    match  => 'global_filter\ \=\ ',
+    tag    => 'lvm-conf-file-line'
+  }
+
+  exec { 'Update initramfs':
+    command     => 'update-initramfs -u -k all',
+    path        => '/usr/bin:/bin:/usr/sbin:/sbin',
+    refreshonly => true,
+  }
+  File_line<| tag == 'lvm-conf-file-line'|> ~> Exec<| title == 'Update initramfs' |>
+
 } elsif (member($roles, 'cinder') and $storage_hash['volumes_vmdk']) {
   $manage_volumes = 'vmdk'
 } elsif ($storage_hash['volumes_ceph']) {
