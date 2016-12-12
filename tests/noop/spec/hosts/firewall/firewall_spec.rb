@@ -135,7 +135,7 @@ describe manifest do
       it 'should accept connections to nova without ssl' do
         management_nets.each do |source|
           should contain_firewall("105 nova internal - no ssl from #{source}").with(
-            'dport'        => [ 8775, '5900-6100' ],
+            'dport'        => [ 8775, '5900-6900' ],
             'proto'       => 'tcp',
             'action'      => 'accept',
             'source'      => source,
@@ -198,7 +198,7 @@ describe manifest do
       it 'should accept connections to nova without ssl' do
         management_nets.each do |source|
           should contain_firewall("105 nova vnc from #{source}").with(
-            'dport'        => [ '5900-6100' ],
+            'dport'        => [ '5900-6900' ],
             'proto'       => 'tcp',
             'action'      => 'accept',
             'source'      => source,
