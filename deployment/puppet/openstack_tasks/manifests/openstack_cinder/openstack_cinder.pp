@@ -75,6 +75,20 @@ class openstack_tasks::openstack_cinder::openstack_cinder {
   if roles_include(['cinder']) and $storage_hash['volumes_lvm'] {
     $manage_volumes = 'iscsi'
     $volume_backend_name = $storage_hash['volume_backend_names']['volumes_lvm']
+
+    $cinder_lvm_filter = "\"r|^/dev/${volume_group}/.*|\""
+
+    augeas { 'lvm-conf-set-cinder-filter':
+      context => '/files/etc/lvm/lvm.conf/devices/dict/',
+      changes => "set global_filter/list/1/str ${cinder_lvm_filter}",
+      tag     => 'lvm-conf-augeas'
+    }
+    exec { 'Update initramfs':
+      command => 'update-initramfs -u -k all',
+      path    => '/usr/bin:/bin:/usr/sbin:/sbin'
+    }
+    Augeas<| tag == 'lvm-conf-augeas'|> ~> Exec<| title == 'Update initramfs' |>
+
   } elsif ($storage_hash['volumes_ceph']) {
     $manage_volumes = 'ceph'
     $volume_backend_name = $storage_hash['volume_backend_names']['volumes_ceph']
