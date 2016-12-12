@@ -90,6 +90,21 @@ sysctl::value{ 'net.ipv4.neigh.default.gc_thresh3': value => '2048' }
 sysctl::value{'net.ipv6.conf.all.disable_ipv6': value => '1'}
 sysctl::value{'net.ipv6.conf.default.disable_ipv6': value => '1'}
 
+sysctl::value{'net.ipv4.conf.all.accept_source_route': value => '0'}
+sysctl::value{'net.ipv4.conf.all.forwarding': value => '0'}
+sysctl::value{'net.ipv6.conf.all.forwarding': value => '0'}
+sysctl::value{'net.ipv4.conf.all.mc_forwarding': value => '0'}
+sysctl::value{'net.ipv6.conf.all.mc_forwarding': value => '0'}
+
+#Disable ICMP redirect support
+sysctl::value{'net.ipv4.conf.all.accept_redirects': value => '0'}
+sysctl::value{'net.ipv4.conf.default.accept_redirects': value => '0'}
+sysctl::value{'net.ipv4.conf.all.secure_redirects': value => '0'}
+sysctl::value{'net.ipv4.conf.default.secure_redirects': value => '0'}
+
+#Disable TCP timestamp responses on Linux
+sysctl::value{'net.ipv4.tcp_timestamps': value => '0'}
+
 class { '::openstack::reserved_ports':
   ports => '35357,41055,61613',
 }
