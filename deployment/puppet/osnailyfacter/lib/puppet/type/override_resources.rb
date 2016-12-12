@@ -278,7 +278,9 @@ Puppet::Type.newtype(:override_resources) do
   # @return [Puppet::Type]
   def create_resource(type, title, parameters = {})
     parameters = parameters.merge(:name => title)
-    Puppet::Type.type(type.to_sym).new(parameters)
+    resource = Puppet::Type.type(type.to_sym).new(parameters)
+    catalog.add_resource(resource)
+    resource
   end
 
   # The main method of this metatype. Updates the existing resources
@@ -314,6 +316,9 @@ Puppet::Type.newtype(:override_resources) do
         end
 
       end
+    end
+    new_resources.map {|r| r.builddepends}.flatten.each do |res|
+      catalog.relationship_graph.add_edge(res)
     end
     new_resources
   end
