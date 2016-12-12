@@ -4,6 +4,17 @@ require 'yaml'
 
 describe Puppet::Type.type(:override_resources) do
 
+  let(:facts) do
+    {
+      :osfamily        => 'Debian',
+      :operatingsystem => 'Debian',
+    }
+ end
+
+  let(:catalog) do
+    Puppet::Resource::Catalog.new()
+  end
+
   let(:override_resources) do
     Puppet::Type.type(:override_resources).new(
         :name => 'foo',
@@ -17,23 +28,14 @@ describe Puppet::Type.type(:override_resources) do
   let(:configuration) do
     YAML.load <<-eof
 ---
-nova_config:
-  DEFAULT/debug:
-    value: true
-  DEFAULT/verbose:
-    ensure: absent
 file:
   '/tmp/test':
-    content: 123
+    content: "123"
   '/etc/httpd/httpd.conf':
     source: 'puppet:///modules/httpd/httpd.conf'
     owner: httpd
     group: httpd
     notify: 'Service[httpd]'
-  my_symlink:
-    ensure: symlink
-    path: '/tmp/test1'
-    target: '/tmp/test'
 service:
   httpd:
     ensure: running
@@ -42,13 +44,10 @@ service:
     ensure: stopped
     enable: false
 package:
-  mc:
   htop:
     ensure: absent
   ntpd:
-    ensure: latest
-  my_package:
-    ensure: 1
+    ensure: present
     eof
   end
 
@@ -65,6 +64,17 @@ defaults:
     ensure: present
   file:
     ensure: present
+    eof
+  end
+
+  let(:conf_with_cycle) do
+    YAML.load <<-eof
+---
+file:
+  '/tmp/foo':
+    notify: "File[/tmp/bar]"
+  '/tmp/bar':
+    notify: "File[/tmp/foo]"
     eof
   end
 
@@ -125,5 +135,30 @@ defaults:
     cr = true
     override_resources[:create] = cr
     expect(override_resources[:create]).to eq(cr)
+  end
+
+  it 'should create resource with notify' do
+    catalog.clear
+    override_resources.catalog = catalog
+    override_resources[:create] = true
+    override_resources.eval_generate
+    opts = {'event' => :ALL_EVENTS, 'callback' => :refresh}
+    source_resource = catalog.resource 'file', '/etc/httpd/httpd.conf'
+    target_resource = catalog.resource 'service', 'httpd'
+    relationship = Puppet::Relationship.new(source_resource, target_resource, options=opts)
+
+    expect(
+      catalog.relationship_graph.edges.map {|e| e.to_json}.include? relationship.to_json
+    ).to eq(true)
+  end
+
+  it 'should raise for config with cycles' do
+    catalog.clear
+    override_resources.catalog = catalog
+    override_resources[:create] = true
+    override_resources[:configuration] = conf_with_cycle
+    expect {
+      override_resources.eval_generate
+    }.to raise_error(Puppet::Error, /dependency cycle/)
   end
 end
