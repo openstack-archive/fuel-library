@@ -148,6 +148,23 @@ if (member($roles, 'cinder') and $storage_hash['volumes_lvm']) {
   $manage_volumes = 'iscsi'
   $physical_volumes = false
   $volume_backend_name = $storage_hash['volume_backend_names']['volumes_lvm']
+  $cinder_lvm_filter = "\"r|^/dev/${volume_group}/.*|\""
+
+  file_line { 'lvm-conf-set-cinder-filter':
+    ensure => present,
+    path   => '/etc/lvm/lvm.conf',
+    line   => "global_filter = ${cinder_lvm_filter}",
+    match  => 'global_filter\ \=\ ',
+    tag    => 'lvm-conf-file-line'
+  }
+
+  exec { 'Update initramfs':
+    command     => 'update-initramfs -u -k all',
+    path        => '/usr/bin:/bin:/usr/sbin:/sbin',
+    refreshonly => true,
+  }
+  File_line<| tag == 'lvm-conf-file-line'|> ~> Exec<| title == 'Update initramfs' |>
+
 } elsif member($roles, 'cinder-vmware') {
   $manage_volumes = 'vmdk'
   $physical_volumes = false
