@@ -73,6 +73,16 @@ class openstack::logrotate (
     line  => "maxsize ${maxsize}",
     match => '^maxsize',
     after => '^minsize',
+  } ->
+  file_line { 'logrotate-date-extension':
+    line  => 'dateext',
+    match => '^dateext',
+    after => '^maxsize',
+  } ->
+  file_line { 'logrotate-date-format':
+    line  => 'dateformat -%Y%m%d-%s',
+    match => '^dateformat ',
+    after => '^dateext',
   }
 
   if $debug {
