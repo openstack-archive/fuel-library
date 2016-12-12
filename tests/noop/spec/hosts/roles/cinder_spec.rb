@@ -6,6 +6,27 @@ describe manifest do
   shared_examples 'catalog' do
 
   storage_hash = Noop.hiera 'storage'
+  volume_group = Noop.hiera('cinder_volume_group', 'cinder')
+
+  if storage_hash['volumes_lvm']
+    it 'sets up filtering for LVM Cinder volumes' do
+
+      cinder_lvm_filter = "\"r|^/dev/#{volume_group}/.*|\""
+
+      should contain_file_line('lvm-conf-set-cinder-filter').with(
+        'ensure' => 'present',
+        'path'   => '/etc/lvm/lvm.conf',
+        'line'   => "global_filter = #{cinder_lvm_filter}",
+        'match'  => 'global_filter\ \=\ ',
+        'tag'    => 'lvm-conf-file-line'
+      ).that_notifies('Exec[Update initramfs]')
+
+      should contain_exec('Update initramfs').with(
+        'command'     => 'update-initramfs -u -k all',
+        'path'        => '/usr/bin:/bin:/usr/sbin:/sbin',
+        'refreshonly' => 'true')
+    end
+  end
 
   if Noop.hiera 'use_ceph' and !(storage_hash['volumes_lvm'])
       it { should contain_class('ceph') }
