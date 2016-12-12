@@ -20,6 +20,7 @@ describe manifest do
   ceilometer_hash = Noop.hiera_hash 'ceilometer', { 'enabled' => false }
   use_ceph = Noop.hiera 'use_ceph'
   volume_backend_name = storage_hash['volume_backend_names']
+  volume_group = Noop.hiera('cinder_volume_group', 'cinder')
 
   management_vip = Noop.hiera 'management_vip'
   database_vip = Noop.hiera('database_vip')
@@ -43,6 +44,23 @@ describe manifest do
       'vmdk'
     else
       false
+    end
+  end
+
+  if cinder and storage_hash['volumes_lvm']
+    it 'sets up filtering for LVM Cinder volumes' do
+
+      cinder_lvm_filter = "\"r|^/dev/#{volume_group}/.*|\""
+
+      should contain_augeas('lvm-conf-set-cinder-filter').with(
+        'context' => '/files/etc/lvm/lvm.conf/devices/dict/',
+        'changes' => "set global_filter/list/1/str #{cinder_lvm_filter}",
+        'tag'     => 'lvm-conf-augeas'
+        ).that_notifies('Exec[Update initramfs]')
+
+      should contain_exec('Update initramfs').with(
+        'command' => 'update-initramfs -u -k all',
+        'path'    => '/usr/bin:/bin:/usr/sbin:/sbin')
     end
   end
 
