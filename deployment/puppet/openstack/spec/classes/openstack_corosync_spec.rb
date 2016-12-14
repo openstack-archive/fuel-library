@@ -39,8 +39,6 @@ describe 'openstack::corosync' do
           :log_stderr            => false,
           :log_function_name     => true,
         ).that_comes_before('Anchor[corosync-done]')
-        should contain_file("limitsconf").that_comes_before(
-          'Service[corosync]')
         should contain_corosync__service('pacemaker').with(
           :version => '1'
         ).that_notifies('Service[corosync]')
