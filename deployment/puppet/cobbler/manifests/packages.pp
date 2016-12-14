@@ -24,10 +24,10 @@ class cobbler::packages {
       $openssh_package     = 'openssh-clients'
       $pexpect_package     = 'pexpect'
       case $::operatingsystemrelease {
-        /6.+/: {
+        /^6.+/: {
           $cobbler_additional_packages = ['xinetd', 'tftp-server', 'syslinux', 'wget', 'python-ipaddr','fence-agents', 'bind-utils']
         }
-        /7.+/: {
+        /^7.+/: {
           $cobbler_additional_packages = ['xinetd', 'tftp-server', 'syslinux', 'wget', 'python-ipaddr','fence-agents-all', 'bind-utils']
         }
       }
