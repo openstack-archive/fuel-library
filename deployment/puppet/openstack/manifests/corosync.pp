@@ -11,17 +11,6 @@ class openstack::corosync (
   $cluster_recheck_interval = '190s',
 ) {
 
-  file { 'limitsconf':
-    ensure  => present,
-    path    => '/etc/security/limits.conf',
-    source  => 'puppet:///modules/openstack/limits.conf',
-    replace => true,
-    owner   => '0',
-    group   => '0',
-    mode    => '0644',
-    before  => Service['corosync'],
-  }
-
   anchor {'corosync':}
 
   if $packages {
