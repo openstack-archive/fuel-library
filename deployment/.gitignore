@@ -46,3 +46,4 @@ puppet/rabbitmq
 puppet/pacemaker
 puppet/oslo
 puppet/vswitch
+puppet/limits
