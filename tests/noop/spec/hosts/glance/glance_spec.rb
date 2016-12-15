@@ -192,7 +192,9 @@ describe manifest do
     end
 
     it 'should configure glance cache config' do
-      should contain_glance_cache_config('DEFAULT/use_syslog').with_value(use_syslog)
+      # LP #1649801 set proper value for use_syslog when https://review.openstack.org/#/c/410467/
+      # is merged
+      # should contain_glance_cache_config('DEFAULT/use_syslog').with_value(use_syslog)
       should contain_glance_cache_config('DEFAULT/image_cache_dir').with_value('/var/lib/glance/image-cache/')
       should contain_glance_cache_config('DEFAULT/log_file').with_value('/var/log/glance/cache.log')
       should contain_glance_cache_config('DEFAULT/image_cache_stall_time').with_value('86400')
