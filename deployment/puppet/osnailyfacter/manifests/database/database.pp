@@ -18,6 +18,7 @@ class osnailyfacter::database::database {
 
   $primary_db                = has_primary_role(intersection(hiera('database_roles'), hiera('roles')))
   $mysql_root_password       = $mysql_hash['root_password']
+  $deb_sysmaint_password     = $mysql_hash['wsrep_password']
   $enabled                   = pick($mysql_hash['enabled'], true)
 
   $galera_node_address       = get_network_role_property('mgmt/database', 'ipaddr')
@@ -257,6 +258,7 @@ class osnailyfacter::database::database {
       galera_master         => false,
       mysql_port            => $backend_port,
       root_password         => $mysql_root_password,
+      deb_sysmaint_password => $deb_sysmaint_password,
       create_root_user      => $primary_db,
       create_root_my_cnf    => $primary_db,
       configure_repo        => false, # NOTE: repos should be managed via fuel
@@ -325,6 +327,14 @@ class osnailyfacter::database::database {
         status_user     => $status_user,
         status_password => $status_password,
         status_allow    => $galera_node_address,
+      }
+      if $::osfamily == 'Debian' {
+        mysql_user { 'debian-sys-maint@localhost':
+          ensure        => 'present',
+          password_hash => mysql_password($deb_sysmaint_password),
+          provider      => 'mysql',
+          require       => File['/root/.my.cnf'],
+        }
       }
       Class['::cluster::mysql'] ->
         Class['::cluster::galera_grants'] ->
