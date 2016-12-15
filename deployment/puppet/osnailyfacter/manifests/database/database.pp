@@ -13,15 +13,17 @@ class osnailyfacter::database::database {
   $mgmt_iface      = get_network_role_property('mgmt/database', 'interface')
   $direct_networks = split(direct_networks($network_scheme['endpoints'], $mgmt_iface, 'netmask'), ' ')
   # localhost is covered by mysql::server so we use this for detached db
-  $access_networks = unique(flatten(['240.0.0.0/255.255.0.0', $direct_networks]))
+  $access_networks = flatten(['240.0.0.0/255.255.0.0', $direct_networks])
 
 
   $primary_db                = has_primary_role(intersection(hiera('database_roles'), hiera('roles')))
   $mysql_root_password       = $mysql_hash['root_password']
+  $deb_sysmaint_password     = $mysql_hash['wsrep_password']
   $enabled                   = pick($mysql_hash['enabled'], true)
 
   $galera_node_address       = get_network_role_property('mgmt/database', 'ipaddr')
   $galera_nodes              = values(get_node_to_ipaddr_map_by_network_role(hiera_hash('database_nodes'), 'mgmt/database'))
+  $galera_primary_controller = hiera('primary_database', $primary_controller)
   $galera_cluster_name       = 'openstack'
 
   $mysql_skip_name_resolve  = true
@@ -38,6 +40,8 @@ class osnailyfacter::database::database {
   $backend_port             = '3307'
   $backend_timeout          = '10'
 
+  $configuration = hiera_hash('configuration', {})
+  $mysql_user_defined_configuration = pick($configuration['mysql'], {})
   #############################################################################
   validate_string($status_password)
   validate_string($mysql_root_password)
@@ -106,32 +110,20 @@ class osnailyfacter::database::database {
       default: {
         # MOS galera packages
         $vendor_type = 'MOS'
+        $mysql_package_name = 'mysql-server-wsrep-5.6'
         $galera_package_name = 'galera-3'
-
-        $mysql_package_name  = 'mysql-wsrep-server-5.6'
-        $client_package_name = 'mysql-wsrep-client-5.6'
-
-        case $::osfamily {
-          'Debian': {
-            $wsrep_provider = '/usr/lib/galera/libgalera_smm.so'
-            $mysql_socket = '/var/run/mysqld/mysqld.sock'
-          }
-          'RedHat': {
-            $wsrep_provider = '/usr/lib64/galera-3/libgalera_smm.so'
-            $mysql_socket = '/var/lib/mysql/mysql.sock'
-          }
-        }
-
+        $client_package_name = 'mysql-client-5.6'
         $vendor_override_options = {
           'mysqld'           => {
-            'wsrep_provider' => $wsrep_provider
+            'wsrep_provider' => '/usr/lib/galera/libgalera_smm.so'
           }
         }
+        $mysql_socket = '/var/run/mysqld/mysqld.sock'
       }
     }
 
     $wsrep_group_comm_port = '4567'
-    if ($::memorysize_mb + 0) < 4000 {
+    if $::memorysize_mb < 4000 {
       $mysql_performance_schema = 'off'
     } else {
       $mysql_performance_schema = 'on'
@@ -254,7 +246,7 @@ class osnailyfacter::database::database {
       $syslog_options
     )
     $galera_options = mysql_deepmerge($wsrep_options, $vendor_override_options)
-    $override_options = mysql_deepmerge($mysql_override_options, $galera_options)
+    $override_options = mysql_deepmerge($mysql_override_options, $galera_options, $mysql_user_defined_configuration)
 
     class { '::galera':
       vendor_type           => $vendor_type,
@@ -266,6 +258,7 @@ class osnailyfacter::database::database {
       galera_master         => false,
       mysql_port            => $backend_port,
       root_password         => $mysql_root_password,
+      deb_sysmaint_password => $deb_sysmaint_password,
       create_root_user      => $primary_db,
       create_root_my_cnf    => $primary_db,
       configure_repo        => false, # NOTE: repos should be managed via fuel
@@ -302,23 +295,12 @@ class osnailyfacter::database::database {
       only_from       => "127.0.0.1 240.0.0.2 ${management_networks}",
     }
 
-    if $::osfamily == 'RedHat' {
-      $mysql_config = '/etc/my.cnf'
-    } else {
-      $mysql_config = '/etc/mysql/my.cnf'
-    }
-
-    class { '::openstack::galera::client':
-      custom_setup_class => $custom_setup_class,
-    }
-
     # include our integration with pacemaker
     class { '::cluster::mysql':
       mysql_user     => $status_user,
       mysql_password => $status_password,
-      mysql_config   => $mysql_config,
+      mysql_config   => '/etc/mysql/my.cnf',
       mysql_socket   => $mysql_socket,
-      require        => Class['::openstack::galera::client'],
     }
 
     # this overrides /root/.my.cnf created by mysql::server::root_password
@@ -346,6 +328,16 @@ class osnailyfacter::database::database {
         status_password => $status_password,
         status_allow    => $galera_node_address,
       }
+
+      if $::osfamily == 'Debian' {
+        mysql_user { 'debian-sys-maint@localhost':
+          ensure        => 'present',
+          password_hash => mysql_password($deb_sysmaint_password),
+          provider      => 'mysql',
+          require       => File['/root/.my.cnf'],
+        }
+      }
+
       Class['::cluster::mysql'] ->
         Class['::cluster::galera_grants'] ->
           Class['::cluster::galera_status']
