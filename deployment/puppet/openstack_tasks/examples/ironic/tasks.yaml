@@ -87,7 +87,7 @@
         ('primary-controller' in $.node_roles)),
       $.get('use_ssl'))
   required_for: [deploy_end]
-  requires: [primary-openstack-controller, openstack-controller, ironic-api]
+  requires: [primary-openstack-controller, openstack-controller, openstack-network-end, ironic-api]
   refresh_on: [nova_config, nova_paste_api_ini]
   cross-depends:
    - name: /^(primary-)?rabbitmq$/
