@@ -462,5 +462,164 @@ describe 'generate_physnet_mtus' do
       is_expected.to run.with_params(neutron_config, network_scheme_mtu_on_interfaces, { 'do_floating' => true, 'do_tenant' => true, 'do_provider' => false }).and_return(["physnet1:9000", "physnet2:4000"])
     end
 
+
+    let :network_scheme_multipath_both_mtu do
+      YAML.load('''
+        version: "1.1"
+        provider: lnx
+        interfaces: {}
+        transformations:
+          - action: add-br
+            name: br-aux11
+          - action: add-br
+            name: br-aux12
+          - action: add-br
+            name: br-aux21
+          - action: add-br
+            name: br-aux22
+          - action: add-patch
+            bridges:
+              - br-aux11
+              - br-aux12
+          - action: add-patch
+            bridges:
+              - br-aux21
+              - br-aux22
+          - action: add-br
+            name: br-prv
+            provider: ovs
+          - action: add-patch
+            bridges:
+              - br-prv
+              - br-aux11
+            provider: ovs
+          - action: add-patch
+            bridges:
+              - br-prv
+              - br-aux21
+            provider: ovs
+          - action: add-port
+            name: eth1
+            bridge: br-aux12
+            mtu: 1400
+          - action: add-port
+            name: eth2
+            bridge: br-aux22
+            mtu: 1300
+        roles: {}
+        endpoints: {}
+      ''')
+    end
+
+    it 'should be able to return tenant nets to mtu map for multipath from PRV to interfaces, both interfaces has defined MTU' do
+      is_expected.to run.with_params(neutron_config, network_scheme_multipath_both_mtu, { 'do_floating' => false, 'do_tenant' => true, 'do_provider' => false }).and_return(["physnet1:1300"])
+    end
+
+    let :network_scheme_multipath_one_mtu do
+      YAML.load('''
+        version: "1.1"
+        provider: lnx
+        interfaces: {}
+        transformations:
+          - action: add-br
+            name: br-aux11
+          - action: add-br
+            name: br-aux12
+          - action: add-br
+            name: br-aux21
+          - action: add-br
+            name: br-aux22
+          - action: add-patch
+            bridges:
+              - br-aux11
+              - br-aux12
+          - action: add-patch
+            bridges:
+              - br-aux21
+              - br-aux22
+          - action: add-br
+            name: br-prv
+            provider: ovs
+          - action: add-patch
+            bridges:
+              - br-prv
+              - br-aux11
+            provider: ovs
+          - action: add-patch
+            bridges:
+              - br-prv
+              - br-aux21
+            provider: ovs
+          - action: add-port
+            name: eth1
+            bridge: br-aux12
+          - action: add-port
+            name: eth2
+            bridge: br-aux22
+            mtu: 1300
+        roles: {}
+        endpoints: {}
+      ''')
+    end
+
+    it 'should be able to return tenant nets to mtu map for multipath from PRV to interfaces, one interfaces has defined MTU' do
+      is_expected.to run.with_params(neutron_config, network_scheme_multipath_one_mtu, { 'do_floating' => false, 'do_tenant' => true, 'do_provider' => false }).and_return(["physnet1:1300"])
+    end
+
+    let :network_scheme_multipath_mtu_on_path do
+      YAML.load('''
+        version: "1.1"
+        provider: lnx
+        interfaces: {}
+        transformations:
+          - action: add-br
+            name: br-aux11
+          - action: add-br
+            name: br-aux12
+          - action: add-br
+            name: br-aux21
+          - action: add-br
+            name: br-aux22
+          - action: add-patch
+            bridges:
+              - br-aux11
+              - br-aux12
+          - action: add-patch
+            mtu: 1200
+            bridges:
+              - br-aux21
+              - br-aux22
+          - action: add-br
+            name: br-prv
+            provider: ovs
+          - action: add-patch
+            bridges:
+              - br-prv
+              - br-aux11
+            provider: ovs
+          - action: add-patch
+            bridges:
+              - br-prv
+              - br-aux21
+            provider: ovs
+          - action: add-port
+            name: eth1
+            bridge: br-aux12
+            mtu: 1400
+          - action: add-port
+            name: eth2
+            bridge: br-aux22
+            mtu: 1300
+        roles: {}
+        endpoints: {}
+      ''')
+    end
+
+    it 'should be able to return tenant nets to mtu map for multipath from PRV to interfaces, patchcord defined MTU' do
+      is_expected.to run.with_params(neutron_config, network_scheme_multipath_both_mtu, { 'do_floating' => false, 'do_tenant' => true, 'do_provider' => false }).and_return(["physnet1:1200"])
+    end
+
+
+
   end
 end
