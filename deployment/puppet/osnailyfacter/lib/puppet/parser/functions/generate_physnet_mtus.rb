@@ -1,43 +1,41 @@
 DEFAULT_MTU ||= 1500
 
-def get_mtu_for_bridge(br_name, network_scheme, inspected_bridges)
-  mtu = nil
-  # in this chain patch should be last, because ports and bonds has highest priority
-  {'add-port' => 'bridge' , 'add-bond' => 'bridge', 'add-patch' => 'bridges'}.each do |x , v|
-    transf = network_scheme['transformations'].select do |trans|
-      trans['action']==x and trans.has_key?(v) and (trans[v]==br_name or trans[v].include?(br_name))
-    end
-    if transf.empty?
-      next
-    elsif transf.size >2
-      raise("bridge #{br_name} can not be included into more then one element, elements: #{transf}")
-    else
-      transf = transf[0]
-      debug("Transformation #{transf} has bridge #{br_name}")
-    end
-    if transf['action'] == 'add-patch'
-      debug("Bridge #{br_name} is in a patch #{transf}!")
-      next_br_name = transf['bridges'].select{ |x| x!=br_name }[0]
-      if ! inspected_bridges.include?(br_name)
-        debug("Looking mtu for bridge #{next_br_name}")
-        inspected_bridges << br_name
-        mtu = get_mtu_for_bridge(next_br_name, network_scheme, inspected_bridges)
-      else
-        next
-      end
-    elsif !transf['mtu'].nil?
-      # this section into elsif, because patch MTU shouldn't affect result (MTU 65000 for example)
-      mtu = transf['mtu']
-    elsif transf['action']=='add-port' and !network_scheme['interfaces'].fetch(transf['name'],{}).fetch('mtu',nil).nil?
-      mtu = network_scheme['interfaces'][transf['name']]['mtu']
-    end
-    if !mtu.nil?
-      debug("And has mtu: #{mtu}")
-      break
-    end
+class MinMTU
+  def value=(new_mtu)
+    return if new_mtu.nil? || new_mtu >= 65000
+
+    @min_mtu = new_mtu if @min_mtu.nil? || @min_mtu > new_mtu
   end
-  mtu ||= DEFAULT_MTU
-  return mtu
+
+  def value
+    @min_mtu
+  end
+end
+
+def get_mtu_for_bridge(br_name, network_scheme, inspected_bridges, min_mtu)
+  {'add-port' => 'bridge' , 'add-bond' => 'bridge', 'add-patch' => 'bridges'}
+    .each do |action, has_bridge|
+      transfs = network_scheme['transformations'].select do |trans|
+        trans['action'] == action &&
+        trans.has_key?(has_bridge) &&
+        (trans[has_bridge] == br_name || trans[has_bridge].include?(br_name))
+      end
+
+      transfs.each do |transf|
+        min_mtu.value = transf['mtu'] if transf['mtu']
+
+        if transf['action'] == 'add-patch'
+          inspected_bridges << br_name
+          (transf['bridges'] - inspected_bridges).each do |next_br_name|
+            get_mtu_for_bridge(next_br_name, network_scheme, inspected_bridges, min_mtu)
+          end
+        elsif transf['action'] == 'add-port'
+          min_mtu.value = network_scheme['interfaces'].fetch(transf['name'], {})['mtu']
+        end
+      end
+    end
+
+  min_mtu.value || DEFAULT_MTU
 end
 
 Puppet::Parser::Functions::newfunction(:generate_physnet_mtus, :type => :rvalue, :doc => <<-EOS
@@ -84,16 +82,9 @@ EOS
     # Looking for MTUs
     physnet_mtu_map = {}
     physnet_bridge_map.each do |net, br|
-      mtu = nil
-      if br['mtu']
-        mtu = br['mtu']
-      else
-        mtu = get_mtu_for_bridge(br['name'], network_scheme, [])
-      end
-      physnet_mtu_map[net] = mtu
+      physnet_mtu_map[net] = br['mtu'] ? br['mtu'] : get_mtu_for_bridge(br['name'], network_scheme, [], MinMTU.new)
     end
 
-    debug("Formatng the output")
     result = []
     return result if physnet_mtu_map.empty?
     physnet_mtu_map.each do |net, mtu|
