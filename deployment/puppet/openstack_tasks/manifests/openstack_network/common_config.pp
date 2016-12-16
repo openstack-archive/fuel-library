@@ -39,10 +39,18 @@ class openstack_tasks::openstack_network::common_config {
   prepare_network_config($network_scheme)
   $bind_host = get_network_role_property('neutron/api', 'ipaddr')
 
-  $base_mac       = $neutron_config['L2']['base_mac']
-  $amqp_hosts     = split(hiera('amqp_hosts', ''), ',')
-  $amqp_user      = $rabbit_hash['user']
-  $amqp_password  = $rabbit_hash['password']
+  $base_mac        = $neutron_config['L2']['base_mac']
+
+  $rpc_backend     = 'rabbit'
+  $rabbit_hosts    = hiera('amqp_hosts','')
+  $rabbit_user     = $rabbit_hash['user']
+  $rabbit_password = $rabbit_hash['password']
+  $transport_url   = os_transport_url({
+                        'transport'    => $rpc_backend,
+                        'hosts'        => split($rabbit_hosts,','),
+                        'username'     => $rabbit_user,
+                        'password'     => $rabbit_password,
+                      })
 
   $kombu_compression = hiera('kombu_compression', $::os_service_default)
 
@@ -78,6 +86,7 @@ class openstack_tasks::openstack_network::common_config {
   }
 
   class { '::neutron' :
+    default_transport_url              => $transport_url,
     lock_path                          => '/var/lib/neutron/lock',
     bind_host                          => $bind_host,
     base_mac                           => $base_mac,
@@ -88,9 +97,6 @@ class openstack_tasks::openstack_network::common_config {
     dhcp_lease_duration                => $dhcp_lease_duration,
     dhcp_agents_per_network            => '2',
     report_interval                    => $neutron_config['neutron_report_interval'],
-    rabbit_user                        => $amqp_user,
-    rabbit_hosts                       => $amqp_hosts,
-    rabbit_password                    => $amqp_password,
     rabbit_heartbeat_timeout_threshold => 0,
     kombu_compression                  => $kombu_compression,
     global_physnet_mtu                 => $physical_net_mtu,
