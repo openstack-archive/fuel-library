@@ -79,6 +79,8 @@ describe manifest do
       compute_driver = 'libvirt.LibvirtDriver'
     end
 
+    let(:transport_url) { Noop.hiera 'transport_url', 'rabbit://guest:password@127.0.0.1:5672/' }
+
     let(:rabbit_heartbeat_timeout_threshold) { Noop.puppet_function 'pick', nova_hash['rabbit_heartbeat_timeout_threshold'], rabbit_hash['heartbeat_timeout_treshold'], 60 }
     let(:rabbit_heartbeat_rate) { Noop.puppet_function 'pick', nova_hash['rabbit_heartbeat_rate'], rabbit_hash['heartbeat_rate'], 2 }
 
@@ -346,6 +348,12 @@ describe manifest do
     it 'nova config should not have database connection' do
       should_not contain_nova_config('database/connection')
     end
+
+    it 'should contain correct transport url' do
+      should contain_class('nova').with(:default_transport_url => transport_url)
+      should contain_nova_config('DEFAULT/transport_url').with_value(transport_url)
+    end
+
 
     # SSL support
     management_vip = Noop.hiera('management_vip')

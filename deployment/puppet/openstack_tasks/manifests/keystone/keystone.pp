@@ -54,6 +54,8 @@ class openstack_tasks::keystone::keystone {
     'extra'    => $extra_params
   })
 
+  $transport_url = hiera('transport_url','rabbit://guest:password@127.0.0.1:5672/')
+
   $admin_token    = $keystone_hash['admin_token']
   $admin_tenant   = $access_hash['tenant']
   $admin_email    = $access_hash['email']
@@ -99,10 +101,6 @@ class openstack_tasks::keystone::keystone {
   $ssl     = false
 
   $vhost_limit_request_field_size = 'LimitRequestFieldSize 81900'
-
-  $rabbit_password = $rabbit_hash['password']
-  $rabbit_user     = $rabbit_hash['user']
-  $rabbit_hosts    = split(hiera('amqp_hosts',''), ',')
 
   $max_pool_size         = hiera('max_pool_size')
   $max_overflow          = hiera('max_overflow')
@@ -314,6 +312,7 @@ class openstack_tasks::keystone::keystone {
       admin_password                     => $admin_password,
       enabled                            => false,
       database_connection                => $db_connection,
+      default_transport_url              => $transport_url,
       database_max_retries               => $max_retries,
       database_max_pool_size             => $max_pool_size,
       database_max_overflow              => $max_overflow,
@@ -325,9 +324,6 @@ class openstack_tasks::keystone::keystone {
       use_stderr                         => $use_stderr,
       database_idle_timeout              => $database_idle_timeout,
       sync_db                            => $primary_keystone,
-      rabbit_password                    => $rabbit_password,
-      rabbit_userid                      => $rabbit_user,
-      rabbit_hosts                       => $rabbit_hosts,
       memcache_servers                   => $memcache_servers,
       token_driver                       => $token_driver,
       token_provider                     => $token_provider,

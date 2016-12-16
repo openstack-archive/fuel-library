@@ -70,9 +70,6 @@ describe manifest do
     storage_hash = Noop.hiera_structure 'storage'
 
     let(:auto_assign_floating_ip) { Noop.hiera 'auto_assign_floating_ip', false }
-    let(:amqp_hosts) { Noop.hiera 'amqp_hosts', '' }
-    let(:rabbit_hash) { Noop.hiera_hash 'rabbit', {} }
-    let(:rabbit_hosts) { Noop.puppet_function 'split', amqp_hosts, ',' }
     let(:openstack_controller_hash) { Noop.hiera_hash 'openstack_controller', {} }
     let(:debug) do
       global_debug = Noop.hiera 'debug', true
@@ -118,6 +115,8 @@ describe manifest do
     let(:ironic_protocol) { Noop.puppet_function 'get_ssl_property',ssl_hash,{},'ironic','internal','protocol','http' }
     let(:ironic_endpoint) { Noop.puppet_function 'get_ssl_property',ssl_hash,{},'ironic','internal','hostname', ironic_endpoint_default}
 
+    rabbit_hash = Noop.hiera_structure 'rabbit', {}
+    let(:transport_url) { Noop.hiera 'transport_url', 'rabbit://guest:password@127.0.0.1:5672/' }
     let(:rabbit_heartbeat_timeout_threshold) { Noop.puppet_function 'pick', nova_hash['rabbit_heartbeat_timeout_threshold'], rabbit_hash['heartbeat_timeout_treshold'], 60 }
     let(:rabbit_heartbeat_rate) { Noop.puppet_function 'pick', nova_hash['rabbit_heartbeat_rate'], rabbit_hash['heartbeat_rate'], 2 }
     let(:region_name) { Noop.hiera 'region', 'RegionOne' }
@@ -190,10 +189,7 @@ describe manifest do
       max_retries = Noop.hiera 'max_retries', '-1'
 
       should contain_class('nova').with(
-        :rpc_backend            => 'nova.openstack.common.rpc.impl_kombu',
-        :rabbit_hosts           => rabbit_hosts,
-        :rabbit_userid          => rabbit_hash['user'],
-        :rabbit_password        => rabbit_hash['password'],
+        :default_transport_url  => transport_url,
         :image_service          => 'nova.image.glance.GlanceImageService',
         :glance_api_servers     => glance_api_servers,
         :debug                  => debug,

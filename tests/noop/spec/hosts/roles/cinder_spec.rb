@@ -18,10 +18,12 @@ describe manifest do
 
   storage_hash = Noop.hiera_structure 'storage'
   ceilometer_hash = Noop.hiera_hash 'ceilometer', { 'enabled' => false }
+  rabbit_hash = Noop.hiera_hash('rabbit', {})
   use_ceph = Noop.hiera 'use_ceph'
   volume_backend_name = storage_hash['volume_backend_names']
   volume_group = Noop.hiera('cinder_volume_group', 'cinder')
 
+  let(:transport_url) { Noop.hiera 'transport_url', 'rabbit://guest:password@127.0.0.1:5672/' }
   management_vip = Noop.hiera 'management_vip'
   database_vip = Noop.hiera('database_vip')
   cinder_db_type = Noop.hiera_structure 'cinder/db_type', 'mysql+pymysql'
@@ -156,6 +158,11 @@ describe manifest do
       is_expected.to_not contain_class('cinder::volume')
       is_expected.to_not contain_class('cinder::backends')
     end
+  end
+
+  it 'should contain correct transport url' do
+    should contain_class('cinder').with(:default_transport_url => transport_url)
+    should contain_cinder_config('DEFAULT/transport_url').with_value(transport_url)
   end
 
   it 'should configure kombu compression' do
