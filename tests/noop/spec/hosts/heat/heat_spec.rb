@@ -75,8 +75,15 @@ describe manifest do
     heat_hash = Noop.hiera_structure 'heat', {}
     rabbit_hash = Noop.hiera_structure 'rabbit', {}
 
+    let(:transport_url) { Noop.hiera 'transport_url', 'rabbit://guest:password@127.0.0.1:5672/' }
+
     rabbit_heartbeat_timeout_threshold = Noop.puppet_function 'pick', heat_hash['rabbit_heartbeat_timeout_threshold'], rabbit_hash['heartbeat_timeout_treshold'], 60
     rabbit_heartbeat_rate = Noop.puppet_function 'pick', heat_hash['rabbit_heartbeat_rate'], rabbit_hash['heartbeat_rate'], 2
+
+    it 'should contain correct transport url' do
+      should contain_class('heat').with(:default_transport_url => transport_url)
+      should contain_heat_config('DEFAULT/transport_url').with_value(transport_url)
+    end
 
     it 'should configure RabbitMQ Heartbeat parameters' do
       should contain_heat_config('oslo_messaging_rabbit/heartbeat_timeout_threshold').with_value(rabbit_heartbeat_timeout_threshold)
