@@ -81,8 +81,16 @@ describe manifest do
 
     let(:memcached_servers) { Noop.hiera 'memcached_servers' }
 
+    let(:transport_url) { Noop.hiera 'transport_url', 'rabbit://guest:password@127.0.0.1:5672/' }
+
     rabbit_heartbeat_timeout_threshold = Noop.puppet_function 'pick', glance_config['rabbit_heartbeat_timeout_threshold'], rabbit_hash['heartbeat_timeout_treshold'], 60
     rabbit_heartbeat_rate = Noop.puppet_function 'pick', glance_config['rabbit_heartbeat_rate'], rabbit_hash['heartbeat_rate'], 2
+
+    it 'should contain correct transport url' do
+      should contain_class('glance::notify::rabbitmq').with(:default_transport_url => transport_url)
+      should contain_glance_api_config('DEFAULT/transport_url').with_value(transport_url)
+      should contain_glance_registry_config('DEFAULT/transport_url').with_value(transport_url)
+    end
 
     it 'should configure RabbitMQ Heartbeat parameters' do
       should contain_glance_api_config('oslo_messaging_rabbit/heartbeat_timeout_threshold').with_value(rabbit_heartbeat_timeout_threshold)
