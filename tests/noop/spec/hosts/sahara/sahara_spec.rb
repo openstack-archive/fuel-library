@@ -155,16 +155,8 @@ describe manifest do
 
       enable = (Noop.hiera_structure('sahara/enabled') and Noop.hiera_structure('public_ssl/services'))
       context 'with public_ssl enabled', :if => enable do
-        it { should contain_file('/etc/pki/tls/certs').with(
-           'mode' => '0755'
-        )}
-
-        it { should contain_file('/etc/pki/tls/certs/public_haproxy.pem').with(
-           'mode' => '0644'
-        )}
-
-        it { is_expected.to contain_sahara_config('object_store_access/public_identity_ca_file').with_value('/etc/pki/tls/certs/public_haproxy.pem') }
-        it { is_expected.to contain_sahara_config('object_store_access/public_object_store_ca_file').with_value('/etc/pki/tls/certs/public_haproxy.pem') }
+        it { is_expected.not_to contain_sahara_config('object_store_access/public_identity_ca_file').with_value('/etc/pki/tls/certs/public_haproxy.pem') }
+        it { is_expected.not_to contain_sahara_config('object_store_access/public_object_store_ca_file').with_value('/etc/pki/tls/certs/public_haproxy.pem') }
       end
 
       it 'should declare sahara::api class correctly' do

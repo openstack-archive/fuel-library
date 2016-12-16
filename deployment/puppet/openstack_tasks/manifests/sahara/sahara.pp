@@ -39,14 +39,6 @@ class openstack_tasks::sahara::sahara {
     $firewall_rule   = '201 sahara-api'
     $api_bind_port   = '8386'
     $api_bind_host   = get_network_role_property('sahara/api', 'ipaddr')
-    $public_address = $public_ssl_hash['services'] ? {
-      true    => $public_ssl_hash['hostname'],
-      default => $public_vip,
-    }
-    $public_protocol = $public_ssl_hash['services'] ? {
-      true    => 'https',
-      default => 'http',
-    }
     $sahara_user     = pick($sahara_hash['user'], 'sahara')
     $sahara_password = pick($sahara_hash['user_password'])
     $tenant          = pick($sahara_hash['tenant'], 'services')
@@ -112,21 +104,6 @@ class openstack_tasks::sahara::sahara {
       rabbit_hosts           => split($amqp_hosts, ','),
       kombu_compression      => $kombu_compression,
       memcached_servers      => $memcached_servers,
-    }
-
-    if $public_ssl_hash['services'] {
-      file { '/etc/pki/tls/certs':
-        mode => '0755',
-      }
-
-      file { '/etc/pki/tls/certs/public_haproxy.pem':
-        mode => '0644',
-      }
-
-      sahara_config {
-        'object_store_access/public_identity_ca_file':     value => '/etc/pki/tls/certs/public_haproxy.pem';
-        'object_store_access/public_object_store_ca_file': value => '/etc/pki/tls/certs/public_haproxy.pem';
-      }
     }
 
     class { '::sahara::service::api': }
