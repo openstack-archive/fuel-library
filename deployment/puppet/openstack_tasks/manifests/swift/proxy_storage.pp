@@ -35,7 +35,16 @@ class openstack_tasks::swift::proxy_storage {
   $service_workers            = pick($swift_hash['workers'], min(max($::processorcount, 2), $workers_max))
   $ssl_hash                   = hiera_hash('use_ssl', {})
   $rabbit_hash                = hiera_hash('rabbit')
-  $rabbit_hosts               = hiera('amqp_hosts')
+  $rpc_backend                = 'rabbit'
+  $rabbit_hosts               = hiera('amqp_hosts','')
+  $rabbit_user                = $rabbit_hash['user']
+  $rabbit_password            = $rabbit_hash['password']
+  $transport_url              = os_transport_url({
+                                   'transport'    => $rpc_backend,
+                                   'hosts'        => split($rabbit_hosts,','),
+                                   'username'     => $rabbit_user,
+                                   'password'     => $rabbit_password,
+                                 })
 #storage settings
   $mp_hash                    = hiera('mp')
   $deploy_swift_storage       = hiera('deploy_swift_storage', true)
@@ -101,9 +110,7 @@ class openstack_tasks::swift::proxy_storage {
       auth_protocol                  => $internal_auth_protocol,
       auth_uri                       => $auth_uri,
       identity_uri                   => $identity_uri,
-      rabbit_user                    => $rabbit_hash['user'],
-      rabbit_password                => $rabbit_hash['password'],
-      rabbit_hosts                   => split($rabbit_hosts, ', '),
+      transport_url                  => $transport_url,
     }
 
     # Check swift proxy and internal VIP are from the same IP network. If no
