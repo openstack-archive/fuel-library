@@ -65,8 +65,22 @@ describe manifest do
 
   let(:memcached_servers) { Noop.hiera 'memcached_servers' }
 
+  rpc_backend     = 'rabbit'
+  rabbit_user     = rabbit_hash['user']
+  rabbit_password = rabbit_hash['password']
+  rabbit_hosts    = Noop.hiera('amqp_hosts', '').split(',')
+  transport_url   = Noop.puppet_function 'os_transport_url', {
+                      'transport' => rpc_backend,
+                      'hosts'     => rabbit_hosts,
+                      'username'  => rabbit_user,
+                      'password'  => rabbit_password }
   rabbit_heartbeat_timeout_threshold = Noop.puppet_function 'pick', cinder_hash['rabbit_heartbeat_timeout_threshold'], rabbit_hash['heartbeat_timeout_treshold'], 60
   rabbit_heartbeat_rate = Noop.puppet_function 'pick', cinder_hash['rabbit_heartbeat_rate'], rabbit_hash['heartbeat_rate'], 2
+
+  it 'should contain correct transport url' do
+    should contain_class('cinder').with(:default_transport_url => transport_url)
+    should contain_cinder_config('DEFAULT/transport_url').with_value(transport_url)
+  end
 
   it 'should configure RabbitMQ Heartbeat parameters' do
     should contain_cinder_config('oslo_messaging_rabbit/heartbeat_timeout_threshold').with_value(rabbit_heartbeat_timeout_threshold)

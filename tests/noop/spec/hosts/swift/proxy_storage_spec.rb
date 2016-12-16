@@ -10,6 +10,7 @@ describe manifest do
     role             = Noop.hiera 'role'
     storage_hash     = Noop.hiera_hash 'storage'
     swift_hash       = Noop.hiera_hash 'swift'
+    rabbit_hash      = Noop.hiera_structure 'rabbit', {}
     network_scheme   = Noop.hiera_hash 'network_scheme'
 
     let(:memcached_servers) { Noop.hiera 'memcached_servers' }
@@ -21,9 +22,16 @@ describe manifest do
     deploy_swift_proxy = Noop.hiera('deploy_swift_proxy', true)
     deploy_swift_storage = Noop.hiera('deploy_swift_storage', true)
     swift_proxies_num  = (Noop.hiera('swift_proxies')).size
-    rabbit_hosts       = Noop.hiera('amqp_hosts')
-    rabbit_user        = Noop.hiera_structure('rabbit/user', 'nova')
-    rabbit_password    = Noop.hiera_structure('rabbit/password')
+
+    rpc_backend     = 'rabbit'
+    rabbit_user     = rabbit_hash['user']
+    rabbit_password = rabbit_hash['password']
+    rabbit_hosts    = Noop.hiera('amqp_hosts', '').split(',')
+    transport_url   = Noop.puppet_function 'os_transport_url', {
+                        'transport' => rpc_backend,
+                        'hosts'     => rabbit_hosts,
+                        'username'  => rabbit_user,
+                        'password'  => rabbit_password }
     network_scheme     = Noop.hiera_hash 'network_scheme'
     internal_virtual_ip = Noop.hiera_structure('network_metadata/vips/management/ipaddr')
 
@@ -162,11 +170,9 @@ describe manifest do
           )
         end
 
-        it 'should contain rabbit params' do
+        it 'should contain correct transport url' do
           should contain_class('openstack_tasks::swift::parts::proxy').with(
-            :rabbit_user     => rabbit_user,
-            :rabbit_password => rabbit_password,
-            :rabbit_hosts    => rabbit_hosts.split(', '),
+            :transport_url => transport_url
           )
         end
 
