@@ -160,10 +160,20 @@ class openstack_tasks::openstack_controller::openstack_controller {
   $memcached_authtoken_server = "${memcached_address}:${memcached_port}"
 
 
-  $rpc_backend   = 'nova.openstack.common.rpc.impl_kombu'
+  $rpc_backend   = 'rabbit'
   $amqp_hosts    = hiera('amqp_hosts','')
   $amqp_user     = $rabbit_hash['user']
   $amqp_password = $rabbit_hash['password']
+  $transport_url = os_transport_url({
+                      'transport'    => $rpc_backend,
+                      'hosts'        => split($amqp_hosts),
+                      'username'     => $amqp_user,
+                      'password'     => $amqp_password,
+                      # 'virtual_host' => 'virtual_host',
+                      # 'ssl'          => '1',
+                      # 'query'        => { 'key' => 'value' },
+                    })
+  notice "Transport url is ${transport_url}"
   $debug         = pick($openstack_controller_hash['debug'], hiera('debug', true))
 
   $fping_path = $::osfamily ? {
@@ -180,11 +190,12 @@ class openstack_tasks::openstack_controller::openstack_controller {
   class { '::nova':
     database_connection                => $db_connection,
     api_database_connection            => $api_db_connection,
-    rpc_backend                        => $rpc_backend,
-    #FIXME(bogdando) we have to split amqp_hosts until all modules synced
-    rabbit_hosts                       => split($amqp_hosts, ','),
-    rabbit_userid                      => $amqp_user,
-    rabbit_password                    => $amqp_password,
+    # rpc_backend                        => $rpc_backend,
+    # #FIXME(bogdando) we have to split amqp_hosts until all modules synced
+    # rabbit_hosts                       => split($amqp_hosts, ','),
+    # rabbit_userid                      => $amqp_user,
+    # rabbit_password                    => $amqp_password,
+    default_transport_url              => $transport_url
     image_service                      => 'nova.image.glance.GlanceImageService',
     glance_api_servers                 => $glance_api_servers,
     debug                              => $debug,
