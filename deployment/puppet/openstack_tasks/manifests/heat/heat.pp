@@ -78,6 +78,8 @@ class openstack_tasks::heat::heat {
     'extra'    => $extra_params
   })
 
+  $transport_url = hiera('transport_url','rabbit://guest:password@127.0.0.1:5672/')
+
   ####### Disable upstart startup on install #######
   if $::operatingsystem == 'Ubuntu' {
     tweaks::ubuntu_service_override { 'heat-api-cloudwatch':
@@ -193,11 +195,8 @@ class openstack_tasks::heat::heat {
     database_idle_timeout              => $idle_timeout,
     sync_db                            => $primary_controller,
 
-    rpc_backend                        => 'rabbit',
+    default_transport_url              => $transport_url,
     rpc_response_timeout               => '600',
-    rabbit_hosts                       => split(hiera('amqp_hosts',''), ','),
-    rabbit_userid                      => $rabbit_hash['user'],
-    rabbit_password                    => $rabbit_hash['password'],
     rabbit_heartbeat_timeout_threshold => $rabbit_heartbeat_timeout_threshold,
     rabbit_heartbeat_rate              => $rabbit_heartbeat_rate,
 

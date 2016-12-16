@@ -52,15 +52,13 @@ class openstack_tasks::glance::glance {
     'extra'    => $extra_params
   })
 
+  $transport_url = hiera('transport_url','rabbit://guest:password@127.0.0.1:5672/')
+
   $api_bind_host                  = get_network_role_property('glance/api', 'ipaddr')
   $glare_bind_host                = get_network_role_property('glance/glare', 'ipaddr')
   $enabled                        = true
   $max_retries                    = '-1'
   $idle_timeout                   = '3600'
-
-  $rabbit_password                = $rabbit_hash['password']
-  $rabbit_userid                  = $rabbit_hash['user']
-  $rabbit_hosts                   = split(hiera('amqp_hosts',''), ',')
 
   $glance_user                    = pick($glance_hash['user'],'glance')
   $glance_user_password           = $glance_hash['user_password']
@@ -238,9 +236,7 @@ class openstack_tasks::glance::glance {
   class { '::glance::notify::rabbitmq':
     rabbit_notification_exchange       => 'glance',
     rabbit_notification_topic          => 'notifications',
-    rabbit_password                    => $rabbit_password,
-    rabbit_userid                      => $rabbit_userid,
-    rabbit_hosts                       => $rabbit_hosts,
+    default_transport_url              => $transport_url,
     notification_driver                => $ceilometer_hash['notification_driver'],
     kombu_compression                  => $kombu_compression,
     rabbit_heartbeat_timeout_threshold => $rabbit_heartbeat_timeout_threshold,
