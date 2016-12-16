@@ -90,6 +90,11 @@ describe manifest do
           'content' => certdata.to_s,
         )
       end
+      it "should remove private key from certificate chain in /etc/" do
+        should contain_exec("remove private key from cert chain").with(
+          'command'  => "sed -i '/[-]*BEGIN.*PRIVATE\ KEY[-]*/,/[-]*END.*PRIVATE\ KEY[-]*/d' /etc/pki/tls/certs/public_haproxy.pem",
+        )
+      end
     end
   end
   test_ubuntu_and_centos manifest

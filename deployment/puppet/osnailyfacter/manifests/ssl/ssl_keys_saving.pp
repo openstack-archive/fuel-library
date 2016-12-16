@@ -73,6 +73,11 @@ class osnailyfacter::ssl::ssl_keys_saving {
       ensure  => present,
       content => $pub_certificate_content,
     }
-  }
 
+    exec { 'remove private key from cert chain':
+      command => "sed -i '/[-]*BEGIN.*PRIVATE\ KEY[-]*/,/[-]*END.*PRIVATE\ KEY[-]*/d' ${base_path}/public_haproxy.pem",
+      path    => '/usr/bin:/bin:/usr/sbin:/sbin',
+      onlyif  => "grep -q 'PRIVATE KEY' ${base_path}/public_haproxy.pem",
+    }
+  }
 }
