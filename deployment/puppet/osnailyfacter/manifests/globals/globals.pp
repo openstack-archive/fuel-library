@@ -305,6 +305,15 @@ class osnailyfacter::globals::globals {
     $amqp_hosts = amqp_hosts($amqp_ips, $amqp_port, get_network_role_property('mgmt/messaging', 'ipaddr'))
   }
 
+  $rabbit_user     = $real_rabbit_hash['user']
+  $rabbit_password = $real_rabbit_hash['password']
+  $transport_url   = os_transport_url({
+                        'transport'    => 'rabbit',
+                        'hosts'        => split($amqp_hosts,','),
+                        'username'     => $rabbit_user,
+                        'password'     => $rabbit_password,
+                      })
+
   # Generic workers limits by RAM
   # Defines the total RAM every single worker of all service types may consume.
   # More services share the same node, more RAM ratio should be given to the workers.

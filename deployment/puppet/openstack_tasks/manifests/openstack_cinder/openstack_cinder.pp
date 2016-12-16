@@ -45,6 +45,8 @@ class openstack_tasks::openstack_cinder::openstack_cinder {
     'extra'    => $extra_params
   })
 
+  $transport_url = hiera('transport_url','rabbit://guest:password@127.0.0.1:5672/')
+
   $rabbit_heartbeat_timeout_threshold = pick($cinder_hash['rabbit_heartbeat_timeout_threshold'], $rabbit_hash['heartbeat_timeout_threshold'], 60)
   $rabbit_heartbeat_rate              = pick($cinder_hash['rabbit_heartbeat_rate'], $rabbit_hash['rabbit_heartbeat_rate'], 2)
 
@@ -128,11 +130,8 @@ class openstack_tasks::openstack_cinder::openstack_cinder {
   $keymgr_encryption_auth_url = "${auth_url}/v3"
 
   class { '::cinder':
-    rpc_backend                        => $queue_provider,
-    rabbit_hosts                       => split(hiera('amqp_hosts',''), ','),
-    rabbit_userid                      => $rabbit_hash['user'],
-    rabbit_password                    => $rabbit_hash['password'],
     database_connection                => $db_connection,
+    default_transport_url              => $transport_url,
     use_syslog                         => $use_syslog,
     use_stderr                         => $use_stderr,
     log_facility                       => hiera('syslog_log_facility_cinder', 'LOG_LOCAL3'),

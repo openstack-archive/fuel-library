@@ -48,6 +48,8 @@ class openstack_tasks::roles::cinder {
     'extra'    => $extra_params
   })
 
+  $transport_url = hiera('transport_url','rabbit://guest:password@127.0.0.1:5672/')
+
   $ssl_hash                = hiera_hash('use_ssl', {})
   $service_endpoint        = hiera('service_endpoint')
 
@@ -67,8 +69,6 @@ class openstack_tasks::roles::cinder {
 
   $service_port = '5000'
   $auth_uri     = "${keystone_auth_protocol}://${keystone_auth_host}:${service_port}/"
-
-  $queue_provider = hiera('queue_provider', 'rabbit')
 
   if (!empty(get_nodes_hash_by_roles($network_metadata, ['ceph-osd'])) or
     $storage_hash['volumes_ceph'] or
@@ -184,13 +184,10 @@ class openstack_tasks::roles::cinder {
   }
 
   class { '::cinder':
-    rpc_backend            => $queue_provider,
-    rabbit_hosts           => split(hiera('amqp_hosts',''), ','),
-    rabbit_userid          => $rabbit_hash['user'],
-    rabbit_password        => $rabbit_hash['password'],
-    rabbit_ha_queues       => hiera('rabbit_ha_queues', false),
     database_connection    => $db_connection,
     verbose                => $verbose,
+    default_transport_url  => $transport_url,
+    rabbit_ha_queues       => hiera('rabbit_ha_queues', false),
     use_syslog             => $use_syslog,
     use_stderr             => $use_stderr,
     log_facility           => hiera('syslog_log_facility_cinder', 'LOG_LOCAL3'),
