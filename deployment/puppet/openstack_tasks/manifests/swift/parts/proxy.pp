@@ -55,9 +55,10 @@ class openstack_tasks::swift::parts::proxy (
   $auth_uri                          = 'http://127.0.0.1:5000',
   $identity_uri                      = 'http://127.0.0.1:35357',
   $swift_operator_roles              = ['admin', 'SwiftOperator'],
+  $rpc_backend                       = 'rabbit',
   $rabbit_user                       = 'guest',
   $rabbit_password                   = 'password',
-  $rabbit_hosts                      = '127.0.0.1:5672',
+  $rabbit_hosts                      = ['127.0.0.1:5672'],
 ) {
   if !defined(Class['swift']) {
     class { 'swift':
@@ -86,6 +87,13 @@ class openstack_tasks::swift::parts::proxy (
     $log_level = 'WARNING'
   }
 
+  $transport_url = os_transport_url({
+                      'transport'    => $rpc_backend,
+                      'hosts'        => $rabbit_hosts,
+                      'username'     => $rabbit_user,
+                      'password'     => $rabbit_password,
+                    })
+
   if $ceilometer {
     $new_proxy_pipeline = split(
       inline_template(
@@ -93,9 +101,7 @@ class openstack_tasks::swift::parts::proxy (
             @proxy_pipeline.insert(-2, 'ceilometer').join(',')
          %>"), ',')
     class { '::swift::proxy::ceilometer':
-      rabbit_user     => $rabbit_user,
-      rabbit_password => $rabbit_password,
-      rabbit_hosts    => $rabbit_hosts,
+      default_transport_url => $transport_url,
     }
   }
   else {
