@@ -21,6 +21,17 @@ describe manifest do
       Noop.puppet_function('get_network_role_property', 'neutron/api', 'ipaddr')
     end
 
+    rabbit_hash     = Noop.hiera_hash('rabbit', {})
+    rpc_backend     = 'rabbit'
+    rabbit_user     = rabbit_hash['user']
+    rabbit_password = rabbit_hash['password']
+    rabbit_hosts    = Noop.hiera('amqp_hosts', '').split(',')
+    transport_url   = Noop.puppet_function 'os_transport_url', {
+                        'transport' => rpc_backend,
+                        'hosts'     => rabbit_hosts,
+                        'username'  => rabbit_user,
+                        'password'  => rabbit_password }
+
     context 'with Neutron' do
       neutron_config = Noop.hiera('neutron_config')
       openstack_network_hash = Noop.hiera('openstack_network', {})
@@ -72,12 +83,10 @@ describe manifest do
         should contain_class('neutron').with('global_physnet_mtu' => physical_net_mtu)
       }
 
-      it 'RMQ options' do
-        rabbit_hash = Noop.hiera_hash('rabbit', {})
-        should contain_class('neutron').with('rabbit_user' => rabbit_hash['user'])
-        should contain_class('neutron').with('rabbit_password' => rabbit_hash['password'])
-        should contain_class('neutron').with('rabbit_hosts' => Noop.hiera('amqp_hosts', '').split(','))
-        should contain_class('neutron').with('rabbit_heartbeat_timeout_threshold' => 0)
+      it 'should contain correct RMQ options' do
+        should contain_class('neutron').with(
+          :default_transport_url              => transport_url,
+          :rabbit_heartbeat_timeout_threshold => 0)
       end
 
     end
