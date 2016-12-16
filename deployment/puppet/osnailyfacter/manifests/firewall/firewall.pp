@@ -43,7 +43,7 @@ class osnailyfacter::firewall::firewall {
   $neutron_api_port             = 9696
   $nova_api_compute_port        = 8774
   $nova_api_metadata_port       = 8775
-  $nova_api_vnc_ports           = '5900-6100'
+  $nova_api_vnc_ports           = '5900-6900'
   $nova_api_volume_port         = 8776
   $nova_vncproxy_port           = 6080
   $nrpe_server_port             = 5666
