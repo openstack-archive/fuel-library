@@ -74,7 +74,7 @@ mod 'oslo',
 # Pull in puppet-neutron
 mod 'neutron',
     :git => 'https://github.com/fuel-infra/puppet-neutron.git',
-    :ref => '9.5.0'
+    :ref => '215990ecc0ec48f6c954dba0f3f25573c4bf9ad5'
 
 # Pull in puppet-nova
 mod 'nova',
