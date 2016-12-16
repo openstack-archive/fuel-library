@@ -51,7 +51,16 @@ class openstack_tasks::roles::compute {
   $block_device_allocate_retries          = hiera('block_device_allocate_retries', 300)
   $block_device_allocate_retries_interval = hiera('block_device_allocate_retries_interval', 3)
 
-  $queue_provider = hiera('queue_provider', 'rabbit')
+  $rpc_backend     = 'rabbit'
+  $rabbit_hosts    = hiera('amqp_hosts','')
+  $rabbit_user     = $rabbit_hash['user']
+  $rabbit_password = $rabbit_hash['password']
+  $transport_url   = os_transport_url({
+                        'transport'    => $rpc_backend,
+                        'hosts'        => split($rabbit_hosts,','),
+                        'username'     => $rabbit_user,
+                        'password'     => $rabbit_password,
+                      })
 
   include ::osnailyfacter::test_compute
 
@@ -243,11 +252,7 @@ class openstack_tasks::roles::compute {
   $notify_on_state_change = 'vm_and_task_state'
 
   class { '::nova':
-    rpc_backend                            => $queue_provider,
-    #FIXME(bogdando) we have to split amqp_hosts until all modules synced
-    rabbit_hosts                           => split(hiera('amqp_hosts',''), ','),
-    rabbit_userid                          => pick($rabbit_hash['user'], 'nova'),
-    rabbit_password                        => $rabbit_hash['password'],
+    default_transport_url                  => $transport_url,
     glance_api_servers                     => $glance_api_servers,
     debug                                  => $debug,
     use_syslog                             => $use_syslog,
