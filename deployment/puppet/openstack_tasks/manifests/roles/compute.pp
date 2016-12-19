@@ -90,7 +90,6 @@ class openstack_tasks::roles::compute {
   ensure_packages('fping')
 
   $nova_config_hash = {
-    'DEFAULT/resume_guests_state_on_host_boot'       => { value => hiera('resume_guests_state_on_host_boot', 'False') },
     'DEFAULT/use_cow_images'                         => { value => hiera('use_cow_images', 'True') },
     'libvirt/libvirt_inject_key'                     => { value => true },
     'libvirt/libvirt_inject_password'                => { value => true },
@@ -339,6 +338,17 @@ class openstack_tasks::roles::compute {
   if !defined(Nova_config['privsep_osbrick/helper_command']) {
     nova_config {
       'privsep_osbrick/helper_command': value => 'sudo nova-rootwrap /etc/nova/rootwrap.conf privsep-helper --config-file /etc/nova/nova.conf'
+    }
+  }
+
+  # TODO (mkarpin): rework this option management once it's available in puppet-nova module (LP #1651101)
+  if !defined(Nova_config['DEFAULT/resume_guests_state_on_host_boot']) {
+    nova_config {
+      'DEFAULT/resume_guests_state_on_host_boot': value => hiera('resume_guests_state_on_host_boot', 'False')
+    }
+  } else {
+    Nova_config['DEFAULT/resume_guests_state_on_host_boot'] {
+      value => hiera('resume_guests_state_on_host_boot', 'False')
     }
   }
 
