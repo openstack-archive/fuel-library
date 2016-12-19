@@ -127,14 +127,31 @@ class osnailyfacter::database::database {
     } else {
       $mysql_performance_schema = 'on'
     }
-    $innodb_buffer_pool_size = inline_template("<%= [(${::memorysize_mb} * 0.2 + 0).floor, 10000].min %>")
-    $innodb_log_file_size    = inline_template("<%= [(${innodb_buffer_pool_size} * 0.2 + 0).floor, 2047].min %>")
-    $key_buffer_size         = 64
-    $sort_buffer_size_mb     = '0.25'
-    $read_buffer_size_mb     = '0.125'
-    $max_connections = inline_template(
-            "<%= [[((${::memorysize_mb} * 0.3 - ${key_buffer_size}) /
-             (${sort_buffer_size_mb} + ${read_buffer_size_mb})).floor, 8192].min, 2048].max %>")
+    $innodb_buffer_pool_size = inline_template("<%= [(${::memorysize_mb} * 0.25).floor, 8192].min %>")
+    $innodb_log_file_size    = inline_template("<%= [(${innodb_buffer_pool_size} * 0.2).floor, 2047].min %>")
+    #http://dev.mysql.com/doc/refman/5.6/en/innodb-parameters.html#sysvar_innodb_log_buffer_size
+    $innodb_log_buffer_size  = '8'
+    #http://dev.mysql.com/doc/refman/5.6/en/server-system-variables.html#sysvar_key_buffer_size
+    $key_buffer_size         = '8'
+    #Disabled for galera
+    $query_cache_size        = '0'
+    #http://dev.mysql.com/doc/refman/5.6/en/server-system-variables.html#sysvar_tmp_table_size
+    $tmp_table_size          = '16'
+    #http://dev.mysql.com/doc/refman/5.6/en/server-system-variables.html#sysvar_read_buffer_size
+    $read_buffer_size        = '0.125'
+    #http://dev.mysql.com/doc/refman/5.6/en/server-system-variables.html#sysvar_read_rnd_buffer_size
+    $read_rnd_buffer_size    = '0.25'
+    #http://dev.mysql.com/doc/refman/5.6/en/server-system-variables.html#sysvar_sort_buffer_size
+    $sort_buffer_size        = '0.25'
+    #http://dev.mysql.com/doc/refman/5.6/en/server-system-variables.html#sysvar_join_buffer_size
+    $join_buffer_size        = '0.25'
+    #http://dev.mysql.com/doc/refman/5.6/en/replication-options-binary-log.html#sysvar_binlog_cache_size
+    $binlog_cache_size       = '0.03125'
+    #http://dev.mysql.com/doc/refman/5.6/en/server-system-variables.html#sysvar_thread_stack
+    $thread_stack            = '0.25'
+
+    $max_connections = inline_template("<%= [[((${::memorysize_mb} * 0.25 - ${key_buffer_size} - ${query_cache_size} - ${tmp_table_size} - ${innodb_log_buffer_size} ) /
+         (${read_buffer_size} + ${read_rnd_buffer_size} + ${sort_buffer_size} + ${join_buffer_size} + ${binlog_cache_size} + ${thread_stack})).floor, 8192].min, 1024].max %>")
 
     $wsrep_provider_options = "\"gcache.size=${galera_gcache_size}; gmcast.listen_addr=tcp://${galera_node_address}:${wsrep_group_comm_port}\""
     $wsrep_slave_threads = inline_template("<%= [[${::processorcount}*2, 4].max, 12].min %>")
@@ -175,14 +192,11 @@ class osnailyfacter::database::database {
         'character-set-server'           => 'utf8',
         'skip-name-resolve'              => $mysql_skip_name_resolve,
         'performance_schema'             => $mysql_performance_schema,
-        'myisam_sort_buffer_size'        => '64M',
         'wait_timeout'                   => '1800',
         'open_files_limit'               => '102400',
         'table_open_cache'               => '10000',
-        'key_buffer_size'                => $key_buffer_size,
+        'key_buffer_size'                => "${key_buffer_size}M",
         'max_allowed_packet'             => '256M',
-        'query_cache_size'               => '0',
-        'query_cache_type'               => '0',
         'innodb-data-home-dir'           => '/var/lib/mysql',
         'innodb_file_format'             => 'Barracuda',
         'innodb_file_per_table'          => '1',
