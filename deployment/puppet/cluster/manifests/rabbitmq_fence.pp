@@ -61,14 +61,6 @@ class cluster::rabbitmq_fence(
     enable => true,
   } ->
 
-  file { '/etc/rabbitmq/node_name_prefix_for_messaging':
-    ensure  => file,
-    mode    => '0644',
-    content => hiera('node_name_prefix_for_messaging', 'messaging-'),
-    notify  => Service['rabbit-fence'],
-    require => Package['fuel-rabbit-fence'],
-  } ->
-
   service { 'rabbit-fence':
     ensure  => $enabled ? {
       true  => running,
