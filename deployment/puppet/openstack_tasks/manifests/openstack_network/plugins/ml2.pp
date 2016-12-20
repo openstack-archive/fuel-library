@@ -86,20 +86,28 @@ class openstack_tasks::openstack_network::plugins::ml2 {
       $enable_tunneling = true
     }
 
+    $firewall_driver_opted = hiera('security_groups', 'iptables_hybrid')
+
     # DPDK settings on compute node
     if $enable_dpdk and $compute {
-      $firewall_driver          = 'openvswitch'
+      # override (set default) firewall driver
+      if $firewall_driver_opted == 'iptables_hybrid' {
+        $enable_security_group_default = false
+        $firewall_driver_default       = 'noop'
+      }
       $ovs_datapath_type        = 'netdev'
       $ovs_vhostuser_socket_dir = '/var/run/openvswitch'
     } else {
-      $firewall_driver          = hiera('security_groups', 'iptables_hybrid')
       # Leave default values when passed to the class
       $ovs_datapath_type        = undef
       $ovs_vhostuser_socket_dir = undef
     }
 
+    $enable_security_group = pick($enable_security_group_default, true)
+    $firewall_driver       = pick($firewall_driver_default, $firewall_driver_opted)
+
     neutron_agent_ovs {
-      'securitygroup/enable_security_group': value => true;
+      'securitygroup/enable_security_group': value => $enable_security_group;
     }
 
     Neutron_agent_ovs<||> ~> Service['neutron-ovs-agent-service']
