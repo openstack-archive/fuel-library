@@ -60,11 +60,11 @@ def catchall_signal_lh(*args, **kwargs):
         node = args[0]
         this_node = socket.gethostname().split('.')[0]
         node_name = node.split('.')[0]
-        cmd = 'cat /etc/rabbitmq/node_name_prefix_for_messaging 2>/dev/null'
-        node_name_prefix = bash_command(cmd)
-        if node_name_prefix == 'nil' or node_name_prefix in node_name:
-            node_name_prefix = ''
-        node_to_remove = 'rabbit@%s%s' % (node_name_prefix, node_name)
+
+        # We're looking for a line like "NODENAME=rabbit@messaging-node-6"
+        cmd = ('grep "^[[:space:]]*NODENAME[[:space:]]*=" '
+               '/etc/rabbitmq/rabbitmq-env.conf 2>/dev/null')
+        node_to_remove = bash_command(cmd).split('=')[1].strip()
 
         my_logger.info("Got %s that left cluster" % node)
         my_logger.debug(kwargs)
