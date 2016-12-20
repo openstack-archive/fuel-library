@@ -22,12 +22,8 @@ generate_open_ssl_keys () {
       local key_path="$dir_path/public_$i.key"
       local crt_path="$dir_path/public_$i.crt"
       mkdir -p $dir_path
-      if [ ! -f $key_path ]; then
-        env SSL_CN_NAME="$cn_name" bash -c "openssl req -newkey rsa:2048 -nodes -keyout $key_path -x509 -days 3650 -out $crt_path -config $CONF_PATH/openssl.cnf -extensions v3_req 2>&1"
-        cat "$crt_path" "$key_path" > "$dir_path/public_$i.pem"
-      else
-        echo "Key $key_path already exists"
-      fi
+      env SSL_CN_NAME="$cn_name" bash -c "openssl req -newkey rsa:2048 -nodes -keyout $key_path -x509 -days 3650 -out $crt_path -config $CONF_PATH/openssl.cnf -extensions v3_req 2>&1"
+      cat "$crt_path" "$key_path" > "$dir_path/public_$i.pem"
     done
 }
 
