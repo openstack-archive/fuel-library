@@ -145,7 +145,7 @@ mod 'corosync',
 # Pull in puppetlabs-rabbitmq
 mod 'rabbitmq',
     :git => 'https://github.com/fuel-infra/puppetlabs-rabbitmq.git',
-    :ref => '5.4.0'
+    :ref => '5.6.0'
 
 # Pull in puppetlabs-mysql
 # FIXME(mmalchuk) 498b085 (3.6.3-rc1) is a fix for the 3.6.x branch
