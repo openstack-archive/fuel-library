@@ -55,7 +55,6 @@
   required_for: [aodh]
   cross-depends:
     - name: /^(primary-)?database$/
-      role: self
   cross-depended-by:
     - name: aodh
   condition:
