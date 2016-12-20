@@ -47,7 +47,6 @@
   requires: [primary-database, database]
   cross-depends:
     - name: /^(primary-)?database$/
-      role: self
   cross-depened-by:
     - name: openstack-cinder
   condition:

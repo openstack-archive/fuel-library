@@ -60,7 +60,6 @@
   requires: [primary-database, database]
   cross-depends:
     - name: /^(primary-)?database$/
-      role: self
   cross-depended-by:
     - name: /^(primary-)?heat$/
   condition:

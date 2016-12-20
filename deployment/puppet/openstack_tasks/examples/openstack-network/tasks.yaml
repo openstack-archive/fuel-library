@@ -10,7 +10,6 @@
       $.network_metadata.vips, $.get('database_vip'))
   cross-depends:
     - name: /^(primary-)?database$/
-      role: self
   cross-depended-by:
     - name: openstack-network-end
       role: self
