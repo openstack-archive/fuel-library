@@ -355,6 +355,14 @@ class openstack_tasks::roles::compute {
     $disk_cachemodes = ['"file=directsync,block=none"']
   }
 
+  # set image preallocation mode
+  $preallocate_images = pick($nova_hash_real['preallocate_images'], 'space')
+  validate_re($preallocate_images, '^(none|space)$')
+
+  nova_config {
+    'DEFAULT/preallocate_images': value => $preallocate_images;
+  }
+
   # Configure libvirt for nova-compute
   class { '::nova::compute::libvirt':
     libvirt_virt_type                          => $libvirt_type,
