@@ -65,14 +65,16 @@ class fuel::mcollective(
   ensure_packages($mco_packages_extra)
 
   class { '::mcollective':
-    connector        => $mco_connector,
-    middleware_hosts => [$mco_host],
-    server_loglevel  => 'debug',
-    psk              => $mco_pskey,
-    manage_packages  => false,
-    server           => true,
-    client           => true,
-    require          => Package[$mco_packages],
+    connector          => $mco_connector,
+    middleware_hosts   => [$mco_host],
+    server_loglevel    => 'debug',
+    client_loglevel    => 'debug',
+    client_logger_type => 'syslog',
+    psk                => $mco_pskey,
+    manage_packages    => false,
+    server             => true,
+    client             => true,
+    require            => Package[$mco_packages],
   }
 
   create_resources(mcollective::server::setting, $mco_settings, { 'order' => 90 })
