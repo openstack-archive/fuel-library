@@ -74,7 +74,7 @@ mod 'firewall',
 # Pull in saz-memcached
 mod 'memcached',
     :git => 'https://github.com/fuel-infra/puppet-memcached.git',
-    :ref => 'v2.5.0'
+    :ref => 'v2.8.1'
 
 # Pull in duritong-sysctl
 mod 'sysctl',
