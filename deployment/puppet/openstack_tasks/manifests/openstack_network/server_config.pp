@@ -177,7 +177,6 @@ class openstack_tasks::openstack_network::server_config {
     path_mtu                  => $path_mtu,
     extension_drivers         => $extension_drivers,
     supported_pci_vendor_devs => $pci_vendor_devs,
-    sriov_agent_required      => $use_sriov,
     enable_security_group     => true,
     firewall_driver           => hiera('security_groups', 'iptables_hybrid'),
   }
