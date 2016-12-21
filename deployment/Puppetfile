@@ -49,7 +49,7 @@ mod 'xinetd',
 # Pull in saz-ssh
 mod 'ssh',
     :git => 'https://github.com/fuel-infra/saz-ssh.git',
-    :ref => 'v2.8.1'
+    :ref => 'v2.9.1'
 
 # Pull in puppetlabs-ntp
 mod 'ntp',
