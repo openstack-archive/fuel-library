@@ -44,6 +44,43 @@ class fuel::mcollective(
     }
   }
 
+  $mco_settings_client = {
+    'identity' => {
+      value => 'master'
+    },
+    'ttl' => {
+      value => '4294957'
+    },
+    'direct_addressing' => {
+      value => '1'
+    },
+    'plugin.rabbitmq.vhost' => {
+      value => $mco_vhost
+    },
+    'plugin.rabbitmq.pool.1.host' => {
+      value => $mco_host
+    },
+    'plugin.rabbitmq.pool.1.port' => {
+      value => $mco_port
+    },
+    'plugin.rabbitmq.pool.1.user' => {
+      value => $mco_user
+    },
+    'plugin.rabbitmq.pool.1.password' => {
+      value => $mco_password
+    },
+    'plugin.rabbitmq.heartbeat_interval' => {
+      value => '30'
+    },
+    'plugin.rabbitmq.max_hbrlck_fails' => {
+      value => '0'
+    },
+    'logfile' => {
+      value => '/var/log/mcollective-client.log'
+    }
+  }
+
+
   if $::osfamily == 'RedHat' {
     case $operatingsystemmajrelease {
       '6': {
@@ -65,17 +102,19 @@ class fuel::mcollective(
   ensure_packages($mco_packages_extra)
 
   class { '::mcollective':
-    connector        => $mco_connector,
-    middleware_hosts => [$mco_host],
-    server_loglevel  => 'debug',
-    psk              => $mco_pskey,
-    manage_packages  => false,
-    server           => true,
-    client           => true,
-    require          => Package[$mco_packages],
+    connector          => $mco_connector,
+    middleware_hosts   => [$mco_host],
+    server_loglevel    => 'debug',
+    client_loglevel    => 'debug',
+    client_logger_type => 'file',
+    psk                => $mco_pskey,
+    manage_packages    => false,
+    server             => true,
+    client             => true,
+    require            => Package[$mco_packages],
   }
 
   create_resources(mcollective::server::setting, $mco_settings, { 'order' => 90 })
-  create_resources(mcollective::client::setting, $mco_settings, { 'order' => 90 })
+  create_resources(mcollective::client::setting, $mco_settings_client, { 'order' => 90 })
 
 }
