@@ -129,12 +129,15 @@ class openstack_tasks::ironic::ironic_compute {
     allow_resize_to_same_host => pick($nova_hash['allow_resize_to_same_host'], true)
   }
 
-  class { '::nova::compute::ironic':
+  class { '::nova::ironic::common':
     admin_url                 => "${admin_identity_uri}/v2.0",
     admin_username            => $ironic_username,
     admin_tenant_name         => $ironic_tenant,
     admin_password            => $ironic_user_password,
     api_endpoint              => "${ironic_protocol}://${ironic_endpoint}:6385/v1",
+  }
+
+  class { '::nova::compute::ironic':
     max_concurrent_builds     => $max_concurrent_builds
   }
 

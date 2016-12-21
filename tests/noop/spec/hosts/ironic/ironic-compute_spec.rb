@@ -18,7 +18,6 @@ describe manifest do
 
     nova_hash =  Noop.hiera_structure 'nova'
 
-    ironic_user_password = Noop.hiera_structure 'ironic/user_password'
     ironic_enabled = Noop.hiera_structure 'ironic/enabled'
 
     database_vip = Noop.hiera('database_vip')
@@ -29,6 +28,8 @@ describe manifest do
 
     use_stderr = Noop.hiera 'use_stderr', false
 
+    management_vip = Noop.hiera('management_vip')
+
     if nova_hash['notification_driver']
       nova_notification_driver = nova_hash['notification_driver']
     else
@@ -37,16 +38,25 @@ describe manifest do
 
     let(:ssl_hash) { Noop.hiera_hash 'use_ssl', {} }
     let(:admin_auth_protocol) { Noop.puppet_function 'get_ssl_property',ssl_hash,{},'keystone', 'admin','protocol','http' }
-    let(:admin_auth_address) { Noop.puppet_function 'get_ssl_property',ssl_hash,{},'keystone','admin', 'hostname', [Noop.hiera('service_endpoint', Noop.hiera('management_vip'))]}
+    let(:admin_auth_address) { Noop.puppet_function 'get_ssl_property',ssl_hash,{},'keystone','admin', 'hostname', [Noop.hiera('service_endpoint', management_vip)]}
     let(:admin_uri) { "#{admin_auth_protocol}://#{admin_auth_address}:35357" }
 
-    let(:glance_endpoint_default) { Noop.hiera 'glance_endpoint', Noop.hiera('management_vip') }
+    let(:ironic_tenant) { Noop.hiera_structure 'ironic/tenant', 'services' }
+    let(:ironic_username) { Noop.hiera_structure 'ironic/auth_name', 'ironic' }
+    let(:ironic_user_password) { Noop.hiera_structure 'ironic/user_password', 'ironic' }
+
+    let(:ironic_endpoint_default) { Noop.hiera_hash 'ironic_endpoint', management_vip }
+    let(:ironic_protocol) { Noop.puppet_function 'get_ssl_property', ssl_hash,{},'ironic','internal','protocol','http' }
+    let(:ironic_endpoint) { Noop.puppet_function 'get_ssl_property', ssl_hash,{},'ironic','internal','hostname', ironic_endpoint_default}
+
+    let(:glance_endpoint_default) { Noop.hiera 'glance_endpoint', management_vip }
     let(:glance_protocol) { Noop.puppet_function 'get_ssl_property',ssl_hash,{},'glance','internal','protocol','http' }
-    let(:glance_endpoint) { Noop.puppet_function 'get_ssl_property',ssl_hash,{},'glance','internal','hostname', glance_endpoint_default}
+    let(:glance_endpoint) { Noop.puppet_function 'get_ssl_property',ssl_hash,{},'glance','internal','hostname', glance_endpoint_default }
     let(:glance_api_servers) { Noop.hiera 'glance_api_servers', "#{glance_protocol}://#{glance_endpoint}:9292" }
     let(:region_name) { Noop.hiera 'region', 'RegionOne' }
 
     if ironic_enabled
+
       it 'nova config should have correct ironic settings' do
         #FIX(aderyugin): Temporarily disable this check to unlock https://review.openstack.org/#/c/361906/
         #should contain_nova_config('ironic/admin_password').with(:value => ironic_user_password)
@@ -55,6 +65,18 @@ describe manifest do
         #should contain_nova_config('ironic/admin_url').with(:value => "#{admin_uri}/v2.0")
         should contain_nova_config('neutron/auth_url').with(:value => "#{admin_uri}/v3")
         should contain_nova_config('DEFAULT/max_concurrent_builds').with(:value => '50')
+
+        should contain_class('nova::ironic::common').with(
+          :admin_url                 => "#{admin_uri}/v2.0",
+          :admin_username            => ironic_username,
+          :admin_tenant_name         => ironic_tenant,
+          :admin_password            => ironic_user_password,
+          :api_endpoint              => "#{ironic_protocol}://#{ironic_endpoint}:6385/v1",
+        )
+
+        should contain_class('nova::compute::ironic').with(
+          :max_concurrent_builds => 50,
+        )
       end
 
       it 'should configure region name in cinder section' do
