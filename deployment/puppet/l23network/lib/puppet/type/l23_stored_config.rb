@@ -357,6 +357,20 @@ Puppet::Type.newtype(:l23_stored_config) do
     defaultto :absent
   end
 
+  newproperty(:multiq_thread) do
+    desc "Number of MultiQ threads"
+    newvalues(/^(0x)?[0-9a-fA-F]+$/, 0, "", :none, :undef, :nil, :absent)
+    aliasvalue(0,  :absent)
+    aliasvalue("",  :absent)
+    aliasvalue(:none,  :absent)
+    aliasvalue(:undef, :absent)
+    aliasvalue(:nil,   :absent)
+    defaultto :absent
+    munge do |val|
+      ((val == :absent)  ?  :absent  :  val.to_i(16).to_s(2).scan(/1/).size)
+    end
+  end
+
   newproperty(:vendor_specific) do
     desc "Hash of vendor specific properties"
     #defaultto {}  # no default value should be!!!
