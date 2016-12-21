@@ -250,7 +250,6 @@ describe manifest do
           'mechanism_drivers'     => mechanism_drivers,
           'flat_networks'         => flat_networks,
           'vxlan_group'           => vxlan_group,
-          'sriov_agent_required'  => use_sriov,
           'enable_security_group' => true,
           'firewall_driver'       => 'iptables_hybrid',
         )
