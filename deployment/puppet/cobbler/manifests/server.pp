@@ -64,7 +64,7 @@ class cobbler::server (
         notify  => Service['xinetd'],
       }
 
-      file { '/etc/httpd/conf.d/ssl.conf':
+      File<| title == '/etc/httpd/conf.d/ssl.conf' |> {
         ensure => absent
       }
 
