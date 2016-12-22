@@ -15,14 +15,12 @@ class osnailyfacter::hosts::hosts {
       target => $hosts_file
   }
 
-  # Bug LP1624143 : hosts should be consistently ordered
-  create_resources(host, $host_resources, { tag => 'host_resources' } )
-  create_resources(host, $messaging_host_resources, { tag => 'messaging_host_resources' } )
+  # TODO: Bug LP1624143 : hosts should be consistently ordered
 
-  Host<| tag == 'host_resources' |> -> Host<| tag == 'messaging_host_resources' |>
+  $host_hash = host_hash_deleted_nodes(
+    merge($host_resources, $messaging_host_resources),
+    concat($deleted_nodes, $deleted_messaging_nodes)
+  )
 
-  if !empty($deleted_nodes) {
-    ensure_resource(host, unique(concat($deleted_nodes, $deleted_messaging_nodes)), {ensure => absent})
-  }
-
+  create_resources(host, $host_hash)
 }
