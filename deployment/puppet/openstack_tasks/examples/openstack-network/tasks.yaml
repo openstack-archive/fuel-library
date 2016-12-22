@@ -171,10 +171,8 @@
       role: self
     - name: openstack-network-common-config
       role: self
-    - name: primary-openstack-network-server-config
-      role: self
-    - name: primary-openstack-network-plugins-l2
-      role: self
+    - name: /^(primary-)?openstack-network-server-config$/
+    - name: /^(primary-)?openstack-network-plugins-l2$/
   cross-depended-by:
     - name: openstack-network-end
       role: self
