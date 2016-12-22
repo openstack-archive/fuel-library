@@ -249,6 +249,7 @@ Puppet::Type.newtype(:override_resources) do
   # @param [String] type
   # @param [String] title
   # @param [Hash<String>] parameters
+  # @return [Puppet::Type]
   def update_resource(type, title, parameters = {})
     resource = catalog.resource type, title
     unless resource
@@ -256,9 +257,14 @@ Puppet::Type.newtype(:override_resources) do
       return false
     end
     parameters.each do |parameter, value|
-      resource[parameter] = value
+      if [:notify, :require, :before, :subscribe].include? parameter.to_sym
+        current_values = resource[parameter] || []
+        resource[parameter] = current_values << value
+      else
+        resource[parameter] = value
+      end
     end
-    true
+    resource
   end
 
   # Check if a resource with the given type and title
@@ -278,7 +284,33 @@ Puppet::Type.newtype(:override_resources) do
   # @return [Puppet::Type]
   def create_resource(type, title, parameters = {})
     parameters = parameters.merge(:name => title)
-    Puppet::Type.type(type.to_sym).new(parameters)
+    resource = Puppet::Type.type(type.to_sym).new(parameters)
+    catalog.add_resource(resource)
+    resource
+  end
+
+  # Update relationship graph for new or updated resources.
+  # This is needed to handle notifications for resources that
+  # were created or updated during eval_generate since
+  # relationship graph finalised at this moment
+  # @param [Array<Puppet::Type>]
+  def update_relationship_graph(resources)
+    rel_graph = catalog.relationship_graph
+    inserted_edges = []
+    resources.map {|res| res.builddepends}.flatten.each do |dep|
+      unless !!rel_graph.edge?(dep.source, dep.target)
+        rel_graph.add_edge dep
+        inserted_edges << dep
+      end
+    end
+
+    begin
+      rel_graph.report_cycles_in_graph
+    rescue Puppet::Error => err
+      debug 'There are cycles in graph (see error below). Need to remove recently added edges'
+      inserted_edges.each {|edge| rel_graph.remove_edge! edge }
+      raise
+    end
   end
 
   # The main method of this metatype. Updates the existing resources
@@ -288,6 +320,8 @@ Puppet::Type.newtype(:override_resources) do
   # @return [Array<Puppet::Type>]
   def eval_generate
     new_resources = []
+    updated_resources = []
+
     configuration.each do |type, resources|
       fail "The 'type' should be the name of the Puppet type and not be empty! Got: #{type.inspect}" unless type and not type.empty?
       fail "The 'resources' should be a hash with the override Puppet resources! Got: #{resources.inspect}" unless resources.is_a? Hash
@@ -302,7 +336,7 @@ Puppet::Type.newtype(:override_resources) do
 
         if resource_present? type, title
           debug "#{type.capitalize}[#{title}] was found in the catalog, updating it!"
-          update_resource type, title, parameters
+          updated_resources << update_resource(type, title, parameters)
         else
           if type_create? type or title_create? title
             debug "#{type.capitalize}[#{title}] was not found in the catalog, creating it!"
@@ -315,6 +349,8 @@ Puppet::Type.newtype(:override_resources) do
 
       end
     end
+    update_relationship_graph(updated_resources + new_resources)
+
     new_resources
   end
 
