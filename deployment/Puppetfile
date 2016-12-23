@@ -99,7 +99,7 @@ mod 'postgresql',
 # Pull in saz-rsyslog
 mod 'rsyslog',
     :git => 'https://github.com/fuel-infra/puppet-rsyslog.git',
-    :ref => 'v3.5.1'
+    :ref => 'v5.0.0'
 
 # Pull in puppet-openssl
 mod 'openssl',
