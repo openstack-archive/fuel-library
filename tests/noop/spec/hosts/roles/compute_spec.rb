@@ -442,7 +442,12 @@ describe manifest do
         'config_drive_format'         => 'vfat'
       )
 
+      # check image preallocation mode
+      preallocate_images = Noop.puppet_function 'pick', nova_hash['preallocate_images'], 'space'
+      should contain_nova_config('DEFAULT/preallocate_images').with_value(preallocate_images)
+
       min_age = Noop.puppet_function 'pick', nova_hash['remove_unused_original_minimum_age_seconds'], '86400'
+
       should contain_class('nova::compute::libvirt').with(
         'libvirt_virt_type'    => libvirt_type,
         'vncserver_listen'     => '0.0.0.0',
