@@ -150,18 +150,6 @@ class osnailyfacter::rabbitmq::rabbitmq {
         tcp_keepalive               => true,
       }
 
-      # NOTE(bogdando) retries for the rabbitmqadmin curl command, unmerged MODULES-1650
-      Staging::File <| title == 'rabbitmqadmin' |> {
-          tries       => 30,
-          try_sleep   => 6,
-      }
-
-      if $rabbitmq_admin_enabled {
-        ensure_resource('service_status', ['rabbitmq'], { 'ensure' => 'online', check_cmd => 'rabbitmqctl cluster_status'})
-
-        Service_status['rabbitmq'] -> Staging::File['rabbitmqadmin']
-      }
-
       # Make sure the various providers have their requirements in place.
       Class['::rabbitmq::install'] -> File['/etc/rabbitmq'] -> Rabbitmq_plugin<| |> -> Rabbitmq_exchange<| |>
 
@@ -169,7 +157,7 @@ class osnailyfacter::rabbitmq::rabbitmq {
         admin    => true,
         password => $rabbit_hash['password'],
         provider => 'rabbitmqctl',
-      }
+      } ->
 
       rabbitmq_user_permissions { "${rabbit_hash['user']}@/":
         configure_permission => '.*',
@@ -182,6 +170,7 @@ class osnailyfacter::rabbitmq::rabbitmq {
       rabbitmq_vhost { $virtual_host:
         provider => 'rabbitmqctl',
       }
+
 
       if ($use_pacemaker) {
         # Install rabbit-fence daemon
@@ -214,6 +203,17 @@ class osnailyfacter::rabbitmq::rabbitmq {
           mon_interval            => $rabbit_ocf['mon_interval'],
           require                 => Class['::rabbitmq::install'],
         }
+      }
+
+      if !defined(Service_status['rabbitmq']) {
+        ensure_resource('service_status', ['rabbitmq'],
+                        { 'ensure' => 'online', 'check_cmd' => 'rabbitmqctl node_health_check'})
+      }
+
+      Service_status['rabbitmq'] -> Rabbitmq_user <||>
+
+      if $rabbitmq_admin_enabled {
+        Service_status['rabbitmq'] -> Staging::File['rabbitmqadmin']
       }
 
       include ::rabbitmq::params
