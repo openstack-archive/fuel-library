@@ -54,7 +54,7 @@ mod 'ssh',
 # Pull in puppetlabs-ntp
 mod 'ntp',
     :git => 'https://github.com/fuel-infra/puppetlabs-ntp.git',
-    :ref => '4.1.2'
+    :ref => '4.2.0'
 
 # Pull in puppetlabs-apache
 mod 'apache',
