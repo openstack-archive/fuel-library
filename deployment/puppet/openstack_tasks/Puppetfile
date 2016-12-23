@@ -24,17 +24,17 @@
 # Pull in puppet-aodh
 mod 'aodh',
     :git => 'https://github.com/fuel-infra/puppet-aodh.git',
-    :ref => '8.2.0'
+    :ref => 'daa97a02f8d936cbbe4d8c00d24015c7f0b4cd8c'
 
 # Pull in puppet-ceilometer
 mod 'ceilometer',
     :git => 'https://github.com/fuel-infra/puppet-ceilometer.git',
-    :ref => '8.2.0'
+    :ref => '1bcac4e50abad3381046accf80986eb5aed453d1'
 
 # Pull in openstack-cinder
 mod 'cinder',
     :git => 'https://github.com/fuel-infra/openstack-cinder.git',
-    :ref => '8.2.0'
+    :ref => '72ef0ce90cfc828a9f0202a2c9970a15417ec4b5'
 
 # Pull in puppet-glance
 mod 'glance',
@@ -44,7 +44,7 @@ mod 'glance',
 # Pull in puppet-heat
 mod 'heat',
     :git => 'https://github.com/fuel-infra/puppet-heat.git',
-    :ref => '2c5dc330287e0d9300bc4917ed4058fa9a1fb6c4'
+    :ref => '0cb78122a2583517687d23ef1916f2ad96f75bef'
 
 # Pull in puppet-horizon
 mod 'horizon',
@@ -54,7 +54,7 @@ mod 'horizon',
 # Pull in puppet-ironic
 mod 'ironic',
     :git => 'https://github.com/fuel-infra/puppet-ironic.git',
-    :ref => '8.2.0'
+    :ref => '754badddd4f00a223f73616476105287497253f4'
 
 # Pull in puppet-keystone
 mod 'keystone',
@@ -68,13 +68,13 @@ mod 'openstacklib',
 
 # Pull in puppet-neutron
 mod 'neutron',
-    :git => 'https://github.com/fuel-infra/puppet-neutron.git',
-    :ref => '94e33962c51ea36f84e9d536b38f760f1edc98ce'
+    :git => 'https://github.com/kozhukalov/puppet-neutron.git',
+    :ref => 'b702d2165bea2097ec4a1b93a2af0d4aa3c92c43'
 
 # Pull in puppet-nova
 mod 'nova',
     :git => 'https://github.com/fuel-infra/puppet-nova.git',
-    :ref => '8.2.0'
+    :ref => '68edbded93de36c6607b20223ef24bc19955168c'
 
 # Pull in puppet-murano
 mod 'murano',
@@ -84,7 +84,7 @@ mod 'murano',
 # Pull in puppet-sahara
 mod 'sahara',
     :git => 'https://github.com/fuel-infra/puppet-sahara.git',
-    :ref => '8.2.0'
+    :ref => 'd3e0933af77de7dbfe8302840eb04bb9d31b7f97'
 
 # Pull in puppet-swift
 mod 'swift',
