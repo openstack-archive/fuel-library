@@ -119,7 +119,7 @@ mod 'rsync',
 # Pull in puppet-filemapper
 mod 'filemapper',
     :git => 'https://github.com/fuel-infra/puppet-filemapper.git',
-    :ref => '1.1.3-mos-rc1'
+    :ref => 'v2.0.1'
 
 # Pull in puppetlabs-tftp
 mod 'tftp',
