@@ -135,6 +135,10 @@ describe manifest do
       )
     end
 
+    it 'should configure rabbitmq service before rabbitmq user is setup' do
+      is_expected.to contain_service_status('rabbitmq').that_comes_before("Rabbitmq_user[#{params[:default_user]}]")
+    end
+
     if rabbitmq_admin_enabled
       it 'should check rabbitmq status' do
         should contain_service_status('rabbitmq').that_comes_before('Staging::File[rabbitmqadmin]')
