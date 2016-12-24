@@ -68,8 +68,8 @@ mod 'openstacklib',
 
 # Pull in puppet-neutron
 mod 'neutron',
-    :git => 'https://github.com/kozhukalov/puppet-neutron.git',
-    :ref => 'b702d2165bea2097ec4a1b93a2af0d4aa3c92c43'
+    :git => 'https://github.com/fuel-infra/puppet-neutron.git',
+    :ref => '23c641845979d65ed86a6875878930ccea7b80f6'
 
 # Pull in puppet-nova
 mod 'nova',
