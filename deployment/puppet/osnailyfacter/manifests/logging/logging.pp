@@ -10,15 +10,15 @@ class osnailyfacter::logging::logging {
   ##################################################
 
   $base_syslog_rserver  = {
-    'remote_type' => 'tcp',
-    'server' => $base_syslog_hash['syslog_server'],
-    'port' => $base_syslog_hash['syslog_port']
+    'remote_type' => pick($base_syslog_hash['syslog_transport'], 'tcp'),
+    'server'      => $base_syslog_hash['syslog_server'],
+    'port'        => $base_syslog_hash['syslog_port']
   }
 
   $syslog_rserver = {
     'remote_type' => $syslog_hash['syslog_transport'],
-    'server' => $syslog_hash['syslog_server'],
-    'port' => $syslog_hash['syslog_port'],
+    'server'      => $syslog_hash['syslog_server'],
+    'port'        => $syslog_hash['syslog_port'],
   }
 
   if $syslog_hash['metadata']['enabled'] {
