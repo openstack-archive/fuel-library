@@ -72,7 +72,10 @@ describe manifest do
     heat_db_user = Noop.hiera_structure 'heat/db_user', 'heat'
     heat_db_name = Noop.hiera('heat_db_name', 'heat')
 
-    heat_hash = Noop.hiera_structure 'heat', {}
+    heat_hash            = Noop.hiera_structure 'heat', {}
+    heat_domain_name     = Noop.puppet_function 'pick', heat_hash['domain_name'], 'heat'
+    heat_domain_admin    = Noop.puppet_function 'pick', heat_hash['domain_admin'], 'heat_admin'
+    heat_domain_password = heat_hash['user_password']
 
     keystone_auth_uri = "#{public_auth_protocol}://#{public_auth_address}:5000/v2.0/"
     keystone_auth_url = "#{admin_auth_protocol}://#{admin_auth_address}:35357/"
@@ -140,6 +143,16 @@ describe manifest do
         'auth_url'          => keystone_auth_url,
         'auth_uri'          => keystone_auth_uri,
         'memcached_servers' => memcached_servers,
+      )
+    end
+
+    it 'should declare heat::keystone::domain class with correct parameters' do
+      should contain_class('heat::keystone::domain').with(
+        'domain_name'        => heat_domain_name,
+        'domain_admin'       => heat_domain_admin',
+        'domain_password'    => heat_domain_password,
+        'domain_admin_email' => 'heat_admin@localhost',
+        'manage_domain'      => true,
       )
     end
 
