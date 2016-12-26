@@ -107,6 +107,10 @@ class openstack_tasks::openstack_network::plugins::ml2 {
     'securitygroup/enable_security_group': value => $enable_security_group;
   }
 
+  neutron_agent_ovs {
+    'tmp/neutron.conf_hash': value => md5(file('/etc/neutron/neutron.conf'))
+  }
+
   Neutron_agent_ovs<||> ~> Service['neutron-ovs-agent-service']
 
   class { '::neutron::agents::ml2::ovs':
