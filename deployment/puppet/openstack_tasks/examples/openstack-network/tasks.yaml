@@ -137,7 +137,11 @@
       $.get('neutron_primary_controller_roles'),
       $.get('neutron_compute_nodes'), $.quantum_settings, $.public_ssl,
       $.get('use_ssl'), $.get('region'), $.network_scheme, $.network_metadata,
-      $.neutron_advanced_configuration, $.get('security_groups'))
+      $.neutron_advanced_configuration, $.get('security_groups'),
+      $.network_metadata.nodes.values().where(
+        $.node_roles.any($.matches('controller'))).network_roles.select(
+          $.get('mgmt/messaging')),
+      $.get('amqp_hosts'))
   refresh_on: [neutron_agent_ovs]
   parameters:
     puppet_manifest: /etc/puppet/modules/openstack_tasks/examples/openstack-network/plugins/ml2.pp
