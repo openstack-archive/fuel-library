@@ -246,4 +246,8 @@ class openstack_tasks::openstack_network::server_config {
     ensure => 'installed',
   }
 
+  if is_file_updated('/etc/neutron/neutron.conf', $title) {
+    notify{'neutron.conf has been changed, going to restart neutron server':
+    } ~> Service['neutron-server']
+  }
 }
