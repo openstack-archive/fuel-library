@@ -19,6 +19,10 @@ class openstack_tasks::heat::heat {
   $kombu_compression        = hiera('kombu_compression', '')
   $ceilometer_hash          = hiera_hash('ceilometer', { 'enabled' => false })
 
+  $heat_domain_name          = pick($heat_hash['domain_name'], 'heat')
+  $heat_domain_admin         = pick($heat_hash['domain_admin'], 'heat_admin')
+  $heat_domain_password      = $heat_hash['user_password']
+
   $public_auth_protocol     = get_ssl_property($ssl_hash, $public_ssl_hash, 'keystone', 'public', 'protocol', 'http')
   $public_auth_address      = get_ssl_property($ssl_hash, $public_ssl_hash, 'keystone', 'public', 'hostname', [$public_vip])
   $internal_auth_protocol   = get_ssl_property($ssl_hash, {}, 'keystone', 'internal', 'protocol', 'http')
@@ -164,9 +168,9 @@ class openstack_tasks::heat::heat {
   class { '::osnailyfacter::wait_for_keystone_backends':}
 
   class { '::heat::keystone::domain' :
-    domain_name        => 'heat',
-    domain_admin       => 'heat_admin',
-    domain_password    => $heat_hash['user_password'],
+    domain_name        => $heat_domain_name,
+    domain_admin       => $heat_domain_admin,
+    domain_password    => $heat_domain_password,
     domain_admin_email => 'heat_admin@localhost',
     manage_domain      => true,
   }
