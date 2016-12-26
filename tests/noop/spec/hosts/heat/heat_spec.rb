@@ -72,7 +72,11 @@ describe manifest do
     heat_db_user = Noop.hiera_structure 'heat/db_user', 'heat'
     heat_db_name = Noop.hiera('heat_db_name', 'heat')
 
-    heat_hash = Noop.hiera_structure 'heat', {}
+    heat_hash            = Noop.hiera_structure 'heat', {}
+    heat_domain_name     = Noop.puppet_function 'pick', heat_hash['domain_name'], 'heat'
+    heat_domain_admin    = Noop.puppet_function 'pick', heat_hash['domain_admin'], 'heat_admin'
+    heat_domain_password = heat_hash['user_password']
+
     rabbit_hash = Noop.hiera_structure 'rabbit', {}
 
     rabbit_heartbeat_timeout_threshold = Noop.puppet_function 'pick', heat_hash['rabbit_heartbeat_timeout_threshold'], rabbit_hash['heartbeat_timeout_treshold'], 60
@@ -130,6 +134,16 @@ describe manifest do
         'identity_uri'     => "#{admin_auth_protocol}://#{admin_auth_address}:35357/",
         'sync_db'          => primary_controller,
         'heat_clients_url' => "#{public_heat_protocol}://#{public_vip}:8004/v1/%(tenant_id)s",
+      )
+    end
+
+    it 'should declare heat::keystone::domain class with correct parameters' do
+      should contain_class('heat::keystone::domain').with(
+        'domain_name'        => heat_domain_name,
+        'domain_admin'       => heat_domain_admin,
+        'domain_password'    => heat_domain_password,
+        'domain_admin_email' => 'heat_admin@localhost',
+        'manage_domain'      => true,
       )
     end
 
