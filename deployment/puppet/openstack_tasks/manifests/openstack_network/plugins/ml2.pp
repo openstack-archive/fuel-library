@@ -107,6 +107,11 @@ class openstack_tasks::openstack_network::plugins::ml2 {
     'securitygroup/enable_security_group': value => $enable_security_group;
   }
 
+  if is_file_updated('/etc/neutron/neutron.conf', $title) {
+    notify{'neutron.conf has been changed, going to restart ovs agent':
+    } ~> Service['neutron-ovs-agent-service']
+  }
+
   Neutron_agent_ovs<||> ~> Service['neutron-ovs-agent-service']
 
   class { '::neutron::agents::ml2::ovs':
