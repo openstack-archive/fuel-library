@@ -2,6 +2,8 @@ class openstack_tasks::openstack_network::common_config {
 
   notice('MODULAR: openstack_network/common_config.pp')
 
+  include ::neutron::params
+
   $openstack_network_hash  = hiera_hash('openstack_network', { })
   $neutron_config          = hiera_hash('neutron_config')
   $neutron_advanced_config = hiera_hash('neutron_advanced_configuration', { })
@@ -107,6 +109,14 @@ class openstack_tasks::openstack_network::common_config {
     syslog_log_facility => $log_facility,
     default_log_levels  => $default_log_levels,
   }
+
+  exec {'restart-ovs-agent':
+    command     => "service ${::neutron::params::ovs_agent_service} restart",
+    path        => "/bin:/sbin:/usr/bin:/usr/sbin",
+    refreshonly => true,
+    onlyif      => "/usr/bin/test -e /etc/init.d/${::neutron::params::ovs_agent_service}",
+  }
+  Neutron_config<||> ~> Exec['restart-ovs-agent']
 
   ### SYSCTL ###
 
