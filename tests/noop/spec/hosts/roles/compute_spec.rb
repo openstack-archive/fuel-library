@@ -69,6 +69,8 @@ describe manifest do
 
     let(:rabbit_hash) { Noop.hiera_structure 'rabbit', {} }
 
+    let(:resume_guests_state_on_host_boot) { Noop.hiera 'resume_guests_state_on_host_boot', 'False' }
+
     # Legacy openstack-compute tests
 
     if ironic_enabled
@@ -367,6 +369,14 @@ describe manifest do
         'vncproxy_host'     => vncproxy_host,
         'vncproxy_port'     => vncproxy_port,
       )
+    end
+
+    it 'should properly configure resuming guests on host boot' do
+      should contain_class('nova::compute').with(
+        'resume_guests_state_on_host_boot' => resume_guests_state_on_host_boot
+      )
+      should contain_nova_config('DEFAULT/resume_guests_state_on_host_boot').with(
+        'value' => resume_guests_state_on_host_boot)
     end
 
     it 'should properly configure glance api servers with (non-)ssl' do
