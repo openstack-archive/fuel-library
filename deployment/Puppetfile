@@ -129,7 +129,7 @@ mod 'tftp',
 # Pull in richardc-datacat
 mod 'datacat',
     :git => 'https://github.com/fuel-infra/richardc-datacat.git',
-    :ref => '0.5.0'
+    :ref => '0.6.2'
 
 # Pull in puppet-mcollective
 mod 'mcollective',
