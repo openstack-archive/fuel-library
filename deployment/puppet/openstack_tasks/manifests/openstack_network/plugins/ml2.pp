@@ -87,6 +87,29 @@ class openstack_tasks::openstack_network::plugins::ml2 {
     }
 
     $firewall_driver_opted = hiera('security_groups', 'iptables_hybrid')
+    if is_file_updated('/etc/neutron/neutron.conf', $title) {
+      notify{'neutron.conf has been changed, going to restart ovs agent':
+      } ~> Service['neutron-ovs-agent-service']
+    }
+
+    Neutron_agent_ovs<||> ~> Service['neutron-ovs-agent-service']
+
+    class { '::neutron::agents::ml2::ovs':
+      bridge_mappings            => $bridge_mappings,
+      enable_tunneling           => $enable_tunneling,
+      local_ip                   => $tunneling_ip,
+      tunnel_types               => $tunnel_types,
+      enable_distributed_routing => $dvr,
+      l2_population              => $l2_population,
+      arp_responder              => $l2_population,
+      firewall_driver            => $firewall_driver,
+      datapath_type              => $ovs_datapath_type,
+      vhostuser_socket_dir       => $ovs_vhostuser_socket_dir,
+      extensions                 => $extensions,
+      manage_vswitch             => false,
+      manage_service             => true,
+      enabled                    => true,
+    }
 
     # DPDK settings on compute node
     if $enable_dpdk and $compute {
