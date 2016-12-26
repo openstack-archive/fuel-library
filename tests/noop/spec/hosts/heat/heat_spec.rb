@@ -72,7 +72,11 @@ describe manifest do
     heat_db_user = Noop.hiera_structure 'heat/db_user', 'heat'
     heat_db_name = Noop.hiera('heat_db_name', 'heat')
 
-    heat_hash = Noop.hiera_structure 'heat', {}
+    heat_hash            = Noop.hiera_structure 'heat', {}
+    heat_domain_name     = Noop.puppet_function 'pick', heat_hash['domain_name'], 'heat'
+    heat_domain_admin    = Noop.puppet_function 'pick', heat_hash['domain_admin'], 'heat_admin'
+    heat_domain_password = heat_hash['user_password']
+
     rabbit_hash = Noop.hiera_structure 'rabbit', {}
 
     let(:transport_url) { Noop.hiera 'transport_url', 'rabbit://guest:password@127.0.0.1:5672/' }
@@ -143,6 +147,16 @@ describe manifest do
     it 'should configure heat class' do
       should contain_class('heat').with(
         'enable_proxy_headers_parsing' => true,
+      )
+    end
+
+    it 'should declare heat::keystone::domain class with correct parameters' do
+      should contain_class('heat::keystone::domain').with(
+        'domain_name'        => heat_domain_name,
+        'domain_admin'       => heat_domain_admin,
+        'domain_password'    => heat_domain_password,
+        'domain_admin_email' => 'heat_admin@localhost',
+        'manage_domain'      => true,
       )
     end
 
