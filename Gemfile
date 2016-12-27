@@ -1,6 +1,7 @@
 source 'https://rubygems.org'
 
 group :development, :test do
+  gem 'nokogiri', '~> 1.6.0',                 :require => 'false'
   gem 'puppetlabs_spec_helper', '1.1.1',      :require => 'false'
   gem 'rspec', '~>3.3',                       :require => 'false'
   gem 'rspec-puppet', '~> 2.2.0',             :require => 'false'
