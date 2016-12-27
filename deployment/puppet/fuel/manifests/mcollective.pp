@@ -38,9 +38,6 @@ class fuel::mcollective(
     },
     'plugin.rabbitmq.heartbeat_interval' => {
       value => '30'
-    },
-    'plugin.rabbitmq.max_hbrlck_fails' => {
-      value => '0'
     }
   }
 
