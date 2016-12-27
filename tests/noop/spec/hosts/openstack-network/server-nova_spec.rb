@@ -46,6 +46,9 @@ describe manifest do
         it { should contain_class('nova::network::neutron').with(
           'neutron_ovs_bridge' => 'br-int'
         )}
+        it { should contain_class('nova::network::neutron').with(
+          'neutron_url_timeout' => '60'
+        )}
 
         if Noop.hiera_structure('use_ssl', false)
           context 'with overridden TLS' do
