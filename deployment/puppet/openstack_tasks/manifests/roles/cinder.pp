@@ -94,17 +94,20 @@ class openstack_tasks::roles::cinder {
     $volume_backend_name = $storage_hash['volume_backend_names']['volumes_lvm']
     $cinder_lvm_filter = "\"r|^/dev/${volume_group}/.*|\""
 
-    augeas { 'lvm-conf-set-cinder-filter':
-      context => '/files/etc/lvm/lvm.conf/devices/dict/',
-      changes => "set global_filter/list/1/str ${cinder_lvm_filter}",
-      tag     => 'lvm-conf-augeas',
-    }
+   file_line { 'lvm-conf-set-cinder-filter':
+     ensure => present,
+     path   => '/etc/lvm/lvm.conf',
+     line   => "global_filter = ${cinder_lvm_filter}",
+     match  => 'global_filter\ \=\ ',
+     tag    => 'lvm-conf-file-line'
+   }
+
     exec { 'Update initramfs':
       command     => 'update-initramfs -u -k all',
       path        => '/usr/bin:/bin:/usr/sbin:/sbin',
       refreshonly => true,
     }
-    Augeas<| tag == 'lvm-conf-augeas'|> ~> Exec<| title == 'Update initramfs' |>
+    File_line<| tag == 'lvm-conf-file-line'|> ~> Exec<| title == 'Update initramfs' |>
 
   } elsif roles_include(['cinder-vmware']) {
     $manage_volumes = 'vmdk'

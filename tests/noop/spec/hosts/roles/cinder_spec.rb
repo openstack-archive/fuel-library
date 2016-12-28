@@ -52,11 +52,13 @@ describe manifest do
 
       cinder_lvm_filter = "\"r|^/dev/#{volume_group}/.*|\""
 
-      should contain_augeas('lvm-conf-set-cinder-filter').with(
-        'context' => '/files/etc/lvm/lvm.conf/devices/dict/',
-        'changes' => "set global_filter/list/1/str #{cinder_lvm_filter}",
-        'tag'     => 'lvm-conf-augeas'
-        ).that_notifies('Exec[Update initramfs]')
+      should contain_file_line('lvm-conf-set-cinder-filter').with(
+        'ensure' => 'present',
+        'path'   => '/etc/lvm/lvm.conf',
+        'line'   => "global_filter = #{cinder_lvm_filter}",
+        'match'  => 'global_filter\ \=\ ',
+        'tag'    => 'lvm-conf-file-line'
+      ).that_notifies('Exec[Update initramfs]')
 
       should contain_exec('Update initramfs').with(
         'command'     => 'update-initramfs -u -k all',
