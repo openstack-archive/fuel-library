@@ -37,9 +37,7 @@ describe manifest do
         )
       end
 
-      it 'should contain ipmitool package' do
-        should contain_package('ipmitool')
-      end
+      it { is_expected.to contain_package('open-iscsi') }
 
       it 'should declare ironic::conductor class correctly' do
         should contain_class('ironic::conductor').with(

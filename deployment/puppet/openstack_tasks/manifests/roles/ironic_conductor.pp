@@ -152,7 +152,8 @@ class openstack_tasks::roles::ironic_conductor {
     require   => File["${tftp_root}/map-file"],
   }
 
-  ensure_packages('ipmitool', { ensure => 'present' })
+  # TODO(mpolenchuk): remove it once this package have installed by dependency
+  ensure_packages('open-iscsi')
 
   file { '/etc/ironic/fuel_key':
     ensure  => present,
