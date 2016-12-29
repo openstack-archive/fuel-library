@@ -48,6 +48,7 @@ Puppet::Type.type(:l23_stored_config).provide(:dpdkovs_ubuntu, :parent => Puppet
       :bond_ad_select        => '',
       :bond_updelay          => 'ovs_options',
       :bond_downdelay        => 'ovs_options',
+      :multiq_threads        => 'multiq_threads',
     )
   end
 
@@ -120,6 +121,10 @@ Puppet::Type.type(:l23_stored_config).provide(:dpdkovs_ubuntu, :parent => Puppet
   def dpdk_port
     dpdk_ports = self.class.get_dpdk_ports_mapping
     dpdk_port = dpdk_ports[self.name]
+  end
+
+  def multiq_threads
+    multiq_threads = self.vendor_specific['max_queues']
   end
 
   def self.mangle__bond_slaves(val)
