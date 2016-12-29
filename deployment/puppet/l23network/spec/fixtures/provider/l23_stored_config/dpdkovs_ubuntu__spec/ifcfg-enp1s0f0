@@ -3,3 +3,4 @@ iface enp1s0f0 inet manual
 ovs_type DPDKOVSPort
 dpdk_port dpdk0
 ovs_bridge br-prv
+multiq_threads 3
