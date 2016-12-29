@@ -18,6 +18,10 @@ describe Puppet::Type.type(:l23_stored_config).provider(:dpdkovs_ubuntu) do
     }
   }
 
+  let(:multiq_threads) {
+    return 3
+  }
+
   let(:resources) do
     resources = {}
     input_data.each do |name, res|
@@ -64,6 +68,7 @@ describe Puppet::Type.type(:l23_stored_config).provider(:dpdkovs_ubuntu) do
       subject { providers[:enp1s0f0] }
       let(:cfg_file) do
         subject.class.stubs(:get_dpdk_ports_mapping).returns(dpdk_ports_mapping)
+        subject.class.stubs(:multiq_threads).returns(multiq_threads)
         subject.class.format_file('filepath', [subject])
       end
       it { expect(cfg_file).to match(/allow-br-prv\s+enp1s0f0/) }
@@ -71,7 +76,8 @@ describe Puppet::Type.type(:l23_stored_config).provider(:dpdkovs_ubuntu) do
       it { expect(cfg_file).to match(/ovs_type\s+DPDKOVSPort/) }
       it { expect(cfg_file).to match(/ovs_bridge\s+br-prv/) }
       it { expect(cfg_file).to match(/dpdk_port\s+dpdk0/) }
-      it { expect(cfg_file.split(/\n/).reject{|x| x=~/(^\s*$)|(^#.*$)/}.length). to eq(5) }
+      it { expect(cfg_file).to match(/multiq_threads\s+3/) }
+      it { expect(cfg_file.split(/\n/).reject{|x| x=~/(^\s*$)|(^#.*$)/}.length). to eq(6) }
     end
   end
 
@@ -83,6 +89,7 @@ describe Puppet::Type.type(:l23_stored_config).provider(:dpdkovs_ubuntu) do
       it { expect(res[:bridge]).to eq "br-prv" }
       it { expect(res[:if_provider].to_s).to eq 'dpdkovs' }
       it { expect(res[:dpdk_port].to_s).to eq 'dpdk0' }
+      it { expect(res[:multiq_threads].to_s).to eq '3' }
     end
   end
 end
