@@ -58,20 +58,21 @@ describe manifest do
     if ironic_enabled
 
       it 'nova config should have correct ironic settings' do
-        #FIX(aderyugin): Temporarily disable this check to unlock https://review.openstack.org/#/c/361906/
-        #should contain_nova_config('ironic/admin_password').with(:value => ironic_user_password)
+        should contain_nova_config('ironic/password').with(:value => ironic_user_password)
+        should contain_nova_config('ironic/username').with(:value => ironic_username)
+        should contain_nova_config('ironic/project_name').with(:value => ironic_tenant)
+        should contain_nova_config('ironic/auth_url').with(:value => "#{admin_uri}/v2.0")
         should contain_nova_config('DEFAULT/compute_driver').with(:value => 'ironic.IronicDriver')
         should contain_nova_config('DEFAULT/compute_manager').with(:value => 'ironic.nova.compute.manager.ClusteredComputeManager')
-        #should contain_nova_config('ironic/admin_url').with(:value => "#{admin_uri}/v2.0")
         should contain_nova_config('neutron/auth_url').with(:value => "#{admin_uri}/v3")
         should contain_nova_config('DEFAULT/max_concurrent_builds').with(:value => '50')
 
         should contain_class('nova::ironic::common').with(
-          :admin_url                 => "#{admin_uri}/v2.0",
-          :admin_username            => ironic_username,
-          :admin_tenant_name         => ironic_tenant,
-          :admin_password            => ironic_user_password,
-          :api_endpoint              => "#{ironic_protocol}://#{ironic_endpoint}:6385/v1",
+          :auth_url     => "#{admin_uri}/v2.0",
+          :username     => ironic_username,
+          :project_name => ironic_tenant,
+          :password     => ironic_user_password,
+          :api_endpoint => "#{ironic_protocol}://#{ironic_endpoint}:6385/v1",
         )
 
         should contain_class('nova::compute::ironic').with(
