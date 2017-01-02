@@ -313,19 +313,20 @@ class openstack_tasks::roles::compute {
   #   after the deployment is done.
   # NOTE(bogdando) This maybe be changed, if the host aggregates implemented, bp disable-new-computes
   class { '::nova::compute':
-    enabled                       => false,
-    vncserver_proxyclient_address => get_network_role_property('nova/api', 'ipaddr'),
-    vncproxy_protocol             => $vncproxy_protocol,
-    vncproxy_host                 => $vncproxy_host,
-    vncproxy_port                 => $nova_hash_real['vncproxy_port'],
-    force_config_drive            => $force_config_drive,
-    pci_passthrough               => nic_whitelist_to_json(get_nic_passthrough_whitelist('sriov')),
-    instance_usage_audit          => $instance_usage_audit,
-    instance_usage_audit_period   => $instance_usage_audit_period,
-    reserved_host_memory          => $nova_hash_real['reserved_host_memory'],
-    config_drive_format           => $config_drive_format,
-    allow_resize_to_same_host     => true,
-    vcpu_pin_set                  => $nova_hash_real['cpu_pinning'],
+    enabled                          => false,
+    vncserver_proxyclient_address    => get_network_role_property('nova/api', 'ipaddr'),
+    vncproxy_protocol                => $vncproxy_protocol,
+    vncproxy_host                    => $vncproxy_host,
+    vncproxy_port                    => $nova_hash_real['vncproxy_port'],
+    force_config_drive               => $force_config_drive,
+    pci_passthrough                  => nic_whitelist_to_json(get_nic_passthrough_whitelist('sriov')),
+    instance_usage_audit             => $instance_usage_audit,
+    instance_usage_audit_period      => $instance_usage_audit_period,
+    reserved_host_memory             => $nova_hash_real['reserved_host_memory'],
+    config_drive_format              => $config_drive_format,
+    allow_resize_to_same_host        => true,
+    vcpu_pin_set                     => $nova_hash_real['cpu_pinning'],
+    resume_guests_state_on_host_boot => hiera('resume_guests_state_on_host_boot', 'False'),
   }
 
   nova_config {
@@ -338,17 +339,6 @@ class openstack_tasks::roles::compute {
   if !defined(Nova_config['privsep_osbrick/helper_command']) {
     nova_config {
       'privsep_osbrick/helper_command': value => 'sudo nova-rootwrap /etc/nova/rootwrap.conf privsep-helper --config-file /etc/nova/nova.conf'
-    }
-  }
-
-  # TODO (mkarpin): rework this option management once it's available in puppet-nova module (LP #1651101)
-  if !defined(Nova_config['DEFAULT/resume_guests_state_on_host_boot']) {
-    nova_config {
-      'DEFAULT/resume_guests_state_on_host_boot': value => hiera('resume_guests_state_on_host_boot', 'False')
-    }
-  } else {
-    Nova_config<| title == 'DEFAULT/resume_guests_state_on_hosts_boot' |> {
-      value => hiera('resume_guests_state_on_host_boot', 'False')
     }
   }
 
