@@ -35,6 +35,7 @@ class openstack_tasks::openstack_network::server_nova {
       neutron_username     => $admin_username,
       neutron_auth_url     => $neutron_auth_url,
       neutron_url          => $neutron_url,
+      neutron_url_timeout  => '60',
       neutron_ovs_bridge   => $neutron_ovs_bridge,
     }
 
