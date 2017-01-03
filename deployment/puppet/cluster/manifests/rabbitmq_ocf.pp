@@ -152,10 +152,10 @@ class cluster::rabbitmq_ocf (
   }
 
   $complex_metadata     = {
-    'notify'      => 'true',
+    'notify'      => true,
     # We shouldn't enable ordered start for parallel start of RA.
-    'ordered'     => 'false',
-    'interleave'  => 'true',
+    'ordered'     => false,
+    'interleave'  => true,
     'master-max'  => '1',
     'master-node-max' => '1',
     'target-role' => 'Master',
@@ -195,16 +195,23 @@ class cluster::rabbitmq_ocf (
   }
 
   pacemaker::service { $service_name :
-    primitive_type      => $primitive_type,
-    complex_type        => 'master',
-    complex_metadata    => $complex_metadata,
-    metadata            => $metadata,
-    operations          => $operations,
-    parameters          => $parameters,
-    #    ocf_script_file     => $ocf_script_file,
+    primitive_type   => $primitive_type,
+    complex_type     => 'master',
+    complex_metadata => $complex_metadata,
+    metadata         => $metadata,
+    operations       => $operations,
+    parameters       => $parameters,
+    #ocf_script_file => $ocf_script_file,
   }
 
-  ensure_resource('service_status', ['rabbitmq'], { 'ensure' => 'online', check_cmd => 'rabbitmqctl cluster_status'})
+  if !defined(Service_status['rabbitmq']) {
+    ensure_resource('service_status', ['rabbitmq'],
+      { 'ensure' => 'online', 'check_cmd' => 'rabbitmqctl node_health_check && rabbitmqctl cluster_status'})
+  } else {
+    Service_status<| title == 'rabbitmq' |> {
+        check_cmd => 'rabbitmqctl node_health_check && rabbitmqctl cluster_status',
+    }
+  }
 
-  Service[$service_name] -> Service_status['rabbitmq'] -> Rabbitmq_user <||>
+  Service[$service_name] -> Service_status['rabbitmq']
 }
