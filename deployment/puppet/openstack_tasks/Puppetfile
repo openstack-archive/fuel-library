@@ -99,4 +99,4 @@ mod 'swift',
 # Pull in puppet-ceph
 mod 'ceph',
     :git => 'https://github.com/fuel-infra/puppet-ceph.git',
-    :ref => '2.2.1'
+    :ref => 'e21a6310a2c831d645536306b01ddde5f9b6cfd9'
