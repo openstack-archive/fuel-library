@@ -162,7 +162,7 @@ mod 'galera',
 # Pull in puppet-vswitch
 mod 'vswitch',
     :git => 'https://github.com/fuel-infra/puppet-vswitch.git',
-    :ref => '6.0.0'
+    :ref => '6.1.0'
 
 # Pull in saz-limits
 mod 'limits',
