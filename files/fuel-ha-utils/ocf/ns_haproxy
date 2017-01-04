@@ -363,6 +363,8 @@ set_ns_routing() {
     ocf_log debug "Setting namespace interface: ${OCF_RESKEY_namespace_interface} IP to: ${OCF_RESKEY_namespace_ip}/${OCF_RESKEY_network_mask}"
     ocf_run nsip addr add "${OCF_RESKEY_namespace_ip}/${OCF_RESKEY_network_mask}" dev "${OCF_RESKEY_namespace_interface}"
   fi
+  ocf_log debug "Flushing global scope routes"
+  nsip route flush scope global
 
   # set default gateway inside ns
   nsip route list | grep -q "default via ${OCF_RESKEY_host_ip}"
@@ -482,6 +484,7 @@ haproxy_reload()
           ocf_log err "Error. haproxy daemon returned error $?."
           return $OCF_ERR_GENERIC
       fi
+      set_ns_routing
   else
       ocf_log info "Haproxy daemon is not running. Starting it."
       haproxy_start
