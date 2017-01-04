@@ -25,7 +25,7 @@
 
 #######################################################################
 # Fill in some defaults if no values are specified
-OCF_RESKEY_binary_default="/usr/sbin/mysqld"
+OCF_RESKEY_binary_default="/usr/bin/mysqld_safe"
 OCF_RESKEY_client_binary_default="/usr/bin/mysql"
 OCF_RESKEY_config_default="/etc/mysql/my.cnf"
 OCF_RESKEY_datadir_default="/var/lib/mysql"
@@ -230,8 +230,10 @@ nodes_in_cluster_online() {
 
     NODES=$(crm_node --partition | sed -e '/(null)/d')
     if [ ! -z "$NODES" ]; then
+        ocf_log "${LH} Online Nodes in cluster: ${NODES}"
         echo $NODES
     else
+        ocf_log "${LH} No online nodes in cluster"
         echo
     fi
 }
@@ -242,8 +244,10 @@ nodes_in_cluster() {
     #Ubuntu doesn't like \w
     NODES=$(crm_node --list | awk '/^[a-zA-Z0-9]/ {print $2}' | sed -e '/(null)/d')
     if [ ! -z "$NODES" ]; then
+        ocf_log "${LH} Nodes in cluster: ${NODES}"
         echo $NODES
     else
+        ocf_log "${LH} No nodes in cluster"
         echo
     fi
 }
@@ -297,8 +301,8 @@ update_node_gtid() {
             -e "SHOW STATUS LIKE 'wsrep_last_committed'" | awk '{print $NF}')
         GTID="$CLUSTER_ID:$COMMIT_ID"
     else
-        GTID=$(/usr/bin/mysqld_safe --wsrep-recover \
-            --user=${OCF_RESKEY_user} 2>&1 | grep -e 'Recovered position' -e 'wsrep_start_position' | grep -Eo "${UUID_REGEX}")
+        GTID=$(${OCF_RESKEY_binary} --wsrep-recover \
+            --log-error=/dev/stdout 2>&1 | grep -e 'Recovered position' -e 'wsrep_start_position' | grep -Eo "${UUID_REGEX}")
         [ -z "${GTID}" ] && GTID=$(cat ${OCF_RESKEY_datadir}/grastate.dat \
             | awk '/uuid/ { uuid = $NF} /seqno/ { seqno = $NF} END {print uuid":"seqno}')
     fi
@@ -377,15 +381,18 @@ check_if_reelection_needed() {
             --quiet --locate --resource $RESOURCE_NAME | sed -e '/(null)/d' | wc -l 2> /dev/null)
         rc=$?
         if [ $RUNNING_INSTANCES -lt 1 ]; then
+            ocf_log info "${LH} Election is needed"
             return 1
         fi
     fi
 
+    ocf_log info "${LH} Election was done"
     return 0
 }
 
 # Return 0 and the pid, if running a new cluster as a seed node
 check_if_new_cluster() {
+    local LH="${LL} check_if_new_cluster()"
     local pid
     # Match a mysqld pid by the datadir and a new cluster sign, exclude position recovery
     pid=$(ps -C mysqld -o pid= -o command= -o args= | \
@@ -393,8 +400,10 @@ check_if_new_cluster() {
         awk '!/wsrep.recover|defunct/ {print $1}')
     if [ "${pid}" ]; then
         echo "${pid}"
+        ocf_log info "${LH} New cluster"
         exit 0
     fi
+    ocf_log info "${LH} Running cluster"
     exit 1
 }
 
@@ -475,7 +484,7 @@ check_if_galera_pc() {
         MASTER=$(get_master "$NODES")
         GTID=$(get_node_gtid $MASTER)
         if [ "$MASTER" = "$HOSTNAME" ]; then
-            ocf_log info "${LH} I\'m Primary Component. Join me! My GTID: ${GTID}"
+            ocf_log info "${LH} I'm Primary Component. Join me! My GTID: ${GTID}"
             echo "${GTID}"
             return 1
         fi
@@ -508,25 +517,25 @@ mysql_validate() {
     check_binary $OCF_RESKEY_client_binary
 
     if [ ! -f $OCF_RESKEY_config ]; then
-        ocf_log err "${LH} Config $OCF_RESKEY_config doesn't exist";
-        return $OCF_ERR_INSTALLED;
+        ocf_log err "${LH} Config $OCF_RESKEY_config doesn't exist"
+        return $OCF_ERR_INSTALLED
     fi
 
     if [ ! -d $OCF_RESKEY_datadir ]; then
-        ocf_log err "${LH} Datadir $OCF_RESKEY_datadir doesn't exist";
-        return $OCF_ERR_INSTALLED;
+        ocf_log err "${LH} Datadir $OCF_RESKEY_datadir doesn't exist"
+        return $OCF_ERR_INSTALLED
     fi
 
     getent passwd $OCF_RESKEY_user >/dev/null 2>&1
     if [ ! $? -eq 0 ]; then
-        ocf_log err "${LH} User $OCF_RESKEY_user doesn't exit";
-        return $OCF_ERR_INSTALLED;
+        ocf_log err "${LH} User $OCF_RESKEY_user doesn't exit"
+        return $OCF_ERR_INSTALLED
     fi
 
     getent group $OCF_RESKEY_group >/dev/null 2>&1
     if [ ! $? -eq 0 ]; then
-        ocf_log err "${LH} Group $OCF_RESKEY_group doesn't exist";
-        return $OCF_ERR_INSTALLED;
+        ocf_log err "${LH} Group $OCF_RESKEY_group doesn't exist"
+        return $OCF_ERR_INSTALLED
     fi
 
     return $OCF_SUCCESS
@@ -577,15 +586,16 @@ mysql_status() {
 
     if [ $count -eq 0 ]; then
         ocf_log $loglevel "${LH} MySQL is not running"
-        return $OCF_NOT_RUNNING;
+        return $OCF_NOT_RUNNING
     fi
 
-    pid=$(cat $OCF_RESKEY_pid);
+    pid=$(cat $OCF_RESKEY_pid)
     if [ "u$pid" != "u" -a -d /proc/$pid ]; then
-        return $OCF_SUCCESS;
+        ocf_log $loglevel "${LH} MySQL is running"
+        return $OCF_SUCCESS
     else
         ocf_log $loglevel "${LH} MySQL is not running"
-        return $OCF_NOT_RUNNING;
+        return $OCF_NOT_RUNNING
     fi
 }
 
@@ -645,7 +655,7 @@ mysql_monitor() {
         ocf_log err "${LH} I'm a master, and my GTID: ${GTID}, which was not expected"
         return $OCF_ERR_GENERIC
     fi
-    ocf_log debug "${LH} MySQL monitor succeeded";
+    ocf_log debug "${LH} MySQL monitor succeeded"
     return $OCF_SUCCESS
 }
 
@@ -689,7 +699,7 @@ mysql_start() {
     for dir in $pid_dir $socket_dir; do
         if ! /usr/bin/sudo -n -u $OCF_RESKEY_user /usr/bin/test -w $dir; then
             ocf_log err "${LH} Directory $dir is not writable by $OCF_RESKEY_user"
-            exit $OCF_ERR_PERM;
+            exit $OCF_ERR_PERM
         fi
     done
 
@@ -765,6 +775,7 @@ mysql_stop() {
     local LH="${LL} mysql_stop():"
     local shutdown_timeout
     local rc
+    ocf_log info "${LH}"
 
     shutdown_timeout=15
     if [ -n "$OCF_RESKEY_CRM_meta_timeout" ]; then
