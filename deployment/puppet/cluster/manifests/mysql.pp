@@ -64,9 +64,7 @@ class cluster::mysql (
   }
 
   $metadata        = {
-    'migration-threshold' => '10',
-    'failure-timeout'     => '30s',
-    'resource-stickiness' => '100',
+    'migration-threshold' => '3',
   }
 
   $complex_metadata     = {
