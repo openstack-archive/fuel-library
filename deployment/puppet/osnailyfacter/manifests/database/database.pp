@@ -285,6 +285,12 @@ class osnailyfacter::database::database {
       override_options      => $override_options,
     }
 
+    # LP 1651182
+    # Ensure that client library replacement is installed before we try
+    # to install additional packages
+
+    Class["mysql::client"] -> Package[$::galera::params::additional_packages]
+
     # Make sure the mysql service is stopped with upstart as we will be starting
     # it with pacemaker
     Exec <| title == 'clean_up_ubuntu' |> {
