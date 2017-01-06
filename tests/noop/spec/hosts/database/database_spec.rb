@@ -174,6 +174,10 @@ describe manifest do
       expect(graph).to ensure_transitive_dependency("Class[cluster::galera_status]", "Haproxy_backend_status[mysql]")
     end
 
+    it 'should have explicit ordering between the client binary and additional packages' do
+      expect(graph).to ensure_transitive_dependency("Class[mysql::client]", "Package[percona-xtrabackup]")
+    end
+
     it 'should setup the /root/.my.cnf' do
       should contain_class('osnailyfacter::mysql_access').with(
         :db_password => mysql_database_password
