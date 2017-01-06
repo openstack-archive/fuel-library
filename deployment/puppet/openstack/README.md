@@ -1,9 +1,9 @@
-# The Openstack modules:
+# The OpenStack modules:
 
 ## Introduction
 
-The Openstack Puppet Modules are a flexible Puppet implementation capable of
-configuring the core [Openstack](http://docs.openstack.org/) services:
+The OpenStack Puppet Modules are a flexible Puppet implementation capable of
+configuring the core [OpenStack](http://docs.openstack.org/) services:
 
   * [nova](http://nova.openstack.org/)     (compute service)
   * [glance](http://glance.openstack.org/)   (image database)
@@ -38,7 +38,7 @@ These modules are based on the adminstrative guides for openstack
 
 ### Network:
 
-  Each of the machines running the Openstack services should have a minimum of 2
+  Each of the machines running the OpenStack services should have a minimum of 2
   NICS.
 
   * One for the public/internal network
@@ -135,9 +135,9 @@ These modules are based on the adminstrative guides for openstack
 
       `puppet cert sign <CERTNAME>`
 
-### Install the Openstack modules
+### Install the OpenStack modules
 
-  * The Openstack modules should be installed into the module path of your
+  * The OpenStack modules should be installed into the module path of your
     master or on each node (if you are running puppet apply).
 
     Modulepath:
@@ -159,8 +159,8 @@ These modules are based on the adminstrative guides for openstack
 ## puppetlabs-openstack
 
 The 'puppetlabs-openstack' module was written for those who want to get up and
-running with a single or multi-node Openstack deployment as quickly as possible.
-It provides a simple way of deploying Openstack that is based on best practices
+running with a single or multi-node OpenStack deployment as quickly as possible.
+It provides a simple way of deploying OpenStack that is based on best practices
 shaped by companies that contributed to the design of these modules.
 
 ### Classes
@@ -168,10 +168,10 @@ shaped by companies that contributed to the design of these modules.
 ####  openstack::all
 
 The openstack::all class provides a single configuration interface that can be
-used to deploy all Openstack services on a single host.
+used to deploy all OpenStack services on a single host.
 
 This is a great starting place for people who are just kicking the tires with
-Openstack or with Puppet deployed OpenStack environments.
+OpenStack or with Puppet deployed OpenStack environments.
 
 ##### Usage Example:
 
@@ -200,13 +200,13 @@ Openstack or with Puppet deployed OpenStack environments.
 #### openstack::controller
 
 The openstack::controller class is intended to provide basic support for
-multi-node Openstack deployments.
+multi-node OpenStack deployments.
 
-There are two roles in this basic multi-node Openstack deployment:
+There are two roles in this basic multi-node OpenStack deployment:
   * controller - deploys all of the central management services
   * compute    - deploys the actual hypervisor on which VMs are deployed.
 
-The openstack::controller class deploys the following Openstack services:
+The openstack::controller class deploys the following OpenStack services:
   * keystone
   * horizon
   * glance
@@ -243,8 +243,8 @@ The openstack::controller class deploys the following Openstack services:
 
 #### openstack::compute
 
-The Openstack compute class is used to manage the underlying hypervisor.  A
-typical multi-host Openstack installation would consist of a single
+The OpenStack compute class is used to manage the underlying hypervisor.  A
+typical multi-host OpenStack installation would consist of a single
 openstack::controller node and multiple openstack::compute nodes (based on the
 amount of resources being virtualized)
 
@@ -306,7 +306,7 @@ Inside the site.pp file, Puppet resources declared within node blocks are
 applied to those specified nodes. Resources specified at top-scope are applied
 to all nodes.
 
-### Deploying an Openstack all-in-one environment
+### Deploying an OpenStack all-in-one environment
 
 The easiest way to get started with the openstack::all class is to use the file
 
@@ -332,7 +332,7 @@ If you wish to provision an all-in-one host from a remote puppetmaster, you can 
 
     puppet agent -td
 
-### Deploying an Openstack multi-node environment
+### Deploying an OpenStack multi-node environment
 
 A Puppet Master should be used when deploying multi-node environments.
 
@@ -440,9 +440,9 @@ openstack command line utilities.
        it is reachable by its floating ip address (which will require
        some security groups)
 
-## Building your own custom deployment scenario for Openstack
+## Building your own custom deployment scenario for OpenStack
 
-The classes included in the Openstack module are implemented using a number of
+The classes included in the OpenStack module are implemented using a number of
 other modules. These modules can be used directly to create a customized
 openstack deployment.
 
@@ -456,7 +456,7 @@ specific configuration and deployment use cases. They also provide a lot of
 configuration options not available with the more constrained
 puppetlabs-openstack modules.
 
-The manifests in the Openstack module can serve as an example of how to use
+The manifests in the OpenStack module can serve as an example of how to use
 these base building block to compose custom deployments.
 
     <module_path>/openstack/manifests/{all,controller,compute}.pp
@@ -554,10 +554,10 @@ The process for contributing code is as follows:
   efforts are underway to implement the following additional features:
 
   * Validate module on Fedora 17 and RHEL
-  * monitoring (basic system and Openstack application monitoring support
+  * monitoring (basic system and OpenStack application monitoring support
     with Nagios/Ganglia and/or sensu)
   * Redundancy/HA - implementation of modules to support highly available and
-    redundant Openstack deployments.
+    redundant OpenStack deployments.
   * These modules are currently intended to be classified and data-fied in a
     site.pp. Starting in version 3.0, it is possible to populate class
     parameters explicitly using puppet data bindings (which use hiera as the

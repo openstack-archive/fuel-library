@@ -423,7 +423,7 @@ class openstack::logging (
 
   # Deprecated stuff handling section
   # Use this section to ensure the absence of the deprecated config
-  # options for an Openstack services, or any other custom for Fuel
+  # options for an OpenStack services, or any other custom for Fuel
   # changes what should be removed forcibly.
   # (only if it couldn't be done in the synced upstream modules as well)
 
