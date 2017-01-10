@@ -223,6 +223,8 @@
         dst: /var/lib/astute/keystone/0
       - src: /var/lib/fuel/keys/{CLUSTER_ID}/fernet-keys/1
         dst: /var/lib/astute/keystone/1
+      - src: /var/lib/fuel/keys/{CLUSTER_ID}/fernet-keys/2
+        dst: /var/lib/astute/keystone/2
     permissions: '0600'
     dir_permissions: '0700'
 
@@ -233,7 +235,7 @@
   requires: [pre_deployment_start]
   required_for: [copy_keys]
   parameters:
-    cmd: sh /etc/puppet/modules/osnailyfacter/modular/astute/generate_keys.sh -p /var/lib/fuel/keys/ -i {CLUSTER_ID} -o 'mongodb' -s 'mysql' -f '0 1'
+    cmd: sh /etc/puppet/modules/osnailyfacter/modular/astute/generate_keys.sh -p /var/lib/fuel/keys/ -i {CLUSTER_ID} -o 'mongodb' -s 'mysql' -f '0 1 2'
     timeout: 180
 
 - id: generate_haproxy_keys
