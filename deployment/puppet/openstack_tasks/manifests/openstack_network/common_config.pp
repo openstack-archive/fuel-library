@@ -85,7 +85,6 @@ class openstack_tasks::openstack_network::common_config {
     core_plugin                        => $core_plugin,
     service_plugins                    => $service_plugins,
     allow_overlapping_ips              => true,
-    mac_generation_retries             => '32',
     dhcp_lease_duration                => $dhcp_lease_duration,
     dhcp_agents_per_network            => '2',
     report_interval                    => $neutron_config['neutron_report_interval'],
