@@ -55,9 +55,6 @@ describe manifest do
           it { should contain_class('neutron::agents::l3').with(
             'debug' => Noop.hiera('debug', true)
           )}
-          it { should contain_class('neutron::agents::l3').with(
-            'external_network_bridge' => ' ' # should be present and empty
-          )}
           it { should_not contain_cluster__neutron__l3('default-l3') }
 
           include_examples 'override_resources'
@@ -89,9 +86,6 @@ describe manifest do
         )}
         it { should contain_class('neutron::agents::l3').with(
           'debug' => Noop.hiera('debug', true)
-        )}
-        it { should contain_class('neutron::agents::l3').with(
-          'external_network_bridge' => ' ' # should be present and empty
         )}
 
         if ha_agent
