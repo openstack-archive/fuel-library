@@ -240,7 +240,8 @@
   requires: [pre_deployment_start]
   condition:
     yaql_exp: &public_ssl >
-      (changedAny($.public_ssl.horizon, $.public_ssl.services)) and
+      (changedAny($.public_ssl.horizon, $.public_ssl.services,
+      $.public_ssl.hostname)) and
       ($.public_ssl.horizon or $.public_ssl.services) and
       $.public_ssl.cert_source = 'self_signed'
   required_for: [copy_haproxy_keys]
@@ -254,11 +255,13 @@
   role: ['/.*/']
   condition:
     yaql_exp: >
-      (((changedAny($.public_ssl.horizon, $.public_ssl.services)) and
+      (((changedAny($.public_ssl.horizon, $.public_ssl.services,
+      $.public_ssl.hostname)) and
           ($.public_ssl.horizon or $.public_ssl.services) and
           (not (old($.public_ssl.horizon) or old($.public_ssl.services)))) or
         (($.public_ssl.horizon or $.public_ssl.services) and
-          ($.uid in added($.nodes).uid))) and
+          (($.uid in added($.nodes).uid) or (
+          changed($.public_ssl.hostname))))) and
       $.public_ssl.cert_source = 'self_signed'
   required_for: [pre_deployment_end]
   requires: [generate_haproxy_keys]
