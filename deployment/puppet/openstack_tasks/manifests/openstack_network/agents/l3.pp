@@ -33,7 +33,6 @@ class openstack_tasks::openstack_network::agents::l3 {
     class { '::neutron::agents::l3':
       debug                   => $debug,
       metadata_port           => $metadata_port,
-      external_network_bridge => ' ',
       manage_service          => true,
       enabled                 => true,
       agent_mode              => $agent_mode,
