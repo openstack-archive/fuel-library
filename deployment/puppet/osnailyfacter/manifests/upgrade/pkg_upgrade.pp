@@ -4,9 +4,9 @@ class osnailyfacter::upgrade::pkg_upgrade {
   create_resources('package', $packages_to_upgrade)
 
   $corosync_roles   = hiera('corosync_roles', ['primary-controller', 'controller'])
-  $corosync_upgrade = has_key($packages_to_upgrade, 'corosync') or has_key($packages_to_upgrade, 'pacemaker')
+  $corosync_upgrade = has_key($packages_to_upgrade, 'corosync') or has_key($packages_to_upgrade, 'pacemaker') or has_key($packages_to_upgrade, 'pacemaker-cli-utils')
   if roles_include($corosync_roles) and $corosync_upgrade {
-    $content_policy = "#!/bin/bash\n[[ \"\$1\" == \"pacemaker\" ]] && exit 101\n"
+    $content_policy = "#!/bin/bash\n[[ \"\$1\" =~ \"pacemaker\" ]] && exit 101\n"
     $policyrc_file  = '/usr/sbin/policy-rc.d'
 
     ensure_resource('file', 'create-policy-rc.d', {
