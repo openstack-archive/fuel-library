@@ -2,6 +2,7 @@
   type: puppet
   version: 2.1.0
   cross-depends:
+    - name: /^(primary-)?rabbitmq$/
     - name: ceilometer-keystone
     - name: /top-role-(primary-)?mongo/
   groups: [primary-controller, controller]
@@ -20,7 +21,7 @@
       $.get('service_endpoint'), $.get('use_ssl'), $.get('workers_max'),
       $.network_scheme, $.mongo, $.external_mongo,
       $.network_metadata.nodes.values().where(
-        $.node_roles.any($.matches('controller'))).network_roles.select(
+        $.node_roles.any($.matches('(controller|rabbitmq)'))).network_roles.select(
           $.get('mgmt/messaging')), $.get('amqp_hosts'),
       $.configuration.get('ceilometer'), $.configuration.get('ceilometer_api_paste_ini'))
   parameters:
@@ -39,6 +40,7 @@
   required_for: [deploy_end]
   requires: [ceilometer-controller, top-role-compute]
   cross-depends:
+    - name: /^(primary-)?rabbitmq$/
     - name: ceilometer-controller
   condition:
     yaql_exp: >
@@ -48,7 +50,7 @@
       $.get('region', 'RegionOne'), $.ceilometer,
       $.debug, $.get('use_ssl'),
       $.network_metadata.nodes.values().where(
-        $.node_roles.any($.matches('controller'))).network_roles.select(
+        $.node_roles.any($.matches('(controller|rabbitmq)'))).network_roles.select(
           $.get('mgmt/messaging')), $.get('amqp_hosts'))
   parameters:
     puppet_manifest: /etc/puppet/modules/openstack_tasks/examples/ceilometer/compute.pp
