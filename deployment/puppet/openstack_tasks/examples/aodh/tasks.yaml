@@ -5,6 +5,7 @@
   required_for: [ceilometer-controller, openstack-controller]
   requires: [openstack-haproxy]
   cross-depends:
+    - name: /^(primary-)?rabbitmq$/
     - name: aodh-db
     - name: aodh-keystone
   condition:
@@ -12,7 +13,7 @@
       $.ceilometer.enabled and changedAny($.get('rabbit_ha_queues'),
       $.rabbit,
       $.network_metadata.nodes.values().where(
-        $.node_roles.any($.matches('controller'))).network_roles.select(
+        $.node_roles.any($.matches('(controller|rabbitmq)'))).network_roles.select(
           $.get('mgmt/messaging')),
       $.get('amqp_hosts'), $.get('amqp_port'),
       $.get('kombu_compression'), $.network_scheme, $.aodh,
