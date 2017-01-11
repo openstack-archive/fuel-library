@@ -9,6 +9,7 @@ class l23network::params {
       $interfaces_file            = '/etc/network/interfaces'
       $ovs_service_name           = 'openvswitch-switch'
       $ovs_status_cmd             = '/etc/init.d/openvswitch-switch status'
+      $ovs_default_file           = '/etc/default/openvswitch-switch'
       $lnx_vlan_tools             = 'vlan'
       $lnx_bond_tools             = 'ifenslave'
       $lnx_ethernet_tools         = 'ethtool'
@@ -34,6 +35,7 @@ class l23network::params {
       $interfaces_file            = undef
       $ovs_service_name           = 'openvswitch'
       $ovs_status_cmd             = '/etc/init.d/openvswitch status'
+      $ovs_default_file           = undef
       $lnx_vlan_tools             = undef
       $lnx_bond_tools             = undef
       $lnx_ethernet_tools         = 'ethtool'
@@ -61,6 +63,7 @@ class l23network::params {
       $interfaces_dir             = '/tmp/1'
       $interfaces_file            = undef
       $ovs_service_name           = undef
+      $ovs_default_file           = undef
       $lnx_vlan_tools             = undef
       $lnx_bond_tools             = undef
       $lnx_ethernet_tools         = undef
