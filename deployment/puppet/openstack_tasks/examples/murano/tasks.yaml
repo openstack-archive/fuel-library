@@ -11,7 +11,7 @@
       $.get('default_log_levels'), $.get('use_syslog'),
       $.get('use_stderr'), $.get('rabbit_ha_queues'), $.get('amqp_port'),
       $.network_metadata.nodes.values().where(
-        $.node_roles.any($.matches('controller'))).network_roles.select(
+        $.node_roles.any($.matches('(controller|rabbitmq)'))).network_roles.select(
           $.get('mgmt/messaging')),
       $.get('amqp_hosts'), $.external_dns, $.public_ssl, $.get('use_ssl'),
       ('primary-controller' in $.roles), $.get('kombu_compression'),
@@ -19,6 +19,7 @@
   required_for: [deploy_end, controller_remaining_tasks]
   requires: [primary-heat, heat, horizon, primary-rabbitmq, rabbitmq]
   cross-depends:
+    - name: /^(primary-)?rabbitmq$/
     - name: murano-db
     - name: murano-keystone
   parameters:
