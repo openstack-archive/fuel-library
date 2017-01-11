@@ -29,7 +29,7 @@ describe 'openstack::ha::keystone' do
         'haproxy_config_options' => {
           'option'       => ['httpchk GET /v3', 'httplog', 'forceclose', 'http-buffer-request', 'forwardfor'],
           'timeout'      => 'http-request 10s',
-          'http-request' => 'set-header X-Forwarded-Proto https if { ssl_fc }',
+          'http-request' => ['set-header X-Forwarded-Proto https if { ssl_fc }', 'del-header X-Forwarded-For'],
         },
         'balancermember_options' => 'check inter 10s fastinter 2s downinter 2s rise 30 fall 3',
       )
@@ -43,7 +43,7 @@ describe 'openstack::ha::keystone' do
         'haproxy_config_options' => {
           'option'       => ['httpchk GET /v3', 'httplog', 'forceclose', 'http-buffer-request', 'forwardfor'],
           'timeout'      => 'http-request 10s',
-          'http-request' => 'set-header X-Forwarded-Proto https if { ssl_fc }',
+          'http-request' => ['set-header X-Forwarded-Proto https if { ssl_fc }', 'del-header X-Forwarded-For'],
         },
         'balancermember_options' => 'check inter 10s fastinter 2s downinter 2s rise 30 fall 3',
       )
@@ -72,7 +72,7 @@ describe 'openstack::ha::keystone' do
         'haproxy_config_options' => {
           'option'       => ['httpchk GET /v3', 'httplog', 'forceclose', 'http-buffer-request', 'forwardfor'],
           'timeout'      => 'http-request 10s',
-          'http-request' => 'set-header X-Forwarded-Proto https if { ssl_fc }',
+          'http-request' => ['set-header X-Forwarded-Proto https if { ssl_fc }', 'del-header X-Forwarded-For'],
           'stick'        => ['on src'],
           'stick-table'  => ['type ip size 200k expire 2m'],
         },
@@ -88,7 +88,7 @@ describe 'openstack::ha::keystone' do
         'haproxy_config_options' => {
           'option'       => ['httpchk GET /v3', 'httplog', 'forceclose', 'http-buffer-request', 'forwardfor'],
           'timeout'      => 'http-request 10s',
-          'http-request' => 'set-header X-Forwarded-Proto https if { ssl_fc }',
+          'http-request' => ['set-header X-Forwarded-Proto https if { ssl_fc }', 'del-header X-Forwarded-For'],
           'stick'        => ['on src'],
           'stick-table'  => ['type ip size 200k expire 2m'],
         },
