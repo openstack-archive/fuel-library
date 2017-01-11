@@ -23,7 +23,7 @@
       $.get('region', 'RegionOne'), $.ironic,
       ('primary-controller' in $.roles), $.get('kombu_compression'),
       $.network_metadata.nodes.values().where(
-        $.node_roles.any($.matches('controller'))).network_roles.select(
+        $.node_roles.any($.matches('(controller|rabbitmq)'))).network_roles.select(
           $.get('mgmt/messaging')),
       $.get('amqp_hosts'), $.get('use_ssl'), $.murano,
       $.configuration.get('glance_api'), $.configuration.get('glance_cache'),

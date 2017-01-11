@@ -48,7 +48,7 @@
       $.get('queue_provider', 'rabbit'), $.quantum_settings,
       $.get('memcached_servers', ''),
       $.network_metadata.nodes.values().where(
-        $.node_roles.any($.matches('controller'))).network_roles.select(
+        $.node_roles.any($.matches('(controller|rabbitmq)'))).network_roles.select(
           $.get('mgmt/messaging')),
       $.get('amqp_hosts'),
       $.network_metadata.nodes.values().where(
@@ -67,6 +67,7 @@
   required_for: [enable_cinder_volume_service]
   requires: [hosts, firewall]
   cross-depends:
+    - name: /^(primary-)?rabbitmq$/
     - name: openstack-cinder
   condition:
     yaql_exp: >
@@ -78,7 +79,7 @@
       $.get('use_ssl'), $.get('service_endpoint'), $.get('glance_api_servers'),
       $.get('amqp_hosts'),
       $.network_metadata.nodes.values().where(
-        $.node_roles.any($.matches('controller'))).network_roles.select(
+        $.node_roles.any($.matches('(controller|rabbitmq)'))).network_roles.select(
           $.get('mgmt/messaging')))
   parameters:
     puppet_manifest: /etc/puppet/modules/openstack_tasks/examples/roles/cinder.pp
@@ -91,6 +92,8 @@
   groups: [cinder, cinder-block-device]
   requires: [top-role-cinder]
   required_for: [deploy_end]
+  cross-depends:
+    - name: /^(primary-)?rabbitmq$/
   condition:
     yaql_exp: >
       changedAny($.cinder, $.get('cinder_volume_group'),
@@ -101,7 +104,7 @@
       $.get('use_ssl'), $.get('service_endpoint'), $.get('glance_api_servers'),
       $.get('amqp_hosts'),
       $.network_metadata.nodes.values().where(
-        $.node_roles.any($.matches('controller'))).network_roles.select(
+        $.node_roles.any($.matches('(controller|rabbitmq)'))).network_roles.select(
           $.get('mgmt/messaging')))
   parameters:
     puppet_manifest: /etc/puppet/modules/openstack_tasks/examples/roles/enable_cinder.pp
@@ -155,7 +158,7 @@
       $.network_metadata.vips, $.get('database_vip'),
       $.get('neutron_endpoint'), $.get('glance_api_servers'),
       $.network_metadata.nodes.values().where(
-        $.node_roles.any($.matches('controller'))).network_roles.select(
+        $.node_roles.any($.matches('(controller|rabbitmq)'))).network_roles.select(
           $.get('mgmt/messaging')),
       $.get('amqp_hosts'), $.debug, $.get('verbose'), $.get('use_syslog'),
       $.get('syslog_log_facility_ironic'), $.rabbit, $.storage,
