@@ -30,7 +30,7 @@ describe manifest do
       it { is_expected.to contain_package('pacemaker').with(:ensure => 'latest') }
       it { is_expected.to contain_file('create-policy-rc.d').with(
              :path    => '/usr/sbin/policy-rc.d',
-             :content => "#!/bin/bash\n[[ \"\$1\" =~ \"pacemaker\" ]] && exit 101\n",
+             :content => "#!/bin/bash\n[[ \"\$1\" =~ \"pacemaker\" || \"\$1\" =~ \"crm_mon\" ]] && exit 101\n",
              :mode    => '0755',
              :owner   => 'root',
              :group   => 'root',
