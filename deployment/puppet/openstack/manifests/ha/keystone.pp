@@ -69,7 +69,7 @@ class openstack::ha::keystone (
   $base_options = {
     'option'       => ['httpchk GET /v3', 'httplog', 'forceclose', 'http-buffer-request', 'forwardfor'],
     'timeout'      => 'http-request 10s',
-    'http-request' => 'set-header X-Forwarded-Proto https if { ssl_fc }',
+    'http-request' => ['set-header X-Forwarded-Proto https if { ssl_fc }', 'del-header X-Forwarded-For'],
   }
 
   if $federation_enabled {
