@@ -1,13 +1,14 @@
 notice('MODULAR: connectivity-checker.pp')
 
-$plugin_name      = 'connectivity_checker'
-$plugin_settings  = hiera_hash("${plugin_name}", {})
-$task_deploy      = hiera('task_deploy', false)
+$network_checker_settings = hiera_hash("connectivity_checker", {})
+$exclude_network_roles = pick($network_checker_settings['exclude_network_roles'], [])
 
 connectivity_checker { 'netconfig':
-  network_scheme   => hiera_hash('network_scheme'),
-  network_metadata => hiera_hash('network_metadata'),
-  non_destructive  => pick($plugin_settings['non_destructive'], false),
-  ping_tries       => pick($plugin_settings['ping_tries'], 5),
-  ping_timeout     => pick($plugin_settings['ping_timeout'], 20),
+  network_scheme        => hiera_hash('network_scheme'),
+  network_metadata      => hiera_hash('network_metadata'),
+  non_destructive       => pick($network_checker_settings['non_destructive'], false),
+  ping_tries            => pick($network_checker_settings['ping_tries'], 5),
+  ping_timeout          => pick($network_checker_settings['ping_timeout'], 20),
+  exclude_network_roles => $exclude_network_roles,
 }
+

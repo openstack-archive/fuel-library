@@ -10,11 +10,12 @@ Puppet::Type.type(:connectivity_checker).provide(:threaded) do
 
   def ensure=(value)
     # calculate host hash
-    network_scheme   = @resource[:network_scheme]
-    network_metadata = @resource[:network_metadata]
+    network_scheme        = @resource[:network_scheme]
+    network_metadata      = @resource[:network_metadata]
+    exclude_network_roles = @resource[:exclude_network_roles]
 
     actual_endpoints = network_scheme['endpoints'].reject{|k,v| v['IP'].empty? or v['IP'].include?('dhcp') or v['IP'] == 'none' or !v['IP'] }
-    roles_for_test   = network_scheme['roles'].select{|k,v| actual_endpoints.keys.include?(v)}
+    roles_for_test   = network_scheme['roles'].select{|k,v| actual_endpoints.keys.include?(v) && !exclude_network_roles.include?(k)}
 
     # generate test-scheme for this node
     test_scheme = {}
