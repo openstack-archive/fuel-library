@@ -22,7 +22,8 @@
          primary-database, database,
          primary-neutron, neutron]
   cross-depends:
-    - name: primary-cluster
+    yaql_exp: >
+      [{name=>'primary-cluster', role=>$.roles.select('primary-' + $)}]
   required_for: [deploy_end]
   requires: [hosts, firewall, deploy_start]
   condition:
