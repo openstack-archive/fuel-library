@@ -73,7 +73,7 @@
       $.ceilometer, $.network_scheme, $.get('use_syslog'),
       $.get('use_stderr'), $.get('syslog_log_facility_neutron'),
       $.network_metadata.nodes.values().where(
-        $.node_roles.any($.matches('controller'))).network_roles.select(
+        $.node_roles.any($.matches('(controller|rabbitmq)'))).network_roles.select(
           $.get('mgmt/messaging')),
       $.get('amqp_hosts'), $.get('kombu_compression'))
   parameters:
@@ -87,13 +87,18 @@
   tags: [primary-neutron]
   required_for: [openstack-network-end]
   requires: [openstack-network-start, openstack-network-common-config]
+  cross-depends:
+    - name: /^(primary-)?rabbitmq$/
   condition:
-    yaql_exp: >
+    yaql_exp: &network_server_config >
       changedAny($.quantum, $.configuration, $.quantum_settings,
       $.get('database_vip'), $.network_metadata.vips, $.nova,
       $.get('neutron_primary_controller_roles'), $.get('security_groups'),
       $.get('neutron_compute_nodes'), $.get('region', 'RegionOne'),
-      $.get('use_ssl'), $.neutron_advanced_configuration, $.network_scheme)
+      $.get('use_ssl'), $.neutron_advanced_configuration, $.network_scheme,
+      $.network_metadata.nodes.values().where(
+      $.node_roles.any($.matches('(controller|rabbitmq)'))).network_roles.select(
+      $.get('mgmt/messaging')))
   refresh_on: [neutron_plugin_ml2, neutron_config, neutron_api_config]
   reexecute_on: [deploy_changes]
   parameters:
@@ -111,13 +116,9 @@
   cross-depends:
     - name: primary-openstack-network-server-config
       role: 'primary-neutron'
+    - name: /^(primary-)?rabbitmq$/
   condition:
-    yaql_exp: >
-      changedAny($.quantum, $.configuration, $.quantum_settings,
-      $.get('database_vip'), $.network_metadata.vips, $.nova,
-      $.get('neutron_primary_controller_roles'), $.get('security_groups'),
-      $.get('neutron_compute_nodes'), $.get('region', 'RegionOne'),
-      $.get('use_ssl'), $.neutron_advanced_configuration, $.network_scheme)
+    yaql_exp: *network-server-config
   refresh_on: [neutron_plugin_ml2, neutron_config, neutron_api_config]
   parameters:
     puppet_manifest: /etc/puppet/modules/openstack_tasks/examples/openstack-network/server-config.pp
@@ -130,13 +131,18 @@
   tags: [primary-neutron]
   required_for: [openstack-network-end]
   requires: [openstack-network-start, openstack-network-common-config, primary-openstack-network-server-config]
+  cross-depends:
+    - name: /^(primary-)?rabbitmq$/
   condition:
     yaql_exp: &network_plugins_l2 >
       changedAny($.quantum, $.configuration, $.fqdn,
       $.get('neutron_primary_controller_roles'),
       $.get('neutron_compute_nodes'), $.quantum_settings, $.public_ssl,
       $.get('use_ssl'), $.get('region'), $.network_scheme,
-      $.neutron_advanced_configuration, $.get('security_groups'))
+      $.neutron_advanced_configuration, $.get('security_groups'),
+      $.network_metadata.nodes.values().where(
+      $.node_roles.any($.matches('(controller|rabbitmq)'))).network_roles.select(
+      $.get('mgmt/messaging')))
   refresh_on: [neutron_agent_ovs]
   parameters:
     puppet_manifest: /etc/puppet/modules/openstack_tasks/examples/openstack-network/plugins/ml2.pp
@@ -155,6 +161,7 @@
   refresh_on: [neutron_agent_ovs]
   cross-depends:
     - name: primary-openstack-network-plugins-l2
+    - name: /^(primary-)?rabbitmq$/
   parameters:
     puppet_manifest: /etc/puppet/modules/openstack_tasks/examples/openstack-network/plugins/ml2.pp
     puppet_modules: /etc/puppet/modules
@@ -239,6 +246,7 @@
       role: self
     - name: openstack-network-routers
       role: self
+    - name: /^(primary-)?rabbitmq$/
   cross-depended-by:
     - name: openstack-network-end
       role: self
@@ -248,7 +256,10 @@
       changedAny($.quantum, $.neutron_advanced_configuration,
       $.get('neutron_controller_roles'), $.get('neutron_compute_nodes'),
       $.debug, $.configuration, $.network_scheme,
-      ('primary-controller' in $.roles))
+      ('primary-controller' in $.roles),
+      $.network_metadata.nodes.values().where(
+      $.node_roles.any($.matches('(controller|rabbitmq)'))).network_roles.select(
+      $.get('mgmt/messaging')))
   parameters:
     puppet_manifest: /etc/puppet/modules/openstack_tasks/examples/openstack-network/agents/l3.pp
     puppet_modules: /etc/puppet/modules
@@ -269,6 +280,7 @@
     - name: openstack-network-networks
     - name: openstack-network-routers
     - name: primary-openstack-network-agents-l3
+    - name: /^(primary-)?rabbitmq$/
   cross-depended-by:
     - name: openstack-network-end
       role: self
@@ -286,11 +298,16 @@
   groups: [compute]
   required_for: [openstack-network-end]
   requires: [openstack-network-start, openstack-network-common-config, openstack-network-plugins-l2]
+  cross-depends:
+    - name: /^(primary-)?rabbitmq$/
   refresh_on: [neutron_sriov_agent_config]
   condition:
     yaql_exp: >
       changedAny($.quantum, $.network_scheme,
-      $.quantum_settings, $.configuration)
+      $.quantum_settings, $.configuration,
+      $.network_metadata.nodes.values().where(
+      $.node_roles.any($.matches('(controller|rabbitmq)'))).network_roles.select(
+      $.get('mgmt/messaging')))
   parameters:
     puppet_manifest: /etc/puppet/modules/openstack_tasks/examples/openstack-network/agents/sriov.pp
     puppet_modules: /etc/puppet/modules
@@ -328,11 +345,15 @@
   condition:
     yaql_exp: &network_agents_dhcp >
       changedAny($.quantum, $.configuration, $.debug,
-      $.neutron_advanced_configuration, ('primary-controller' in $.roles))
+      $.neutron_advanced_configuration, ('primary-controller' in $.roles),
+      $.network_metadata.nodes.values().where(
+      $.node_roles.any($.matches('(controller|rabbitmq)'))).network_roles.select(
+      $.get('mgmt/messaging')))
   refresh_on: [neutron_dhcp_agent_config]
   cross-depends:
     - name: /^(primary-)?openstack-network-plugins-l2$/
       role: self
+    - name: /^(primary-)?rabbitmq$/
   parameters:
     puppet_manifest: /etc/puppet/modules/openstack_tasks/examples/openstack-network/agents/dhcp.pp
     puppet_modules: /etc/puppet/modules
@@ -352,6 +373,7 @@
     - name: primary-openstack-network-agents-dhcp
     - name: /^(primary-)?openstack-network-plugins-l2$/
       role: self
+    - name: /^(primary-)?rabbitmq$/
   parameters:
     puppet_manifest: /etc/puppet/modules/openstack_tasks/examples/openstack-network/agents/dhcp.pp
     puppet_modules: /etc/puppet/modules
@@ -368,17 +390,21 @@
     yaql_exp: &network_agents_metadata >
       ($.quantum and changed($.quantum)) or
         changed($.get('neutron_controller_roles')) or
-      changedAny($.get('neutron_compute_nodes'),
+        changedAny($.get('neutron_compute_nodes'),
         $.neutron_advanced_configuration, $.debug, $.configuration,
         $.get('region'), $.network_metadata.vips, $.get('use_ssl'),
         $.quantum_settings, $.get('nova_endpoint'), $.get('nova_metadata_protocol'),
         $.get('workers_max'),
-        ('primary-controller' in $.roles))
+        ('primary-controller' in $.roles),
+        $.network_metadata.nodes.values().where(
+        $.node_roles.any($.matches('(controller|rabbitmq)'))).network_roles.select(
+        $.get('mgmt/messaging')))
   cross-depends:
     - name: /^(primary-)?openstack-network-plugins-l2$/
       role: self
     - name: /^(primary-)?openstack-network-agents-l3$/
       role: self
+    - name: /^(primary-)?rabbitmq$/
   parameters:
     puppet_manifest: /etc/puppet/modules/openstack_tasks/examples/openstack-network/agents/metadata.pp
     puppet_modules: /etc/puppet/modules
@@ -398,6 +424,7 @@
     - name: primary-openstack-network-agents-metadata
     - name: /(primary-)?openstack-network-plugins-l2/
       role: ["/(primary-)?neutron/"]
+    - name: /^(primary-)?rabbitmq$/
   parameters:
     puppet_manifest: /etc/puppet/modules/openstack_tasks/examples/openstack-network/agents/metadata.pp
     puppet_modules: /etc/puppet/modules

@@ -19,7 +19,7 @@
         $.get('swift_ring_min_part_hours'), $.get('deploy_swift_proxy'),
         $.get('use_ssl'), $.rabbit,
         $.network_metadata.nodes.values().where(
-          $.node_roles.any($.matches('controller'))).network_roles.select(
+          $.node_roles.any($.matches('(controller|rabbitmq)'))).network_roles.select(
             $.get('mgmt/messaging')), $.get('amqp_hosts'),
         $.ceilometer.enabled, $.mp,
         $.get('swift_partition'), $.get('deploy_swift_storage')))
