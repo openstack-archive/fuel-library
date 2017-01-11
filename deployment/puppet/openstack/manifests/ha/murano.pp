@@ -73,7 +73,7 @@ class openstack::ha::murano (
     haproxy_config_options => {
       'option'       => 'http-buffer-request',
       'timeout'      => 'http-request 10s',
-      'http-request' => 'set-header X-Forwarded-Proto https if { ssl_fc }',
+      'http-request' => ['set-header X-Forwarded-Proto https if { ssl_fc }', 'del-header X-Forwarded-For'],
     },
   }
 
@@ -89,7 +89,7 @@ class openstack::ha::murano (
       haproxy_config_options => {
         'option'       => 'http-buffer-request',
         'timeout'      => 'http-request 10s',
-        'http-request' => 'set-header X-Forwarded-Proto https if { ssl_fc }',
+        'http-request' => ['set-header X-Forwarded-Proto https if { ssl_fc }', 'del-header X-Forwarded-For'],
       },
     }
   }

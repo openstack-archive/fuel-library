@@ -52,7 +52,7 @@ describe manifest do
             'require_service'        => 'radosgw-api',
             'haproxy_config_options' => {
               'option'       => ['httplog', 'httpchk GET /'],
-              'http-request' => 'set-header X-Forwarded-Proto https if { ssl_fc }',
+              'http-request' => ['set-header X-Forwarded-Proto https if { ssl_fc }', 'del-header X-Forwarded-For'],
             },
           )
         end
@@ -68,7 +68,7 @@ describe manifest do
             'internal_virtual_ip'    => baremetal_virtual_ip,
             'haproxy_config_options' => {
               'option'       => ['httplog', 'httpchk GET /'],
-              'http-request' => 'set-header X-Forwarded-Proto https if { ssl_fc }',
+              'http-request' => ['set-header X-Forwarded-Proto https if { ssl_fc }', 'del-header X-Forwarded-For'],
             },
           )
         end

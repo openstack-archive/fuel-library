@@ -40,7 +40,7 @@ if ironic_enabled
             'haproxy_config_options' => {
               'option'       => ['httpchk GET /', 'httplog', 'forceclose', 'http-buffer-request'],
               'timeout'      => 'http-request 10s',
-              'http-request' => 'set-header X-Forwarded-Proto https if { ssl_fc }',
+              'http-request' => ['set-header X-Forwarded-Proto https if { ssl_fc }', 'del-header X-Forwarded-For'],
             },
 
           )
@@ -56,7 +56,7 @@ if ironic_enabled
             'haproxy_config_options' => {
               'option'       => ['httpchk GET /', 'httplog', 'forceclose', 'http-buffer-request'],
               'timeout'      => 'http-request 10s',
-              'http-request' => 'set-header X-Forwarded-Proto https if { ssl_fc }',
+              'http-request' => ['set-header X-Forwarded-Proto https if { ssl_fc }', 'del-header X-Forwarded-For'],
             },
 
           )

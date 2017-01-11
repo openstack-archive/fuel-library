@@ -85,7 +85,7 @@ class openstack::ha::swift (
         'tcp-smart-connect',
       ],
       'timeout'      => 'http-request 10s',
-      'http-request' => 'set-header X-Forwarded-Proto https if { ssl_fc }',
+      'http-request' => ['set-header X-Forwarded-Proto https if { ssl_fc }', 'del-header X-Forwarded-For'],
     },
     balancermember_options => $balancermember_options,
   }

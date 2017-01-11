@@ -69,7 +69,7 @@ class openstack::ha::glance (
     haproxy_config_options => {
       'option'       => ['httpchk GET /healthcheck', 'httplog', 'forceclose', 'http-buffer-request'],
       'timeout'      => ['server 11m', 'http-request 10s'],
-      'http-request' => 'set-header X-Forwarded-Proto https if { ssl_fc }',
+      'http-request' => ['set-header X-Forwarded-Proto https if { ssl_fc }', 'del-header X-Forwarded-For'],
     },
     balancermember_options => 'check inter 10s fastinter 2s downinter 3s rise 3 fall 3',
   }
@@ -88,7 +88,7 @@ class openstack::ha::glance (
       # TODO degorenko: check for ability for 'httpchk GET /healthcheck' for Glare
       'option'       => ['httpchk /versions', 'httplog', 'http-server-close', 'http-buffer-request'],
       'timeout'      => ['server 11m', 'http-request 10s'],
-      'http-request' => 'set-header X-Forwarded-Proto https if { ssl_fc }',
+      'http-request' => ['set-header X-Forwarded-Proto https if { ssl_fc }', 'del-header X-Forwarded-For'],
     },
     balancermember_options => 'check inter 10s fastinter 2s downinter 3s rise 3 fall 3',
   }
