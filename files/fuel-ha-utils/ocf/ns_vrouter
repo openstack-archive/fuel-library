@@ -187,6 +187,7 @@ check_ns() {
   local ns=$(ip netns list | awk "/${OCF_RESKEY_ns}/ {print \$1}")
   ocf_log debug "${LH} recieved netns list: ${ns}"
   [[ "$ns" != $OCF_RESKEY_ns ]] && return $OCF_ERR_GENERIC
+  ocf_run $RUN_IN_NS sysctl -w net.ipv4.ip_forward=1
   return $OCF_SUCCESS
 }
 
@@ -198,6 +199,7 @@ get_ns() {
   ocf_run ip netns add $OCF_RESKEY_ns
   rc=$?
   ocf_run $RUN_IN_NS /sbin/sysctl -w net.ipv4.ip_nonlocal_bind=1
+  ocf_run $RUN_IN_NS sysctl -w net.ipv4.ip_forward=1
   ocf_run $RUN_IN_NS ip link set up dev lo
   ocf_log debug "${LH} added netns ${OCF_RESKEY_ns} and set up lo"
 
@@ -208,8 +210,6 @@ set_ns_routing() {
   nsip() {
     ip netns exec "${OCF_RESKEY_ns}" ip ${@}
   }
-
-  ocf_run $RUN_IN_NS sysctl -w net.ipv4.ip_forward=1
 
   # create host-ns veth pair unless it's present
   ip link | grep -q '^[[:digit:]]\+:[[:space:]]\+'"${OCF_RESKEY_host_interface}"'[@:]'
