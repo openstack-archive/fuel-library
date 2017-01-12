@@ -19,7 +19,7 @@ and Codename. Repositories with no or empty priority are skipped.
 
     result = {}
     repositories.each do |repo|
-      next unless repo['priority']
+      next unless repo['priority'] and repo['priority'] != :undef
       uri = URI.parse "#{repo['uri']}/dists/#{repo['suite']}/Release"
       response = Net::HTTP.get_response uri
 
