@@ -43,6 +43,7 @@ class l23network::l2::dpdk (
   $dpdk_dir                    = $::l23network::params::dpdk_dir,
   $dpdk_conf_file              = $::l23network::params::dpdk_conf_file,
   $dpdk_interfaces_file        = $::l23network::params::dpdk_interfaces_file,
+  $ovs_default_file            = $::l23network::params::ovs_default_file,
   $install_ovs                 = $::l23network::l2::install_ovs,
   $ensure_package              = 'present',
 ) inherits ::l23network::params {
@@ -68,6 +69,10 @@ class l23network::l2::dpdk (
       }
       File[$dpdk_interfaces_file] ~> Service['dpdk']
       File[$dpdk_interfaces_file] ~> Service['openvswitch-service']
+
+      if $ovs_default_file {
+        File[$dpdk_interfaces_file] -> File[$ovs_default_file]
+      }
     } else {
       warning('DPDK was not configured')
     }
@@ -91,12 +96,24 @@ class l23network::l2::dpdk (
       hasstatus => true,
     } -> Anchor['l23network::l2::dpdk']
 
+    # Configure OpenVSwitch to use DPDK
+    if $ovs_default_file {
+      file {$ovs_default_file:
+        ensure  => 'present',
+        content => template('l23network/openvswitch_default_Debian.erb'),
+      } ~> Service['openvswitch-service']
+    }
+
     # Install DPDK-enabled OpenVSwitch
     if $_install_dpdk and $install_ovs and $ovs_dpdk_package_name {
       package {'openvswitch-dpdk':
         ensure => $ensure_package,
         name   => $ovs_dpdk_package_name,
       } ~> Service['openvswitch-service']
+
+      if $ovs_default_file {
+        Package['openvswitch-dpdk'] -> File[$ovs_default_file]
+      }
     } else {
       warning('OpenVSwitch DPDK was not installed')
     }
