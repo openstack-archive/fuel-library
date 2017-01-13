@@ -318,6 +318,8 @@ class osnailyfacter::database::database {
     $management_networks = get_routable_networks_for_network_role($network_scheme, 'mgmt/database', ' ')
     # TODO(aschultz): switch to ::galera::status
     class { '::cluster::galera_status':
+      status_user     => $status_user,
+      status_password => $status_password,
       backend_host    => $galera_node_address,
       backend_port    => $backend_port,
       backend_timeout => $backend_timeout,
