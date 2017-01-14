@@ -39,6 +39,22 @@ describe Puppet::Type.type(:l23_stored_config).provider(:dpdkovs_ubuntu) do
     }
   }
 
+  let(:config_i40e) {
+    {:interfaces =>
+      {:enp1s0f0 =>
+        {:vendor_specific =>
+          {:max_queues => 3,
+           :driver     => 'i40e',
+           :mtu_request => 9004}
+        },
+       :enp1s0f1 =>
+        {:vendor_specific =>
+          {:max_queues => 3}
+        }
+      }
+    }
+  }
+
   let(:dpdk_ports_mapping) {
     {
       'enp1s0f0' => 'dpdk0',
@@ -114,6 +130,33 @@ describe Puppet::Type.type(:l23_stored_config).provider(:dpdkovs_ubuntu) do
       it { expect(cfg_file.split(/\n/).reject{|x| x=~/(^\s*$)|(^#.*$)/}.length). to eq(8) }  #  no more lines in the interface file
     end
 
+
+    context 'format file with i40e driver' do
+      subject { providers[:bond_lacp] }
+      let(:cfg_file) do
+        subject.class.stubs(:get_dpdk_ports_mapping).returns(dpdk_ports_mapping)
+        subject.class.stubs(:get_config).returns(config_i40e)
+        subject.class.format_file('filepath', [subject])
+      end
+      it { expect(cfg_file).not_to match(/auto\s+bond_lacp/) }
+      it { expect(cfg_file).to match(/allow-br-prv\s+bond_lacp/) }
+      it { expect(cfg_file).to match(/iface\s+bond_lacp\s+inet\s+manual/) }
+      it { expect(cfg_file).to match(/mtu\s+9000/) }
+      it { expect(cfg_file).to match(/ovs_bonds\s+dpdk0\s+dpdk1/) }
+      it { expect(cfg_file).to match(/ovs_type\s+DPDKOVSBond/) }
+      it { expect(cfg_file).to match(/ovs_bridge\s+br-prv/) }
+      it { expect(cfg_file).to match(/ovs_options.+bond_mode=balance-tcp/) }
+      it { expect(cfg_file).to match(/ovs_options.+other_config:bond-detect-mode=miimon/) }
+      it { expect(cfg_file).to match(/ovs_options.+other_config:lacp-time=fast/) }
+      it { expect(cfg_file).to match(/ovs_options.+other_config:bond-miimon-interval=50/) }
+      it { expect(cfg_file).to match(/ovs_options.+bond_updelay=111/) }
+      it { expect(cfg_file).to match(/ovs_options.+bond_downdelay=222/) }
+      it { expect(cfg_file).to match(/ovs_options.+lacp=active/) }
+      it { expect(cfg_file).to match(/multiq_threads\s+3/) }
+      it { expect(cfg_file).to match(/mtu_request\s+9004/) }
+      it { expect(cfg_file.split(/\n/).reject{|x| x=~/(^\s*$)|(^#.*$)/}.length). to eq(9) }  #  no more lines in the interface file
+    end
+
     context "parse data from fixture" do
       let(:res) do
         subject.class.stubs(:get_dpdk_ports_mapping).returns(dpdk_ports_mapping)
@@ -133,5 +176,27 @@ describe Puppet::Type.type(:l23_stored_config).provider(:dpdkovs_ubuntu) do
       it { expect(res[:bond_slaves]).to eq ['enp1s0f0', 'enp1s0f1'] }
       it { expect(res[:multiq_threads].to_s).to eq '3' }
     end
+
+    context "parse data from fixture with i40e driver" do
+      let(:res) do
+        subject.class.stubs(:get_dpdk_ports_mapping).returns(dpdk_ports_mapping)
+        subject.class.parse_file('bond_lacp1', fixture_data('ifcfg-bond_lacp1'))[0]
+      end
+      it { expect(res[:method]).to eq :manual }
+      it { expect(res[:mtu]).to eq '9000' }
+      it { expect(res[:bridge]).to eq 'br-prv' }
+      it { expect(res[:if_type].to_s).to eq 'bond' }
+      it { expect(res[:if_provider].to_s).to eq 'dpdkovs' }
+      it { expect(res[:bond_mode]).to eq 'balance-tcp' }
+      it { expect(res[:bond_miimon]).to eq '50' }
+      it { expect(res[:bond_lacp_rate]).to eq 'fast' }
+      it { expect(res[:bond_lacp]).to eq 'active' }
+      it { expect(res[:bond_updelay]).to eq '111' }
+      it { expect(res[:bond_downdelay]).to eq '222' }
+      it { expect(res[:bond_slaves]).to eq ['enp1s0f0', 'enp1s0f1'] }
+      it { expect(res[:multiq_threads].to_s).to eq '3' }
+      it { expect(res[:mtu_request].to_s).to eq '9004' }
+    end
+
   end
 end
