@@ -8,6 +8,7 @@ describe Puppet::Type.type(:l23_stored_config).provider(:dpdkovs_ubuntu) do
                  :if_type        => 'ethernet',
                  :bridge         => 'br-prv',
                  :provider       => 'dpdkovs_ubuntu',
+                 :mtu            => 1500,
                  :multiq_threads => 3,
                },
     }
@@ -18,6 +19,13 @@ describe Puppet::Type.type(:l23_stored_config).provider(:dpdkovs_ubuntu) do
       'enp1s0f0' => 'dpdk0'
     }
   }
+
+  let(:dpdk_ports_mapping_i40e) {
+    {
+      'enp1s0f1' => 'dpdk0'
+    }
+  }
+
 
   let(:resources) do
     resources = {}
@@ -73,7 +81,8 @@ describe Puppet::Type.type(:l23_stored_config).provider(:dpdkovs_ubuntu) do
       it { expect(cfg_file).to match(/ovs_bridge\s+br-prv/) }
       it { expect(cfg_file).to match(/dpdk_port\s+dpdk0/) }
       it { expect(cfg_file).to match(/multiq_threads\s+3/) }
-      it { expect(cfg_file.split(/\n/).reject{|x| x=~/(^\s*$)|(^#.*$)/}.length). to eq(6) }
+      it { expect(cfg_file).to match(/mtu_request\s+1500/) }
+      it { expect(cfg_file.split(/\n/).reject{|x| x=~/(^\s*$)|(^#.*$)/}.length). to eq(7) }
     end
   end
 
@@ -86,6 +95,7 @@ describe Puppet::Type.type(:l23_stored_config).provider(:dpdkovs_ubuntu) do
       it { expect(res[:if_provider].to_s).to eq 'dpdkovs' }
       it { expect(res[:dpdk_port].to_s).to eq 'dpdk0' }
       it { expect(res[:multiq_threads].to_s).to eq '3' }
+      it { expect(res[:mtu].to_s).to eq '1500' }
     end
   end
 end
