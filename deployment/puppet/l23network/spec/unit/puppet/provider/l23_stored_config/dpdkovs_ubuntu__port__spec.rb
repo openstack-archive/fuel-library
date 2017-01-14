@@ -14,6 +14,21 @@ describe Puppet::Type.type(:l23_stored_config).provider(:dpdkovs_ubuntu) do
                },
     }
   }
+  let(:input_data_with_i40e) {
+    {
+      :'enp1s0f1' => {
+                 :name     => 'enp1s0f1',
+                 :if_type  => 'ethernet',
+                 :bridge   => 'br-prv',
+                 :provider => 'dpdkovs_ubuntu',
+                 :vendor_specific => {
+                   :max_queues => 3,
+                   :driver     => 'i40e',
+                 },
+               },
+    }
+  }
+
 
   let(:dpdk_ports_mapping) {
     {
@@ -21,9 +36,24 @@ describe Puppet::Type.type(:l23_stored_config).provider(:dpdkovs_ubuntu) do
     }
   }
 
+  let(:dpdk_ports_mapping_i40e) {
+    {
+      'enp1s0f1' => 'dpdk0'
+    }
+  }
+
+
   let(:resources) do
     resources = {}
     input_data.each do |name, res|
+      resources.store name, Puppet::Type.type(:l23_stored_config).new(res)
+    end
+    return resources
+  end
+
+  let(:resources_with_i40e) do 
+    resources = {}
+    input_data_with_i40e.each do |name, res|
       resources.store name, Puppet::Type.type(:l23_stored_config).new(res)
     end
     return resources
@@ -45,6 +75,24 @@ describe Puppet::Type.type(:l23_stored_config).provider(:dpdkovs_ubuntu) do
     end
     return providers
   end
+
+  let(:providers_with_i40e) do
+    providers = {}
+    resources_with_i40e.each do |name, resource|
+      provider = resource.provider
+      if ENV['SPEC_PUPPET_DEBUG']
+        class << provider
+          def debug(msg)
+            puts msg
+          end
+        end
+      end
+      provider.create
+      providers.store name, provider
+    end
+    return providers
+  end
+
 
   before(:each) do
     puppet_debug_override()
@@ -79,15 +127,35 @@ describe Puppet::Type.type(:l23_stored_config).provider(:dpdkovs_ubuntu) do
     end
   end
 
+  context "formating config files" do
+    context 'DPDKOVS port enp1s0f1 with driver i40e' do
+      subject { providers_with_i40e[:enp1s0f1] }
+      let(:cfg_file) do
+        subject.class.stubs(:get_dpdk_ports_mapping).returns(dpdk_ports_mapping_i40e)
+        subject.class.format_file('filepath', [subject])
+      end
+      it { expect(cfg_file).to match(/allow-br-prv\s+enp1s0f1/) }
+      it { expect(cfg_file).to match(/iface\s+enp1s0f1\s+inet\s+manual/) }
+      it { expect(cfg_file).to match(/ovs_type\s+DPDKOVSPort/) }
+      it { expect(cfg_file).to match(/ovs_bridge\s+br-prv/) }
+      it { expect(cfg_file).to match(/dpdk_port\s+dpdk0/) }
+      it { expect(cfg_file).to match(/multiq_threads\s+3/) }
+      it { expect(cfg_file).to match(/mtu_request\s+1504/) }
+      it { expect(cfg_file.split(/\n/).reject{|x| x=~/(^\s*$)|(^#.*$)/}.length). to eq(7) }
+    end
+  end
+
+
   context "parsing config files" do
-    context 'DPDKOVS port enp1s0f0' do
-      let(:res) { subject.class.parse_file('enp1s0f0', fixture_data('ifcfg-enp1s0f0'))[0] }
+    context 'DPDKOVS port enp1s0f1' do
+      let(:res) { subject.class.parse_file('enp1s0f1', fixture_data('ifcfg-enp1s0f1'))[0] }
       it { expect(res[:method]).to eq :manual }
-      it { expect(res[:name]).to eq 'enp1s0f0' }
+      it { expect(res[:name]).to eq 'enp1s0f1' }
       it { expect(res[:bridge]).to eq "br-prv" }
       it { expect(res[:if_provider].to_s).to eq 'dpdkovs' }
       it { expect(res[:dpdk_port].to_s).to eq 'dpdk0' }
       it { expect(res[:multiq_threads].to_s).to eq '3' }
+      it { expect(res[:mtu_request].to_s).to eq '1504' }
     end
   end
 end

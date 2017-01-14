@@ -1,0 +1,7 @@
+allow-br-prv enp1s0f1
+iface enp1s0f1 inet manual
+ovs_type DPDKOVSPort
+dpdk_port dpdk0
+ovs_bridge br-prv
+multiq_threads 3
+mtu_request 1504
