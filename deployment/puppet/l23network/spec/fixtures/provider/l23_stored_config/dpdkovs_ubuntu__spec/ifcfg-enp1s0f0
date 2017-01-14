@@ -4,3 +4,4 @@ ovs_type DPDKOVSPort
 dpdk_port dpdk0
 ovs_bridge br-prv
 multiq_threads 3
+mtu_request 1500
