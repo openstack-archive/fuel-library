@@ -84,7 +84,7 @@ describe Puppet::Type.type(:l23_stored_config).provider(:dpdkovs_ubuntu) do
       it { expect(cfg_file).not_to match(/auto\s+bond_lacp/) }
       it { expect(cfg_file).to match(/allow-br-prv\s+bond_lacp/) }
       it { expect(cfg_file).to match(/iface\s+bond_lacp\s+inet\s+manual/) }
-      it { expect(cfg_file).to match(/mtu\s+9000/) }
+      it { expect(cfg_file).to match(/mtu_request\s+9000/) }
       it { expect(cfg_file).to match(/ovs_bonds\s+dpdk0\s+dpdk1/) }
       it { expect(cfg_file).to match(/ovs_type\s+DPDKOVSBond/) }
       it { expect(cfg_file).to match(/ovs_bridge\s+br-prv/) }
@@ -97,6 +97,7 @@ describe Puppet::Type.type(:l23_stored_config).provider(:dpdkovs_ubuntu) do
       it { expect(cfg_file).to match(/ovs_options.+lacp=active/) }
       it { expect(cfg_file.split(/\n/).reject{|x| x=~/(^\s*$)|(^#.*$)/}.length). to eq(7) }  #  no more lines in the interface file
     end
+
 
     context "parse data from fixture" do
       let(:res) do
@@ -116,5 +117,6 @@ describe Puppet::Type.type(:l23_stored_config).provider(:dpdkovs_ubuntu) do
       it { expect(res[:bond_downdelay]).to eq '222' }
       it { expect(res[:bond_slaves]).to eq ['enp1s0f0', 'enp1s0f1'] }
     end
+
   end
 end
