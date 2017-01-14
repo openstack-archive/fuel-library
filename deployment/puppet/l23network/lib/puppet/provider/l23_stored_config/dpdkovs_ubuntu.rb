@@ -53,6 +53,7 @@ Puppet::Type.type(:l23_stored_config).provide(:dpdkovs_ubuntu, :parent => Puppet
       :bond_updelay          => 'ovs_options',
       :bond_downdelay        => 'ovs_options',
       :multiq_threads        => 'multiq_threads',
+      :mtu_request           => 'mtu_request',
     )
   end
 
@@ -133,6 +134,16 @@ Puppet::Type.type(:l23_stored_config).provide(:dpdkovs_ubuntu, :parent => Puppet
       multiq_threads =  self.bond_slaves.map { |iface| cfg[:interfaces][iface.to_sym][:vendor_specific][:max_queues]}.min
     else
       multiq_threads = self.vendor_specific['max_queues']
+    end
+  end
+
+  def mtu_request
+    if self.vendor_specific['driver'] == 'i40e'
+      if self.mtu == :absent
+        mtu_request = self.vendor_specific
+      else
+        mtu_request = self.mtu.to_i + 4
+      end
     end
   end
 
