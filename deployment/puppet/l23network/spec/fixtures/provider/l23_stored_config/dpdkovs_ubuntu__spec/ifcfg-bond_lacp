@@ -6,7 +6,7 @@
 # *********************************************************************
 allow-br-prv bond_lacp
 iface bond_lacp inet manual
-  mtu 9000
+  mtu_request 9000
   ovs_bonds dpdk0 dpdk1
   ovs_type DPDKOVSBond
   ovs_bridge br-prv
