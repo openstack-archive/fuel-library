@@ -137,16 +137,16 @@ Puppet::Type.type(:l23_stored_config).provide(:ovs_ubuntu, :parent => Puppet::Pr
     rv = super
     rv.merge!({
       :jacks  => {
-          :detect_re    => /(ovs_)?extra\s+--\s+set\s+Interface\s+(p_.*-[0 1])\s+type=patch\s+options:peer=(p_.*-[0 1])/,
-          :detect_shift => 3,
+          :detect_re    => /(ovs_)?extra\s+(--\s+)?set\s+Interface\s+(p_.*-[0 1])\s+type=patch\s+options:peer=(p_.*-[0 1])/,
+          :detect_shift => 4,
       },
       :vlan_id  => {
-          :detect_re    => /(ovs_)?extra\s+--\s+set\s+Port\s+(.*[\d+])\s+tag=(\d+)/,
-          :detect_shift => 3,
+          :detect_re    => /(ovs_)?extra\s+(--\s+)?set\s+Port\s+(.*[\d+])\s+tag=(\d+)/,
+          :detect_shift => 4,
       },
       :datapath_type  => {
-          :detect_re    => /(ovs_)?extra\s+set\s+Bridge\s+([a-z][0-9a-z\-]*[0-9a-z])\s+datapath_type=([a-z]+)/,
-          :detect_shift => 3,
+          :detect_re    => /(ovs_)?extra\s+(--\s+)?set\s+Bridge\s+([a-z][0-9a-z\-]*[0-9a-z])\s+datapath_type=([a-z]+)/,
+          :detect_shift => 4,
       },
     })
     return rv
@@ -180,7 +180,7 @@ Puppet::Type.type(:l23_stored_config).provide(:ovs_ubuntu, :parent => Puppet::Pr
     if provider.if_type.to_s == 'bridge'
       if provider.datapath_type
         rv = []
-        rv << "ovs_extra set Bridge #{provider.name} datapath_type=#{provider.datapath_type}"
+        rv << "ovs_extra -- set Bridge #{provider.name} datapath_type=#{provider.datapath_type}"
       end
     end
   end
