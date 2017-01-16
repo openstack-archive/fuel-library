@@ -150,7 +150,7 @@ describe manifest do
 
   it 'should check stuff that openstack cinder did' do
     is_expected.to contain_class('cinder')
-    is_expected.to contain_cinder_config('DEFAULT/host').with(:value => hostname)
+    is_expected.to contain_cinder_config('DEFAULT/backend_host').with(:value => hostname)
     if manage_volumes
       is_expected.to contain_class('cinder::volume')
       is_expected.to contain_class('cinder::backends')
