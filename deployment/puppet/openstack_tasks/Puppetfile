@@ -64,7 +64,7 @@ mod 'keystone',
 # Pull in puppet-openstacklib
 mod 'openstacklib',
     :git => 'https://github.com/fuel-infra/puppet-openstacklib.git',
-    :ref => '9.4.0'
+    :ref => '8e54d8f84c6e036fe01e869a149c4a48c41a08ca'
 
 # Pull in puppet-oslo
 mod 'oslo',
