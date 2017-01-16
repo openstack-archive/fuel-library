@@ -95,8 +95,12 @@ Puppet::Type.type(:l23_stored_config).provide(:dpdkovs_ubuntu, :parent => Puppet
   def self.collected_properties
     super.merge(
       :datapath_type  => {
-        :detect_re    => /(ovs_)?extra\s+set\s+Bridge\s+([a-z][0-9a-z\-]*[0-9a-z])\s+datapath_type=([a-z]+)/,
-        :detect_shift => 3,
+        :detect_re    => /(ovs_)?extra\s+(--\s+)?set\s+Bridge\s+([a-z][0-9a-z\-]*[0-9a-z])\s+datapath_type=([a-z]+)/,
+        :detect_shift => 4,
+      },
+      :vlan_id  => {
+          :detect_re    => /(ovs_)?extra\s+(--\s+)?set\s+Port\s+(.*[\d+])\s+tag=(\d+)/,
+          :detect_shift => 4,
       },
     )
   end
@@ -169,12 +173,21 @@ Puppet::Type.type(:l23_stored_config).provide(:dpdkovs_ubuntu, :parent => Puppet
   end
 
   def self.unmangle__datapath_type(provider, val)
-    ["ovs_extra set Bridge #{provider.name} datapath_type=#{provider.datapath_type}"] \
+    ["ovs_extra -- set Bridge #{provider.name} datapath_type=#{provider.datapath_type}"] \
     if provider.if_type == :bridge && provider.datapath_type
   end
 
   def self.mangle__datapath_type(data)
     data.join
+  end
+
+  def self.unmangle__vlan_id(provider, data)
+    rv = []
+    rv << "ovs_extra -- set Port #{provider.name} tag=#{provider.vlan_id}"
+  end
+
+  def self.mangle__vlan_id(data)
+    data.join()
   end
 
 end
