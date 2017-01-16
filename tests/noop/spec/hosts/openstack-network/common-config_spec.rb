@@ -42,7 +42,6 @@ describe manifest do
       it { should contain_class('neutron').with('report_interval' => neutron_config['neutron_report_interval'])}
       it { should contain_class('neutron').with('dhcp_agents_per_network' => '2')}
       it { should contain_class('neutron').with('dhcp_lease_duration' => neutron_config['L3'].fetch('dhcp_lease_duration', '600'))}
-      it { should contain_class('neutron').with('mac_generation_retries' => '32')}
       it { should contain_class('neutron').with('allow_overlapping_ips' => 'true')}
       it { should contain_class('neutron').with('base_mac' => neutron_config['L2']['base_mac'])}
       it { should contain_class('neutron').with('core_plugin' => 'neutron.plugins.ml2.plugin.Ml2Plugin')}
