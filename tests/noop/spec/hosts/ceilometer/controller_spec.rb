@@ -71,6 +71,8 @@ describe manifest do
     rabbit_heartbeat_timeout_threshold = Noop.puppet_function 'pick', ceilometer_hash['rabbit_heartbeat_timeout_threshold'], rabbit_hash['heartbeat_timeout_treshold'], 60
     rabbit_heartbeat_rate = Noop.puppet_function 'pick', ceilometer_hash['rabbit_heartbeat_rate'], rabbit_hash['heartbeat_rate'], 2
 
+    database_max_retries = Noop.puppet_function 'pick', ceilometer_hash['database_max_retries'], '-1'
+
     # Ceilometer
     if ceilometer_hash['enabled']
       it 'should configure RabbitMQ Heartbeat parameters' do
@@ -85,6 +87,10 @@ describe manifest do
           db_params = "?readPreference=primaryPreferred"
         end
         should contain_ceilometer_config('database/connection').with(:value => "mongodb://#{ceilometer_db_user}:#{ceilometer_db_password}@#{db_hosts}/#{ceilometer_db_dbname}#{db_params}")
+      end
+
+      it 'should configure oslo_database params properly' do
+        should contain_ceilometer_config('database/max_retries').with(:value => "#{database_max_retries}")
       end
 
       it 'should declare ceilometer::wsgi::apache class with correct parameters' do
