@@ -16,11 +16,12 @@
       $.get('region', 'RegionOne'), $.get('external_lb'),
       $.get('database_vip'), $.get('heat_db_name'), $.storage,
       $.network_metadata.nodes.values().where(
-        $.node_roles.any($.matches('controller'))).network_roles.select(
+        $.node_roles.any($.matches('(controller|rabbitmq)'))).network_roles.select(
           $.get('mgmt/messaging')), $.get('amqp_hosts'),
       $.configuration.get('heat'), $.configuration.get('heat_api_paste_ini'),
       $.get('heat_ha_engine'))
   cross-depends:
+    - name: /^(primary-)?rabbitmq$/
     - name: heat-db
     - name: heat-keystone
     - name: memcached
@@ -42,6 +43,7 @@
   condition:
     yaql_exp: *heat_enabled
   cross-depends:
+    - name: /^(primary-)?rabbitmq$/
     - name: primary-heat
   parameters:
     puppet_manifest: /etc/puppet/modules/openstack_tasks/examples/heat/heat.pp
