@@ -1,6 +1,7 @@
 - id: primary-cluster
   type: puppet
   version: 2.1.0
+  tags: [primary-rabbitmq, primary-database, primary-neutron]
   groups: [primary-controller]
   required_for: [deploy_end]
   requires: [hosts, firewall, deploy_start]
@@ -18,9 +19,7 @@
 - id: cluster
   type: puppet
   version: 2.2.0
-  tags: [controller, primary-rabbitmq, rabbitmq,
-         primary-database, database,
-         primary-neutron, neutron]
+  tags: [controller, rabbitmq, database, neutron]
   cross-depends:
     yaql_exp: >
       [{name=>'primary-cluster', role=>$.roles.select('primary-' + $)}]
