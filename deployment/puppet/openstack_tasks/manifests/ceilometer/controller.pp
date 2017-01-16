@@ -45,7 +45,7 @@ class openstack_tasks::ceilometer::controller {
   $keystone_auth_uri          = "${internal_auth_protocol}://${internal_auth_endpoint}:5000/"
 
   $memcached_servers = hiera('memcached_servers')
-
+  $database_max_retries = pick($ceilometer_hash['database_max_retries'], '-1')
 #as $ssl default value in ceilometer::wsgi::apache is true and
 #we use SSL at HAproxy, but not the API host we should set 'false'
 #value for $ssl.
@@ -161,8 +161,9 @@ class openstack_tasks::ceilometer::controller {
     Service<| title == 'ceilometer-polling'|>
 
     class { '::ceilometer::db':
-      database_connection => $db_connection,
-      sync_db             => $primary_controller,
+      database_connection  => $db_connection,
+      sync_db              => $primary_controller,
+      database_max_retries => $database_max_retries,
     }
 
     class { 'osnailyfacter::apache':
