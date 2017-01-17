@@ -13,6 +13,10 @@ describe manifest do
     MockFunction.new(:is_pkg_installed) do |function|
       allow(function).to receive(:call).and_return false
     end
+    Noop.puppet_function_load :is_file_updated
+    MockFunction.new('is_file_updated') { |function|
+      allow(function).to receive(:call).and_return false
+    }
   end
 
   shared_examples 'catalog' do
@@ -162,5 +166,3 @@ describe manifest do
   end
   test_ubuntu_and_centos manifest
 end
-
-
