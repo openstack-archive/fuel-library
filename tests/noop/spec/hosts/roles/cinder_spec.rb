@@ -150,7 +150,9 @@ describe manifest do
 
   it 'should check stuff that openstack cinder did' do
     is_expected.to contain_class('cinder')
-    is_expected.to contain_cinder_config('DEFAULT/host').with(:value => hostname)
+    # After https://review.openstack.org/#/c/420768/ is merged,
+    # we need to switch this check to backend_host
+    # is_expected.to contain_cinder_config('DEFAULT/host').with(:value => hostname)
     if manage_volumes
       is_expected.to contain_class('cinder::volume')
       is_expected.to contain_class('cinder::backends')
