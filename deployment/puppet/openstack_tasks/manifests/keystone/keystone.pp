@@ -348,12 +348,6 @@ class openstack_tasks::keystone::keystone {
       }
     }
 
-    # FIXME(mattymo): After LP#1528258 is closed, this can be removed. It will
-    # become a default option.
-    keystone_config {
-      'DEFAULT/secure_proxy_ssl_header': value => 'HTTP_X_FORWARDED_PROTO';
-    }
-
     keystone_config {
       'identity/driver':                                 value =>'keystone.identity.backends.sql.Identity';
       'ec2/driver':                                      value =>'keystone.contrib.ec2.backends.sql.Ec2';
