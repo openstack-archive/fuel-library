@@ -21,7 +21,7 @@
   requires: [hosts, firewall]
   cross-depends:
     - name: keystone
-    - name: /(primary-)?openstack-controller/
+    - name: /^(primary-)?openstack-controller$/
     - name: /^(primary-)?rabbitmq$/
     - name: memcached
     - name: hosts
