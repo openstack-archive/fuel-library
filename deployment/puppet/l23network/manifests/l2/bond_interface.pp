@@ -31,7 +31,7 @@ define l23network::l2::bond_interface (
     }
 
     create_resources(l23network::l2::port, {
-      "${name}" => merge($interface_properties, $additional_properties)
+      "${name}" => merge($interface_properties[$name], $additional_properties)
     })
   } else {
     L2_port<| title == $name |> {

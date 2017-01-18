@@ -21,21 +21,8 @@ describe Puppet::Type.type(:l23_stored_config).provider(:dpdkovs_ubuntu) do
                 :bond_downdelay   => '222',
                 :bond_ad_select   => '2',   # unused for OVS
                 :provider         => 'dpdkovs_ubuntu',
+                :multiq_threads   => '3',
                },
-    }
-  }
-
-  let(:config) {
-    {:interfaces =>
-      {:enp1s0f0 =>
-        {:vendor_specific =>
-          {:max_queues => 3}
-        },
-       :enp1s0f1 =>
-        {:vendor_specific =>
-          {:max_queues => 3}
-        }
-      }
     }
   }
 
@@ -93,7 +80,6 @@ describe Puppet::Type.type(:l23_stored_config).provider(:dpdkovs_ubuntu) do
       subject { providers[:bond_lacp] }
       let(:cfg_file) do
         subject.class.stubs(:get_dpdk_ports_mapping).returns(dpdk_ports_mapping)
-        subject.class.stubs(:get_config).returns(config)
         subject.class.format_file('filepath', [subject])
       end
       it { expect(cfg_file).not_to match(/auto\s+bond_lacp/) }
