@@ -55,9 +55,9 @@ class openstack::ha::horizon (
       server_names           => undef,
       ipaddresses            => undef,
       haproxy_config_options => {
-        'option'   => 'http-buffer-request',
-        'timeout'  => 'http-request 10s',
-        'redirect' => 'scheme https if !{ ssl_fc }'
+        'option'       => 'http-buffer-request',
+        'timeout'      => 'http-request 10s',
+        'http-request' => 'redirect location https://%[req.hdr(Host)]/horizon',
       },
     }
 
