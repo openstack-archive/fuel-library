@@ -50,6 +50,7 @@ define l23network::l2::bridge (
       vendor_specific => $vendor_specific,
       delay_while_up  => $delay_while_up,
       datapath_type   => $vendor_specific['datapath_type'],
+      vlan_id         => $vendor_specific['vlan_id'],
       provider        => $config_provider
     }
 
