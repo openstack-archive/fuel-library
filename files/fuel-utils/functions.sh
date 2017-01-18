@@ -48,6 +48,7 @@ function check_ready {
           else
               retry_checker "supervisorctl status nailgun | grep -q RUNNING"
           fi
+          retry_checker "fuel fuel-version >/dev/null 2>&1"
           ;;
       ostf)
           retry_checker "egrep -q ^[2-4][0-9]? < <(curl --connect-timeout 1 -s -w '%{http_code}' http://$ADMIN_IP:8777/ostf/not_found -o /dev/null)"
