@@ -71,7 +71,7 @@ server {
     }
 
     location / {
-        if ( $request_method !~ ^(GET|HEAD|POST)$ ) {
+        if ( $request_method !~ ^(GET|HEAD)$ ) {
             return 444;
         }
         expires -1;
