@@ -9,9 +9,6 @@ class openstack_tasks::horizon::horizon {
   $bind_address            = get_network_role_property('horizon', 'ipaddr')
   $storage_hash            = hiera_hash('storage', {})
   $neutron_advanced_config = hiera_hash('neutron_advanced_configuration', {})
-  $public_ssl              = hiera('public_ssl')
-  $ssl_no_verify           = $public_ssl['horizon']
-  $use_ssl                 = hiera('horizon_use_ssl', false)
 
   $overview_days_range     = pick($horizon_hash['overview_days_range'], 1)
   $external_lb             = hiera('external_lb', false)
@@ -44,8 +41,16 @@ class openstack_tasks::horizon::horizon {
   $cache_backend = try_get_value($horizon_hash, 'cache_backend', 'django.core.cache.backends.memcached.MemcachedCache')
 
   $ssl_hash               = hiera_hash('use_ssl', {})
+  $public_ssl_hash        = hiera_hash('public_ssl', {})
+  $public_vip             = hiera('public_vip')
+  $management_vip         = hiera('management_vip')
+
   $internal_auth_protocol = get_ssl_property($ssl_hash, {}, 'keystone', 'internal', 'protocol', 'http')
   $internal_auth_address  = get_ssl_property($ssl_hash, {}, 'keystone', 'internal', 'hostname', [$service_endpoint, $management_vip])
+
+  $horizon_ssl_enabled    = get_ssl_property($ssl_hash, $public_ssl_hash, 'horizon', 'public', 'usage', false)
+  $horizon_ssl_hostname   = get_ssl_property($ssl_hash, $public_ssl_hash, 'horizon', 'public', 'hostname', [$public_vip])
+
   $internal_auth_port     = '5000'
   $keystone_api           = 'v3'
   $keystone_url           = "${internal_auth_protocol}://${internal_auth_address}:${internal_auth_port}/${keystone_api}"
@@ -103,8 +108,8 @@ class openstack_tasks::horizon::horizon {
     cache_options         => {'SOCKET_TIMEOUT' => 1,'SERVER_RETRIES' => 1,'DEAD_RETRY' => 1},
     secret_key            => $secret_key,
     keystone_url          => $keystone_url,
-    listen_ssl            => $use_ssl,
-    ssl_no_verify         => $ssl_no_verify,
+    listen_ssl            => false,
+    ssl_no_verify         => true,
     log_level             => $log_level,
     configure_apache      => false,
     django_session_engine => 'django.contrib.sessions.backends.cache',
@@ -143,12 +148,18 @@ class openstack_tasks::horizon::horizon {
   # 10G by default
   $file_upload_max_size = pick($horizon_hash['upload_max_size'], 10737418235)
 
+  if $horizon_ssl_enabled {
+    $root_url = "https://${horizon_ssl_hostname}/horizon"
+  } else {
+    $root_url = '/horizon'
+  }
+
   class { '::horizon::wsgi::apache':
     priority       => false,
     bind_address   => $bind_address,
     wsgi_processes => $wsgi_processes,
     wsgi_threads   => $wsgi_threads,
-    listen_ssl     => $use_ssl,
+    listen_ssl     => false,
     extra_params   => {
       add_listen        => false,
       ip_based          => true, # Do not setup outdated 'NameVirtualHost' option
@@ -159,6 +170,7 @@ class openstack_tasks::horizon::horizon {
       setenvif          => 'X-Forwarded-Proto https HTTPS=1',
       access_log_format => '%{X-Forwarded-For}i %l %u %t \"%r\" %>s %b %D \"%{Referer}i\" \"%{User-Agent}i\"',
     },
+    root_url => $root_url
   } ~>
   Service[$::apache::params::service_name]
 
