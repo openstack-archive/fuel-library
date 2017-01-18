@@ -148,6 +148,12 @@ class openstack_tasks::horizon::horizon {
 
   include ::apache::params
 
+  if $public_ssl and ! $use_ssl {
+    $root_url = "https://${::fqdn}/horizon"
+  } else {
+    $root_url = '/horizon'
+  }
+
   class { '::horizon::wsgi::apache':
     priority       => false,
     bind_address   => $bind_address,
@@ -164,6 +170,7 @@ class openstack_tasks::horizon::horizon {
       setenvif          => 'X-Forwarded-Proto https HTTPS=1',
       access_log_format => '%{X-Forwarded-For}i %l %u %{%d/%b/%Y:%T}t.%{msec_frac}t \"%r\" %>s %b %D \"%{Referer}i\" \"%{User-Agent}i\"',
     },
+    root_url => $root_url
   } ~>
   Service[$::apache::params::service_name]
 
