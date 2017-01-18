@@ -50,7 +50,7 @@
   required_for: [deploy_end]
   requires: [deploy_start, virtual_ips, cluster]
   condition:
-    yaql_exp: 'changed($.public_ssl.hostname) and old($)'
+    yaql_exp: '((len(old($)) > 0) or $.deployed_before.value) and changed($.public_ssl.hostname)'
   parameters:
     puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/cluster-haproxy/restart-haproxy.pp
     puppet_modules: /etc/puppet/modules
