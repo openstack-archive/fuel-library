@@ -21,6 +21,7 @@ define l23network::l2::bond_interface (
   # For any cases Port should be setted up before bond.
   L2_port[$name] -> L2_bond[$bond]
 
+  $iface_prop = $interface[vendor_specific][$name]  
   if ! defined(L23network::L2::Port[$name]) {
     $additional_properties = {
       use_ovs  => $use_ovs,
@@ -31,7 +32,7 @@ define l23network::l2::bond_interface (
     }
 
     create_resources(l23network::l2::port, {
-      "${name}" => merge($interface_properties, $additional_properties)
+      "${name}" => merge(merge($interface_properties[vendor_specific][$name], delete($interface_properties,vendor_specific)), $additional_properties)
     })
   } else {
     L2_port<| title == $name |> {

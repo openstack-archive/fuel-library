@@ -162,7 +162,8 @@ define l23network::l2::port (
       delay_while_up  => $delay_while_up,
       vendor_specific => $vendor_specific,
       provider        => $config_provider,
-      sriov_numvfs    => $vendor_specific['sriov_numvfs']
+      sriov_numvfs    => $vendor_specific['sriov_numvfs'],
+      multiq_threads  => $vendor_specific['max_queues']
     }
 
     l2_port { $port_name :
@@ -179,7 +180,7 @@ define l23network::l2::port (
       #trunks         => $trunks,
       ethtool         => $ethtool_opts,
       vendor_specific => $vendor_specific,
-      provider        => $provider
+      provider        => $provider,
     }
 
     # this need for creating L2_port resource by ifup, if it allowed by OS
