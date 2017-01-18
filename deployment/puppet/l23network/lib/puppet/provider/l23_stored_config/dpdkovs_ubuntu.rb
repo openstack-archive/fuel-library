@@ -14,10 +14,6 @@ Puppet::Type.type(:l23_stored_config).provide(:dpdkovs_ubuntu, :parent => Puppet
     L23network.get_dpdk_ports_mapping
   end
 
-  def self.get_config
-    L23network::Scheme.get_config(Facter.value(:l3_fqdn_hostname))
-  end
-
   def self.check_if_provider(if_data)
     if if_data[:if_type] =~ /dpdkovsport/
         if_data[:if_type] = "ethernet"
@@ -129,15 +125,6 @@ Puppet::Type.type(:l23_stored_config).provide(:dpdkovs_ubuntu, :parent => Puppet
   def dpdk_port
     dpdk_ports = self.class.get_dpdk_ports_mapping
     dpdk_port = dpdk_ports[self.name]
-  end
-
-  def multiq_threads
-    if self.if_type.to_s == 'bond'
-      cfg = self.class.get_config
-      multiq_threads =  self.bond_slaves.map { |iface| cfg[:interfaces][iface.to_sym][:vendor_specific][:max_queues]}.min
-    else
-      multiq_threads = self.vendor_specific['max_queues']
-    end
   end
 
   def self.mangle__bond_slaves(val)
