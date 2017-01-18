@@ -241,7 +241,8 @@ define l23network::l2::bond (
       bond_ad_select        => $real_bond_properties[ad_select],
       delay_while_up        => $delay_while_up,
       vendor_specific       => $vendor_specific,
-      provider              => $config_provider
+      provider              => $config_provider,
+      multiq_threads        => $bond_properties[multiq_threads],
     }
 
     l2_bond { $bond :
