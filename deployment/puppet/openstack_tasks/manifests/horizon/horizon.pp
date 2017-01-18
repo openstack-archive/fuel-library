@@ -9,8 +9,6 @@ class openstack_tasks::horizon::horizon {
   $bind_address            = get_network_role_property('horizon', 'ipaddr')
   $storage_hash            = hiera_hash('storage', {})
   $neutron_advanced_config = hiera_hash('neutron_advanced_configuration', {})
-  $public_ssl              = hiera('public_ssl')
-  $ssl_no_verify           = $public_ssl['horizon']
   $use_ssl                 = hiera('horizon_use_ssl', false)
 
   $overview_days_range     = pick($horizon_hash['overview_days_range'], 1)
@@ -46,6 +44,8 @@ class openstack_tasks::horizon::horizon {
   #Changing from internal addressing to public should resolve any security concerns about exposing 'internal' to public facing login.
   #However, this should eventually be removed altogether from Horizon.
   $public_ssl_hash        = hiera_hash('public_ssl')
+  $ssl_no_verify          = $public_ssl_hash['horizon']
+  $ssl_hostname           = dig44($public_ssl_hash, ['cert_data', 'hostname'], $::fqdn)
   $ssl_hash               = hiera_hash('use_ssl', {})
   $public_vip             = hiera('public_vip')
   $public_auth_protocol   = get_ssl_property($ssl_hash, $public_ssl_hash, 'keystone', 'public', 'protocol', 'http')
@@ -148,6 +148,12 @@ class openstack_tasks::horizon::horizon {
 
   include ::apache::params
 
+  if ! $use_ssl {
+    $root_url = "https://${ssl_hostname}/horizon"
+  } else {
+    $root_url = '/horizon'
+  }
+
   class { '::horizon::wsgi::apache':
     priority       => false,
     bind_address   => $bind_address,
@@ -164,6 +170,7 @@ class openstack_tasks::horizon::horizon {
       setenvif          => 'X-Forwarded-Proto https HTTPS=1',
       access_log_format => '%{X-Forwarded-For}i %l %u %{%d/%b/%Y:%T}t.%{msec_frac}t \"%r\" %>s %b %D \"%{Referer}i\" \"%{User-Agent}i\"',
     },
+    root_url => $root_url
   } ~>
   Service[$::apache::params::service_name]
 
