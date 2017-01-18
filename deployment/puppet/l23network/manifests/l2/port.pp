@@ -162,7 +162,8 @@ define l23network::l2::port (
       delay_while_up  => $delay_while_up,
       vendor_specific => $vendor_specific,
       provider        => $config_provider,
-      sriov_numvfs    => $vendor_specific['sriov_numvfs']
+      sriov_numvfs    => $vendor_specific['sriov_numvfs'],
+      multiq_threads  => $vendor_specific['max_queues']
     }
 
     l2_port { $port_name :
