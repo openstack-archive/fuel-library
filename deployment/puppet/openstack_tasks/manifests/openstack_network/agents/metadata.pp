@@ -55,10 +55,11 @@ class openstack_tasks::openstack_network::agents::metadata {
       ensure => 'installed',
     }
 
+    if is_file_updated('/etc/neutron/neutron.conf', $title) {
+      notify{'neutron.conf has been changed, going to restart neutron metadata':
+      } ~> Service['neutron-metadata']
+    }
+
   }
 
-  if is_file_updated('/etc/neutron/neutron.conf', $title) {
-    notify{'neutron.conf has been changed, going to restart neutron metadata':
-    } ~> Service['neutron-ovs-metadata']
-  }
 }
