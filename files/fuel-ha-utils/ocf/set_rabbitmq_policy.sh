@@ -1,3 +1,4 @@
+#!/bin/bash
 # This script is called by rabbitmq-server-ha.ocf during RabbitMQ
 # cluster start up. It is a convenient place to set your cluster
 # policy here, for example:
