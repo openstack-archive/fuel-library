@@ -43,6 +43,10 @@ Puppet::Type.type(:l2_port).provide(:dpdkovs, :parent => Puppet::Provider::Ovs_b
   def flush
     if ! @property_flush.empty?
       debug("FLUSH properties: #{@property_flush}")
+      if !@property_flush[:multiq_threads].nil? and @property_flush[:multiq_threads] != :absent
+        dpdk_port = self.class.get_dpdk_ports_mapping[@resource[:interface]]
+        vsctl('set', 'Interface', '#{dpdk_port}', 'options:n_rxq=#{@property_flush[:multiq_threads].to_i}')
+      end
       @property_hash = resource.to_hash
     end
   end

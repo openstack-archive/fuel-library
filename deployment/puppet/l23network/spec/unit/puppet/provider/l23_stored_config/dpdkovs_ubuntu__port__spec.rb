@@ -4,13 +4,11 @@ describe Puppet::Type.type(:l23_stored_config).provider(:dpdkovs_ubuntu) do
   let(:input_data) {
     {
       :'enp1s0f0' => {
-                 :name     => 'enp1s0f0',
-                 :if_type  => 'ethernet',
-                 :bridge   => 'br-prv',
-                 :provider => 'dpdkovs_ubuntu',
-                 :vendor_specific => {
-                   :max_queues => 3
-                 },
+                 :name           => 'enp1s0f0',
+                 :if_type        => 'ethernet',
+                 :bridge         => 'br-prv',
+                 :provider       => 'dpdkovs_ubuntu',
+                 :multiq_threads => 3,
                },
     }
   }

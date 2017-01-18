@@ -398,6 +398,13 @@ Puppet::Parser::Functions::newfunction(:generate_network_config, :type => :rvalu
           end
         end
 
+        if (action == :bond) && trans[:bond_properties].is_a?(Hash) && !trans[:slaves].nil?
+          multiq_threads = trans[:slaves].map { |iface| config_hash[:interfaces][iface.to_sym][:vendor_specific][:max_queues]}
+          multiq_threads.delete(nil)
+          res = multiq_threads.min
+          trans[:bond_properties][:multiq_threads] = res
+        end
+ 
         # create puppet resources for interfaces and transformations.
         # create endpoints, which linked to interfaces or transformations
         resource = res_factory[action]
