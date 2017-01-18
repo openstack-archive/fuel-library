@@ -398,6 +398,14 @@ Puppet::Parser::Functions::newfunction(:generate_network_config, :type => :rvalu
           end
         end
 
+        if (action == :bond) && !trans[:interfaces].nil? && trans[:interface_properties].is_a?(Hash)
+          vendor_specific = {}
+          trans[:slaves].each do |iface|
+            vendor_specific[iface] = {:vendor_specific =>  config_hash[:interfaces][iface.to_sym][:vendor_specific]}
+          end
+          tranc[:interface_properties][:vendor_specific] = vendor_specific
+        end
+
         # create puppet resources for interfaces and transformations.
         # create endpoints, which linked to interfaces or transformations
         resource = res_factory[action]
