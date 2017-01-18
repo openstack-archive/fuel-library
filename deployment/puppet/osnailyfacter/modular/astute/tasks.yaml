@@ -437,3 +437,20 @@
     puppet_modules: /etc/puppet/modules
     timeout: 180
     cwd: /
+
+- id: create_resources
+  type: puppet
+  version: 2.0.0
+  role: ['/.*/']
+  requires: [upload_cirros]
+  required_for: [post_deployment_end]
+  cross-depends:
+    - name: upload_cirros
+  cross-depended-by:
+    - name: post_deployment_end
+      role: self
+  parameters:
+    puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/astute/create_resources.pp
+    puppet_modules: /etc/puppet/modules
+    timeout: 300
+    cwd: /
