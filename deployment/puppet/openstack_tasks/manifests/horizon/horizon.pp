@@ -9,9 +9,6 @@ class openstack_tasks::horizon::horizon {
   $bind_address            = get_network_role_property('horizon', 'ipaddr')
   $storage_hash            = hiera_hash('storage', {})
   $neutron_advanced_config = hiera_hash('neutron_advanced_configuration', {})
-  $public_ssl              = hiera('public_ssl')
-  $ssl_no_verify           = $public_ssl['horizon']
-  $use_ssl                 = hiera('horizon_use_ssl', false)
 
   $overview_days_range     = pick($horizon_hash['overview_days_range'], 1)
   $external_lb             = hiera('external_lb', false)
@@ -45,11 +42,16 @@ class openstack_tasks::horizon::horizon {
 
   #Changing from internal addressing to public should resolve any security concerns about exposing 'internal' to public facing login.
   #However, this should eventually be removed altogether from Horizon.
-  $public_ssl_hash        = hiera_hash('public_ssl')
   $ssl_hash               = hiera_hash('use_ssl', {})
+  $public_ssl_hash        = hiera_hash('public_ssl', {})
   $public_vip             = hiera('public_vip')
+
+  $horizon_ssl_enabled    = get_ssl_property($ssl_hash, $public_ssl_hash, 'horizon', 'public', 'usage', false)
+  $horizon_ssl_hostname   = get_ssl_property($ssl_hash, $public_ssl_hash, 'horizon', 'public', 'hostname', [$public_vip])
+
   $public_auth_protocol   = get_ssl_property($ssl_hash, $public_ssl_hash, 'keystone', 'public', 'protocol', 'http')
   $public_auth_address    = get_ssl_property($ssl_hash, $public_ssl_hash, 'keystone', 'public', 'hostname', [$public_vip])
+
   $public_auth_port       = '5000'
   $keystone_url           = "${public_auth_protocol}://${public_auth_address}:${public_auth_port}"
 
@@ -106,8 +108,8 @@ class openstack_tasks::horizon::horizon {
     cache_options         => {'SOCKET_TIMEOUT' => 1,'SERVER_RETRIES' => 1,'DEAD_RETRY' => 1},
     secret_key            => $secret_key,
     keystone_url          => $keystone_url,
-    listen_ssl            => $use_ssl,
-    ssl_no_verify         => $ssl_no_verify,
+    listen_ssl            => false,
+    ssl_no_verify         => true,
     log_level             => $log_level,
     configure_apache      => false,
     django_session_engine => 'django.contrib.sessions.backends.cache',
@@ -153,7 +155,7 @@ class openstack_tasks::horizon::horizon {
     bind_address   => $bind_address,
     wsgi_processes => $wsgi_processes,
     wsgi_threads   => $wsgi_threads,
-    listen_ssl     => $use_ssl,
+    listen_ssl     => false,
     extra_params   => {
       add_listen        => false,
       ip_based          => true, # Do not setup outdated 'NameVirtualHost' option
