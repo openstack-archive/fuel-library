@@ -165,7 +165,7 @@ Puppet::Type.newtype(:override_resources) do
   def create?
     create = self[:create]
     return create unless create.nil?
-    options.fetch 'create', true
+    options.fetch 'create', false
   end
 
   # Get the list of type create exceptions
