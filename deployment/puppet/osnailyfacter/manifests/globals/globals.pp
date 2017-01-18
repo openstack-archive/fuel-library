@@ -309,7 +309,7 @@ class osnailyfacter::globals::globals {
   $rabbit_password = $real_rabbit_hash['password']
   $transport_url   = os_transport_url({
                         'transport'    => 'rabbit',
-                        'hosts'        => split($amqp_hosts,','),
+                        'hosts'        => strip(split($amqp_hosts,',')),
                         'username'     => $rabbit_user,
                         'password'     => $rabbit_password,
                       })
