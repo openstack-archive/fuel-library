@@ -159,6 +159,20 @@ Puppet::Type.newtype(:l2_port) do
 
     end
 
+    newproperty(:multiq_threads) do
+      desc "Number of MultiQ threads"
+      newvalues(/^\d+$/, 0, "", :none, :undef, :nil, :absent)
+      aliasvalue(0,  :absent)
+      aliasvalue("",  :absent)
+      aliasvalue(:none,  :absent)
+      aliasvalue(:undef, :absent)
+      aliasvalue(:nil,   :absent)
+      defaultto :absent
+      munge do |val|
+          ((val == :absent)  ?  :absent  :  val.to_i)
+      end
+    end
+
     newproperty(:ethtool) do
       desc "Hash of ethtool properties"
       #defaultto {}
