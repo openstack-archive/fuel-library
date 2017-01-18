@@ -90,7 +90,7 @@ class cluster::haproxy (
     'retries' => '3',
     'option'  => [
       'redispatch',
-      'forceclose',
+      'http-server-close',
       'splice-auto',
       'dontlognull',
     ],
