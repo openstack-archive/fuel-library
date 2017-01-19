@@ -77,6 +77,7 @@ class openstack_tasks::aodh::aodh {
   $public_cert = get_ssl_property($ssl_hash, $public_ssl_hash, 'keystone', 'public', 'path', [''])
 
   $memcached_servers = hiera('memcached_servers')
+  $local_memcached_server = hiera('local_memcached_server')
 
   $internal_auth_protocol = get_ssl_property($ssl_hash, {}, 'keystone', 'internal', 'protocol', 'http')
   $internal_auth_address  = get_ssl_property($ssl_hash, {}, 'keystone', 'internal', 'hostname', [$management_vip])
@@ -149,7 +150,7 @@ class openstack_tasks::aodh::aodh {
     keystone_tenant   => $tenant,
     keystone_auth_uri => $keystone_auth_uri,
     keystone_auth_url => $keystone_auth_url,
-    memcached_servers => $memcached_servers,
+    memcached_servers => $local_memcached_server,
     service_name      => 'httpd',
   }
 
