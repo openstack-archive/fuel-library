@@ -47,6 +47,7 @@ class openstack_tasks::ceilometer::controller {
   $keystone_auth_uri          = "${internal_auth_protocol}://${internal_auth_endpoint}:5000/"
 
   $memcached_servers          = hiera('memcached_servers')
+  $database_max_retries = pick($ceilometer_hash['database_max_retries'], '-1')
 
   prepare_network_config(hiera_hash('network_scheme', {}))
   $api_bind_address           = get_network_role_property('ceilometer/api', 'ipaddr')
@@ -165,8 +166,9 @@ class openstack_tasks::ceilometer::controller {
     Service<| title == 'ceilometer-polling'|>
 
     class { '::ceilometer::db':
-      database_connection => $db_connection,
-      sync_db             => $primary_controller,
+      database_connection  => $db_connection,
+      sync_db              => $primary_controller,
+      database_max_retries => $database_max_retries,
     }
 
     # Install the ceilometer-api service

@@ -53,6 +53,8 @@ describe manifest do
 
     let(:memcached_servers) { Noop.hiera 'memcached_servers' }
 
+    database_max_retries = Noop.puppet_function 'pick', ceilometer_hash['database_max_retries'], '-1'
+
     # Ceilometer
     if ceilometer_hash['enabled']
       it 'should properly build connection string' do
@@ -67,6 +69,10 @@ describe manifest do
       it 'should configure auth and identity uri' do
         should contain_ceilometer_config('keystone_authtoken/auth_uri').with(:value => keystone_auth_uri)
         should contain_ceilometer_config('keystone_authtoken/identity_uri').with(:value => keystone_identity_uri)
+      end
+
+      it 'should configure oslo_database params properly' do
+        should contain_ceilometer_config('database/max_retries').with(:value => "#{database_max_retries}")
       end
 
       it 'should configure OS ENDPOINT TYPE for ceilometer' do
