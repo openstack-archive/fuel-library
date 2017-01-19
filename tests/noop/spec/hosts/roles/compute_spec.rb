@@ -26,7 +26,8 @@ describe manifest do
       })
     }
 
-    let (:memcached_servers) { Noop.hiera 'memcached_servers' }
+    let(:memcached_servers) { Noop.hiera 'memcached_servers' }
+    let(:local_memcached_server) { Noop.hiera 'local_memcached_server' }
 
     let(:nova_hash) do
       Noop.hiera_structure 'nova'
@@ -352,7 +353,7 @@ describe manifest do
       should contain_class('nova::cache').with(
         :enabled          => use_cache,
         :backend          => 'oslo_cache.memcache_pool',
-        :memcache_servers => memcached_servers,
+        :memcache_servers => local_memcached_server,
       )
     end
 

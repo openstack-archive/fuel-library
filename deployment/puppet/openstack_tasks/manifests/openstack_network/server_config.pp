@@ -50,6 +50,7 @@ class openstack_tasks::openstack_network::server_config {
   $region_name             = hiera('region', 'RegionOne')
   $auth_endpoint_type      = 'internalURL'
   $memcached_servers       = hiera('memcached_servers')
+  $local_memcached_server = hiera('local_memcached_server')
 
   $ssl_hash                = hiera_hash('use_ssl', {})
 
@@ -191,6 +192,7 @@ class openstack_tasks::openstack_network::server_config {
     region_name                      => $region_name,
     auth_url                         => $auth_url,
     auth_uri                         => $auth_uri,
+    memcached_servers => $local_memcached_server,
 
     database_connection              => $db_connection,
     database_max_retries             => hiera('max_retries'),
@@ -212,7 +214,7 @@ class openstack_tasks::openstack_network::server_config {
     qos_notification_drivers         => $qos_notification_drivers,
     enabled                          => true,
     manage_service                   => true,
-    memcached_servers                => $memcached_servers,
+
   }
 
   # TODO(mmalchuk) remove this after LP#1628580 merged

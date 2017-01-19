@@ -28,6 +28,7 @@ class openstack_tasks::glance::glance {
   $primary_controller  = hiera('primary_controller')
   $kombu_compression   = hiera('kombu_compression', $::os_service_default)
   $memcached_servers   = hiera('memcached_servers')
+  $local_memcached_server = hiera('local_memcached_server')
 
   $rabbit_heartbeat_timeout_threshold = pick($glance_hash['rabbit_heartbeat_timeout_threshold'], $rabbit_hash['heartbeat_timeout_threshold'], 60)
   $rabbit_heartbeat_rate              = pick($glance_hash['rabbit_heartbeat_rate'], $rabbit_hash['rabbit_heartbeat_rate'], 2)
@@ -136,10 +137,10 @@ class openstack_tasks::glance::glance {
     os_region_name         => $region,
     delayed_delete         => false,
     scrub_time             => '43200',
-    token_cache_time       => '-1',
+    token_cache_time       => '300',
     image_cache_stall_time => '86400',
     image_cache_max_size   => $glance_image_cache_max_size,
-    memcached_servers      => $memcached_servers,
+    memcached_servers      => $local_memcached_server,
   }
 
   class { '::glance::glare::logging':
@@ -179,8 +180,8 @@ class openstack_tasks::glance::glance {
     workers           => $service_workers,
     pipeline          => $pipeline,
     os_region_name    => $region,
-    token_cache_time  => '-1',
-    memcached_servers => $memcached_servers,
+    token_cache_time  => '300',
+    memcached_servers => $local_memcached_server,
   }
 
   glance_api_config {
@@ -214,7 +215,7 @@ class openstack_tasks::glance::glance {
     workers                => $service_workers,
     sync_db                => $primary_controller,
     os_region_name         => $region,
-    memcached_servers      => $memcached_servers,
+    memcached_servers      => $local_memcached_server,
   }
 
   class { '::glance::notify::rabbitmq':

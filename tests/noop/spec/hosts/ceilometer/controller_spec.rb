@@ -58,7 +58,7 @@ describe manifest do
     ssl = 'false'
 
     let(:memcached_servers) { Noop.hiera 'memcached_servers' }
-    let (:api_bind_address) do
+    let(:local_memcached_server) { Noop.hiera 'local_memcached_server' }
       api_bind_address = Noop.puppet_function('get_network_role_property', 'ceilometer/api', 'ipaddr')
     end
 
@@ -112,7 +112,7 @@ describe manifest do
       it 'should configure auth and identity uri' do
         should contain_ceilometer_config('keystone_authtoken/auth_uri').with(:value => keystone_auth_uri)
         # TODO(aschultz): uncomment this once https://review.openstack.org/#/c/345789/ has landed
-        #should contain_ceilometer_config('keystone_authtoken/auth_url').with(:value => keystone_identity_uri)
+        should contain_ceilometer_config('keystone_authtoken/memcached_servers').with(:value => local_memcached_server)
       end
 
       it 'should configure interface (ex. OS ENDPOINT TYPE) for ceilometer' do

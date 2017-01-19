@@ -13,6 +13,7 @@ describe manifest do
     network_scheme   = Noop.hiera_hash 'network_scheme'
 
     let(:memcached_servers) { Noop.hiera 'memcached_servers' }
+    let(:local_memcached_server) { Noop.hiera 'local_memcached_server' }
     management_vip = Noop.hiera('management_vip')
 
     swift_operator_roles = storage_hash.fetch('swift_operator_roles', ['admin', 'SwiftOperator', '_member_'])
@@ -104,7 +105,7 @@ describe manifest do
 
       it 'should declare swift::proxy::cache class with correct memcache_servers parameter' do
         should contain_class('swift::proxy::cache').with(
-          'memcache_servers' => memcached_servers,
+          'memcache_servers' => local_memcached_server,
         )
       end
 
@@ -179,7 +180,7 @@ describe manifest do
 
         it 'should contain memcached params' do
           should contain_class('openstack_tasks::swift::parts::proxy').with(
-            :memcached_servers => memcached_servers
+            :memcached_servers => local_memcached_server
           )
         end
 

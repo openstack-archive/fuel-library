@@ -513,6 +513,12 @@ class osnailyfacter::globals::globals {
   $memcached_port    = hiera('memcache_server_port', '11211')
   $memcached_servers = suffix($memcached_addresses, ":${memcached_port}")
 
+  # LP1621541 In order to increase nova performance after failover,
+  # we need to point nova to local memcached instance for keystone tokens,
+  # in future we can consider moving memcached under HAproxy
+  $memcached_bind_address = get_network_role_property('mgmt/memcache', 'ipaddr')
+  $local_memcached_server = "${memcached_bind_address}:${memcached_port}"
+
   $cinder_backends = {
     'volumes_ceph' => $storage_hash['volumes_ceph'] ? { true => 'RBD-backend', default => false },
     'volumes_lvm' => $storage_hash['volumes_lvm'] ? { true => 'LVM-backend', default => false },
