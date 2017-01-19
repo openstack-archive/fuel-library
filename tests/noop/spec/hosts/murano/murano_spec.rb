@@ -61,6 +61,7 @@ describe manifest do
     let(:db_password) { Noop.hiera_structure('murano/db_password') }
 
     let(:memcached_servers) { Noop.hiera 'memcached_servers' }
+    let(:local_memcached_server) { Noop.hiera 'local_memcached_server' }
 
     let(:predefined_networks) { Noop.hiera_structure('neutron_config/predefined_networks') }
 
@@ -193,7 +194,7 @@ describe manifest do
                    'service_host'        => bind_address,
                    'service_port'        => api_bind_port,
                    'external_network'    => external_network,
-                   'memcached_servers'   => memcached_servers,
+                   'memcached_servers'   => local_memcached_server,
                )
       end
 

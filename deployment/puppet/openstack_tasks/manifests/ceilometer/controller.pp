@@ -45,6 +45,7 @@ class openstack_tasks::ceilometer::controller {
   $keystone_auth_uri          = "${internal_auth_protocol}://${internal_auth_endpoint}:5000/"
 
   $memcached_servers = hiera('memcached_servers')
+  $local_memcached_server = hiera('local_memcached_server')
 
 #as $ssl default value in ceilometer::wsgi::apache is true and
 #we use SSL at HAproxy, but not the API host we should set 'false'
@@ -181,7 +182,7 @@ class openstack_tasks::ceilometer::controller {
       project_name      => $ceilometer_hash['tenant'],
       auth_url          => $keystone_auth_url,
       auth_uri          => $keystone_auth_uri,
-      memcached_servers => $memcached_servers,
+      memcached_servers => $local_memcached_server,
     }
 
     # Install the ceilometer-api service

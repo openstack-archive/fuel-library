@@ -28,6 +28,7 @@ class openstack_tasks::glance::glance {
   $primary_controller  = hiera('primary_controller')
   $kombu_compression   = hiera('kombu_compression', $::os_service_default)
   $memcached_servers   = hiera('memcached_servers')
+  $local_memcached_server = hiera('local_memcached_server')
 
   $rabbit_heartbeat_timeout_threshold = pick($glance_hash['rabbit_heartbeat_timeout_threshold'], $rabbit_hash['heartbeat_timeout_threshold'], 60)
   $rabbit_heartbeat_rate              = pick($glance_hash['rabbit_heartbeat_rate'], $rabbit_hash['rabbit_heartbeat_rate'], 2)
@@ -129,8 +130,8 @@ class openstack_tasks::glance::glance {
     project_name      => $glance_tenant,
     auth_url          => $auth_url,
     auth_uri          => $auth_uri,
-    token_cache_time  => '-1',
-    memcached_servers => $memcached_servers,
+    token_cache_time  => '300',
+    memcached_servers => $local_memcached_server,
   }
 
   # Install and configure glance-api
@@ -182,8 +183,8 @@ class openstack_tasks::glance::glance {
     project_name      => $glance_glare_tenant,
     auth_url          => $auth_url,
     auth_uri          => $auth_uri,
-    token_cache_time  => '-1',
-    memcached_servers => $memcached_servers,
+    token_cache_time  => '300',
+    memcached_servers => $local_memcached_server,
   }
 
   class { '::glance::glare':
@@ -211,7 +212,7 @@ class openstack_tasks::glance::glance {
     project_name      => $glance_tenant,
     auth_url          => $auth_url,
     auth_uri          => $auth_uri,
-    memcached_servers => $memcached_servers,
+    memcached_servers => $local_memcached_server,
   }
 
   # Install and configure glance-registry

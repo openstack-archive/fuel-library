@@ -90,6 +90,7 @@ describe manifest do
       region_name        = Noop.hiera('region', 'RegionOne')
       auth_endpoint_type = 'internalURL'
       memcached_servers  = Noop.hiera 'memcached_servers'
+    let(:local_memcached_server) { Noop.hiera 'local_memcached_server' }
 
       ssl_hash               = Noop.hiera_hash('use_ssl', {})
       internal_auth_protocol = Noop.puppet_function 'get_ssl_property',ssl_hash,{},'keystone','internal','protocol', 'http'
@@ -267,7 +268,7 @@ describe manifest do
           'region_name'       => region_name,
           'auth_url'          => auth_url,
           'auth_uri'          => auth_uri,
-          'memcached_servers' => memcached_servers,)
+          'memcached_servers' => local_memcached_server,)
       end
 
       it 'should correctly configure authtoken parameters' do
@@ -277,7 +278,7 @@ describe manifest do
         should contain_neutron_config('keystone_authtoken/region_name').with(:value => region_name)
         should contain_neutron_config('keystone_authtoken/auth_url').with(:value => auth_url)
         should contain_neutron_config('keystone_authtoken/auth_uri').with(:value => auth_uri)
-        should contain_neutron_config('keystone_authtoken/memcached_servers').with(:value => memcached_servers.join(','))
+        should contain_neutron_config('keystone_authtoken/memcached_servers').with(:value => local_memcached_server)
       end
 
       it 'should have agent related settings' do
