@@ -82,9 +82,7 @@ cat <<END
 This script manages vrouter daemon with namespace support
 </longdesc>
 <shortdesc lang="en">Manages an vrouter daemon inside an namespace</shortdesc>
-
 <parameters>
-
 <parameter name="ns">
 <longdesc lang="en">
 Name of network namespace.
@@ -93,7 +91,6 @@ Should be present.
 <shortdesc lang="en">Name of network namespace.</shortdesc>
 <content type="string" default="${OCF_RESKEY_ns_default}"/>
 </parameter>
-
 <parameter name="other_networks">
 <longdesc lang="en">
 Additional routes that should be added to this resource. Routes will be added via value namespace_interface.
@@ -101,7 +98,6 @@ Additional routes that should be added to this resource. Routes will be added vi
 <shortdesc lang="en">List of addtional routes to add routes for.</shortdesc>
 <content type="string" default="$OCF_RESKEY_other_networks_default"/>
 </parameter>
-
 <parameter name="host_interface">
 <longdesc lang="en">
 The host part of the interface pair used to connect the namespace to the network
@@ -110,7 +106,6 @@ For example, "vrouter-host"
 <shortdesc lang="en">The name of the host interface used for namespace</shortdesc>
 <content type="string" default="${OCF_RESKEY_host_interface_default}" />
 </parameter>
-
 <parameter name="namespace_interface">
 <longdesc lang="en">
 The namespace part of the interface pair used to connect the namespace to the network
@@ -119,7 +114,6 @@ For example, "vr-ns"
 <shortdesc lang="en">The name of the namespace interface used for namespace</shortdesc>
 <content type="string" default="${OCF_RESKEY_namespace_interface_default}" />
 </parameter>
-
 <parameter name="host_ip">
 <longdesc lang="en">
 The IP address used by the host interface. Must be from the same subnet as namesapce IP
@@ -130,7 +124,6 @@ For example, "240.0.0.5"
 <shortdesc lang="en">Host interface IP address</shortdesc>
 <content type="string" default="${OCF_RESKEY_host_ip_default}" />
 </parameter>
-
 <parameter name="namespace_ip">
 <longdesc lang="en">
 The IP address used by the namespace interface. Must be from the same subnet as host IP
@@ -141,7 +134,6 @@ For example, "240.0.0.6"
 <shortdesc lang="en">Namespace interface IP address</shortdesc>
 <content type="string" default="${OCF_RESKEY_namespace_ip_default}" />
 </parameter>
-
 <parameter name="network_mask">
 <longdesc lang="en">
 The network mask length used to determine subnet of the host
@@ -151,7 +143,6 @@ For example, "30"
 <shortdesc lang="en">Network mask length</shortdesc>
 <content type="string" default="${OCF_RESKEY_network_mask_default}" />
 </parameter>
-
 <parameter name="route_metric">
 <longdesc lang="en">
 The metric value of the default route set for the pipe
@@ -166,9 +157,7 @@ For example, "1000"
 <shortdesc lang="en">Namespace default route metric</shortdesc>
 <content type="string" default="${OCF_RESKEY_route_metric_default}" />
 </parameter>
-
 </parameters>
-
 <actions>
 <action name="start" timeout="20s"/>
 <action name="stop" timeout="20s"/>
@@ -184,7 +173,7 @@ exit $OCF_SUCCESS
 
 check_ns() {
   local LH="${LL} check_ns():"
-  local ns=$(ip netns list | awk "/${OCF_RESKEY_ns}/ {print \$1}")
+  local ns=`ip netns list | grep "$OCF_RESKEY_ns"`
   ocf_log debug "${LH} recieved netns list: ${ns}"
   [[ "$ns" != $OCF_RESKEY_ns ]] && return $OCF_ERR_GENERIC
   ocf_run $RUN_IN_NS sysctl -w net.ipv4.ip_forward=1
@@ -212,7 +201,7 @@ set_ns_routing() {
   }
 
   # create host-ns veth pair unless it's present
-  ip link | grep -q '^[[:digit:]]\+:[[:space:]]\+'"${OCF_RESKEY_host_interface}"'[@:]'
+  ip link | grep -q "${OCF_RESKEY_host_interface}:"
   if [ $? -gt 0 ]; then
     ocf_log debug "Creating host interface: ${OCF_RESKEY_host_interface} and namespace interface: ${OCF_RESKEY_namespace_interface}"
     ocf_run ip link add "${OCF_RESKEY_host_interface}" type veth peer name "${OCF_RESKEY_namespace_interface}"
@@ -221,7 +210,7 @@ set_ns_routing() {
   fi
 
   # move the ns part to the namespace
-  ip link | grep -q '^[[:digit:]]\+:[[:space:]]\+'"${OCF_RESKEY_namespace_interface}"'[@:]'
+  ip link | grep -q "${OCF_RESKEY_namespace_interface}:"
   if [ $? -eq 0 ]; then
     ocf_log debug "Moving interface: ${OCF_RESKEY_namespace_interface} to namespace: ${OCF_RESKEY_ns}"
     ocf_run ip link set dev "${OCF_RESKEY_namespace_interface}" netns "${OCF_RESKEY_ns}"
@@ -249,9 +238,8 @@ set_ns_routing() {
     ocf_run nsip addr add "${OCF_RESKEY_namespace_ip}/${OCF_RESKEY_network_mask}" dev "${OCF_RESKEY_namespace_interface}"
   fi
   ocf_log debug "Flushing global scope routes"
-  nsip route save '0.0.0.0/0' > ${HA_RSCTMP}/default.routes
-  nsip route flush scope global
-  nsip route restore < ${HA_RSCTMP}/default.routes
+
+  ocf_run nsip route save '0.0.0.0/0' > ${HA_RSCTMP}/default.routes && nsip route flush scope global && nsip route restore < ${HA_RSCTMP}/default.routes
 
   # set default gateway inside ns
   nsip route list | grep -q "default via ${OCF_RESKEY_host_ip}"
@@ -283,6 +271,7 @@ set_ns_routing() {
 
 vrouter_status() {
   get_ns || return $OCF_NOT_RUNNING
+  set_ns_routing
 }
 
 vrouter_start()
