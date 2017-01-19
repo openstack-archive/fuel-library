@@ -205,7 +205,7 @@ get_ns() {
   return $rc
 }
 
-set_ns_routing() {
+set_ns_interfaces() {
   nsip() {
     ip netns exec "${OCF_RESKEY_ns}" ip ${@}
   }
@@ -247,10 +247,12 @@ set_ns_routing() {
     ocf_log debug "Setting namespace interface: ${OCF_RESKEY_namespace_interface} IP to: ${OCF_RESKEY_namespace_ip}/${OCF_RESKEY_network_mask}"
     ocf_run nsip addr add "${OCF_RESKEY_namespace_ip}/${OCF_RESKEY_network_mask}" dev "${OCF_RESKEY_namespace_interface}"
   fi
-  ocf_log debug "Flushing global scope routes"
-  nsip route save '0.0.0.0/0' > ${HA_RSCTMP}/default.routes
-  nsip route flush scope global
-  nsip route restore < ${HA_RSCTMP}/default.routes
+}
+
+set_ns_routing() {
+  nsip() {
+    ip netns exec "${OCF_RESKEY_ns}" ip ${@}
+  }
 
   # set default gateway inside ns
   nsip route list | grep -q "default via ${OCF_RESKEY_host_ip}"
@@ -280,13 +282,28 @@ set_ns_routing() {
   fi
 }
 
+set_ns_flushing() {
+  nsip() {
+    ip netns exec "${OCF_RESKEY_ns}" ip ${@}
+  }
+
+  ocf_log debug "Flushing global scope routes"
+  nsip route save '0.0.0.0/0' > ${HA_RSCTMP}/default.routes
+  nsip route flush scope global
+  nsip route restore < ${HA_RSCTMP}/default.routes
+}
+
 vrouter_status() {
   get_ns || return $OCF_NOT_RUNNING
+  set_ns_interfaces
+  set_ns_routing
 }
 
 vrouter_start()
 {
   get_ns
+  set_ns_interfaces
+  set_ns_flushing
   set_ns_routing
         return $OCF_SUCCESS
 }
