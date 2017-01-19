@@ -101,7 +101,6 @@ Additional routes that should be added to this resource. Routes will be added vi
 <shortdesc lang="en">List of addtional routes to add routes for.</shortdesc>
 <content type="string" default="$OCF_RESKEY_other_networks_default"/>
 </parameter>
-
 <parameter name="host_interface">
 <longdesc lang="en">
 The host part of the interface pair used to connect the namespace to the network
@@ -119,7 +118,6 @@ For example, "vr-ns"
 <shortdesc lang="en">The name of the namespace interface used for namespace</shortdesc>
 <content type="string" default="${OCF_RESKEY_namespace_interface_default}" />
 </parameter>
-
 <parameter name="host_ip">
 <longdesc lang="en">
 The IP address used by the host interface. Must be from the same subnet as namesapce IP
@@ -130,7 +128,6 @@ For example, "240.0.0.5"
 <shortdesc lang="en">Host interface IP address</shortdesc>
 <content type="string" default="${OCF_RESKEY_host_ip_default}" />
 </parameter>
-
 <parameter name="namespace_ip">
 <longdesc lang="en">
 The IP address used by the namespace interface. Must be from the same subnet as host IP
@@ -151,7 +148,6 @@ For example, "30"
 <shortdesc lang="en">Network mask length</shortdesc>
 <content type="string" default="${OCF_RESKEY_network_mask_default}" />
 </parameter>
-
 <parameter name="route_metric">
 <longdesc lang="en">
 The metric value of the default route set for the pipe
@@ -249,9 +245,8 @@ set_ns_routing() {
     ocf_run nsip addr add "${OCF_RESKEY_namespace_ip}/${OCF_RESKEY_network_mask}" dev "${OCF_RESKEY_namespace_interface}"
   fi
   ocf_log debug "Flushing global scope routes"
-  nsip route save '0.0.0.0/0' > ${HA_RSCTMP}/default.routes
-  nsip route flush scope global
-  nsip route restore < ${HA_RSCTMP}/default.routes
+
+  ocf_run nsip route save '0.0.0.0/0' > ${HA_RSCTMP}/default.routes && nsip route flush scope global && nsip route restore < ${HA_RSCTMP}/default.routes
 
   # set default gateway inside ns
   nsip route list | grep -q "default via ${OCF_RESKEY_host_ip}"
@@ -283,6 +278,7 @@ set_ns_routing() {
 
 vrouter_status() {
   get_ns || return $OCF_NOT_RUNNING
+  set_ns_routing
 }
 
 vrouter_start()
