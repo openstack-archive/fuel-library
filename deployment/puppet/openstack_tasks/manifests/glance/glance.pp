@@ -29,6 +29,7 @@ class openstack_tasks::glance::glance {
   $primary_controller  = hiera('primary_controller')
   $kombu_compression   = hiera('kombu_compression', '')
   $memcached_servers   = hiera('memcached_servers')
+  $local_memcached_server = hiera('local_memcached_server')
 
   # This block is present for compatibility with the old
   # override data format. This is only needed if overrides
@@ -179,10 +180,10 @@ class openstack_tasks::glance::glance {
     scrub_time             => '43200',
     auth_region            => $region,
     signing_dir            => '/tmp/keystone-signing-glance',
-    token_cache_time       => '-1',
+    token_cache_time       => '300',
     image_cache_stall_time => '86400',
     image_cache_max_size   => $glance_image_cache_max_size,
-    memcached_servers      => $memcached_servers,
+    memcached_servers      => $local_memcached_server,
   }
 
   # TODO (dmburmistrov): remove this workaround after puppet-glance
@@ -227,8 +228,8 @@ class openstack_tasks::glance::glance {
     os_region_name    => $region,
     auth_region       => $region,
     signing_dir       => '/tmp/keystone-signing-glance',
-    token_cache_time  => '-1',
-    memcached_servers => $memcached_servers,
+    token_cache_time  => '300',
+    memcached_servers => $local_memcached_server,
   }
 
   glance_api_config {
@@ -267,7 +268,7 @@ class openstack_tasks::glance::glance {
     sync_db                => $primary_controller,
     signing_dir            => '/tmp/keystone-signing-glance',
     os_region_name         => $region,
-    memcached_servers      => $memcached_servers,
+    memcached_servers      => $local_memcached_server,
   }
 
   class { '::glance::notify::rabbitmq':

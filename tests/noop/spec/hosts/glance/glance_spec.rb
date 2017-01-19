@@ -67,9 +67,14 @@ describe manifest do
     let(:identity_uri) { "#{admin_auth_protocol}://#{admin_auth_address}:35357/" }
 
     let(:memcached_servers) { Noop.hiera 'memcached_servers' }
+    let(:local_memcached_server) { Noop.hiera 'local_memcached_server' }
 
     it 'should select right protocols and addresses for auth' do
       should contain_class('glance::api').with(
+        'token_cache_time'  => 300,
+       
+
+        'memcached_servers' => local_memcached_server,
         'auth_uri'     => auth_uri,
         'identity_uri' => identity_uri,
       )
@@ -113,13 +118,13 @@ describe manifest do
       should contain_glance_api_config('DEFAULT/auth_region').with_value(region)
       should contain_glance_api_config('glance_store/os_region_name').with_value(region)
       should contain_glance_api_config('keystone_authtoken/signing_dir').with_value('/tmp/keystone-signing-glance')
-      should contain_glance_api_config('keystone_authtoken/token_cache_time').with_value('-1')
+      should contain_glance_api_config('keystone_authtoken/token_cache_time').with_value('300')
+      should contain_glance_api_config('keystone_authtoken/memcached_servers').with_value(local_memcached_server)
       should contain_glance_api_config('keystone_authtoken/auth_type').with_value('password')
       should contain_glance_api_config('keystone_authtoken/auth_url').with_value(identity_uri)
       should contain_glance_api_config('keystone_authtoken/username').with_value(glance_config.fetch('user', 'glance'))
       should contain_glance_api_config('keystone_authtoken/password').with_value(glance_config.fetch('user_password'))
       should contain_glance_api_config('keystone_authtoken/project_name').with_value(glance_config.fetch('project_name', 'services'))
-      should contain_glance_api_config('keystone_authtoken/memcached_servers').with_value(memcached_servers.join(','))
     end
 
     it 'should configure glance glare config' do
@@ -130,8 +135,8 @@ describe manifest do
       should contain_glance_glare_config('DEFAULT/auth_region').with_value(region)
       should contain_glance_glare_config('glance_store/os_region_name').with_value(region)
       should contain_glance_glare_config('keystone_authtoken/signing_dir').with_value('/tmp/keystone-signing-glance')
-      should contain_glance_glare_config('keystone_authtoken/token_cache_time').with_value('-1')
-      should contain_glance_glare_config('keystone_authtoken/memcached_servers').with_value(memcached_servers.join(','))
+      should contain_glance_glare_config('keystone_authtoken/token_cache_time').with_value('300')
+      should contain_glance_glare_config('keystone_authtoken/memcached_servers').with_value(local_memcached_server)
     end
 
     if $glance_backend == 'rbd'
@@ -160,7 +165,7 @@ describe manifest do
       should contain_glance_registry_config('database/max_retries').with_value(max_retries)
       should contain_glance_registry_config('glance_store/os_region_name').with_value(region)
       should contain_glance_registry_config('keystone_authtoken/signing_dir').with_value('/tmp/keystone-signing-glance')
-      should contain_glance_registry_config('keystone_authtoken/memcached_servers').with_value(memcached_servers.join(','))
+      should contain_glance_registry_config('keystone_authtoken/memcached_servers').with_value(local_memcached_server)
     end
 
     if use_syslog
