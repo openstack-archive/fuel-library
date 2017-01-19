@@ -60,6 +60,7 @@ class openstack_tasks::roles::compute {
   ##CALCULATED PARAMETERS
 
   $memcached_servers = hiera('memcached_servers')
+  $local_memcached_server = hiera('local_memcached_server')
 
   # TODO(xarses): We need to validate this is needed
   if ($storage_hash['volumes_lvm']) {

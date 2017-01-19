@@ -27,6 +27,7 @@ class openstack_tasks::ironic::ironic {
   $kombu_compression          = hiera('kombu_compression', $::os_service_default)
 
   $memcached_servers          = hiera('memcached_servers')
+  $local_memcached_server = hiera('local_memcached_server')
 
   $db_type                    = pick($ironic_hash['db_type'], 'mysql+pymysql')
   $db_host                    = pick($ironic_hash['db_host'], $database_vip)
@@ -98,11 +99,11 @@ class openstack_tasks::ironic::ironic {
     host_ip           => get_network_role_property('ironic/api', 'ipaddr'),
     auth_uri          => $internal_auth_url,
     identity_uri      => $admin_identity_uri,
+    memcached_servers => $local_memcached_server,
     admin_tenant_name => $ironic_tenant,
     admin_user        => $ironic_user,
     admin_password    => $ironic_user_password,
     neutron_url       => "${neutron_protocol}://${neutron_endpoint}:9696",
     public_endpoint   => "${public_protocol}://${public_address}:6385",
-    memcached_servers => $memcached_servers,
   }
 }

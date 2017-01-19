@@ -64,6 +64,7 @@ describe manifest do
   let(:glance_api_servers) { Noop.hiera 'glance_api_servers', "#{glance_protocol}://#{glance_endpoint}:9292" }
 
   let(:memcached_servers) { Noop.hiera 'memcached_servers' }
+  let(:local_memcached_server) { Noop.hiera 'local_memcached_server' }
 
   let(:transport_url) { Noop.hiera 'transport_url', 'rabbit://guest:password@127.0.0.1:5672/' }
 
@@ -150,8 +151,7 @@ describe manifest do
   it 'ensures cinder_config contains auth parameters ' do
       should contain_cinder_config('keystone_authtoken/auth_uri').with(:value => auth_uri)
       should contain_cinder_config('keystone_authtoken/auth_url').with(:value => auth_url)
-      should contain_cinder_config('keystone_authtoken/auth_version').with(:value => auth_version)
-      should contain_cinder_config('keystone_authtoken/memcached_servers').with(:value => memcached_servers.join(","))
+      should contain_cinder_config('keystone_authtoken/memcached_servers').with(:value => local_memcached_server)
   end
 
   it 'ensures cinder_config contains correct values' do
@@ -240,6 +240,7 @@ describe manifest do
   it { is_expected.to contain_class('cinder::api').with(
     'bind_host'                  => bind_host,
     'keymgr_encryption_auth_url' => "#{auth_url}/v3",
+    'memcached_servers'          => local_memcached_server,
   ) }
 
   it { is_expected.to contain_class('cinder::glance').with(

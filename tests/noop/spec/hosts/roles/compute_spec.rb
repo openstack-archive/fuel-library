@@ -26,7 +26,8 @@ describe manifest do
       })
     }
 
-    let (:memcached_servers) { Noop.hiera 'memcached_servers' }
+    let(:memcached_servers) { Noop.hiera 'memcached_servers' }
+    let(:local_memcached_server) { Noop.hiera 'local_memcached_server' }
 
     let(:nova_hash) do
       Noop.hiera_structure 'nova'
