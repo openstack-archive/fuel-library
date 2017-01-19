@@ -65,6 +65,7 @@ describe manifest do
   let(:glance_api_servers) { Noop.hiera 'glance_api_servers', "#{glance_protocol}://#{glance_endpoint}:9292" }
 
   let(:memcached_servers) { Noop.hiera 'memcached_servers' }
+  let(:local_memcached_server) { Noop.hiera 'local_memcached_server' }
 
   it 'should configure default_log_levels' do
     should contain_cinder_config('DEFAULT/default_log_levels').with_value(default_log_levels.sort.join(','))
@@ -129,6 +130,7 @@ describe manifest do
   it 'ensures cinder_config contains auth_uri and identity_uri ' do
       should contain_cinder_config('keystone_authtoken/auth_uri').with(:value  => auth_uri)
       should contain_cinder_config('keystone_authtoken/identity_uri').with(:value  => identity_uri)
+      should contain_cinder_config('keystone_authtoken/memcached_servers').with(:value => local_memcached_server)
   end
 
   it 'ensures cinder_config contains correct values' do
@@ -215,7 +217,7 @@ describe manifest do
     'bind_host'                  => bind_host,
     'identity_uri'               => identity_uri,
     'keymgr_encryption_auth_url' => "#{identity_uri}/v3",
-    'memcached_servers'          => memcached_servers,
+    'memcached_servers'          => local_memcached_server,
   ) }
 
   it { is_expected.to contain_class('cinder::glance').with(

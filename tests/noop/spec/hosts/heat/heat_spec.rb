@@ -25,6 +25,7 @@ describe manifest do
     end
 
     let(:memcached_servers) { Noop.hiera 'memcached_servers' }
+    let(:local_memcached_server) { Noop.hiera 'local_memcached_server' }
 
     let(:heat_ha_engine) do
       Noop.hiera 'heat_ha_engine', true
@@ -108,7 +109,7 @@ describe manifest do
       end
     end
 
-    it 'should use auth_uri and identity_uri' do
+   it 'should configure heat class' do
       should contain_class('heat').with(
         'auth_uri'         => "#{public_auth_protocol}://#{public_auth_address}:5000/v2.0/",
         'identity_uri'     => "#{admin_auth_protocol}://#{admin_auth_address}:35357/",
@@ -118,7 +119,7 @@ describe manifest do
     end
 
     it 'should configure memcache for keystone authtoken' do
-        should contain_heat_config('keystone_authtoken/memcached_servers').with_value(memcached_servers.join(','))
+        should contain_heat_config('keystone_authtoken/memcached_servers').with_value(local_memcached_server)
     end
 
     it 'should set empty trusts_delegated_roles for heat engine' do
@@ -139,7 +140,7 @@ describe manifest do
     it 'should configure caching for validation process' do
       should contain_heat_config('cache/enabled').with_value('true')
       should contain_heat_config('cache/backend').with_value('oslo_cache.memcache_pool')
-      should contain_heat_config('cache/memcache_servers').with_value(memcached_servers.join(','))
+      should contain_heat_config('cache/memcache_servers').with_value(local_memcached_server)
     end
 
     it 'should configure urls for metadata, cloudwatch and waitcondition servers' do

@@ -49,6 +49,7 @@ class openstack_tasks::heat::heat {
   $deployment_mode          = hiera('deployment_mode')
   $bind_host                = get_network_role_property('heat/api', 'ipaddr')
   $memcached_servers        = hiera('memcached_servers')
+  $local_memcached_server = hiera('local_memcached_server')
   $keystone_user            = pick($heat_hash['user'], 'heat')
   $keystone_tenant          = pick($heat_hash['tenant'], 'services')
   $region                   = hiera('region', 'RegionOne')
@@ -125,7 +126,7 @@ class openstack_tasks::heat::heat {
   heat_config {
     'cache/enabled':          value => true;
     'cache/backend':          value => 'oslo_cache.memcache_pool';
-    'cache/memcache_servers': value => join(any2array($memcached_servers), ',')
+    'cache/memcache_servers': value => $local_memcached_server;
   }
 
   #------------------------------
@@ -241,7 +242,7 @@ class openstack_tasks::heat::heat {
     database_max_retries   => $max_retries,
 
     rabbit_heartbeat_timeout_threshold => $::os_service_default,
-    memcached_servers      => $memcached_servers
+    memcached_servers      => $local_memcached_server
   }
 
   # Engine

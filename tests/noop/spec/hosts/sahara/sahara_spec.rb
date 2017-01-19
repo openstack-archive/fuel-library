@@ -26,6 +26,7 @@ describe manifest do
     let(:public_vip) { Noop.hiera('public_vip') }
     let(:internal_net) { Noop.hiera_structure('neutron_config/default_private_net', 'admin_internal_net') }
     let(:memcached_servers) { Noop.hiera 'memcached_servers' }
+    let(:local_memcached_server) { Noop.hiera 'local_memcached_server' }
 
     let(:network_scheme) do
       Noop.hiera_hash 'network_scheme'
@@ -141,7 +142,7 @@ describe manifest do
                    'rabbit_hosts'           => amqp_hosts.split(","),
                    'host'                   => bind_address,
                    'port'                   => '8386',
-                   'memcached_servers'      => memcached_servers,
+                   'memcached_servers'      => local_memcached_server,
                )
       end
 

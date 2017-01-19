@@ -121,6 +121,7 @@ describe manifest do
           context 'with overridden TLS for internal endpoints' do
             internal_auth_protocol = 'https'
             internal_auth_endpoint = Noop.hiera_structure('use_ssl/keystone_internal_hostname')
+    let(:local_memcached_server) { Noop.hiera 'local_memcached_server' }
 
             it 'should have correct auth options' do
               auth_url     = "#{internal_auth_protocol}://#{internal_auth_endpoint}:35357/"
