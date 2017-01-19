@@ -25,6 +25,7 @@ describe manifest do
     use_cache            = Noop.hiera_structure 'nova/use_cache', true
 
     let(:memcached_servers) { Noop.hiera 'memcached_servers' }
+    let(:local_memcached_server) { Noop.hiera 'local_memcached_server' }
 
     let(:memcached_port) { Noop.hiera 'memcached_server_port', '11211' }
     let(:memcached_address) { Noop.puppet_function 'get_network_role_property', 'mgmt/memcache', 'ipaddr' }
@@ -175,7 +176,7 @@ describe manifest do
 
     it 'nova config should contain right memcached servers list' do
       should contain_nova_config('keystone_authtoken/memcached_servers').with(
-        'value' => memcached_authtoken_server,
+        'value' => local_memcached_server,
       )
     end
 
@@ -220,7 +221,7 @@ describe manifest do
           'value' => true,
         )
         should contain_nova_config('cache/memcache_servers').with(
-          'value' => memcached_servers.join(','),
+          'value' => local_memcached_server,
         )
       end
     end
@@ -245,7 +246,7 @@ describe manifest do
         :auth_url          => keystone_auth_url,
         :auth_uri          => keystone_auth_uri,
         :auth_version      => auth_version,
-        :memcached_servers => memcached_authtoken_server,
+        :memcached_servers => local_memcached_server,
       )
     end
 
@@ -256,7 +257,7 @@ describe manifest do
       should contain_nova_config('keystone_authtoken/auth_url').with(:value => keystone_auth_url)
       should contain_nova_config('keystone_authtoken/auth_uri').with(:value => keystone_auth_uri)
       should contain_nova_config('keystone_authtoken/auth_version').with(:value => auth_version)
-      should contain_nova_config('keystone_authtoken/memcached_servers').with(:value => memcached_authtoken_server)
+      should contain_nova_config('keystone_authtoken/memcached_servers').with(:value => local_memcached_server)
     end
 
     it 'should configure nova::api' do

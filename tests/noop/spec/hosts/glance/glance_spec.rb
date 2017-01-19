@@ -80,6 +80,7 @@ describe manifest do
     let(:auth_url) { "#{admin_auth_protocol}://#{admin_auth_address}:35357/" }
 
     let(:memcached_servers) { Noop.hiera 'memcached_servers' }
+    let(:local_memcached_server) { Noop.hiera 'local_memcached_server' }
 
     let(:transport_url) { Noop.hiera 'transport_url', 'rabbit://guest:password@127.0.0.1:5672/' }
 
@@ -106,8 +107,8 @@ describe manifest do
         'project_name'      => glance_project_name,
         'auth_url'          => auth_url,
         'auth_uri'          => auth_uri,
-        'token_cache_time'  => '-1',
-        'memcached_servers' => memcached_servers)
+        'token_cache_time'  => 300,
+        'memcached_servers' => local_memcached_server)
     end
 
     it 'should have correct auth options for Glance Glare' do
@@ -117,8 +118,8 @@ describe manifest do
         'project_name'      => glance_glare_project_name,
         'auth_url'          => auth_url,
         'auth_uri'          => auth_uri,
-        'token_cache_time'  => '-1',
-        'memcached_servers' => memcached_servers)
+        'token_cache_time'  => 300,
+        'memcached_servers' => local_memcached_server)
     end
 
     it 'should have correct auth options for Glance Registry' do
@@ -128,7 +129,7 @@ describe manifest do
         'project_name'      => glance_project_name,
         'auth_url'          => auth_url,
         'auth_uri'          => auth_uri,
-        'memcached_servers' => memcached_servers)
+        'memcached_servers' => local_memcached_server)
     end
 
     it 'should configure workers for API, registry services' do
@@ -173,8 +174,8 @@ describe manifest do
       should contain_glance_api_config('keystone_authtoken/username').with_value(glance_username)
       should contain_glance_api_config('keystone_authtoken/password').with_value(glance_password)
       should contain_glance_api_config('keystone_authtoken/project_name').with_value(glance_project_name)
-      should contain_glance_api_config('keystone_authtoken/token_cache_time').with_value('-1')
-      should contain_glance_api_config('keystone_authtoken/memcached_servers').with_value(memcached_servers.join(','))
+      should contain_glance_api_config('keystone_authtoken/token_cache_time').with_value('300')
+      should contain_glance_api_config('keystone_authtoken/memcached_servers').with_value(local_memcached_server)
     end
 
     it 'should configure glance glare config' do
@@ -189,8 +190,8 @@ describe manifest do
       should contain_glance_glare_config('keystone_authtoken/username').with_value(glance_glare_username)
       should contain_glance_glare_config('keystone_authtoken/password').with_value(glance_glare_password)
       should contain_glance_glare_config('keystone_authtoken/project_name').with_value(glance_glare_project_name)
-      should contain_glance_glare_config('keystone_authtoken/token_cache_time').with_value('-1')
-      should contain_glance_glare_config('keystone_authtoken/memcached_servers').with_value(memcached_servers.join(','))
+      should contain_glance_glare_config('keystone_authtoken/token_cache_time').with_value('300')
+      should contain_glance_glare_config('keystone_authtoken/memcached_servers').with_value(local_memcached_server)
     end
 
     if $glance_backend == 'rbd'
@@ -226,7 +227,7 @@ describe manifest do
       should contain_glance_registry_config('keystone_authtoken/username').with_value(glance_username)
       should contain_glance_registry_config('keystone_authtoken/password').with_value(glance_password)
       should contain_glance_registry_config('keystone_authtoken/project_name').with_value(glance_project_name)
-      should contain_glance_registry_config('keystone_authtoken/memcached_servers').with_value(memcached_servers.join(','))
+      should contain_glance_registry_config('keystone_authtoken/memcached_servers').with_value(local_memcached_server)
     end
 
     if use_syslog

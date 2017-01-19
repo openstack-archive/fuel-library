@@ -24,6 +24,7 @@ class openstack_tasks::openstack_cinder::openstack_cinder {
   $proxy_port             = hiera('proxy_port', '8080')
   $kombu_compression      = hiera('kombu_compression', $::os_service_default)
   $memcached_servers      = hiera('memcached_servers')
+  $local_memcached_server = hiera('local_memcached_server')
   $default_volume_type    = pick($cinder_hash['default_volume_type'], $::os_service_default)
   $db_type                = pick($cinder_hash['db_type'], 'mysql+pymysql')
   $db_host                = pick($cinder_hash['db_host'], hiera('database_vip'))
@@ -163,7 +164,7 @@ class openstack_tasks::openstack_cinder::openstack_cinder {
       username          => $keystone_user,
       project_name      => $keystone_tenant,
       password          => $cinder_user_password,
-      memcached_servers => $memcached_servers,
+      memcached_servers => $local_memcached_server,
       auth_version      => $keystone_api,
     }
 

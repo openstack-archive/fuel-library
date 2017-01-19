@@ -153,13 +153,7 @@ class openstack_tasks::openstack_controller::openstack_controller {
   }
 
   $memcached_servers = hiera('memcached_servers')
-
-  # LP1621541 In order to increase nova performance after failover,
-  # we need to point nova to local memcached instance for keystone tokens,
-  # in future we can consider moving memcached under HAproxy
-  $memcached_port = hiera('memcache_server_port', '11211')
-  $memcached_address = get_network_role_property('mgmt/memcache', 'ipaddr')
-  $memcached_authtoken_server = "${memcached_address}:${memcached_port}"
+  $local_memcached_server = hiera('local_memcached_server')
 
   $debug         = pick($openstack_controller_hash['debug'], hiera('debug', true))
 
@@ -211,7 +205,7 @@ class openstack_tasks::openstack_controller::openstack_controller {
     class { '::nova::cache':
       enabled          => true,
       backend          => 'oslo_cache.memcache_pool',
-      memcache_servers => $memcached_servers,
+      memcache_servers => $local_memcached_server,
     }
   } else {
     ensure_packages($pymemcache_package_name)
@@ -264,7 +258,7 @@ class openstack_tasks::openstack_controller::openstack_controller {
     auth_url          => $keystone_auth_url,
     auth_uri          => $keystone_auth_uri,
     auth_version      => pick($nova_hash['auth_version'], $::os_service_default),
-    memcached_servers => $memcached_authtoken_server,
+    memcached_servers => $local_memcached_server,
   }
 
   # Configure nova-api
