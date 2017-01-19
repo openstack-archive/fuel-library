@@ -20,6 +20,7 @@ describe manifest do
     baremetal_vip = Noop.hiera_structure 'network_metadata/vips/baremetal/ipaddr'
 
     let(:memcached_servers) { Noop.hiera 'memcached_servers' }
+    let(:local_memcached_server) { Noop.hiera 'local_memcached_server' }
 
     if ironic_enabled
       it 'should ensure that ironic-fa-deploy is installed' do
@@ -83,7 +84,7 @@ describe manifest do
         should contain_ironic_config('keystone_authtoken/auth_uri').with('value' => internal_auth_uri)
         should contain_ironic_config('keystone_authtoken/identity_uri').with('value' => admin_identity_uri)
         should contain_ironic_config('keystone_authtoken/admin_user').with('value' => ironic_user)
-        should contain_ironic_config('keystone_authtoken/memcached_servers').with('value' => memcached_servers.join(','))
+        should contain_ironic_config('keystone_authtoken/memcached_servers').with('value' => local_memcached_server)
         should contain_ironic_config('glance/temp_url_endpoint_type').with('value' => temp_url_endpoint_type)
       end
 

@@ -6,6 +6,7 @@ class openstack_tasks::horizon::horizon {
   $horizon_hash            = hiera_hash('horizon', {})
   $service_endpoint        = hiera('service_endpoint')
   $cache_server_ip         = hiera('memcached_addresses')
+  $local_memcached_server  = hiera('local_memcached_server')
   $bind_address            = get_network_role_property('horizon', 'ipaddr')
   $storage_hash            = hiera_hash('storage', {})
   $neutron_advanced_config = hiera_hash('neutron_advanced_configuration', {})
@@ -100,7 +101,7 @@ class openstack_tasks::horizon::horizon {
 
   class { '::horizon':
     bind_address          => $bind_address,
-    cache_server_ip       => $cache_server_ip,
+    cache_server_ip       => $local_memcached_server,
     cache_server_port     => hiera('memcache_server_port', '11211'),
     cache_backend         => $cache_backend,
     cache_options         => {'SOCKET_TIMEOUT' => 1,'SERVER_RETRIES' => 1,'DEAD_RETRY' => 1},
