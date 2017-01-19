@@ -16,6 +16,7 @@ describe manifest do
     end
 
     let(:memcached_servers) { Noop.hiera 'memcached_servers' }
+    let(:local_memcached_server) { Noop.hiera 'local_memcached_server' }
 
     let(:aodh_api_bind_host) do
       aodh_api_bind_host = Noop.puppet_function 'get_network_role_property', 'aodh/api', 'ipaddr'
@@ -97,7 +98,7 @@ describe manifest do
 
 
     it 'should configure "keystone_authtoken/" section' do
-      should contain_aodh_config('keystone_authtoken/memcached_servers').with(:value => memcached_servers.join(','))
+      should contain_aodh_config('keystone_authtoken/memcached_servers').with(:value => local_memcached_server)
       should contain_aodh_config('keystone_authtoken/auth_url').with(:value => keystone_auth_url)
       should contain_aodh_config('keystone_authtoken/auth_uri').with(:value => keystone_auth_uri)
       should contain_aodh_config('keystone_authtoken/project_name').with(:value => tenant)

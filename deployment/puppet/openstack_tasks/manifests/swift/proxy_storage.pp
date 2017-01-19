@@ -12,6 +12,7 @@ class openstack_tasks::swift::proxy_storage {
   $swift_operator_roles       = pick($swift_hash['swift_operator_roles'], ['admin', 'SwiftOperator', '_member_'])
   $swift_proxies_addr_list    = values(get_node_to_ipaddr_map_by_network_role(hiera_hash('swift_proxies', {}), 'swift/api'))
   $memcached_servers          = hiera('memcached_servers')
+  $local_memcached_server = hiera('local_memcached_server')
   $is_primary_swift_proxy     = hiera('is_primary_swift_proxy', false)
   $proxy_port                 = hiera('proxy_port', '8080')
   $storage_hash               = hiera_hash('storage')
@@ -80,7 +81,7 @@ class openstack_tasks::swift::proxy_storage {
     class { 'openstack_tasks::swift::parts::proxy':
       swift_user_password            => $swift_hash['user_password'],
       swift_operator_roles           => $swift_operator_roles,
-      memcached_servers              => $memcached_servers,
+      memcached_servers              => $local_memcached_server,
       ring_part_power                => $ring_part_power,
       ring_replicas                  => $ring_replicas,
       primary_proxy                  => $is_primary_swift_proxy,

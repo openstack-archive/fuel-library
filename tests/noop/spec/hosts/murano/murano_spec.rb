@@ -62,6 +62,7 @@ describe manifest do
     let(:db_password) { Noop.hiera_structure('murano/db_password') }
 
     let(:memcached_servers) { Noop.hiera 'memcached_servers' }
+    let(:local_memcached_server) { Noop.hiera 'local_memcached_server' }
 
     let(:predefined_networks) { Noop.hiera_structure('neutron_config/predefined_networks') }
 
@@ -197,6 +198,7 @@ describe manifest do
                    'external_network'    => external_network,
                    'memcached_servers'   => memcached_servers,
                )
+        should contain_murano_config('keystone_authtoken/memcached_servers').with_value(local_memcached_server)
       end
 
       it 'should configure default_log_levels' do
