@@ -96,6 +96,7 @@ class openstack_tasks::roles::compute {
   ##CALCULATED PARAMETERS
 
   $memcached_servers = hiera('memcached_servers')
+  $local_memcached_server = hiera('local_memcached_server')
 
   # TODO(xarses): We need to validate this is needed
   if ($storage_hash['volumes_lvm']) {
@@ -323,7 +324,7 @@ class openstack_tasks::roles::compute {
   class { '::nova::cache':
     enabled          => $nova_cache,
     backend          => 'oslo_cache.memcache_pool',
-    memcache_servers => $memcached_servers,
+    memcache_servers => $local_memcached_server,
   }
 
   class { '::nova::availability_zone':

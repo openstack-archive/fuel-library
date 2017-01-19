@@ -52,6 +52,7 @@ describe manifest do
     kombu_compression      = Noop.hiera 'kombu_compression', ''
 
     let(:memcached_servers) { Noop.hiera 'memcached_servers' }
+    let(:local_memcached_server) { Noop.hiera 'local_memcached_server' }
 
     # Ceilometer
     if ceilometer_hash['enabled']
@@ -67,6 +68,7 @@ describe manifest do
       it 'should configure auth and identity uri' do
         should contain_ceilometer_config('keystone_authtoken/auth_uri').with(:value => keystone_auth_uri)
         should contain_ceilometer_config('keystone_authtoken/identity_uri').with(:value => keystone_identity_uri)
+        should contain_ceilometer_config('keystone_authtoken/memcached_servers').with(:value => local_memcached_server)
       end
 
       it 'should configure OS ENDPOINT TYPE for ceilometer' do

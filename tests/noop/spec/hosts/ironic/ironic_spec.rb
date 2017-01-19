@@ -44,6 +44,7 @@ if ironic_enabled
       let(:public_protocol) { Noop.puppet_function 'get_ssl_property',ssl_hash,public_ssl_hash,'ironic','admin','protocol','http' }
       let(:public_address) { Noop.puppet_function 'get_ssl_property',ssl_hash,public_ssl_hash,'ironic','admin','hostname', public_vip }
       let(:memcached_servers) { Noop.hiera 'memcached_servers' }
+    let(:local_memcached_server) { Noop.hiera 'local_memcached_server' }
 
       it 'should configure default_log_levels' do
         should contain_ironic_config('DEFAULT/default_log_levels').with_value(default_log_levels.sort.join(','))
@@ -67,7 +68,7 @@ if ironic_enabled
           'admin_tenant_name'    => admin_tenant,
           'admin_user'           => admin_user,
           'admin_password'       => admin_password,
-          'memcached_servers'    => memcached_servers,
+          'memcached_servers'    => local_memcached_server,
           'public_endpoint'      => "#{public_protocol}://#{public_address}:6385"
         )
       end
