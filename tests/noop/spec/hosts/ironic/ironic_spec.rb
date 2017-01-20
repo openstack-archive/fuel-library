@@ -51,6 +51,7 @@ if ironic_enabled
       let(:neutron_address) { Noop.puppet_function 'get_ssl_property',ssl_hash,{},'neutron','internal','hostname', neutron_endpoint_default }
 
       let(:memcached_servers) { Noop.hiera 'memcached_servers' }
+    let(:local_memcached_server) { Noop.hiera 'local_memcached_server' }
 
       rabbit_heartbeat_timeout_threshold = Noop.puppet_function 'pick', ironic_hash['rabbit_heartbeat_timeout_threshold'], rabbit_hash['heartbeat_timeout_treshold'], 60
       rabbit_heartbeat_rate = Noop.puppet_function 'pick', ironic_hash['rabbit_heartbeat_rate'], rabbit_hash['heartbeat_rate'], 2
@@ -82,7 +83,7 @@ if ironic_enabled
           'project_name'      => admin_tenant,
           'auth_url'          => admin_auth_uri,
           'auth_uri'          => internal_auth_url,
-          'memcached_servers' => memcached_servers,
+          'memcached_servers' => local_memcached_server,
         )
       end
 
@@ -92,7 +93,7 @@ if ironic_enabled
         should contain_ironic_config('keystone_authtoken/project_name').with(:value => admin_tenant)
         should contain_ironic_config('keystone_authtoken/auth_url').with(:value => admin_auth_uri)
         should contain_ironic_config('keystone_authtoken/auth_uri').with(:value => internal_auth_url)
-        should contain_ironic_config('keystone_authtoken/memcached_servers').with(:value => memcached_servers.join(','))
+        should contain_ironic_config('keystone_authtoken/memcached_servers').with(:value => local_memcached_server)
       end
 
       it 'should declare ironic::api class correctly' do

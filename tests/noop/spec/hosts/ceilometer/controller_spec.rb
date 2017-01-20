@@ -58,6 +58,7 @@ describe manifest do
     ssl = 'false'
 
     let(:memcached_servers) { Noop.hiera 'memcached_servers' }
+    let(:local_memcached_server) { Noop.hiera 'local_memcached_server' }
     let (:api_bind_address) do
       api_bind_address = Noop.puppet_function('get_network_role_property', 'ceilometer/api', 'ipaddr')
     end
@@ -101,7 +102,7 @@ describe manifest do
           'project_name'      => ceilometer_tenant,
           'auth_url'          => keystone_auth_url,
           'auth_uri'          => keystone_auth_uri,
-          'memcached_servers' => memcached_servers,
+          'memcached_servers' => local_memcached_server
         )
       end
 
@@ -118,7 +119,7 @@ describe manifest do
         should contain_ceilometer_config('keystone_authtoken/project_name').with(:value => ceilometer_tenant)
         should contain_ceilometer_config('keystone_authtoken/auth_uri').with(:value => keystone_auth_uri)
         should contain_ceilometer_config('keystone_authtoken/auth_url').with(:value => keystone_auth_url)
-        should contain_ceilometer_config('keystone_authtoken/memcached_servers').with(:value => memcached_servers.join(','))
+        should contain_ceilometer_config('keystone_authtoken/memcached_servers').with(:value => local_memcached_server)
       end
 
       it 'should configure interface (ex. OS ENDPOINT TYPE) for ceilometer' do

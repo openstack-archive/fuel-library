@@ -50,6 +50,7 @@ class openstack_tasks::openstack_network::server_config {
   $region_name             = hiera('region', 'RegionOne')
   $auth_endpoint_type      = 'internalURL'
   $memcached_servers       = hiera('memcached_servers')
+  $local_memcached_server = hiera('local_memcached_server')
 
   $ssl_hash                = hiera_hash('use_ssl', {})
 
@@ -188,7 +189,7 @@ class openstack_tasks::openstack_network::server_config {
     region_name       => $region_name,
     auth_url          => $auth_url,
     auth_uri          => $auth_uri,
-    memcached_servers => $memcached_servers,
+    memcached_servers => $local_memcached_server,
   }
 
   class { '::neutron::server':

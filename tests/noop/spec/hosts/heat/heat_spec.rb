@@ -25,6 +25,7 @@ describe manifest do
     end
 
     let(:memcached_servers) { Noop.hiera 'memcached_servers' }
+    let(:local_memcached_server) { Noop.hiera 'local_memcached_server' }
 
     let(:heat_ha_engine) do
       Noop.hiera 'heat_ha_engine', true
@@ -149,7 +150,7 @@ describe manifest do
         'project_name'      => tenant,
         'auth_url'          => keystone_auth_url,
         'auth_uri'          => keystone_auth_uri,
-        'memcached_servers' => memcached_servers,
+        'memcached_servers' => local_memcached_server
       )
     end
 
@@ -169,7 +170,7 @@ describe manifest do
       should contain_heat_config('keystone_authtoken/project_name').with(:value => tenant)
       should contain_heat_config('keystone_authtoken/auth_url').with(:value => keystone_auth_url)
       should contain_heat_config('keystone_authtoken/auth_uri').with(:value => keystone_auth_uri)
-      should contain_heat_config('keystone_authtoken/memcached_servers').with(:value => memcached_servers.join(','))
+      should contain_heat_config('keystone_authtoken/memcached_servers').with(:value => local_memcached_server)
     end
 
     it 'should configure heat class' do
@@ -197,7 +198,7 @@ describe manifest do
     it 'should configure caching for validation process' do
       should contain_heat_config('cache/enabled').with_value('true')
       should contain_heat_config('cache/backend').with_value('oslo_cache.memcache_pool')
-      should contain_heat_config('cache/memcache_servers').with_value(memcached_servers.join(','))
+      should contain_heat_config('cache/memcache_servers').with_value(local_memcached_server)
     end
 
     it 'should configure urls for metadata, cloudwatch and waitcondition servers' do

@@ -52,6 +52,7 @@ class openstack_tasks::heat::heat {
   $deployment_mode          = hiera('deployment_mode')
   $bind_host                = get_network_role_property('heat/api', 'ipaddr')
   $memcached_servers        = hiera('memcached_servers')
+  $local_memcached_server = hiera('local_memcached_server')
   $keystone_user            = pick($heat_hash['user'], 'heat')
   $keystone_tenant          = pick($heat_hash['tenant'], 'services')
   $region                   = hiera('region', 'RegionOne')
@@ -119,7 +120,7 @@ class openstack_tasks::heat::heat {
   heat_config {
     'cache/enabled':          value => true;
     'cache/backend':          value => 'oslo_cache.memcache_pool';
-    'cache/memcache_servers': value => join(any2array($memcached_servers), ',')
+    'cache/memcache_servers': value => $local_memcached_server;
   }
 
   # TODO(aschultz): ubuntu does not have a heat docker package
@@ -187,7 +188,7 @@ class openstack_tasks::heat::heat {
     project_name      => $keystone_tenant,
     auth_uri          => $auth_uri,
     auth_url          => $auth_url,
-    memcached_servers => $memcached_servers,
+    memcached_servers => $local_memcached_server,
   }
 
   # Common configuration, logging and RPC

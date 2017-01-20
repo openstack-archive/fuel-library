@@ -26,6 +26,7 @@ class openstack_tasks::ironic::ironic {
   $kombu_compression          = hiera('kombu_compression', $::os_service_default)
 
   $memcached_servers          = hiera('memcached_servers')
+  $local_memcached_server = hiera('local_memcached_server')
 
   $db_type                    = pick($ironic_hash['db_type'], 'mysql+pymysql')
   $db_host                    = pick($ironic_hash['db_host'], $database_vip)
@@ -98,7 +99,7 @@ class openstack_tasks::ironic::ironic {
     project_name      => $ironic_tenant,
     auth_url          => $admin_identity_uri,
     auth_uri          => $internal_auth_url,
-    memcached_servers => $memcached_servers,
+    memcached_servers => $local_memcached_server,
   }
 
   class { '::ironic::api':

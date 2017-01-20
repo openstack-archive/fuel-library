@@ -28,6 +28,7 @@ class openstack_tasks::murano::murano {
   $primary_controller         = hiera('primary_controller')
   $kombu_compression          = hiera('kombu_compression', $::os_service_default)
   $memcached_servers          = hiera('memcached_servers')
+  $local_memcached_server = hiera('local_memcached_server')
 
   $public_auth_protocol       = get_ssl_property($ssl_hash, $public_ssl_hash, 'keystone', 'public', 'protocol', 'http')
   $public_auth_address        = get_ssl_property($ssl_hash, $public_ssl_hash, 'keystone', 'public', 'hostname', [$public_ip])
@@ -150,7 +151,7 @@ class openstack_tasks::murano::murano {
       external_network    => $external_network,
       use_trusts          => true,
       kombu_compression   => $kombu_compression,
-      memcached_servers   => $memcached_servers,
+      memcached_servers   => $local_memcached_server,
     }
 
     class { '::murano::api':
