@@ -1,2 +1,2 @@
 class { '::osnailyfacter::globals::globals' :}
-class { '::osnailyfacter::override_resources': }
+class { '::osnailyfacter::override_resources': } fklsdjfkljasdjkfl
