@@ -323,6 +323,40 @@ Puppet::Parser::Functions::newfunction(:generate_network_config, :type => :rvalu
           }
         end
         tmp << t
+      elsif t[:action] == 'add-bond'
+        t[:interfaces].each do |ifname|
+          if !(i=tmp.index{|x| x[:action]=='add-port' && x[:name]==ifname})
+            # we has no bond slave in the transformation
+            # should be added
+            debug("Auto-add 'add-port(#{ifname})' for '#{t[:name]}'")
+            if_sym = ifname.to_sym
+            b_provider=t[:provider]
+            mtu = t[:mtu]
+            if t[:interface_properties].is_a?(Hash)
+              # need merge
+              props = config_hash[:interfaces][if_sym]
+              t[:interface_properties].each do |k,v|
+                if k=='mtu' and !v.nil?
+                  mtu==v.to_i
+                elsif v.is_a?(Hash) and props[k].is_a?(Hash)
+                  props[k] = v.merge(props[k])
+                elsif props[k].nil?
+                  props[k] = v
+                end
+              end
+            else
+              # just copy
+              props = config_hash[:interfaces][if_sym]
+            end
+            props[:provider] = b_provider if props[:provider].nil?
+            tmp << {
+              :action => 'add-port',
+              :name   => ifname,
+              :mtu    => mtu
+            }.merge(props)
+          end
+        end
+        tmp << t
       elsif (i=tmp.index{|x| x[:action].match(/add-(port|bond)/) && x[:name]==t[:name]})
         # we has transformation for this interface already auto-added by previous
         # condition. We should merge this properties into which are autocreated
