@@ -38,7 +38,6 @@ describe manifest do
         service_plugins.concat(['qos'])
       end
 
-      it { should contain_class('neutron').with('advertise_mtu' => 'true')}
       it { should contain_class('neutron').with('report_interval' => neutron_config['neutron_report_interval'])}
       it { should contain_class('neutron').with('dhcp_agents_per_network' => '2')}
       it { should contain_class('neutron').with('dhcp_lease_duration' => neutron_config['L3'].fetch('dhcp_lease_duration', '600'))}
