@@ -69,7 +69,11 @@ MYSQL_BINDIR="$(dirname ${OCF_RESKEY_binary})"
 MYSQL=$OCF_RESKEY_client_binary
 HOSTNAME=$(uname -n)
 MYSQL_OPTIONS_LOCAL="-S $OCF_RESKEY_socket --connect_timeout=10"
-MYSQL_OPTIONS_TEST="$MYSQL_OPTIONS_LOCAL --user=$OCF_RESKEY_test_user --password=$OCF_RESKEY_test_passwd"
+if [ "${OCF_RESKEY_test_conf}" ]; then
+    MYSQL_OPTIONS_TEST="--defaults-extra-file=${OCF_RESKEY_test_conf} ${MYSQL_OPTIONS_LOCAL}"
+else
+    MYSQL_OPTIONS_TEST="$MYSQL_OPTIONS_LOCAL --user=$OCF_RESKEY_test_user --password=$OCF_RESKEY_test_passwd"
+fi
 #######################################################################
 usage() {
     cat <<UEND
@@ -324,7 +328,8 @@ clear_node_pc()
 
 get_master_timeout() {
     local LH="${LL} get_master_timeout():"
-    local timeout=$(crm_attribute --quiet --name galera_master_timeout \
+    local timeout
+    timeout=$(crm_attribute --quiet --name galera_master_timeout \
         --query --default=$OCF_RESKEY_master_timeout -q | sed -e '/(null)/d')
 
     ocf_log info "${LH} Setting timeout $timeout"
@@ -361,8 +366,8 @@ get_node_gtid_with_retry() {
 
     GTID=$(get_node_gtid $NODE)
 
-    if [ "$GTID"="0" ]; then
-        sleep $[ ( $RANDOM % 10 ) + 1]
+    if [ "$GTID" = "0" ]; then
+        sleep $(( ( $RANDOM % 10 )  + 1 ))
         GTID=$(get_node_gtid $NODE)
     fi
 
@@ -371,11 +376,15 @@ get_node_gtid_with_retry() {
 
 check_if_reelection_needed() {
     local LH="${LL} check_if_reelection_needed()"
-    local PARTITION_WITH_QUORUM=$(crm_node -q | sed -e '/(null)/d')
-    local RESOURCE_NAME=$(echo $OCF_RESOURCE_INSTANCE | cut -f1 -d":")
-    local NODE_COUNT=$(nodes_in_cluster | wc -w)
+    local PARTITION_WITH_QUORUM
+    local RESOURCE_NAME
+    local NODE_COUNT
     local RUNNING_INSTANCES
     local rc
+
+    PARTITION_WITH_QUORUM=$(crm_node -q | sed -e '/(null)/d')
+    RESOURCE_NAME=$(echo $OCF_RESOURCE_INSTANCE | cut -f1 -d":")
+    NODE_COUNT=$(nodes_in_cluster | wc -w)
 
     if [ $PARTITION_WITH_QUORUM -eq 1 -o $NODE_COUNT -eq 1 ]; then
         RUNNING_INSTANCES=$(crm_resource \
@@ -439,8 +448,7 @@ get_master() {
     ocf_log info "${LH} The most seen GTID is: ${MASTER_GTID}"
     for NODE in $NODES; do
         NODE_SCORE=$(crm_simulate -Ls | awk "/${OCF_RESOURCE_INSTANCE}/ && /clone_color/ && ! /${OCF_RESOURCE_INSTANCE}:/ && /${NODE}/ {print \$NF}")
-        if [[ $NODE_SCORE =~ ^-?[0-9]+$ && $NODE_SCORE -le 0 || $NODE_SCORE = "-INFINITY" || -z $NODE_SCORE ]]
-        then
+        if [[ $NODE_SCORE =~ ^-?[0-9]+$ && $NODE_SCORE -le 0 || $NODE_SCORE = "-INFINITY" || -z $NODE_SCORE ]]; then
             ocf_log info "${LH} Skipping node $NODE as it is not eligible for running the resource. Its score is ${NODE_SCORE:-NULL}"
             continue
         fi
@@ -474,10 +482,12 @@ check_if_galera_pc() {
     local LH="${LL} check_if_galera_pc():"
     local NODES
     local MASTER
-    local timeout=$(get_master_timeout)
+    local timeout
     local GTID
     local pid
     local pcnum=0
+
+    timeout=$(get_master_timeout)
 
     ocf_log info "${LH} Checking if Primary Component"
 
@@ -495,15 +505,12 @@ check_if_galera_pc() {
             ocf_log info "${LH} My neighbour is Primary Component with GTID: ${GTID}"
             if check_if_new_cluster
             then
-                for node in ${NODES}
-                do
+                for node in ${NODES}; do
                     is_pc=$(crm_attribute --quiet --node ${node} --lifetime reboot --query --name is_pc | sed -e '/(null)/d')
-                    if [ ${is_pc} == "true" ]
-                    then
-                        let pcnum=pcnum+1
+                    if [ "${is_pc}" = "true" ]; then
+                        pcnum=$((pcnum + 1))
                     fi
-                    if [ ${pcnum} -gt 1 ]
-                    then
+                    if [ ${pcnum} -gt 1 ]; then
                         ocf_log err "${LH} But I'm running a new cluster, PID:${pid}, this is a split-brain!"
                         exit $OCF_ERR_GENERIC
                     fi
@@ -514,7 +521,7 @@ check_if_galera_pc() {
         fi
 
         sleep 10
-        (( timeout -= 10 ))
+        timeout=$((timeout - 10))
         ocf_log info "${LH} Waiting for master. ${timeout} seconds left"
     done
 
