@@ -3,6 +3,7 @@
   version: 2.1.0
   groups: [primary-controller, controller]
   cross-depends:
+    - name: /^(primary-)?rabbitmq$/
     - name: ironic-db
     - name: ironic-keystone
   required_for: [primary-openstack-controller, openstack-controller]
@@ -15,7 +16,7 @@
       $.get('glance_api_servers'), $.get('default_log_levels'),
       $.get('use_syslog'), $.get('syslog_log_facility_ironic'), $.rabbit,
       $.network_metadata.nodes.values().where(
-        $.node_roles.any($.matches('controller'))).network_roles.select(
+        $.node_roles.any($.matches('(controller|rabbitmq)'))).network_roles.select(
           $.get('mgmt/messaging')),
       $.get('amqp_hosts'), $.get('amqp_port'), $.quantum_settings,
       ('primary-controller' in $.roles), $.get('kombu_compression'),
@@ -76,7 +77,7 @@
       $.get('use_syslog'), $.get('syslog_log_facility_ironic'),
       $.get('syslog_log_facility_nova'),
       $.network_metadata.nodes.values().where(
-        $.node_roles.any($.matches('controller'))).network_roles.select(
+        $.node_roles.any($.matches('(controller|rabbitmq)'))).network_roles.select(
           $.get('mgmt/messaging')),
       $.get('amqp_hosts'), $.rabbit,
       $.get('nova_report_interval', '60'),
