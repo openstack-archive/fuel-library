@@ -1,7 +1,7 @@
 class fuel::auxiliaryrepos(
   $fuel_version,
   $repo_root    = $::fuel::params::repo_root,
-  $priority     = '15',
+  $priority     = '5',
   ) inherits fuel::params {
 
   $centos_dir = "${repo_root}/centos/auxiliary/"
