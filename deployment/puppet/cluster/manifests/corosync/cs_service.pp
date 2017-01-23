@@ -16,6 +16,9 @@ define cluster::corosync::cs_service (
   $csr_timeout = 60,
   $primary = true,
   $hasrestart = true,
+  # Mask services which are managed by pacemaker
+  # LP #1652748
+  $mask_service = true,
   )
 {
   $service_true_title = $service_title ? {
@@ -56,6 +59,7 @@ define cluster::corosync::cs_service (
   } else {
     tweaks::ubuntu_service_override { "${service_name}":
       package_name => $package_name,
+      mask_service => $mask_service,
     } -> Service<| title=="${service_true_title}" |>
   }
 
