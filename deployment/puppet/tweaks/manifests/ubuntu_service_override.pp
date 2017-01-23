@@ -13,9 +13,14 @@
 #  prevented from being started as part of the installation process.
 #  Defaults to $name
 #
+# [*mask_service*]
+#  Boolean variable to mask service.
+#  Defaults to false
+#
 define tweaks::ubuntu_service_override (
   $service_name = $name,
   $package_name = $name,
+  $mask_service = false,
 ) {
   if $::operatingsystem == 'Ubuntu' {
     if ! is_pkg_installed($package_name) {
@@ -23,8 +28,23 @@ define tweaks::ubuntu_service_override (
       # use policy-rc.d to really ensure services don't get started on
       # installation as service override files are only used if a job
       # configuration file exists (see man 5 init)
-      $policyrc_file = '/usr/sbin/policy-rc.d'
+      $systemd_unit = "/etc/systemd/system/${service_name}.service"
 
+      if $::service_provider != 'systemd' {
+        ensure_resource('file', $systemd_unit, {
+          ensure  => 'absent',
+        })
+      } elsif $mask_service {
+        ensure_resource('file', $systemd_unit, {
+          ensure => 'symlink',
+          target => '/dev/null'
+        })
+      }
+
+      Service <| title == $service_name |> ->
+      File <| title == $systemd_unit |>
+
+      $policyrc_file = '/usr/sbin/policy-rc.d'
       # use ensure resource as we only want a single instance of the
       # policy-rc.d file in the catalog
       ensure_resource('file', 'create-policy-rc.d', {
