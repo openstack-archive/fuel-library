@@ -13,12 +13,22 @@
 #  prevented from being started as part of the installation process.
 #  Defaults to $name
 #
+# [*mask_service*]
+# Boolean variable to mask service.
+
 define tweaks::ubuntu_service_override (
   $service_name = $name,
   $package_name = $name,
+  $mask_service = false,
 ) {
   if $::operatingsystem == 'Ubuntu' {
     if ! is_pkg_installed($package_name) {
+      if $mask_service {
+        file { "/etc/systemd/system/${service_name}.service":
+          ensure => 'link',
+          target => '/dev/null',
+        }
+      }
       # https://people.debian.org/~hmh/invokerc.d-policyrc.d-specification.txt
       # use policy-rc.d to really ensure services don't get started on
       # installation as service override files are only used if a job
