@@ -8,7 +8,7 @@ class openstack_tasks::glance::glance {
 
   $glance_hash         = hiera_hash('glance', {})
   $glance_glare_hash   = hiera_hash('glance_glare', {})
-  $verbose             = pick($glance_hash['verbose'], hiera('verbose', true))
+  $verbose             = $::os_service_default
   $debug               = pick($glance_hash['debug'], hiera('debug', false))
   $management_vip      = hiera('management_vip')
   $database_vip        = hiera('database_vip')
