@@ -57,6 +57,14 @@ define cluster::corosync::cs_service (
     tweaks::ubuntu_service_override { "${service_name}":
       package_name => $package_name,
     } -> Service<| title=="${service_true_title}" |>
+
+    # Disable external ways to manage services (L3-agent/DHCP-agent/ovs-agent/Metadata-agent)
+    # due to fact that these services are already managed by pacemaker
+    # LP #1652748
+    file { "/etc/systemd/system/${service_name}":
+    ensure => 'link',
+    target => '/dev/null',
+    }
   }
 
   Service<| title=="${service_true_title}" |> {
