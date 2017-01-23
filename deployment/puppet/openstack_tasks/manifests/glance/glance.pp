@@ -8,7 +8,6 @@ class openstack_tasks::glance::glance {
 
   $glance_hash         = hiera_hash('glance', {})
   $glance_glare_hash   = hiera_hash('glance_glare', {})
-  $verbose             = pick($glance_hash['verbose'], hiera('verbose', true))
   $debug               = pick($glance_hash['debug'], hiera('debug', false))
   $management_vip      = hiera('management_vip')
   $database_vip        = hiera('database_vip')
@@ -149,9 +148,15 @@ class openstack_tasks::glance::glance {
     }
   }
 
+  class { '::glance::api::logging':
+    verbose      => $::os_service_default,
+    use_stderr   => $use_stderr,
+    use_syslog   => $use_syslog,
+    log_facility => $syslog_log_facility,
+  }
+
   # Install and configure glance-api
   class { '::glance::api':
-    verbose                => $verbose,
     debug                  => $debug,
     bind_host              => $api_bind_host,
     auth_type              => 'keystone',
@@ -200,7 +205,6 @@ class openstack_tasks::glance::glance {
     use_syslog         => $use_syslog,
     use_stderr         => $use_stderr,
     log_facility       => $syslog_log_facility,
-    verbose            => $verbose,
     debug              => $debug,
     default_log_levels => hiera('default_log_levels'),
   }
@@ -246,7 +250,6 @@ class openstack_tasks::glance::glance {
 
   # Install and configure glance-registry
   class { '::glance::registry':
-    verbose                => $verbose,
     debug                  => $debug,
     bind_host              => $api_bind_host,
     auth_uri               => $auth_uri,
