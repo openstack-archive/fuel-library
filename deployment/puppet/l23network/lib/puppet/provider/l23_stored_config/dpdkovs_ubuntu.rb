@@ -49,6 +49,7 @@ Puppet::Type.type(:l23_stored_config).provide(:dpdkovs_ubuntu, :parent => Puppet
       :bond_updelay          => 'ovs_options',
       :bond_downdelay        => 'ovs_options',
       :multiq_threads        => 'multiq_threads',
+      :mtu                   => 'mtu_request',
     )
   end
 
