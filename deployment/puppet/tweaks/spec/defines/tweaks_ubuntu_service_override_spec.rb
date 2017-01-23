@@ -5,7 +5,8 @@ describe 'tweaks::ubuntu_service_override' do
 
   let(:default_params) { {
     :service_name => title,
-    :package_name => title
+    :package_name => title,
+    :mask_service => false
   } }
 
   shared_examples_for 'tweaks::ubuntu_service_override configuration' do
@@ -22,16 +23,23 @@ describe 'tweaks::ubuntu_service_override' do
       it 'configures with the default params' do
         should contain_tweaks__ubuntu_service_override(title)
         if facts[:operatingsystem] == 'Ubuntu'
-          should contain_file('create-policy-rc.d').with(
-            :ensure  => 'present',
-            :path    => '/usr/sbin/policy-rc.d',
-            :content => "#!/bin/bash\nexit 101",
-            :mode    => '0755',
-            :owner   => 'root',
-            :group   => 'root')
-          should contain_exec('remove-policy-rc.d').with(
-            :command => 'rm -f /usr/sbin/policy-rc.d',
-            :onlyif  => 'test -f /usr/sbin/policy-rc.d')
+          if default_params[:mask_service] == 'true'
+            should contain_file("/etc/systemd/system/:service_name.service").with(
+            :ensure  => 'link',
+            :target  => '/dev/null')
+          else
+            should_not contain_file("/etc/systemd/system/${service_name}.service")
+            should contain_file('create-policy-rc.d').with(
+              :ensure  => 'present',
+              :path    => '/usr/sbin/policy-rc.d',
+              :content => "#!/bin/bash\nexit 101",
+              :mode    => '0755',
+              :owner   => 'root',
+              :group   => 'root')
+            should contain_exec('remove-policy-rc.d').with(
+              :command => 'rm -f /usr/sbin/policy-rc.d',
+              :onlyif  => 'test -f /usr/sbin/policy-rc.d')
+          end
         else
           should_not contain_file('create-policy-rc.d')
           should_not contain_exec('remove-policy-rc.d')
