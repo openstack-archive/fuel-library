@@ -15,7 +15,7 @@ A ['Puppet Module'](http://docs.puppetlabs.com/learning/modules1.html#modules)
 is a collection of related content that can be used to model the configuration
 of a discrete service.
 
-These modules are based on the adminstrative guides for openstack
+These modules are based on the administrative guides for openstack
 [compute](http://docs.openstack.org/essex/openstack-compute/admin/content/) and
 [object store](http://docs.openstack.org/essex/openstack-object-storage/admin/content/)
 
