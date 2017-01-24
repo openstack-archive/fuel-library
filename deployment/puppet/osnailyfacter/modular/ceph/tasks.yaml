@@ -6,7 +6,7 @@
   requires: [hosts, firewall]
   condition:
     yaql_exp:
-      changedAny($.storage, $.ceph_tuning_settings, $.get('use_ssl'),
+      changedAny($.storage, $.get('ceph_tuning_settings'), $.get('use_ssl'),
       $.get('use_syslog'), $.network_scheme,
       $.network_metadata.nodes.values().where(
         ('controller' in $.node_roles) or
