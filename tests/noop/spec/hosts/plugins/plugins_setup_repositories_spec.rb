@@ -30,7 +30,9 @@ describe manifest do
       should contain_apt__pin('contrail-5.0.0').with(
         'priority' => 1100
       )
-      should contain_apt__source('contrail-5.0.0')
+      should contain_apt__source('contrail-5.0.0').with(
+        'allow_unsigned' => true
+      )
     end
   end
   end
