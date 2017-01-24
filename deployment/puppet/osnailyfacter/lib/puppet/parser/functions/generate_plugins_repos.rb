@@ -22,6 +22,7 @@ usable with create_resources and the puppetlabs/apt's apt::source type.
           'repos'    => repo['section'],
           'release'  => repo['suite'],
           'location' => repo['uri'],
+          'allow_unsigned' => true
         }
         if addprios
           result[repo['name']]['priority'] = repo['priority']
