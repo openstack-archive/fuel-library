@@ -21,8 +21,6 @@ class openstack_tasks::sahara::sahara {
   $use_syslog                 = hiera('use_syslog', true)
   $use_stderr                 = hiera('use_stderr', false)
   $rabbit_ha_queues           = hiera('rabbit_ha_queues')
-  $amqp_port                  = hiera('amqp_port')
-  $amqp_hosts                 = hiera('amqp_hosts')
   $external_lb                = hiera('external_lb', false)
   $ssl_hash                   = hiera_hash('use_ssl', {})
   $internal_auth_protocol     = get_ssl_property($ssl_hash, {}, 'keystone', 'internal', 'protocol', 'http')
@@ -76,6 +74,8 @@ class openstack_tasks::sahara::sahara {
       'extra'    => $extra_params
     })
 
+    $transport_url = hiera('transport_url','rabbit://guest:password@127.0.0.1:5672/')
+
     ####### Disable upstart startup on install #######
     tweaks::ubuntu_service_override { 'sahara-api': }
 
@@ -99,19 +99,15 @@ class openstack_tasks::sahara::sahara {
       database_max_overflow  => $max_overflow,
       database_max_retries   => $max_retries,
       database_idle_timeout  => $idle_timeout,
+      default_transport_url  => $transport_url,
       sync_db                => $primary_controller,
       auth_uri               => "${internal_auth_url}/v2.0/",
       identity_uri           => $admin_identity_uri,
-      rpc_backend            => 'rabbit',
       use_neutron            => true,
       admin_user             => $sahara_user,
       admin_password         => $sahara_password,
       admin_tenant_name      => $tenant,
-      rabbit_userid          => $rabbit_hash['user'],
-      rabbit_password        => $rabbit_hash['password'],
       rabbit_ha_queues       => $rabbit_ha_queues,
-      rabbit_port            => $amqp_port,
-      rabbit_hosts           => split($amqp_hosts, ','),
       kombu_compression      => $kombu_compression,
       memcached_servers      => $memcached_servers,
     }

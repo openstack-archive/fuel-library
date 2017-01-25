@@ -4,18 +4,10 @@ class openstack_tasks::aodh::aodh {
 
   $notification_topics = 'notifications'
 
-  $rpc_backend = 'rabbit'
-
   $rabbit_ha_queues = hiera('rabbit_ha_queues')
 
   $rabbit_hash     = hiera_hash('rabbit', {})
-  $rabbit_userid   = pick($rabbit_hash['user'], 'nova')
-  $rabbit_password = $rabbit_hash['password']
 
-  $amqp_hosts          = hiera('amqp_hosts')
-  $rabbit_port         = hiera('amqp_port')
-  $rabbit_hosts        = split($amqp_hosts, ',')
-  $rabbit_virtual_host = '/'
   $kombu_compression   = hiera('kombu_compression', $::os_service_default)
 
   prepare_network_config(hiera_hash('network_scheme', {}))
@@ -53,6 +45,8 @@ class openstack_tasks::aodh::aodh {
     'password' => $db_password,
     'extra'    => $extra_params
   })
+
+  $transport_url = hiera('transport_url','rabbit://guest:password@127.0.0.1:5672/')
 
   $external_lb = hiera('external_lb', false)
 
@@ -105,14 +99,9 @@ class openstack_tasks::aodh::aodh {
   class { '::aodh':
     debug                              => $debug,
     notification_topics                => $notification_topics,
-    rpc_backend                        => $rpc_backend,
-    rabbit_userid                      => $rabbit_userid,
-    rabbit_password                    => $rabbit_password,
-    rabbit_hosts                       => $rabbit_hosts,
-    rabbit_port                        => $rabbit_port,
-    rabbit_virtual_host                => $rabbit_virtual_host,
     rabbit_ha_queues                   => $rabbit_ha_queues,
     database_connection                => $database_connection,
+    default_transport_url              => $transport_url,
     alarm_history_time_to_live         => $alarm_history_ttl,
     rabbit_heartbeat_timeout_threshold => $rabbit_heartbeat_timeout_threshold,
     rabbit_heartbeat_rate              => $rabbit_heartbeat_rate,
