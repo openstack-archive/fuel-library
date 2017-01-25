@@ -10,8 +10,6 @@ if ironic_enabled
 
   describe manifest do
     shared_examples 'catalog' do
-      rabbit_user = Noop.hiera_structure 'rabbit/user', 'nova'
-      rabbit_password = Noop.hiera_structure 'rabbit/password'
       default_log_levels_hash = Noop.hiera_hash 'default_log_levels'
       default_log_levels = Noop.puppet_function 'join_keys_to_values',default_log_levels_hash,'='
       primary_controller = Noop.hiera 'primary_controller'
@@ -51,7 +49,9 @@ if ironic_enabled
       let(:neutron_address) { Noop.puppet_function 'get_ssl_property',ssl_hash,{},'neutron','internal','hostname', neutron_endpoint_default }
 
       let(:memcached_servers) { Noop.hiera 'memcached_servers' }
-    let(:local_memcached_server) { Noop.hiera 'local_memcached_server' }
+      let(:local_memcached_server) { Noop.hiera 'local_memcached_server' }
+
+      let(:transport_url) { Noop.hiera 'transport_url', 'rabbit://guest:password@127.0.0.1:5672/' }
 
       rabbit_heartbeat_timeout_threshold = Noop.puppet_function 'pick', ironic_hash['rabbit_heartbeat_timeout_threshold'], rabbit_hash['heartbeat_timeout_treshold'], 60
       rabbit_heartbeat_rate = Noop.puppet_function 'pick', ironic_hash['rabbit_heartbeat_rate'], rabbit_hash['heartbeat_rate'], 2
@@ -67,12 +67,11 @@ if ironic_enabled
 
       it 'should declare ironic class correctly' do
         should contain_class('ironic').with(
-          'rabbit_userid'        => rabbit_user,
-          'rabbit_password'      => rabbit_password,
-          'sync_db'              => primary_controller,
-          'control_exchange'     => 'ironic',
-          'amqp_durable_queues'  => amqp_durable_queues,
-          'database_max_retries' => '-1',
+          'default_transport_url' => transport_url,
+          'sync_db'               => primary_controller,
+          'control_exchange'      => 'ironic',
+          'amqp_durable_queues'   => amqp_durable_queues,
+          'database_max_retries'  => '-1',
         )
       end
 
@@ -112,6 +111,10 @@ if ironic_enabled
         should contain_class('ironic').with(
           :database_connection => "#{ironic_db_type}://#{ironic_db_user}:#{ironic_db_password}@#{database_vip}/#{ironic_db_name}#{extra_params}"
         )
+      end
+
+      it 'should properly configure default transport url' do
+        should contain_ironic_config('DEFAULT/transport_url').with_value(transport_url)
       end
 
       it 'should configure kombu compression' do
