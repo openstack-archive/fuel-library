@@ -30,8 +30,7 @@ class openstack_tasks::ceilometer::controller {
   $ceilometer_enabled         = $ceilometer_hash['enabled']
   $ceilometer_metering_secret = $ceilometer_hash['metering_secret']
   $swift_rados_backend        = $storage_hash['objects_ceph']
-  $amqp_password              = $rabbit_hash['password']
-  $amqp_user                  = $rabbit_hash['user']
+  $transport_url              = hiera('transport_url','rabbit://guest:password@127.0.0.1:5672/')
   $service_endpoint           = hiera('service_endpoint', $management_vip)
   $ha_mode                    = pick($ceilometer_hash['ha_mode'], true)
   $ssl_hash                   = hiera_hash('use_ssl', {})
@@ -128,14 +127,12 @@ class openstack_tasks::ceilometer::controller {
       http_timeout                       => $ceilometer_hash['http_timeout'],
       event_time_to_live                 => $ceilometer_hash['event_time_to_live'],
       metering_time_to_live              => $ceilometer_hash['metering_time_to_live'],
-      rabbit_hosts                       => split(hiera('amqp_hosts',''), ','),
-      rabbit_userid                      => $amqp_user,
-      rabbit_password                    => $amqp_password,
       metering_secret                    => $ceilometer_metering_secret,
       debug                              => $debug,
       use_syslog                         => $use_syslog,
       use_stderr                         => $use_stderr,
       log_facility                       => $syslog_log_facility,
+      default_transport_url              => $transport_url,
       kombu_compression                  => $kombu_compression,
       rabbit_heartbeat_timeout_threshold => $rabbit_heartbeat_timeout_threshold,
       rabbit_heartbeat_rate              => $rabbit_heartbeat_rate,
