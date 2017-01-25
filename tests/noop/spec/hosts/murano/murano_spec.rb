@@ -11,8 +11,6 @@ describe manifest do
     let(:murano_user) { Noop.hiera_structure('murano/user', 'murano') }
     let(:murano_password) { Noop.hiera_structure('murano/user_password') }
     let(:tenant) { Noop.hiera_structure('murano/tenant', 'services') }
-    let(:rabbit_os_user) { Noop.hiera_structure('rabbit/user', 'nova') }
-    let(:rabbit_os_password) { Noop.hiera_structure('rabbit/password') }
 
     let(:rabbit_own_user) { Noop.hiera_structure('murano/rabbit/user', 'murano') }
     let(:rabbit_own_password) { Noop.hiera_structure('murano/rabbit_password') }
@@ -50,8 +48,7 @@ describe manifest do
     let(:debug) { Noop.hiera('debug', false) }
     let(:use_syslog) { Noop.hiera('use_syslog', true) }
     let(:rabbit_ha_queues) { Noop.hiera('rabbit_ha_queues') }
-    let(:amqp_port) { Noop.hiera('amqp_port') }
-    let(:amqp_hosts) { Noop.hiera('amqp_hosts') }
+    let(:transport_url) { Noop.hiera 'transport_url', 'rabbit://guest:password@127.0.0.1:5672/' }
     let(:public_ssl) { Noop.hiera_structure('public_ssl/services') }
 
     let(:db_type) { Noop.hiera_structure('murano/db_type', 'mysql+pymysql') }
@@ -166,35 +163,32 @@ describe manifest do
 
       it 'should declare murano class correctly' do
         should contain_class('murano').with(
-                   'debug'               => debug,
-                   'use_syslog'          => use_syslog,
-                   'use_stderr'          => 'false',
-                   'log_facility'        => syslog_log_facility_murano,
-                   'database_connection' => sql_connection,
-                   'sync_db'             => primary_controller,
-                   'auth_uri'            => "#{public_auth_protocol}://#{public_auth_address}:5000/",
-                   'admin_user'          => murano_user,
-                   'admin_password'      => murano_password,
-                   'admin_tenant_name'   => tenant,
-                   'identity_uri'        => "#{admin_auth_protocol}://#{admin_auth_address}:35357/",
-                   'notification_driver' => ceilometer_hash['notification_driver'],
-                   'use_neutron'         => 'true',
-                   'packages_service'    => packages_service,
-                   'rabbit_os_user'      => rabbit_os_user,
-                   'rabbit_os_password'  => rabbit_os_password,
-                   'rabbit_os_port'      => amqp_port,
-                   'rabbit_os_host'      => amqp_hosts.split(','),
-                   'rabbit_ha_queues'    => rabbit_ha_queues,
-                   'rabbit_own_host'     => public_ip,
-                   'rabbit_own_port'     => rabbit_own_port,
-                   'rabbit_own_user'     => rabbit_own_user,
-                   'rabbit_own_password' => rabbit_own_password,
-                   'rabbit_own_vhost'    => rabbit_own_vhost,
-                   'default_nameservers' => default_dns,
-                   'service_host'        => bind_address,
-                   'service_port'        => api_bind_port,
-                   'external_network'    => external_network,
-                   'memcached_servers'   => local_memcached_server,
+                   'debug'                 => debug,
+                   'use_syslog'            => use_syslog,
+                   'use_stderr'            => 'false',
+                   'log_facility'          => syslog_log_facility_murano,
+                   'database_connection'   => sql_connection,
+                   'default_transport_url' => $transport_url,
+                   'sync_db'               => primary_controller,
+                   'auth_uri'              => "#{public_auth_protocol}://#{public_auth_address}:5000/",
+                   'admin_user'            => murano_user,
+                   'admin_password'        => murano_password,
+                   'admin_tenant_name'     => tenant,
+                   'identity_uri'          => "#{admin_auth_protocol}://#{admin_auth_address}:35357/",
+                   'notification_driver'   => ceilometer_hash['notification_driver'],
+                   'use_neutron'           => 'true',
+                   'packages_service'      => packages_service,
+                   'rabbit_ha_queues'      => rabbit_ha_queues,
+                   'rabbit_own_host'       => public_ip,
+                   'rabbit_own_port'       => rabbit_own_port,
+                   'rabbit_own_user'       => rabbit_own_user,
+                   'rabbit_own_password'   => rabbit_own_password,
+                   'rabbit_own_vhost'      => rabbit_own_vhost,
+                   'default_nameservers'   => default_dns,
+                   'service_host'          => bind_address,
+                   'service_port'          => api_bind_port,
+                   'external_network'      => external_network,
+                   'memcached_servers'     => local_memcached_server,
                )
       end
 

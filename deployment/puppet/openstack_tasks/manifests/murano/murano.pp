@@ -74,6 +74,8 @@ class openstack_tasks::murano::murano {
       'extra'    => $extra_params
     })
 
+    $transport_url = hiera('transport_url','rabbit://guest:password@127.0.0.1:5672/')
+
     $external_network = get_ext_net_name($neutron_config['predefined_networks'])
 
     $repository_url = has_key($murano_settings_hash, 'murano_repo_url') ? {
@@ -120,38 +122,35 @@ class openstack_tasks::murano::murano {
     }
 
     class { '::murano' :
-      debug               => $debug,
-      use_syslog          => $use_syslog,
-      use_stderr          => $use_stderr,
-      log_facility        => $syslog_log_facility_murano,
-      database_connection => $db_connection,
-      sync_db             => $primary_controller,
-      auth_uri            => "${public_auth_protocol}://${public_auth_address}:5000/",
-      admin_user          => $murano_user,
-      admin_password      => $murano_hash['user_password'],
-      admin_tenant_name   => $tenant,
-      identity_uri        => "${admin_auth_protocol}://${admin_auth_address}:35357/",
-      notification_driver => $ceilometer_hash['notification_driver'],
-      use_neutron         => true,
-      packages_service    => $packages_service,
-      rabbit_os_user      => $rabbit_hash['user'],
-      rabbit_os_password  => $rabbit_hash['password'],
-      rabbit_os_port      => $amqp_port,
-      rabbit_os_host      => split($amqp_hosts, ','),
-      rabbit_ha_queues    => $rabbit_ha_queues,
-      rabbit_own_host     => $public_ip,
-      rabbit_own_port     => $murano_hash['rabbit']['port'],
-      rabbit_own_vhost    => $murano_hash['rabbit']['vhost'],
-      rabbit_own_user     => pick($murano_hash['rabbit']['user'], 'murano'),
-      rabbit_own_password => $murano_hash['rabbit_password'],
-      default_router      => 'murano-default-router',
-      default_nameservers => pick($external_dns['dns_list'], '8.8.8.8'),
-      service_host        => $api_bind_host,
-      service_port        => $api_bind_port,
-      external_network    => $external_network,
-      use_trusts          => true,
-      kombu_compression   => $kombu_compression,
-      memcached_servers   => $local_memcached_server,
+      debug                  => $debug,
+      use_syslog             => $use_syslog,
+      use_stderr             => $use_stderr,
+      log_facility           => $syslog_log_facility_murano,
+      database_connection    => $db_connection,
+      default_transport_url  => $transport_url,
+      sync_db                => $primary_controller,
+      auth_uri               => "${public_auth_protocol}://${public_auth_address}:5000/",
+      admin_user             => $murano_user,
+      admin_password         => $murano_hash['user_password'],
+      admin_tenant_name      => $tenant,
+      identity_uri           => "${admin_auth_protocol}://${admin_auth_address}:35357/",
+      notification_driver    => $ceilometer_hash['notification_driver'],
+      use_neutron            => true,
+      packages_service       => $packages_service,
+      rabbit_ha_queues       => $rabbit_ha_queues,
+      rabbit_own_host        => $public_ip,
+      rabbit_own_port        => $murano_hash['rabbit']['port'],
+      rabbit_own_vhost       => $murano_hash['rabbit']['vhost'],
+      rabbit_own_user        => pick($murano_hash['rabbit']['user'], 'murano'),
+      rabbit_own_password    => $murano_hash['rabbit_password'],
+      default_router         => 'murano-default-router',
+      default_nameservers    => pick($external_dns['dns_list'], '8.8.8.8'),
+      service_host           => $api_bind_host,
+      service_port           => $api_bind_port,
+      external_network       => $external_network,
+      use_trusts             => true,
+      kombu_compression      => $kombu_compression,
+      memcached_servers      => $local_memcached_server,
     }
 
     class { '::murano::api':
