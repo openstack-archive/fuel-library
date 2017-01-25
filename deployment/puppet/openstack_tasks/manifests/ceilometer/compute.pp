@@ -23,8 +23,7 @@ class openstack_tasks::ceilometer::compute {
   $ceilometer_hash            = hiera_hash('ceilometer', $default_ceilometer_hash)
   $ceilometer_region          = pick($ceilometer_hash['region'], $region)
   $ceilometer_enabled         = $ceilometer_hash['enabled']
-  $amqp_password              = $rabbit_hash['password']
-  $amqp_user                  = $rabbit_hash['user']
+  $transport_url              = hiera('transport_url','rabbit://guest:password@127.0.0.1:5672/')
   $kombu_compression          = hiera('kombu_compression', $::os_service_default)
   $ceilometer_metering_secret = $ceilometer_hash['metering_secret']
   $debug                      = pick($ceilometer_hash['debug'], hiera('debug', false))
@@ -48,9 +47,7 @@ class openstack_tasks::ceilometer::compute {
       http_timeout                       => $ceilometer_hash['http_timeout'],
       event_time_to_live                 => $ceilometer_hash['event_time_to_live'],
       metering_time_to_live              => $ceilometer_hash['metering_time_to_live'],
-      rabbit_hosts                       => split(hiera('amqp_hosts',''), ','),
-      rabbit_userid                      => $amqp_user,
-      rabbit_password                    => $amqp_password,
+      default_transport_url              => $transport_url,
       metering_secret                    => $ceilometer_metering_secret,
       debug                              => $debug,
       use_syslog                         => $use_syslog,
@@ -71,8 +68,6 @@ class openstack_tasks::ceilometer::compute {
     }
 
     class { '::ceilometer::client': }
-
-
 
     if ($use_syslog) {
       ceilometer_config {

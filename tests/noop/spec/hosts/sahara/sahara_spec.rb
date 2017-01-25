@@ -16,8 +16,6 @@ describe manifest do
 
   shared_examples 'catalog' do
 
-    let(:rabbit_user) { Noop.hiera_structure 'rabbit/user', 'nova' }
-    let(:rabbit_password) { Noop.hiera_structure 'rabbit/password' }
     let(:auth_user) { Noop.hiera_structure 'access/user' }
     let(:auth_password) { Noop.hiera_structure 'access/password' }
     let(:auth_tenant) { Noop.hiera_structure 'access/tenant' }
@@ -54,6 +52,7 @@ describe manifest do
     let(:debug) { Noop.hiera('debug', false) }
     let(:use_syslog) { Noop.hiera('use_syslog', true) }
     let(:log_facility_sahara) { Noop.hiera('syslog_log_facility_sahara') }
+    let(:transport_url) { Noop.hiera 'transport_url', 'rabbit://guest:password@127.0.0.1:5672/' }
     let(:rabbit_ha_queues) { Noop.hiera('rabbit_ha_queues') }
     let(:public_ssl) { Noop.hiera_structure('public_ssl/services') }
 
@@ -118,7 +117,6 @@ describe manifest do
                    'auth_uri'               => auth_url,
                    'identity_uri'           => admin_uri,
                    'plugins'                => sahara_plugins,
-                   'rpc_backend'            => 'rabbit',
                    'use_neutron'            => true,
                    'admin_user'             => sahara_user,
                    'debug'                  => debug,
@@ -133,11 +131,8 @@ describe manifest do
                    'sync_db'                => primary_controller,
                    'admin_password'         => sahara_password,
                    'admin_tenant_name'      => tenant,
-                   'rabbit_userid'          => rabbit_user,
-                   'rabbit_password'        => rabbit_password,
+                   'default_transport_url'  => transport_url,
                    'rabbit_ha_queues'       => rabbit_ha_queues,
-                   'rabbit_port'            => amqp_port,
-                   'rabbit_hosts'           => amqp_hosts.split(","),
                    'host'                   => bind_address,
                    'port'                   => '8386',
                    'memcached_servers'      => local_memcached_server,
@@ -198,6 +193,10 @@ describe manifest do
                      'enable_notifications' => true
                  )
         end
+      end
+
+      it 'should properly configure default transport url' do
+        should contain_sahara_config('DEFAULT/transport_url').with_value(transport_url)
       end
 
       it 'should configure kombu compression' do

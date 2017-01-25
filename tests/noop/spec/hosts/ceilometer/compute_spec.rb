@@ -27,6 +27,7 @@ describe manifest do
     keystone_auth_uri      = "#{internal_auth_protocol}://#{internal_auth_endpoint}:5000/"
     kombu_compression      = Noop.hiera 'kombu_compression', ''
 
+    let(:transport_url) { Noop.hiera 'transport_url', 'rabbit://guest:password@127.0.0.1:5672/' }
     rabbit_heartbeat_timeout_threshold = Noop.puppet_function 'pick', ceilometer_hash['rabbit_heartbeat_timeout_threshold'], rabbit_hash['heartbeat_timeout_treshold'], 60
     rabbit_heartbeat_rate = Noop.puppet_function 'pick', ceilometer_hash['rabbit_heartbeat_rate'], rabbit_hash['heartbeat_rate'], 2
 
@@ -81,10 +82,12 @@ describe manifest do
         )
       end
 
-      it 'should properly configure rabbit queue' do
-        should contain_ceilometer_config('DEFAULT/rpc_backend').with(:value => 'rabbit')
-        should contain_ceilometer_config('oslo_messaging_rabbit/rabbit_virtual_host').with(:value => '/')
+      it 'should properly configure rabbit ssl parameters' do
         should contain_ceilometer_config('oslo_messaging_rabbit/rabbit_use_ssl').with(:value => 'false')
+      end
+
+      it 'should properly configure default transport url' do
+        should contain_ceilometer_config('DEFAULT/transport_url').with_value(transport_url)
       end
 
       it 'should configure kombu compression' do
