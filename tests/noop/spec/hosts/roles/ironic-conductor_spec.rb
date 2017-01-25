@@ -6,12 +6,9 @@ manifest = 'roles/ironic-conductor.pp'
 
 describe manifest do
   shared_examples 'catalog' do
-    rabbit_user = Noop.hiera_structure 'rabbit/user', 'nova'
-    rabbit_password = Noop.hiera_structure 'rabbit/password'
     ironic_enabled = Noop.hiera_structure 'ironic/enabled'
     storage_config = Noop.hiera_structure 'storage'
     amqp_durable_queues = Noop.hiera_structure 'ironic/amqp_durable_queues', 'false'
-
     database_vip = Noop.hiera('database_vip')
     ironic_db_type = Noop.hiera_structure 'ironic/db_type', 'mysql+pymysql'
     ironic_db_password = Noop.hiera_structure 'ironic/db_password', 'ironic'
@@ -20,6 +17,8 @@ describe manifest do
     baremetal_vip = Noop.hiera_structure 'network_metadata/vips/baremetal/ipaddr'
 
     let(:memcached_servers) { Noop.hiera 'memcached_servers' }
+    let(:local_memcached_server) { Noop.hiera 'local_memcached_server' }
+    let(:transport_url) { Noop.hiera 'transport_url', 'rabbit://guest:password@127.0.0.1:5672/' }
 
     if ironic_enabled
       it 'should ensure that ironic-fa-deploy is installed' do
@@ -28,12 +27,11 @@ describe manifest do
 
       it 'should declare ironic class correctly' do
         should contain_class('ironic').with(
-          'rabbit_userid'        => rabbit_user,
-          'rabbit_password'      => rabbit_password,
-          'enabled_drivers'      => ['fuel_ssh', 'fuel_ipmitool', 'fake', 'fuel_libvirt'],
-          'control_exchange'     => 'ironic',
-          'amqp_durable_queues'  => amqp_durable_queues,
-          'database_max_retries' => '-1',
+          'default_transport_url' => transport_url,
+          'enabled_drivers'       => ['fuel_ssh', 'fuel_ipmitool', 'fake', 'fuel_libvirt'],
+          'control_exchange'      => 'ironic',
+          'amqp_durable_queues'   => amqp_durable_queues,
+          'database_max_retries'  => '-1',
         )
       end
 
@@ -85,6 +83,7 @@ describe manifest do
         should contain_ironic_config('keystone_authtoken/admin_user').with('value' => ironic_user)
         should contain_ironic_config('keystone_authtoken/memcached_servers').with('value' => memcached_servers.join(','))
         should contain_ironic_config('glance/temp_url_endpoint_type').with('value' => temp_url_endpoint_type)
+        should contain_ironic_config('DEFAULT/transport_url').with_value(transport_url)
       end
 
       tftp_root = '/var/lib/ironic/tftpboot'

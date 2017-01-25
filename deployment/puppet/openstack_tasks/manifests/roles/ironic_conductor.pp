@@ -63,6 +63,8 @@ class openstack_tasks::roles::ironic_conductor {
     'extra'    => $extra_params
   })
 
+  $transport_url = hiera('transport_url','rabbit://guest:password@127.0.0.1:5672/')
+
   $tftp_root                  = '/var/lib/ironic/tftpboot'
 
   $temp_url_endpoint_type = $storage_hash['images_ceph'] ? {
@@ -75,20 +77,18 @@ class openstack_tasks::roles::ironic_conductor {
   }
 
   class { '::ironic':
-    debug                => $debug,
-    enabled_drivers      => ['fuel_ssh', 'fuel_ipmitool', 'fake', 'fuel_libvirt'],
-    rabbit_hosts         => $rabbit_hosts,
-    rabbit_userid        => $rabbit_hash['user'],
-    rabbit_password      => $rabbit_hash['password'],
-    amqp_durable_queues  => $amqp_durable_queues,
-    control_exchange     => 'ironic',
-    use_syslog           => $use_syslog,
-    log_facility         => $syslog_log_facility_ironic,
-    database_connection  => $db_connection,
-    database_max_retries => '-1',
-    sync_db              => false,
-    glance_api_servers   => $glance_api_servers,
-    kombu_compression    => $kombu_compression,
+    debug                 => $debug,
+    enabled_drivers       => ['fuel_ssh', 'fuel_ipmitool', 'fake', 'fuel_libvirt'],
+    default_transport_url => $transport_url,
+    amqp_durable_queues   => $amqp_durable_queues,
+    control_exchange      => 'ironic',
+    use_syslog            => $use_syslog,
+    log_facility          => $syslog_log_facility_ironic,
+    database_connection   => $db_connection,
+    database_max_retries  => '-1',
+    sync_db               => false,
+    glance_api_servers    => $glance_api_servers,
+    kombu_compression     => $kombu_compression,
   }
 
   class { '::ironic::client': }

@@ -45,6 +45,7 @@ describe manifest do
     let(:glance_endpoint) { Noop.puppet_function 'get_ssl_property',ssl_hash,{},'glance','internal','hostname', glance_endpoint_default}
     let(:glance_api_servers) { Noop.hiera 'glance_api_servers', "#{glance_protocol}://#{glance_endpoint}:9292" }
     let(:region_name) { Noop.hiera 'region', 'RegionOne' }
+    let(:transport_url) { Noop.hiera 'transport_url', 'rabbit://guest:password@127.0.0.1:5672/' }
 
     if ironic_enabled
       it 'nova config should have correct ironic settings' do
@@ -55,6 +56,10 @@ describe manifest do
         #should contain_nova_config('ironic/admin_url').with(:value => "#{admin_uri}/v2.0")
         should contain_nova_config('neutron/auth_url').with(:value => "#{admin_uri}/v3")
         should contain_nova_config('DEFAULT/max_concurrent_builds').with(:value => '50')
+      end
+
+      it 'should properly configure default transport url' do
+        should contain_nova_config('DEFAULT/transport_url').with_value(transport_url)
       end
 
       it 'should configure region name in cinder section' do
@@ -117,6 +122,7 @@ describe manifest do
           :database_idle_timeout  => idle_timeout,
           :database_max_retries   => max_retries,
           :database_max_pool_size => max_pool_size,
+          :default_transport_url  => transport_url,
         )
         should contain_class('nova::compute').with(
           :allow_resize_to_same_host => Noop.puppet_function('pick', nova_hash['allow_resize_to_same_host'], true)

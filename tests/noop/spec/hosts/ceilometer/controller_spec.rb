@@ -10,8 +10,6 @@ describe manifest do
 
     # TODO All this stuff should be moved to shared examples controller* tests.
     workers_max = Noop.hiera 'workers_max'
-    rabbit_user = Noop.hiera_structure 'rabbit/user', 'nova'
-    rabbit_password = Noop.hiera_structure 'rabbit/password'
     ceilometer_hash = Noop.hiera_structure 'ceilometer'
     ceilometer_user_password = ceilometer_hash['user_password']
     ceilometer_tenant = Noop.hiera_structure('ceilometer/tenant', "services")
@@ -54,6 +52,7 @@ describe manifest do
     keystone_auth_uri      = "#{internal_auth_protocol}://#{internal_auth_endpoint}:5000/"
     kombu_compression      = Noop.hiera 'kombu_compression', ''
     rabbit_hash            = Noop.hiera_structure 'rabbit', {}
+    let(:transport_url) { Noop.hiera 'transport_url', 'rabbit://guest:password@127.0.0.1:5672/' }
 
     ssl = 'false'
 
@@ -201,9 +200,11 @@ describe manifest do
       end
 
       it 'should properly configure rabbit queue' do
-        should contain_ceilometer_config('DEFAULT/rpc_backend').with(:value => 'rabbit')
-        should contain_ceilometer_config('oslo_messaging_rabbit/rabbit_virtual_host').with(:value => '/')
         should contain_ceilometer_config('oslo_messaging_rabbit/rabbit_use_ssl').with(:value => 'false')
+      end
+
+      it 'should properly configure default transport url' do
+        should contain_ceilometer_config('DEFAULT/transport_url').with_value(transport_url)
       end
 
       it 'should configure kombu compression' do
