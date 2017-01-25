@@ -51,10 +51,9 @@ class openstack_tasks::openstack_network::agents::l3 {
       ensure => 'installed',
     }
 
-  }
-
-  if is_file_updated('/etc/neutron/neutron.conf', $title) {
-    notify{'neutron.conf has been changed, going to restart l3 agent':
-    } ~> Service['neutron-l3']
+    if is_file_updated('/etc/neutron/neutron.conf', $title) {
+      notify{'neutron.conf has been changed, going to restart l3 agent':
+      } ~> Service['neutron-l3']
+    }
   }
 }
