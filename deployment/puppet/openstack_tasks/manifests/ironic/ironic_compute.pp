@@ -18,7 +18,6 @@ class openstack_tasks::ironic::ironic_compute {
   $use_stderr                     = hiera('use_stderr', false)
   $syslog_log_facility_ironic     = hiera('syslog_log_facility_ironic', 'LOG_LOCAL0')
   $syslog_log_facility_nova       = hiera('syslog_log_facility_nova', 'LOG_LOCAL6')
-  $amqp_hosts                     = hiera('amqp_hosts')
   $rabbit_hash                    = hiera_hash('rabbit')
   $nova_report_interval           = hiera('nova_report_interval', '60')
   $nova_service_down_time         = hiera('nova_service_down_time', '180')
@@ -54,6 +53,8 @@ class openstack_tasks::ironic::ironic_compute {
     'password' => $db_password,
     'extra'    => $extra_params
   })
+
+  $transport_url = hiera('transport_url','rabbit://guest:password@127.0.0.1:5672/')
 
   $notify_on_state_change         = 'vm_and_task_state'
 
@@ -91,11 +92,7 @@ class openstack_tasks::ironic::ironic_compute {
   class { '::nova':
     ensure_package         => installed,
     database_connection    => $db_connection,
-    rpc_backend            => 'nova.openstack.common.rpc.impl_kombu',
-    #FIXME(bogdando) we have to split amqp_hosts until all modules synced
-    rabbit_hosts           => split($amqp_hosts, ','),
-    rabbit_userid          => $rabbit_hash['user'],
-    rabbit_password        => $rabbit_hash['password'],
+    default_transport_url  => $transport_url,
     image_service          => 'nova.image.glance.GlanceImageService',
     glance_api_servers     => $glance_api_servers,
     debug                  => $debug,
@@ -138,7 +135,7 @@ class openstack_tasks::ironic::ironic_compute {
   }
 
   class { '::nova::compute::ironic':
-    max_concurrent_builds     => $max_concurrent_builds
+    max_concurrent_builds => $max_concurrent_builds
   }
 
   class { '::nova::network::neutron':
@@ -152,15 +149,15 @@ class openstack_tasks::ironic::ironic_compute {
     primitive_class    => 'ocf',
     primitive_provider => 'fuel',
     primitive_type     => 'nova-compute',
-    metadata        => {
+    metadata           => {
       'resource-stickiness' => '1'
     },
-    parameters      => {
+    parameters         => {
       'config'                => "/etc/nova/nova.conf",
       'pid'                   => "/var/run/nova/nova-compute-ironic.pid",
       'additional_parameters' => "--config-file=/etc/nova/nova-compute.conf",
     },
-    operations      => {
+    operations         => {
       monitor  => { 'timeout' => '30', 'interval' => '60' },
       start    => { 'timeout' => '30' },
       stop     => { 'timeout' => '30' }
