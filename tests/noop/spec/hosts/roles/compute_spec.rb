@@ -84,6 +84,14 @@ describe manifest do
 
     let(:region_name) { Noop.hiera 'region', 'RegionOne' }
 
+    let(:limits) do
+      Noop.hiera 'limits', {}
+    end
+
+    let(:libvirt_mof_limit) do
+      Noop.puppet_function 'pick', limits['libvirt_mof_limit'], '102400'
+    end
+
     it 'should configure region name in cinder section' do
        should contain_nova_config('cinder/os_region_name').with_value(region_name)
     end
@@ -463,6 +471,10 @@ describe manifest do
         'vncserver_listen'     => '0.0.0.0',
         'remove_unused_original_minimum_age_seconds' => min_age,
       )
+    end
+
+    it 'should configure libvirt max open files limit' do
+      should contain_file_line('Add max open files limit').with( 'line' => "limit nofile #{libvirt_mof_limit} #{libvirt_mof_limit}" )
     end
 
     it 'should contain migration basics' do
