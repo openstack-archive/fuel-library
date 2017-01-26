@@ -159,7 +159,7 @@ Summary: Fuel project utilities
 Version: %{version}
 Release: %{release}
 Group: System Environment/Libraries
-License: GPLv2
+License: Apache License, Version 2.0
 Obsoletes: fuel-dockerctl <= %{version}
 Provides: fuel-utils = %{version}
 URL: http://github.com/openstack/fuel-library
