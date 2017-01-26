@@ -1,14 +1,1 @@
-- id: limits
-  type: puppet
-  version: 2.2.0
-  tags: [primary-controller, controller, cinder, cinder-block-device, cinder-vmware, compute, ceph-osd,
-         primary-mongo, mongo, ironic, primary-rabbitmq, rabbitmq]
-  required_for: [tools]
-  requires: [logging]
-  condition:
-    yaql_exp: >
-      changedAny($.get('limits'))
-  parameters:
-    puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/limits/limits.pp
-    puppet_modules: /etc/puppet/modules
-    timeout: 120
+../../../../../graphs/deployment/osnailyfacter_modular_limits_tasks.yaml
