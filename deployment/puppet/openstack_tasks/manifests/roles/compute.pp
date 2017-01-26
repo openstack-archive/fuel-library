@@ -144,6 +144,11 @@ class openstack_tasks::roles::compute {
   ########################################################################
 
   include ::nova::params
+  libvirt_service_name = $::nova::params::libvirt_service_name
+
+  $limits            = hiera('limits', {})
+  $general_mof_limit = pick($limits['general_mof_limit'], '102400')
+  $libvirt_mof_limit = pick($limits['libvirt_mof_limit'], '102400')
 
   case $::osfamily {
     'RedHat': {
@@ -417,8 +422,16 @@ class openstack_tasks::roles::compute {
     libvirt_inject_partition                   => $libvirt_inject_partition,
     vncserver_listen                           => '0.0.0.0',
     remove_unused_original_minimum_age_seconds => pick($nova_hash_real['remove_unused_original_minimum_age_seconds'], '86400'),
-    libvirt_service_name                       => $::nova::params::libvirt_service_name,
+    libvirt_service_name                       => $libvirt_service_name,
   }
+
+  file_line { 'Add max open files limit':
+    path  => "/etc/init/${libvirt_service_name}.conf",
+    line  => "limit nofile $libvirt_mof_limit $libvirt_mof_limit",
+    after => 'respawn',
+  }
+
+  Package['libvirt'] -> File_line['Add max open files limit'] ~> Service['libvirt']
 
   class { '::nova::migration::libvirt':
     override_uuid => true,
