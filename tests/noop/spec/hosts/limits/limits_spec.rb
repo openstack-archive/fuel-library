@@ -27,10 +27,6 @@ describe manifest do
       Noop.puppet_function 'pick', limits['general_mof_limit'], '102400'
     end
 
-    let(:libvirt_mof_limit) do
-      Noop.puppet_function 'pick', limits['libvirt_mof_limit'], '102400'
-    end
-
     it 'should configure general max open files limit' do
       should contain_limits__limits('*/nofile').with(
         'hard' => general_mof_limit,
@@ -41,12 +37,5 @@ describe manifest do
         'soft' => general_mof_limit
       )
     end
-
-    if Noop.puppet_function 'member', roles, 'compute'
-      it 'should configure libvirt max open files limit' do
-        should contain_file('/etc/init/libvirtd.override').with( 'content' => "limit nofile #{libvirt_mof_limits} #{libvirt_mof_limit}" )
-      end
-    end
-
   end
 end

@@ -46,7 +46,7 @@
       $.get('block_device_allocate_retries', 300),
       $.get('block_device_allocate_retries_interval', 3),
       $.get('queue_provider', 'rabbit'), $.quantum_settings,
-      $.get('memcached_servers', ''),
+      $.get('memcached_servers', ''), $.get('limits', None),
       $.network_metadata.nodes.values().where(
         $.node_roles.any($.matches('(controller|rabbitmq)'))).network_roles.select(
           $.get('mgmt/messaging')),
