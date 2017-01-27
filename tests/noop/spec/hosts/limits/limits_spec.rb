@@ -44,7 +44,7 @@ describe manifest do
 
     if Noop.puppet_function 'member', roles, 'compute'
       it 'should configure libvirt max open files limit' do
-        should contain_file('/etc/init/libvirtd.override').with( 'content' => "limit nofile #{libvirt_mof_limits} #{libvirt_mof_limit}" )
+        should contain_file('/etc/init/libvirtd.override').with( 'content' => "limit nofile #{libvirt_mof_limit} #{libvirt_mof_limit}" )
       end
     end
 
