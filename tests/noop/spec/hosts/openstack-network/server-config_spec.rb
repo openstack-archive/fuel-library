@@ -285,7 +285,6 @@ describe manifest do
         should contain_class('neutron::server').with(
           'agent_down_time'          => neutron_config['neutron_agent_down_time'],
           'l3_ha'                    => l3_ha,
-          'min_l3_agents_per_router' => '2',
           'max_l3_agents_per_router' => '0',)
       end
 
