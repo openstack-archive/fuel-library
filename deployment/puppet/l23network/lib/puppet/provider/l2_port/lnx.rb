@@ -71,36 +71,6 @@ Puppet::Type.type(:l2_port).provide(:lnx, :parent => Puppet::Provider::Lnx_base)
       end
       #
       # FLUSH changed properties
-      if @property_flush.has_key? :bond_master and @property_flush[:bond_master] != :absent
-        bond = @old_property_hash[:bond_master]
-        if self.class.ipaddr_exist? @resource[:interface]
-          # remove all IP addresses from member of bond. This should be done on device in UP state
-          self.class.addr_flush(@resource[:interface])
-        end
-        # putting interface to the down-state, because add/remove upped interface impossible. undocumented kern.behavior.
-        self.class.interface_down(@resource[:interface], true)
-        if bond and bond != :absent and File.exist?("/sys/class/net/#{@resource[:interface]}/master/bonding/slaves")
-          # remove interface from bond, if one included to it
-          debug("Remove interface '#{@resource[:interface]}' from bond '#{bond}'.")
-          File.open("/sys/class/net/#{@resource[:interface]}/master/bonding/slaves", "a") {|f| f << "-#{@resource[:interface]}"}
-        end
-        if ! @property_flush[:bond_master].nil? and @property_flush[:bond_master] != :absent
-          # add interface as slave to bond
-          if File.exist? "/sys/class/net/#{@property_flush[:bond_master]}/bonding/slaves"
-            # If port is bond member and bond still doesn't exist we skip the adding to bond action
-            # Bond will do it by itself during bond creation
-            debug("Add interface '#{@resource[:interface]}' to bond '#{@property_flush[:bond_master]}'.")
-            File.open("/sys/class/net/#{@property_flush[:bond_master]}/bonding/slaves", "a") {|f| f << "+#{@resource[:interface]}"}
-          end
-        else
-          # port no more member of any bonds
-          @property_flush[:port_type] = nil
-        end
-        # Up parent interface if this is vlan port
-        self.class.interface_up(@resource[:vlan_dev]) if @resource[:vlan_dev]
-        # Up port
-        self.class.interface_up(@resource[:interface])
-      end
       if @property_flush.has_key? :bridge
         # get actual bridge-list. We should do it here,
         # because bridge may be not existing at prefetch stage.
