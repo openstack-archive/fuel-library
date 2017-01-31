@@ -36,7 +36,7 @@ OCF_RESKEY_socket_default="/var/lib/mysql/mysql.sock"
 OCF_RESKEY_test_user_default="root"
 OCF_RESKEY_test_passwd_default=""
 OCF_RESKEY_additional_parameters_default=""
-OCF_RESKEY_master_timeout_default="300"
+OCF_RESKEY_master_timeout_default="600"
 OCF_RESKEY_streamfmt_default="xbstream"
 OCF_RESKEY_transferfmt_default="socat"
 
