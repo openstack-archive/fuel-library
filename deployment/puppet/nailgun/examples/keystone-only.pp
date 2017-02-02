@@ -134,9 +134,15 @@ case $production {
       ensure => latest,
     }
 
+    file {'cron.daily/logrotate':
+      path   => '/etc/cron.daily/logrotate',
+      ensure => absent,
+    }
+
     service { 'crond':
-      ensure => running,
-      enable => true,
+      ensure  => running,
+      enable  => true,
+      require => File['cron.daily/logrotate'],
     }
 
     # Flush expired tokens
