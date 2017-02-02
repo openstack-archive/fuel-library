@@ -1,6 +1,11 @@
 # managed by puppet
 
-### collect HA logs of all levels in /var/log/pacemaker.log
+### Collect lrmd logs separately as
+### they are not collected in pacemaker.log
+if $programname == 'lrmd' then -/var/log/lrmd.log
+
+### Pacemaker already writes logs to /var/log/pacemaker.log
+### So no need to process these further
 if ($programname == 'lrmd' \
   or $programname == 'pengine' \
   or $programname == 'stonith-ng' \
@@ -10,6 +15,4 @@ if ($programname == 'lrmd' \
   or $programname == 'crmd' \
   or $programname == 'crm_verify' \
   or $programname == 'corosync') \
-then -/var/log/pacemaker.log
-### stop further processing for the matched entries
-& stop
+then stop
