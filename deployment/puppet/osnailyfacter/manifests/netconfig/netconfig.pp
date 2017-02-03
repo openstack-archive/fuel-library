@@ -42,7 +42,7 @@ class osnailyfacter::netconfig::netconfig {
     tcpka_time   => '30',
     tcpka_probes => '8',
     tcpka_intvl  => '3',
-    tcp_retries2 => '5',
+    tcp_retries2 => '7',
   }
 
   # increase network backlog for performance on fast networks
