@@ -27,7 +27,7 @@ describe manifest do
        'tcpka_time'   => '30',
        'tcpka_probes' => '8',
        'tcpka_intvl'  => '3',
-       'tcp_retries2' => '5',
+       'tcp_retries2' => '7',
     ) }
     it { should contain_sysctl__value('net.core.netdev_max_backlog').with('value' => '261144') }
     it { should contain_class('sysfs') }
