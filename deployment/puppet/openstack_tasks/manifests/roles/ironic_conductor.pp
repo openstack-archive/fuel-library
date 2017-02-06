@@ -122,6 +122,17 @@ class openstack_tasks::roles::ironic_conductor {
     'glance/temp_url_endpoint_type':        value => $temp_url_endpoint_type;
   }
 
+  # TODO (mkarpin): use ironic::neutron class once https://review.openstack.org/#/c/428795/ is merged
+  if !defined(Ironic_config['neutron/url']) {
+    ironic_config {
+      'neutron/url': value => $neutron_uri;
+    }
+  } else {
+    Ironic_config['neutron/url'] {
+      value => $neutron_uri
+    }
+  }
+
   file { $tftp_root:
     ensure  => directory,
     owner   => 'ironic',
