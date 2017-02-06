@@ -111,7 +111,6 @@ class openstack_tasks::roles::ironic_conductor {
   }
 
   ironic_config {
-    'neutron/url':                          value => $neutron_uri;
     'keystone_authtoken/auth_uri':          value => $internal_auth_uri;
     'keystone_authtoken/identity_uri':      value => $admin_identity_uri;
     'keystone_authtoken/admin_tenant_name': value => $ironic_tenant;
@@ -120,6 +119,17 @@ class openstack_tasks::roles::ironic_conductor {
     'keystone_authtoken/memcached_servers': value => $local_memcached_server;
     'glance/swift_endpoint_url':            value => "http://${baremetal_vip}:8080";
     'glance/temp_url_endpoint_type':        value => $temp_url_endpoint_type;
+  }
+
+  # TODO (mkarpin): use ironic::neutron class once https://review.openstack.org/#/c/428795/ is merged
+  if !defined(Ironic_config['neutron/url']) {
+    ironic_config {
+      'neutron/url': value => $neutron_uri;
+    }
+  } else {
+    Ironic_config['neutron/url'] {
+      value => $neutron_uri
+    }
   }
 
   file { $tftp_root:
