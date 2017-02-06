@@ -557,23 +557,20 @@ mysql_validate() {
 check_if_sst() {
     local LH="${LL} check_if_sst():"
     local loglevel=${1:-'info'}
-    local pid
-    local pid2
-    local pid3
-    local pid4
-    # Match a mysqld pid by the datadir, exclude position recovery
-    pid=$(ps -C mysqld -o pid= -o command= -o args= | grep "${OCF_RESKEY_datadir}" | \
+    # Match a MySQLd pid by the datadir, exclude position recovery
+    local pid=$(ps -C mysqld -o pid= -o command= -o args= | grep "${OCF_RESKEY_datadir}" | \
         awk '!/wsrep.recover|defunct/ {print $1}')
     if [ "${pid}" ] ; then
         ocf_log info "${LH} MySQL process ${pid} found"
-        # Myslqd's running and may be blocked, check for signs of SST
-        pid2=$(ps -C ${OCF_RESKEY_streamfmt} -o pid= -o command= | awk '!/defunct/ {print $1}')
-        pid3=$(ps -C ${OCF_RESKEY_transferfmt} -o pid= -o command= | awk '!/defunct/ {print $1}')
-        pid4=$(ps -C innobackupex -o pid= -o command= | awk '!/defunct/ {print $1}')
-        if [ "${pid2}" -o "${pid3}" -o "${pid4}" ]; then
-            ocf_log $loglevel "${LH} SST is in progress"
-            return $OCF_SUCCESS
-        fi
+        # MySQLd's running and may be blocked, check for signs of SST
+        local processes_to_check="${OCF_RESKEY_streamfmt} ${OCF_RESKEY_transferfmt} innobackupex xtrabackup_56"
+        for process_name in $processes_to_check; do
+            local process_pid=$(ps -C $process_name -o pid= -o command= | awk '!/defunct/ {print $1}')
+            if [ "${process_pid}" ]; then
+                ocf_log $loglevel "${LH} SST is in progress"
+                return $OCF_SUCCESS
+            fi
+        done
     fi
     ocf_log $loglevel "${LH} No signs of SST found"
     return $OCF_ERR_GENERIC
