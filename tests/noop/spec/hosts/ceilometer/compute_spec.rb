@@ -1,4 +1,3 @@
-# ROLE: compute-vmware
 # ROLE: compute
 
 require 'spec_helper'
@@ -96,4 +95,3 @@ describe manifest do
 
   test_ubuntu_and_centos manifest
 end
-

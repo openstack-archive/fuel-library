@@ -67,16 +67,6 @@ class openstack_tasks::glance::glance {
   $glance_glare_user              = pick($glance_glare_hash['user'],'glare')
   $glance_glare_user_password     = $glance_glare_hash['user_password']
   $glance_glare_tenant            = pick($glance_glare_hash['tenant'],'services')
-  $glance_vcenter_host            = $glance_hash['vc_host']
-  $glance_vcenter_user            = $glance_hash['vc_user']
-  $glance_vcenter_password        = $glance_hash['vc_password']
-  $glance_vcenter_datacenter      = $glance_hash['vc_datacenter']
-  $glance_vcenter_datastore       = $glance_hash['vc_datastore']
-  $glance_vcenter_image_dir       = $glance_hash['vc_image_dir']
-  $glance_vcenter_insecure        = $glance_hash['vc_insecure']
-  $glance_vcenter_api_retry_count = '20'
-  $glance_vcenter_ca_file         = pick($glance_hash['vc_ca_file'], {})
-  $glance_vcenter_ca_content      = pick($glance_vcenter_ca_file['content'], {})
   $glance_image_cache_max_size    = $glance_hash['image_cache_max_size']
   $pipeline                       = pick($glance_hash['pipeline'], 'keystone')
   $glance_large_object_size       = pick($glance_hash['large_object_size'], '5120')
@@ -96,11 +86,6 @@ class openstack_tasks::glance::glance {
   if ($storage_hash['images_ceph'] and !$ironic_hash['enabled']) {
     $glance_backend = 'ceph'
     $known_stores   = [ 'glance.store.rbd.Store', 'glance.store.http.Store' ]
-    $show_multiple_locations = pick($glance_hash['show_multiple_locations'], true)
-    $show_image_direct_url = pick($glance_hash['show_image_direct_url'], true)
-  } elsif ($storage_hash['images_vcenter']) {
-    $glance_backend = 'vmware'
-    $known_stores   = [ 'glance.store.vmware_datastore.Store', 'glance.store.http.Store' ]
     $show_multiple_locations = pick($glance_hash['show_multiple_locations'], true)
     $show_image_direct_url = pick($glance_hash['show_image_direct_url'], true)
   } else {
@@ -294,37 +279,6 @@ class openstack_tasks::glance::glance {
         rbd_store_pool        => 'images',
         rados_connect_timeout => $rados_connect_timeout,
         glare_enabled         => true,
-      }
-    }
-    'vmware': {
-      $glance_vcenter_datastores = "${glance_vcenter_datacenter}:${glance_vcenter_datastore}"
-      if ! empty($glance_vcenter_ca_content) and ! $glance_vcenter_insecure {
-        $vcenter_ca_filepath          = '/etc/glance/vcenter-ca.pem'
-        $glance_vcenter_insecure_real = false
-
-        file { $vcenter_ca_filepath:
-          ensure  => file,
-          content => $glance_vcenter_ca_content,
-          mode    => '0644',
-          owner   => 'root',
-          group   => 'root',
-        }
-        Class['::glance::backend::vsphere']->File[$vcenter_ca_filepath]
-      } else {
-        $vcenter_ca_filepath          = $::os_service_default
-        $glance_vcenter_insecure_real = $glance_vcenter_insecure
-      }
-
-      class { '::glance::backend::vsphere':
-          vcenter_host            => $glance_vcenter_host,
-          vcenter_user            => $glance_vcenter_user,
-          vcenter_password        => $glance_vcenter_password,
-          vcenter_datastores      => $glance_vcenter_datastores,
-          vcenter_insecure        => $glance_vcenter_insecure_real,
-          vcenter_image_dir       => $glance_vcenter_image_dir,
-          vcenter_api_retry_count => $glance_vcenter_api_retry_count,
-          vcenter_ca_file         => $vcenter_ca_filepath,
-          glare_enabled           => true,
       }
     }
     default: {
