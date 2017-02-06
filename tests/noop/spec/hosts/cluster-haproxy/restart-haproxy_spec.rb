@@ -9,14 +9,9 @@ describe manifest do
 
   shared_examples 'catalog' do
 
-    it "should declare haproxy service with correct other_networks" do
-      expect(subject).to contain_service('haproxy').with(
-        'ensure'     => 'running',
-        'name'       => 'p_haproxy',
-        'provider'   => 'pacemaker',
-        'enable'     => 'true',
-        'hasstatus'  => 'true',
-        'hasrestart' => 'true',
+    it "should restart haproxy service" do
+      expect(subject).to contain_exec('haproxy-restart').with(
+        'command' => '/usr/lib/ocf/resource.d/fuel/ns_haproxy reload',
       )
     end
 
