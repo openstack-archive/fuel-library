@@ -89,7 +89,6 @@ class osnailyfacter::globals::globals {
   }
   $murano_hash                    = merge($murano, { 'plugins' => {'glance_artifacts_plugin' => $murano_glance_artifacts_plugin } })
   $heat_hash                      = hiera_hash('heat', {})
-  $vcenter_hash                   = hiera('vcenter', {})
   $nova_hash                      = hiera_hash('nova', {})
   $mysql_hash                     = hiera('mysql', {})
   $rabbit_hash                    = hiera_hash('rabbit', {})
@@ -354,8 +353,6 @@ class osnailyfacter::globals::globals {
   # Determine who should get the volume service
   if (member($roles, 'cinder') and $storage_hash['volumes_lvm']) {
     $manage_volumes = 'iscsi'
-  } elsif (member($roles, 'cinder') and $storage_hash['volumes_vmdk']) {
-    $manage_volumes = 'vmdk'
   } elsif ($storage_hash['volumes_ceph']) {
     $manage_volumes = 'ceph'
   } else {
@@ -371,9 +368,6 @@ class osnailyfacter::globals::globals {
   if ($storage_hash['images_ceph']) {
     $glance_backend = 'ceph'
     $glance_known_stores = [ 'glance.store.rbd.Store', 'glance.store.http.Store' ]
-  } elsif ($storage_hash['images_vcenter']) {
-    $glance_backend = 'vmware'
-    $glance_known_stores = [ 'glance.store.vmware_datastore.Store', 'glance.store.http.Store' ]
   } else {
     $glance_backend = 'file'
     $glance_known_stores = false

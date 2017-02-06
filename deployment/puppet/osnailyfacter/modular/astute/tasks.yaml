@@ -154,18 +154,6 @@
     timeout: 120
     cwd: /
 
-- id: vcenter_compute_zones_create
-  type: shell
-  version: 2.1.0
-  role: [primary-controller, compute-vmware]
-  requires: [post_deployment_start, enable_nova_compute_service]
-  required_for: [post_deployment_end]
-  condition:
-    yaql_exp: '$.use_vcenter and changed($.use_vcenter)'
-  parameters:
-    cmd: /usr/bin/python /etc/puppet/modules/osnailyfacter/modular/astute/vcenter_hooks.py --create_zones
-    timeout: 180
-
 - id: disable_keystone_service_token
   type: puppet
   version: 2.2.0

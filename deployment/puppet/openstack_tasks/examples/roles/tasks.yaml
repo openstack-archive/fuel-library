@@ -63,7 +63,7 @@
 - id: top-role-cinder
   type: puppet
   version: 2.1.0
-  groups: [cinder, cinder-block-device, cinder-vmware]
+  groups: [cinder, cinder-block-device]
   required_for: [enable_cinder_volume_service]
   requires: [hosts, firewall]
   cross-depends:
@@ -175,8 +175,8 @@
 - id: enable_nova_compute_service
   type: puppet
   version: 2.1.0
-  groups: [compute, compute-vmware]
-  requires: [top-role-compute, top-role-compute-vmware]
+  groups: [compute]
+  requires: [top-role-compute]
   required_for: [deploy_end]
   refresh_on: [nova_config, nova_paste_api_ini]
   cross-depends:
