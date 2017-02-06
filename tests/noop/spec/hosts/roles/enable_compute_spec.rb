@@ -1,4 +1,3 @@
-# ROLE: compute-vmware
 # ROLE: compute
 
 require 'spec_helper'

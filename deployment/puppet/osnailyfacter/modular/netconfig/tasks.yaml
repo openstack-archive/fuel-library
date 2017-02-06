@@ -2,8 +2,7 @@
   type: puppet
   version: 2.1.0
   groups: [primary-controller, controller, cinder, cinder-block-device,
-           cinder-vmware, compute, compute-vmware, ceph-osd, primary-mongo,
-           mongo, virt, ironic]
+           compute, ceph-osd, primary-mongo, mongo, virt, ironic]
   # We need to execute this task before netconfig on all nodes except mongo.
   # Mongo nodes will configure routing via admin network and update it later
   # with configure_default_route task
@@ -49,7 +48,7 @@
 - id: netconfig
   type: puppet
   version: 2.2.0
-  tags: [primary-controller, controller, cinder, cinder-block-device, cinder-vmware, compute, ceph-osd,
+  tags: [primary-controller, controller, cinder, cinder-block-device, compute, ceph-osd,
          primary-mongo, mongo, virt, ironic, primary-rabbitmq, rabbitmq, primary-database, database,
          primary-keystone, keystone, primary-neutron, neutron]
   required_for: [deploy_end]
@@ -86,7 +85,7 @@
 - id: connectivity_tests
   type: puppet
   version: 2.1.0
-  groups: [primary-controller, controller, cinder, cinder-block-device, cinder-vmware, compute, ceph-osd, primary-mongo, mongo, virt, ironic]
+  groups: [primary-controller, controller, cinder, cinder-block-device, compute, ceph-osd, primary-mongo, mongo, virt, ironic]
   required_for: [firewall, hosts]
   requires: [netconfig]
   condition:
@@ -114,7 +113,7 @@
 - id: reserved_ports
   type: puppet
   version: 2.1.0
-  groups: [primary-controller, controller, cinder, cinder-block-device, cinder-vmware, compute, ceph-osd, primary-mongo, mongo, virt, ironic]
+  groups: [primary-controller, controller, cinder, cinder-block-device, compute, ceph-osd, primary-mongo, mongo, virt, ironic]
   required_for: [globals]
   requires: [rsync_core_puppet]
   condition:

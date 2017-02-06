@@ -4,7 +4,6 @@
 # ROLE: ironic
 # ROLE: controller
 # ROLE: compute
-# ROLE: cinder-vmware
 # ROLE: cinder-block-device
 # ROLE: cinder
 # ROLE: ceph-osd

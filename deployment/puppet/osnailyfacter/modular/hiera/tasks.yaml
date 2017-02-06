@@ -1,8 +1,8 @@
 - id: hiera
   type: puppet
   version: 2.2.0
-  tags: [primary-controller, controller, cinder, cinder-block-device, cinder-vmware,
-         compute, compute-vmware, ceph-osd, primary-mongo, mongo, virt, ironic,
+  tags: [primary-controller, controller, cinder, cinder-block-device, compute,
+         ceph-osd, primary-mongo, mongo, virt, ironic,
          primary-rabbitmq, rabbitmq, primary-database, database, primary-keystone, keystone,
          primary-neutron, neutron]
   requires: [deploy_start, rsync_core_puppet]
