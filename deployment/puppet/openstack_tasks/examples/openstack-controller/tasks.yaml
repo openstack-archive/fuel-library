@@ -16,7 +16,7 @@
       $.get('glance_api_servers'), $.get('region', 'RegionOne'), $.ironic,
       $.get('memcached_servers'),
       $.get('openstack_controller'), $.get('external_lb'), $.quantum_settings,
-      $.get('database_vip'), $.nova_quota, $.use_vcenter, $.libvirt_type,
+      $.get('database_vip'), $.nova_quota, $.libvirt_type,
       $.network_metadata.nodes.values().where(
         $.node_roles.any($.matches('(controller|rabbitmq)'))).network_roles.select(
           $.get('mgmt/messaging')),

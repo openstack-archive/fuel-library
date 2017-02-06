@@ -132,12 +132,6 @@ class openstack_tasks::openstack_controller::openstack_controller {
 
   $notify_on_state_change = 'vm_and_task_state'
 
-  if hiera('use_vcenter', false) or hiera('libvirt_type') == 'vcenter' {
-    $multi_host = false
-  } else {
-    $multi_host = true
-  }
-
   # From legacy params.pp
   case $::osfamily {
     'RedHat': {

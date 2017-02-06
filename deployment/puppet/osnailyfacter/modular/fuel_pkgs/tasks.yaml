@@ -14,7 +14,7 @@
 - id: fuel_pkgs
   type: puppet
   version: 2.2.0
-  tags: [primary-controller, controller, cinder, cinder-block-device, cinder-vmware, compute, ceph-osd,
+  tags: [primary-controller, controller, cinder, cinder-block-device, compute, ceph-osd,
          primary-mongo, mongo, ironic, primary-rabbitmq, rabbitmq, primary-database, database,
          primary-keystone, keystone, primary-neutron, neutron]
   requires: [setup_repositories]

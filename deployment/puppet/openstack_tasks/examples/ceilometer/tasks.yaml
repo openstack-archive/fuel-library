@@ -36,7 +36,7 @@
 - id: ceilometer-compute
   type: puppet
   version: 2.1.0
-  groups: [compute, compute-vmware]
+  groups: [compute]
   required_for: [deploy_end]
   requires: [ceilometer-controller, top-role-compute]
   cross-depends:
