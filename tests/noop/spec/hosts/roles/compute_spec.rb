@@ -483,6 +483,13 @@ describe manifest do
 
     it 'should contain migration basics' do
       should contain_class('nova::client')
+      should contain_install_ssh_keys('nova_ssh_key_for_migration')
+      should contain_file('/var/lib/nova/.ssh/config')
+      should contain_user('nova').with(
+        'ensure'  => 'present',
+        'shell'   => '/bin/rbash',
+        'require' => 'Package[nova-common]'
+      )
     end
 
     it 'should contain cpufrequtils' do
