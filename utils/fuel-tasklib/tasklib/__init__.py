@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env python
 
 #    Copyright 2015 Mirantis, Inc.
 #
@@ -13,13 +13,3 @@
 #    WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
 #    License for the specific language governing permissions and limitations
 #    under the License.
-
-set -eu
-
-ROOT=$(dirname $(readlink -f $0))
-WORK_DIR="${ROOT}/../../deployment"
-UTILS_DIR="${ROOT}"
-TOX_CONF="${ROOT}/tox.ini"
-TOX_PYENVS=${TOX_PYENVS:-"tasks"}
-echo "Starting tasks-validator..."
-tox -e $TOX_PYENVS -c $TOX_CONF
