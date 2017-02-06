@@ -1,7 +1,7 @@
 - id: ssl-keys-saving
   type: puppet
   version: 2.2.0
-  tags: [primary-controller, controller, compute, compute-vmware, cinder, cinder-vmware, primary-mongo, mongo, ceph-osd, virt,
+  tags: [primary-controller, controller, compute, cinder, primary-mongo, mongo, ceph-osd, virt,
          primary-keystone, keystone]
   requires: [firewall]
   condition:
@@ -21,7 +21,7 @@
 - id: ssl-add-trust-chain
   type: puppet
   version: 2.2.0
-  tags: [primary-controller, controller, compute, compute-vmware, cinder, cinder-vmware, primary-mongo, mongo, ceph-osd, virt,
+  tags: [primary-controller, controller, compute, cinder, primary-mongo, mongo, ceph-osd, virt,
          primary-keystone, keystone]
   requires: [firewall, ssl-keys-saving]
   condition:

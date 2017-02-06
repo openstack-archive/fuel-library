@@ -1,7 +1,6 @@
 # ROLE: primary-mongo
 # ROLE: mongo
 # ROLE: compute
-# ROLE: cinder-vmware
 # ROLE: cinder
 # ROLE: ceph-osd
 
@@ -48,4 +47,3 @@ describe manifest do
 
   test_ubuntu_and_centos manifest
 end
-

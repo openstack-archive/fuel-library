@@ -70,7 +70,7 @@ describe manifest do
     let(:swift_public_address) { Noop.puppet_function 'get_ssl_property',ssl_hash,public_ssl_hash,'swift','public','hostname',[Noop.hiera('public_vip')] }
 
     # Swift
-    if !(storage_hash['images_ceph'] and storage_hash['objects_ceph']) and !storage_hash['images_vcenter']
+    if !(storage_hash['images_ceph'] and storage_hash['objects_ceph'])
       swift_partition = Noop.hiera 'swift_partition'
       if role == 'primary-controller'
         ['account', 'object', 'container'].each do | ring |

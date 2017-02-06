@@ -1,7 +1,7 @@
 - id: tools
   type: puppet
   version: 2.2.0
-  tags: [primary-controller, controller, cinder, cinder-block-device, cinder-vmware, compute, ceph-osd,
+  tags: [primary-controller, controller, cinder, cinder-block-device, compute, ceph-osd,
          primary-mongo, mongo, virt, ironic, primary-rabbitmq, rabbitmq, primary-database, database,
          primary-keystone, keystone, primary-neutron, neutron]
   required_for: [deploy_end]

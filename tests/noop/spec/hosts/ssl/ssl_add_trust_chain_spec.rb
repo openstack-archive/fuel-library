@@ -3,9 +3,7 @@
 # ROLE: primary-controller
 # ROLE: mongo
 # ROLE: controller
-# ROLE: compute-vmware
 # ROLE: compute
-# ROLE: cinder-vmware
 # ROLE: cinder
 # ROLE: ceph-osd
 
@@ -23,4 +21,3 @@ describe manifest do
   end
   test_ubuntu_and_centos manifest
 end
-

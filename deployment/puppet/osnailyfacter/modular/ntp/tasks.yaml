@@ -18,7 +18,7 @@
 - id: ntp-client
   type: puppet
   version: 2.1.0
-  role: [primary-mongo, mongo, compute, ceph-osd, cinder, cinder-vmware]
+  role: [primary-mongo, mongo, compute, ceph-osd, cinder]
   requires: [dns-client]
   cross-depends:
     - name: ntp-server
