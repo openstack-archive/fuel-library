@@ -65,31 +65,12 @@
     strategy:
       type: parallel
 
-- id: cinder-vmware
-  type: group
-  role: [cinder-vmware]
-  requires: [controller]
-  required_for: [deploy_end]
-  parameters:
-    strategy:
-      type: parallel
-
 - id: compute
   type: group
   role: [compute]
   requires: [controller]
   required_for: [deploy_end]
   fault_tolerance: "2%"
-  parameters:
-    strategy:
-      type: parallel
-
-- id: compute-vmware
-  type: group
-  role: [compute-vmware]
-  requires: [controller]
-  required_for: [deploy_end]
-  tasks: [globals, hiera, tools, logging, netconfig, connectivity_tests, hosts, firewall, top-role-compute]
   parameters:
     strategy:
       type: parallel
