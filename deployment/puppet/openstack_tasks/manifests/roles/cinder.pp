@@ -106,9 +106,6 @@ class openstack_tasks::roles::cinder {
     }
     Augeas<| tag == 'lvm-conf-augeas'|> ~> Exec<| title == 'Update initramfs' |>
 
-  } elsif roles_include(['cinder-vmware']) {
-    $manage_volumes = 'vmdk'
-    $physical_volumes = false
   } elsif ($storage_hash['volumes_ceph']) {
     $manage_volumes = 'ceph'
     $physical_volumes = false
@@ -131,7 +128,7 @@ class openstack_tasks::roles::cinder {
   # other services that are declared in openstack manifests
   # TODO(xarses): somone needs to refactor this out
   # https://bugs.launchpad.net/fuel/+bug/1558831
-  if ($use_ceph and !$storage_hash['volumes_lvm'] and !roles_include(['cinder-vmware'])) {
+  if ($use_ceph and !$storage_hash['volumes_lvm']) {
 
     prepare_network_config(hiera_hash('network_scheme', {}))
     $ceph_cluster_network = get_network_role_property('ceph/replication', 'network')

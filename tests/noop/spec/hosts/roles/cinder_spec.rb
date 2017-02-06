@@ -1,4 +1,3 @@
-# ROLE: cinder-vmware
 # ROLE: cinder-block-device
 # ROLE: cinder
 require 'spec_helper'
@@ -31,7 +30,6 @@ describe manifest do
   cinder_db_user = Noop.hiera_structure 'cinder/db_user', 'cinder'
   cinder_db_name = Noop.hiera_structure 'cinder/db_name', 'cinder'
   cinder = Noop.puppet_function 'roles_include', 'cinder'
-  cinder_vmware = Noop.puppet_function 'roles_include', 'cinder-vmware'
   cinder_block_device = Noop.puppet_function 'roles_include', 'cinder-block-device'
   hostname = Noop.hiera('fqdn')
 
@@ -42,8 +40,6 @@ describe manifest do
       'ceph'
     elsif storage_hash['volumes_block_device']
       'block'
-    elsif cinder_vmware
-      'vmdk'
     else
       false
     end
@@ -78,7 +74,7 @@ describe manifest do
     )
   end
 
-  if use_ceph and !(storage_hash['volumes_lvm']) and !(member($roles, 'cinder-vmware'))
+  if use_ceph and !(storage_hash['volumes_lvm'])
       it { should contain_class('ceph') }
   end
 
@@ -177,4 +173,3 @@ describe manifest do
   end # end of shared_examples
   test_ubuntu_and_centos manifest
 end
-

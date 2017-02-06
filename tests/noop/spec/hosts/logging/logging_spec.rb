@@ -5,7 +5,6 @@
 # ROLE: ironic
 # ROLE: controller
 # ROLE: compute
-# ROLE: cinder-vmware
 # ROLE: cinder-block-device
 # ROLE: cinder
 # ROLE: ceph-osd
@@ -68,4 +67,3 @@ describe manifest do
   end
   test_ubuntu_and_centos manifest
 end
-
