@@ -127,7 +127,7 @@ class openstack_tasks::roles::ironic_conductor {
       'neutron/url': value => $neutron_uri;
     }
   } else {
-    Ironic_config['neutron/url'] {
+    Ironic_config <| title == 'neutron/url' |> {
       value => $neutron_uri
     }
   }
