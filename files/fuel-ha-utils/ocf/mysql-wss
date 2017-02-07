@@ -212,10 +212,10 @@ nodes_in_cluster_online() {
 
     NODES=$(crm_node --partition | sed -e '/(null)/d')
     if [ ! -z "$NODES" ]; then
-        ocf_log "${LH} Online Nodes in cluster: ${NODES}"
+        ocf_log debug "${LH} Online Nodes in cluster: ${NODES}"
         echo $NODES
     else
-        ocf_log "${LH} No online nodes in cluster"
+        ocf_log debug "${LH} No online nodes in cluster"
         echo
     fi
 }
@@ -226,10 +226,10 @@ nodes_in_cluster() {
     #Ubuntu doesn't like \w
     NODES=$(crm_node --list | awk '/^[a-zA-Z0-9]/ {print $2}' | sed -e '/(null)/d')
     if [ ! -z "$NODES" ]; then
-        ocf_log "${LH} Nodes in cluster: ${NODES}"
+        ocf_log debug "${LH} Nodes in cluster: ${NODES}"
         echo $NODES
     else
-        ocf_log "${LH} No nodes in cluster"
+        ocf_log debug "${LH} No nodes in cluster"
         echo
     fi
 }
