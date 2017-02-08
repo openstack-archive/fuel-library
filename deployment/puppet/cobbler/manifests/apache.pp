@@ -63,4 +63,12 @@ class cobbler::apache {
     ssl_cipher      => 'ALL:!ADH:!EXPORT:!SSLv2:!MEDIUM:!LOW:+HIGH',
     setenvif        => ['User-Agent ".*MSIE.*" nokeepalive ssl-unclean-shutdown downgrade-1.0 force-response-1.0'],
   }
+
+  class { 'apache::mod::reqtimeout' :
+    timeouts => [
+      'header=120',
+      'body=120',
+    ],
+  }
+
 }
