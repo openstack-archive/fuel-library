@@ -80,6 +80,14 @@ class openstack_tasks::roles::ironic_conductor {
     warning('The $verbose is deprecated and will be removed in a future release')
   }
 
+  class { '::ironic::neutron':
+    api_endpoint => $neutron_uri,
+    auth_url     => $admin_identity_uri,
+    project_name => $ironic_tenant,
+    username     => $ironic_user,
+    password     => $ironic_user_password,
+  }
+
   class { '::ironic':
     debug                => $debug,
     enabled_drivers      => ['fuel_ssh', 'fuel_ipmitool', 'fake', 'fuel_libvirt'],
@@ -119,17 +127,6 @@ class openstack_tasks::roles::ironic_conductor {
     'keystone_authtoken/memcached_servers': value => $local_memcached_server;
     'glance/swift_endpoint_url':            value => "http://${baremetal_vip}:8080";
     'glance/temp_url_endpoint_type':        value => $temp_url_endpoint_type;
-  }
-
-  # TODO (mkarpin): use ironic::neutron class once https://review.openstack.org/#/c/428795/ is merged
-  if !defined(Ironic_config['neutron/url']) {
-    ironic_config {
-      'neutron/url': value => $neutron_uri;
-    }
-  } else {
-    Ironic_config <| title == 'neutron/url' |> {
-      value => $neutron_uri
-    }
   }
 
   file { $tftp_root:

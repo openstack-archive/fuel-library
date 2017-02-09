@@ -62,6 +62,8 @@ describe manifest do
       service_endpoint = Noop.hiera 'service_endpoint', management_vip
       neutron_endpoint = Noop.hiera 'neutron_endpoint', service_endpoint
       ironic_user = Noop.hiera_structure 'ironic/user', 'ironic'
+      ironic_user_password = Noop.hiera_structure 'ironic/user_password','ironic'
+      ironic_tenant = Noop.hiera_structure 'ironic/tenant','services'
       temp_url_endpoint_type = (storage_config['images_ceph']) ? 'radosgw' : 'swift'
 
       let(:public_ssl_hash) { Noop.hiera_hash('public_ssl') }
@@ -77,10 +79,24 @@ describe manifest do
       let(:admin_identity_address) { Noop.puppet_function 'get_ssl_property',ssl_hash,{},'keystone','internal','hostname', [ service_endpoint, management_vip ] }
       let(:admin_identity_uri) { "#{internal_auth_protocol}://#{internal_auth_address}:35357" }
 
+      it 'should declare ironic::neutron class correctly' do
+        should contain_class('ironic::neutron').with(
+          'api_endpoint' => neutron_url,
+          'auth_url'     => admin_identity_uri,
+          'project_name' => ironic_tenant,
+          'username'     => ironic_user,
+          'password'     => ironic_user_password,
+        )
+      end
+
 
       it 'ironic config should have propper config options' do
         should contain_ironic_config('pxe/tftp_root').with('value' => '/var/lib/ironic/tftpboot')
         should contain_ironic_config('neutron/url').with('value' => neutron_url)
+        should contain_ironic_config('neutron/auth_url').with('value' => admin_identity_uri)
+        should contain_ironic_config('neutron/username').with('value' => ironic_user)
+        should contain_ironic_config('neutron/password').with('value' => ironic_user_password)
+        should contain_ironic_config('neutron/project_name').with('value' => ironic_tenant)
         should contain_ironic_config('keystone_authtoken/auth_uri').with('value' => internal_auth_uri)
         should contain_ironic_config('keystone_authtoken/identity_uri').with('value' => admin_identity_uri)
         should contain_ironic_config('keystone_authtoken/admin_user').with('value' => ironic_user)

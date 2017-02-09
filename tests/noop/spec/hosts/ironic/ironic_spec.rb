@@ -32,6 +32,7 @@ if ironic_enabled
       service_endpoint = Noop.hiera 'service_endpoint'
       management_vip = Noop.hiera 'management_vip'
       public_vip = Noop.hiera 'public_vip'
+
       let(:ssl_hash) { Noop.hiera_hash 'use_ssl', {} }
       let(:public_ssl_hash) { Noop.hiera_hash 'public_ssl', {} }
       let(:internal_auth_protocol) { Noop.puppet_function 'get_ssl_property',ssl_hash,{},'keystone','internal','protocol','http' }
@@ -49,9 +50,12 @@ if ironic_enabled
       let(:neutron_endpoint_default) {Noop.hiera 'neutron_endpoint', management_vip }
       let(:neutron_protocol) { Noop.puppet_function 'get_ssl_property',ssl_hash,{},'neutron','internal','protocol','http' }
       let(:neutron_address) { Noop.puppet_function 'get_ssl_property',ssl_hash,{},'neutron','internal','hostname', neutron_endpoint_default }
+      let(:neutron_url) do
+          "#{neutron_protocol}://#{neutron_address}:9696"
+      end
 
       let(:memcached_servers) { Noop.hiera 'memcached_servers' }
-    let(:local_memcached_server) { Noop.hiera 'local_memcached_server' }
+      let(:local_memcached_server) { Noop.hiera 'local_memcached_server' }
 
       rabbit_heartbeat_timeout_threshold = Noop.puppet_function 'pick', ironic_hash['rabbit_heartbeat_timeout_threshold'], rabbit_hash['heartbeat_timeout_treshold'], 60
       rabbit_heartbeat_rate = Noop.puppet_function 'pick', ironic_hash['rabbit_heartbeat_rate'], rabbit_hash['heartbeat_rate'], 2
@@ -63,6 +67,16 @@ if ironic_enabled
 
       it 'should configure default_log_levels' do
         should contain_ironic_config('DEFAULT/default_log_levels').with_value(default_log_levels.sort.join(','))
+      end
+
+      it 'should declare ironic::neutron class correctly' do
+        should contain_class('ironic::neutron').with(
+          'api_endpoint' => neutron_url,
+          'auth_url'     => admin_auth_uri,
+          'project_name' => admin_tenant,
+          'username'     => admin_user,
+          'password'     => admin_password,
+        )
       end
 
       it 'should declare ironic class correctly' do
@@ -87,6 +101,14 @@ if ironic_enabled
         )
       end
 
+      it 'ironic config should have propper neutron config options' do
+        should contain_ironic_config('neutron/url').with('value' => neutron_url)
+        should contain_ironic_config('neutron/auth_url').with('value' => admin_auth_uri)
+        should contain_ironic_config('neutron/username').with('value' => admin_user)
+        should contain_ironic_config('neutron/password').with('value' => admin_password)
+        should contain_ironic_config('neutron/project_name').with('value' => admin_tenant)
+      end
+
       it 'should correctly configure authtoken parameters' do
         should contain_ironic_config('keystone_authtoken/username').with(:value => admin_user)
         should contain_ironic_config('keystone_authtoken/password').with(:value => admin_password)
@@ -98,7 +120,6 @@ if ironic_enabled
 
       it 'should declare ironic::api class correctly' do
         should contain_class('ironic::api').with(
-          'neutron_url'          => "#{neutron_protocol}://#{neutron_address}:9696",
           'public_endpoint'      => "#{public_protocol}://#{public_address}:6385"
         )
       end

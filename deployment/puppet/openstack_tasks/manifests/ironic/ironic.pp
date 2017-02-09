@@ -64,6 +64,7 @@ class openstack_tasks::ironic::ironic {
   $neutron_endpoint_default   = hiera('neutron_endpoint', $management_vip)
   $neutron_protocol           = get_ssl_property($ssl_hash, {}, 'neutron', 'internal', 'protocol', 'http')
   $neutron_endpoint           = get_ssl_property($ssl_hash, {}, 'neutron', 'internal', 'hostname', $neutron_endpoint_default)
+  $neutron_uri                = "${neutron_protocol}://${neutron_endpoint}:9696"
 
   $rabbit_heartbeat_timeout_threshold = pick($ironic_hash['rabbit_heartbeat_timeout_threshold'], $rabbit_hash['heartbeat_timeout_threshold'], 60)
   $rabbit_heartbeat_rate              = pick($ironic_hash['rabbit_heartbeat_rate'], $rabbit_hash['rabbit_heartbeat_rate'], 2)
@@ -71,6 +72,14 @@ class openstack_tasks::ironic::ironic {
   prepare_network_config(hiera_hash('network_scheme', {}))
 
   $baremetal_vip = $network_metadata['vips']['baremetal']['ipaddr']
+
+  class { '::ironic::neutron':
+    api_endpoint => $neutron_uri,
+    auth_url     => $admin_identity_uri,
+    project_name => $ironic_tenant,
+    username     => $ironic_user,
+    password     => $ironic_user_password,
+  }
 
   class { '::ironic':
     debug                              => $debug,
@@ -104,7 +113,6 @@ class openstack_tasks::ironic::ironic {
 
   class { '::ironic::api':
     host_ip           => get_network_role_property('ironic/api', 'ipaddr'),
-    neutron_url       => "${neutron_protocol}://${neutron_endpoint}:9696",
     public_endpoint   => "${public_protocol}://${public_address}:6385",
   }
 }
