@@ -38,6 +38,15 @@ describe manifest do
         )
       }
     end
+    if Puppet.version < 4.0
+      $rservers = [ ['remote_type', Noop.puppet_function('pick', base_syslog['syslog_transport'], 'tcp')],
+                    ['server', base_syslog['syslog_server']],
+                    ['port', base_syslog['syslog_port']]]
+    else
+      $rservers = ['remote_type' => Noop.puppet_function('pick', base_syslog['syslog_transport'], 'tcp'),
+                   'server'      => base_syslog['syslog_server'],
+                   'port'        => base_syslog['syslog_port']]
+    end
 
     it { is_expected.to contain_service('rsyslog') }
 
@@ -52,11 +61,7 @@ describe manifest do
         :keep               => '4',
         :minsize            => '10M',
         :maxsize            => '100M',
-        :rservers           => [
-          ['remote_type', Noop.puppet_function('pick', base_syslog['syslog_transport'], 'tcp')],
-          ['server', base_syslog['syslog_server']],
-          ['port', base_syslog['syslog_port']]
-        ],
+        :rservers           => rservers,
         :virtual            => Noop.puppet_function('str2bool', facts[:is_virtual]),
         :rabbit_fqdn_prefix => Noop.hiera('node_name_prefix_for_messaging', 'messaging-'),
         :rabbit_log_level   => 'NOTICE',
