@@ -48,6 +48,10 @@ describe manifest do
       should contain_apt__conf('install-suggests').with_content('APT::Install-Suggests "false";')
     end
 
+    it 'apt-get shouldn\'t setup unattended upgrades' do
+      should contain_apt__conf('auto-upgrades').with_content('APT::Periodic::Unattended-Upgrade "0";')
+    end
+
     if repo_type != 'fuel'
       it 'uca package pins should be configured' do
          should contain_apt__pin('haproxy-mos')
