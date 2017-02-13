@@ -52,6 +52,11 @@ class osnailyfacter::fuel_pkgs::setup_repositories {
       content => 'APT::Install-Suggests "false";',
     }
 
+    apt::conf { 'auto-upgrades':
+      content  => 'APT::Periodic::Unattended-Upgrade "0";',
+      priority => '20',
+    }
+
     Apt::Source<||> ~> Exec<| title == 'apt_update' |>
     Exec<| title == 'apt_update' |> -> Package<||>
   }
