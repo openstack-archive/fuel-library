@@ -508,28 +508,4 @@ class openstack_tasks::roles::compute {
 
   ensure_packages([$scp_package, $multipath_tools_package])
 
-  # Configure ssh key authentication between compute nodes
-  # (required for non-live/cold migration)
-  $ssh_key_path = '/var/lib/astute/nova'
-
-  install_ssh_keys { 'nova_ssh_key_for_migration':
-    ensure           => present,
-    user             => 'nova',
-    private_key_path => "${ssh_key_path}/nova",
-    public_key_path  => "${ssh_key_path}/nova.pub",
-  } ->
-  file { '/var/lib/nova/.ssh/config':
-    ensure  => present,
-    owner   => 'nova',
-    group   => 'nova',
-    mode    => '0600',
-    content => "Host *\n  StrictHostKeyChecking no\n",
-  }
-
-  user { 'nova':
-    ensure  => present,
-    shell   => '/bin/rbash',
-    require => Package['nova-common'],
-  }
-
 }
