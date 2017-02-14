@@ -354,7 +354,7 @@ describe manifest do
       should contain_class('nova::cache').with(
         :enabled          => use_cache,
         :backend          => 'oslo_cache.memcache_pool',
-        :memcache_servers => local_memcached_server,
+        :memcache_servers => memcached_servers,
       )
     end
 
