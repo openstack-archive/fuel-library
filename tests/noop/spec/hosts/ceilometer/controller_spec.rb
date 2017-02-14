@@ -134,6 +134,13 @@ describe manifest do
         should contain_ceilometer_config('DEFAULT/default_log_levels').with_value(default_log_levels.sort.join(','))
       end
 
+      it 'should enable events by default' do
+          should contain_class('ceilometer::agent::notification').with(
+          'store_events' => 'true',
+          'event_dispatchers' => ['database'],
+        )
+      end
+
       it 'should configure workers with 4 processess on 4 CPU & 32G system' do
         should contain_class('ceilometer::api').with(
           'api_workers'          => '4'

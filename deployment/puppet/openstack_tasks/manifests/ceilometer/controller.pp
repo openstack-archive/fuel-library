@@ -206,6 +206,7 @@ class openstack_tasks::ceilometer::controller {
     class { '::ceilometer::agent::notification':
       notification_workers => $service_workers,
       store_events         => true,
+      event_dispatchers    => ['database'],
     }
 
     if $ha_mode {
