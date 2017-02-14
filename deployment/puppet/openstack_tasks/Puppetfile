@@ -97,6 +97,7 @@ mod 'swift',
     :ref => 'master'
 
 # Pull in puppet-ceph
+# Pin ceph in order to work around LP #1664496
 mod 'ceph',
     :git => 'https://github.com/fuel-infra/puppet-ceph.git',
-    :ref => 'master'
+    :ref => '543e5750473db7792174e102f310cf8da66d789d'
