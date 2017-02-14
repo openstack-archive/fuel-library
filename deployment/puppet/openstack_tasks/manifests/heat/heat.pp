@@ -120,7 +120,7 @@ class openstack_tasks::heat::heat {
   heat_config {
     'cache/enabled':          value => true;
     'cache/backend':          value => 'oslo_cache.memcache_pool';
-    'cache/memcache_servers': value => $local_memcached_server;
+    'cache/memcache_servers': value => join(any2array($memcached_servers), ',');
   }
 
   # TODO(aschultz): ubuntu does not have a heat docker package

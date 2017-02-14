@@ -198,7 +198,7 @@ describe manifest do
     it 'should configure caching for validation process' do
       should contain_heat_config('cache/enabled').with_value('true')
       should contain_heat_config('cache/backend').with_value('oslo_cache.memcache_pool')
-      should contain_heat_config('cache/memcache_servers').with_value(local_memcached_server)
+      should contain_heat_config('cache/memcache_servers').with_value(memcached_servers.join(','))
     end
 
     it 'should configure urls for metadata, cloudwatch and waitcondition servers' do
