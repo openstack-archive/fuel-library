@@ -228,7 +228,7 @@ describe manifest do
           'value' => true,
         )
         should contain_nova_config('cache/memcache_servers').with(
-          'value' => local_memcached_server,
+          'value' => memcached_servers.join(','),
         )
       end
     end
