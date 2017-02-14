@@ -210,7 +210,7 @@ class openstack_tasks::openstack_controller::openstack_controller {
     class { '::nova::cache':
       enabled          => true,
       backend          => 'oslo_cache.memcache_pool',
-      memcache_servers => $local_memcached_server,
+      memcache_servers => $memcached_servers,
     }
   }
 
