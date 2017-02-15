@@ -9,6 +9,7 @@ class fuel::iptables (
   $ssh_rhitcount         = 4,
   $nailgun_web_port      = $::fuel::params::nailgun_port,
   $nailgun_internal_port = $::fuel::params::nailgun_internal_port,
+  $nailgun_serialization_port = $::fuel::params::nailgun_serialization_port,
   $nailgun_repo_port     = $::fuel::params::repo_port,
   $postgres_port         = $::fuel::params::db_port,
   $ostf_port             = $::fuel::params::ostf_port,
@@ -179,6 +180,16 @@ class fuel::iptables (
     chain   => $chain,
     table   => 'filter',
     dport   => $nailgun_internal_port,
+    proto   => 'tcp',
+    iniface => $admin_iface,
+    action  => 'accept',
+    state   => ['NEW'],
+  }
+
+  firewall { '065 nailgun_serialization_port':
+    chain   => $chain,
+    table   => 'filter',
+    dport   => $nailgun_serialization_port,
     proto   => 'tcp',
     iniface => $admin_iface,
     action  => 'accept',
