@@ -1,7 +1,7 @@
 - id: prepare_symlinks
   type: puppet
   version: 2.1.0
-  groups: [primary-controller, controller, cinder, cinder-block-device, cinder-vmware, compute, ceph-osd, primary-mongo, mongo, ironic]
+  groups: [primary-controller, controller, cinder, cinder-block-device, compute, ceph-osd, primary-mongo, mongo, ironic]
   requires: [setup_repositories]
   required_for: [pkg_upgrade]
   condition:
@@ -14,7 +14,7 @@
 - id: pkg_upgrade
   type: puppet
   version: 2.1.0
-  groups: [primary-controller, controller, cinder, cinder-block-device, cinder-vmware, compute, ceph-osd, primary-mongo, mongo, ironic]
+  groups: [primary-controller, controller, cinder, cinder-block-device, compute, ceph-osd, primary-mongo, mongo, ironic]
   requires: [setup_repositories]
   required_for: [fuel_pkgs]
   condition:

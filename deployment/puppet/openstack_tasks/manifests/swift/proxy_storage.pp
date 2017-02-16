@@ -56,7 +56,7 @@ class openstack_tasks::swift::proxy_storage {
 
   $swift_proxies_num = size(hiera('swift_proxies'))
 
-# Use Swift if it isn't replaced by vCenter, Ceph for BOTH images and objects
+# Use Swift if it isn't replaced by Ceph for BOTH images and objects
   $master_swift_proxy_nodes      = get_nodes_hash_by_roles($network_metadata, [$swift_master_role])
   $master_swift_proxy_nodes_list = values($master_swift_proxy_nodes)
   $master_swift_proxy_ip         = regsubst($master_swift_proxy_nodes_list[0]['network_roles']['swift/api'], '\/\d+$', '')

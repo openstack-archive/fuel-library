@@ -13,9 +13,9 @@ describe manifest do
     # Determine if swift is used
     images_ceph = Noop.hiera_structure('storage/images_ceph', false)
     objects_ceph = Noop.hiera_structure('storage/objects_ceph', false)
-    images_vcenter = Noop.hiera_structure('storage/images_vcenter', false)
 
-    if images_ceph or objects_ceph or images_vcenter
+
+    if images_ceph or objects_ceph
       use_swift = false
     else
       use_swift = true

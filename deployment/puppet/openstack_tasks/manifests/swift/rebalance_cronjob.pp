@@ -8,8 +8,8 @@ class openstack_tasks::swift::rebalance_cronjob {
   $swift_master_role   = hiera('swift_master_role', 'primary-controller')
   $ring_min_part_hours = hiera('swift_ring_min_part_hours', 1)
 
-  # Use Swift if it isn't replaced by vCenter, Ceph for BOTH images and objects
-  if !($storage_hash['images_ceph'] and $storage_hash['objects_ceph']) and !$storage_hash['images_vcenter'] {
+  # Use Swift if it isn't replaced by Ceph for BOTH images and objects
+  if !($storage_hash['images_ceph'] and $storage_hash['objects_ceph']) {
     $master_swift_replication_nodes      = get_nodes_hash_by_roles($network_metadata, [$swift_master_role])
     $master_swift_replication_nodes_list = values($master_swift_replication_nodes)
     $master_swift_replication_ip         = $master_swift_replication_nodes_list[0]['network_roles']['swift/replication']
