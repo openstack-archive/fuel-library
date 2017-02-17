@@ -85,7 +85,7 @@ This folder contains our testing scripts for the fuel-library.
 ### utils/
 
 This folder contains scripts that are useful when doing development on
-fuel-library
+fuel-library.
 
 ## Granular Deployment
 ----------------------
