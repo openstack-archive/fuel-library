@@ -5,6 +5,13 @@
 #
 # === Parameters:
 #
+# [*status_user*]
+#  (required). String. Mysql user to use for connection testing and status
+#  checks.
+#
+# [*status_password*]
+#  (required). String. Password for the mysql user to check with.
+#
 # [*address*]
 # (optional) xinet.d bind address for clustercheck
 # Defaults to 0.0.0.0
@@ -31,6 +38,8 @@
 #
 
 class cluster::galera_status (
+  $status_user,
+  $status_password,
   $address         = '0.0.0.0',
   $only_from       = '127.0.0.1',
   $port            = '49000',
