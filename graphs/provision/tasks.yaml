@@ -43,27 +43,38 @@
     puppet_modules: /etc/puppet/modules
     timeout: 3600
 
-- id: move_to_bootstrap
-  type: move_to_bootstrap
+- id: upload_provision_hiera
+  type: upload_file
   version: 2.1.0
-  role: ['/.*/']
+  role: ['master']
   requires: [provision_start, build_deploy_image]
+  required_for: [provision_master]
+  parameters:
+    path:
+      yaql_exp: "'/etc/hiera/provision' + $.cluster.id + '.yaml'"
+    timeout: 180
+    data:
+      yaql_exp: '$.network_metadata.nodes.values().select($.dhcp).toYaml()'
+
+- id: provision_master
+  type: puppet
+  version: 2.1.0
+  role: ['master']
+  requires: [upload_provision_hiera]
   required_for: [upload_provision_info]
   cross-depends:
     - name: build_deploy_image
       role: master
   parameters:
-    slave_name:
-      yaql_exp: '$.network_metadata.nodes.values().where($.uid = new($.uid)).name.first()'
-    provisioning_info:
-      yaql_exp: '$.provision'
-    timeout: 180
+    puppet_manifest: /etc/puppet/modules/fuel/examples/provision.pp
+    puppet_modules: /etc/puppet/modules
+    timeout: 3600
 
 - id: upload_provision_info
   type: upload_file
   version: 2.1.0
   role: ['/.*/']
-  requires: [move_to_bootstrap]
+  requires: [provision_master]
   required_for: [system_provision]
   parameters:
     path: /tmp/provision.json
