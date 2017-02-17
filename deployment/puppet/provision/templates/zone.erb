@@ -1,0 +1,11 @@
+$TTL 300
+@                       IN      SOA     ns.<%= @domain_name %>. nobody.<%= @domain_name %>. (
+                                        2017021302   ; Serial
+                                        600         ; Refresh
+                                        1800         ; Retry
+                                        604800       ; Expire
+                                        300          ; TTL
+                                        )
+
+                        IN      NS      ns.<%= @domain_name %>.
+ns                      IN      A       <%= @dns_address %>
