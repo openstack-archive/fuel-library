@@ -6,12 +6,15 @@ $data                = [
   'nodes',
   'networks',
   'astute',
+  'known_hosts',
+  'provision',
   'common',
 ]
 $astute_data_file    = '/etc/fuel/astute.yaml'
 $hiera_main_config   = '/etc/hiera.yaml'
 $hiera_puppet_config = '/etc/puppet/hiera.yaml'
 $hiera_data_file     = "${data_dir}/astute.yaml"
+$hiera_data_provision = "${data_dir}/provision.yaml"
 
 File {
   owner => 'root',
@@ -38,6 +41,12 @@ file { 'hiera_data_astute' :
   ensure => 'symlink',
   path   => $hiera_data_file,
   target => $astute_data_file,
+}
+
+file { 'hiera_data_provision' :
+  ensure  => present,
+  path    => $hiera_data_provision,
+  content => template('fuel/provision.yaml'),
 }
 
 file { 'hiera_puppet_config' :
