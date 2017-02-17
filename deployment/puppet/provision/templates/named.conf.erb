@@ -1,0 +1,32 @@
+options {
+  listen-on port 53 { <%= @dns_address %>; };
+  directory       "/var/named";
+  dump-file       "/var/named/data/cache_dump.db";
+  statistics-file "/var/named/data/named_stats.txt";
+  memstatistics-file "/var/named/data/named_mem_stats.txt";
+  recursion yes;
+  forward only;
+  forwarders {
+    <% @forwarders.each do |forwarder| -%>
+    <%= forwarder %>;
+    <% end -%>
+  };
+};
+
+key <%= @ddns_key_name %> {
+  algorithm <%= @ddns_key_algorithm %>;
+  secret <%= @ddns_key %>;
+};
+
+logging {
+  channel default_debug {
+    file "data/named.run";
+    severity dynamic;
+  };
+};
+
+zone "<%= @domain_name %>." {
+  type master;
+  file "<%= @domain_name %>";
+  allow-update { key <%= @ddns_key_name %>; };
+};

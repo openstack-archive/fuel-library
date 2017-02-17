@@ -1,0 +1,19 @@
+DEFAULT menu
+PROMPT 0
+MENU TITLE Boot menu
+TIMEOUT 50
+TOTALTIMEOUT 0
+ONTIMEOUT <%= @bootstrap_menu_label %>
+
+LABEL local
+        MENU LABEL (local)
+        MENU DEFAULT
+        LOCALBOOT -1
+
+LABEL <%= @bootstrap_menu_label %>
+        kernel <%= @bootstrap_kernel_path %>
+        MENU LABEL <%= @bootstrap_menu_label %>
+        append initrd=<%= @bootstrap_initrd_path %> <%= @bootstrap_kernel_params %>
+        ipappend 2
+
+MENU end
