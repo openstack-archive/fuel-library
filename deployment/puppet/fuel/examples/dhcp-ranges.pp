@@ -1,20 +1,12 @@
 notice('MODULAR: dhcp-ranges.pp')
 
-$admin_networks = hiera('admin_networks', [{}])
-$admin_network  = hiera('ADMIN_NETWORK')
+$admin_network = hiera('ADMIN_NETWORK')
+$next_server = $admin_network['ipaddress']
+$domain_name = hiera('DNS_DOMAIN')
+$dns_address = $admin_network['ipaddress']
+$dhcp_ranges = get_dhcp_ranges(hiera('admin_networks', [{}]))
 
-Fuel::Dnsmasq::Dhcp_range <||> {
-  next_server => $admin_network['ipaddress'],
+file { $::provision::params::dhcpd_conf_extra :
+  ensure => present,
+  content => template('fuel/dhcpd_ranges.erb'),
 }
-
-# Ensure dir with purge and recurse to remove configs for
-# non-existing (removed) nodegroups and ip ranges
-file { '/etc/dnsmasq.d':
-  ensure  => 'directory',
-  recurse => true,
-  purge   => true,
-}
-
-# Create admin networks dhcp-range files except for 'default' nodegroup
-# by creating Fuel::Dnsmasq::Dhcp_range puppet resources
-create_dnsmasq_dhcp_ranges($admin_networks)
