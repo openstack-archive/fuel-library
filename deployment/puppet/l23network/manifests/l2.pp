@@ -74,11 +74,12 @@ class l23network::l2 (
       ensure_package    => $ensure_package,
     } -> Anchor['l23network::l2::init']
 
-    service {'openvswitch-service':
-      ensure    => 'running',
-      name      => $::l23network::params::ovs_service_name,
-      enable    => true,
-      hasstatus => true,
+    service { 'openvswitch-service':
+      ensure     => 'running',
+      name       => $::l23network::params::ovs_service_name,
+      enable     => true,
+      hasstatus  => true,
+      hasrestart => true,
     }
     Service['openvswitch-service'] -> Anchor['l23network::l2::init']
 
