@@ -44,27 +44,22 @@
     puppet_modules: /etc/puppet/modules
     timeout: 3600
 
-- id: move_to_bootstrap
-  type: move_to_bootstrap
+- id: provision_master
+  type: puppet
   version: 2.1.0
-  role: ['/.*/']
-  requires: [provision_start, build_deploy_image]
-  required_for: [upload_provision_info]
-  cross-depends:
-    - name: build_deploy_image
-      role: master
+  role: ['master']
+  requires: [upload_provision_info_master]
+  required_for: [build_deploy_image]
   parameters:
-    slave_name:
-      yaql_exp: '$.network_metadata.nodes.values().where($.uid = new($.uid)).name.first()'
-    provisioning_info:
-      yaql_exp: '$.provision'
-    timeout: 180
+    puppet_manifest: /etc/puppet/modules/fuel/examples/provision.pp
+    puppet_modules: /etc/puppet/modules
+    timeout: 3600
 
 - id: upload_provision_info
   type: upload_file
   version: 2.1.0
   role: ['/.*/']
-  requires: [move_to_bootstrap]
+  requires: [provision_master]
   required_for: [system_provision]
   parameters:
     path: /tmp/provision.json
@@ -76,27 +71,14 @@
   type: shell
   version: 2.1.0
   role: ['/.*/']
-  requires: [move_to_bootstrap, upload_provision_info]
-  required_for: [cobbler_disable_netboot]
+  requires: [provision_master, upload_provision_info]
+  required_for: [node_reboot]
   cross-depends:
     - name: build_deploy_image
       role: master
   parameters:
     cmd: /usr/bin/provision
     timeout: 3600
-
-- id: cobbler_disable_netboot
-  type: master_shell
-  version: 2.1.0
-  role: ['/.*/']
-  requires: [system_provision]
-  required_for: [node_reboot]
-  parameters:
-    strategy:
-      type: one_by_one
-    cmd:
-      yaql_exp: 'concat("sh /etc/puppet/modules/osnailyfacter/modular/provision/netboot disable ", $.provision.name)'
-    timeout: 180
 
 - id: node_reboot
   type: reboot
