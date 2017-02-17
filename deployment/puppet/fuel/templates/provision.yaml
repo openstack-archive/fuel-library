@@ -1,0 +1,9 @@
+---
+known_hosts: []
+ddns_key: VyCWe0kutrawqQ2WEFKkAw==
+ddns_key_algorithm: HMAC-MD5
+ddns_key_name: DHCP_UPDATE
+bootstrap_menu_label: bootstrap
+bootstrap_kernel_path: /images/vmlinuz
+bootstrap_initrd_path: /images/initrd.img
+ethdevice_timeout: 120
