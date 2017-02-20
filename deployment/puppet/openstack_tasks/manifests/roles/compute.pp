@@ -445,6 +445,8 @@ class openstack_tasks::roles::compute {
       }
     }
     'Debian': {
+      ensure_packages('apparmor')
+
       service { 'apparmor':
         ensure => running,
       }
