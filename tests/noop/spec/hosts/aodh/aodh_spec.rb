@@ -52,11 +52,8 @@ describe manifest do
 
     rabbit_ha_queues = Noop.hiera 'rabbit_ha_queues'
     rabbit_hash = Noop.hiera_hash 'rabbit', {}
-    rabbit_userid = rabbit_hash.fetch('user', 'nova')
-    rabbit_password = rabbit_hash['password']
 
-    rabbit_port = Noop.hiera 'amqp_port'
-    rabbit_hosts = Noop.hiera 'amqp_hosts'
+    let(:transport_url) { Noop.hiera 'transport_url', 'rabbit://guest:password@127.0.0.1:5672/' }
 
     ceilometer_hash = Noop.hiera_structure 'ceilometer', {'alarm_history_time_to_live' => '604800'}
     alarm_ttl = Noop.puppet_function 'pick', aodh_hash['alarm_history_time_to_live'], ceilometer_hash['alarm_history_time_to_live']
@@ -93,7 +90,7 @@ describe manifest do
 
     it 'should configure "DEFAULT/" section ' do
       should contain_aodh_config('DEFAULT/debug').with(:value => debug)
-      should contain_aodh_config('DEFAULT/rpc_backend').with(:value => 'rabbit')
+      should contain_aodh_config('DEFAULT/transport_url').with_value(transport_url)
       should contain_aodh_config('oslo_messaging_notifications/topics').with(:value => 'notifications')
     end
 
@@ -128,10 +125,6 @@ describe manifest do
 
     it 'should configure "oslo_messaging_rabbit/" section' do
       should contain_aodh_config('oslo_messaging_rabbit/rabbit_ha_queues').with(:value => rabbit_ha_queues)
-      should contain_aodh_config('oslo_messaging_rabbit/rabbit_virtual_host').with(:value => '/')
-      should contain_aodh_config('oslo_messaging_rabbit/rabbit_hosts').with(:value => rabbit_hosts)
-      should contain_aodh_config('oslo_messaging_rabbit/rabbit_userid').with(:value => rabbit_userid)
-      should contain_aodh_config('oslo_messaging_rabbit/rabbit_password').with(:value => rabbit_password)
     end
 
     it 'should properly build connection string' do

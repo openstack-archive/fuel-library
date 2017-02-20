@@ -17,9 +17,6 @@ class openstack_tasks::ironic::ironic {
   $use_syslog                 = hiera('use_syslog', true)
   $syslog_log_facility_ironic = hiera('syslog_log_facility_ironic', 'LOG_USER')
   $rabbit_hash                = hiera_hash('rabbit', {})
-  $amqp_hosts                 = hiera('amqp_hosts')
-  $amqp_port                  = hiera('amqp_port', '5673')
-  $rabbit_hosts               = split($amqp_hosts, ',')
   $neutron_config             = hiera_hash('quantum_settings')
   $primary_controller         = hiera('primary_controller')
   $amqp_durable_queues        = pick($ironic_hash['amqp_durable_queues'], false)
@@ -47,6 +44,8 @@ class openstack_tasks::ironic::ironic {
     'password' => $db_password,
     'extra'    => $extra_params
   })
+
+  $transport_url = hiera('transport_url','rabbit://guest:password@127.0.0.1:5672/')
 
   $ironic_tenant              = pick($ironic_hash['tenant'],'services')
   $ironic_user                = pick($ironic_hash['auth_name'],'ironic')
@@ -83,15 +82,12 @@ class openstack_tasks::ironic::ironic {
 
   class { '::ironic':
     debug                              => $debug,
-    rabbit_hosts                       => $rabbit_hosts,
-    rabbit_port                        => $amqp_port,
-    rabbit_userid                      => $rabbit_hash['user'],
-    rabbit_password                    => $rabbit_hash['password'],
     amqp_durable_queues                => $amqp_durable_queues,
     control_exchange                   => 'ironic',
     use_syslog                         => $use_syslog,
     log_facility                       => $syslog_log_facility_ironic,
     database_connection                => $db_connection,
+    default_transport_url              => $transport_url,
     database_max_retries               => '-1',
     glance_api_servers                 => $glance_api_servers,
     sync_db                            => $primary_controller,
