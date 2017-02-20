@@ -448,8 +448,13 @@ class openstack_tasks::roles::compute {
       }
     }
     'Debian': {
+      package { 'apparmor':
+        ensure => installed,
+      }
+
       service { 'apparmor':
-        ensure => running,
+        ensure  => running,
+        require => Package['apparmor'],
       }
 
       file_line { 'qemu_apparmor':
@@ -460,14 +465,16 @@ class openstack_tasks::roles::compute {
       }
 
       file_line { 'apparmor_libvirtd':
-        path  => '/etc/apparmor.d/usr.sbin.libvirtd',
-        line  => "#  unix, # shouldn't be used for libvirt/qemu",
-        match => '^[#[:space:]]*unix',
+        path    => '/etc/apparmor.d/usr.sbin.libvirtd',
+        line    => "#  unix, # shouldn't be used for libvirt/qemu",
+        match   => '^[#[:space:]]*unix',
+        require => Package['libvirt'],
       }
 
       exec { 'refresh_apparmor':
         refreshonly => true,
         command     => '/sbin/apparmor_parser -r /etc/apparmor.d/usr.sbin.libvirtd',
+        require     => Package['apparmor'],
         subscribe   => File_line['apparmor_libvirtd'],
       }
     }

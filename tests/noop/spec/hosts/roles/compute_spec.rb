@@ -260,6 +260,9 @@ describe manifest do
           ).that_notifies('Service[libvirt]')
         end
       elsif facts[:osfamily] == 'Debian'
+        should contain_package('apparmor').with(
+          'ensure' => 'installed',
+        )
         should contain_service('apparmor').with(
           'ensure' => 'running',
         )
@@ -269,10 +272,14 @@ describe manifest do
           'require' => ['Package[libvirt]', 'Service[apparmor]'],
         ).that_notifies('Service[libvirt]')
         should contain_file_line('apparmor_libvirtd').with(
-          'path' => '/etc/apparmor.d/usr.sbin.libvirtd',
-          'line' => "#  unix, # shouldn't be used for libvirt/qemu",
+          'path'    => '/etc/apparmor.d/usr.sbin.libvirtd',
+          'line'    => "#  unix, # shouldn't be used for libvirt/qemu",
+          'require' => 'Package[libvirt]',
         )
-        should contain_exec('refresh_apparmor').that_subscribes_to('File_line[apparmor_libvirtd]')
+        should contain_exec('refresh_apparmor').with(
+          'command' => '/sbin/apparmor_parser -r /etc/apparmor.d/usr.sbin.libvirtd',
+          'require' => 'Package[apparmor]',
+        ).that_subscribes_to('File_line[apparmor_libvirtd]')
       end
     end
 
