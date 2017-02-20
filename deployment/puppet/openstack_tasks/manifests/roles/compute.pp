@@ -445,8 +445,13 @@ class openstack_tasks::roles::compute {
       }
     }
     'Debian': {
+      package { 'apparmor':
+        ensure => installed,
+      }
+
       service { 'apparmor':
-        ensure => running,
+        ensure  => running,
+        require => Package['apparmor'],
       }
 
       file_line { 'qemu_apparmor':

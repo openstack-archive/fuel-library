@@ -261,6 +261,9 @@ describe manifest do
           ).that_notifies('Service[libvirt]')
         end
       elsif facts[:osfamily] == 'Debian'
+        should contain_package('apparmor').with(
+          'ensure' => 'installed',
+        )
         should contain_service('apparmor').with(
           'ensure' => 'running',
         )
