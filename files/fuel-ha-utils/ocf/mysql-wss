@@ -38,8 +38,6 @@ OCF_RESKEY_test_passwd_default=""
 OCF_RESKEY_test_conf_default=""
 OCF_RESKEY_additional_parameters_default=""
 OCF_RESKEY_master_timeout_default="300"
-OCF_RESKEY_streamfmt_default="xbstream"
-OCF_RESKEY_transferfmt_default="socat"
 
 : ${HA_LOGTAG="ocf-mysql-wss"}
 : ${HA_LOGFACILITY="daemon"}
@@ -63,8 +61,6 @@ MYSQL_BINDIR="$(dirname ${OCF_RESKEY_binary})"
 
 : ${OCF_RESKEY_additional_parameters=${OCF_RESKEY_additional_parameters_default}}
 : ${OCF_RESKEY_master_timeout=${OCF_RESKEY_master_timeout_default}}
-: ${OCF_RESKEY_streamfmt=${OCF_RESKEY_streamfmt_default}}
-: ${OCF_RESKEY_transferfmt=${OCF_RESKEY_transferfmt_default}}
 
 #######################################################################
 # Convenience variables
@@ -196,20 +192,6 @@ meta_data() {
       </longdesc>
       <shortdesc lang="en">Galera master timeout</shortdesc>
       <content type="integer" default="${OCF_RESKEY_master_timeout_default}"/>
-    </parameter>
-    <parameter name="streamfmt" unique="0" required="0">
-      <longdesc lang="en">
-      The streamfmt setting for xtrabackup-v2 SST config
-      </longdesc>
-      <shortdesc lang="en">SST streamfmt</shortdesc>
-      <content type="string" default="${OCF_RESKEY_streamfmt_default}"/>
-    </parameter>
-    <parameter name="transferfmt" unique="0" required="0">
-      <longdesc lang="en">
-      The transferfmt setting for xtrabackup-v2 SST config
-      </longdesc>
-      <shortdesc lang="en">SST transferfmt</shortdesc>
-      <content type="string" default="${OCF_RESKEY_transferfmt_default}"/>
     </parameter>
   </parameters>
   <actions>
@@ -573,20 +555,17 @@ mysql_validate() {
 check_if_sst() {
     local LH="${LL} check_if_sst():"
     local loglevel=${1:-'info'}
-    local pid
-    local pid2
-    local pid3
-    local pid4
-    # Match a mysqld pid by the datadir, exclude position recovery
-    pid=$(ps -C mysqld -o pid= -o command= -o args= | grep "${OCF_RESKEY_datadir}" | \
+    # Match a MySQLd pid by the datadir, exclude position recovery
+    local pid=$(ps -C mysqld -o pid= -o command= -o args= | grep "${OCF_RESKEY_datadir}" | \
         awk '!/wsrep.recover|defunct/ {print $1}')
     if [ "${pid}" ] ; then
         ocf_log info "${LH} MySQL process ${pid} found"
-        # Myslqd's running and may be blocked, check for signs of SST
-        pid2=$(ps -C ${OCF_RESKEY_streamfmt} -o pid= -o command= | awk '!/defunct/ {print $1}')
-        pid3=$(ps -C ${OCF_RESKEY_transferfmt} -o pid= -o command= | awk '!/defunct/ {print $1}')
-        pid4=$(ps -C innobackupex -o pid= -o command= | awk '!/defunct/ {print $1}')
-        if [ "${pid2}" -o "${pid3}" -o "${pid4}" ]; then
+        # MySQLd's running and may be blocked, check for signs of SST
+        local wsrep_sst_method=$(awk '/^wsrep_sst_method/ {print $3}' ${OCF_RESKEY_config})
+        local wsrep_sst_command="wsrep_sst_${wsrep_sst_method}"
+        local wsrep_sst_pid=$(ps -C ${wsrep_sst_command} -o pid= -o command= | \
+                              awk '!/defunct/ {print $1}' | head -1)
+        if [ "${wsrep_sst_pid}" ]; then
             ocf_log $loglevel "${LH} SST is in progress"
             return $OCF_SUCCESS
         fi
