@@ -71,10 +71,6 @@ describe manifest do
       Noop.hiera_array('dns_nameservers', [])
     end
 
-    let(:use_vcenter) do
-      Noop.hiera 'use_vcenter', false
-    end
-
     if Noop.hiera('role') == 'compute'
       context 'Neutron is used' do
         nova_hash = Noop.hiera_hash('nova')
@@ -183,4 +179,3 @@ describe manifest do
   end
   test_ubuntu_and_centos manifest
 end
-
