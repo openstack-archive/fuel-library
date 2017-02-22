@@ -17,7 +17,7 @@
     path: /tmp/provision.yaml
     timeout: 180
     data:
-      yaql_exp: "($.provision + $.repo_setup + dict('output' => '/var/www/nailgun/targetimages') + $common).toYaml()"
+      yaql_exp: "($.provision.set('packages', $.provision.packages) + $.repo_setup + dict('output' => '/var/www/nailgun/targetimages') + dict($.items())).toYaml()"
 
 - id: generate_ironic_bootstrap_keys
   type: shell
@@ -91,6 +91,8 @@
   requires: [system_provision]
   required_for: [node_reboot]
   parameters:
+    strategy:
+      type: one_by_one
     cmd:
       yaql_exp: 'concat("sh /etc/puppet/modules/osnailyfacter/modular/provision/netboot disable ", $.provision.name)'
     timeout: 180
