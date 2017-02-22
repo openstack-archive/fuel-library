@@ -44,7 +44,7 @@
     timeout: 180
     cwd: /
 
-- id: v_upload_configuration
+- id: v_upload_node_configuration
   type: upload_file
   version: 2.1.0
   role: ['master', '/.*/']
@@ -52,59 +52,84 @@
   required_for: [v_hiera]
   refresh_on: ['*']
   parameters:
-    path: /etc/fuel/cluster/{CLUSTER_ID}/astute.yaml
+    path: /etc/fuel/cluster/{CLUSTER_ID}/node.yaml
     permissions: '0640'
     dir_permissions: '0750'
     timeout: 180
     data:
-      yaql_exp: '$.toYaml()'
+      yaql_exp: '$node.toYaml()'
 
-- id: v_configuration_symlink
+- id: v_upload_cluster_configuration
+  type: upload_file
+  version: 2.1.0
+  role: ['master']
+  condition:
+    yaql_exp: 'changed($)'
+  requires: []
+  required_for: [copy_cluster_configuration]
+  refresh_on: ['*']
+  parameters:
+    path: /var/lib/fuel/configs/{CLUSTER_ID}/cluster.yaml
+    permissions: '0640'
+    dir_permissions: '0750'
+    timeout: 180
+    data:
+      yaql_exp: '$common.toYaml()'
+
+- id: v_copy_cluster_configuration
+  type: copy_files
+  version: 2.1.0
+  role: ['master', '/.*/']
+  condition:
+    yaql_exp: 'changed($)'
+  requires: [upload_cluster_configuration]
+  cross-depends:
+      - name: upload_cluster_configuration
+        role: master
+  parameters:
+    files:
+      - src: /var/lib/fuel/configs/{CLUSTER_ID}/cluster.yaml
+        dst: /etc/fuel/cluster/{CLUSTER_ID}/cluster.yaml
+    permissions: '0644'
+    dir_permissions: '0755'
+
+- id: v_configuration_symlink_cluster
   type: shell
   version: 2.1.0
   role: ['/.*/']
-  requires: [v_upload_configuration]
-  required_for: [v_hiera]
+  requires: [v_copy_cluster_configuration, v_hiera]
+  required_for: [v_mangle_ovs]
   parameters:
-    cmd: ln -sf /etc/fuel/cluster/{CLUSTER_ID}/astute.yaml /etc/astute.yaml
+    cmd: ln -sf /etc/fuel/cluster/{CLUSTER_ID}/cluster.yaml /etc/hiera/cluster.yaml
+    timeout: 180
+
+- id: v_configuration_symlink_node
+  type: shell
+  version: 2.1.0
+  role: ['/.*/']
+  condition:
+    yaql_exp: '$.uid in added($.nodes).uid'
+  requires: [v_upload_node_configuration, v_hiera]
+  required_for: [v_mangle_ovs]
+  parameters:
+    cmd: ln -sf /etc/fuel/cluster/{CLUSTER_ID}/node.yaml /etc/hiera/node.yaml
     timeout: 180
 
 - id: v_hiera
   type: puppet
   version: 2.1.0
-  groups: [primary-controller, controller, cinder, cinder-block-device,
-           cinder-vmware, compute, compute-vmware, ceph-osd, primary-mongo, mongo, virt, ironic]
-  required_for: [v_setup_repositories]
+  groups: ['/.*/']
+  required_for: [v_mangle_ovs]
   parameters:
     puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/hiera/hiera.pp
     puppet_modules: /etc/puppet/modules
     timeout: 120
 
-- id: v_setup_repositories
-  type: puppet
-  version: 2.1.0
-  groups: ['/.*/']
-  required_for: [v_fuel_pkgs]
-  parameters:
-    puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/fuel_pkgs/setup_repositories.pp
-    puppet_modules: /etc/puppet/modules
-    timeout: 600
-
-- id: v_fuel_pkgs
-  type: puppet
-  version: 2.1.0
-  groups: [primary-controller, controller, cinder, cinder-block-device, cinder-vmware, compute, ceph-osd, primary-mongo, mongo, ironic]
-  required_for: [v_mangle_ovs]
-  parameters:
-    puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/fuel_pkgs/fuel_pkgs.pp
-    puppet_modules: /etc/puppet/modules
-    timeout: 600
-
 - id: v_mangle_ovs
   type: puppet
   version: 2.1.0
-  groups: [primary-controller, controller, cinder, cinder-block-device, cinder-vmware, compute, ceph-osd, primary-mongo, mongo, ironic]
-  requires: [v_fuel_pkgs]
+  groups: ['/.*/']
+  requires: [v_hiera]
   required_for: [v_netconfig]
   parameters:
     puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/netconfig/remove_ovs_usage.pp
@@ -113,7 +138,7 @@
 - id: v_netconfig
   type: puppet
   version: 2.1.0
-  groups: [primary-controller, controller, cinder, cinder-block-device, cinder-vmware, compute, ceph-osd, primary-mongo, mongo, virt, ironic]
+  groups: ['/.*/']
   parameters:
     puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/netconfig/netconfig.pp
     puppet_modules: /etc/puppet/modules
@@ -131,6 +156,7 @@
   parameters:
     puppet_manifest: /etc/puppet/modules/osnailyfacter/manifests/connectivity-checker.pp
     puppet_modules: /etc/puppet/modules
-    timeout: 300
-  strategy:
-    type: parallel
+    timeout: 3600
+    strategy:
+      type: parallel
+      amount: 50
