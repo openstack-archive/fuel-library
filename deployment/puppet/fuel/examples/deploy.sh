@@ -39,7 +39,8 @@ for task in $TASKS; do
 DEPLOYMENT TASK: $task
 ##################################
 EOF
-    puppet apply -d -v --color false --detailed-exitcodes \
+    # redirecting puppet logs to syslog to work around LP #1664635
+    puppet apply -d -v --color false --detailed-exitcodes --logdest syslog \
         "/etc/puppet/modules/fuel/examples/${task}.pp"
     PUPPET_RUN=$?
     if [[ $PUPPET_RUN -eq 1 ]] || [[ $PUPPET_RUN -gt 2 ]]; then
