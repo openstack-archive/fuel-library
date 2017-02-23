@@ -76,12 +76,17 @@ class cobbler(
   class { '::cobbler::selinux': }
   class { '::cobbler::iptables': }
   class { '::cobbler::server':
-    domain_name  => $domain_name,
-    production   => $production,
-    dns_upstream => $dns_upstream,
-    dns_domain   => $dns_domain,
-    dns_search   => $dns_search,
-    dhcp_gateway => $dhcp_gateway,
+    domain_name    => $domain_name,
+    production     => $production,
+    dns_upstream   => $dns_upstream,
+    dns_domain     => $dns_domain,
+    dns_search     => $dns_search,
+    dhcp_gateway   => $dhcp_gateway,
+    dhcp_ipaddress => $dhcp_ipaddress,
+    name_server    => $name_server,
+    next_server    => $next_server,
+    server         => $server,
+    pxetimeout     => $pxetimeout,
   }
 
   cobbler_digest_user { $cobbler_user:
