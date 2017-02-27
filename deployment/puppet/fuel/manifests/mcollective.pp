@@ -57,7 +57,7 @@ class fuel::mcollective(
     require          => Package[$mco_packages],
   }
 
-  create_resources(mcollective::server::setting, $mco_settings, { 'order' => 90 })
-  create_resources(mcollective::client::setting, $mco_settings, { 'order' => 90 })
+  create_resources(mcollective::server::setting, $mco_settings, { 'order' => '90' })
+  create_resources(mcollective::client::setting, $mco_settings, { 'order' => '90' })
 
 }
