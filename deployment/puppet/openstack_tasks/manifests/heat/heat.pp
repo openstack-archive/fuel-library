@@ -214,7 +214,8 @@ class openstack_tasks::heat::heat {
     database_max_retries               => $max_retries,
 
     kombu_compression                  => $kombu_compression,
-    memcached_servers                  => $memcached_servers
+    memcached_servers                  => $memcached_servers,
+    enable_proxy_headers_parsing       => true,
   }
 
   # Engine
