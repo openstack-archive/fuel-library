@@ -175,8 +175,9 @@ describe manifest do
 
     it 'should configure heat class' do
       should contain_class('heat').with(
-        'sync_db'          => primary_controller,
-        'heat_clients_url' => "#{public_heat_protocol}://#{public_vip}:8004/v1/%(tenant_id)s",
+        'sync_db'                      => primary_controller,
+        'heat_clients_url'             => "#{public_heat_protocol}://#{public_vip}:8004/v1/%(tenant_id)s",
+        'enable_proxy_headers_parsing' => true,
       )
     end
 
