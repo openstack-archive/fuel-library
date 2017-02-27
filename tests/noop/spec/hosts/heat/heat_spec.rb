@@ -140,6 +140,12 @@ describe manifest do
       )
     end
 
+    it 'should configure heat class' do
+      should contain_class('heat').with(
+        'enable_proxy_headers_parsing' => true,
+      )
+    end
+
     it 'should configure memcache for keystone authtoken' do
         should contain_heat_config('keystone_authtoken/memcached_servers').with_value(memcached_servers.join(','))
     end
