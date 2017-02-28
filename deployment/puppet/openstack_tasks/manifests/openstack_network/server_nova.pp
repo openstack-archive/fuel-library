@@ -36,6 +36,10 @@ class openstack_tasks::openstack_network::server_nova {
     neutron_ovs_bridge   => $neutron_ovs_bridge,
   }
 
+  # Remove this once nova package is updated and contains
+  # use_neutron set to true by default LP #1668623
+  ensure_resource('nova_config', 'DEFAULT/use_neutron', {'value' => true })
+
   if $conf_nova {
     include ::nova::params
     service { 'nova-api':

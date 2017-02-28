@@ -144,6 +144,10 @@ class openstack_tasks::ironic::ironic_compute {
     neutron_admin_auth_url => "${admin_identity_uri}/v3",
   }
 
+  # Remove this once nova package is updated and contains
+  # use_neutron set to true by default LP #1668623
+  ensure_resource('nova_config', 'DEFAULT/use_neutron', {'value' => true })
+
   pcmk_resource { 'p_nova_compute_ironic':
     ensure             => 'present',
     primitive_class    => 'ocf',
