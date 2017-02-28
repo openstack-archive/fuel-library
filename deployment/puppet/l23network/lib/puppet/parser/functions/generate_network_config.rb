@@ -334,7 +334,7 @@ Puppet::Parser::Functions::newfunction(:generate_network_config, :type => :rvalu
             mtu = t[:mtu]
             if t[:interface_properties].is_a?(Hash)
               # need merge
-              props = config_hash[:interfaces][if_sym]
+              props = config_hash[:interfaces][if_sym] || {}
               t[:interface_properties].each do |k,v|
                 if k=='mtu' and !v.nil?
                   mtu==v.to_i
@@ -346,7 +346,7 @@ Puppet::Parser::Functions::newfunction(:generate_network_config, :type => :rvalu
               end
             else
               # just copy
-              props = config_hash[:interfaces][if_sym]
+              props = config_hash[:interfaces][if_sym] || {}
             end
             props[:provider] = b_provider if props[:provider].nil?
             tmp << {
