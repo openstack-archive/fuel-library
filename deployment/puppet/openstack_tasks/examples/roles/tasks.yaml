@@ -176,7 +176,7 @@
   type: puppet
   version: 2.1.0
   groups: [compute]
-  requires: [top-role-compute]
+  requires: [top-role-compute, ceilometer-compute]
   required_for: [deploy_end]
   refresh_on: [nova_config, nova_paste_api_ini]
   cross-depends:
