@@ -384,6 +384,8 @@ class openstack_tasks::keystone::keystone {
       admin_url    => $admin_url,
       internal_url => $internal_url,
       region       => $region,
+      # TODO: Remove version when #1668574 will be fixed in OSTF
+      version      => 'unset',
     }
 
     Exec <| title == 'keystone-manage db_sync' |> -> Class['::keystone::endpoint']
