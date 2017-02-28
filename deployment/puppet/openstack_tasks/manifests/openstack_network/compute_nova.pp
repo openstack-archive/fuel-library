@@ -84,6 +84,10 @@ class openstack_tasks::openstack_network::compute_nova {
     neutron_ovs_bridge   => $neutron_integration_bridge,
   }
 
+  # Remove this once nova package is updated and contains
+  # use_neutron set to true by default LP #1668623
+  ensure_resource('nova_config', 'DEFAULT/use_neutron', {'value' => true })
+
   augeas { 'sysctl-net.bridge.bridge-nf-call-arptables':
     context => '/files/etc/sysctl.conf',
     changes => "set net.bridge.bridge-nf-call-arptables '1'",
