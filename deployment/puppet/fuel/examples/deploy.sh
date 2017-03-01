@@ -31,6 +31,7 @@ nginx_services
 client
 rsyslog
 puppetsync
+dispynode
 "
 
 for task in $TASKS; do

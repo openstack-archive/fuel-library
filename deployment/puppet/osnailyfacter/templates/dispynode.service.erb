@@ -1,0 +1,13 @@
+[Unit]
+Description=The dispynode daemon
+After=network.target
+
+
+[Service]
+Type=simple
+ExecStart=<%= @su %> dispy -c "/usr/bin/dispynode.py --daemon --clean --name <%= @fqdn %> --dest_path_prefix=<%= @workdir %> --ip_addr <%= @admin_iface_ip %>"
+ExecStop=/bin/kill -s QUIT $MAINPID
+Restart=always
+
+[Install]
+WantedBy=multi-user.target
