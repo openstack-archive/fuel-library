@@ -1,0 +1,17 @@
+[Unit]
+Description=The dispynode daemon
+After=network.target
+
+
+[Service]
+Type=simple
+PIDFile=/run/dispynode.py.pid
+ExecStartPre=/bin/rm -f /tmp/<%= @user%>/node/config
+ExecStartPre=/bin/mkdir -p /tmp/<%= @user%>/node
+ExecStartPre=/bin/chown <%= @user %>:<%= @user %> /tmp/<%= @user%>/node
+ExecStart=<%= @su %> dispy -c "/usr/bin/dispynode.py --daemon --clean --name nailgun.test.domain.local --ip_addr localhost"
+ExecStop=/bin/kill -s QUIT $MAINPID
+Restart=on-failure
+
+[Install]
+WantedBy=multi-user.target
