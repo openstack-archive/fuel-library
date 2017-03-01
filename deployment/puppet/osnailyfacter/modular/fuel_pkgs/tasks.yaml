@@ -25,3 +25,16 @@
     puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/fuel_pkgs/fuel_pkgs.pp
     puppet_modules: /etc/puppet/modules
     timeout: 600
+
+- id: dispynode
+  type: puppet
+  version: 2.2.0
+  tags: [primary-controller, controller, cinder, cinder-block-device, compute, ceph-osd,
+         primary-mongo, mongo, ironic, primary-rabbitmq, rabbitmq, primary-database, database,
+         primary-keystone, keystone, primary-neutron, neutron]
+  requires: [fuel_pkgs]
+  required_for: [globals]
+  parameters:
+    puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/fuel_pkgs/fuel_pkgs/dispynode.pp
+    puppet_modules: /etc/puppet/modules
+    timeout: 300

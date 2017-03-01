@@ -1,0 +1,24 @@
+[Unit]
+Description=The dispynode daemon
+After=ntp.service
+
+
+
+[Service]
+User=<%= @user %>
+Group=<%= @user %>
+Type=simple
+WorkingDirectory=<%= @workdir %>
+PermissionsStartOnly=true
+ExecStartPre=/bin/mkdir -p <%= @workdir %>
+ExecStartPre=/bin/chown <%= @user %>:<%= @user %> <%= @workdir %>
+ExecStartPre=/bin/rm -f /tmp/<%= @user%>/node/config
+ExecStartPre=/bin/mkdir -p /tmp/<%= @user%>/node
+ExecStartPre=/bin/chown <%= @user %>:<%= @user %> /tmp/<%= @user%>/node
+ExecStart=/etc/init.d/dispynode.py systemd-start
+Restart=on-failure
+LimitNOFILE=65535
+TimeoutStopSec=65
+
+[Install]
+WantedBy=multi-user.target
