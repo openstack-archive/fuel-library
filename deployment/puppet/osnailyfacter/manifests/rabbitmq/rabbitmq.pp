@@ -185,7 +185,19 @@ class osnailyfacter::rabbitmq::rabbitmq {
           erlang_cookie           => $erlang_cookie,
           admin_user              => $rabbit_hash['user'],
           admin_pass              => $rabbit_hash['password'],
-          host_ip                 => $rabbitmq_bind_ip_address,
+          # NOTE(binarin) This value is needed by (never-used) feature
+          # of dumping/resoring RabbitMQ definitions during
+          # recovery. Default value of '127.0.0.1' works very well,
+          # but when this value has node-specific values it can lead
+          # to random deploy failures. So in a very unlikely event the
+          # need to change this value arises the following things
+          # needs to be done:
+          # - support for private pacemaker attirbutes (attrd_update -p)
+          #   should be added to https://github.com/fuel-infra/puppet-pacemaker
+          # - '::cluster::rabbitmq_ocf' should start setting this attribute
+          #   via that new private attr functionality
+          # - HA OCF script should be updated accordingly in rabbitmq upstream
+          host_ip                 => $management_bind_ip_address,
           enable_rpc_ha           => $enable_rpc_ha,
           enable_notifications_ha => $enable_notifications_ha,
           fqdn_prefix             => $fqdn_prefix,
