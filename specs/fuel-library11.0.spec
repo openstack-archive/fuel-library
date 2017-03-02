@@ -24,7 +24,7 @@ Requires: fuel-misc python-fuelclient
 
 %define files_source %{_builddir}/%{name}-%{version}/files
 %define fuel_utils_source %{files_source}/fuel-utils
-%define openstack_version newton-%{fuel_release}
+%define openstack_version ocata-%{fuel_release}
 %define predefined_upstream_modules  %{_sourcedir}/upstream_modules.tar.gz
 
 %description
