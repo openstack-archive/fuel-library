@@ -40,6 +40,15 @@ describe manifest do
       end
     end
 
+    it 'should contain migration basics' do
+      is_expected.to contain_install_ssh_keys('nova_ssh_key_for_migration')
+      is_expected.to contain_file('/var/lib/nova/.ssh/config')
+      is_expected.to contain_user('nova').with(
+        :ensure => 'present',
+        :shell  => '/bin/rbash',
+      )
+    end
+
   end
 
   test_ubuntu_and_centos manifest
