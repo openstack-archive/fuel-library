@@ -135,7 +135,7 @@ describe manifest do
 
     # TODO All this stuff should be moved to shared examples controller* tests.
 
-    it 'should declare correct workers for systems with 4 processess on 4 CPU & 32G system' do
+    it 'should declare correct workers for systems with 4 processes on 4 CPU & 32G system' do
       should contain_class('nova::api').with(
         'osapi_compute_workers' => '4',
         'metadata_workers' => '4'
