@@ -1,3 +1,9 @@
+fuel-library11.0 (11.0.0-1) trusty; urgency=low
+
+  * Bump version to 11.0
+
+ -- Vladimir Kuklin <vkuklin@mirantis.com>  Mon, 2 Mar 2017 13:48:00 +0300
+
 fuel-library10.0 (10.0.0-1) trusty; urgency=low
 
   * Bump version to 10.0
