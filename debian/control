@@ -1,4 +1,4 @@
-Source: fuel-library10.0
+Source: fuel-library11.0
 Section: admin
 Priority: optional
 Maintainer: Mirantis Product <product@mirantis.com>
@@ -12,7 +12,7 @@ Build-Depends: debhelper (>= 9),
                git
 Standards-Version: 3.9.2
 
-Package: fuel-library10.0
+Package: fuel-library11.0
 Provides: fuel-library
 Architecture: all
 Depends: ruby | ruby-interpreter, puppet, ${misc:Depends}, ${python:Depends}
