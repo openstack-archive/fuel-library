@@ -21,8 +21,10 @@
 #   Defaults to $::rabbitmq::port
 #
 # [*host_ip*]
-#   String. A string used for OCF script to collect
-#   RabbitMQ statistics
+#   String. An IP address that to be used as a part of the URL
+#   for importing rabbitmq definitions from a backup as a part of
+#   a recovery action.
+#
 #   Defaults to '127.0.0.1'
 #
 # [*debug*]
@@ -124,7 +126,7 @@ class cluster::rabbitmq_ocf (
   $mon_interval            = '30',
 ) inherits ::rabbitmq::service {
 
-  if $host_ip == 'UNSET' or $host_ip == '0.0.0.0' {
+  if $host_ip == '0.0.0.0' {
     $real_host_ip = '127.0.0.1'
   } else {
     $real_host_ip = $host_ip
