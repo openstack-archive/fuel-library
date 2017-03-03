@@ -48,7 +48,7 @@ class fuel::bootstrap_cli(
   ) {
 
   $additional_settings = {'direct_repo_addresses' => $direct_repo_addresses}
-  $custom_settings = merge($settings, $additional_settings)
+  $custom_settings = undef2nil(merge($settings, $additional_settings))
 
   ensure_packages([$bootstrap_cli_package])
 
