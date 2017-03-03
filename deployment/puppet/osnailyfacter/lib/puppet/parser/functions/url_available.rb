@@ -4,7 +4,13 @@ require 'net/http'
 require 'open-uri'
 require 'uri'
 
-Puppet::Parser::Functions::newfunction(:url_available, :doc => <<-EOS
+module URI
+  # Define 'mirror:' scheme
+  class MIRROR < HTTP; end
+  @@schemes['MIRROR'] = MIRROR
+end
+
+Puppet::Parser::Functions::newfunction(:url_available, :arity => -2, :doc => <<-EOS
 The url_available function attempts to make a http request to a url and throws
 a puppet error if the URL is unavailable.  The url_available function can take
 up to two paramters. The first paramter is the URL which is required and can be
@@ -39,8 +45,7 @@ url_available({ 'uri'   => 'http://www.google.com',
 
 EOS
 ) do |argv|
-  url = argv[0]
-  http_proxy = argv[1]
+  url, http_proxy = argv
   threads_count = 16
   Thread.abort_on_exception=true
 
@@ -54,12 +59,8 @@ EOS
 
     # check the type of url being passed, if hash look for the uri key
     if url.instance_of? Hash
-      if url.has_key?('uri')
-        uri = url['uri']
-      end
-      if url.has_key?('proxy')
-        http_proxy = url['proxy']
-      end
+      uri = url.fetch 'uri', nil
+      http_proxy = url.fetch 'proxy', nil
     elsif url.instance_of? String
       uri = url
     else

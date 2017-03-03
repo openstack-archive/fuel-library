@@ -7,6 +7,7 @@ describe 'url_available' do
     http://archive.ubuntu.com/ubuntu/
     http://mirror.fuel-infra.org/mos/ubuntu/
     http://apt.postgresql.org/pub/repos/apt/
+    http://mirrors.ubuntu.com/mirrors.txt
     )
   end
 
