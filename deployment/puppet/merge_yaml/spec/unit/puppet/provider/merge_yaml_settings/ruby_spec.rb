@@ -105,6 +105,12 @@ describe Puppet::Type.type(:merge_yaml_settings).provider(:ruby) do
       expect(provider.merged_data).to eq('a' => %w(2))
     end
 
+    it 'will replace the :undef values with nil values' do
+      expect(provider).to receive(:original_data).and_return('a' => :undef, 'b' => '1').at_least(:once)
+      expect(provider).to receive(:override_data).and_return('c' => '2').at_least(:once)
+      expect(provider.merged_data).to eq('a' => nil, 'b' => '1', 'c' => '2')
+    end
+
   end
 
   context 'transaction' do

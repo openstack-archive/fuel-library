@@ -59,6 +59,24 @@ Puppet::Type.type(:merge_yaml_settings).provide(:ruby) do
     result
   end
 
+ # Purge the :undef values which have been introduced with Puppet4
+ def undef2nil(structure)
+    if structure.is_a? Array
+      structure.map do |element|
+        undef2nil element
+      end
+    elsif structure.is_a? Hash
+      hash = {}
+      structure.each do |key, value|
+        hash[key] = undef2nil value
+      end
+      hash
+    else
+      return nil if structure == :undef
+      structure
+    end
+  end
+
   # Produce the merged data structure by merging
   # the original data data with the override data.
   # @return [Hash]
@@ -68,6 +86,7 @@ Puppet::Type.type(:merge_yaml_settings).provide(:ruby) do
     debug "Merge override: #{override_data.inspect}" if merge_debug
     original_data_clone = Marshal.load Marshal.dump original_data
     YamlDeepMerge.deep_merge! override_data, original_data_clone, deep_merge_options
+    original_data_clone = undef2nil original_data_clone
     debug "Result: #{original_data_clone.inspect}" if merge_debug
     original_data_clone
   end
