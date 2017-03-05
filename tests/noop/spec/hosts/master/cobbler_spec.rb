@@ -39,7 +39,7 @@ describe manifest do
 
     it { is_expected.to contain_file '/etc/resolv.conf' }
 
-    %w(httpd cobblerd dnsmasq xinetd).each do |service|
+    %w(httpd cobblerd xinetd).each do |service|
       it "should containt '#{service}' fuel::systemd service with correct parameters" do
         parameters = {
             :start => true,
@@ -48,6 +48,15 @@ describe manifest do
         }
         is_expected.to contain_fuel__systemd(service).with parameters
       end
+    end
+
+    it "should containt dnsmasq fuel::systemd service with correct parameters" do
+        parameters = {
+            :start => true,
+            :template_path => 'fuel/systemd/dnsmasq_template.erb',
+            :config_name => 'restart.conf',
+        }
+        is_expected.to contain_fuel__systemd(service).with parameters
     end
 
     it 'should declare the "fuel::dnsmasq::dhcp_range" with "default" title and correct parameters' do
