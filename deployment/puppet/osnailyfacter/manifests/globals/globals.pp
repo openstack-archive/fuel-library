@@ -141,6 +141,7 @@ class osnailyfacter::globals::globals {
   $keystone_api_address           = get_network_role_property('keystone/api', 'ipaddr')
   $ceilometer_api_address         = get_network_role_property('ceilometer/api', 'ipaddr')
   $aodh_api_address               = get_network_role_property('aodh/api', 'ipaddr')
+  $cinder_api_address               = get_network_role_property('cinder/api', 'ipaddr')
 
   $token_provider                 = hiera('token_provider','keystone.token.providers.fernet.Provider')
 
@@ -440,14 +441,25 @@ class osnailyfacter::globals::globals {
   # Define ceilometer-related parameters
   $ceilometer = hiera('ceilometer', {})
   $use_ceilometer  = $ceilometer['enabled']
-
-  # Listen directives with host required for ip_based vhosts
-  $apache_ports_defaults = ['127.0.0.1:80',
+  if $repo_hash['repo_type'] == 'uca' {
+    # Listen directives with host required for ip_based vhosts
+     $apache_ports_defaults = ['127.0.0.1:80',
+                            "${horizon_address}:80",
+                            "${apache_api_proxy_address}:8888",
+                            "${keystone_api_address}:5000",
+                            "${keystone_api_address}:35357",
+                            "${cinder_api_address}:8776"
+                            ]
+  }
+  else {
+    # Listen directives with host required for ip_based vhosts
+     $apache_ports_defaults = ['127.0.0.1:80',
                             "${horizon_address}:80",
                             "${apache_api_proxy_address}:8888",
                             "${keystone_api_address}:5000",
                             "${keystone_api_address}:35357",
                             ]
+  }
 
   $apache_ports = hiera_array('apache_ports', unique(
     $use_ceilometer ? {
@@ -455,7 +467,6 @@ class osnailyfacter::globals::globals {
       false => $apache_ports_defaults,
     })
   )
-
   $ceilometer_defaults = {
     'alarm_history_time_to_live' => '604800',
     'event_time_to_live'         => '604800',

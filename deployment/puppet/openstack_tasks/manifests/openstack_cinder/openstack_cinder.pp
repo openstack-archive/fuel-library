@@ -168,6 +168,31 @@ class openstack_tasks::openstack_cinder::openstack_cinder {
       auth_version      => $keystone_api,
     }
 
+  # support Ocata. First in UCA, then in MOS
+  $repo_setup              = hiera_hash('repo_setup', {})
+  $repo_type               = pick_default($repo_setup['repo_type'], '')
+  if $repo_type != 'uca' {
+    $service_name = undef
+  }
+  else {
+    class { 'osnailyfacter::apache':
+      listen_ports => hiera_array('apache_ports', ['0.0.0.0:80', '0.0.0.0:8888', '0.0.0.0:5000', '0.0.0.0:35357', '0.0.0.0:8777','0.0.0.0:8042']),
+    }
+
+
+  # set to false as we terminate SSL on HAProxy side
+  $ssl = false
+  class { '::cinder::wsgi::apache':
+    ssl       => $ssl,
+    priority  => '35',
+    bind_host => $bind_host,
+  }
+    $service_name = 'httpd'
+
+  }
+
+ 
+
     class { 'cinder::api':
       os_region_name               => $region,
       bind_host                    => $bind_host,
@@ -184,6 +209,7 @@ class openstack_tasks::openstack_cinder::openstack_cinder {
       sync_db                      => $primary_controller,
       default_volume_type          => $default_volume_type,
       enable_proxy_headers_parsing => true,
+      service_name                 => $service_name
     }
 
     class { 'cinder::scheduler': }
