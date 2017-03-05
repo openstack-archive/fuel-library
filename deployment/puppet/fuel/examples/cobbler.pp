@@ -63,7 +63,9 @@ Fuel::Systemd {
   service_manage => false,
 }
 
-fuel::systemd { ['httpd', 'cobblerd', 'dnsmasq', 'xinetd'] :}
+fuel::systemd { ['httpd', 'cobblerd', 'xinetd'] :}
+
+fuel::systemd { 'dnsmasq': template_path => 'fuel/systemd/dnsmasq_template.erb' }
 
 fuel::dnsmasq::dhcp_range {'default':
   dhcp_start_address => $admin_network['dhcp_pool_start'],
