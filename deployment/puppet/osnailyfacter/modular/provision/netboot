@@ -17,3 +17,4 @@ fi
 test -z ${node_name} && echo 'Node name not found' && exit 1
 
 cobbler system edit --name=${node_name} --netboot-enabled=${flag}
+cobbler sync
