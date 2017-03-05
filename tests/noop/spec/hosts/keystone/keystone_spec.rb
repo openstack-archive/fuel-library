@@ -59,7 +59,6 @@ describe manifest do
 
     let(:admin_url) { "#{admin_auth_protocol}://#{admin_auth_address}:35357" }
 
-    revoke_driver = 'keystone.contrib.revoke.backends.sql.Revoke'
     database_idle_timeout = '3600'
     ceilometer_hash = Noop.hiera_hash 'ceilometer', { 'enabled' => false }
     murano_hash = Noop.hiera_hash 'murano', { 'enabled' => false }
@@ -193,10 +192,6 @@ describe manifest do
       should contain_keystone_config('cache/memcache_pool_unused_timeout').with(:value => '60')
       should contain_keystone_config('memcache/dead_retry').with(:value => '60')
       should contain_keystone_config('memcache/socket_timeout').with(:value => '1')
-    end
-
-    it 'should configure revoke_driver for keystone' do
-      should contain_keystone_config('revoke/driver').with(:value => revoke_driver)
     end
 
     it 'should configure database_idle_timeout for keystone' do
