@@ -145,7 +145,14 @@ done
 # Create symlink for deployment graph
 # TODO(sbog): remove this when deployment graph will be splitted to separate
 # subgraphs
-ln -sf /etc/puppet/modules /etc/fuel/graphs/deploy
+if [ -L /etc/fuel/graphs/default ]
+then
+  unlink /etc/fuel/graphs/default
+elif  [ -d /etc/fuel/graphs/default ]
+then 
+  mv /etc/fuel/graphs/default /etc/fuel/graphs/default.old
+fi
+ln -sf /etc/puppet/modules /etc/fuel/graphs/default
 
 if [ "$1" = 2 ]; then
   #Try to sync deployment tasks or notify user on upgrade
