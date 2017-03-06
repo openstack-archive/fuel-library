@@ -87,3 +87,19 @@
     puppet_manifest: /etc/puppet/modules/openstack_tasks/examples/openstack-controller/keystone.pp
     puppet_modules: /etc/puppet/modules
     timeout: 1800
+
+- id: discover_compute_nodes
+  version: 2.2.0
+  type: shell
+  tags: [primary-controller]
+  requires: [post_deployment_start]
+  required_for: [post_deployment_end]
+  cross-depends:
+    - name: post_deployment_start
+      role: self
+  cross-depended-by:
+    - name: post_deployment_end
+      role: self
+  parameters:
+    cmd: "nova-manage cell_v2 discover_hosts"
+    timeout: 300
