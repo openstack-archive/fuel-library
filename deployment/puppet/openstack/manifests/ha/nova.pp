@@ -86,6 +86,20 @@ class openstack::ha::nova (
     balancermember_options => 'check inter 10s fastinter 2s downinter 3s rise 3 fall 3',
   }
 
+  openstack::ha::haproxy_service { 'nova-placement-api':
+    order                  => '056',
+    listen_port            => 8778,
+    internal_ssl           => $internal_ssl,
+    internal_ssl_path      => $internal_ssl_path,
+    require_service        => 'nova-placement',
+    haproxy_config_options => {
+      'option'  => ['httpchk', 'httplog', 'forceclose', 'http-buffer-request'],
+      'timeout' => 'http-request 10s',
+    },
+    balancermember_options => 'check inter 10s fastinter 2s downinter 3s rise 3 fall 3',
+  }
+
+
   openstack::ha::haproxy_service { 'nova-novncproxy':
     order                  => '170',
     listen_port            => 6080,

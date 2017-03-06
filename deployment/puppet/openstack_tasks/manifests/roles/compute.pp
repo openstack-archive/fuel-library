@@ -38,6 +38,16 @@ class openstack_tasks::roles::compute {
   $kombu_compression              = hiera('kombu_compression', $::os_service_default)
   $nova_cache                     = pick($nova_hash['use_cache'], true)
   $region_name                    = hiera('region', 'RegionOne')
+  $keystone_tenant                = pick($nova_hash['tenant'], 'services')
+
+  $internal_auth_protocol = get_ssl_property($ssl_hash, {}, 'keystone', 'internal', 'protocol', [$nova_hash['auth_protocol'], 'http'])
+  $internal_auth_address  = get_ssl_property($ssl_hash, {}, 'keystone', 'internal', 'hostname', [$service_endpoint, $management_vip])
+  $admin_auth_protocol    = get_ssl_property($ssl_hash, {}, 'keystone', 'admin', 'protocol', [$nova_hash['auth_protocol'], 'http'])
+  $admin_auth_address     = get_ssl_property($ssl_hash, {}, 'keystone', 'admin', 'hostname', [$service_endpoint, $management_vip])
+
+  $keystone_auth_uri = "${internal_auth_protocol}://${internal_auth_address}:5000/"
+  $keystone_auth_url = "${admin_auth_protocol}://${admin_auth_address}:35357/"
+
 
   # get glance api servers list
   $glance_endpoint_default        = hiera('glance_endpoint', $management_vip)
@@ -262,6 +272,15 @@ class openstack_tasks::roles::compute {
     rabbit_heartbeat_rate                  => $rabbit_heartbeat_rate,
     os_region_name                         => $region_name,
   }
+
+  class {'::nova::placement':
+    password       => $nova_hash['user_password'],
+    auth_url       => $keystone_auth_url,
+    os_interface   => 'internal',
+    project_name   => pick($nova_hash['admin_tenant_name'], $keystone_tenant),
+    os_region_name => $region_name
+  }
+
 
   class { '::nova::cache':
     enabled          => $nova_cache,
