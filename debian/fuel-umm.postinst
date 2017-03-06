@@ -1,2 +1,6 @@
 #!/bin/bash
 /usr/lib/umm/umm-install
+
+# Enable on boot
+ln -s /etc/systemd/system/basic.target.wants/umm-tr.service /usr/lib/systemd/system/umm-tr.service
+ln -s /etc/systemd/system/basic.target.wants/umm.service /usr/lib/systemd/system/umm.service
