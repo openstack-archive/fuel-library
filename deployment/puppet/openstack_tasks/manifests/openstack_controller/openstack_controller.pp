@@ -66,6 +66,8 @@ class openstack_tasks::openstack_controller::openstack_controller {
   $default_floating_net          = pick($neutron_config['default_floating_net'], 'net04_ext')
   $pci_vendor_devs               = pick($neutron_config['supported_pci_vendor_devs'], false)
 
+  $repo_setup              = hiera_hash('repo_setup', {})
+  $repo_type               = pick_default($repo_setup['repo_type'], '')
   # Boolean value for further usage
   if $pci_vendor_devs {
     $sriov_enabled = true
@@ -254,7 +256,26 @@ class openstack_tasks::openstack_controller::openstack_controller {
     auth_version      => pick($nova_hash['auth_version'], $::os_service_default),
     memcached_servers => $local_memcached_server,
   }
+  if $repo_type == 'uca' {
+    class { 'osnailyfacter::apache':
+      listen_ports => hiera_array('apache_ports', ['0.0.0.0:80', '0.0.0.0:8888', '0.0.0.0:5000', '0.0.0.0:35357', '0.0.0.0:8777','0.0.0.0:8042']),
+    }
 
+    $ssl = false
+    class {'::nova::wsgi::apache_placement':
+      ssl       => $ssl,
+      priority  => '36',
+      bind_host => $bind_host,
+      api_port  => 8778,
+    }
+    class {'::nova::placement':
+      password       => $nova_hash['user_password'],
+      auth_url       => $keystone_auth_url,
+      os_interface   => 'internal',
+      project_name   => pick($nova_hash['admin_tenant_name'], $keystone_tenant),
+      os_region_name => $region_name
+    }
+  }
   # Configure nova-api
   class { '::nova::api':
     enabled                              => true,
@@ -371,6 +392,7 @@ class openstack_tasks::openstack_controller::openstack_controller {
   nova_config {
     'DEFAULT/ram_weight_multiplier':        value => '1.0'
   }
+
 
   # TODO (iberezovskiy): In Debian open-iscsi is dependency
   # of os-brick package which is required for cinder.
