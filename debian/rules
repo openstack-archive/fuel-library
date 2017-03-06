@@ -5,7 +5,7 @@ export FUEL_LIB_DEST=/etc/puppet
 export FULL_FUEL_LIB_DEST=/debian/fuel-library$(FUEL_RELEASE)$(FUEL_LIB_DEST)
 
 %:
-	dh $@ --with python2
+	dh $@ --with python2 --with=systemd
 
 override_dh_auto_build:
 	if test -s $(CURDIR)/upstream_modules.tar.gz ; then \
