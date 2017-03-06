@@ -276,6 +276,9 @@ class openstack_tasks::openstack_controller::openstack_controller {
       os_region_name => $region_name
     }
   }
+  if $primary_controller {
+    include ::nova::cell_v2::simple_setup
+  }
   # Configure nova-api
   class { '::nova::api':
     enabled                              => true,
