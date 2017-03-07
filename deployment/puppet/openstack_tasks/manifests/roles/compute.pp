@@ -65,6 +65,10 @@ class openstack_tasks::roles::compute {
   $repo_setup              = hiera_hash('repo_setup', {})
   $repo_type               = pick_default($repo_setup['repo_type'], '')
 
+  #LP1670220 set libvirt service name to libvirtd for UCA
+  $repo_setup              = hiera_hash('repo_setup', {})
+  $repo_type               = pick_default($repo_setup['repo_type'], '')
+
   $transport_url = hiera('transport_url','rabbit://guest:password@127.0.0.1:5672/')
 
   include ::osnailyfacter::test_compute
@@ -205,6 +209,7 @@ class openstack_tasks::roles::compute {
         $libvirt_hugetlbfs_mount = 'hugetlbfs_mount = "/run/hugepages/kvm"'
       }
     } else {
+
       $qemu_hugepages_value     = 'rm KVM_HUGEPAGES'
       $libvirt_hugetlbfs_mount  = 'hugetlbfs_mount = ""'
     }
@@ -218,14 +223,20 @@ class openstack_tasks::roles::compute {
       changes => $qemu_hugepages_value,
       notify  => Service['libvirt'],
     }
-    file_line { 'libvirt_hugetlbfs_mount':
+    if $repo_type != 'uca' {
+     file_line { 'libvirt_hugetlbfs_mount':
       path    => '/etc/libvirt/qemu.conf',
       line    => $libvirt_hugetlbfs_mount,
       match   => '^hugetlbfs_mount =.*$',
       require => Package['libvirt'],
       notify  => Service['libvirt'],
     }
-    file_line { 'libvirt_1g_hugepages_apparmor':
+
+
+   }
+
+
+      file_line { 'libvirt_1g_hugepages_apparmor':
       ensure  => $hugepages_1g_opts_ensure,
       path    => '/etc/apparmor.d/abstractions/libvirt-qemu',
       after   => 'owner "/run/hugepages/kvm/libvirt/qemu/',
@@ -380,6 +391,13 @@ class openstack_tasks::roles::compute {
   $preallocate_images = pick($nova_hash_real['preallocate_images'], 'space')
   validate_re($preallocate_images, '^(none|space)$')
 
+ if $repo_type != 'uca' {
+    $libvirt_service_name = 'libvirt-bin'
+  }
+  else {
+    $libvirt_service_name = 'libvirtd'
+  }
+
   # Configure libvirt for nova-compute
   class { '::nova::compute::libvirt':
     libvirt_virt_type                          => $libvirt_type,
@@ -388,7 +406,7 @@ class openstack_tasks::roles::compute {
     libvirt_inject_partition                   => $libvirt_inject_partition,
     vncserver_listen                           => '0.0.0.0',
     remove_unused_original_minimum_age_seconds => pick($nova_hash_real['remove_unused_original_minimum_age_seconds'], '86400'),
-    libvirt_service_name                       => 'libvirt-bin',
+    libvirt_service_name                       => $libvirt_service_name,
     virtlock_service_name                      => 'virtlockd',
     virtlog_service_name                       => 'virtlogd',
     preallocate_images                         => $preallocate_images,
