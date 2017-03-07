@@ -11,7 +11,7 @@
   parameters:
     puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/dns/dns-server.pp
     puppet_modules: /etc/puppet/modules
-    timeout: 120
+    timeout: 180
 
 - id: dns-server
   type: puppet
@@ -26,7 +26,7 @@
   parameters:
     puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/dns/dns-server.pp
     puppet_modules: /etc/puppet/modules
-    timeout: 120
+    timeout: 180
 
 - id: dns-client
   type: puppet
