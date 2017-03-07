@@ -18,9 +18,15 @@ class openstack_tasks::openstack_controller::keystone {
   $admin_address       = get_ssl_property($ssl_hash, {}, 'nova', 'admin', 'hostname', [$management_vip])
 
   $compute_port      = '8774'
+  $placement_port      = '8778'
   $public_base_url   = "${public_protocol}://${public_address}:${compute_port}"
   $internal_base_url = "${internal_protocol}://${internal_address}:${compute_port}"
   $admin_base_url    = "${admin_protocol}://${admin_address}:${compute_port}"
+
+  $public_placement_url   = "${public_protocol}://${public_address}:${placement_port}"
+  $internal_placement_url = "${internal_protocol}://${internal_address}:${placement_port}"
+  $admin_placement_url    = "${admin_protocol}://${admin_address}:${placement_port}"
+
 
   $region              = pick($nova_hash['region'], hiera('region', 'RegionOne'))
 
@@ -49,6 +55,19 @@ class openstack_tasks::openstack_controller::keystone {
     region                => $region,
     tenant                => $tenant,
   }
+
+  class { '::nova::keystone::auth_placement':
+    password              => $password,
+    configure_endpoint    => $configure_endpoint,
+    configure_user        => $configure_user,
+    configure_user_role   => $configure_user_role,
+    public_url            => "${public_placement_url}/placement",
+    internal_url          => "${internal_placement_url}/placement",
+    admin_url             => "${admin_placement_url}/placement",
+    region                => $region,
+    tenant                => $tenant,
+  }
+
 
   # support compute (v2) legacy endpoint
   keystone::resource::service_identity { 'nova_legacy':
