@@ -137,7 +137,7 @@ class osnailyfacter::database::database {
     } else {
       $mysql_performance_schema = 'on'
     }
-    $innodb_buffer_pool_size = inline_template("<%= [(${::memorysize_mb} * 0.25).floor, 8192].min %>")
+    $innodb_buffer_pool_size = inline_template("<%= [(${::memorysize_mb} * 0.18).floor, 8192].min %>")
     $innodb_log_file_size    = inline_template("<%= [(${innodb_buffer_pool_size} * 0.2).floor, 2047].min %>")
     #http://dev.mysql.com/doc/refman/5.6/en/innodb-parameters.html#sysvar_innodb_log_buffer_size
     $innodb_log_buffer_size  = '8'
@@ -160,7 +160,7 @@ class osnailyfacter::database::database {
     #http://dev.mysql.com/doc/refman/5.6/en/server-system-variables.html#sysvar_thread_stack
     $thread_stack            = '0.25'
 
-    $max_connections = inline_template("<%= [[((${::memorysize_mb} * 0.25 - ${key_buffer_size} - ${query_cache_size} - ${tmp_table_size} - ${innodb_log_buffer_size} ) /
+    $max_connections = inline_template("<%= [[((${::memorysize_mb} * 0.18 - ${key_buffer_size} - ${query_cache_size} - ${tmp_table_size} - ${innodb_log_buffer_size} ) /
          (${read_buffer_size} + ${read_rnd_buffer_size} + ${sort_buffer_size} + ${join_buffer_size} + ${binlog_cache_size} + ${thread_stack})).floor, 8192].min, 1024].max %>")
 
     $wsrep_provider_options = "\"gcache.size=${galera_gcache_size}; gmcast.listen_addr=tcp://${galera_node_address}:${wsrep_group_comm_port}\""
