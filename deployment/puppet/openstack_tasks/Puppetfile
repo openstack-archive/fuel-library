@@ -79,7 +79,7 @@ mod 'neutron',
 # Pull in puppet-nova
 mod 'nova',
     :git => 'https://github.com/fuel-infra/puppet-nova.git',
-    :ref => '10.3.0'
+    :ref => '86a2d2d42230f8ef18ee818330d86b5e0a89a714'
 
 # Pull in puppet-murano
 mod 'murano',
