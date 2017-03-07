@@ -58,6 +58,7 @@ class openstack_tasks::swift::parts::proxy (
   $rabbit_user                       = 'guest',
   $rabbit_password                   = 'password',
   $rabbit_hosts                      = '127.0.0.1:5672',
+  $swift_url_base                    = 'http:',
 ) {
   if !defined(Class['swift']) {
     class { 'swift':
@@ -148,6 +149,10 @@ class openstack_tasks::swift::parts::proxy (
     admin_password    => $admin_password,
     auth_uri          => $auth_uri,
     identity_uri      => $identity_uri,
+  }
+
+  swift_proxy_config {
+    'filter:staticweb/url_base': value => $swift_url_base;
   }
 
   if $primary_proxy {
