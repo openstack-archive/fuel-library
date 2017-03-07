@@ -8,11 +8,10 @@ module Puppet::Parser::Functions
               EOS
              ) do |args|
 
-    file = args[0]
-    entity = args[1]
+    file, entity = args
 
-    store_dir = "/var/cache/fuel/#{entity}"
-    store_file = "#{File.basename(file).gsub('/','___')}"
+    store_dir = "/var/cache/fuel/#{entity.gsub('::','_')}"
+    store_file = "#{File.basename(file)}"
     fullpath = "#{store_dir}/#{store_file}"
 
     FileUtils.mkdir_p store_dir
