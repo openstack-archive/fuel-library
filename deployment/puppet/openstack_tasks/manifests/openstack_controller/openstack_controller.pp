@@ -275,6 +275,9 @@ class openstack_tasks::openstack_controller::openstack_controller {
       project_name   => pick($nova_hash['admin_tenant_name'], $keystone_tenant),
       os_region_name => $region_name
     }
+    if $primary_controller {
+      include ::nova::cell_v2::simple_setup
+    }
   }
   # Configure nova-api
   class { '::nova::api':
