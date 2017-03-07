@@ -55,7 +55,8 @@ class openstack_tasks::swift::parts::proxy (
   $auth_uri                          = 'http://127.0.0.1:5000',
   $identity_uri                      = 'http://127.0.0.1:35357',
   $swift_operator_roles              = ['admin', 'SwiftOperator'],
-  $transport_url                     = 'rabbit://guest:password@127.0.0.1:5672/'
+  $transport_url                     = 'rabbit://guest:password@127.0.0.1:5672/',
+  $swift_url_base                    = 'http:',
 ) {
   if !defined(Class['swift']) {
     class { 'swift':
@@ -114,7 +115,7 @@ class openstack_tasks::swift::parts::proxy (
   # configure all of the middlewares
   class { ['::swift::proxy::catch_errors', '::swift::proxy::crossdomain', '::swift::proxy::healthcheck',
     '::swift::proxy::bulk', '::swift::proxy::tempurl', '::swift::proxy::formpost', '::swift::proxy::swift3',
-    '::swift::proxy::staticweb', '::swift::proxy::container_quotas', '::swift::proxy::account_quotas',
+    '::swift::proxy::container_quotas', '::swift::proxy::account_quotas',
     '::swift::proxy::slo', '::swift::proxy::container_sync']:
   }
 
@@ -144,6 +145,10 @@ class openstack_tasks::swift::parts::proxy (
     admin_password    => $admin_password,
     auth_uri          => $auth_uri,
     identity_uri      => $identity_uri,
+  }
+
+  class {'::swift::proxy::staticweb':
+    url_base => $swift_url_base,
   }
 
   if $primary_proxy {
