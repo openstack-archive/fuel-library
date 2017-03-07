@@ -54,6 +54,8 @@ class openstack_tasks::swift::proxy_storage {
   $swift_public_protocol   = get_ssl_property($ssl_hash, $public_ssl_hash, 'swift', 'public', 'protocol', 'http')
   $swift_public_address    = get_ssl_property($ssl_hash, $public_ssl_hash, 'swift', 'public', 'hostname', [hiera('public_vip')])
 
+  $swift_url_base = "${swift_public_protocol}:"
+
   $swift_proxies_num = size(hiera('swift_proxies'))
 
 # Use Swift if it isn't replaced by Ceph for BOTH images and objects
@@ -103,6 +105,7 @@ class openstack_tasks::swift::proxy_storage {
       auth_uri                       => $auth_uri,
       identity_uri                   => $identity_uri,
       transport_url                  => $transport_url,
+      swift_url_base                 => $swift_url_base,
     }
 
     # Check swift proxy and internal VIP are from the same IP network. If no
