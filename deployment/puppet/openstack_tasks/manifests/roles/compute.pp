@@ -65,10 +65,6 @@ class openstack_tasks::roles::compute {
   $repo_setup              = hiera_hash('repo_setup', {})
   $repo_type               = pick_default($repo_setup['repo_type'], '')
 
-  #LP1670220 set libvirt service name to libvirtd for UCA
-  $repo_setup              = hiera_hash('repo_setup', {})
-  $repo_type               = pick_default($repo_setup['repo_type'], '')
-
   $transport_url = hiera('transport_url','rabbit://guest:password@127.0.0.1:5672/')
 
   include ::osnailyfacter::test_compute
