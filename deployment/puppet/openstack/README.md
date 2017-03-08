@@ -5,19 +5,19 @@
 The Openstack Puppet Modules are a flexible Puppet implementation capable of
 configuring the core [Openstack](http://docs.openstack.org/) services:
 
-  * [nova](http://nova.openstack.org/)     (compute service)
-  * [glance](http://glance.openstack.org/)   (image database)
-  * [swift](http://swift.openstack.org/)    (object store)
-  * [keystone](http://keystone.openstack.org/) (authentication/authorization)
-  * [horizon](http://horizon.openstack.org/)  (web front end)
+  * [nova](https://docs.openstack.org/developer/nova)     (compute service)
+  * [glance](https://docs.openstack.org/developer/glance)   (image database)
+  * [swift](https://docs.openstack.org/developer/swift)    (object store)
+  * [keystone](https://docs.openstack.org/developer/keystone) (authentication/authorization)
+  * [horizon](https://docs.openstack.org/developer/horizon)  (web front end)
 
 A ['Puppet Module'](http://docs.puppetlabs.com/learning/modules1.html#modules)
 is a collection of related content that can be used to model the configuration
 of a discrete service.
 
 These modules are based on the adminstrative guides for openstack
-[compute](http://docs.openstack.org/essex/openstack-compute/admin/content/) and
-[object store](http://docs.openstack.org/essex/openstack-object-storage/admin/content/)
+[compute](https://docs.openstack.org/essex/openstack-compute/admin/content/) and
+[object store](https://docs.openstack.org/essex/openstack-object-storage/admin/content/)
 
 ## Dependencies:
 
