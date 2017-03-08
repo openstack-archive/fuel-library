@@ -13,7 +13,7 @@ Puppet::Type.newtype(:l3_ifconfig) do
       desc "The interface name"
       #
       validate do |val|
-        if not val =~ /^[a-z_][0-9a-z\.\-\_]*[0-9a-z]$/
+        if not val =~ /^[\w][\w\.\-]*[0-9A-Za-z]$/
           fail("Invalid interface name: '#{val}'")
         end
       end
