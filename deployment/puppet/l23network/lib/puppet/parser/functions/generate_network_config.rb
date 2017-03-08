@@ -142,7 +142,7 @@ Puppet::Parser::Functions::newfunction(:generate_network_config, :type => :rvalu
     end
 
     def correct_requirement_name(name)
-      name.split('::').map{|x| x.capitalize}.join('::')
+      name.split('::').map{|x| x[0].upcase + x[1..-1]}.join('::')
     end
 
     def create_l3_ifconfig_resource(endpoints, endpoint_name, previous=nil)

@@ -13,7 +13,7 @@ Puppet::Type.newtype(:l2_bridge) do
       #
       validate do |val|
         err = "Wrong bridge name:"
-        if not val =~ /^[a-z][0-9a-z\-]*[0-9a-z]$/
+        if not val =~ /^[A-Za-z][0-9A-Za-z\-]*[0-9A-Za-z]$/
           fail("#{err} '#{val}'")
         end
         if val.length > 15
