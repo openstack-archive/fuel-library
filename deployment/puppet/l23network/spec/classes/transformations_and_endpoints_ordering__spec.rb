@@ -104,6 +104,102 @@ network_scheme:
   version: 1.1
   provider: lnx
   interfaces:
+    enP1p3s0f0: {}
+    enP1p3s0f1: {}
+  transformations:
+    - action: add-port
+      name:   enP1p3s0f0.1112
+    - action: add-port
+      name:   enP1p3s0f1.1113
+  endpoints:
+    enP1p3s0f0.1112:
+      IP:
+        - 192.168.101.3/24
+    enP1p3s0f1.1113:
+      IP:
+        - 192.168.101.3/24
+  roles: {}
+eof
+end
+  context 'with transformations and endpoint for subinterfaces with uppercase letters in the names' do
+    let(:title) { 'empty network scheme' }
+    let(:facts) {
+      {
+        :osfamily => 'Debian',
+        :operatingsystem => 'Ubuntu',
+        :kernel => 'Linux',
+        :l23_os => 'ubuntu',
+        :l3_fqdn_hostname => 'stupid_hostname',
+      }
+    }
+
+    before(:each) do
+      puppet_debug_override()
+    end
+
+    let(:params) do {
+      :settings_yaml => network_scheme,
+    } end
+
+    it do
+      should compile.with_all_deps
+    end
+
+    it do
+      should contain_L23network__L2__Port('enP1p3s0f0')
+    end
+
+    it do
+      should contain_L23network__L2__Port('enP1p3s0f0.1112')
+    end
+    it do
+      should contain_L23network__L2__Port('enP1p3s0f0.1112').that_requires('L23network::L2::Port[enP1p3s0f0]')
+    end
+
+    it do
+      should contain_L23network__L3__Ifconfig('enP1p3s0f0.1112')
+    end
+    it do
+      should contain_L23network__L3__Ifconfig('enP1p3s0f0.1112').that_requires('L23network::L2::Port[enP1p3s0f0.1112]')
+    end
+
+    it do
+      should contain_L23network__L2__Port('enP1p3s0f1')
+    end
+
+    it do
+      should contain_L23network__L2__Port('enP1p3s0f1.1113')
+    end
+    it do
+      should contain_L23network__L2__Port('enP1p3s0f1.1113').that_requires("L23network::L2::Port[enP1p3s0f1]")
+    end
+
+    it do
+      should contain_L23network__L3__Ifconfig('enP1p3s0f1.1113')
+    end
+    it do
+      should contain_L23network__L3__Ifconfig('enP1p3s0f1.1113').that_requires("L23network::L2::Port[enP1p3s0f1.1113]")
+    end
+
+    it do
+      should contain_disable_hotplug('global')
+    end
+
+    it do
+      should contain_enable_hotplug('global').that_requires('L23_stored_config[enP1p3s0f1.1113]')
+    end
+
+  end
+end
+
+describe 'l23network::examples::run_network_scheme', :type => :class do
+let(:network_scheme) do
+<<eof
+---
+network_scheme:
+  version: 1.1
+  provider: lnx
+  interfaces:
     eth2: {}
     eth3: {}
   transformations:

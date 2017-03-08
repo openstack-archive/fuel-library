@@ -14,7 +14,7 @@ Puppet::Type.newtype(:l2_port) do
       desc "The interface name"
       #
       validate do |val|
-        if not val =~ /^[a-z_][\w\.\-]*[0-9a-z]$/
+        if not val =~ /^[\w][\w\.\-]*[0-9A-Za-z]$/
           fail("Invalid interface name: '#{val}'")
         end
       end
@@ -66,7 +66,7 @@ Puppet::Type.newtype(:l2_port) do
       desc "What bridge to use"
       #
       validate do |val|
-        if not val =~ /^[a-z][0-9a-z\-\_]*[0-9a-z]$/
+        if not val =~ /^[A-Za-z][\w\-]*[0-9A-Za-z]$/
           fail("Invalid bridge name: '#{val}'")
         end
       end
