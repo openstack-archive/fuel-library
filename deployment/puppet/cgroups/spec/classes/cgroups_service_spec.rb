@@ -9,8 +9,6 @@ describe 'cgroups::service', :type => :class do
       }
     end
 
-    %w(cgroup-lite cgconfigparser cgrulesengd).each do |cg_service|
-      it { is_expected.to contain_service(cg_service) }
-    end
+    it { is_expected.to contain_service('cgconfig') }
   end
 end
