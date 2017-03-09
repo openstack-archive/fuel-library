@@ -24,7 +24,7 @@ class osnailyfacter::limits::limits {
   if member($roles, 'compute') {
     file { "/etc/init/${libvirt_service_name}.override":
       ensure  => present,
-      content => "limit nofile $libvirt_mof_limits $libvirt_mof_limit",
+      content => "limit nofile $libvirt_mof_limit $libvirt_mof_limit",
       mode    => '0644',
     }
   }
