@@ -15,6 +15,7 @@ describe 'cgroups', :type => :class do
         :owner   => 'root',
         :group   => 'root',
         :mode    => '0644',
+        :notify  => 'Service[cgconfig]',
         :tag     => 'cgroups',
       }
     end
@@ -27,7 +28,7 @@ describe 'cgroups', :type => :class do
         :cgroups_settings => params[:cgroups_set])
     }
 
-    %w(libcgroup1 cgroup-bin cgroup-upstart).each do |cg_pkg|
+    %w(libcgroup1 cgroup-bin).each do |cg_pkg|
       it { is_expected.to contain_package(cg_pkg) }
     end
 
@@ -36,7 +37,6 @@ describe 'cgroups', :type => :class do
       it { p catalogue.resource 'file', cg_file }
     end
 
-    it { is_expected.to contain_file('/etc/cgrules.conf').that_notifies('Service[cgrulesengd]') }
-    it { is_expected.to contain_file('/etc/cgconfig.conf').that_notifies('Service[cgconfigparser]') }
+    it { is_expected.to contain_file('/etc/init.d/cgconfig').with(file_defaults.merge({:mode => '0755'})) }
   end
 end
