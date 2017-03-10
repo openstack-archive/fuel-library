@@ -50,6 +50,11 @@ describe 'cobbler' do
             :dns_search => params[:dns_search],
             :dhcp_gateway => params[:dhcp_gateway],
             :extra_admins_net => params[:extra_admins_nets],
+            :name_server => params[:name_server],
+            :next_server => params[:next_server],
+            :server => params[:server],
+            :pxetimeout => params[:pxetimeout],
+            :dhcp_ipaddress => params[:dhcp_ipaddress],
         )
       end
 

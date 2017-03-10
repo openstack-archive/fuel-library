@@ -32,7 +32,12 @@ class cobbler::server (
   $dns_upstream   = ['8.8.8.8'],
   $dhcp_gateway   = unset,
   $dhcp_lease_max = '1800',
+  $dhcp_ipaddress = '127.0.0.1',
   $lease_time     = '120m',
+  $server         = $ipaddress,
+  $name_server    = $ipaddress,
+  $next_server    = $ipaddress,
+  $pxetimeout     = '0',
 ) {
   include ::cobbler::packages
 
