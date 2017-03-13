@@ -74,7 +74,7 @@ class openstack::ha::glance (
     balancermember_options => 'check inter 10s fastinter 2s downinter 3s rise 3 fall 3',
   }
 
-  openstack::ha::haproxy_service { 'glance-glare':
+  openstack::ha::haproxy_service { 'glare-api':
     # before neutron
     order                  => '081',
     listen_port            => 9494,
@@ -83,7 +83,7 @@ class openstack::ha::glance (
     public_ssl_path        => $public_ssl_path,
     internal_ssl           => $internal_ssl,
     internal_ssl_path      => $internal_ssl_path,
-    require_service        => 'glance-glare',
+    require_service        => 'glare-api',
     haproxy_config_options => {
       # TODO degorenko: check for ability for 'httpchk GET /healthcheck' for Glare
       'option'       => ['httpchk /versions', 'httplog', 'http-server-close', 'http-buffer-request'],
