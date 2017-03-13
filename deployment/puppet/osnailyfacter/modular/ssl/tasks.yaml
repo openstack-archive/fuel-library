@@ -3,7 +3,7 @@
   version: 2.2.0
   tags: [primary-controller, controller, compute, cinder, primary-mongo, mongo, ceph-osd, virt,
            primary-rabbitmq, rabbitmq, primary-database, database,
-           primary-keystone, keystone, primary-neutron, neutron]
+           primary-keystone, keystone, primary-neutron, neutron, ironic]
   requires: [firewall]
   condition:
     yaql_exp: >
@@ -24,7 +24,7 @@
   version: 2.2.0
   tags: [primary-controller, controller, compute, cinder, primary-mongo, mongo, ceph-osd, virt,
            primary-rabbitmq, rabbitmq, primary-database, database,
-           primary-keystone, keystone, primary-neutron, neutron]
+           primary-keystone, keystone, primary-neutron, neutron, ironic]
   requires: [firewall, ssl-keys-saving]
   condition:
     yaql_exp: &public_ssl_enabled >
@@ -42,7 +42,7 @@
 - id: ssl-dns-setup
   type: puppet
   version: 2.1.0
-  groups: [primary-controller, controller]
+  groups: [primary-controller, controller, ironic]
   requires: [firewall, ssl-add-trust-chain]
   condition:
     yaql_exp: *public_ssl_enabled

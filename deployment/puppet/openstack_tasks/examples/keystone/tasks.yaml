@@ -37,7 +37,7 @@
 - id: keystone-openrc-generate
   type: puppet
   version: 2.2.0
-  tags: [primary-controller, controller, primary-neutron, neutron]
+  tags: [primary-controller, controller, primary-neutron, neutron, ironic]
   requires: [openrc-delete, primary-keystone, keystone]
   cross-depends:
     - name: openrc-delete

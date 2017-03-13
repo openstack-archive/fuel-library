@@ -148,10 +148,10 @@
 
 - id: ironic-conductor
   type: puppet
-  version: 2.1.0
+  version: 2.2.0
   groups: [ironic]
   required_for: [deploy_end]
-  requires: [hosts, firewall]
+  requires: [hosts, firewall, keystone-openrc-generate]
   condition:
     yaql_exp: >
       $.ironic.enabled and changedAny($.network_scheme, $.ironic,
@@ -167,6 +167,8 @@
     - name: ironic-api
     - name: ironic-db
     - name: /^(primary-)?rabbitmq$/
+    - name: openstack-network-networks
+      role: ["/^(primary-)?neutron$/"]
   parameters:
     puppet_manifest: /etc/puppet/modules/openstack_tasks/examples/roles/ironic-conductor.pp
     puppet_modules: /etc/puppet/modules
