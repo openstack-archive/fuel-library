@@ -9,6 +9,9 @@ describe manifest do
     glance_db_user = 'glance'
     glance_db_dbname = 'glance'
     glance_db_password = Noop.hiera_structure 'glance/db_password'
+    glare_db_user = 'glare'
+    glare_db_dbname = 'glare'
+    glare_db_password = Noop.hiera_structure 'mysql/root_password'
     allowed_hosts = ['localhost','127.0.0.1','%']
 
     it 'should install proper mysql-client' do
@@ -23,15 +26,26 @@ describe manifest do
     end
     it 'should declare glance::db::mysql class with user,password,dbname' do
       should contain_class('glance::db::mysql').with(
-        'user' => glance_db_user,
-        'password' => glance_db_password,
-        'dbname' => glance_db_dbname,
+        'user'          => glance_db_user,
+        'password'      => glance_db_password,
+        'dbname'        => glance_db_dbname,
+        'allowed_hosts' => allowed_hosts,
+      )
+    end
+    it 'should declare glare::db::mysql class with user,password,dbname' do
+      should contain_class('glare::db::mysql').with(
+        'user'          => glare_db_user,
+        'password'      => glare_db_password,
+        'dbname'        => glare_db_dbname,
         'allowed_hosts' => allowed_hosts,
       )
     end
     allowed_hosts.each do |host|
       it "should define openstacklib::db::mysql::host_access for #{glance_db_dbname} DB for #{host}" do
         should contain_openstacklib__db__mysql__host_access("#{glance_db_dbname}_#{host}")
+      end
+      it "should define openstacklib::db::mysql::host_access for #{glare_db_dbname} DB for #{host}" do
+        should contain_openstacklib__db__mysql__host_access("#{glare_db_dbname}_#{host}")
       end
     end
   end

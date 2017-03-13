@@ -15,6 +15,7 @@ puppet/filemapper
 puppet/firewall
 puppet/galera
 puppet/glance
+puppet/glare
 puppet/heat
 puppet/horizon
 puppet/inifile
