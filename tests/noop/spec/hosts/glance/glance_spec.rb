@@ -39,10 +39,14 @@ describe manifest do
        pipeline = 'keystone'
     end
     database_vip = Noop.hiera('database_vip')
+    mysql_root_password = Noop.hiera_structure 'mysql/root_password'
     glance_db_type = Noop.hiera_structure 'glance/db_type', 'mysql+pymysql'
     glance_db_password = Noop.hiera_structure 'glance/db_password', 'glance'
     glance_db_user = Noop.hiera_structure 'glance/db_user', 'glance'
     glance_db_name = Noop.hiera_structure 'glance/db_name', 'glance'
+    glare_db_type = Noop.hiera_structure 'glance_glare/db_type', 'mysql+pymysql'
+    glare_db_password = Noop.hiera_structure 'glance_glare/db_password', mysql_root_password
+    glare_db_user = Noop.hiera_structure 'glance_glare/db_user', 'glare'
     glance_password     = glance_config.fetch('user_password')
     glance_username     = glance_config.fetch('user', 'glance')
     glance_project_name = glance_config.fetch('tenant', 'services')
@@ -101,8 +105,8 @@ describe manifest do
         'memcached_servers' => local_memcached_server)
     end
 
-    it 'should have correct auth options for Glance Glare' do
-      should contain_class('glance::glare::authtoken').with(
+    it 'should have correct auth options for Glare' do
+      should contain_class('glare::keystone::authtoken').with(
         'username'          => glance_glare_username,
         'password'          => glance_glare_password,
         'project_name'      => glance_glare_project_name,
@@ -132,7 +136,7 @@ describe manifest do
     it 'should declare glance classes' do
       should contain_class('glance::api').with('pipeline' => pipeline)
       should contain_class('glance::registry').with('sync_db' => primary_controller)
-      should contain_class('glance::glare').with('pipeline' => pipeline)
+      should contain_class('glare').with('pipeline' => pipeline)
       should contain_class('glance::notify::rabbitmq')
     end
 
@@ -143,10 +147,13 @@ describe manifest do
             extra_params = '?charset=utf8'
         end
 
+        glare_db_name = 'glare'
+
         db_connection = "#{glance_db_type}://#{glance_db_user}:#{glance_db_password}@#{database_vip}/#{glance_db_name}#{extra_params}"
+        glare_db_connection = "#{glare_db_type}://#{glare_db_user}:#{glare_db_password}@#{database_vip}/#{glare_db_name}#{extra_params}"
         should contain_class('glance::api').with(:database_connection => db_connection)
         should contain_class('glance::registry').with(:database_connection => db_connection)
-        should contain_class('glance::glare::db').with(:database_connection => db_connection)
+        should contain_class('glare::db').with(:database_connection => glare_db_connection)
     end
 
     it 'should configure glance api config' do
@@ -168,20 +175,20 @@ describe manifest do
       should contain_glance_api_config('keystone_authtoken/memcached_servers').with_value(local_memcached_server)
     end
 
-    it 'should configure glance glare config' do
-      should contain_glance_glare_config('database/max_pool_size').with_value(max_pool_size)
-      should contain_glance_glare_config('DEFAULT/use_stderr').with_value(use_stderr)
-      should contain_glance_glare_config('database/max_overflow').with_value(max_overflow)
-      should contain_glance_glare_config('database/max_retries').with_value(max_retries)
-      should contain_glance_glare_config('glance_store/os_region_name').with_value(region)
-      should contain_glance_glare_config('keystone_authtoken/auth_type').with_value('password')
-      should contain_glance_glare_config('keystone_authtoken/auth_url').with_value(auth_url)
-      should contain_glance_glare_config('keystone_authtoken/auth_uri').with_value(auth_uri)
-      should contain_glance_glare_config('keystone_authtoken/username').with_value(glance_glare_username)
-      should contain_glance_glare_config('keystone_authtoken/password').with_value(glance_glare_password)
-      should contain_glance_glare_config('keystone_authtoken/project_name').with_value(glance_glare_project_name)
-      should contain_glance_glare_config('keystone_authtoken/token_cache_time').with_value('300')
-      should contain_glance_glare_config('keystone_authtoken/memcached_servers').with_value(local_memcached_server)
+    it 'should configure glare config' do
+      should contain_glare_config('database/max_pool_size').with_value(max_pool_size)
+      should contain_glare_config('DEFAULT/use_stderr').with_value(use_stderr)
+      should contain_glare_config('database/max_overflow').with_value(max_overflow)
+      should contain_glare_config('database/max_retries').with_value(max_retries)
+      should contain_glare_config('glance_store/os_region_name').with_value(region)
+      should contain_glare_config('keystone_authtoken/auth_type').with_value('password')
+      should contain_glare_config('keystone_authtoken/auth_url').with_value(auth_url)
+      should contain_glare_config('keystone_authtoken/auth_uri').with_value(auth_uri)
+      should contain_glare_config('keystone_authtoken/username').with_value(glance_glare_username)
+      should contain_glare_config('keystone_authtoken/password').with_value(glance_glare_password)
+      should contain_glare_config('keystone_authtoken/project_name').with_value(glance_glare_project_name)
+      should contain_glare_config('keystone_authtoken/token_cache_time').with_value('300')
+      should contain_glare_config('keystone_authtoken/memcached_servers').with_value(local_memcached_server)
     end
 
     if $glance_backend == 'rbd'
@@ -225,14 +232,14 @@ describe manifest do
         should contain_glance_api_config('DEFAULT/use_syslog_rfc_format').with_value('true')
         should contain_glance_cache_config('DEFAULT/use_syslog_rfc_format').with_value('true')
         should contain_glance_registry_config('DEFAULT/use_syslog_rfc_format').with_value('true')
-        should contain_glance_glare_config('DEFAULT/use_syslog_rfc_format').with_value('true')
+        should contain_glare_config('DEFAULT/use_syslog_rfc_format').with_value('true')
       end
     end
 
     it 'should configure default_log_levels' do
       should contain_glance_api_config('DEFAULT/default_log_levels').with_value(default_log_levels.sort.join(','))
       should contain_glance_registry_config('DEFAULT/default_log_levels').with_value(default_log_levels.sort.join(','))
-      should contain_glance_glare_config('DEFAULT/default_log_levels').with_value(default_log_levels.sort.join(','))
+      should contain_glare_config('DEFAULT/default_log_levels').with_value(default_log_levels.sort.join(','))
     end
 
     if storage_config && storage_config.has_key?('images_ceph') && storage_config['images_ceph']
@@ -251,12 +258,12 @@ describe manifest do
 
       if ironic_enabled
         it 'should declare swift backend' do
-          should contain_class('glance::backend::swift').with(:glare_enabled => true)
+          should contain_class('glance::backend::swift')
         end
       end
       let :params do { :glance_backend => 'ceph', } end
       it 'should declare ceph backend' do
-        should contain_class('glance::backend::rbd').with(:glare_enabled => true)
+        should contain_class('glance::backend::rbd')
       end
       it 'should configure show_image_direct_url' do
         should contain_glance_api_config('DEFAULT/show_image_direct_url').with_value(show_image_direct_url)

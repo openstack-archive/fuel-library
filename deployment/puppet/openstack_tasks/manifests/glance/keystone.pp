@@ -26,7 +26,7 @@ class openstack_tasks::glance::keystone {
   $ssl_hash                  = hiera_hash('use_ssl', {})
 
   Class['::osnailyfacter::wait_for_keystone_backends'] -> Class['::glance::keystone::auth']
-  Class['::osnailyfacter::wait_for_keystone_backends'] -> Class['::glance::keystone::glare_auth']
+  Class['::osnailyfacter::wait_for_keystone_backends'] -> Class['::glare::keystone::auth']
 
   $public_protocol     = get_ssl_property($ssl_hash, $public_ssl_hash, 'glance', 'public', 'protocol', 'http')
   $public_address      = get_ssl_property($ssl_hash, $public_ssl_hash, 'glance', 'public', 'hostname', [$public_vip])
@@ -69,7 +69,7 @@ class openstack_tasks::glance::keystone {
     tenant              => $tenant,
   }
 
-  class { '::glance::keystone::glare_auth':
+  class { '::glare::keystone::auth':
     password            => $glare_password,
     auth_name           => $glare_auth_name,
     configure_endpoint  => $glare_configure_endpoint,

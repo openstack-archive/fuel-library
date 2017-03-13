@@ -64,7 +64,7 @@ describe manifest do
     end
 
     it 'should declare glance::keystone::glare_auth class correctly' do
-      should contain_class('glance::keystone::glare_auth').with(
+      should contain_class('glare::keystone::auth').with(
         'auth_name'           => glare_auth_name,
         'password'            => glare_password,
         'configure_endpoint'  => glare_configure_endpoint,
@@ -85,9 +85,9 @@ describe manifest do
       expect(graph).to ensure_transitive_dependency("Haproxy_backend_status[keystone-admin]",
                                                       "Class[glance::keystone::auth]")
       expect(graph).to ensure_transitive_dependency("Haproxy_backend_status[keystone-public]",
-                                                      "Class[glance::keystone::glare_auth]")
+                                                      "Class[glare::keystone::auth]")
       expect(graph).to ensure_transitive_dependency("Haproxy_backend_status[keystone-admin]",
-                                                      "Class[glance::keystone::glare_auth]")
+                                                      "Class[glare::keystone::auth]")
     end
   end
   test_ubuntu_and_centos manifest

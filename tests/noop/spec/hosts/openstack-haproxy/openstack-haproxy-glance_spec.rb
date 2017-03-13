@@ -51,7 +51,7 @@ describe manifest do
           'balancermember_options' => 'check inter 10s fastinter 2s downinter 3s rise 3 fall 3'
         )
 
-        should contain_openstack__ha__haproxy_service('glance-glare').with(
+        should contain_openstack__ha__haproxy_service('glare-api').with(
           'order'                  => '081',
           'listen_port'            => 9494,
 
@@ -62,7 +62,7 @@ describe manifest do
           'server_names'           => server_names,
           'public'                 => 'true',
           'public_ssl'             => public_ssl,
-          'require_service'        => 'glance-glare',
+          'require_service'        => 'glare-api',
           'haproxy_config_options' => {
             'option'       => ['httpchk /versions', 'httplog', 'http-server-close', 'http-buffer-request'],
             'timeout'      => ['server 11m', 'http-request 10s'],
