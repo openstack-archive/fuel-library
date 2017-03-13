@@ -167,6 +167,7 @@
     - name: ironic-api
     - name: ironic-db
     - name: /^(primary-)?rabbitmq$/
+    - name: keystone-openrc-generate
   parameters:
     puppet_manifest: /etc/puppet/modules/openstack_tasks/examples/roles/ironic-conductor.pp
     puppet_modules: /etc/puppet/modules
