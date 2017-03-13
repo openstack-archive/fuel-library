@@ -2,10 +2,11 @@ class openstack_tasks::glance::db {
 
   notice('MODULAR: glance/db.pp')
 
-  $glance_hash    = hiera_hash('glance', {})
-  $mysql_hash     = hiera_hash('mysql', {})
-  $management_vip = hiera('management_vip')
-  $database_vip   = hiera('database_vip')
+  $glance_hash       = hiera_hash('glance', {})
+  $glance_glare_hash = hiera_hash('glance_glare', {})
+  $mysql_hash        = hiera_hash('mysql', {})
+  $management_vip    = hiera('management_vip')
+  $database_vip      = hiera('database_vip')
 
   $mysql_root_user     = pick($mysql_hash['root_user'], 'root')
   $mysql_db_create     = pick($mysql_hash['db_create'], true)
@@ -14,6 +15,10 @@ class openstack_tasks::glance::db {
   $db_user     = pick($glance_hash['db_user'], 'glance')
   $db_name     = pick($glance_hash['db_name'], 'glance')
   $db_password = pick($glance_hash['db_password'], $mysql_root_password)
+
+  $glare_db_user     = pick($glance_glare_hash['db_user'], 'glare')
+  $glare_db_name     = pick($glance_glare_hash['db_name'], 'glare')
+  $glare_db_password = pick($glance_glare_hash['db_password'], $mysql_root_password)
 
   $db_host          = pick($glance_hash['db_host'], $database_vip)
   $db_create        = pick($glance_hash['db_create'], $mysql_db_create)
@@ -37,6 +42,13 @@ class openstack_tasks::glance::db {
       allowed_hosts => $allowed_hosts,
     }
 
+    class { '::glare::db::mysql':
+      user          => $glare_db_user,
+      password      => $glare_db_password,
+      dbname        => $glare_db_name,
+      allowed_hosts => $allowed_hosts,
+    }
+
     class { '::osnailyfacter::mysql_access':
       db_host     => $db_host,
       db_user     => $db_root_user,
@@ -45,7 +57,8 @@ class openstack_tasks::glance::db {
 
     Class['::openstack::galera::client'] ->
       Class['::osnailyfacter::mysql_access'] ->
-        Class['::glance::db::mysql']
+        Class['::glance::db::mysql'] ->
+        Class['::glare::db::mysql']
   }
 
 }

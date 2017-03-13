@@ -7,6 +7,7 @@ class openstack_tasks::glance::glance {
   prepare_network_config($network_scheme)
 
   $glance_hash         = hiera_hash('glance', {})
+  $mysql_hash          = hiera_hash('mysql', {})
   $glance_glare_hash   = hiera_hash('glance_glare', {})
   $debug               = pick($glance_hash['debug'], hiera('debug', false))
   $management_vip      = hiera('management_vip')
@@ -38,6 +39,15 @@ class openstack_tasks::glance::glance {
   $db_user     = pick($glance_hash['db_user'], 'glance')
   $db_password = $glance_hash['db_password']
   $db_name     = pick($glance_hash['db_name'], 'glance')
+
+  $mysql_root_password = $mysql_hash['root_password']
+
+  $glare_db_type     = pick($glance_glare_hash['db_type'], 'mysql+pymysql')
+  $glare_db_host     = pick($glance_glare_hash['db_host'], $database_vip)
+  $glare_db_user     = pick($glance_glare_hash['db_user'], 'glare')
+  $glare_db_name     = pick($glance_glare_hash['db_name'], 'glare')
+  $glare_db_password = pick($glance_glare_hash['db_password'], $mysql_root_password)
+
   # LP#1526938 - python-mysqldb supports this, python-pymysql does not
   if $::os_package_type == 'debian' {
     $extra_params = { 'charset' => 'utf8', 'read_timeout' => 60 }
@@ -50,6 +60,15 @@ class openstack_tasks::glance::glance {
     'database' => $db_name,
     'username' => $db_user,
     'password' => $db_password,
+    'extra'    => $extra_params
+  })
+
+  $glare_db_connection = os_database_connection({
+    'dialect'  => $glare_db_type,
+    'host'     => $glare_db_host,
+    'database' => $glare_db_name,
+    'username' => $glare_db_user,
+    'password' => $glare_db_password,
     'extra'    => $extra_params
   })
 
@@ -101,8 +120,8 @@ class openstack_tasks::glance::glance {
     tweaks::ubuntu_service_override { 'glance-api':
       package_name => 'glance-api',
     }
-    tweaks::ubuntu_service_override { 'glance-glare':
-      package_name => 'glance-glare',
+    tweaks::ubuntu_service_override { 'glare-api':
+      package_name => 'glare-api',
     }
     tweaks::ubuntu_service_override { 'glance-registry':
       package_name => 'glance-registry',
@@ -146,23 +165,23 @@ class openstack_tasks::glance::glance {
     image_cache_max_size    => $glance_image_cache_max_size,
   }
 
-  class { '::glance::glare::logging':
-    use_syslog         => $use_syslog,
-    use_stderr         => $use_stderr,
-    log_facility       => $syslog_log_facility,
-    debug              => $debug,
-    default_log_levels => hiera('default_log_levels'),
+  class { '::glare::logging':
+    use_syslog          => $use_syslog,
+    use_stderr          => $use_stderr,
+    syslog_log_facility => $syslog_log_facility,
+    debug               => $debug,
+    default_log_levels  => hiera('default_log_levels'),
   }
 
-  class { '::glance::glare::db':
-    database_connection    => $db_connection,
+  class { '::glare::db':
+    database_connection    => $glare_db_connection,
     database_idle_timeout  => $idle_timeout,
     database_max_pool_size => $max_pool_size,
     database_max_retries   => $max_retries,
     database_max_overflow  => $max_overflow,
   }
 
-  class { '::glance::glare::authtoken':
+  class { '::glare::keystone::authtoken':
     username          => $glance_glare_user,
     password          => $glance_glare_user_password,
     project_name      => $glance_glare_tenant,
@@ -172,14 +191,16 @@ class openstack_tasks::glance::glance {
     memcached_servers => $local_memcached_server,
   }
 
-  class { '::glance::glare':
-    bind_host         => $glare_bind_host,
-    auth_strategy     => 'keystone',
-    enabled           => $enabled,
-    stores            => $known_stores,
-    workers           => $service_workers,
-    pipeline          => $pipeline,
-    os_region_name    => $region,
+  class { '::glare':
+    bind_host                => $glare_bind_host,
+    auth_strategy            => 'keystone',
+    enabled                  => $enabled,
+    stores                   => $known_stores,
+    workers                  => $service_workers,
+    pipeline                 => $pipeline,
+    os_region_name           => $region,
+    # glare should use glance store by design
+    filesystem_store_datadir => '/var/lib/glance/images'
   }
 
   glance_api_config {
@@ -234,7 +255,7 @@ class openstack_tasks::glance::glance {
     glance_api_config {
       'DEFAULT/use_syslog_rfc_format': value => true;
     }
-    glance_glare_config {
+    glare_config {
       'DEFAULT/use_syslog_rfc_format': value => true;
     }
     glance_cache_config {
@@ -269,7 +290,15 @@ class openstack_tasks::glance::glance {
         swift_store_auth_address            => "${auth_uri}/v3",
         swift_store_auth_version            => '3',
         swift_store_region                  => $region,
-        glare_enabled                       => true,
+      }
+      class { '::glare::backend::swift':
+        swift_store_user                    => "${glance_tenant}:${glance_user}",
+        swift_store_key                     => $glance_user_password,
+        swift_store_create_container_on_put => 'True',
+        swift_store_large_object_size       => $swift_store_large_object_size,
+        swift_store_auth_address            => "${auth_uri}/v3",
+        swift_store_auth_version            => '3',
+        swift_store_region                  => $region,
       }
     }
     'rbd', 'ceph': {
@@ -280,9 +309,17 @@ class openstack_tasks::glance::glance {
         rados_connect_timeout => $rados_connect_timeout,
         glare_enabled         => true,
       }
+      class { '::glare::backend::rbd':
+        rbd_store_user        => 'images',
+        rbd_store_pool        => 'images',
+        rados_connect_timeout => $rados_connect_timeout,
+      }
     }
     default: {
       class { "glance::backend::${glance_backend}":
+        glare_enabled => true,
+      }
+      class { "glare::backend::${glance_backend}":
         glare_enabled => true,
       }
     }
