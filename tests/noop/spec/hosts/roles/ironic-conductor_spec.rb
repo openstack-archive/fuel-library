@@ -45,6 +45,12 @@ describe manifest do
         )
       end
 
+      it 'should declare ironic::drivers:interfaces correctly' do
+          should contain_class('ironic::drivers::interfaces').with(
+              'enabled_network_interfaces' => ['noop', 'flat', 'neutron']
+          )
+      end
+
       it 'should configure the database connection string' do
         if facts[:os_package_type] == 'debian'
           extra_params = '?charset=utf8&read_timeout=60'
