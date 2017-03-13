@@ -15,6 +15,8 @@ class openstack_tasks::glance::db {
   $db_name     = pick($glance_hash['db_name'], 'glance')
   $db_password = pick($glance_hash['db_password'], $mysql_root_password)
 
+  $glare_db_name = 'glare'
+
   $db_host          = pick($glance_hash['db_host'], $database_vip)
   $db_create        = pick($glance_hash['db_create'], $mysql_db_create)
   $db_root_user     = pick($glance_hash['root_user'], $mysql_root_user)
@@ -37,6 +39,13 @@ class openstack_tasks::glance::db {
       allowed_hosts => $allowed_hosts,
     }
 
+    class { '::glare::db::mysql':
+      user          => $db_user,
+      password      => $db_password,
+      dbname        => $glare_db_name,
+      allowed_hosts => $allowed_hosts,
+    }
+
     class { '::osnailyfacter::mysql_access':
       db_host     => $db_host,
       db_user     => $db_root_user,
@@ -45,7 +54,8 @@ class openstack_tasks::glance::db {
 
     Class['::openstack::galera::client'] ->
       Class['::osnailyfacter::mysql_access'] ->
-        Class['::glance::db::mysql']
+        Class['::glance::db::mysql'] ->
+        Class['::glare::db::mysql']
   }
 
 }

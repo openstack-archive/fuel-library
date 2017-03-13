@@ -30,13 +30,13 @@ require 'spec_helper'
       )
     end
     it "should properly configure glance haproxy based on ssl" do
-      should contain_openstack__ha__haproxy_service('glance-glare').with(
+      should contain_openstack__ha__haproxy_service('glare-api').with(
         'order'                  => '081',
         'listen_port'            => 9494,
         'public'                 => true,
         'public_ssl'             => true,
         'public_ssl_path'        => '/var/lib/fuel/haproxy/public_glance.pem',
-        'require_service'        => 'glance-glare',
+        'require_service'        => 'glare-api',
         'haproxy_config_options' => {
           'option'       => ['httpchk /versions', 'httplog', 'http-server-close', 'http-buffer-request'],
           'timeout'      => ['server 11m', 'http-request 10s'],
