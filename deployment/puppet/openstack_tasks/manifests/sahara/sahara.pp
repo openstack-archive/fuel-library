@@ -142,7 +142,7 @@ class openstack_tasks::sahara::sahara {
 
     if $ceilometer_hash['enabled'] {
       class { '::sahara::notify':
-        enable_notifications => true,
+        notification_driver => $ceilometer_hash['notification_driver'],
       }
     }
 
