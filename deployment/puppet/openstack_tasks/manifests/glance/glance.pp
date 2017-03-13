@@ -101,8 +101,8 @@ class openstack_tasks::glance::glance {
     tweaks::ubuntu_service_override { 'glance-api':
       package_name => 'glance-api',
     }
-    tweaks::ubuntu_service_override { 'glance-glare':
-      package_name => 'glance-glare',
+    tweaks::ubuntu_service_override { 'glare':
+      package_name => 'glare',
     }
     tweaks::ubuntu_service_override { 'glance-registry':
       package_name => 'glance-registry',
@@ -146,7 +146,7 @@ class openstack_tasks::glance::glance {
     image_cache_max_size    => $glance_image_cache_max_size,
   }
 
-  class { '::glance::glare::logging':
+  class { '::glare::logging':
     use_syslog         => $use_syslog,
     use_stderr         => $use_stderr,
     log_facility       => $syslog_log_facility,
@@ -154,7 +154,7 @@ class openstack_tasks::glance::glance {
     default_log_levels => hiera('default_log_levels'),
   }
 
-  class { '::glance::glare::db':
+  class { '::glare::db':
     database_connection    => $db_connection,
     database_idle_timeout  => $idle_timeout,
     database_max_pool_size => $max_pool_size,
@@ -162,7 +162,7 @@ class openstack_tasks::glance::glance {
     database_max_overflow  => $max_overflow,
   }
 
-  class { '::glance::glare::authtoken':
+  class { '::glare::authtoken':
     username          => $glance_glare_user,
     password          => $glance_glare_user_password,
     project_name      => $glance_glare_tenant,
@@ -172,7 +172,7 @@ class openstack_tasks::glance::glance {
     memcached_servers => $local_memcached_server,
   }
 
-  class { '::glance::glare':
+  class { '::glare':
     bind_host         => $glare_bind_host,
     auth_strategy     => 'keystone',
     enabled           => $enabled,
@@ -234,7 +234,7 @@ class openstack_tasks::glance::glance {
     glance_api_config {
       'DEFAULT/use_syslog_rfc_format': value => true;
     }
-    glance_glare_config {
+    glare_config {
       'DEFAULT/use_syslog_rfc_format': value => true;
     }
     glance_cache_config {
@@ -269,7 +269,15 @@ class openstack_tasks::glance::glance {
         swift_store_auth_address            => "${auth_uri}/v3",
         swift_store_auth_version            => '3',
         swift_store_region                  => $region,
-        glare_enabled                       => true,
+      }
+      class { '::glare::backend::swift':
+        swift_store_user                    => "${glance_tenant}:${glance_user}",
+        swift_store_key                     => $glance_user_password,
+        swift_store_create_container_on_put => 'True',
+        swift_store_large_object_size       => $swift_store_large_object_size,
+        swift_store_auth_address            => "${auth_uri}/v3",
+        swift_store_auth_version            => '3',
+        swift_store_region                  => $region,
       }
     }
     'rbd', 'ceph': {
@@ -280,9 +288,17 @@ class openstack_tasks::glance::glance {
         rados_connect_timeout => $rados_connect_timeout,
         glare_enabled         => true,
       }
+      class { '::glare::backend::rbd':
+        rbd_store_user        => 'images',
+        rbd_store_pool        => 'images',
+        rados_connect_timeout => $rados_connect_timeout,
+      }
     }
     default: {
       class { "glance::backend::${glance_backend}":
+        glare_enabled => true,
+      }
+      class { "glare::backend::${glance_backend}":
         glare_enabled => true,
       }
     }

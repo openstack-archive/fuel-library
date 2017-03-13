@@ -69,7 +69,7 @@ class openstack_tasks::glance::keystone {
     tenant              => $tenant,
   }
 
-  class { '::glance::keystone::glare_auth':
+  class { '::glanre::keystone::auth':
     password            => $glare_password,
     auth_name           => $glare_auth_name,
     configure_endpoint  => $glare_configure_endpoint,
