@@ -15,6 +15,14 @@ describe manifest do
         private_net    = (neutron_config['default_private_net'] or 'net04')
         default_router = (neutron_config['default_router'] or 'router04')
 
+        let(:baremetal_provider_network_type) do
+            if Noop.hiera_structure('ironic_settings/ironic_provision_network' false)
+                'vlan'
+            else
+                'flat'
+            end
+        end
+
         context 'Private network', :if => nets.has_key?(private_net) do
           case neutron_config['L2']['segmentation_type']
           when 'vlan'
@@ -95,7 +103,7 @@ describe manifest do
             should contain_neutron_network('baremetal').with(
               'ensure'                    => 'present',
               'provider_physical_network' => nets['baremetal']['L2']['physnet'],
-              'provider_network_type'     => 'flat',
+              'provider_network_type'     => baremetal_provider_network_type,
               'provider_segmentation_id'  => nets['baremetal']['L2']['segment_id'],
               'router_external'           => nets['baremetal']['L2']['router_ext'],
               'shared'                    => nets['baremetal']['shared'],
