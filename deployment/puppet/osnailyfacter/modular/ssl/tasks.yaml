@@ -2,7 +2,7 @@
   type: puppet
   version: 2.2.0
   tags: [primary-controller, controller, compute, cinder, primary-mongo, mongo, ceph-osd, virt,
-         primary-keystone, keystone]
+         primary-keystone, keystone, ironic]
   requires: [firewall]
   condition:
     yaql_exp: >
@@ -22,7 +22,7 @@
   type: puppet
   version: 2.2.0
   tags: [primary-controller, controller, compute, cinder, primary-mongo, mongo, ceph-osd, virt,
-         primary-keystone, keystone]
+         primary-keystone, keystone, ironic]
   requires: [firewall, ssl-keys-saving]
   condition:
     yaql_exp: &public_ssl_enabled >
@@ -40,7 +40,7 @@
 - id: ssl-dns-setup
   type: puppet
   version: 2.1.0
-  groups: [primary-controller, controller]
+  groups: [primary-controller, controller, ironic]
   requires: [firewall, ssl-add-trust-chain]
   condition:
     yaql_exp: *public_ssl_enabled
