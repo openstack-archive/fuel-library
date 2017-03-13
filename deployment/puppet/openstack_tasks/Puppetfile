@@ -41,6 +41,11 @@ mod 'glance',
     :git => 'https://github.com/fuel-infra/puppet-glance.git',
     :ref => 'master'
 
+# Pull in puppet-glare
+mod 'glare',
+    :git => 'https://github.com/fuel-infra/puppet-glare.git',
+    :ref => 'master'
+
 # Pull in puppet-heat
 mod 'heat',
     :git => 'https://github.com/fuel-infra/puppet-heat.git',
