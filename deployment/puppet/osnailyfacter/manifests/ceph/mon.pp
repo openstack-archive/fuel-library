@@ -3,6 +3,7 @@ class osnailyfacter::ceph::mon {
   notice('MODULAR: ceph/mon.pp')
 
   $storage_hash              = hiera('storage', {})
+  $ceph_primary_monitor_node = hiera('ceph_primary_monitor_node')
   $admin_key                 = $storage_hash['admin_key']
   $mon_key                   = $storage_hash['mon_key']
   $bootstrap_osd_key         = $storage_hash['bootstrap_osd_key']
@@ -23,13 +24,14 @@ class osnailyfacter::ceph::mon {
   $log_to_syslog_facility             = pick($storage_hash['ceph_syslog_facility'], 'LOG_LOCAL0')
 
   $mon_address_map = get_node_to_ipaddr_map_by_network_role(hiera_hash('ceph_monitor_nodes'), 'ceph/public')
-  $primary_mon     = get_node_to_ipaddr_map_by_network_role(hiera_hash('ceph_primary_monitor_node'), 'ceph/public')
+  $primary_mon     = get_node_to_ipaddr_map_by_network_role($ceph_primary_monitor_node, 'ceph/public')
 
   $mon_ips   = join(values($mon_address_map), ',')
   $mon_hosts = join(keys($mon_address_map), ',')
 
-  $primary_mon_hostname = join(keys($primary_mon))
   $primary_mon_ip       = join(values($primary_mon))
+  $primary_mon_name     = join(keys($primary_mon))
+  $primary_mon_hostname = $ceph_primary_monitor_node[$primary_mon_name]['name']
 
   prepare_network_config(hiera_hash('network_scheme'))
   $ceph_cluster_network = get_network_role_property('ceph/replication', 'network')
