@@ -39,8 +39,16 @@ describe manifest do
 
       it 'should declare ironic::conductor class correctly' do
         should contain_class('ironic::conductor').with(
-          'api_url' => "http://#{baremetal_vip}:6385",
+          'api_url'              => "http://#{baremetal_vip}:6385",
+          'cleaning_network'     => 'baremetal',
+          'provisioning_network' => 'baremetal'
         )
+      end
+
+      it 'should declare ironic::drivers:interfaces correctly' do
+          should contain_class('ironic::drivers::interfaces').with(
+              'enabled_network_interfaces' => ['noop', 'flat', 'neutron']
+          )
       end
 
       it 'should configure the database connection string' do
