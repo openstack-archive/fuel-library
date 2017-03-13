@@ -108,8 +108,15 @@ class openstack_tasks::roles::ironic_conductor {
   class { '::ironic::client': }
 
   class { '::ironic::conductor':
-    api_url            => "http://${baremetal_vip}:6385",
-    swift_temp_url_key => $ironic_swift_tempurl_key,
+    api_url               => "http://${baremetal_vip}:6385",
+    swift_temp_url_key    => $ironic_swift_tempurl_key,
+    cleaning_network_name => 'baremetal',
+    provisioning_network_name => 'baremetal',
+
+  }
+
+  class { '::ironic::drivers::interfaces':
+    enabled_network_interfaces => ['noop', 'flat', 'neutron']
   }
 
   class { '::ironic::drivers::pxe':
