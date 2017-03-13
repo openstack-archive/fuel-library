@@ -91,11 +91,18 @@ describe manifest do
         end
 
         context 'Ironic baremetal network', :if => nets.has_key?('baremetal') do
+          let(:baremetal_provider_network_type) do
+              if Noop.hiera_structure 'ironic_settings/ironic_provision_network' false
+                  'vlan'
+              else
+                  'flat'
+              end
+          end
           it 'should create baremetal network' do
-            should contain_neutron_network('baremetal').with(
+          should contain_neutron_network('baremetal').with(
               'ensure'                    => 'present',
               'provider_physical_network' => nets['baremetal']['L2']['physnet'],
-              'provider_network_type'     => 'flat',
+              'provider_network_type'     => baremetal_provider_network_type,
               'provider_segmentation_id'  => nets['baremetal']['L2']['segment_id'],
               'router_external'           => nets['baremetal']['L2']['router_ext'],
               'shared'                    => nets['baremetal']['shared'],
