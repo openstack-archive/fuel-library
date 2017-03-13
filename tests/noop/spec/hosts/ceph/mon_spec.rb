@@ -69,7 +69,8 @@ describe manifest do
     mon_ips = mon_address_map.values.join(',')
     mon_hosts = mon_address_map.keys.join(',')
     primary_mon_ip = primary_mon.values.join
-    primary_mon_hostname = primary_mon.keys.join
+    primary_mon_name = primary_mon.keys.join
+    primary_mon_hostname = ceph_primary_monitor_node[primary_mon_name]['name']
 
     if (storage_hash['volumes_ceph'] or
         storage_hash['images_ceph'] or
