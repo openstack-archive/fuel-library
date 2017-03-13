@@ -92,7 +92,7 @@ describe manifest do
 
         context 'Ironic baremetal network', :if => nets.has_key?('baremetal') do
           it 'should create baremetal network' do
-            should contain_neutron_network('baremetal').with(
+          should contain_neutron_network('baremetal').with(
               'ensure'                    => 'present',
               'provider_physical_network' => nets['baremetal']['L2']['physnet'],
               'provider_network_type'     => 'flat',
