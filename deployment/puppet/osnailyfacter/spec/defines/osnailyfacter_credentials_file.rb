@@ -6,7 +6,12 @@ describe 'osnailyfacter::credentials_file' do
     let (:title) { '/root/openrc' }
 
     it 'should include openrc file' do
-      is_expected.to contain_file('/root/openrc')
+      is_expected.to contain_file('/root/openrc').with(
+        'owner' => 'root',
+        'group' => 'root',
+        'mode'  => '0700',
+        'tag'   => 'openrc'
+      )
     end
   end
 

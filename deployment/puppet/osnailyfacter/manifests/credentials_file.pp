@@ -67,10 +67,13 @@ define osnailyfacter::credentials_file(
   $group                    = 'root',
 ) {
 
+  # LP #1656327 'openrc' tag ensures that
+  # openrc file is created after keystone endpoint is created
   file { "${path}":
     owner   => $owner,
     group   => $group,
     mode    => '0700',
-    content => template("${module_name}/openrc.erb")
+    content => template("${module_name}/openrc.erb"),
+    tag     => 'openrc'
   }
 }
