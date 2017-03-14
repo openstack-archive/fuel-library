@@ -68,6 +68,7 @@ describe manifest do
     let(:swift_interal_address) { Noop.puppet_function 'get_ssl_property',ssl_hash,{},'swift','internal','hostname',[swift_api_ipaddr, management_vip] }
     let(:swift_public_protocol) { Noop.puppet_function 'get_ssl_property',ssl_hash,public_ssl_hash,'swift','public','protocol','http' }
     let(:swift_public_address) { Noop.puppet_function 'get_ssl_property',ssl_hash,public_ssl_hash,'swift','public','hostname',[Noop.hiera('public_vip')] }
+    let(:swift_url_base) {"#{swift_public_protocol}:"}
 
     # Swift
     if !(storage_hash['images_ceph'] and storage_hash['objects_ceph']) and !storage_hash['images_vcenter']
@@ -167,6 +168,12 @@ describe manifest do
             :rabbit_user     => rabbit_user,
             :rabbit_password => rabbit_password,
             :rabbit_hosts    => rabbit_hosts.split(', '),
+          )
+        end
+
+        it 'should contain correct swift url base' do
+          should contain_class('openstack_tasks::swift::parts::proxy').with(
+            :swift_url_base => swift_url_base
           )
         end
 
