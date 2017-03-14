@@ -37,7 +37,8 @@ Puppet::Parser::Functions::newfunction( :remove_ovs_usage,
     overrides = []
 
     network_scheme['transformations'].each do |tr|
-      if tr['provider'] == 'ovs'
+      # get all dependent ovs providers
+      if tr['provider'] =~ /ovs/
         if tr['action'] == 'add-patch'
           overrides << {
             'action'   => 'override',
