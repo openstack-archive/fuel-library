@@ -23,6 +23,12 @@ describe 'remove_ovs_usage' do
           'provider' => 'ovs',
           'action' => 'foo',
           'name' => 'bar',
+        },
+        {
+          'provider' => 'dpdkovs',
+          'bridge' => 'bridge-0',
+          'action' => 'add-port',
+          'name' => 'ethx',
         }
       ],
     }
@@ -36,6 +42,11 @@ describe 'remove_ovs_usage' do
           {
             'action' => 'override',
             'override' => 'bar',
+            'provider' => 'lnx',
+          },
+          {
+            'action' => 'override',
+            'override' => 'ethx',
             'provider' => 'lnx',
           }
         ]
