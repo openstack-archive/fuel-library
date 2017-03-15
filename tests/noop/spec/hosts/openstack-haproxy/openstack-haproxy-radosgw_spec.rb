@@ -46,7 +46,7 @@ describe manifest do
             'ipaddresses'            => ipaddresses,
             'server_names'           => server_names,
             'listen_port'            => 8080,
-            'balancermember_port'    => 6780,
+            'balancermember_port'    => 7480,
             'public'                 => true,
             'public_ssl'             => public_ssl_radosgw,
             'require_service'        => 'radosgw-api',
@@ -63,7 +63,7 @@ describe manifest do
             'ipaddresses'            => ipaddresses,
             'server_names'           => server_names,
             'listen_port'            => 8080,
-            'balancermember_port'    => 6780,
+            'balancermember_port'    => 7480,
             'public_virtual_ip'      => false,
             'internal_virtual_ip'    => baremetal_virtual_ip,
             'haproxy_config_options' => {

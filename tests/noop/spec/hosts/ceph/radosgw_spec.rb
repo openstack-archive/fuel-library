@@ -75,7 +75,8 @@ describe manifest do
 
       it 'should contain ceph::rgw' do
         should contain_ceph__rgw(gateway_name).with(
-          'frontend_type' => 'apache-proxy-fcgi',
+          'frontend_type' => 'civetweb',
+          'rgw_frontends' => 'civetweb port=7480',
         )
       end
 

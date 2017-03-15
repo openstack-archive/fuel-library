@@ -33,7 +33,7 @@ require 'spec_helper'
       should contain_openstack__ha__haproxy_service('object-storage').with(
         'order'                  => '130',
         'listen_port'            => 8080,
-        'balancermember_port'    => 6780,
+        'balancermember_port'    => 7480,
         'public'                 => true,
         'public_ssl'             => true,
         'public_ssl_path'        => '/var/lib/fuel/haproxy/public_radosgw.pem',
@@ -45,7 +45,7 @@ require 'spec_helper'
       should contain_openstack__ha__haproxy_service('object-storage-baremetal').with(
         'order'                  => '135',
         'listen_port'            => 8080,
-        'balancermember_port'    => 6780,
+        'balancermember_port'    => 7480,
         'public_virtual_ip'      => false,
         'internal_virtual_ip'    => '192.168.0.2',
         'haproxy_config_options' => haproxy_config_opts,

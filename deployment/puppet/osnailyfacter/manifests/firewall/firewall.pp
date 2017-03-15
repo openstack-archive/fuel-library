@@ -65,7 +65,7 @@ class osnailyfacter::firewall::firewall {
   $vxlan_udp_port               = 4789
   $ceph_mon_port                = 6789
   $ceph_osd_port                = '6800-7100'
-  $radosgw_port                 = 6780
+  $radosgw_port                 = 7480
 
   $corosync_networks = get_routable_networks_for_network_role($network_scheme, 'mgmt/corosync')
   $memcache_networks = get_routable_networks_for_network_role($network_scheme, 'mgmt/memcache')

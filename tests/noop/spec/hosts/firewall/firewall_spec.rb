@@ -304,7 +304,7 @@ describe manifest do
           it 'should configure firewall' do
             should contain_firewall('012 RadosGW allow').with(
             'chain'  => 'INPUT',
-            'dport'  => [ '6780', '8080' ],
+            'dport'  => [ '7480', '8080' ],
             'proto'  => 'tcp',
             'action' => 'accept',
           )

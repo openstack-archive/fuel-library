@@ -43,7 +43,7 @@ class openstack::ha::radosgw (
     internal_virtual_ip    => $internal_virtual_ip,
     ipaddresses            => $ipaddresses,
     listen_port            => 8080,
-    balancermember_port    => 6780,
+    balancermember_port    => 7480,
     public_virtual_ip      => $public_virtual_ip,
     server_names           => $server_names,
     haproxy_config_options => {
