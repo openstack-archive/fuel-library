@@ -190,7 +190,7 @@ describe manifest do
       context 'with ceilometer', :if => enable do
         it 'should declare sahara::notify class correctly' do
           should contain_class('sahara::notify').with(
-                     'enable_notifications' => true
+                   'notification_driver' => Noop.hiera_structure('ceilometer/notification_driver')
                  )
         end
       end
