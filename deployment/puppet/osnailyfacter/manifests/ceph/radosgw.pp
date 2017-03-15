@@ -55,7 +55,6 @@ class osnailyfacter::ceph::radosgw {
       fsid => $fsid,
     }
 
-    include ::tweaks::apache_wrappers
     include ::ceph::params
 
 #######################################
@@ -70,7 +69,8 @@ class osnailyfacter::ceph::radosgw {
 #######################################
 
     ceph::rgw { $gateway_name:
-      frontend_type      => 'apache-proxy-fcgi',
+      frontend_type      => 'civetweb',
+      rgw_frontends      => 'civetweb port=7480',
       rgw_print_continue => true,
       keyring_path       => "/etc/ceph/client.${gateway_name}",
       rgw_data           => "/var/lib/ceph/radosgw-${gateway_name}",
@@ -89,14 +89,6 @@ class osnailyfacter::ceph::radosgw {
 
     file { "/var/lib/ceph/radosgw/ceph-${gateway_name}":
       ensure => directory,
-    }
-
-    ceph::rgw::apache_proxy_fcgi { $gateway_name:
-      docroot              => '/var/www/radosgw',
-      rgw_port             => '6780',
-      apache_purge_configs => false,
-      apache_purge_vhost   => false,
-      custom_apache_ports  => hiera_array('apache_ports', ['0.0.0.0:80']),
     }
 
     if ! $use_syslog {
