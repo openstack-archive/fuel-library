@@ -1,0 +1,17 @@
+[Unit]
+Description=Distributed serialization worker daemon
+After=network.target
+
+[Service]
+Type=simple
+User=<%= @user %>
+Group=<%= @group %>
+ExecStart=/usr/bin/dask-worker --no-bokeh --nprocs 1  --nthreads 1 --worker-port <%= @worker_port %> <%= @scheduler_node %>
+ExecStop=/bin/kill -s QUIT $MAINPID
+TimeoutSec=60
+Nice=<%= @nice_level %>
+Restart=always
+
+[Install]
+WantedBy=multi-user.target
+
