@@ -15,6 +15,8 @@ class osnailyfacter::firewall::firewall {
   $corosync_output_port         = 5405
   $dhcp_server_port             = 67
   $dns_server_port              = 53
+  $ds_start_port                = 35001
+  $ds_end_port                  = $ds_start_port + $::processorcount
   $erlang_epmd_port             = 4369
   $erlang_inet_dist_port        = 41055
   $erlang_rabbitmq_backend_port = 5673
@@ -118,6 +120,13 @@ class osnailyfacter::firewall::firewall {
     $ssh_networks = pick($ssh_hash['security_networks'], $all_networks)
   } else {
     $ssh_networks = $all_networks
+  }
+
+  openstack::firewall::multi_net {'015 distributed serialization workers':
+    port        => "${ds_start_port}-${ds_end_port}",
+    proto       => 'tcp',
+    action      => 'accept',
+    source_nets => $admin_nets,
   }
 
   openstack::firewall::multi_net {'020 ssh':
