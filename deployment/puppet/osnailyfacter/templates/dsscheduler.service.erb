@@ -1,0 +1,16 @@
+[Unit]
+Description=Distributed serialization scheduler daemon
+After=network.target
+
+[Service]
+Type=simple
+User=<%= @user %>
+Group=<%= @group %>
+ExecStart=/usr/bin/dask-scheduler --no-bokeh --host <%= @scheduler_host %> --port <%= @scheduler_port %>
+ExecStop=/bin/kill -s QUIT $MAINPID
+TimeoutSec=60
+Restart=always
+
+[Install]
+WantedBy=multi-user.target
+
