@@ -104,4 +104,4 @@
   requires: [cobbler_disable_netboot]
   required_for: [set_status_provisioned]
   parameters:
-    timeout: 180
+    timeout: 900
