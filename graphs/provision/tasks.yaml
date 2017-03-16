@@ -105,3 +105,14 @@
   required_for: [set_status_provisioned]
   parameters:
     timeout: 900
+
+- id: distributed_serialization_setup
+  type: puppet
+  version: 2.1.0
+  role: ['/.*/']
+  requires: [node_reboot]
+  required_for: [set_status_provisioned]
+  parameters:
+    puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/provision/distributed_serialization.pp
+    puppet_modules: /etc/puppet/modules
+    timeout: 180
