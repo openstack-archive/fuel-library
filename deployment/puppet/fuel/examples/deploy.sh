@@ -31,6 +31,7 @@ nginx_services
 client
 rsyslog
 puppetsync
+distributed_serialization_master
 "
 
 for task in $TASKS; do
