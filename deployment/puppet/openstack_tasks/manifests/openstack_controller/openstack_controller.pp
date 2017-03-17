@@ -188,6 +188,10 @@ class openstack_tasks::openstack_controller::openstack_controller {
     rabbit_heartbeat_timeout_threshold => $rabbit_heartbeat_timeout_threshold,
     rabbit_heartbeat_rate              => $rabbit_heartbeat_rate,
     os_region_name                     => $region_name,
+    cpu_allocation_ratio               => pick($nova_hash['cpu_allocation_ratio'], '8.0'),
+    disk_allocation_ratio              => pick($nova_hash['disk_allocation_ratio'], '1.0'),
+    ram_allocation_ratio               => pick($nova_hash['ram_allocation_ratio'], '1.0'),
+
   }
 
   # TODO(aschultz): this is being removed in M, do we need it?
@@ -383,9 +387,6 @@ class openstack_tasks::openstack_controller::openstack_controller {
   }
 
   class { '::nova::scheduler::filter':
-    cpu_allocation_ratio       => pick($nova_hash['cpu_allocation_ratio'], '8.0'),
-    disk_allocation_ratio      => pick($nova_hash['disk_allocation_ratio'], '1.0'),
-    ram_allocation_ratio       => pick($nova_hash['ram_allocation_ratio'], '1.0'),
     scheduler_host_subset_size => pick($nova_hash['scheduler_host_subset_size'], '30'),
     scheduler_default_filters  => $nova_scheduler_filters,
     scheduler_host_manager     => $scheduler_host_manager,

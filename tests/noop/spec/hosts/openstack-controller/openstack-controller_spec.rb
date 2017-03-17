@@ -260,6 +260,14 @@ describe manifest do
       should contain_nova_config('keystone_authtoken/memcached_servers').with(:value => local_memcached_server)
     end
 
+    it 'should configure allocation ratios' do
+      should contain_class('nova').with(
+        :cpu_allocation_ratio => Noop.puppet_function('pick', nova_hash['cpu_allocation_ratio'], '8.0'),
+        :disk_allocation_ratio => Noop.puppet_function('pick', nova_hash['disk_allocation_ratio'], '1.0'),
+        :ram_allocation_ratio => Noop.puppet_function('pick', nova_hash['ram_allocation_ratio'], '1.0'),
+      )
+    end
+
     it 'should configure nova::api' do
       # FIXME(aschultz): check rate limits
       should contain_class('nova::api').with(
