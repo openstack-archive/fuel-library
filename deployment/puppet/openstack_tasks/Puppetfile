@@ -54,7 +54,7 @@ mod 'horizon',
 # Pull in puppet-ironic
 mod 'ironic',
     :git => 'https://github.com/fuel-infra/puppet-ironic.git',
-    :ref => '9.5.0'
+    :ref => '79f7749b4a500e685c0c785f8ccf74dc4ed40e53'
 
 # Pull in puppet-keystone
 mod 'keystone',
