@@ -64,7 +64,6 @@ describe manifest do
         should contain_nova_config('ironic/project_name').with(:value => ironic_tenant)
         should contain_nova_config('ironic/auth_url').with(:value => "#{admin_uri}/v2.0")
         should contain_nova_config('DEFAULT/compute_driver').with(:value => 'ironic.IronicDriver')
-        should contain_nova_config('DEFAULT/compute_manager').with(:value => 'ironic.nova.compute.manager.ClusteredComputeManager')
         should contain_nova_config('neutron/auth_url').with(:value => "#{admin_uri}/v3")
         should contain_nova_config('DEFAULT/max_concurrent_builds').with(:value => '50')
 
@@ -149,6 +148,16 @@ describe manifest do
         )
         should contain_class('nova::compute').with(
           :allow_resize_to_same_host => Noop.puppet_function('pick', nova_hash['allow_resize_to_same_host'], true)
+        )
+      end
+
+      let(:default_availability_zone) { Noop.puppet_function 'pick', nova_hash['default_availability_zone'], facts[:os_service_default] }
+      let(:default_schedule_zone) { Noop.puppet_function 'pick', nova_hash['default_schedule_zone'], facts[:os_service_default] }
+
+      it 'should configure availability zones' do
+        should contain_class('nova::availability_zone').with(
+          'default_availability_zone' => default_availability_zone,
+          'default_schedule_zone'     => default_schedule_zone,
         )
       end
     end
