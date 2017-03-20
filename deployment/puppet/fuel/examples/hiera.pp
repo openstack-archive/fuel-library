@@ -6,7 +6,6 @@ $data                = [
   'nodes',
   'networks',
   'astute',
-  'known_hosts',
   'provision',
   'common',
 ]
