@@ -7,16 +7,17 @@ class provision::named (
   $ddns_key_name      = $::provision::params::ddns_key_name,
 ) inherits provision::params {
 
-  package { "named" :
-    name => $::provision::params::named_package,
-  }
+  $package_name = $::provision::params::named_package
+  $service_name = $::provision::params::named_service
+
+  package { $package_name : }
 
   file { "/var/named" :
     ensure => directory,
     owner => 'named',
     group => 'named',
     mode => '0750',
-    require => Package["named"],
+    require => Package[$package_name],
   }
 
   file { $::provision::params::named_conf :
@@ -25,8 +26,8 @@ class provision::named (
     owner   => 'named',
     group   => 'named',
     mode    => '0640',
-    require => Package["named"],
-    notify  => Service["named"],
+    require => Package[$package_name],
+    notify  => Service[$service_name],
   }
 
   file { "/var/named/${domain_name}" :
@@ -35,17 +36,16 @@ class provision::named (
     owner   => 'named',
     group   => 'named',
     mode    => '0644',
-    require => Package["named"],
-    notify  => Service["named"],
+    require => Package[$package_name],
+    notify  => Service[$service_name],
   }
 
-  service { "named" :
-    name    => $::provision::params::named_service,
+  service { $service_name :
     ensure  => running,
     enable  => true,
     hasrestart => false,
     hasstatus => false,
-    require => Package["named"],
+    require => Package[$package_name],
   }
 
 }

@@ -7,35 +7,44 @@
   type: stage
   requires: [deletion_start]
 
-- id: cobbler_enable_netboot
-  type: master_shell
+- id: upload_provision_info_master
+  type: upload_file
   version: 2.1.0
-  role: ['/.*/']
+  role: ['master']
   requires: [deletion_start]
-  required_for: [move_to_bootstrap]
+  required_for: [reconfigure_dhcpd]
   parameters:
-    cmd:
-      yaql_exp: 'concat("sh /etc/puppet/modules/osnailyfacter/modular/provision/netboot enable ", $.provision.name)'
+    path: /var/lib/fuel/configs/{CLUSTER_ID}/provision.yaml
     timeout: 180
+    data:
+      #TODO: Replace dict($.items) to $ when LP1666913 is fixed
+      yaql_exp: "($.provision.set('packages', $.provision.packages) + $.repo_setup + dict('output' => '/var/www/nailgun/targetimages') + dict($.items())).toYaml()"
 
-- id: move_to_bootstrap
-  type: move_to_bootstrap
+- id: reconfigure_dhcpd
+  type: puppet
+  version: 2.1.0
+  role: ['master']
+  requires: [upload_provision_info_master]
+  required_for: [node_reboot]
+  parameters:
+    puppet_manifest: /etc/puppet/modules/fuel/examples/provision.pp
+    puppet_modules: /etc/puppet/modules
+    timeout: 3600
+
+- id: node_reboot
+  type: reboot
   version: 2.1.0
   role: ['/.*/']
-  requires: [cobbler_enable_netboot]
+  requires: [reconfigure_dhcpd]
   required_for: [node_erase]
   parameters:
-    slave_name:
-      yaql_exp: '$.provision.name'
-    provisioning_info:
-      yaql_exp: '$.provision'
-    timeout: 180
+    timeout: 300
 
 - id: node_erase
   type: erase_node
   version: 2.1.0
   role: ['/.*/']
-  requires: [move_to_bootstrap]
+  requires: [node_reboot]
   required_for: [deletion_end]
   parameters:
     timeout: 180
