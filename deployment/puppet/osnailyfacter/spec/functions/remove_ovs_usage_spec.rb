@@ -29,6 +29,15 @@ describe 'remove_ovs_usage' do
           'bridge' => 'bridge-0',
           'action' => 'add-port',
           'name' => 'ethx',
+        },
+        {
+          'provider' => 'ovs',
+          'action' => 'add-br',
+          'name' => 'bridge-0',
+          'vendor_specific' => {
+            'datapath_type' => 'netdev',
+            'vlan_id' => 909,
+          },
         }
       ],
     }
@@ -47,6 +56,12 @@ describe 'remove_ovs_usage' do
           {
             'action' => 'override',
             'override' => 'ethx',
+            'provider' => 'lnx',
+            'name' => 'ethx.909',
+          },
+          {
+            'action' => 'override',
+            'override' => 'bridge-0',
             'provider' => 'lnx',
           }
         ]
@@ -91,8 +106,8 @@ describe 'remove_ovs_usage' do
   end
 
   it 'should expect 1 argument' do
-    is_expected.to run.with_params().and_raise_error(Puppet::ParseError)
-    is_expected.to run.with_params(1, 2).and_raise_error(Puppet::ParseError)
+    is_expected.to run.with_params().and_raise_error(ArgumentError)
+    is_expected.to run.with_params(1, 2).and_raise_error(ArgumentError)
   end
 
   it 'should expect a hash as given argument' do
