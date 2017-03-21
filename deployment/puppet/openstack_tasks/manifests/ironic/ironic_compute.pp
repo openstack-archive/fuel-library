@@ -112,6 +112,11 @@ class openstack_tasks::ironic::ironic_compute {
     os_region_name         => $region_name,
   }
 
+  class { '::nova::availability_zone':
+    default_availability_zone => $nova_hash['default_availability_zone'],
+    default_schedule_zone     => $nova_hash['default_schedule_zone'],
+  }
+
   class { '::nova::compute':
     ensure_package            => installed,
     enabled                   => false,
@@ -119,10 +124,7 @@ class openstack_tasks::ironic::ironic_compute {
     force_config_drive        => $nova_hash['force_config_drive'],
     #NOTE(bogdando) default became true in 4.0.0 puppet-nova (was false)
     neutron_enabled           => true,
-    default_availability_zone => $nova_hash['default_availability_zone'],
-    default_schedule_zone     => $nova_hash['default_schedule_zone'],
     reserved_host_memory      => '0',
-    compute_manager           => 'ironic.nova.compute.manager.ClusteredComputeManager',
     allow_resize_to_same_host => pick($nova_hash['allow_resize_to_same_host'], true)
   }
 
