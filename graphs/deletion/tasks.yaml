@@ -35,8 +35,10 @@
   type: reboot
   version: 2.1.0
   role: ['/.*/']
-  requires: [reconfigure_dhcpd]
   required_for: [node_erase]
+  cross-depends:
+    - name: reconfigure_dhcpd
+      role: master
   parameters:
     timeout: 300
 
