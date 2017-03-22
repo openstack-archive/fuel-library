@@ -40,7 +40,7 @@
 - id: ssl-dns-setup
   type: puppet
   version: 2.1.0
-  groups: [primary-controller, controller]
+  groups: [*]
   requires: [firewall, ssl-add-trust-chain]
   condition:
     yaql_exp: *public_ssl_enabled
