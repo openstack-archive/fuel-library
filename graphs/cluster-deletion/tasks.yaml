@@ -1,0 +1,32 @@
+# DELETION TASKS
+#
+- id: cluster_deletion_start
+  type: stage
+
+- id: cluster_deletion_end
+  type: stage
+  requires: [cluster_deletion_start]
+
+- id: cluster_deletion_upload_provision_yaml
+  type: upload_file
+  version: 2.1.0
+  role: ['master']
+  requires: [cluster_deletion_start]
+  required_for: [remove_ibp_images]
+  parameters:
+    path: /var/lib/fuel/configs/{CLUSTER_ID}/provision.yaml
+    timeout: 180
+    data:
+      #TODO: Replace dict($.items) to $ when LP1666913 is fixed
+      yaql_exp: "($.provision.set('packages', $.provision.packages) + $.repo_setup + dict('output' => '/var/www/nailgun/targetimages') + dict($.items())).toYaml()"
+
+- id: remove_ibp_images
+  type: shell
+  version: 2.1.0
+  role: ['master']
+  requires: [cluster_deletion_upload_provision_yaml]
+  required_for: [cluster_deletion_end]
+  parameters:
+    cmd: python /etc/puppet/modules/osnailyfacter/modular/astute/remove_ibp_images.py --provision-yaml /var/lib/fuel/configs/{CLUSTER_ID}/provision.yaml
+    timeout: 180
+    retries: 1
