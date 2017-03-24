@@ -263,6 +263,8 @@ describe manifest do
       should contain_firewall('102 dns_udp')
       should contain_firewall('103 dhcp')
       should contain_firewall('104 tftp')
+      should contain_firewall('105 squidproxy')
+      should contain_firewall('106 cobbler_web')
     end
 
     it 'should declare "openstack::clocksync" class with parameters' do

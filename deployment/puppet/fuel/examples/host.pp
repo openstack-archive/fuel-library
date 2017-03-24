@@ -9,7 +9,7 @@ $ntp_servers = delete(delete_undef_values([$::fuel_settings['NTP1'],
   $::fuel_settings['NTP2'], $::fuel_settings['NTP3']]), '')
 
 # Vars for File['/etc/dhcp/dhclient.conf']
-$dns_address = $::fuel_settings['ADMIN_NETWORK']['ipaddress']
+$cobbler_host = $::fuel_settings['ADMIN_NETWORK']['ipaddress']
 
 # Vars for File['/etc/fuel-utils/config']
 $admin_ip = $::fuel_settings['ADMIN_NETWORK']['ipaddress']
