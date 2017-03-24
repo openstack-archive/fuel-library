@@ -16,7 +16,7 @@ for i in `fuel2 release list | grep -e Ubuntu | grep -v unavailable | awk '{ pri
     existing_releases=`fuel2 sequence list -r$i | grep deploy-changes | awk '{ print $4 }'`
     if ! [[ ${existing_releases[*]} =~ "$i" ]]
     then
-        fuel2 sequence create -r$i -n deploy-changes -t net-verification deletion provision default
+        fuel2 sequence create -r$i -n experimental-deploy-changes -t net-verification deletion provision default
         rc=$?
         if [[ $rc -eq 1 ]];
         then
@@ -24,7 +24,7 @@ for i in `fuel2 release list | grep -e Ubuntu | grep -v unavailable | awk '{ pri
             exit 1
         fi
     else
-        fuel2 sequence update -r$i -n deploy-changes -t net-verification deletion provision default
+        fuel2 sequence update -r$i -n experimental-deploy-changes -t net-verification deletion provision default
         rc=$?
         if [[ $rc -eq 1 ]];
         then
