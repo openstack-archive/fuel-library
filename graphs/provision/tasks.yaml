@@ -85,7 +85,7 @@
   type: reboot
   version: 2.1.0
   role: ['/.*/']
-  requires: [system_provision]
+  requires: [cobbler_disable_netboot]
   required_for: [set_status_provisioned]
   parameters:
     timeout: 900

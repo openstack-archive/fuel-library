@@ -14,10 +14,9 @@ class provision::dhcpd (
   $known_hosts        = [],
 ) inherits provision::params {
 
-  $package_name = $::provision::params::dhcpd_package
-  $service_name = $::provision::params::dhcpd_service
-
-  package { $package_name : }
+  package { "dhcpd" :
+    name => $::provision::params::dhcpd_package,
+  }
 
   file { $::provision::params::dhcpd_conf :
     ensure  => present,
@@ -25,8 +24,8 @@ class provision::dhcpd (
     owner   => 'dhcpd',
     group   => 'dhcpd',
     mode    => '0640',
-    require => Package[$package_name],
-    notify  => Service[$service_name],
+    require => Package["dhcpd"],
+    notify  => Service["dhcpd"],
   }
 
   file { $::provision::params::dhcpd_conf_d :
@@ -34,7 +33,7 @@ class provision::dhcpd (
     owner  => 'root',
     group  => 'root',
     mode   => '0755',
-    require => Package[$package_name],
+    require => Package["dhcpd"],
   }
 
   # It is just a file that could be modified by other modules
@@ -43,12 +42,13 @@ class provision::dhcpd (
     require => File[$::provision::params::dhcpd_conf_d],
   }
 
-  service { $service_name :
+  service { "dhcpd" :
+    name => $::provision::params::dhcpd_service,
     ensure  => running,
     enable  => true,
     hasrestart => false,
     hasstatus => false,
-    require => Package[$package_name],
+    require => Package["dhcpd"],
   }
 
 }
