@@ -92,7 +92,6 @@ class openstack_tasks::roles::ironic_conductor {
 
   class { '::ironic':
     debug                 => $debug,
-    enabled_drivers       => ['fuel_ssh', 'fuel_ipmitool', 'fake', 'fuel_libvirt'],
     default_transport_url => $transport_url,
     amqp_durable_queues   => $amqp_durable_queues,
     control_exchange      => 'ironic',
@@ -109,6 +108,7 @@ class openstack_tasks::roles::ironic_conductor {
 
   class { '::ironic::conductor':
     api_url            => "http://${baremetal_vip}:6385",
+    enabled_drivers    => ['fuel_ssh', 'fuel_ipmitool', 'fake', 'fuel_libvirt'],
     swift_temp_url_key => $ironic_swift_tempurl_key,
   }
 
