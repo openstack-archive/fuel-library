@@ -1,7 +1,13 @@
-class osnailyfacter::provision::build_image {
+class osnailyfacter::provision::build_image(
+  $data_file = '/tmp/provision.yaml',
+){
 
-  $data_file = "/var/lib/fuel/configs/${::cluster_id}/provision.yaml"
-  $data = loadyaml($data_file)
+  if $data_file == undef {
+    $data = loadyaml('/tmp/provision.yaml')
+  } else {
+    $data = loadyaml($data_file)
+  }
+  $cluster_id = $data['cluster']['id']
 
   if $data['ironic']['enabled'] == true {
     # TODO(vsaienko): Use the same system packages for fuel image and ironic bootstrap, but exclude
@@ -23,10 +29,10 @@ class osnailyfacter::provision::build_image {
     ]
 
     $package_list = join(prefix($ironic_packages, '--package '), ' ')
-    $ssh_auth_file = "/var/lib/fuel/keys/${::cluster_id}/ironic/ironic.pub"
+    $ssh_auth_file = "/var/lib/fuel/keys/${cluster_id}/ironic/ironic.pub"
     $ssh_params = "--root-ssh-authorized-file ${ssh_auth_file}"
 
-    $out_dir = "/var/www/nailgun/bootstrap/ironic/${::cluster_id}/"
+    $out_dir = "/var/www/nailgun/bootstrap/ironic/${cluster_id}/"
     $out_params = "--output-dir ${out_dir}"
 
     $ironic_extra_params = "--extra-dir /usr/share/ironic-fa-bootstrap-configs/ --no-compress --no-default-extra-dirs --no-default-packages"

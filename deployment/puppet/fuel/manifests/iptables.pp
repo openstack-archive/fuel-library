@@ -24,7 +24,8 @@ class fuel::iptables (
   $chain                      = 'INPUT',
   ) inherits fuel::params {
 
-  include ::provision::iptables
+  #Enable cobbler's iptables rules even if Cobbler not called
+  include ::cobbler::iptables
 
   firewallchain { 'INPUT:filter:IPv4':
     ensure => present,

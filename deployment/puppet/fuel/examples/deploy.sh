@@ -17,7 +17,7 @@
 TASKS="
 hiera
 host
-provision
+cobbler
 postgresql
 rabbitmq
 mcollective
