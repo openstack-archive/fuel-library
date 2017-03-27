@@ -49,7 +49,7 @@ mod 'heat',
 # Pull in puppet-horizon
 mod 'horizon',
     :git => 'https://github.com/fuel-infra/puppet-horizon.git',
-    :ref => '10.3.0'
+    :ref => '853f159edaa198b16b47108d3df7e9a816b2e4e4'
 
 # Pull in puppet-ironic
 mod 'ironic',
