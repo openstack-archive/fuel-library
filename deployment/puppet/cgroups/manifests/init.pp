@@ -13,51 +13,40 @@
 class cgroups(
   $cgroups_set = {},
   $packages    = $cgroups::params::packages,
-)
-  inherits cgroups::params
-{
+) inherits cgroups::params {
+
   validate_hash($cgroups_set)
   ensure_packages($packages, { tag => 'cgroups' })
-
 
   File {
     ensure => file,
     owner  => 'root',
     group  => 'root',
     mode   => '0644',
+    notify => Service['cgconfig'],
   }
 
   file { '/etc/cgconfig.conf':
     content => template('cgroups/cgconfig.conf.erb'),
-    notify  => Service['cgconfigparser'],
     tag     => 'cgroups',
   }
 
   file { '/etc/cgrules.conf':
     content => template('cgroups/cgrules.conf.erb'),
-    notify  => Service['cgrulesengd'],
     tag     => 'cgroups',
+  }
+
+  file { '/etc/init.d/cgconfig':
+    mode   => '0755',
+    source => "puppet:///modules/${module_name}/cgconfig.init",
+    tag    => 'cgroups',
   }
 
   class { '::cgroups::service':
     cgroups_settings => $cgroups_set,
   }
 
-  Package <| tag == 'cgroups' |> ~>
-  Service['cgrulesengd']
+  Package <| tag == 'cgroups' |> -> File <| tag == 'cgroups' |>
+  Service['cgconfig'] -> Cgclassify <||>
 
-  Package <| tag == 'cgroups' |> ->
-  File <| tag == 'cgroups' |>
-
-  File <| tag == 'cgroups' |> ->
-  Service['cgroup-lite']
-
-  Service['cgroup-lite'] ->
-  Service['cgconfigparser']
-
-  Service['cgconfigparser'] ->
-  Cgclassify <||>
-
-  Cgclassify <||> ->
-  Service['cgrulesengd']
 }
