@@ -1,42 +1,29 @@
 require 'yaml'
 
 Puppet::Parser::Functions::newfunction( :remove_ovs_usage,
-                                        :type => :rvalue, :doc => <<-EOS
+                                        :type => :rvalue, :arity => 1, :doc => <<-EOS
     This function get network_scheme and returns mangled
     network scheme without ovs-based elements.
     EOS
   ) do |argv|
 
-    def bridge_name_max_len
-      15
-    end
+    raise(
+      Puppet::ParseError,
+      "remove_ovs_usage(): Wrong network_scheme. Should be non-empty Hash."
+    ) unless argv[0].is_a?(Hash)
 
-    if argv.size != 1
-      raise(
-        Puppet::ParseError,
-        "remove_ovs_usage(): Wrong number of arguments. Should be two."
-      )
-    end
-    if !argv[0].is_a?(Hash)
-      raise(
-        Puppet::ParseError,
-        "remove_ovs_usage(): Wrong network_scheme. Should be non-empty Hash."
-      )
-    end
-    if argv[0]['version'].to_s.to_f < 1.1
-      raise(
-        Puppet::ParseError,
-        "remove_ovs_usage(): You network_scheme hash has wrong format.\nThis parser can work with v1.1 format, please convert you config."
-      )
-    end
+    raise(
+      Puppet::ParseError,
+      "remove_ovs_usage(): You network_scheme hash has wrong format.\nThis parser can work with v1.1 format, please convert you config."
+    ) if argv[0]['version'].to_s.to_f < 1.1
 
-    network_scheme = argv[0]
+    transformations = argv[0]['transformations']
     rv = {
       'use_ovs' => false
     }
     overrides = []
 
-    network_scheme['transformations'].each do |tr|
+    transformations.each do |tr|
       # get all dependent ovs providers
       if tr['provider'] =~ /ovs/
         if tr['action'] == 'add-patch'
@@ -46,16 +33,25 @@ Puppet::Parser::Functions::newfunction( :remove_ovs_usage,
             'provider' => 'lnx'
           }
         else
-          overrides << {
+          override_lnx = {
             'action'   => 'override',
             'override' => tr['name'],
             'provider' => 'lnx'
           }
+
+          # handle vxlan mode
+          if tr['provider'] == 'dpdkovs'
+            bridge = transformations.select { |t| tr['bridge'] == t['name'] }
+            bridge_vlan_id = bridge[0]['vendor_specific']['vlan_id']
+            override_lnx.merge!({'name' => "#{tr['name']}.#{bridge_vlan_id}"}) if bridge_vlan_id
+          end
+
+          overrides << override_lnx
         end
       end
     end
 
-    if ! overrides.empty?
+    unless overrides.empty?
       rv['network_scheme'] = {
         'transformations' => overrides
       }
