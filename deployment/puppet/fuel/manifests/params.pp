@@ -120,7 +120,6 @@ class fuel::params {
   $nailgun_host                  = '127.0.0.1'
   $nailgun_port                  = '8000'
   $nailgun_internal_port         = '8001'
-  $nailgun_serialization_port    = '8002'
   $nailgun_ssl_port              = '8443'
 
   $ostf_host                     = '127.0.0.1'
