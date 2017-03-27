@@ -28,7 +28,6 @@ describe manifest do
       it 'should declare ironic class correctly' do
         should contain_class('ironic').with(
           'default_transport_url' => transport_url,
-          'enabled_drivers'       => ['fuel_ssh', 'fuel_ipmitool', 'fake', 'fuel_libvirt'],
           'control_exchange'      => 'ironic',
           'amqp_durable_queues'   => amqp_durable_queues,
           'database_max_retries'  => '-1',
@@ -39,7 +38,8 @@ describe manifest do
 
       it 'should declare ironic::conductor class correctly' do
         should contain_class('ironic::conductor').with(
-          'api_url' => "http://#{baremetal_vip}:6385",
+          'api_url'         => "http://#{baremetal_vip}:6385",
+          'enabled_drivers' => ['fuel_ssh', 'fuel_ipmitool', 'fake', 'fuel_libvirt'],
         )
       end
 
