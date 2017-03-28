@@ -55,6 +55,10 @@ describe manifest do
       Noop.hiera_structure 'storage/rgw_init_timeout', '360000'
     }
 
+    let(:rgw_bind_address) {
+      Noop.puppet_function 'get_network_role_property', 'ceph/radosgw', 'ipaddr'
+    }
+
     if radosgw_enabled
       it 'should add radosgw key' do
         should contain_ceph__key("client.#{gateway_name}").with(
@@ -71,12 +75,12 @@ describe manifest do
         should contain_class('ceph').with(
           'fsid' => fsid,
         )
-      end   
+      end
 
       it 'should contain ceph::rgw' do
         should contain_ceph__rgw(gateway_name).with(
           'frontend_type' => 'civetweb',
-          'rgw_frontends' => 'civetweb port=7480',
+          'rgw_frontends' => "civetweb port=#{rgw_bind_address}:7480",
         )
       end
 

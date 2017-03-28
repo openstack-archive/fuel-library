@@ -89,15 +89,12 @@
       $.network_metadata.nodes.values().where(
         ('controller' in $.node_roles) or
         ('primary-controller' in $.node_roles)),
-      ('primary-controller' in $.roles), $.network_scheme, $.get('apache_ports'))
+      ('primary-controller' in $.roles), $.network_scheme,
+      $.network_metadata.nodes.values().select($.network_roles.get('ceph/radosgw')))
   parameters:
     puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/ceph/radosgw.pp
     puppet_modules: /etc/puppet/modules
     timeout: 3600
-  test_pre:
-    cmd: ruby /etc/puppet/modules/osnailyfacter/modular/ceph/radosgw_pre.rb
-  test_post:
-    cmd: ruby /etc/puppet/modules/osnailyfacter/modular/ceph/radosgw_post.rb
 
 - id: radosgw-keystone
   type: puppet
