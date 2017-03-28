@@ -27,6 +27,7 @@ class osnailyfacter::ceph::radosgw {
   prepare_network_config(hiera_hash('network_scheme'))
   $ceph_cluster_network = get_network_role_property('ceph/replication', 'network')
   $ceph_public_network  = get_network_role_property('ceph/public', 'network')
+  $rgw_bind_address     = get_network_role_property('ceph/radosgw', 'ipaddr')
 
   $mon_address_map = get_node_to_ipaddr_map_by_network_role(hiera_hash('ceph_monitor_nodes'), 'ceph/public')
   $mon_ips         = join(sorted_hosts($mon_address_map, 'ip'), ',')
@@ -70,7 +71,7 @@ class osnailyfacter::ceph::radosgw {
 
     ceph::rgw { $gateway_name:
       frontend_type      => 'civetweb',
-      rgw_frontends      => 'civetweb port=7480',
+      rgw_frontends      => "civetweb port=${rgw_bind_address}:7480",
       rgw_print_continue => true,
       keyring_path       => "/etc/ceph/client.${gateway_name}",
       rgw_data           => "/var/lib/ceph/radosgw-${gateway_name}",
