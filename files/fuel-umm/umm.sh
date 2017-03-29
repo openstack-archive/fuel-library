@@ -1,1 +1,1 @@
-[ "z`umm status`" == "zumm" ] && cat /etc/issue.mm
+[ "z`umm status`" = "zumm" ] && cat /etc/issue.mm
