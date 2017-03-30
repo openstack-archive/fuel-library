@@ -11,6 +11,8 @@ describe manifest do
     radosgw_enabled   = Noop.hiera_structure('storage/objects_ceph', false)
     ssl_hash          = Noop.hiera_structure('use_ssl', {})
     storage_hash      = Noop.hiera_hash 'storage'
+    public_ssl_hash   = Noop.hiera_hash('public_ssl', {})
+    public_ssl        = Noop.puppet_function 'get_ssl_property', ssl_hash, public_ssl_hash, 'radosgw', 'public', 'usage', false
 
     rgw_large_pool_name      = '.rgw'
     rgw_large_pool_pg_nums   = storage_hash['per_pool_pg_nums'][rgw_large_pool_name]
@@ -55,6 +57,10 @@ describe manifest do
       Noop.hiera_structure 'storage/rgw_init_timeout', '360000'
     }
 
+    let(:rgw_dns_name) {
+      public_ssl ? public_ssl_hash['hostname'] : "*.#{facts[:domain]}"
+    }
+
     if radosgw_enabled
       it 'should add radosgw key' do
         should contain_ceph__key("client.#{gateway_name}").with(
@@ -77,6 +83,7 @@ describe manifest do
         should contain_ceph__rgw(gateway_name).with(
           'frontend_type' => 'civetweb',
           'rgw_frontends' => 'civetweb port=7480',
+          'rgw_dns_name'  => rgw_dns_name,
         )
       end
 

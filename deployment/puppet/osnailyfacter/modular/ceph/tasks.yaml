@@ -89,7 +89,7 @@
       $.network_metadata.nodes.values().where(
         ('controller' in $.node_roles) or
         ('primary-controller' in $.node_roles)),
-      ('primary-controller' in $.roles), $.network_scheme, $.get('apache_ports'))
+      ('primary-controller' in $.roles), $.network_scheme, $.public_ssl)
   parameters:
     puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/ceph/radosgw.pp
     puppet_modules: /etc/puppet/modules
