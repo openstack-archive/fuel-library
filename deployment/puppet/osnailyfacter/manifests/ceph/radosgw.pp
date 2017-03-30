@@ -20,6 +20,8 @@ class osnailyfacter::ceph::radosgw {
   $management_vip                   = hiera('management_vip')
 
   $ssl_hash                = hiera_hash('use_ssl', {})
+  $public_ssl_hash         = hiera_hash('public_ssl', {})
+  $public_ssl              = get_ssl_property($ssl_hash, $public_ssl_hash, 'radosgw', 'public', 'usage', false)
   $admin_identity_protocol = get_ssl_property($ssl_hash, {}, 'keystone', 'admin', 'protocol', 'http')
   $admin_identity_address  = get_ssl_property($ssl_hash, {}, 'keystone', 'admin', 'hostname', [$service_endpoint, $management_vip])
   $admin_identity_url      = "${admin_identity_protocol}://${admin_identity_address}:35357"
@@ -68,13 +70,18 @@ class osnailyfacter::ceph::radosgw {
     }
 #######################################
 
+    $rgw_dns_name = $public_ssl ? {
+      true    => $public_ssl_hash['hostname'],
+      default => "*.${::domain}",
+    }
+
     ceph::rgw { $gateway_name:
       frontend_type      => 'civetweb',
       rgw_frontends      => 'civetweb port=7480',
       rgw_print_continue => true,
       keyring_path       => "/etc/ceph/client.${gateway_name}",
       rgw_data           => "/var/lib/ceph/radosgw-${gateway_name}",
-      rgw_dns_name       => "*.${::domain}",
+      rgw_dns_name       => $rgw_dns_name,
       log_file           => undef,
     }
 
