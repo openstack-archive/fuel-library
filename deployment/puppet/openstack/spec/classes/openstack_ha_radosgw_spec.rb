@@ -29,6 +29,8 @@ require 'spec_helper'
       }
     end
 
+    let(:balancer_opts) { 'check inter 15s fastinter 2s downinter 8s rise 3 fall 3' }
+
     it "should properly configure radosgw haproxy based on ssl" do
       should contain_openstack__ha__haproxy_service('object-storage').with(
         'order'                  => '130',
@@ -38,6 +40,7 @@ require 'spec_helper'
         'public_ssl'             => true,
         'public_ssl_path'        => '/var/lib/fuel/haproxy/public_radosgw.pem',
         'haproxy_config_options' => haproxy_config_opts,
+        'balancermember_options' => balancer_opts,
       )
     end
 
@@ -49,6 +52,7 @@ require 'spec_helper'
         'public_virtual_ip'      => false,
         'internal_virtual_ip'    => '192.168.0.2',
         'haproxy_config_options' => haproxy_config_opts,
+        'balancermember_options' => balancer_opts,
       )
     end
   end

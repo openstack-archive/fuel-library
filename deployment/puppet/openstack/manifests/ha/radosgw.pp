@@ -51,6 +51,7 @@ class openstack::ha::radosgw (
       'timeout'      => 'http-request 10s',
       'http-request' => 'set-header X-Forwarded-Proto https if { ssl_fc }',
     },
+    balancermember_options => 'check inter 15s fastinter 2s downinter 8s rise 3 fall 3',
   }
 
   openstack::ha::haproxy_service { 'object-storage':
