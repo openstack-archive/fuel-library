@@ -60,7 +60,7 @@ class cobbler::apache {
     ],
     custom_fragment => '
       CustomLog logs/ssl_request_log "%t %h %{SSL_PROTOCOL}x %{SSL_CIPHER}x \"%r\" %b"',
-    ssl_cipher      => 'ALL:!ADH:!EXPORT:!SSLv2:!MEDIUM:!LOW:+HIGH',
+    ssl_cipher      => 'ECDH+AESGCM:DH+AESGCM:ECDH+AES256:DH+AES256:ECDH+AES128:DH+AES:RSA+AESGCM:RSA+AES:!aNULL:!MD5:!DSS',
     setenvif        => ['User-Agent ".*MSIE.*" nokeepalive ssl-unclean-shutdown downgrade-1.0 force-response-1.0'],
   }
 }
