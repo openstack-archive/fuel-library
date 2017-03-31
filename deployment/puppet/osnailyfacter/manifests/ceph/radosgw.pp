@@ -57,17 +57,6 @@ class osnailyfacter::ceph::radosgw {
 
     include ::ceph::params
 
-#######################################
-# TODO (omolchanov): Remove template once we switch to systemd
-#######################################
-
-    file { '/etc/init/radosgw.conf':
-      ensure  => present,
-      content => template('osnailyfacter/radosgw-init.erb'),
-      before  => Ceph::Rgw[$gateway_name],
-    }
-#######################################
-
     ceph::rgw { $gateway_name:
       frontend_type      => 'civetweb',
       rgw_frontends      => 'civetweb port=7480',
