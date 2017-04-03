@@ -14,6 +14,8 @@ class osnailyfacter::ceph::ceph_pools {
 
   $per_pool_pg_nums = $storage_hash['per_pool_pg_nums']
 
+  $ceph_pools = ceph_pools()
+
   if ($storage_hash['volumes_ceph'] or
       $storage_hash['images_ceph'] or
       $storage_hash['objects_ceph'] or
@@ -32,9 +34,11 @@ class osnailyfacter::ceph::ceph_pools {
     }
 
 # DO NOT SPLIT ceph auth command lines! See http://tracker.ceph.com/issues/3279
-    ceph::pool { $glance_pool:
-      pg_num  => pick($per_pool_pg_nums[$glance_pool], '256'),
-      pgp_num => pick($per_pool_pg_nums[$glance_pool], '256'),
+    if ! ($glance_pool in $ceph_pools) {
+      ceph::pool { $glance_pool:
+        pg_num  => pick($per_pool_pg_nums[$glance_pool], '256'),
+        pgp_num => pick($per_pool_pg_nums[$glance_pool], '256'),
+      }
     }
 
     ceph::key { "client.${glance_user}":
@@ -46,9 +50,11 @@ class osnailyfacter::ceph::ceph_pools {
       inject  => true,
     }
 
-    ceph::pool { $cinder_pool:
-      pg_num  => pick($per_pool_pg_nums[$cinder_pool], '256'),
-      pgp_num => pick($per_pool_pg_nums[$cinder_pool], '256'),
+    if ! ($cinder_pool in $ceph_pools) {
+      ceph::pool { $cinder_pool:
+        pg_num  => pick($per_pool_pg_nums[$cinder_pool], '256'),
+        pgp_num => pick($per_pool_pg_nums[$cinder_pool], '256'),
+      }
     }
 
     ceph::key { "client.${cinder_user}":
@@ -60,9 +66,11 @@ class osnailyfacter::ceph::ceph_pools {
       inject  => true,
     }
 
-    ceph::pool { $cinder_backup_pool:
-      pg_num  => pick($per_pool_pg_nums[$cinder_backup_pool], '256'),
-      pgp_num => pick($per_pool_pg_nums[$cinder_backup_pool], '256'),
+    if ! ($cinder_backup_pool in $ceph_pools) {
+      ceph::pool { $cinder_backup_pool:
+        pg_num  => pick($per_pool_pg_nums[$cinder_backup_pool], '256'),
+        pgp_num => pick($per_pool_pg_nums[$cinder_backup_pool], '256'),
+      }
     }
 
     ceph::key { "client.${cinder_backup_user}":
@@ -83,7 +91,9 @@ class osnailyfacter::ceph::ceph_pools {
         hasrestart => true,
       }
 
-      Ceph::Pool[$cinder_pool] ~> Service['cinder-volume']
+      if ! ($cinder_pool in $ceph_pools) {
+        Ceph::Pool[$cinder_pool] ~> Service['cinder-volume']
+      }
       Ceph::Key<||> ~> Service['cinder-volume']
 
       service { 'cinder-backup':
@@ -93,7 +103,9 @@ class osnailyfacter::ceph::ceph_pools {
         hasrestart => true,
       }
 
-      Ceph::Pool[$cinder_backup_pool] ~> Service['cinder-backup']
+      if ! ($cinder_backup_pool in $ceph_pools) {
+        Ceph::Pool[$cinder_backup_pool] ~> Service['cinder-backup']
+      }
       Ceph::Key<||> ~> Service['cinder-backup']
     }
 
@@ -106,7 +118,9 @@ class osnailyfacter::ceph::ceph_pools {
         hasrestart => true,
       }
 
-      Ceph::Pool[$glance_pool] ~> Service['glance-api']
+      if ! ($glance_pool in $ceph_pools) {
+        Ceph::Pool[$glance_pool] ~> Service['glance-api']
+      }
       Ceph::Key<||> ~> Service['glance-api']
     }
   }

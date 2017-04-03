@@ -6,6 +6,16 @@ require 'shared-examples'
 manifest = 'ceph/ceph_pools.pp'
 
 describe manifest do
+
+  ceph_pools = []
+
+  before(:each) {
+    Puppet::Parser::Functions.newfunction(:ceph_pools, :type => :rvalue) {
+      |args| ceph_pools.call()
+    }
+     ceph_pools.stubs(:call).returns(['volumes','backups','images'])
+  }
+
   shared_examples 'catalog' do
     storage_hash = Noop.hiera 'storage'
 
@@ -49,11 +59,13 @@ describe manifest do
       end
 
       it 'should configure glance pool' do
-        should contain_ceph__pool(glance_pool).with(
-          'pg_num'  => storage_hash['per_pool_pg_nums']['images'],
-          'pgp_num' => storage_hash['per_pool_pg_nums']['images']
-        )
-      end 
+        if ! ceph_pools.include?(glance_pool)
+          should contain_ceph__pool(glance_pool).with(
+            'pg_num'  => storage_hash['per_pool_pg_nums']['images'],
+            'pgp_num' => storage_hash['per_pool_pg_nums']['images']
+          )
+        end
+      end
 
       it 'should configure ceph glance key' do
         should contain_ceph__key("client.#{glance_user}").with(
@@ -65,12 +77,14 @@ describe manifest do
           'inject'  => true,
         )
       end
-    
+
       it 'should configure cinder pool' do
-        should contain_ceph__pool(cinder_pool).with(
-          'pg_num'  => storage_hash['per_pool_pg_nums']['volumes'],
-          'pgp_num' => storage_hash['per_pool_pg_nums']['volumes']
-        )
+        if ! ceph_pools.include?(cinder_pool)
+          should contain_ceph__pool(cinder_pool).with(
+            'pg_num'  => storage_hash['per_pool_pg_nums']['volumes'],
+            'pgp_num' => storage_hash['per_pool_pg_nums']['volumes']
+          )
+        end
       end
 
       it 'should configure ceph cinder key' do
@@ -85,10 +99,12 @@ describe manifest do
       end
 
       it 'should configure cinder-backup pool' do
-        should contain_ceph__pool(cinder_backup_pool).with(
-          'pg_num'  => storage_hash['per_pool_pg_nums']['backups'],
-          'pgp_num' => storage_hash['per_pool_pg_nums']['backups']
-        )
+        if ! ceph_pools.include?(cinder_backup_pool)
+          should contain_ceph__pool(cinder_backup_pool).with(
+            'pg_num'  => storage_hash['per_pool_pg_nums']['backups'],
+            'pgp_num' => storage_hash['per_pool_pg_nums']['backups']
+          )
+        end
       end
 
       it 'should configure ceph cinder-backup key' do
@@ -103,14 +119,20 @@ describe manifest do
       end
 
       if storage_hash['volumes_ceph']
-        it { should contain_ceph__pool("#{cinder_pool}").that_notifies('Service[cinder-volume]') }
-        it { should contain_ceph__pool("#{cinder_backup_pool}").that_notifies('Service[cinder-backup]') }
+        if ! ceph_pools.include?(cinder_pool)
+          it { should contain_ceph__pool("#{cinder_pool}").that_notifies('Service[cinder-volume]') }
+        end
+        if ! ceph_pools.include?(cinder_backup_pool)
+          it { should contain_ceph__pool("#{cinder_backup_pool}").that_notifies('Service[cinder-backup]') }
+        end
         it { should contain_service('cinder-volume') }
         it { should contain_service('cinder-backup') }
       end
 
       if storage_hash['images_ceph']
-        it { should contain_ceph__pool("#{glance_pool}").that_notifies('Service[glance-api]') }
+        if ! ceph_pools.include?(glance_pool)
+          it { should contain_ceph__pool("#{glance_pool}").that_notifies('Service[glance-api]') }
+        end
         it { should contain_service('glance-api') }
       end
     end
