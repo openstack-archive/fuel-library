@@ -7,6 +7,15 @@ manifest = 'ceph/ceph_pools.pp'
 
 describe manifest do
   shared_examples 'catalog' do
+
+    before(:each) {
+      Puppet::Parser::Functions.newfunction(:ceph_pools, :type => :rvalue) {
+        |args| ceph_pools.call()
+      }
+
+      ceph_pools.stubs(:call).returns(['volumes','backups','images'])
+    }
+
     storage_hash = Noop.hiera 'storage'
 
     let(:mon_key) do
@@ -48,11 +57,13 @@ describe manifest do
         )
       end
 
-      it 'should configure glance pool' do
-        should contain_ceph__pool(glance_pool).with(
-          'pg_num'  => storage_hash['per_pool_pg_nums']['images'],
-          'pgp_num' => storage_hash['per_pool_pg_nums']['images']
-        )
+      if ! ceph_pools.include?(glance_pool)
+        it 'should configure glance pool' do
+          should contain_ceph__pool(glance_pool).with(
+            'pg_num'  => storage_hash['per_pool_pg_nums']['images'],
+            'pgp_num' => storage_hash['per_pool_pg_nums']['images']
+          )
+        end
       end 
 
       it 'should configure ceph glance key' do
@@ -66,11 +77,13 @@ describe manifest do
         )
       end
     
-      it 'should configure cinder pool' do
-        should contain_ceph__pool(cinder_pool).with(
-          'pg_num'  => storage_hash['per_pool_pg_nums']['volumes'],
-          'pgp_num' => storage_hash['per_pool_pg_nums']['volumes']
-        )
+      if ! ceph_pools.include?(cinder_pool)
+        it 'should configure cinder pool' do
+          should contain_ceph__pool(cinder_pool).with(
+            'pg_num'  => storage_hash['per_pool_pg_nums']['volumes'],
+            'pgp_num' => storage_hash['per_pool_pg_nums']['volumes']
+          )
+        end
       end
 
       it 'should configure ceph cinder key' do
@@ -84,11 +97,13 @@ describe manifest do
         )
       end
 
-      it 'should configure cinder-backup pool' do
-        should contain_ceph__pool(cinder_backup_pool).with(
-          'pg_num'  => storage_hash['per_pool_pg_nums']['backups'],
-          'pgp_num' => storage_hash['per_pool_pg_nums']['backups']
-        )
+      if ! ceph_pools.include?(cinder_backup_pool)
+        it 'should configure cinder-backup pool' do
+          should contain_ceph__pool(cinder_backup_pool).with(
+            'pg_num'  => storage_hash['per_pool_pg_nums']['backups'],
+            'pgp_num' => storage_hash['per_pool_pg_nums']['backups']
+          )
+        end
       end
 
       it 'should configure ceph cinder-backup key' do
