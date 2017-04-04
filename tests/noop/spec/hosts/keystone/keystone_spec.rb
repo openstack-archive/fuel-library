@@ -146,7 +146,6 @@ describe manifest do
         'admin_url'    => admin_url,
         'internal_url' => internal_url,
         'region'       => region,
-        'version'      => 'unset',
       )
     end
 
