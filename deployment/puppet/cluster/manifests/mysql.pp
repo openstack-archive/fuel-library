@@ -48,8 +48,9 @@ class cluster::mysql (
       'timeout'  => '55'
     },
     'start'   => {
-      'interval' => '0',
-      'timeout'  => '300'
+      'interval' => '30',
+      'timeout'  => '330',
+      'on-fail'  => 'restart',
     },
     'stop'    => {
       'interval' => '0',
