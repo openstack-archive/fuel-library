@@ -7,6 +7,7 @@ YAML.load("
 ---
   nodes:
     node-55:
+      name: controller055
       network_roles:
         nova/api: 192.168.1.55
         neutron/api: 192.168.3.55
@@ -15,6 +16,7 @@ YAML.load("
         - mongo
         - cinder
     node-66:
+      name: compute066
       network_roles:
         nova/api: 192.168.1.66/24
         neutron/api: 192.168.3.66/25
@@ -24,6 +26,7 @@ YAML.load("
         - xxx
         - yyy
     node-77:
+      name: storage077
       network_roles:
         nova/api: 192.168.1.77
         neutron/private: 192.168.3.77
@@ -37,14 +40,17 @@ let(:nodes_hash) do
 YAML.load("
 ---
   node-55:
+    name: controller055
     network_roles:
       nova/api: 192.168.1.5
       neutron/api: 192.168.3.5
   node-66:
+    name: compute066
     network_roles:
       nova/api: 192.168.1.6/24
       neutron/api: 192.168.3.6/25
   node-77:
+    name: storage077
     network_roles:
       nova/api: 192.168.1.7
       neutron/private: 192.168.3.7
@@ -57,31 +63,31 @@ end
 
     it 'should return nodes to IP map for "nova/api" role from network_metadata hash' do
       is_expected.to run.with_params(network_metadata, 'nova/api').and_return({
-        'node-55' => '192.168.1.55',
-        'node-66' => '192.168.1.66',
-        'node-77' => '192.168.1.77'
+        'controller055' => '192.168.1.55',
+        'compute066' => '192.168.1.66',
+        'storage077' => '192.168.1.7'
       })
     end
 
     it 'should return nodes to IP map for "nova/api" role from nodes_hash' do
       is_expected.to run.with_params(nodes_hash, 'nova/api').and_return({
-        'node-55' => '192.168.1.5',
-        'node-66' => '192.168.1.6',
-        'node-77' => '192.168.1.7'
+        'controller055' => '192.168.1.55',
+        'compute066' => '192.168.1.66',
+        'storage077' => '192.168.1.7'
       })
     end
 
     it 'should return nodes to IP map for "neutron/api" role from network_metadata hash' do
       is_expected.to run.with_params(network_metadata, 'neutron/api').and_return({
-        'node-55' => '192.168.3.55',
-        'node-66' => '192.168.3.66'
+        'controller055' => '192.168.1.55',
+        'compute066' => '192.168.1.66',
       })
     end
 
     it 'should return nodes to IP map for "neutron/api" role from nodes_hash' do
       is_expected.to run.with_params(nodes_hash, 'neutron/api').and_return({
-        'node-55' => '192.168.3.5',
-        'node-66' => '192.168.3.6'
+        'controller055' => '192.168.1.55',
+        'compute066' => '192.168.1.66',
       })
     end
 
