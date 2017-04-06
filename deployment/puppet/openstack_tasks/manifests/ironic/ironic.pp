@@ -71,6 +71,7 @@ class openstack_tasks::ironic::ironic {
   class { '::ironic':
     verbose              => $verbose,
     debug                => $debug,
+    enabled_drivers      => ['fuel_ssh', 'fuel_ipmitool', 'fake', 'fuel_libvirt'],
     rabbit_hosts         => $rabbit_hosts,
     rabbit_port          => $amqp_port,
     rabbit_userid        => $rabbit_hash['user'],
