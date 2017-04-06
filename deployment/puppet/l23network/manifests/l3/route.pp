@@ -6,6 +6,7 @@ define l23network::l3::route (
     $metric            = undef,
     $vendor_specific   = undef,
     $by_network_scheme = false,
+    $interface         = undef,
     $provider          = undef,
     $ensure            = 'present',
 ) {
@@ -26,6 +27,7 @@ define l23network::l3::route (
       destination     => $destination,
       gateway         => $gateway,
       metric          => $metric,
+      interface       => $interface,
       vendor_specific => $vendor_specific,
       provider        => $provider  # For L3 features provider independed from OVS
     }

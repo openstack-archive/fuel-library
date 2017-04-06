@@ -31,6 +31,7 @@ Puppet::Type.type(:l3_route).provide(:lnx, :parent => Puppet::Provider::L3_base)
     #todo(sv): check accessability of gateway.
     cmd = ['route', 'add', @resource[:destination], 'via', @resource[:gateway]]
     cmd << ['metric', @resource[:metric]] if @resource[:metric] != :absent && @resource[:metric].to_i > 0
+    cmd << ['dev', @resource[:interface]] if @resource[:interface] != :absent
     begin
       self.class.iproute(cmd)
     rescue Exception => e
