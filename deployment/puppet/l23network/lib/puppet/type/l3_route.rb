@@ -12,6 +12,16 @@ Puppet::Type.newtype(:l3_route) do
     # Error 400 on SERVER: Could not render to pson: undefined method `merge' for []:Array
     # http://projects.puppetlabs.com/issues/5220
 
+    newparam(:interface) do
+      desc "The interface for route name"
+      #
+      defaultto :absent
+      validate do |val|
+        if not val =~ /^[a-z_][0-9a-z\.\-\_]*[0-9a-z]$/
+          fail("Invalid interface name: '#{val}'")
+        end
+      end
+    end
 
     newproperty(:destination) do
       desc "Destination network"

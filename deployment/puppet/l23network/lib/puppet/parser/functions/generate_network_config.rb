@@ -210,6 +210,7 @@ Puppet::Parser::Functions::newfunction(:generate_network_config, :type => :rvalu
             route_properties = {
               'destination'       => route[:net],
               'gateway'           => route[:via],
+              'interface'         => endpoint_name,
               'by_network_scheme' => true,
               'require'           => correct_requirement_name(previous)
             }
