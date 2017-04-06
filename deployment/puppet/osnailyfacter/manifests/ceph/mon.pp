@@ -138,5 +138,10 @@ class osnailyfacter::ceph::mon {
 
       Class['ceph'] ~> Service['glance-api']
     }
+
+    # remove outdated monitors
+    $deleted_nodes = hiera('deleted_nodes', [])
+    osnailyfacter::ceph::mon_remove { $deleted_nodes: }
+    Package<| tag == 'ceph' |> -> Osnailyfacter::Ceph::Mon_remove<||> -> Ceph_config<||>
   }
 }

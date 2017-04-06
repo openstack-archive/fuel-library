@@ -52,21 +52,6 @@
     puppet_modules: /etc/puppet/modules
     timeout: 300
 
-- id: primary-mon-update
-  type: puppet
-  version: 2.1.0
-  groups: [primary-controller]
-  required_for: [deploy_end, controller_remaining_tasks]
-  requires: [primary-ceph-mon]
-  condition:
-    yaql_exp: *ceph_mon
-  cross-depends:
-    - name: /^(primary-)?ceph-mon$/
-  parameters:
-    puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/ceph/primary_mon_update.pp
-    puppet_modules: /etc/puppet/modules
-    timeout: 300
-
 - id: ceph-radosgw
   version: 2.2.0
   type: puppet
