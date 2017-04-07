@@ -16,10 +16,10 @@ class nailgun::astute(
   case $::operatingsystem {
     /(?i)(centos|redhat)/: {
       case $::operatingsystemrelease {
-        /6.+/: {
+        /^6.+/: {
           package { 'ruby21-rubygem-astute': }
         }
-        /7.+/: {
+        /^7.+/: {
           package { 'rubygem-astute': }
         }
       }
