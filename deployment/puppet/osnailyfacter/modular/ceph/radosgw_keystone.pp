@@ -19,10 +19,6 @@ if $storage_hash['objects_ceph'] {
   $public_url        = "${public_protocol}://${public_address}:8080/swift/v1"
   $admin_url         = "http://${admin_address}:8080/swift/v1"
 
-  $public_url_s3     = "${public_protocol}://${public_address}:8080"
-  $internal_url_s3   = "${internal_protocol}://${internal_address}:8080"
-  $admin_url_s3      = "${admin_protocol}://${admin_address}:8080"
-
   $haproxy_stats_url = "http://${service_endpoint}:10000/;csv"
 
   haproxy_backend_status { 'keystone-admin' :
@@ -54,17 +50,5 @@ if $storage_hash['objects_ceph'] {
     public_url          => $public_url,
     admin_url           => $admin_url,
     internal_url        => $admin_url,
-  }->
-
-  keystone::resource::service_identity { 'radosgw_s3':
-    configure_user      => false,
-    configure_user_role => false,
-    service_type        => 's3',
-    service_description => 'Openstack Object-Store Service',
-    service_name        => 'swift_s3',
-    region              => $region,
-    public_url          => $public_url_s3,
-    admin_url           => $admin_url_s3,
-    internal_url        => $internal_url_s3,
   }
 }
