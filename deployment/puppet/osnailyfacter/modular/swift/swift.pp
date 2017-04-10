@@ -37,86 +37,88 @@ $service_workers         = pick($swift_hash['workers'],
                                 min(max($::processorcount, 2), 16))
 
 # Use Swift if it isn't replaced by vCenter, Ceph for BOTH images and objects
-$master_swift_proxy_nodes      = get_nodes_hash_by_roles($network_metadata, [$swift_master_role])
-$master_swift_proxy_nodes_list = values($master_swift_proxy_nodes)
-$master_swift_proxy_ip         = regsubst($master_swift_proxy_nodes_list[0]['network_roles']['swift/api'], '\/\d+$', '')
-$master_swift_replication_ip   = regsubst($master_swift_proxy_nodes_list[0]['network_roles']['swift/replication'], '\/\d+$', '')
-$swift_partition               = hiera('swift_partition', '/var/lib/glance/node')
+if !($storage_hash['images_ceph'] and $storage_hash['objects_ceph']) and !$storage_hash['images_vcenter'] {
+  $master_swift_proxy_nodes      = get_nodes_hash_by_roles($network_metadata, [$swift_master_role])
+  $master_swift_proxy_nodes_list = values($master_swift_proxy_nodes)
+  $master_swift_proxy_ip         = regsubst($master_swift_proxy_nodes_list[0]['network_roles']['swift/api'], '\/\d+$', '')
+  $master_swift_replication_ip   = regsubst($master_swift_proxy_nodes_list[0]['network_roles']['swift/replication'], '\/\d+$', '')
+  $swift_partition               = hiera('swift_partition', '/var/lib/glance/node')
 
-if ($deploy_swift_storage){
-  if $swift_partition =~ /^\/var\/lib\/glance/ {
-    if !defined(File['/var/lib/glance']) {
-      file {'/var/lib/glance':
-        ensure  => 'directory',
-        group   => 'swift',
-        require => Package['swift'],
+  if ($deploy_swift_storage){
+    if $swift_partition =~ /^\/var\/lib\/glance/ {
+      if !defined(File['/var/lib/glance']) {
+        file {'/var/lib/glance':
+          ensure  => 'directory',
+          group   => 'swift',
+          require => Package['swift'],
+        }
+      } else { # overwrite
+        File['/var/lib/glance'] {
+          ensure  => 'directory',
+          group   => 'swift',
+          require +> Package['swift'],
+        }
       }
-    } else { # overwrite
-      File['/var/lib/glance'] {
-        ensure  => 'directory',
-        group   => 'swift',
-        require +> Package['swift'],
-      }
+      File['/var/lib/glance'] -> Service <| tag == 'swift-service' |>
     }
-    File['/var/lib/glance'] -> Service <| tag == 'swift-service' |>
+
+    class { 'openstack::swift::storage_node':
+      storage_type                => false,
+      loopback_size               => '5243780',
+      storage_mnt_base_dir        => $swift_partition,
+      storage_devices             => filter_hash($mp_hash,'point'),
+      swift_zone                  => $master_swift_proxy_nodes_list[0]['swift_zone'],
+      swift_local_net_ip          => $swift_storage_ipaddr,
+      master_swift_proxy_ip       => $master_swift_proxy_ip,
+      master_swift_replication_ip => $master_swift_replication_ip,
+      sync_rings                  => ! $is_primary_swift_proxy,
+      debug                       => $debug,
+      verbose                     => $verbose,
+      log_facility                => 'LOG_SYSLOG',
+    }
   }
 
-  class { 'openstack::swift::storage_node':
-    storage_type                => false,
-    loopback_size               => '5243780',
-    storage_mnt_base_dir        => $swift_partition,
-    storage_devices             => filter_hash($mp_hash,'point'),
-    swift_zone                  => $master_swift_proxy_nodes_list[0]['swift_zone'],
-    swift_local_net_ip          => $swift_storage_ipaddr,
-    master_swift_proxy_ip       => $master_swift_proxy_ip,
-    master_swift_replication_ip => $master_swift_replication_ip,
-    sync_rings                  => ! $is_primary_swift_proxy,
-    debug                       => $debug,
-    verbose                     => $verbose,
-    log_facility                => 'LOG_SYSLOG',
-  }
-}
-
-if $is_primary_swift_proxy {
-  ring_devices {'all':
-    storages => $swift_nodes,
-    require  => Class['swift'],
-  }
-}
-
-if $deploy_swift_proxy {
-  $sto_net = get_network_role_property('swift/replication', 'network')
-  $man_net = get_network_role_property('swift/api', 'network')
-
-  class { 'openstack::swift::proxy':
-    swift_user_password            => $swift_hash['user_password'],
-    swift_proxies_cache            => $memcaches_addr_list,
-    ring_part_power                => $ring_part_power,
-    primary_proxy                  => $is_primary_swift_proxy,
-    swift_proxy_local_ipaddr       => $swift_api_ipaddr,
-    swift_replication_local_ipaddr => $swift_storage_ipaddr,
-    master_swift_proxy_ip          => $master_swift_proxy_ip,
-    master_swift_replication_ip    => $master_swift_replication_ip,
-    proxy_port                     => $proxy_port,
-    proxy_workers                  => $service_workers,
-    debug                          => $debug,
-    verbose                        => $verbose,
-    log_facility                   => 'LOG_SYSLOG',
-    ceilometer                     => hiera('use_ceilometer',false),
-    ring_min_part_hours            => $ring_min_part_hours,
-    admin_user                     => $keystone_user,
-    admin_tenant_name              => $keystone_tenant,
-    admin_password                 => $keystone_password,
-    auth_host                      => $service_endpoint,
-    auth_protocol                  => $keystone_protocol,
-  } ->
-  class { 'openstack::swift::status':
-    endpoint    => "http://${swift_api_ipaddr}:${proxy_port}",
-    vip         => $management_vip,
-    only_from   => "127.0.0.1 240.0.0.2 ${sto_net} ${man_net}",
-    con_timeout => 5
+  if $is_primary_swift_proxy {
+    ring_devices {'all':
+      storages => $swift_nodes,
+      require  => Class['swift'],
+    }
   }
 
+  if $deploy_swift_proxy {
+    $sto_net = get_network_role_property('swift/replication', 'network')
+    $man_net = get_network_role_property('swift/api', 'network')
+
+    class { 'openstack::swift::proxy':
+      swift_user_password            => $swift_hash['user_password'],
+      swift_proxies_cache            => $memcaches_addr_list,
+      ring_part_power                => $ring_part_power,
+      primary_proxy                  => $is_primary_swift_proxy,
+      swift_proxy_local_ipaddr       => $swift_api_ipaddr,
+      swift_replication_local_ipaddr => $swift_storage_ipaddr,
+      master_swift_proxy_ip          => $master_swift_proxy_ip,
+      master_swift_replication_ip    => $master_swift_replication_ip,
+      proxy_port                     => $proxy_port,
+      proxy_workers                  => $service_workers,
+      debug                          => $debug,
+      verbose                        => $verbose,
+      log_facility                   => 'LOG_SYSLOG',
+      ceilometer                     => hiera('use_ceilometer',false),
+      ring_min_part_hours            => $ring_min_part_hours,
+      admin_user                     => $keystone_user,
+      admin_tenant_name              => $keystone_tenant,
+      admin_password                 => $keystone_password,
+      auth_host                      => $service_endpoint,
+      auth_protocol                  => $keystone_protocol,
+    } ->
+    class { 'openstack::swift::status':
+      endpoint    => "http://${swift_api_ipaddr}:${proxy_port}",
+      vip         => $management_vip,
+      only_from   => "127.0.0.1 240.0.0.2 ${sto_net} ${man_net}",
+      con_timeout => 5
+    }
+
+  }
 }
 
 # 'ceilometer' class is being declared inside openstack::ceilometer class
