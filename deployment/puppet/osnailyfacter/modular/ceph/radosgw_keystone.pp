@@ -20,7 +20,8 @@ if $storage_hash['objects_ceph'] {
   $admin_url         = "http://${admin_address}:8080/swift/v1"
 
   $public_url_s3     = "${public_protocol}://${public_address}:8080"
-  $admin_url_s3      = "http://${admin_address}:8080"
+  $internal_url_s3   = "${internal_protocol}://${internal_address}:8080"
+  $admin_url_s3      = "${admin_protocol}://${admin_address}:8080"
 
   $haproxy_stats_url = "http://${service_endpoint}:10000/;csv"
 
@@ -64,6 +65,6 @@ if $storage_hash['objects_ceph'] {
     region              => $region,
     public_url          => $public_url_s3,
     admin_url           => $admin_url_s3,
-    internal_url        => $admin_url_s3,
+    internal_url        => $internal_url_s3,
   }
 }
