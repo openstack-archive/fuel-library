@@ -1,9 +1,9 @@
-- id: openstack-cinder
+- id: primary-openstack-cinder
   type: puppet
   version: 2.2.0
-  tags: [primary-controller, controller]
-  required_for: [deploy_end, openstack-controller]
-  requires: [primary-keystone, keystone, hosts, firewall]
+  tags: [primary-controller]
+  required_for: [deploy_end, primary-openstack-controller]
+  requires: [primary-keystone, hosts, firewall]
   cross-depends:
     - name: /^(primary-)?keystone$/
     - name: hosts
@@ -13,14 +13,13 @@
     - name: /^(primary-)?rabbitmq$/
     - name: cinder-db
     - name: cinder-keystone
-
   cross-depended-by:
-    - name: openstack-controller
+    - name: primary-openstack-controller
       role: self
     - name: deploy_end
       role: self
   condition:
-    yaql_exp: >
+    yaql_exp: &cinder >
       changedAny($.network_scheme, $.cinder, $.network_metadata.vips,
       $.get('cinder_volume_group'), $.storage, $.ceilometer, $.sahara,
       $.rabbit, $.get('region', 'RegionOne'), $.get('use_ssl'),
@@ -39,16 +38,31 @@
     puppet_modules: /etc/puppet/modules
     timeout: 1200
 
+- id: openstack-cinder
+  type: puppet
+  version: 2.2.0
+  tags: [controller]
+  required_for: [deploy_end, openstack-controller]
+  requires: [keystone, hosts, firewall]
+  cross-depends:
+    - name: /^(primary-)?keystone$/
+    - name: /^(primary-)?rabbitmq$/
+    - name: primary-openstack-cinder
+  condition:
+    yaql_exp: *cinder
+  parameters:
+    puppet_manifest: /etc/puppet/modules/openstack_tasks/examples/openstack-cinder/openstack-cinder.pp
+    puppet_modules: /etc/puppet/modules
+    timeout: 1200
+
 - id: cinder-db
   type: puppet
   version: 2.2.0
   tags: [primary-database]
-  required_for: [openstack-cinder]
+  required_for: [primary-openstack-cinder]
   requires: [primary-database, database]
   cross-depends:
     - name: /^(primary-)?database$/
-  cross-depened-by:
-    - name: openstack-cinder
   condition:
     yaql_exp: >
       changedAny($.cinder, $.mysql, $.network_metadata.vips,
@@ -64,12 +78,11 @@
   type: puppet
   version: 2.2.0
   tags: [primary-keystone]
-  required_for: [openstack-cinder]
+  required_for: [primary-openstack-cinder]
   requires: [primary-keystone, keystone]
   cross-depends:
     - name: /^(primary-)?keystone$/
-  cross-depended-by:
-    - name: openstack-cinder
+      role: self
   condition:
     yaql_exp: >
       changedAny($.cinder, $.public_ssl, $.get('use_ssl'),
@@ -83,7 +96,7 @@
   type: puppet
   version: 2.1.0
   groups: [primary-controller]
-  requires: [openstack-cinder]
+  requires: [primary-openstack-cinder]
   required_for: [deploy_end]
   condition:
     yaql_exp: "changed($.storage)"
