@@ -24,7 +24,7 @@
   version: 2.1.0
   groups: [primary-controller]
   required_for: [deploy_end, controller_remaining_tasks]
-  requires: [primary-openstack-controller, openstack-controller, openstack-cinder]
+  requires: [primary-openstack-controller, primary-openstack-cinder]
   condition:
     yaql_exp: &ceph_mon >
       ($.storage.objects_ceph or $.storage.images_ceph or
