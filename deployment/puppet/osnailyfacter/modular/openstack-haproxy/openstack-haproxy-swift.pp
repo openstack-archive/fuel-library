@@ -5,7 +5,7 @@ $storage_hash     = hiera_hash('storage', {})
 $swift_proxies    = hiera_hash('swift_proxies', undef)
 $public_ssl_hash  = hiera('public_ssl')
 
-if (!$storage_hash['images_ceph'] and !$storage_hash['objects_ceph'] and !$storage_hash['images_vcenter']) {
+if (!$storage_hash['images_ceph'] or !$storage_hash['objects_ceph']) and !$storage_hash['images_vcenter'] {
   $use_swift = true
 } else {
   $use_swift = false
