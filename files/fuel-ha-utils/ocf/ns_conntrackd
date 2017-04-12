@@ -132,14 +132,14 @@ END
 
 meta_expect()
 {
-        local what=$1 whatvar=OCF_RESKEY_CRM_meta_${1//-/_} op=$2 expect=$3
-        local val=${!whatvar}
-        if [ -n "$val" ]; then
-                # [, not [[, or it won't work ;)
-                [ $val $op $expect ] && return
-        fi
-        ocf_exit_reason "meta parameter misconfigured, expected $what $op $expect, but found ${val:-unset}."
-        exit $OCF_ERR_CONFIGURED
+  local what=$1 whatvar=OCF_RESKEY_CRM_meta_${1//-/_} op=$2 expect=$3
+  local val=${!whatvar}
+  if [ -n "$val" ]; then
+          # [, not [[, or it won't work ;)
+          [ $val $op $expect ] && return
+  fi
+  ocf_exit_reason "meta parameter misconfigured, expected $what $op $expect, but found ${val:-unset}."
+  exit $OCF_ERR_CONFIGURED
 }
 
 conntrackd_is_master() {
@@ -153,17 +153,25 @@ conntrackd_set_master_score() {
 }
 
 add_to_bridge() {
-  brctl show $OCF_RESKEY_bridge | grep $OCF_RESKEY_host_interface
+  ocf_log debug "add_to_bridge:start"
+  local result rc
+  result=$(brctl show $OCF_RESKEY_bridge | grep $OCF_RESKEY_host_interface)
+  [[ "${result}" = "$OCF_RESKEY_ns" ]] && rc=0 || rc=1
   if [ "$rc" -ne 0 ]; then
     ocf_run brctl addif $OCF_RESKEY_bridge $OCF_RESKEY_host_interface
     ocf_run ifconfig $OCF_RESKEY_host_interface 0.0.0.0
   fi
+  ocf_log debug "add_to_bridge:end"
 }
 
 get_veth_pair() {
-  ip netns list | grep "$OCF_RESKEY_ns"
+  ocf_log debug "get_veth_pair:start"
 
-  [[ $? != 0 ]] && ip netns add $OCF_RESKEY_ns && ip netns exec $OCF_RESKEY_ns ip link set up dev lo
+  local rc result
+  result=$(ip netns list | grep "$OCF_RESKEY_ns")
+  [[ "${result}" = "$OCF_RESKEY_ns" ]] && rc=0 || rc=1
+
+  [[ $rc != 0 ]] && ip netns add $OCF_RESKEY_ns && ip netns exec $OCF_RESKEY_ns ip link set up dev lo
 
   ocf_run ip netns exec $OCF_RESKEY_ns ip link show $OCF_RESKEY_ns_interface 2>/dev/null
   rc=$?
@@ -181,12 +189,14 @@ get_veth_pair() {
   fi
 
   add_to_bridge
-
+  ocf_log debug "get_veth_pair:end"
   return 0
 }
 
 conntrackd_monitor() {
+  ocf_log debug "conntrackd_monitor:start"
 
+  local rc
   get_veth_pair
 
   rc=$OCF_NOT_RUNNING
@@ -214,14 +224,17 @@ conntrackd_monitor() {
       fi
     fi
   fi
+  ocf_log debug "conntrackd_monitor:end"
   return $rc
 }
 
 conntrackd_start() {
-        rc=$OCF_ERR_GENERIC
+  ocf_log debug "conntrackd_start:start"
 
-        # Keep trying to start the resource;
-        # wait for the CRM to time us out if this fails
+  local rc=$OCF_ERR_GENERIC
+
+  # Keep trying to start the resource;
+  # wait for the CRM to time us out if this fails
   while :; do
     conntrackd_monitor
     status=$?
@@ -252,50 +265,58 @@ conntrackd_start() {
       ;;
     esac
   done
+  ocf_log debug "conntrackd_start:end"
   return $rc
 }
 
 conntrackd_stop() {
-        rc=$OCF_ERR_GENERIC
+  ocf_log debug "conntrackd_stop:start"
 
-        # Keep trying to bring down the resource;
-        # wait for the CRM to time us out if this fails
-        while :; do
-                conntrackd_monitor
-                status=$?
-                case "$status" in
-                $OCF_SUCCESS|$OCF_ERR_GENERIC)
-      ocf_log info "Stopping conntrackd"
-                        ip netns exec $OCF_RESKEY_ns $OCF_RESKEY_binary -C $OCF_RESKEY_config -k
-                        ;;
-                $OCF_NOT_RUNNING)
-                        rc=$OCF_SUCCESS
-                        break
-                        ;;
-                $OCF_RUNNING_MASTER)
-                        ocf_log warn "conntrackd still master"
-      ;;
-                esac
-        done
-        return $rc
+  local rc=$OCF_ERR_GENERIC status
 
+  # Keep trying to bring down the resource;
+  # wait for the CRM to time us out if this fails
+  while :; do
+    conntrackd_monitor
+    status=$?
+    case "$status" in
+      $OCF_SUCCESS|$OCF_ERR_GENERIC)
+        ocf_log info "Stopping conntrackd"
+        ip netns exec $OCF_RESKEY_ns $OCF_RESKEY_binary -C $OCF_RESKEY_config -k
+        ;;
+      $OCF_NOT_RUNNING)
+        rc=$OCF_SUCCESS
+        break
+        ;;
+      $OCF_RUNNING_MASTER)
+        ocf_log warn "conntrackd still master"
+        ;;
+      esac
+  done
+  ocf_log debug "conntrackd_stop:end"
+  return $rc
 }
 
 conntrackd_validate_all() {
+  ocf_log debug "conntrackd_validate_all:start"
+
   check_binary "$OCF_RESKEY_binary"
   if ! [ -e "$OCF_RESKEY_config" ]; then
     ocf_exit_reason "Config FILE $OCF_RESKEY_config does not exist"
     return $OCF_ERR_INSTALLED
   fi
-        meta_expect master-node-max = 1
-        meta_expect master-max = 1
-        meta_expect clone-node-max = 1
+    meta_expect master-node-max = 1
+    meta_expect master-max = 1
+    meta_expect clone-node-max = 1
 
+  ocf_log debug "conntrackd_validate_all:end"  
   return $OCF_SUCCESS
 }
 
 conntrackd_promote() {
-  rc=$OCF_SUCCESS
+  ocf_log debug "conntrackd_promote:start"
+
+  local rc=$OCF_SUCCESS
   if ! conntrackd_is_master; then
     # -c = Commit the external cache to the kernel
     # -f = Flush internal and external cache
@@ -311,29 +332,35 @@ conntrackd_promote() {
     ha_pseudo_resource $statefile start
     conntrackd_set_master_score $master_score
   fi
+  ocf_log debug "conntrackd_promote:end"
   return $rc
 }
 
 conntrackd_demote() {
-  rc=$OCF_SUCCESS
+  ocf_log debug "conntrackd_demote:start"
+
+  local rc=$OCF_SUCCESS
   if conntrackd_is_master; then
     # -t = shorten kernel timers to remove zombies
     # -n = request a resync from the others
     for parm in t n; do
       if ! ip netns exec $OCF_RESKEY_ns $OCF_RESKEY_binary -C $OCF_RESKEY_config -$parm; then
-                          ocf_exit_reason "$OCF_RESKEY_binary -C $OCF_RESKEY_config -$parm failed during demote."
-                          rc=$OCF_ERR_GENERIC
-                          break
-                  fi
-          done
+        ocf_exit_reason "$OCF_RESKEY_binary -C $OCF_RESKEY_config -$parm failed during demote."
+        rc=$OCF_ERR_GENERIC
+        break
+      fi
+    done
     ha_pseudo_resource $statefile stop
     conntrackd_set_master_score $slave_score
   fi
+  ocf_log debug "conntrackd_demote:end"
   return $rc
 }
 
 conntrackd_notify() {
-  hostname=$(hostname)
+  ocf_log debug "conntrackd_notify:start"
+
+  local hostname=$(hostname)
   # OCF_RESKEY_CRM_meta_notify_master_uname is a whitespace separated list of master hostnames
   for master in $OCF_RESKEY_CRM_meta_notify_master_uname; do
     # if we are the master and an instance was just started on another node:
@@ -351,6 +378,7 @@ conntrackd_notify() {
       ip netns exec $OCF_RESKEY_ns $OCF_RESKEY_binary -C $OCF_RESKEY_config -B
     fi
   done
+  ocf_log debug "conntrackd_notify:end"
 }
 
 conntrackd_usage() {
