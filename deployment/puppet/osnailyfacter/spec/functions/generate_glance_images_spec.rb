@@ -18,6 +18,15 @@ describe 'generate_glance_images' do
     ]
   }
 
+  let (:extra_opts) {
+    {
+      'properties' => {
+        'hw_scsi_model' => 'virtio-scsi',
+        'hw_disk_bus'   => 'scsi',
+      }
+    }
+  }
+
   let (:output) {
     {
       'TestVM' => {
@@ -31,11 +40,18 @@ describe 'generate_glance_images' do
     }
   }
 
+  let (:output_with_extra) {
+    {
+      'TestVM' => output.values.merge(extra_opts)
+    }
+  }
+
+
   it 'should exist' do
     is_expected.not_to be_nil
   end
 
-  it 'should expect 1 argument' do
+  it 'should expect at least 1 argument' do
     is_expected.to run.with_params().and_raise_error ArgumentError
   end
 
@@ -45,5 +61,9 @@ describe 'generate_glance_images' do
 
   it 'should return glance compatible hash' do
     is_expected.to run.with_params(input).and_return(output)
+  end
+
+  it 'should return glance compatible hash with extra options' do
+    is_expected.to run.with_params(input, extra_opts).and_return(output_with_extra)
   end
 end

@@ -7,8 +7,16 @@ manifest = 'astute/upload_cirros.pp'
 describe manifest do
   shared_examples 'catalog' do
 
+    storage_hash = Noop.hiera_hash 'storage'
+    hw_disk_discard = Noop.puppet_function 'pick', storage_hash['disk_discard'], true
+
     let(:test_vm_images) { Noop.puppet_function 'flatten', [ Noop.hiera('test_vm_image') ] }
     let(:glance_images) { Noop.puppet_function 'generate_glance_images', test_vm_images }
+
+    let(:extra_opts) {
+      hw_disk_discard ? {'properties' => {'hw_scsi_model' => 'virtio-scsi', 'hw_disk_bus' => 'scsi'}} : {}
+    }
+
     it 'should contain upload_cirros class' do
       should contain_class('osnailyfacter::astute::upload_cirros')
     end
@@ -25,7 +33,8 @@ describe manifest do
           :disk_format => test_vm_image['disk_format'],
           :is_public => test_vm_image['is_public'],
           :min_ram => test_vm_image['min_ram'],
-          :source => test_vm_image['source']
+          :source => test_vm_image['source'],
+          :properties => test_vm_image['properties'].merge(extra_opts['properties'])
         )
       end
     end

@@ -479,12 +479,14 @@ describe manifest do
 
       min_age = Noop.puppet_function 'pick', nova_hash['remove_unused_original_minimum_age_seconds'], '86400'
       preallocate_images = Noop.puppet_function 'pick', nova_hash['preallocate_images'], 'space'
+      libvirt_hw_disk_discard = Noop.puppet_function('pick', storage_hash['disk_discard'], true) ? 'unmap' : 'ignore'
 
       should contain_class('nova::compute::libvirt').with(
         'libvirt_virt_type'                          => libvirt_type,
         'vncserver_listen'                           => '0.0.0.0',
         'remove_unused_original_minimum_age_seconds' => min_age,
         'preallocate_images'                         => preallocate_images,
+        'libvirt_hw_disk_discard'                    => libvirt_hw_disk_discard,
       )
     end
 
