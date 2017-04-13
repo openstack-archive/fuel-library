@@ -2,18 +2,19 @@ module Puppet::Parser::Functions
   newfunction(
       :generate_glance_images,
       :type  => :rvalue,
-      :arity => 1,
+      :arity => -2,
       :doc   => <<-EOS
 Takes an array of glance images (in form used in astute.yaml) as argument.
 Returns a hash compatible with the glance_image type provided by the glance
 module.
       EOS
   ) do |args|
-    images = args[0]
+    images, extra_properties = args
     raise Puppet::ParseError, "generate_glance_images(): Requires an array to work with" unless images.is_a? Array
 
-    result = {}
-    images.each do |image|
+    extra_properties ||= {}
+
+    images.reduce({}) do |result, image|
       raise Puppet::ParseError, "generate_glance_images(): Requires an array of hashes" unless image.is_a? Hash
 
       params = {
@@ -22,11 +23,10 @@ module.
         'is_public'        => image['public'],
         'min_ram'          => image['min_ram'],
         'source'           => image['img_path'],
-        'properties'       => image['properties'],
+        'properties'       => image['properties'].merge(extra_properties),
       }
 
-      result.store image['img_name'], params
+      result.merge(image['img_name'] => params)
     end
-    result
   end
 end

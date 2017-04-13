@@ -81,6 +81,11 @@ class openstack_tasks::openstack_cinder::openstack_cinder {
   } elsif ($storage_hash['volumes_ceph']) {
     $manage_volumes = 'ceph'
     $volume_backend_name = $storage_hash['volume_backend_names']['volumes_ceph']
+    $extra_options = {
+      "${volume_backend_name}/report_discard_supported" => {
+        'value' => pick($storage_hash['disk_discard'], true)
+      }
+    }
   } else {
     $volume_backend_name = false
     $manage_volumes = false
@@ -168,30 +173,28 @@ class openstack_tasks::openstack_cinder::openstack_cinder {
       auth_version      => $keystone_api,
     }
 
-  # support Ocata. First in UCA, then in MOS
-  $repo_setup              = hiera_hash('repo_setup', {})
-  $repo_type               = pick_default($repo_setup['repo_type'], '')
-  if $repo_type != 'uca' {
-    $service_name = undef
-  }
-  else {
-    class { 'osnailyfacter::apache':
-      listen_ports => hiera_array('apache_ports', ['0.0.0.0:80', '0.0.0.0:8888', '0.0.0.0:5000', '0.0.0.0:35357', '0.0.0.0:8777','0.0.0.0:8042']),
+    # support Ocata. First in UCA, then in MOS
+    $repo_setup              = hiera_hash('repo_setup', {})
+    $repo_type               = pick_default($repo_setup['repo_type'], '')
+    if $repo_type != 'uca' {
+      $service_name = undef
     }
+    else {
+      class { 'osnailyfacter::apache':
+        listen_ports => hiera_array('apache_ports', ['0.0.0.0:80', '0.0.0.0:8888', '0.0.0.0:5000', '0.0.0.0:35357', '0.0.0.0:8777','0.0.0.0:8042']),
+      }
 
 
-  # set to false as we terminate SSL on HAProxy side
-  $ssl = false
-  class { '::cinder::wsgi::apache':
-    ssl       => $ssl,
-    priority  => '35',
-    bind_host => $bind_host,
-  }
-    $service_name = 'httpd'
+    # set to false as we terminate SSL on HAProxy side
+    $ssl = false
+    class { '::cinder::wsgi::apache':
+      ssl       => $ssl,
+      priority  => '35',
+      bind_host => $bind_host,
+    }
+      $service_name = 'httpd'
 
-  }
-
- 
+    }
 
     class { 'cinder::api':
       os_region_name               => $region,
@@ -286,6 +289,7 @@ class openstack_tasks::openstack_cinder::openstack_cinder {
           rbd_user            => $rbd_user,
           rbd_secret_uuid     => $rbd_secret_uuid,
           volume_backend_name => $volume_backend_name,
+          extra_options       => $extra_options,
         }
 
         class { 'cinder::backup': }

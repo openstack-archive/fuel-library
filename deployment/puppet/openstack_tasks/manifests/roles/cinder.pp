@@ -109,6 +109,11 @@ class openstack_tasks::roles::cinder {
     $manage_volumes = 'ceph'
     $physical_volumes = false
     $volume_backend_name = $storage_hash['volume_backend_names']['volumes_ceph']
+    $extra_options = {
+      "${volume_backend_name}/report_discard_supported" => {
+        'value' => pick($storage_hash['disk_discard'], true)
+      }
+    }
   } elsif (roles_include(['cinder-block-device']) and $storage_hash['volumes_block_device']) {
     $manage_volumes = 'block'
     $physical_volumes = join(get_disks_list_by_role($node_volumes, 'cinder-block-device'), ',')
@@ -275,6 +280,7 @@ class openstack_tasks::roles::cinder {
           rbd_user            => $rbd_user,
           rbd_secret_uuid     => $rbd_secret_uuid,
           volume_backend_name => $volume_backend_name,
+          extra_options       => $extra_options,
         }
 
         class { 'cinder::backup': }

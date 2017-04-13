@@ -10,13 +10,20 @@ class osnailyfacter::astute::upload_cirros {
 
   notice('MODULAR: astute/upload_cirros.pp')
 
-  package { 'cirros-testvm' :
-      ensure => 'installed',
-      name   => 'cirros-testvm',
+  ensure_packages('cirros-testvm')
+
+  $storage_hash = hiera_hash('storage', {})
+  $hw_disk_discard = pick($storage_hash['disk_discard'], true)
+
+  if $hw_disk_discard {
+    $extra_properties = {
+      'hw_scsi_model' => 'virtio-scsi',
+      'hw_disk_bus'   => 'scsi',
+    }
   }
 
   $test_vm_images = hiera('test_vm_image')
-  $glance_images = generate_glance_images(flatten([$test_vm_images]))
+  $glance_images = generate_glance_images(flatten([$test_vm_images]), pick($extra_properties, {}))
   $defaults = {
     'ensure' => 'present',
   }

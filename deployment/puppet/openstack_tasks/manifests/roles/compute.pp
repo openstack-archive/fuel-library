@@ -69,8 +69,6 @@ class openstack_tasks::roles::compute {
 
   include ::osnailyfacter::test_compute
 
-  $floating_hash = {}
-
   ##CALCULATED PARAMETERS
 
   $memcached_servers = hiera('memcached_servers')
@@ -394,6 +392,11 @@ class openstack_tasks::roles::compute {
     $libvirt_service_name = 'libvirtd'
   }
 
+  $libvirt_hw_disk_discard = pick($storage_hash['disk_discard'], true) ? {
+    true    => 'unmap',
+    default => 'ignore',
+  }
+
   # Configure libvirt for nova-compute
   class { '::nova::compute::libvirt':
     libvirt_virt_type                          => $libvirt_type,
@@ -406,6 +409,7 @@ class openstack_tasks::roles::compute {
     virtlock_service_name                      => 'virtlockd',
     virtlog_service_name                       => 'virtlogd',
     preallocate_images                         => $preallocate_images,
+    libvirt_hw_disk_discard                    => $libvirt_hw_disk_discard,
   }
 
   class { '::nova::migration::libvirt':
