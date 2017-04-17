@@ -406,4 +406,7 @@ class openstack_tasks::openstack_controller::openstack_controller {
     }
   }
 
+  ### SYSCTL ###
+  include ::osnailyfacter::netconfig::sysctl_tuned
+  Sysctl::Value <| |> -> Nova_config <||>
 }
