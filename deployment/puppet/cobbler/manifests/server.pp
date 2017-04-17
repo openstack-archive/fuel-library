@@ -160,6 +160,13 @@ class cobbler::server (
                 File['/etc/httpd/conf.d/']],
     notify  => Service[$cobbler_web_service],
   }
+  # Remove default configs from httpd/conf.d.
+  file { ['/etc/httpd/conf.d/autoindex.conf',
+          '/etc/httpd/conf.d/welcome.conf',
+          '/etc/httpd/conf.d/userdir.conf',
+          ]:
+    ensure => 'absent',
+  }
   openssl::certificate::x509 { 'cobbler':
     ensure       => present,
     country      => 'US',
