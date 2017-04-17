@@ -104,18 +104,6 @@ class openstack_tasks::openstack_network::common_config {
   }
 
   ### SYSCTL ###
-
-  # All nodes with network functions should have net forwarding.
-  # Its a requirement for network namespaces to function.
-  sysctl::value { 'net.ipv4.ip_forward': value => '1' }
-
-  # All nodes with network functions should have these thresholds
-  # to avoid "Neighbour table overflow" problem
-  sysctl::value { 'net.ipv4.neigh.default.gc_thresh1': value => '4096' }
-  sysctl::value { 'net.ipv4.neigh.default.gc_thresh2': value => '8192' }
-  sysctl::value { 'net.ipv4.neigh.default.gc_thresh3': value => '16384' }
-
-  Sysctl::Value <| |> -> Nova_config <||>
+  include ::osnailyfacter::netconfig::sysctl_tuned
   Sysctl::Value <| |> -> Neutron_config <||>
-
 }
