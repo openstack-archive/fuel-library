@@ -27,6 +27,7 @@ Puppet::Type.type(:l2_bond).provide(:ovs, :parent => Puppet::Provider::Ovs_base)
     debug("CREATE resource: #{@resource}")
     @old_property_hash = {}
     @property_flush = {}.merge! @resource
+    self.class.ensure_upstart_state_file(@resource[:bond])
 
     @resource[:slaves].each do |slave|
       self.class.addr_flush(slave)

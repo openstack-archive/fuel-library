@@ -21,6 +21,7 @@ Puppet::Type.type(:l2_port).provide(:ovs, :parent => Puppet::Provider::Ovs_base)
     debug("CREATE resource: #{@resource}")
     @old_property_hash = {}
     @property_flush = {}.merge! @resource
+    self.class.ensure_upstart_state_file(@resource[:interface])
     #
     cmd = ['--may-exist', 'add-port', @resource[:bridge], @resource[:interface]]
     # # tag and trunks for port
