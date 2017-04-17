@@ -56,6 +56,8 @@ Puppet::Type.type(:l2_patch).provide(:lnx, :parent => Puppet::Provider::Lnx_base
     debug("CREATE resource: #{@resource}")
     @old_property_hash = {}
     @property_flush = {}.merge! @resource
+    self.class.ensure_upstart_state_file(@resource[:jacks][0])
+    self.class.ensure_upstart_state_file(@resource[:jacks][1])
     patch_name = L23network.get_patch_name(@resource[:jacks])
     begin
       self.class.iproute(['link', 'add', 'dev', @resource[:jacks][0], 'type', 'veth', 'peer', 'name', @resource[:jacks][1]])

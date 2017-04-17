@@ -43,6 +43,7 @@ Puppet::Type.type(:l2_port).provide(:lnx, :parent => Puppet::Provider::Lnx_base)
     debug("CREATE resource: #{@resource}")
     @old_property_hash = {}
     @property_flush = {}.merge! @resource
+    self.class.ensure_upstart_state_file(@resource[:interface])
     # todo: divide simple creating interface and vlan
     begin
       self.class.iproute(['link', 'add', 'link', @resource[:vlan_dev], 'name', @resource[:interface], 'type', 'vlan', 'id', @resource[:vlan_id]])

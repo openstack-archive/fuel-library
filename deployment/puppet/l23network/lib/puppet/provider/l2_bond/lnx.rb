@@ -39,6 +39,7 @@ Puppet::Type.type(:l2_bond).provide(:lnx, :parent => Puppet::Provider::Lnx_base)
     debug("CREATE resource: #{@resource}")
     @old_property_hash = {}
     @property_flush = {}.merge! @resource
+    self.class.ensure_upstart_state_file(@resource[:name])
     self.class.set_sys_class('/sys/class/net/bonding_masters', "+#{@resource[:name]}")
   end
 
