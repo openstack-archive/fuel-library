@@ -195,6 +195,43 @@ class Puppet::Provider::InterfaceToolset < Puppet::Provider
 
   # ---------------------------------------------------------------------------
 
+  def self.ensure_upstart_state_file(iface, base_dir='/var/run/network')
+    if File.directory?(base_dir)
+      if_name = iface.to_s
+      # we run under Debian/Ubuntu ifup/ifdown compatible network initialize subsystem
+      if ! File.file?("#{base_dir}/ifstate.#{if_name}")
+        # create state file for network interface for upstert
+        f = File.new("#{base_dir}/ifstate.#{if_name}", mode="w")
+        f.puts(if_name)
+        f.close()
+      end
+      # add interfase to alias list
+      if ! File.file?("#{base_dir}/ifstate")
+        f = File.new("#{base_dir}/ifstate", mode="w")
+        f.puts("#{if_name}=#{if_name}")
+        f.close()
+      else
+        found = false
+        f = File.new("#{base_dir}/ifstate", mode="r")
+        f.each_line do |line|
+          i = line.split('=')[0]
+          if if_name == i
+            found = true
+            break
+          end
+        end
+        f.close()
+        if ! found
+          f = File.new("#{base_dir}/ifstate", mode="a")
+          f.puts("#{if_name}=#{if_name}")
+          f.close()
+        end
+      end
+    end
+  end
+
+
+  # ---------------------------------------------------------------------------
 
   def self.get_if_addr_mappings
     if_list = {}

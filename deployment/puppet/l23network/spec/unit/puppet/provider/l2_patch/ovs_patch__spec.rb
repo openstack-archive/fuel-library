@@ -86,6 +86,7 @@ describe Puppet::Type.type(:l2_patch).provider(:ovs) do
       provider_br2.stubs(:brctl).with(['addbr', 'br2']).returns(true)
       provider_patch.class.stubs(:get_bridges_order_for_patch).with(['br1','br2']).returns(['br1','br2'])
       File.stubs(:directory?).with('/sys/class/net/br2/bridge').returns(true)
+      File.stubs(:directory?).with('/var/run/network').returns(false)
       provider_patch.class.stubs(:vsctl).with(
         '--may-exist', 'add-port', 'br1', 'p_39a440c1-0', '--', 'set', 'Interface', 'p_39a440c1-0', 'type=internal'
       ).returns(true)

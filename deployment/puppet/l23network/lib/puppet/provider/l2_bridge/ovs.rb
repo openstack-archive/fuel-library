@@ -23,6 +23,7 @@ Puppet::Type.type(:l2_bridge).provide(:ovs, :parent => Puppet::Provider::Ovs_bas
     debug("CREATE resource: #{@resource}")
     @old_property_hash = {}
     @property_flush = {}.merge! @resource
+    self.class.ensure_upstart_state_file(@resource[:bridge])
 
     vsctl('add-br', @resource[:bridge])
     self.class.interface_up(@resource[:bridge])
