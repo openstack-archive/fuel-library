@@ -138,8 +138,6 @@ describe manifest do
     it 'should configure reauthentication_auth_method' do
       if sahara and !storage_hash['objects_ceph']
         should contain_heat_config('DEFAULT/reauthentication_auth_method').with_value('trusts')
-      else
-        should contain_heat_config('DEFAULT/reauthentication_auth_method').with_ensure('absent')
       end
     end
 

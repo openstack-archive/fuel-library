@@ -106,16 +106,6 @@ class openstack_tasks::heat::heat {
     Tweaks::Ubuntu_service_override['heat-engine']         -> Service['heat-engine']
   }
 
-  if $sahara_hash['enabled'] and !$storage_hash['objects_ceph'] {
-    heat_config {
-      'DEFAULT/reauthentication_auth_method': value  => 'trusts';
-    }
-  } else {
-    heat_config {
-      'DEFAULT/reauthentication_auth_method': ensure => absent;
-    }
-  }
-
   # Turn on Caching for Heat validation process
   heat_config {
     'cache/enabled':          value => true;
@@ -237,6 +227,20 @@ class openstack_tasks::heat::heat {
     max_resources_per_stack                         => '20000',
     instance_connection_https_validate_certificates => '1',
     instance_connection_is_secure                   => '0',
+  }
+
+  # [mkarpin] TODO: rework this when 
+  # https://review.openstack.org/#/c/457869/ is merged
+  if $sahara_hash['enabled'] and !$storage_hash['objects_ceph'] {
+    if !defined(Heat_config['DEFAULT/reauthentication_auth_method']) {
+      heat_config { 'DEFAULT/reauthentication_auth_method':
+        value => 'trusts'
+      }
+    } else {
+      Heat_config <| title == 'DEFAULT/reauthentication_auth_method' |> {
+        value => 'trusts'
+      }
+    }
   }
 
   # TODO(dmburmistrov): completely remove pacemaker for heat-engine after release "N"
