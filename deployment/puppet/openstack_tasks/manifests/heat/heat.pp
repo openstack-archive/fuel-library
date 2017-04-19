@@ -107,13 +107,11 @@ class openstack_tasks::heat::heat {
   }
 
   if $sahara_hash['enabled'] and !$storage_hash['objects_ceph'] {
-    heat_config {
-      'DEFAULT/reauthentication_auth_method': value  => 'trusts';
-    }
-  } else {
-    heat_config {
-      'DEFAULT/reauthentication_auth_method': ensure => absent;
-    }
+    ensure_resource('heat_config', {
+      'name'  => 'DEFAULT/reauthentication_auth_method',
+      'value' => 'trusts'
+      }
+    )
   }
 
   # Turn on Caching for Heat validation process
