@@ -229,7 +229,7 @@ class openstack_tasks::heat::heat {
     instance_connection_is_secure                   => '0',
   }
 
-  # [mkarpin] TODO: rework this when 
+  # [mkarpin] TODO: rework this when
   # https://review.openstack.org/#/c/457869/ is merged
   if $sahara_hash['enabled'] and !$storage_hash['objects_ceph'] {
     if !defined(Heat_config['DEFAULT/reauthentication_auth_method']) {
