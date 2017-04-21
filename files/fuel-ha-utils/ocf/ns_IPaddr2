@@ -475,6 +475,19 @@ ip_stop() {
   return $rc
 }
 
+check_patchcord_exists_in_bridge() {
+  local br="$1"
+  local veth="$2"
+  if [[ -d /sys/class/net/${br}/brif ]] ; then
+    # LNX
+    test -L  /sys/class/net/${br}/brif/${veth} || return $OCF_ERR_GENERIC
+  else
+    # OVS
+    ovs-vsctl list-ports "${br}" | grep "${veth}" || return $OCF_ERR_GENERIC
+  fi
+  return $OCF_SUCCESS
+}
+
 ip_monitor() {
   local rc
   ip_validate
@@ -482,6 +495,8 @@ ip_monitor() {
   local iface=$(find_interface_in_ns $OCF_RESKEY_ns $OCF_RESKEY_ip $OCF_RESKEY_cidr_netmask)
 
   [ -z "$iface" ] && return $OCF_NOT_RUNNING
+
+  check_patchcord_exists_in_bridge $OCF_RESKEY_bridge $OCF_RESKEY_base_veth || return $OCF_ERR_GENERIC
 
   check_interfaces_for_up_state "$OCF_RESKEY_bridge:$OCF_RESKEY_also_check_interfaces" || return $OCF_NOT_RUNNING
   # use arping here, because no IP from VIP network allowed on host system
