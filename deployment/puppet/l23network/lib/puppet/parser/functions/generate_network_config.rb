@@ -418,7 +418,9 @@ Puppet::Parser::Functions::newfunction(:generate_network_config, :type => :rvalu
         end
 
         if !trans[:provider]
-          if action == :port && trans[:bridge]
+          if action == :port && trans[:bridge] && ((trans[:vlan_dev] && trans[:vlan_id]) or trans[:name]=~/\.\d+/)
+            trans[:provider] = default_provider
+          elsif action == :port && trans[:bridge]
             provider = L23network.get_property_for_transformation('PROVIDER', trans[:bridge], lookupvar('l3_fqdn_hostname'))
             trans[:provider] = provider || default_provider
           else
