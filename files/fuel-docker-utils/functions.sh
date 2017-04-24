@@ -304,6 +304,7 @@ function start_container {
   fi
   # Make sure that the systemd manage the service
   if [ -x "$SYSTEMCTL" ] ; then
+    enable_container_autostart $container
     if ! ${SYSTEMCTL} is-active "docker-$1" > /dev/null; then
       ${SYSTEMCTL} start "docker-$1"
     fi
@@ -398,16 +399,38 @@ function stop_container {
   unlock
 }
 
+function alter_container_autostart {
+  local all_services=(${!CONTAINER_NAMES[@]})
+  local action=$1
+  shift
+  if [[ "$1" != 'all' ]]; then
+    all_services=$*
+  fi;
+  for i in $all_services; do
+    systemctl $action docker-${i}.service
+  done;
+}
+
+function disable_container_autostart {
+  alter_container_autostart disable $*
+}
+
+function enable_container_autostart {
+  alter_container_autostart enable $*
+}
+
 function destroy_container {
   lock
 
   if [[ "$1" == 'all' ]]; then
     stop_container all
     ${DOCKER} rm -f ${CONTAINER_NAMES[@]}
+    disable_container_autostart all
   else
     for container in $@; do
       stop_container $container
       ${DOCKER} rm -f ${CONTAINER_NAMES[$container]}
+      disable_container_autostart ${container}
       if [ $? -ne 0 ]; then
         #This happens because devicemapper glitched
         #Try to unmount all devicemapper mounts manually and try again
