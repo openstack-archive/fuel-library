@@ -102,7 +102,7 @@ describe "cobbler::apache" do
             :ssl_cert => "/var/lib/fuel/keys/master/cobbler/cobbler.crt",
             :ssl_key => "/var/lib/fuel/keys/master/cobbler/cobbler.key",
             :rewrites => ssl_rewrites,
-            :ssl_cipher => "ALL:!ADH:!EXPORT:!SSLv2:!MEDIUM:!LOW:+HIGH",
+            :ssl_cipher => "ECDH+AESGCM:DH+AESGCM:ECDH+AES256:DH+AES256:ECDH+AES128:DH+AES:RSA+AESGCM:RSA+AES:!aNULL:!MD5:!DSS",
             :setenvif => ["User-Agent \".*MSIE.*\" nokeepalive ssl-unclean-shutdown downgrade-1.0 force-response-1.0"],
         )
       end
@@ -119,4 +119,3 @@ describe "cobbler::apache" do
   end
 
 end
-
