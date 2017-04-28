@@ -503,6 +503,7 @@ check_if_galera_pc() {
                     fi
                     if [ ${pcnum} -gt 1 ]; then
                         ocf_log err "${LH} But I'm running a new cluster, PID:${pid}, this is a split-brain!"
+                        clear_node_pc
                         exit $OCF_ERR_GENERIC
                     fi
                 done
@@ -725,16 +726,17 @@ mysql_start() {
     rc=$?
 
     if [ $rc -eq 0 ]; then
+        update_node_pc
         check_if_galera_pc
         rc=$?
 
         if [ $rc -eq 0 ]; then
-            mysql_extra_params="$mysql_extra_params --wsrep-new-cluster"
-            set_pc=1
+           mysql_extra_params="$mysql_extra_params --wsrep-new-cluster"
+        else
+           clear_node_pc
         fi
     fi
 
-    clear_node_pc
     ocf_log info "${LH} Starting MySQL"
     ${OCF_RESKEY_binary} \
         --pid-file=$OCF_RESKEY_pid \
@@ -763,7 +765,6 @@ mysql_start() {
     done
 
     ocf_log info "${LH} MySQL started"
-    [ ${set_pc} -eq 1 ] && update_node_pc
     [ $rc -ne $OCF_SUCCESS ] && update_node_gtid
     return $OCF_SUCCESS
 }
