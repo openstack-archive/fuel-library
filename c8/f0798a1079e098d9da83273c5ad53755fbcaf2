@@ -1,0 +1,11 @@
+Verified+1: Fuel CI <fuel-ci-bot@mirantis.com>
+Code-Review+1: Stanislaw Bogatkin <sbogatkin@mirantis.com>
+Code-Review+2: Vladimir Kuklin <vkuklin@mirantis.com>
+Code-Review+1: Alex Schultz <aschultz@redhat.com>
+Workflow+1: Sergii Golovatiuk <sgolovatiuk@mirantis.com>
+Verified+2: Jenkins
+Submitted-by: Jenkins
+Submitted-at: Fri, 28 Apr 2017 20:32:00 +0000
+Reviewed-on: https://review.openstack.org/453109
+Project: openstack/fuel-library
+Branch: refs/heads/stable/ocata
