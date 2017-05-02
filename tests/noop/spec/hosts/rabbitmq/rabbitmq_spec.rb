@@ -14,7 +14,7 @@ describe manifest do
 
     it 'has correct SERVER_ERL_ARGS in environment_variables' do
       environment_variables = resource_parameter_value 'class', 'rabbitmq', 'environment_variables'
-      expect(environment_variables['SERVER_ERL_ARGS']).to eq '"+K true +A48 +P 1048576"'
+      expect(environment_variables['SERVER_ERL_ARGS']).to eq '"+K true +P 1048576"'
     end
 
     # LP#1477595

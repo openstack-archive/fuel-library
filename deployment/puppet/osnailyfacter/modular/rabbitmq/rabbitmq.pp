@@ -84,8 +84,6 @@ if $queue_provider == 'rabbitmq' {
     }
   )
 
-  $thread_pool_calc = min(100,max(12*$physicalprocessorcount,30))
-
   if $deployment_mode == 'ha_compact' {
     $rabbit_pid_file                   = '/var/run/rabbitmq/p_pid'
     } else {
@@ -93,7 +91,7 @@ if $queue_provider == 'rabbitmq' {
   }
   $environment_variables = hiera('rabbit_environment_variables',
     {
-      'SERVER_ERL_ARGS'     => "\"+K true +A${thread_pool_calc} +P 1048576\"",
+      'SERVER_ERL_ARGS'     => "\"+K true +P 1048576\"",
       'PID_FILE'            => $rabbit_pid_file,
     }
   )

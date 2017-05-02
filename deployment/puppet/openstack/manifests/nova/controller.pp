@@ -180,10 +180,8 @@ class openstack::nova::controller (
     'cluster_partition_handling'   => $cluster_partition_handling,
   }
 
-  $thread_pool_calc = min(100,max(12*$physicalprocessorcount,30))
-
   $environment_variables       = {
-    'SERVER_ERL_ARGS'       => "\"+K true +A${thread_pool_calc} +P 1048576\"",
+    'SERVER_ERL_ARGS'       => "\"+K true +P 1048576\"",
     'PID_FILE'              => $rabbit_pid_file,
   }
 
