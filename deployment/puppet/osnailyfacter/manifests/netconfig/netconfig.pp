@@ -108,4 +108,12 @@ class osnailyfacter::netconfig::netconfig {
   Class['::l23network'] ->
   Exec['wait-for-interfaces']
 
+  # Let's prefer ipv4 connections over ipv6
+  file_line { 'prefer ipv4 over ipv6':
+     ensure => present,
+     path   => '/etc/gai.conf',
+     line   => 'precedence ::ffff:0:0/96  100',
+     match  => '^precedence\s+::f{4}:0:0\/96',
+  }
+
 }
