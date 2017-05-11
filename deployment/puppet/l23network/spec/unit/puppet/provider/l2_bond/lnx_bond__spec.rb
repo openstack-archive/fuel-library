@@ -55,6 +55,8 @@ describe Puppet::Type.type(:l2_bond).provider(:lnx) do
       provider.class.stubs(:set_sys_class).with('/sys/class/net/bond1/bonding/updelay', '111').returns(true)
       provider.class.stubs(:get_sys_class).with('/sys/class/net/bond1/bonding/downdelay').returns('0')
       provider.class.stubs(:set_sys_class).with('/sys/class/net/bond1/bonding/downdelay', '222').returns(true)
+      provider.class.stubs(:iproute).with('addr flush dev eth1').returns(true)
+      provider.class.stubs(:iproute).with('addr flush dev eth2').returns(true)
       provider.class.stubs(:interface_up).with('bond1').returns(true)
       provider.class.stubs(:interface_up).with('eth1').returns(true)
       provider.class.stubs(:interface_up).with('eth2').returns(true)
@@ -237,6 +239,8 @@ describe Puppet::Type.type(:l2_bond).provider(:lnx) do
       provider.class.stubs(:get_bridge_list).returns({'br-ovs'=>{:br_type=>:ovs},})
       provider.class.stubs(:get_port_bridges_pairs).returns({"br-storage"=>{:bridge=>"br-storage", :br_type=>:ovs}})
       provider.class.stubs(:ovs_vsctl).with(['add-port', 'br-ovs', 'bond12']).once
+      provider.class.stubs(:iproute).with('addr flush dev eth1').returns(true)
+      provider.class.stubs(:iproute).with('addr flush dev eth2').returns(true)
       provider.class.stubs(:interface_up).with('bond12').returns(true)
       provider.class.stubs(:interface_up).with('eth1').returns(true)
       provider.class.stubs(:interface_up).with('eth2').returns(true)

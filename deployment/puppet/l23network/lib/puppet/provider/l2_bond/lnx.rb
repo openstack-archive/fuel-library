@@ -29,21 +29,6 @@ Puppet::Type.type(:l2_bond).provide(:lnx, :parent => Puppet::Provider::Lnx_base)
           :vendor_specific => {}
         }
         props.merge! bond_props
-        # # get bridge if port included to it
-        # if ! port_bridges_hash[if_name].nil?
-        #   props[:bridge] = port_bridges_hash[if_name][:bridge]
-        # end
-        # # calculate port_type field
-        # if !bridges[if_name].nil?
-        #   case bridges[if_name][:br_type]
-        #   when :ovs
-        #     props[:port_type] = 'ovs:br:unremovable'
-        #   when :lnx
-        #     props[:port_type] = 'lnx:br:unremovable'
-        #   else
-        #     # pass
-        #   end
-        # end
         debug("PREFETCHED properties for '#{bond_name}': #{props}")
         rv << new(props)
     end
@@ -67,34 +52,9 @@ Puppet::Type.type(:l2_bond).provide(:lnx, :parent => Puppet::Provider::Lnx_base)
     if ! @property_flush.empty?
       debug("FLUSH properties: #{@property_flush}")
       bond_prop_dir = "/sys/class/net/#{@resource[:bond]}"
+      runtime_slave_ports = self.class.get_sys_class("#{bond_prop_dir}/bonding/slaves", true)
+      bond_is_up  = !self.class.get_iface_state(@resource[:bond]).nil?
       # FLUSH changed properties
-      if @property_flush.has_key? :slaves
-        runtime_slave_ports = self.class.get_sys_class("/sys/class/net/#{@resource[:bond]}/bonding/slaves", true)
-        if @property_flush[:slaves].nil? or @property_flush[:slaves] == :absent
-          debug("Remove all slave ports from bond '#{@resource[:bond]}'")
-          rm_slave_list = runtime_slave_ports
-        else
-          rm_slave_list = runtime_slave_ports - @property_flush[:slaves]
-          if !rm_slave_list.empty?
-            debug("Remove '#{rm_slave_list.join(',')}' ports from bond '#{@resource[:bond]}'")
-            rm_slave_list.each do |slave|
-              self.class.interface_down(slave)  # need by kernel requirements by design. undocumented :(
-              self.class.set_sys_class("#{bond_prop_dir}/bonding/slaves", "-#{slave}")
-            end
-          end
-          # add interfaces to bond
-          add_slave_list = @property_flush[:slaves] - runtime_slave_ports
-          if !add_slave_list.empty?
-            debug("Add '#{add_slave_list.join(',')}' ports to bond '#{@resource[:bond]}'")
-            add_slave_list.each do |slave|
-              debug("Add interface '#{slave}' to bond '#{@resource[:bond]}'")
-              self.class.interface_down(slave)  # need by kernel requirements by design. undocumented :(
-              self.class.set_sys_class("#{bond_prop_dir}/bonding/slaves", "+#{slave}")
-              self.class.interface_up(slave)
-            end
-          end
-        end
-      end
       if @property_flush.has_key? :bond_properties
         bond_properties_to_change = @property_flush[:bond_properties]
         if @old_property_hash[:bond_properties] and !@old_property_hash[:bond_properties].empty?
@@ -102,14 +62,11 @@ Puppet::Type.type(:l2_bond).provide(:lnx, :parent => Puppet::Provider::Lnx_base)
           bond_properties_to_change = Hash[*bond_properties_to_change.flatten]
         end
         debug("Bond properties which are going to be changed #{bond_properties_to_change}")
-        # change bond_properties
-        bond_is_up  = !self.class.get_iface_state(@resource[:bond]).nil?
         # Reassemble bond if we change bond mode
         need_reassembling = true if bond_properties_to_change[:mode] and self.class.get_sys_class("#{bond_prop_dir}/bonding/#{'mode'}") != bond_properties_to_change[:mode]
-        if need_reassembling
+        if need_reassembling and !runtime_slave_ports.empty?
           self.class.interface_down(@resource[:bond])
           bond_is_up = false
-          runtime_slave_ports = self.class.get_sys_class("#{bond_prop_dir}/bonding/slaves", true)
           debug("Disassemble bond '#{@resource[:bond]}'")
           runtime_slave_ports.each do |eth|
             debug("Remove interface '#{eth}' from bond '#{@resource[:bond]}'")
@@ -164,16 +121,63 @@ Puppet::Type.type(:l2_bond).provide(:lnx, :parent => Puppet::Provider::Lnx_base)
             debug("Unsupported property '#{prop}' for bond '#{@resource[:bond]}'")
           end
         end
-        if need_reassembling
+        if need_reassembling and !runtime_slave_ports.empty?
           # re-assemble bond after configuration
           debug("Re-assemble bond '#{@resource[:bond]}'")
+          self.class.interface_up(@resource[:bond])
           runtime_slave_ports.each do |eth|
             debug("Add interface '#{eth}' to bond '#{@resource[:bond]}'")
             self.class.set_sys_class("#{bond_prop_dir}/bonding/slaves", "+#{eth}")
           end
         end
-        self.class.interface_up(@resource[:bond]) if !bond_is_up
       end
+
+      # set interface state to UP
+      if !bond_is_up
+        self.class.interface_up(@resource[:bond])
+        bond_is_up = true
+      end
+
+      # Change list of slaves
+      if @property_flush.has_key? :slaves
+        if @property_flush[:slaves].nil? or @property_flush[:slaves] == :absent
+          debug("Remove all slave ports from bond '#{@resource[:bond]}'")
+          rm_slave_list = runtime_slave_ports
+        else
+          rm_slave_list = runtime_slave_ports - @property_flush[:slaves]
+          if !rm_slave_list.empty?
+            debug("Remove '#{rm_slave_list.join(',')}' ports from bond '#{@resource[:bond]}'")
+            rm_slave_list.each do |slave|
+              self.class.interface_down(slave)  # need by kernel requirements by design. undocumented :(
+              self.class.set_sys_class("#{bond_prop_dir}/bonding/slaves", "-#{slave}")
+            end
+          end
+          # add interfaces to bond
+          add_slave_list = @property_flush[:slaves] - runtime_slave_ports
+          if !add_slave_list.empty?
+            debug("Add '#{add_slave_list.join(',')}' ports to bond '#{@resource[:bond]}'")
+            add_slave_list.each do |slave|
+              debug("Add interface '#{slave}' to bond '#{@resource[:bond]}'")
+              self.class.interface_down(slave)  # need by kernel requirements by design. undocumented :(
+              self.class.iproute("addr flush dev #{slave}")
+              self.class.set_sys_class("#{bond_prop_dir}/bonding/slaves", "+#{slave}")
+              self.class.interface_up(slave)
+            end
+          end
+        end
+        if bond_is_up
+          # waiting for bond became UP
+          wait_time = @resource[:bond_properties][:updelay].to_i/1000 || 60.0
+          wait_step = 0.5
+          while !self.class.get_iface_state(@resource[:bond]) and wait_time>0 do
+            debug("Waiting for bond '#{@resource[:bond]}' interface UP (#{wait_time})")
+            sleep(wait_step)
+            wait_time -= wait_step
+          end
+        end
+      end
+
+      # Make bond a member of bridge
       if @property_flush.has_key? :bridge
         # get actual bridge-list. We should do it here,
         # because bridge may be not existing at prefetch stage.
@@ -183,14 +187,9 @@ Puppet::Type.type(:l2_bond).provide(:lnx, :parent => Puppet::Provider::Lnx_base)
         debug("Actual-port-bridge-mapping: '#{port_bridges_hash}'")       # it should removed from LNX
         #
         # remove interface from old bridge
-        bond_is_up  = !self.class.get_iface_state(@resource[:bond]).nil?
         if ! port_bridges_hash[@resource[:bond]].nil?
           br_name = port_bridges_hash[@resource[:bond]][:bridge]
           if br_name != @resource[:bond]
-            if bond_is_up
-              self.class.interface_down(@resource[:bond], true)
-              bond_is_up = false
-            end
             # do not remove bridge-based interface from his bridge
             case port_bridges_hash[@resource[:bond]][:br_type]
             when :ovs
@@ -215,7 +214,6 @@ Puppet::Type.type(:l2_bond).provide(:lnx, :parent => Puppet::Provider::Lnx_base)
             #pass
           end
         end
-        self.class.interface_up(@resource[:bond]) if !bond_is_up
         debug("Change bridge")
       end
       if @property_flush[:onboot]

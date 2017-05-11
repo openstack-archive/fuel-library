@@ -520,6 +520,11 @@ class Puppet::Provider::L2_base < Puppet::Provider::InterfaceToolset
         bond[bond_name][:bond_properties][:ad_select] = ad_select
       end
       bond[bond_name][:onboot] = !self.get_iface_state(bond_name).nil?
+      bond[bond_name][:bond_properties][:use_carrier] = self.get_sys_class("/sys/class/net/#{bond_name}/bonding/use_carrier")
+      # get bridge, if bond a member an one
+      if self.get_port_bridges_pairs[bond_name]
+        bond[bond_name][:bridge] = self.get_port_bridges_pairs[bond_name][:bridge]
+      end
     end
     debug("get_lnx_bonds: LNX bond list #{bond}")
     return bond
