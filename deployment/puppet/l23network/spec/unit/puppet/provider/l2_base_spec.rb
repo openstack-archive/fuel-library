@@ -267,7 +267,8 @@ type                : patch
         :mode=>"balance-rr",
         :miimon=>"0",
         :updelay=>"0",
-        :downdelay=>"0"
+        :downdelay=>"0",
+        :use_carrier=>"1"
        },
        :onboot=>false
      }
@@ -296,6 +297,7 @@ type                : patch
   end
 
   it 'parses the sysfs to get_lnx_bonds' do
+    subject.stubs(:ovs_vsctl).with('list-br').returns({})
     subject.stubs(:get_sys_class).with('/sys/class/net/bonding_masters', true).returns(['bond0'])
     subject.stubs(:get_sys_class).with('/sys/class/net/bond0/bonding/mode').returns('balance-rr')
     subject.stubs(:get_sys_class).with('/sys/class/net/bond0/mtu').returns('1500')
@@ -304,7 +306,7 @@ type                : patch
     subject.stubs(:get_sys_class).with('/sys/class/net/bond0/bonding/updelay').returns('0')
     subject.stubs(:get_sys_class).with('/sys/class/net/bond0/bonding/downdelay').returns('0')
     subject.stubs(:get_sys_class).with('/sys/class/net/bond0/bonding/mode').returns('balance-rr')
-    subject.stubs(:get_sys_class).with('/sys/class/net/bond0/bonding/mode').returns('balance-rr')
+    subject.stubs(:get_sys_class).with('/sys/class/net/bond0/bonding/use_carrier').returns('1')
 
     expect(subject.get_lnx_bonds).to eq get_lnx_bonds_result
   end
