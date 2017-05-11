@@ -190,6 +190,32 @@ class openstack_tasks::aodh::aodh {
     tag    => 'openstack',
   }
 
+  package { 'aodh-expirer':
+    ensure => 'present',
+    tag    => 'openstack',
+  }
+
+  # aodh-expirer isn't a service, it's a script which should be run
+  # periodically. In Mitaka aodh package installs an init script which
+  # respawns the expirer infintely, so we need to disable the service
+  # and use cron instead.
+  service {'aodh-expirer':
+    ensure  => 'stopped',
+    enable  => false,
+    require => Package['aodh-expirer'],
+  }
+
+  # run expirer hourly within 300 seconds range on each controller
+  cron { 'aodh-alarms-cleanup':
+    ensure      => present,
+    command     => 'sleep $[RANDOM\%300]; /usr/bin/aodh-expirer --config-file=/etc/aodh/aodh.conf &>/dev/null',
+    environment => [ 'MAILTO=""', 'PATH=/bin:/usr/bin:/usr/sbin', 'SHELL=/bin/bash' ],
+    user        => 'aodh',
+    hour        => '*',
+    minute      => '1',
+    require     => Package['aodh-expirer'],
+  }
+
   if $ha_mode {
     include ::cluster::aodh_evaluator
 

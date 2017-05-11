@@ -122,6 +122,28 @@ describe manifest do
       should contain_aodh_config('database/alarm_history_time_to_live').with(:value => alarm_ttl)
     end
 
+    it 'should install aodh expirer package' do
+      should contain_package('aodh-expirer').with(:ensure => 'present')
+    end
+
+    it 'should stop and disable aodh expirer service' do
+      should contain_service('aodh-expirer').with(
+        :ensure  => 'stopped',
+        :enable  => false
+        )
+    end
+
+    it 'should configure alarms cleanup cron' do
+      should contain_cron('aodh-alarms-cleanup').with(
+        :ensure      => 'present',
+        :command     => 'sleep $[RANDOM\%300]; /usr/bin/aodh-expirer --config-file=/etc/aodh/aodh.conf &>/dev/null',
+        :environment => [ 'MAILTO=""', 'PATH=/bin:/usr/bin:/usr/sbin', 'SHELL=/bin/bash' ],
+        :user        => 'aodh',
+        :hour        => '*',
+        :minute      => '1',
+        )
+    end
+
     if ['gzip', 'bz2'].include?(kombu_compression)
       it 'should configure kombu compression' do
         should contain_aodh_config('oslo_messaging_rabbit/kombu_compression').with(:value => kombu_compression)
