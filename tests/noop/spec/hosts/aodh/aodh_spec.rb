@@ -122,6 +122,10 @@ describe manifest do
       should contain_aodh_config('database/alarm_history_time_to_live').with(:value => alarm_ttl)
     end
 
+    it 'should install aodh expirer package' do
+      should contain_package('aodh-expirer').with(:ensure => 'present')
+    end
+
     if ['gzip', 'bz2'].include?(kombu_compression)
       it 'should configure kombu compression' do
         should contain_aodh_config('oslo_messaging_rabbit/kombu_compression').with(:value => kombu_compression)
