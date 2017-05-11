@@ -190,6 +190,11 @@ class openstack_tasks::aodh::aodh {
     tag    => 'openstack',
   }
 
+  package { 'aodh-expirer':
+    ensure => 'present',
+    tag    => 'openstack',
+  }
+
   if $ha_mode {
     include ::cluster::aodh_evaluator
 
