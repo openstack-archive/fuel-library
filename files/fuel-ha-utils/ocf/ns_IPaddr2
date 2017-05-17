@@ -310,7 +310,7 @@ remove_from_bridge() {
     fi
   else
     # OVS bridge
-    ocf_run ovs-vsctl del-port $OCF_RESKEY_bridge $OCF_RESKEY_base_veth || return $OCF_ERR_GENERIC
+    ocf_run ovs-vsctl del-port $OCF_RESKEY_base_veth || return $OCF_ERR_GENERIC
   fi
   return $OCF_SUCCESS
 }
@@ -355,6 +355,7 @@ get_or_create_veth_pair() {
 
 check_interfaces_for_up_state() {
   local interfaces=$(echo "$1" | tr " ,:;" "\n")
+  local rv
   local rc=$OCF_SUCCESS
 
   for i in $interfaces ; do
@@ -393,11 +394,11 @@ ip_prepare() {
   fi
 
   # Send Gratuitous ARP REQUEST packets to update all neighbours in a detached background process
-  ARGS="-U -c 32 -w 10 -I $OCF_RESKEY_ns_veth -q $OCF_RESKEY_ip"
+  ARGS="-U -c 32 -w 5 -I $OCF_RESKEY_ns_veth -q $OCF_RESKEY_ip"
   $RUN_IN_NS arping $ARGS 2>&1 > /dev/null &
 
   # Send Gratuitous ARP REPLY packets to update all neighbours in a detached background process
-  ARGS="-A -c 32 -w 10 -I $OCF_RESKEY_ns_veth -q $OCF_RESKEY_ip"
+  ARGS="-A -c 32 -w 5 -I $OCF_RESKEY_ns_veth -q $OCF_RESKEY_ip"
   $RUN_IN_NS arping $ARGS 2>&1 > /dev/null &
 
   return $OCF_SUCCESS
@@ -484,33 +485,74 @@ check_patchcord_exists_in_bridge() {
   else
     # OVS
     ovs-vsctl list-ports "${br}" | grep "${veth}" || return $OCF_ERR_GENERIC
+    IFINDEX=`ovs-vsctl list Interface ${veth} 2>&1 | grep "ifindex "` || return $OCF_ERR_GENERIC
+    R=`echo $IFINDEX | perl -pe 's/\D+//g'`
+    if [[ "x$R" == "x0" || "x$R" == "x" ]] ; then
+      return $OCF_ERR_GENERIC
+    fi
   fi
   return $OCF_SUCCESS
 }
 
 ip_monitor() {
   local rc
+  local rv=$OCF_SUCCESS
+
+local log=/tmp/vip.log
+local D=$(date +%Y%M%d-%H%M%S)
+
+echo "$D ---------------------" >> $log
+echo "$D A1 rv=$rv" >> $log
+
   ip_validate
   check_ns || return $OCF_NOT_RUNNING
+
+echo "$D A2 rv=$rv" >> $log
+
   local iface=$(find_interface_in_ns $OCF_RESKEY_ns $OCF_RESKEY_ip $OCF_RESKEY_cidr_netmask)
+  if [[ -z "$iface" ]] ; then
+    rv=$OCF_NOT_RUNNING
+  fi
 
-  [ -z "$iface" ] && return $OCF_NOT_RUNNING
+echo "$D A3 rv=$rv" >> $log
 
-  check_patchcord_exists_in_bridge $OCF_RESKEY_bridge $OCF_RESKEY_base_veth || return $OCF_ERR_GENERIC
+  check_patchcord_exists_in_bridge $OCF_RESKEY_bridge $OCF_RESKEY_base_veth ; rc=$?
+  if [[ $rc == 0 && $rv == $OCF_NOT_RUNNING ]] || [[ $rc != 0 && $rv == $OCF_SUCCESS ]] ; then
+    return $OCF_ERR_GENERIC
+  fi
 
-  check_interfaces_for_up_state "$OCF_RESKEY_bridge:$OCF_RESKEY_also_check_interfaces" || return $OCF_NOT_RUNNING
-  # use arping here, because no IP from VIP network allowed on host system
-  ocf_run arping -c 10 -w 2 -I $OCF_RESKEY_bridge $OCF_RESKEY_ip || return $OCF_NOT_RUNNING
+echo "$D A4 rv=$rv" >> $log
 
-  # Send Gratuitous ARP REQUEST packets to update all neighbours in a detached background process
-  ARGS="-U -c 5 -w 2 -I $OCF_RESKEY_ns_veth -q $OCF_RESKEY_ip"
-  $RUN_IN_NS arping $ARGS 2>&1 > /dev/null &
+  check_interfaces_for_up_state "$OCF_RESKEY_bridge:$OCF_RESKEY_base_veth:$OCF_RESKEY_also_check_interfaces" ; rc=$?
+  if [[ $rc == 0 && $rv == $OCF_NOT_RUNNING ]] || [[ $rc != 0 && $rv == $OCF_SUCCESS ]] ; then
+    return $OCF_ERR_GENERIC
+  fi
 
-  # Send Gratuitous ARP REPLY packets to update all neighbours in a detached background process
-  ARGS="-A -c 5 -w 2 -I $OCF_RESKEY_ns_veth -q $OCF_RESKEY_ip"
-  $RUN_IN_NS arping $ARGS 2>&1 > /dev/null &
+echo "$D A5 rv=$rv" >> $log
 
-  return $OCF_SUCCESS
+  if [[ $rv == $OCF_SUCCESS ]] ; then
+    # use arping here, because no IP from VIP network allowed on host system
+    ocf_run arping -c 10 -w 2 -I $OCF_RESKEY_bridge $OCF_RESKEY_ip || rv=$OCF_ERR_GENERIC
+  fi
+
+echo "$D A6 rv=$rv" >> $log
+
+  if [[ $rv == $OCF_SUCCESS ]] ; then
+    # Send Gratuitous ARP REQUEST packets to update all neighbours in a detached background process
+    ARGS="-U -c 5 -w 2 -I $OCF_RESKEY_ns_veth -q $OCF_RESKEY_ip"
+    $RUN_IN_NS arping $ARGS 2>&1 > /dev/null &
+
+echo "$D A7 rv=$rv" >> $log
+
+    # Send Gratuitous ARP REPLY packets to update all neighbours in a detached background process
+    ARGS="-A -c 5 -w 2 -I $OCF_RESKEY_ns_veth -q $OCF_RESKEY_ip"
+    $RUN_IN_NS arping $ARGS 2>&1 > /dev/null &
+  fi
+
+
+echo "$D A999 rv=$rv" >> $log
+
+  return $rv
 }
 
 
