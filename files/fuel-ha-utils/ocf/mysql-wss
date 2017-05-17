@@ -294,6 +294,24 @@ update_node_gtid() {
     return 1
 }
 
+start_election_attr()
+{
+    local time=$( date -u +%s )
+    local LH="${LL} start_election_attr():"
+    ocf_log info "${LH} setting election start attribute time to ${time}"
+    crm_attribute --quiet --lifetime reboot --name start_election --update $time
+}
+
+clear_start_election_attr()
+{
+    local time=$( date -u +%s )
+    local LH="${LL} clear_start_election_attr():"
+    ocf_log info "${LH} dropping election start attribute"
+    crm_attribute --quiet --lifetime reboot --name start_election --delete
+}
+
+
+
 update_node_pc()
 {
     local LH="${LL} update_node_pc():"
@@ -363,6 +381,7 @@ check_if_reelection_needed() {
     local NODE_COUNT
     local RUNNING_INSTANCES
     local rc
+
 
     PARTITION_WITH_QUORUM=$(crm_node -q | sed -e '/(null)/d')
     RESOURCE_NAME=$(echo $OCF_RESOURCE_INSTANCE | cut -f1 -d":")
@@ -707,7 +726,26 @@ mysql_start() {
         mysql_extra_params=""
     fi
 
+    local time
+
+
     update_node_gtid
+
+    ocf_log info "{LH} entering critical section on master election"
+    while :;
+    do
+        time=$( date -u +%s )
+        election_attr=$(crm_attribute --quiet --lifetime reboot --query \
+        --name start_election 2>/dev/null | sed -e '/(null)/d')
+        ocf_log info "{LH} election attribute is ${election_attr}"
+        if [ -z ${election_attr} -o $(( ${election_attr} - ${time}  )) -gt 300 ];
+        then
+            ocf_log info "{LH} election attribute is not valid. safe to proceed"
+            start_election_attr
+            break
+        fi
+        sleep 3
+    done
     check_if_reelection_needed
     rc=$?
 
@@ -721,6 +759,8 @@ mysql_start() {
         else
            clear_node_pc
         fi
+    else
+        clear_start_election_attr
     fi
 
     ocf_log info "${LH} Starting MySQL"
@@ -735,6 +775,7 @@ mysql_start() {
     if [ $rc -ne 0 ]; then
         ocf_log err "${LH} MySQL start command failed: $rc"
         clear_node_pc
+        clear_start_election_attr
         return $rc
     fi
 
@@ -752,6 +793,7 @@ mysql_start() {
     done
 
     ocf_log info "${LH} MySQL started"
+    clear_start_election_attr
     return $OCF_SUCCESS
 }
 
