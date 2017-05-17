@@ -294,6 +294,25 @@ update_node_gtid() {
     return 1
 }
 
+start_election_attr()
+{
+    local time=$( date -u +%s )
+    local LH="${LL} start_election_attr():"
+    ocf_log info "${LH} setting election start attribute time to ${time}"
+    crm_attribute --quiet --type crm_config --node $HOSTNAME --name start_election --update $time
+}
+
+clear_start_election_attr()
+{
+    local time=$( date -u +%s )
+    local LH="${LL} clear_start_election_attr():"
+    ocf_log info "${LH} dropping election start attribute"
+    crm_attribute --quiet --type crm_config --node $HOSTNAME --name start_election --delete
+}
+
+
+
+
 update_node_pc()
 {
     local LH="${LL} update_node_pc():"
@@ -481,6 +500,9 @@ check_if_galera_pc() {
             ocf_log info "${LH} I'm Primary Component. Join me! My GTID: ${GTID}"
             echo "${GTID}"
             return 0
+    else
+        ocf_log info "${LH} I am not going to be primary component"
+        clear_start_election_attr
         fi
 
         if ! check_if_reelection_needed; then
@@ -708,6 +730,43 @@ mysql_start() {
     fi
 
     update_node_gtid
+
+    local time
+    local nodes_in_election
+
+    NODES=$(nodes_in_cluster_online)
+
+    ocf_log info "${LH} entering critical section on master election"
+    while :;
+    do
+        nodes_in_election=0
+
+        for node in ${NODES}; do
+            time=$( date -u +%s )
+            election_attr=$(crm_attribute --quiet --node ${node} --type crm_config --query \
+            --name start_election 2> /dev/null | sed -e '/(null)/d' | tr -d '[:space:]')
+
+            election_attr=${election_attr:-0}
+            ocf_log info "${LH} election attribute for node ${node} is ${election_attr} and time is ${time}"
+            if [ $(( ${time} - ${election_attr} )) -gt $(get_master_timeout) ];
+            then
+                ocf_log info "${LH} election attribute for node ${node} is not valid."
+                continue
+            fi
+            ocf_log info "${LH} election attribute for node ${node} is valid."
+            ((nodes_in_election++))
+        done
+
+        if (( nodes_in_election == 0 ));
+        then
+            ocf_log info "${LH} there are no valid election attributes. safe to proceed."
+            start_election_attr
+            break
+        fi
+        ocf_log info "${LH} there is valid election attribute. sleeping for a while."
+        sleep $(( ( $RANDOM % 10 )  + 1 ))
+    done
+
     check_if_reelection_needed
     rc=$?
 
@@ -721,6 +780,8 @@ mysql_start() {
         else
            clear_node_pc
         fi
+    else
+        clear_start_election_attr
     fi
 
     ocf_log info "${LH} Starting MySQL"
@@ -735,6 +796,7 @@ mysql_start() {
     if [ $rc -ne 0 ]; then
         ocf_log err "${LH} MySQL start command failed: $rc"
         clear_node_pc
+        clear_start_election_attr
         return $rc
     fi
 
@@ -752,6 +814,7 @@ mysql_start() {
     done
 
     ocf_log info "${LH} MySQL started"
+    clear_start_election_attr
     return $OCF_SUCCESS
 }
 
