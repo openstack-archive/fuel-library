@@ -310,7 +310,7 @@ remove_from_bridge() {
     fi
   else
     # OVS bridge
-    ocf_run ovs-vsctl del-port $OCF_RESKEY_bridge $OCF_RESKEY_base_veth || return $OCF_ERR_GENERIC
+    ocf_run ovs-vsctl del-port $OCF_RESKEY_base_veth || return $OCF_ERR_GENERIC
   fi
   return $OCF_SUCCESS
 }
@@ -355,13 +355,16 @@ get_or_create_veth_pair() {
 
 check_interfaces_for_up_state() {
   local interfaces=$(echo "$1" | tr " ,:;" "\n")
+  local rv
+  local rc
+  local i
   local rc=$OCF_SUCCESS
 
   for i in $interfaces ; do
     rv=$(cat /sys/class/net/$i/carrier)  # can return non-zero error-code for administrative-downed interface
     if [[ $? != 0 || $rv != "1" ]] ; then
+      ocf_log warn "Interface '${i}' not in UP state."
       rc=$OCF_NOT_RUNNING
-      break
     fi
   done
 
@@ -393,11 +396,11 @@ ip_prepare() {
   fi
 
   # Send Gratuitous ARP REQUEST packets to update all neighbours in a detached background process
-  ARGS="-U -c 32 -w 10 -I $OCF_RESKEY_ns_veth -q $OCF_RESKEY_ip"
+  ARGS="-U -c 32 -w 5 -I $OCF_RESKEY_ns_veth -q $OCF_RESKEY_ip"
   $RUN_IN_NS arping $ARGS 2>&1 > /dev/null &
 
   # Send Gratuitous ARP REPLY packets to update all neighbours in a detached background process
-  ARGS="-A -c 32 -w 10 -I $OCF_RESKEY_ns_veth -q $OCF_RESKEY_ip"
+  ARGS="-A -c 32 -w 5 -I $OCF_RESKEY_ns_veth -q $OCF_RESKEY_ip"
   $RUN_IN_NS arping $ARGS 2>&1 > /dev/null &
 
   return $OCF_SUCCESS
@@ -478,39 +481,95 @@ ip_stop() {
 check_patchcord_exists_in_bridge() {
   local br="$1"
   local veth="$2"
+  local rc
+
   if [[ -d /sys/class/net/${br}/brif ]] ; then
+
     # LNX
-    test -L  /sys/class/net/${br}/brif/${veth} || return $OCF_ERR_GENERIC
+    if ! [[ -L /sys/class/net/${br}/brif/${veth} ]] ; then
+      ocf_log err "Native linux bridge '${br}' has no member '${veth}'. Something went wrong."
+      return $OCF_ERR_GENERIC
+    fi
+
   else
+
     # OVS
-    ovs-vsctl list-ports "${br}" | grep "${veth}" || return $OCF_ERR_GENERIC
+    ovs-vsctl list-ports "${br}" | grep "${veth}" ; rc=$?
+    if [[ $rc != 0 ]] ; then
+      ocf_log err "OVS bridge '${br}' has no member '${veth}'."
+      return $OCF_ERR_GENERIC
+    fi
+
+    IFINDEX=$(ovs-vsctl list Interface ${veth} 2>&1 | grep "ifindex ") ; rc=$?
+    if [[ $rc != 0 ]] ; then
+      ocf_log err "OVS database has no (or corrupted) information about '${veth}'."
+      return $OCF_ERR_GENERIC
+    fi
+
+    R=$(echo $IFINDEX | perl -pe 's/\D+//g')
+    if [[ "x${R}" == "x0" || "x${R}" == "x" ]] ; then
+      ocf_log err "OVS bridge '${br}' has member an non-existing interface '${veth}'."
+      return $OCF_ERR_GENERIC
+    fi
+
   fi
   return $OCF_SUCCESS
 }
 
 ip_monitor() {
   local rc
+  local rv=$OCF_SUCCESS
+
   ip_validate
-  check_ns || return $OCF_NOT_RUNNING
+
+  check_ns ; rc=$?
+  if [[ $rc != 0 ]] ; then
+    ocf_log err "No network namespace '${OCF_RESKEY_ns}' found. I means resource not running."
+    return $OCF_NOT_RUNNING
+  fi
+
   local iface=$(find_interface_in_ns $OCF_RESKEY_ns $OCF_RESKEY_ip $OCF_RESKEY_cidr_netmask)
+  if [[ -z "$iface" ]] ; then
+    ocf_log err "No interface with VIP '${OCF_RESKEY_ip}' into '${OCF_RESKEY_ns}' network namespace found. I guess resource not running."
+    rv=$OCF_NOT_RUNNING
+  fi
 
-  [ -z "$iface" ] && return $OCF_NOT_RUNNING
+  check_patchcord_exists_in_bridge $OCF_RESKEY_bridge $OCF_RESKEY_base_veth ; rc=$?
+  if [[ $rc == 0 && $rv == $OCF_NOT_RUNNING ]] || [[ $rc != 0 && $rv == $OCF_SUCCESS ]] ; then
+    if [[ $rc == 0 ]] ; then
+      ocf_log err "Resource not running, but patchcord between bridge '${OCF_RESKEY_bridge}' and network namespace '${OCF_RESKEY_ns}' found. Something went wrong."
+    else
+      ocf_log err "No patchcord between bridge '${OCF_RESKEY_bridge}' and network namespace '${OCF_RESKEY_ns}' found. Something went wrong."
+    fi
+    return $OCF_ERR_GENERIC
+  fi
 
-  check_patchcord_exists_in_bridge $OCF_RESKEY_bridge $OCF_RESKEY_base_veth || return $OCF_ERR_GENERIC
+  check_interfaces_for_up_state "$OCF_RESKEY_bridge:$OCF_RESKEY_base_veth:$OCF_RESKEY_also_check_interfaces" ; rc=$?
+  if [[ $rc == 0 && $rv == $OCF_NOT_RUNNING ]] || [[ $rc != 0 && $rv == $OCF_SUCCESS ]] ; then
+    ocf_log err "One of interfaces, related to VIP found in DOWN state."
+    return $OCF_ERR_GENERIC
+  fi
 
-  check_interfaces_for_up_state "$OCF_RESKEY_bridge:$OCF_RESKEY_also_check_interfaces" || return $OCF_NOT_RUNNING
-  # use arping here, because no IP from VIP network allowed on host system
-  ocf_run arping -c 10 -w 2 -I $OCF_RESKEY_bridge $OCF_RESKEY_ip || return $OCF_NOT_RUNNING
+  if [[ $rv == $OCF_SUCCESS ]] ; then
+    # use arping here, because no IP from VIP network allowed on host system
+    ocf_run arping -c 10 -w 2 -I $OCF_RESKEY_bridge $OCF_RESKEY_ip ; rc=$?
+    if [[ $rc != 0 ]] ; then
+      ocf_log err "VIP '${OCF_RESKEY_ip}' can't be pinged from host. Something went wrong."
+      rv=$OCF_ERR_GENERIC
+    fi
+  fi
 
-  # Send Gratuitous ARP REQUEST packets to update all neighbours in a detached background process
-  ARGS="-U -c 5 -w 2 -I $OCF_RESKEY_ns_veth -q $OCF_RESKEY_ip"
-  $RUN_IN_NS arping $ARGS 2>&1 > /dev/null &
+  if [[ $rv == $OCF_SUCCESS ]] ; then
+    # Send Gratuitous ARP REQUEST packets to update all neighbours in a detached background process
+    ARGS="-U -c 5 -w 2 -I $OCF_RESKEY_ns_veth -q $OCF_RESKEY_ip"
+    $RUN_IN_NS arping $ARGS 2>&1 > /dev/null &
 
-  # Send Gratuitous ARP REPLY packets to update all neighbours in a detached background process
-  ARGS="-A -c 5 -w 2 -I $OCF_RESKEY_ns_veth -q $OCF_RESKEY_ip"
-  $RUN_IN_NS arping $ARGS 2>&1 > /dev/null &
+    # Send Gratuitous ARP REPLY packets to update all neighbours in a detached background process
+    ARGS="-A -c 5 -w 2 -I $OCF_RESKEY_ns_veth -q $OCF_RESKEY_ip"
+    $RUN_IN_NS arping $ARGS 2>&1 > /dev/null &
+  fi
 
-  return $OCF_SUCCESS
+  return $rv
 }
 
 
