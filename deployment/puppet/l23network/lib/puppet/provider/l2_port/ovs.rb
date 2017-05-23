@@ -87,6 +87,10 @@ Puppet::Type.type(:l2_port).provide(:ovs, :parent => Puppet::Provider::Ovs_base)
           vsctl('set', 'Port', @resource[:interface], "tag=[]")
         end
       end
+      if ! @property_flush[:onboot].nil?
+        debug("Setup UP state for interface '#{@resource[:interface]}'.")
+        self.class.interface_up(@resource[:interface])
+      end
       @property_hash = resource.to_hash
     end
   end
