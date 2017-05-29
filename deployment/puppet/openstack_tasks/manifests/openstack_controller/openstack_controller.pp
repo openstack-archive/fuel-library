@@ -250,8 +250,8 @@ class openstack_tasks::openstack_controller::openstack_controller {
   $delete_limit  = $merged_limits['DELETE']
   $post_servers_limit = $merged_limits['POST_SERVERS']
   $nova_rate_limits_string = inline_template('<%="(POST, *, .*,  #{@post_limit} , MINUTE);\
-  (POST, %(*/servers), ^/servers,  #{@post_servers_limit} , DAY);(PUT, %(*) , .*,  #{@put_limit}\
-  , MINUTE);(GET, %(*changes-since*), .*changes-since.*, #{@get_limit}, MINUTE);(DELETE, %(*),\
+  (POST, \"*/servers\", ^/servers,  #{@post_servers_limit} , DAY);(PUT, \"*\" , .*,  #{@put_limit}\
+  , MINUTE);(GET, \"*changes-since*\", .*changes-since.*, #{@get_limit}, MINUTE);(DELETE, \"*\",\
   .*, #{@delete_limit} , MINUTE)" %>')
 
   # Configure nova-api
