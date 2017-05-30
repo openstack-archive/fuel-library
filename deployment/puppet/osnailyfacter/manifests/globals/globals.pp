@@ -440,7 +440,7 @@ class osnailyfacter::globals::globals {
   $sahara_nodes = get_nodes_hash_by_roles($network_metadata, $sahara_roles)
 
   # Define ceilometer-related parameters
-  $ceilometer = hiera('ceilometer', {})
+  $ceilometer = hiera_hash('ceilometer', {})
   $use_ceilometer  = $ceilometer['enabled']
   if $repo_hash['repo_type'] == 'uca' {
     # Listen directives with host required for ip_based vhosts
