@@ -346,37 +346,6 @@ class openstack_tasks::keystone::keystone {
       }
     }
 
-    keystone_config {
-      'identity/driver':                                 value =>'keystone.identity.backends.sql.Identity';
-      'ec2/driver':                                      value =>'keystone.contrib.ec2.backends.sql.Ec2';
-      'filter:debug/paste.filter_factory':               value =>'keystone.common.wsgi:Debug.factory';
-      'filter:token_auth/paste.filter_factory':          value =>'keystone.middleware:TokenAuthMiddleware.factory';
-      'filter:admin_token_auth/paste.filter_factory':    value =>'keystone.middleware:AdminTokenAuthMiddleware.factory';
-      'filter:xml_body/paste.filter_factory':            value =>'keystone.middleware:XmlBodyMiddleware.factory';
-      'filter:json_body/paste.filter_factory':           value =>'keystone.middleware:JsonBodyMiddleware.factory';
-      'filter:user_crud_extension/paste.filter_factory': value =>'keystone.contrib.user_crud:CrudExtension.factory';
-      'filter:crud_extension/paste.filter_factory':      value =>'keystone.contrib.admin_crud:CrudExtension.factory';
-      'filter:ec2_extension/paste.filter_factory':       value =>'keystone.contrib.ec2:Ec2Extension.factory';
-      'filter:s3_extension/paste.filter_factory':        value =>'keystone.contrib.s3:S3Extension.factory';
-      'filter:url_normalize/paste.filter_factory':       value =>'keystone.middleware:NormalizingFilter.factory';
-      'filter:stats_monitoring/paste.filter_factory':    value =>'keystone.contrib.stats:StatsMiddleware.factory';
-      'filter:stats_reporting/paste.filter_factory':     value =>'keystone.contrib.stats:StatsExtension.factory';
-      'app:public_service/paste.app_factory':            value =>'keystone.service:public_app_factory';
-      'app:admin_service/paste.app_factory':             value =>'keystone.service:admin_app_factory';
-      'pipeline:public_api/pipeline':                    value =>'stats_monitoring url_normalize token_auth admin_token_auth xml_body json_body debug ec2_extension user_crud_extension public_service';
-      'pipeline:admin_api/pipeline':                     value =>'stats_monitoring url_normalize token_auth admin_token_auth xml_body json_body debug stats_reporting ec2_extension s3_extension crud_extension admin_service';
-      'app:public_version_service/paste.app_factory':    value =>'keystone.service:public_version_app_factory';
-      'app:admin_version_service/paste.app_factory':     value =>'keystone.service:admin_version_app_factory';
-      'pipeline:public_version_api/pipeline':            value =>'stats_monitoring url_normalize xml_body public_version_service';
-      'pipeline:admin_version_api/pipeline':             value =>'stats_monitoring url_normalize xml_body admin_version_service';
-      'composite:main/use':                              value =>'egg:Paste#urlmap';
-      'composite:main//v2.0':                            value =>'public_api';
-      'composite:main//':                                value =>'public_version_api';
-      'composite:admin/use':                             value =>'egg:Paste#urlmap';
-      'composite:admin//v2.0':                           value =>'admin_api';
-      'composite:admin//':                               value =>'admin_version_api';
-    }
-
     class { '::keystone::endpoint':
       public_url   => $public_url,
       admin_url    => $admin_url,
