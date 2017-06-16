@@ -186,11 +186,6 @@ class openstack_tasks::swift::proxy_storage {
         enable  => false,
         require => Package['swift-container'],
       }
-      service { 'swift-object-reconstructor':
-        ensure  => stopped,
-        enable  => false,
-        require => Package['swift-object'],
-      }
     }
   }
 
