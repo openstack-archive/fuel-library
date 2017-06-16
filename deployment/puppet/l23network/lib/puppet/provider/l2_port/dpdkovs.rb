@@ -43,14 +43,14 @@ Puppet::Type.type(:l2_port).provide(:dpdkovs, :parent => Puppet::Provider::Ovs_b
   def flush
     if ! @property_flush.empty?
       debug("FLUSH properties: #{@property_flush}")
-      if !@property_flush[:vendor_specific][:max_queues].nil? and @property_flush[:vendor_specific][:max_queues] != :absent
+      if !@property_flush[:vendor_specific]['max_queues'].nil? and @property_flush[:vendor_specific]['max_queues'] != :absent
         dpdk_port = self.class.get_dpdk_ports_mapping[@resource[:interface]]
-        vsctl('set', 'Interface', '#{dpdk_port}', 'options:n_rxq=#{@property_flush[:vendor_specific][:max_queues].to_i}')
+        vsctl('set', 'Interface', dpdk_port, "options:n_rxq=#{@property_flush[:vendor_specific]['max_queues'].to_i}")
       end
 
       if !@property_flush[:mtu].nil? and @property_flush[:mtu] != :absent
         dpdk_port = self.class.get_dpdk_ports_mapping[@resource[:interface]]
-        vsctl('set', 'Interface', '#{dpdk_port}', 'mtu_request=#{mtu}')
+        vsctl('set', 'Interface', dpdk_port, "mtu_request=#{@property_flush[:mtu]}")
       end
       @property_hash = resource.to_hash
     end
