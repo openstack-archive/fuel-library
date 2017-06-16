@@ -1,0 +1,13 @@
+Code-Review+1: Stanislaw Bogatkin <sbog@sbog.ru>
+Code-Review+1: Sergey Vasilenko <svasilenko@mirantis.com>
+Code-Review+1: Michael Polenchuk <mpolenchuk@mirantis.com>
+Code-Review+1: Valeriy Saharov <vsakharov@mirantis.com>
+Verified+1: Fuel CI <fuel-ci-bot@mirantis.com>
+Code-Review+2: Sergii Golovatiuk <sgolovatiuk@mirantis.com>
+Workflow+1: Denis V. Meltsaykin <dmeltsaykin@mirantis.com>
+Verified+2: Jenkins
+Submitted-by: Jenkins
+Submitted-at: Fri, 16 Jun 2017 10:26:37 +0000
+Reviewed-on: https://review.openstack.org/428616
+Project: openstack/fuel-library
+Branch: refs/heads/stable/mitaka
