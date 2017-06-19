@@ -7,7 +7,7 @@
   required_for: [deploy_end]
   requires: [netconfig]
   condition:
-    yaql_exp: >
+    yaql_exp: &firewall >
       changedAny($.network_scheme, $.network_metadata,
       ($.ironic.enabled and changed($.ironic.enabled)), $.roles, $.master_ip)
   parameters:
@@ -18,3 +18,17 @@
     cmd: ruby /etc/puppet/modules/osnailyfacter/modular/firewall/firewall_pre.rb
   test_post:
     cmd: ruby /etc/puppet/modules/osnailyfacter/modular/firewall/firewall_post.rb
+
+- id: purge-persistent-neutron-iptables
+  type: puppet
+  version: 2.2.0
+  tags: [compute]
+  required_for: [deploy_end]
+  requires: [netconfig, firewall]
+  condition:
+    yaql_exp: *firewall
+  parameters:
+    puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/firewall/purge_persistent_neutron_iptables.pp
+    puppet_modules: /etc/puppet/modules
+    timeout: 120
+
