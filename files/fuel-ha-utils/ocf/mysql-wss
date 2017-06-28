@@ -203,10 +203,10 @@ nodes_in_cluster_online() {
 
     NODES=$(crm_node --partition | sed -e '/(null)/d')
     if [ ! -z "$NODES" ]; then
-        ocf_log "${LH} Online Nodes in cluster: ${NODES}"
+        ocf_log info "${LH} Online Nodes in cluster: ${NODES}"
         echo $NODES
     else
-        ocf_log "${LH} No online nodes in cluster"
+        ocf_log info "${LH} No online nodes in cluster"
         echo
     fi
 }
@@ -217,10 +217,10 @@ nodes_in_cluster() {
     #Ubuntu doesn't like \w
     NODES=$(crm_node --list | awk '/^[a-zA-Z0-9]/ {print $2}' | sed -e '/(null)/d')
     if [ ! -z "$NODES" ]; then
-        ocf_log "${LH} Nodes in cluster: ${NODES}"
+        ocf_log info "${LH} Nodes in cluster: ${NODES}"
         echo $NODES
     else
-        ocf_log "${LH} No nodes in cluster"
+        ocf_log info "${LH} No nodes in cluster"
         echo
     fi
 }
@@ -299,7 +299,7 @@ start_election_attr()
     local time=$( date -u +%s )
     local LH="${LL} start_election_attr():"
     ocf_log info "${LH} setting election start attribute time to ${time}"
-    crm_attribute --quiet --type crm_config --node $HOSTNAME --name start_election --update $time
+    crm_attribute --quiet --type crm_config --node $HOSTNAME --name start_election_${HOSTNAME} --update $time
 }
 
 clear_start_election_attr()
@@ -307,7 +307,7 @@ clear_start_election_attr()
     local time=$( date -u +%s )
     local LH="${LL} clear_start_election_attr():"
     ocf_log info "${LH} dropping election start attribute"
-    crm_attribute --quiet --type crm_config --node $HOSTNAME --name start_election --delete
+    crm_attribute --quiet --type crm_config --node $HOSTNAME --name start_election_${HOSTNAME} --delete
 }
 
 
@@ -731,7 +731,7 @@ mysql_start() {
 
     update_node_gtid
 
-    local time
+    local timestamp
     local nodes_in_election
 
     NODES=$(nodes_in_cluster_online)
@@ -742,13 +742,13 @@ mysql_start() {
         nodes_in_election=0
 
         for node in ${NODES}; do
-            time=$( date -u +%s )
+            timestamp=$( date -u +%s )
             election_attr=$(crm_attribute --quiet --node ${node} --type crm_config --query \
-            --name start_election 2> /dev/null | sed -e '/(null)/d' | tr -d '[:space:]')
+            --name start_election_${node} 2> /dev/null | sed -e '/(null)/d' | tr -d '[:space:]')
 
             election_attr=${election_attr:-0}
-            ocf_log info "${LH} election attribute for node ${node} is ${election_attr} and time is ${time}"
-            if [ $(( ${time} - ${election_attr} )) -gt $(get_master_timeout) ];
+            ocf_log info "${LH} election attribute for node ${node} is ${election_attr} and time is ${timestamp}"
+            if [ $(( ${timestamp} - ${election_attr} )) -gt $(get_master_timeout) ];
             then
                 ocf_log info "${LH} election attribute for node ${node} is not valid."
                 continue
