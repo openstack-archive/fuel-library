@@ -59,7 +59,7 @@ mod 'ironic',
 # Pull in puppet-keystone
 mod 'keystone',
     :git => 'https://github.com/fuel-infra/puppet-keystone.git',
-    :ref => 'ef97f0a157c9ae4734df66c6ec305749eba78ffc'
+    :ref => 'I63205234e449b509dd34b5cea588a5a3658fa49d'
 
 # Pull in puppet-openstacklib
 mod 'openstacklib',
