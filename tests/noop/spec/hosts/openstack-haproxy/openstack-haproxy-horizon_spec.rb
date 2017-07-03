@@ -33,9 +33,9 @@ describe manifest do
             'server_names'           => nil,
             'ipaddresses'            => nil,
             'haproxy_config_options' => {
-              'option'   => 'http-buffer-request',
-              'timeout'  => 'http-request 10s',
-              'redirect' => 'scheme https if !{ ssl_fc }'
+              'option'       => 'http-buffer-request',
+              'timeout'      => 'http-request 10s',
+              'http-request' => 'redirect location https://%[req.hdr(Host)]/horizon',
             }
           )
           should_not contain_haproxy__balancermember('horizon')
