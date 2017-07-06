@@ -229,12 +229,6 @@ describe manifest do
           ).that_requires('Package[swift-container]')
         end
 
-        it 'should disable swift-object-reconstructor service' do
-          should contain_service('swift-object-reconstructor').with(
-            'ensure' => 'stopped',
-            'enable' => 'false',
-          ).that_requires('Package[swift-object]')
-        end
       end
 
       if deploy_swift_proxy or deploy_swift_storage
