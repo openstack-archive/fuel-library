@@ -377,11 +377,11 @@ class openstack_tasks::openstack_controller::openstack_controller {
     $ironic_protocol         = get_ssl_property($ssl_hash, {}, 'ironic', 'internal', 'protocol', 'http')
     $ironic_endpoint         = get_ssl_property($ssl_hash, {}, 'ironic', 'internal', 'hostname', $ironic_endpoint_default)
     class { '::nova::ironic::common':
-      admin_username    => pick($ironic_hash['auth_name'],'ironic'),
-      admin_password    => pick($ironic_hash['user_password'],'ironic'),
-      admin_url         => "${keystone_auth_url}v2.0",
-      admin_tenant_name => pick($ironic_hash['tenant'],'services'),
-      api_endpoint      => "${ironic_protocol}://${ironic_endpoint}:6385/v1",
+      username     => pick($ironic_hash['auth_name'],'ironic'),
+      password     => pick($ironic_hash['user_password'],'ironic'),
+      auth_url     => "${keystone_auth_url}v2.0",
+      project_name => pick($ironic_hash['tenant'],'services'),
+      api_endpoint => "${ironic_protocol}://${ironic_endpoint}:6385/v1",
     }
   }
 

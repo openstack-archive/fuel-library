@@ -391,11 +391,11 @@ describe manifest do
       end
       it 'should declare nova::ironic::common class with ironic parameters' do
         should contain_class('nova::ironic::common').with(
-          'admin_username'    => ironic_user,
-          'admin_password'    => ironic_password,
-          'admin_tenant_name' => ironic_tenant,
-          'admin_url'         => "#{keystone_auth_url}v2.0",
-          'api_endpoint'      => "#{ironic_protocol}://#{ironic_endpoint}:6385/v1",
+          'username'     => ironic_user,
+          'password'     => ironic_password,
+          'project_name' => ironic_tenant,
+          'auth_url'     => "#{keystone_auth_url}v2.0",
+          'api_endpoint' => "#{ironic_protocol}://#{ironic_endpoint}:6385/v1",
         )
       end
     end
