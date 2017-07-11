@@ -141,7 +141,7 @@ class openstack_tasks::ironic::ironic_compute {
   }
 
   class { '::nova::network::neutron':
-    neutron_admin_password => $neutron_config['keystone']['admin_password'],
+    neutron_password       => $neutron_config['keystone']['admin_password'],
     neutron_url            => "${neutron_protocol}://${neutron_endpoint}:9696",
     neutron_admin_auth_url => "${admin_identity_uri}/v3",
   }

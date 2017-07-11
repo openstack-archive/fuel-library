@@ -126,12 +126,6 @@ class openstack_tasks::openstack_controller::openstack_controller {
   $idle_timeout = hiera('idle_timeout', '3600')
   $max_retries = hiera('max_retries', '-1')
 
-  if hiera('nova_quota') {
-    $nova_quota_driver = 'nova.quota.DbQuotaDriver'
-  } else {
-    $nova_quota_driver = 'nova.quota.NoopQuotaDriver'
-  }
-
   $notify_on_state_change = 'vm_and_task_state'
 
   # From legacy params.pp
@@ -228,7 +222,6 @@ class openstack_tasks::openstack_controller::openstack_controller {
     reservation_expire                => pick($nova_hash['reservation_expire'], 86400),
     until_refresh                     => pick($nova_hash['until_refresh'], 0),
     max_age                           => pick($nova_hash['max_age'], 0),
-    quota_driver                      => $nova_quota_driver
   }
 
   $default_limits = {
@@ -377,11 +370,11 @@ class openstack_tasks::openstack_controller::openstack_controller {
     $ironic_protocol         = get_ssl_property($ssl_hash, {}, 'ironic', 'internal', 'protocol', 'http')
     $ironic_endpoint         = get_ssl_property($ssl_hash, {}, 'ironic', 'internal', 'hostname', $ironic_endpoint_default)
     class { '::nova::ironic::common':
-      admin_username    => pick($ironic_hash['auth_name'],'ironic'),
-      admin_password    => pick($ironic_hash['user_password'],'ironic'),
-      admin_url         => "${keystone_auth_url}v2.0",
-      admin_tenant_name => pick($ironic_hash['tenant'],'services'),
-      api_endpoint      => "${ironic_protocol}://${ironic_endpoint}:6385/v1",
+      username     => pick($ironic_hash['auth_name'],'ironic'),
+      password     => pick($ironic_hash['user_password'],'ironic'),
+      auth_url     => "${keystone_auth_url}v2.0",
+      project_name => pick($ironic_hash['tenant'],'services'),
+      api_endpoint => "${ironic_protocol}://${ironic_endpoint}:6385/v1",
     }
   }
 
