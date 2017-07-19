@@ -559,7 +559,12 @@ ip_monitor() {
     # use arping here, because no IP from VIP network allowed on host system
     ocf_run arping -c 10 -w 2 -I $OCF_RESKEY_bridge $OCF_RESKEY_ip ; rc=$?
     if [[ $rc != 0 ]] ; then
-      ocf_log err "VIP '${OCF_RESKEY_ip}' can't be pinged from host. Something went wrong."
+      ocf_log err "VIP ${OCF_RESKEY_ip} can't be arpinged from host. Something went wrong."
+      rv=$OCF_ERR_GENERIC
+    fi
+    ocf_run ping -c 3 -W 2 -I $OCF_RESKEY_bridge $OCF_RESKEY_ip ; rc=$?
+    if [[ $rc -ne 0 ]]; then
+      ocf_log err "VIP ${OCF_RESKEY_ip} can't be pinged from host. Something went wrong."
       rv=$OCF_ERR_GENERIC
     fi
   fi

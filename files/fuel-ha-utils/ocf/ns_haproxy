@@ -292,7 +292,7 @@ check_ns() {
   local ns=`ip netns list | grep "$OCF_RESKEY_ns"`
   ocf_log debug "${LH} recieved netns list: ${ns}"
   [ "${ns}" != "${OCF_RESKEY_ns}" ] && return $OCF_ERR_GENERIC
-  if [ "`$RUN_IN_NS /sbin/sysctl net.ipv4.ip_nonlocal_bind --values`" -eq "0" ]; then
+  if [[ "$($RUN_IN_NS /sbin/sysctl net.ipv4.ip_nonlocal_bind --values)" == "0" ]]; then
     ocf_run $RUN_IN_NS /sbin/sysctl -w net.ipv4.ip_nonlocal_bind=1
   fi
   return $OCF_SUCCESS
@@ -397,6 +397,47 @@ set_ns_routing() {
   fi
 }
 
+haproxy_get_stats() {
+# this function checks if this node has the b_management interface
+# (i.e. the VIP is on this node) then checks if the haproxy process
+# is reponsive by getting its statistics from the management socket
+# Currently, haproxy stats always listen on http.
+
+  local STAT_CONFIG_FILE
+  local MGMT_PORT
+  local MGMT_IP
+  local EC
+
+  STAT_CONFIG_FILE="/etc/haproxy/conf.d/010-stats.cfg"
+  MGMT_PORT=10000
+  MGMT_IP=$(ip netns exec haproxy ip -f inet addr show dev b_management | grep -Po "inet \K[\d.]+")
+  EC=$?
+
+  if [[ $EC -ne 0 ]]; then
+    # we do not have VIP here so it is ok to return OCF_SUCCESS
+    ocf_log info "haproxy daemon running as slave"
+    return $OCF_SUCCESS
+  fi
+
+  if [[ ! -f ${STAT_CONFIG_FILE} ]]; then
+    # Those needed only for initial deployment time
+    ocf_log info "haproxy daemon not configured yet"
+    return $OCF_SUCCESS
+  fi
+
+  curl -m 5 --connect-timeout 5 -s -o /dev/null "http://${MGMT_IP}:${MGMT_PORT}/"
+  EC=$?
+
+  if [[ $EC -ne 0  ]]; then
+    # our check failed
+    ocf_log err "haproxy does not respond on statistics socket"
+    return $OCF_ERR_GENERIC
+  else
+    ocf_log info "haproxy is running and responsive"
+    return $OCF_SUCCESS
+  fi
+}
+
 haproxy_status() {
 	get_variables
 
@@ -416,8 +457,8 @@ haproxy_status() {
 		if [ -n "${PID}" ]; then
 			# check if process exists
 			if $RUN ps -p "${PID}" | grep -q haproxy; then
-				ocf_log info "haproxy daemon running"
-				return $OCF_SUCCESS
+				haproxy_get_stats
+				return $?
 			else
 				ocf_log warn "haproxy daemon is not running but pid file exists"
 				return $OCF_NOT_RUNNING
@@ -505,14 +546,14 @@ haproxy_stop()
 
     get_variables
     haproxy_status
-    rc="${?}"
-    if [ "${rc}" -eq "${OCF_NOT_RUNNING}" ]; then
+    rc=$?
+    if [[ ${rc} -eq ${OCF_NOT_RUNNING} ]]; then
         ocf_log info "${LH} haproxy already stopped."
-        return "${OCF_SUCCESS}"
+        return ${OCF_SUCCESS}
     fi
 
     proc_stop "${PIDFILE}" "${OCF_RESKEY_binpath}" $shutdown_timeout
-    return "${?}"
+    return $?
 }
 
 haproxy_monitor()
