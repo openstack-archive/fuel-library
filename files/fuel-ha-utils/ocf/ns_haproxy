@@ -312,6 +312,23 @@ get_ns() {
   return $rc
 }
 
+check_ns_pid() {
+  local PID=$1
+  local LH="${LL} check_ns_pid():"
+  if [ "`ip netns identify ${PID} | grep -c \"^${OCF_RESKEY_ns}$\"`" -eq "0" ]; then
+    ocf_log err "${LH} haproxy is not running inside namespace ${OCF_RESKEY_ns}"
+    return $OCF_ERR_GENERIC
+  fi
+}
+
+check_ns_listen() {
+  local LH="${LL} check_ns_listen():"
+  if [ "`$RUN_IN_NS ss -lntp | grep -v ':10000' | grep -c haproxy`" -eq "0" ]; then
+    ocf_log err "${LH} haproxy does not listen on any frontend port inside netns ${OCF_RESKEY_ns}"
+    return $OCF_ERR_GENERIC
+  fi
+}
+
 get_variables() {
         local LH="${LL} get_variables():"
         get_ns
@@ -397,6 +414,38 @@ set_ns_routing() {
   fi
 }
 
+haproxy_get_stats() {
+# this function checks if this node has the b_management interface
+# (i.e. the VIP is on this node) then checks if the haproxy process
+# is reponsive by getting its statistics from the management socket
+
+	local MGMT_PORT
+	local MGMT_IP
+	local EC
+
+	MGMT_PORT=10000
+	MGMT_IP=$(ip netns exec ${OCF_RESKEY_ns} ip -f inet addr show dev b_management | grep -Po "inet \K[\d.]+")
+	EC=$?
+
+	if [[ $EC -ne 0 ]]; then
+		# we do not have VIP here so it is ok to return OCF_SUCCESS
+		ocf_log info "haproxy daemon running as slave"
+		return $OCF_SUCCESS
+	fi
+
+	curl -m 5 -s -o /dev/null http://${MGMT_IP}:${MGMT_PORT}/
+	EC=$?
+
+	if [[ $EC -ne 0  ]]; then
+		# our check failed
+		ocf_log err "haproxy does not respond on statistics port"
+		return $OCF_ERR_GENERIC
+	else
+		ocf_log info "haproxy is running and responsive"
+		return $OCF_SUCCESS
+	fi
+}
+
 haproxy_status() {
 	get_variables
 
@@ -416,8 +465,8 @@ haproxy_status() {
 		if [ -n "${PID}" ]; then
 			# check if process exists
 			if $RUN ps -p "${PID}" | grep -q haproxy; then
-				ocf_log info "haproxy daemon running"
-				return $OCF_SUCCESS
+				check_ns_pid $PID && check_ns_listen && haproxy_get_stats
+				return $?
 			else
 				ocf_log warn "haproxy daemon is not running but pid file exists"
 				return $OCF_NOT_RUNNING
