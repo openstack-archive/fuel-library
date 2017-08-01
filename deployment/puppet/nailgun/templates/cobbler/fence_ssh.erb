@@ -1,8 +1,19 @@
 #!/usr/bin/python
 
-import sys, re, pexpect, exceptions
+import atexit
+import exceptions
+import pexpect
+import sys
+import time
+
 sys.path.append("/usr/share/fence")
-from fencing import *
+from fencing import all_opt
+from fencing import atexit_handler
+from fencing import check_input
+from fencing import fence_action
+from fencing import fence_login
+from fencing import process_input
+from fencing import show_docs
 
 # BEGIN_VERSION_GENERATION
 RELEASE_VERSION = "0.1.0"
@@ -15,26 +26,28 @@ def get_power_status(conn, options):
     try:
         conn.sendline("/bin/echo 1")
         conn.log_expect(options, options["-c"], int(options["-Y"]))
-    except:
+    except Exception:
         return "off"
     return "on"
+
 
 def set_power_status(conn, options):
     if options["-o"] == "off":
         try:
-            conn.sendline("/sbin/reboot")
+            conn.sendline("sh -c '(sleep 1;/sbin/reboot -f)' &>/dev/null &")
             conn.log_expect(options, options["-c"], int(options["-g"]))
             time.sleep(2)
-        except:
+        except Exception:
             pass
 
+
 def main():
-    device_opt = [  "help", "version", "agent", "quiet", "verbose", "debug",
-                    "action", "ipaddr", "login", "passwd", "passwd_script",
-                    "secure", "identity_file", "test", "port", "separator",
-                    "inet4_only", "inet6_only", "ipport",
-                    "power_timeout", "shell_timeout",
-                    "login_timeout", "power_wait" ]
+    device_opt = ["help", "version", "agent", "quiet", "verbose", "debug",
+                  "action", "ipaddr", "login", "passwd", "passwd_script",
+                  "secure", "identity_file", "test", "port", "separator",
+                  "inet4_only", "inet6_only", "ipport",
+                  "power_timeout", "shell_timeout",
+                  "login_timeout", "power_wait"]
 
     atexit.register(atexit_handler)
 
@@ -53,10 +66,19 @@ def main():
     options["-c"] = "\[EXPECT\]#\ "
 
     # this string will be appended to the end of ssh command
-    options["ssh_options"] = "-t -o 'StrictHostKeyChecking=no' '/bin/bash -c \"PS1=%s  /bin/bash --noprofile --norc\"'" % options["-c"]
-    options["-X"] = "-t -o 'StrictHostKeyChecking=no' '/bin/bash -c \"PS1=%s  /bin/bash --noprofile --norc\"'" % options["-c"]
+    strict = "-t -o 'StrictHostKeyChecking=no'"
+    serveralive = "-o 'ServerAliveInterval 2'"
+    no_stdin = "-n"
+    bash = "/bin/bash --noprofile --norc"
+    options["ssh_options"] = "{0} {1} {2} '/bin/bash -c " \
+                             "\"PS1={3} {4}\"'".format(
+                             strict, serveralive, no_stdin, options["-c"],
+                             bash)
+    options["-X"] = "{0} {1} {2} '/bin/bash -c " \
+                    "\"PS1={3} {4}\"'".format(
+                    strict, serveralive, no_stdin, options["-c"], bash)
 
-    docs = { }
+    docs = {}
     docs["shortdesc"] = "Fence agent that can just reboot node via ssh"
     docs["longdesc"] = "fence_ssh is an I/O Fencing agent \
 which can be used to reboot nodes via ssh."
@@ -80,3 +102,4 @@ which can be used to reboot nodes via ssh."
     sys.exit(result)
 if __name__ == "__main__":
     main()
+
