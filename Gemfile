@@ -1,12 +1,14 @@
 source 'https://rubygems.org'
 
 group :development, :test do
+  gem 'public_suffix', '<= 2.0.5',            :require => 'false'
   gem 'nokogiri', '~> 1.6.0',                 :require => 'false'
   gem 'puppetlabs_spec_helper', '1.1.1',      :require => 'false'
   gem 'rspec', '~>3.3',                       :require => 'false'
   gem 'rspec-puppet', '~> 2.2.0',             :require => 'false'
   gem 'librarian-puppet-simple',              :require => 'false'
   gem 'metadata-json-lint',                   :require => 'false'
+  gem 'puppet-lint', '<= 1.1.0',              :require => 'false'
   gem 'puppet-lint-param-docs',               :require => 'false'
   gem 'puppet-lint-absolute_classname-check', :require => 'false'
   gem 'puppet-lint-absolute_template_path',   :require => 'false'

@@ -48,6 +48,7 @@ else
                 echo rebooting >>$UMM_FLAG
                 mkdir -p $UMM_DATA/
                 echo "1" >$UMM_DATA/UMM_ENFORCED
+                service corosync stop || true
                 reboot
             else
                 echo MM already in state - $(cat $UMM_FLAG)
@@ -62,6 +63,7 @@ else
                     rm $UMM_FLAG
                     if [ "x$2" == "xreboot" ] ; then
                         rm $UMM_DATA/UMM_DRC.var
+                        service corosync stop || true
                         sleep 1
                         reboot
                     else
