@@ -25,6 +25,7 @@ group :development, :test do
   gem 'beaker-puppet_install_helper',         :require => 'false'
   gem 'psych',                                :require => 'false'
   gem 'puppet-spec',                          :require => 'false'
+  gem 'byebug', '~> 9.0.6',                   :require => 'false'
   gem 'rspec-puppet-facts'
 end
 
