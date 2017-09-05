@@ -1,0 +1,9 @@
+Verified-1: Fuel CI <fuel-ci-bot@mirantis.com>
+Code-Review+2: Denis V. Meltsaykin <dmeltsaykin@mirantis.com>
+Workflow+1: Denis V. Meltsaykin <dmeltsaykin@mirantis.com>
+Verified+2: Jenkins
+Submitted-by: Jenkins
+Submitted-at: Tue, 05 Sep 2017 13:03:22 +0000
+Reviewed-on: https://review.openstack.org/495384
+Project: openstack/fuel-library
+Branch: refs/heads/stable/mitaka
