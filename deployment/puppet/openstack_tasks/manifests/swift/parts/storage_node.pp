@@ -59,6 +59,10 @@ class openstack_tasks::swift::parts::storage_node (
     }
   }
 
+  swift::storage::filter::recon {'object':
+    require => Class[swift],
+  }
+
   if $storage_type == 'loopback' {
     # create xfs partitions on a loopback device and mount them
     swift::storage::loopback { $storage_devices:
