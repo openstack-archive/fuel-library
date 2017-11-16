@@ -13,7 +13,6 @@
 #  under the License.
 
 import atexit
-import exceptions
 import pexpect
 import sys
 import time
@@ -107,7 +106,7 @@ def main():
 
     try:
         conn.close()
-    except exceptions.OSError:
+    except OSError:
         pass
     except pexpect.ExceptionPexpect:
         pass
