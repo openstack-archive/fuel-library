@@ -16,7 +16,7 @@ if [[ "$1" == "timer" ]] ; then
     exit 0
 fi
 
-# gracefull shutdown restart processing
+# graceful shutdown restart processing
 if [[ "$1" == "down" ]] ; then
     rm -f $UMM_DATA/UMM_DRC.var
     exit 0
