@@ -384,11 +384,6 @@ describe manifest do
 
     ironic_enabled = Noop.hiera_structure 'ironic/enabled'
     if ironic_enabled
-      it 'should declare nova::scheduler::filter class with scheduler_host_manager' do
-        should contain_class('nova::scheduler::filter').with(
-          'scheduler_host_manager' => 'ironic_host_manager',
-        )
-      end
       it 'should declare nova::ironic::common class with ironic parameters' do
         should contain_class('nova::ironic::common').with(
           'admin_username'    => ironic_user,

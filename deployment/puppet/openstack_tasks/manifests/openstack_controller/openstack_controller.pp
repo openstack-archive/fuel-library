@@ -372,7 +372,6 @@ class openstack_tasks::openstack_controller::openstack_controller {
   $nova_scheduler_filters         = unique(concat(pick($nova_config_hash['default_filters'], $nova_scheduler_default_filters), $sahara_filters, $sriov_filters, $huge_pages_filters, $cpu_pinning_filters))
 
   if $ironic_hash['enabled'] {
-    $scheduler_host_manager  = 'ironic_host_manager'
     $ironic_endpoint_default = hiera('ironic_endpoint', $management_vip)
     $ironic_protocol         = get_ssl_property($ssl_hash, {}, 'ironic', 'internal', 'protocol', 'http')
     $ironic_endpoint         = get_ssl_property($ssl_hash, {}, 'ironic', 'internal', 'hostname', $ironic_endpoint_default)
@@ -388,7 +387,6 @@ class openstack_tasks::openstack_controller::openstack_controller {
   class { '::nova::scheduler::filter':
     scheduler_host_subset_size => pick($nova_hash['scheduler_host_subset_size'], '30'),
     scheduler_default_filters  => $nova_scheduler_filters,
-    scheduler_host_manager     => $scheduler_host_manager,
   }
 
   # From logasy filter.pp
