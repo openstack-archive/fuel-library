@@ -53,6 +53,8 @@ require 'spec_helper'
           'option'       => 'http-buffer-request',
           'timeout'      => 'http-request 10s',
           'http-request' => 'set-header X-Forwarded-Proto https if { ssl_fc }',
+          'http-request' => 'set-header X-Frame-Options SAMEORIGIN',
+          'http-request' => 'set-header X-Content-Type-Options nosniff',
         },
       )
     end
