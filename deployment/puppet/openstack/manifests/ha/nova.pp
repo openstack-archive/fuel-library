@@ -112,6 +112,8 @@ class openstack::ha::nova (
       'option'       => 'http-buffer-request',
       'timeout'      => 'http-request 10s',
       'http-request' => 'set-header X-Forwarded-Proto https if { ssl_fc }',
+      'set-header X-Frame-Options SAMEORIGIN',
+      'set-header X-Content-Type-Options nosniff',
     },
   }
 }
