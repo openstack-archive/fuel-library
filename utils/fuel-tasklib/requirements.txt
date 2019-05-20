@@ -1,5 +1,5 @@
-networkx>=1.10;python_version>='2.7'
-networkx>=1.8,<1.10; python_version=='2.6'
+networkx<2.3;python_version<'3.0'  # BSD
+networkx;python_version>='3.4'  # BSD
 jsonschema>=2.3.0
 PyYAML>=3.11
 argparse>=1.2.1;python_version=='2.6'
