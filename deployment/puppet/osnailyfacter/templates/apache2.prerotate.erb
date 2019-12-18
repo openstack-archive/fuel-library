@@ -1,7 +1,0 @@
-#!/bin/sh
-# This is a prerotate script for apache2 that will add a delay to the log
-# rotation to spread out the apache2 restarts. The goal of this script is to
-# stager the apache restarts to prevent all services from being down at the
-# same time. LP#1491576
-
-sleep <%=@apache2_logrotate_delay%>

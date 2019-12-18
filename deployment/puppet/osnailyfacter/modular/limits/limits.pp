@@ -1,1 +1,0 @@
-class { '::osnailyfacter::limits::limits' :}

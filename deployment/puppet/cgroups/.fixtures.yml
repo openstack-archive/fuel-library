@@ -1,5 +1,0 @@
-fixtures:
-  repositories:
-    stdlib: "#{source_dir}/../stdlib"
-  symlinks:
-    cgroups: "#{source_dir}"

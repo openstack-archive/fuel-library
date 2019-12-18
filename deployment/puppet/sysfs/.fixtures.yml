@@ -1,5 +1,0 @@
-fixtures:
-  symlinks:
-    sysfs: "#{source_dir}"
-    tweaks: "#{source_dir}/../tweaks"
-    stdlib: "#{source_dir}/../stdlib"

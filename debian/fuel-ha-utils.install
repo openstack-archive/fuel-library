@@ -1,6 +1,0 @@
-files/fuel-ha-utils/ocf/* /usr/lib/ocf/resource.d/fuel
-files/fuel-ha-utils/policy/set_rabbitmq_policy /usr/sbin
-files/fuel-ha-utils/tools/wsrepclustercheckrc /etc
-files/fuel-ha-utils/tools/galeracheck /usr/bin
-files/fuel-ha-utils/tools/swiftcheck /usr/bin
-files/fuel-ha-utils/tools/rabbitmq-dump-clean.py /usr/sbin

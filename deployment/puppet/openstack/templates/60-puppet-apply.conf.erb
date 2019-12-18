@@ -1,9 +1,0 @@
-# file is managed by puppet
-
-### collect puppet logs of all levels in /var/log/puppet/puppet.log
-if ($programname == 'puppet-apply' \
- or $programname == 'puppet-user' \
- or $programname == 'puppet-error') \
-then -/var/log/puppet/puppet.log
-### stop further processing for the matched entries
-& stop

@@ -1,9 +1,0 @@
-name 'puppetlabs-openstack'
-version '0.2.0'
-
-author 'Puppet Labs'
-license 'Apache License 2.0'
-project_page 'https://github.com/puppetlabs/puppetlabs-openstack'
-source 'https://github.com/puppetlabs/puppetlabs-openstack'
-summary 'Puppet Labs Openstack Module'
-description 'Module to install common openstack-essex configurations using puppet'

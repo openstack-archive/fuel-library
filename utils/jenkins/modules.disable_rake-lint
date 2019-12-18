@@ -1,3 +1,0 @@
-# List of modules with disabled 'rake lint' check.
-# Such modules will be checked with 'puppet-lint' command.
-# No need to include here modules defined in the fuel-library Puppetfile.

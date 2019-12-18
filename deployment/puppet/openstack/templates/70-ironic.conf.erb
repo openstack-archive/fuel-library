@@ -1,8 +1,0 @@
-# Load UDP module
-$ModLoad imudp
-$UDPServerRun 514
-
-$template RemoteLogIronic, "<%%pri%>%timestamp% %syslogtag:R,ERE,2,FIELD:(ironic/.<200b>*/)(.*<200b>)--end% %msg:::sp-if-no-1st-sp%%msg%\n"
-$template RemoteLogFile, "/var/log/remote/%syslogtag:R,ERE,1,DFLT:([A-Za-z][A-Za-z0-9_./-]*)--end%.log"
-
-:FROMHOST, regex, "^[1-9]" -?RemoteLogFile;RemoteLogIronic

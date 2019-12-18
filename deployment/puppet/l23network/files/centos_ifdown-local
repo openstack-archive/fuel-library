@@ -1,3 +1,0 @@
-#!/bin/bash
-SCRIPT="/etc/sysconfig/network-scripts/interface-down-script-$1"
-[ -x $SCRIPT ] && . $SCRIPT

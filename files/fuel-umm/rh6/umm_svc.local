@@ -1,5 +1,0 @@
-/etc/init.d/openvswitch start
-/etc/init.d/network start
-/etc/init.d/sshd start
-[ -x /bin/plymouth ] && /bin/plymouth hide-splash
-cat /etc/issue.mm

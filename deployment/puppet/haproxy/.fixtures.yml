@@ -1,5 +1,0 @@
-fixtures:
-  symlinks:
-    haproxy: "#{source_dir}"
-    concat: "#{source_dir}/../concat"
-    stdlib: "#{source_dir}/../stdlib"

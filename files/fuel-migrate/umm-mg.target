@@ -1,6 +1,0 @@
-[Unit]
-Description=Unified maintenance mode
-Requires=sysinit.target sshd.service network.service umm-mg.service
-After=sysinit.target network.target
-AllowIsolate=yes
-

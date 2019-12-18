@@ -1,5 +1,0 @@
-require_relative 'l23_dpdk_ports_mapping'
-require_relative 'l23_ethtool_name_commands_mapping'
-require_relative 'l23_hash_tools'
-require_relative 'l23_network_scheme'
-require_relative 'l23_utils'
