@@ -1,0 +1,8 @@
+Code-Review+2: Andreas Jaeger <jaegerandi@gmail.com>
+Workflow+1: Andreas Jaeger <jaegerandi@gmail.com>
+Verified+2: Zuul
+Submitted-by: Zuul
+Submitted-at: Wed, 18 Dec 2019 17:10:15 +0000
+Reviewed-on: https://review.opendev.org/699587
+Project: openstack/fuel-library
+Branch: refs/heads/master
